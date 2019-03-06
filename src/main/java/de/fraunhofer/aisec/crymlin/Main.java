@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.cpg.AnalysisConfiguration;
 import de.fraunhofer.aisec.cpg.AnalysisManager;
 import de.fraunhofer.aisec.cpg.AnalysisResult;
-
+import de.fraunhofer.aisec.cpg.Database;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
@@ -16,12 +16,21 @@ public class Main {
     System.out.println("Analysis server starting ...");
 
     // TODO Initialize CPG
-    AnalysisManager aServer = AnalysisManager.builder()
-            .config(AnalysisConfiguration.builder()
+    AnalysisManager aServer =
+        AnalysisManager.builder()
+            .config(
+                AnalysisConfiguration.builder()
                     .sourceFiles(new File("src/test/resources/good/Bouncycastle.java"))
                     .build())
             .build();
+
+    // Run all passes. This will *not* yet persist the result
     AnalysisResult result = aServer.analyze().get();
+
+    // Persist the result
+    Database db = Database.getInstance();
+    db.connect();
+    result.persist(db);
 
     // Initialize JythonInterpreter
     System.out.println("Launching query interpreter ...");

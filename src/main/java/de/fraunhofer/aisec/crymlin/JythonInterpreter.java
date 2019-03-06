@@ -2,16 +2,15 @@ package de.fraunhofer.aisec.crymlin;
 
 import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.NAME;
 
-import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
-import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
-import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -19,6 +18,10 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.python.util.InteractiveConsole;
+
+import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
+import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
+import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
 
 /**
  * Demonstrates how to run Crymlin queries dynamically from Java.
@@ -35,7 +38,7 @@ public class JythonInterpreter implements AutoCloseable {
       new DefaultGremlinScriptEngineManager().getEngineByName("gremlin-jython");
 
   private Graph tg;
-  private CrymlinTraversalSourceDsl code;
+  private CrymlinTraversalSourceDsl crymlinSource;
 
   /**
    * Connect to the graph database and initialize the internal Jython engine.
@@ -50,13 +53,13 @@ public class JythonInterpreter implements AutoCloseable {
     Neo4JElementIdProvider<?> vertexIdProvider = new Neo4JNativeElementIdProvider();
     Neo4JElementIdProvider<?> edgeIdProvider = new Neo4JNativeElementIdProvider();
     this.tg = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider);
-    this.code = tg.traversal(CrymlinTraversalSourceDsl.class);
+    this.crymlinSource = tg.traversal(CrymlinTraversalSourceDsl.class);
 
     // Make Java objects available in python
     this.engine.getBindings(ScriptContext.ENGINE_SCOPE).put("graph", tg); // Generic graph
     this.engine
         .getBindings(ScriptContext.ENGINE_SCOPE)
-        .put("crymlin", code); // Trav. source of crymlin
+        .put("crymlin", crymlinSource); // Trav. source of crymlin
   }
 
   @Deprecated() // Just for testing. Use Main class instead
@@ -68,7 +71,6 @@ public class JythonInterpreter implements AutoCloseable {
       Neo4JElementIdProvider<?> edgeIdProvider = new Neo4JNativeElementIdProvider();
       Graph tg = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider);
       CrymlinTraversalSourceDsl code = tg.traversal(CrymlinTraversalSourceDsl.class);
-      code.cipherListSetterCalls().toList();
 
       // all variable declarations
       List<Vertex> declarations = code.variableDeclarations().toList();
@@ -103,7 +105,7 @@ public class JythonInterpreter implements AutoCloseable {
   }
 
   public CrymlinTraversalSourceDsl getCrymlinTraversal() {
-    return this.code;
+    return this.crymlinSource;
   }
 
   /**
@@ -125,7 +127,9 @@ public class JythonInterpreter implements AutoCloseable {
             + "| (__| |  | |_| | | | | | | | | | | |\n"
             + " \\___|_|   \\__, |_| |_| |_|_|_|_| |_|\n"
             + "            __/ |                    \n"
-            + "           |___/        ");
+            + "           |___/                     \n"
+            + "\n"
+            + " Start writing crymlin queries: crymlin.recorddeclarations()... \n");
     InteractiveConsole c = new InteractiveConsole();
     for (Map.Entry<String, Object> kv :
         this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
@@ -141,7 +145,7 @@ public class JythonInterpreter implements AutoCloseable {
       tg.close();
     }
 
-    CrymlinTraversalSourceDsl code = this.code;
+    CrymlinTraversalSourceDsl code = this.crymlinSource;
     if (code != null) {
       code.close();
     }

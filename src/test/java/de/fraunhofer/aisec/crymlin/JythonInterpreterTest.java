@@ -84,22 +84,26 @@ public class JythonInterpreterTest {
       interp.connect();
 
       // Run crymlin queries directly in Java
-      CrymlinTraversalSourceDsl crymlin = interp.getCrymlinTraversal();
+      CrymlinTraversalSource crymlin = interp.getCrymlinTraversal();
       List<Vertex> stmts = crymlin.recorddeclarations().toList();
-
+      //      List<Vertex> stmts = crymlin.recorddeclarations().toList();
       assertNotNull(stmts);
+
+      crymlin.cipherListSetterCalls().literals().toList();
+      crymlin.V().literals().toList();
+      crymlin.translationunits().literals().toList();
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void crymlinOverJythonTest() throws Exception {
     try (JythonInterpreter interp = new JythonInterpreter()) {
       interp.connect();
 
       // Run crymlin queries as strings and get back the results as Java objects:
-      List<Vertex> stmts = (List) interp.query("crymlin.recorddeclarations().toList()");
-
-      assertNotNull(stmts);
+      List<Vertex> classes = (List<Vertex>) interp.query("crymlin.recorddeclarations().toList()");
+      assertNotNull(classes);
     }
   }
 }

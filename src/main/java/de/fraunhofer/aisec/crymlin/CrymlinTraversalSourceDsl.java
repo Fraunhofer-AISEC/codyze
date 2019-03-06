@@ -4,8 +4,10 @@ import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.DefaultGraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.process.traversal.step.map.GraphStep;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -50,15 +52,25 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     return traversal.hasLabel(CALL_EXPRESSION);
   }
 
+  public GraphTraversal<Vertex, Vertex> cipherListSetterCalls() {
+    GraphTraversalSource traversal = this.clone();
+
+    return this.calls().has(NAME, "SSL_CTX_set_cipher_list");
+  }
+
   /**
    * Returns all TranslationUnitDeclaration nodes.
    *
    * @return
    */
   public GraphTraversal<Vertex, Vertex> translationunits() {
-    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+    GraphTraversalSource clone = this.clone();
 
-    return traversal.has(T.label, LabelP.of(TranslationUnitDeclaration.class.getSimpleName()));
+    clone.getBytecode().addStep(GraphTraversal.Symbols.V);
+    GraphTraversal<Vertex, Vertex> traversal = new DefaultGraphTraversal<>(clone);
+    traversal.asAdmin().addStep(new GraphStep<>(traversal.asAdmin(), Vertex.class, true));
+    traversal = traversal.has(T.label, LabelP.of(TranslationUnitDeclaration.class.getSimpleName()));
+    return traversal;
   }
 
   /**

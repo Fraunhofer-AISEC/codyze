@@ -1,3 +1,6 @@
+val deployUsername: String? by extra // imported from settings.gradle.kts
+val deployPassword: String? by extra // imported from settings.gradle.kts
+
 plugins {
     // built-in
     java

@@ -97,7 +97,7 @@ public class JythonInterpreterTest {
       interp.connect();
 
       // Run crymlin queries as strings and get back the results as Java objects:
-      List<Vertex> stmts = (List) interp.query("crymlin.cipherListSetterCalls().toList()");
+      List<Vertex> stmts = (List) interp.query("crymlin.recorddeclarations().toList()");
 
       assertNotNull(stmts);
     }

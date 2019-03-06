@@ -1,7 +1,11 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import java.util.HashSet;
 import java.util.List;
 import javax.script.ScriptException;

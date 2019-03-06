@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.crymlin;
+package de.fraunhofer.aisec.crymlin.dsl;
 
 import de.fraunhofer.aisec.cpg.graph.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;

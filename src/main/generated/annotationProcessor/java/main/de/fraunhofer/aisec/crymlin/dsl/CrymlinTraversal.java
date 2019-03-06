@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.crymlin;
+package de.fraunhofer.aisec.crymlin.dsl;
 
 import java.lang.Double;
 import java.lang.Integer;

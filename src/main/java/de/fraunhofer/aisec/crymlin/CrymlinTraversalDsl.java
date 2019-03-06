@@ -30,31 +30,16 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
  *
  * @author julian
  */
-@GremlinDsl(
-    traversalSource = "de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl",
-    packageName = "de.fraunhofer.aisec.crymlin")
+@GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl")
 public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 
-  public default GraphTraversal<S, Vertex> ciphers() {
-    GraphTraversal<S, Vertex> firstArgument = ((GraphTraversal<S, Vertex>) argument(1));
-
-    // for now just return literals
-    return firstArgument;
-  }
-
   public default GraphTraversal<S, Vertex> argument(int i) {
-    return out(ARGUMENTS).has(ARGUMENT_INDEX, i);
+    return (CrymlinTraversalDsl) out(ARGUMENTS).has(ARGUMENT_INDEX, i);
   }
 
-  /**
-   * Shortcut for <code>.values("name")</code>.
-   *
-   * @return
-   */
-  public default GraphTraversal<S, E> myname() {
-    return values("name");
-  }
-
+  @GremlinDsl.AnonymousMethod(
+      returnTypeParameters = {"A", "A"},
+      methodTypeParameters = {"A"})
   public default GraphTraversal<S, E> literals() {
     return hasLabel(LITERAL);
   }

@@ -1,0 +1,68 @@
+# probably need to change this to something else in the future, but this image has Docker + java
+image: registry.netsec.aisec.fraunhofer.de/clouditor/build
+
+services:
+  - neo4j:3.5.3
+
+stages:
+  - build
+  - push
+  - deploy
+
+variables:
+  DOCKER_REGISTRY_URL: "registry.netsec.aisec.fraunhofer.de"
+  PARENT_PROJECT_NAME: "analysisserver"
+
+  # for the neo4j service
+  NEO4J_AUTH: neo4j/password
+
+  # for the cpg tests to find the neo4j service
+  NEO4J_URI: bolt://neo4j
+
+build:
+  stage: build
+  variables:
+    GRADLE_USER_HOME: "/cache/.gradle"
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+    PIP_CACHE_DIR: "/cache/.pip"
+  tags:
+    - docker
+  before_script:
+    - cp sonar.crt /usr/local/share/ca-certificates/sonar.crt
+    - update-ca-certificates
+  script:
+    # make sure the cached gradle directory exists
+    - mkdir -p /cache/.gradle
+    # build
+    - echo $GRADLE_PROPERTIES > gradle.properties
+    - ./gradlew -Dsonar.host.url=https://sonar.netsec.aisec.fraunhofer.de -Dsonar.exclusions=build/generated-src/** --parallel clean docker sonarqube
+  artifacts:
+    when: always
+    paths:
+      - build/reports
+
+push_as_is:
+  stage: push
+  tags:
+    - docker  
+  script:
+    - docker push $DOCKER_REGISTRY_URL/$PARENT_PROJECT_NAME/$CI_PROJECT_NAME:${CI_COMMIT_SHA:0:8}
+  only:
+    - master
+
+.job_template: &deploy_definition
+  stage: deploy
+  tags:
+    - docker  
+  before_script:
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl
+    - export TAG=${CI_COMMIT_SHA:0:8}
+    - export CI_ENVIRONMENT_HOST=${CI_ENVIRONMENT_URL#*//}
+  script:
+    - envsubst < kubernetes/cpg.yaml | ./kubectl apply -f -
+  only:
+    - master
+
+deploy_to_staging:
+  <<: *deploy_definition
+  environment: staging

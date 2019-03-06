@@ -2,15 +2,16 @@ package de.fraunhofer.aisec.crymlin;
 
 import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.NAME;
 
+import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
+import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
+import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -18,10 +19,6 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.python.util.InteractiveConsole;
-
-import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
-import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
-import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
 
 /**
  * Demonstrates how to run Crymlin queries dynamically from Java.

@@ -4,14 +4,9 @@ import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.ARGUMENTS;
 import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.ARGUMENT_INDEX;
 import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.LITERAL;
 
-import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
-import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 
 /**
  * Instead of starting a traversal with "g.V().", we start Crymlin with "crymlin.".
@@ -35,7 +30,9 @@ import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
  *
  * @author julian
  */
-@GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl", packageName = "de.fraunhofer.aisec.crymlin")
+@GremlinDsl(
+    traversalSource = "de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl",
+    packageName = "de.fraunhofer.aisec.crymlin")
 public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 
   public default GraphTraversal<S, Vertex> ciphers() {
@@ -61,5 +58,4 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   public default GraphTraversal<S, E> literals() {
     return hasLabel(LITERAL);
   }
-  
 }

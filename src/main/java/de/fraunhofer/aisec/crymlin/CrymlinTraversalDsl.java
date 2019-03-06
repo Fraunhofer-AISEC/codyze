@@ -1,10 +1,17 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.*;
+import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.ARGUMENTS;
+import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.ARGUMENT_INDEX;
+import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.LITERAL;
 
+import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 
 /**
  * Instead of starting a traversal with "g.V().", we start Crymlin with "crymlin.".
@@ -28,21 +35,31 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
  *
  * @author julian
  */
-@GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl")
+@GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl", packageName = "de.fraunhofer.aisec.crymlin")
 public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 
-  default GraphTraversal<S, Vertex> ciphers() {
+  public default GraphTraversal<S, Vertex> ciphers() {
     GraphTraversal<S, Vertex> firstArgument = ((GraphTraversal<S, Vertex>) argument(1));
 
     // for now just return literals
     return firstArgument;
   }
 
-  default GraphTraversal<S, Vertex> argument(int i) {
+  public default GraphTraversal<S, Vertex> argument(int i) {
     return out(ARGUMENTS).has(ARGUMENT_INDEX, i);
   }
 
-  default GraphTraversal<S, E> literals() {
+  /**
+   * Shortcut for <code>.values("name")</code>.
+   *
+   * @return
+   */
+  public default GraphTraversal<S, E> myname() {
+    return values("name");
+  }
+
+  public default GraphTraversal<S, E> literals() {
     return hasLabel(LITERAL);
   }
+  
 }

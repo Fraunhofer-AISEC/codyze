@@ -85,7 +85,7 @@ public class JythonInterpreterTest {
 
       // Run crymlin queries directly in Java
       CrymlinTraversalSourceDsl crymlin = interp.getCrymlinTraversal();
-      List<Vertex> stmts = crymlin.cipherListSetterCalls().toList();
+      List<Vertex> stmts = crymlin.recorddeclarations().toList();
 
       assertNotNull(stmts);
     }

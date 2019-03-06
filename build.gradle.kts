@@ -74,10 +74,7 @@ dependencies {
     implementation("de.fraunhofer.aisec", "cpg", "1.0-SNAPSHOT")
 
     // api stuff
-    //implementation("org.glassfish.hk2", "hk2-core", "2.5.0-b62")
-    //implementation("org.glassfish.jersey.core", "jersey-server", versions["jersey"])
     api("org.glassfish.jersey.inject", "jersey-hk2", versions["jersey"])
-    //implementation("org.glassfish.jersey.containers", "jersey-container-servlet", versions["jersey"])
     api("org.glassfish.jersey.containers", "jersey-container-grizzly2-http", versions["jersey"])
     api("org.glassfish.jersey.media", "jersey-media-json-jackson", versions["jersey"])
 
@@ -95,10 +92,10 @@ dependencies {
     api("org.apache.tinkerpop", "gremlin-python", versions["tinkerpop"])
     api("org.apache.tinkerpop", "tinkergraph-gremlin", versions["tinkerpop"])
     api("org.apache.tinkerpop", "gremlin-driver", versions["tinkerpop"])
-    api("com.steelbridgelabs.oss", "neo4j-gremlin-bolt", "0.3.1")
+    api("org.apache.tinkerpop", "neo4j-gremlin", versions["tinkerpop"])  // Neo4j multi-label support for gremlin
+    api("com.steelbridgelabs.oss", "neo4j-gremlin-bolt", "0.3.1")  // For fast bolt:// access to Neo4J
 
     api("org.python", "jython-standalone", versions["jython"])
-
 
     // needed for jersey, not part of JDK anymore
     api("javax.xml.bind", "jaxb-api", "2.3.1")

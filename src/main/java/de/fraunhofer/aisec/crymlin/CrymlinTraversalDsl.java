@@ -4,6 +4,7 @@ import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.ARGUMENTS;
 import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.ARGUMENT_INDEX;
 import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.LITERAL;
 
+import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -33,14 +34,50 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 @GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl")
 public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 
-  public default GraphTraversal<S, Vertex> argument(int i) {
-    return (CrymlinTraversalDsl) out(ARGUMENTS).has(ARGUMENT_INDEX, i);
+  public default CrymlinTraversalDsl<S, Vertex> argument(int i) {
+    return (CrymlinTraversalDsl<S, Vertex>) out(ARGUMENTS).has(ARGUMENT_INDEX, i);
   }
 
   @GremlinDsl.AnonymousMethod(
-      returnTypeParameters = {"A", "A"},
+      returnTypeParameters = {"A", "A"}, // c/p from example, unclear.
       methodTypeParameters = {"A"})
   public default GraphTraversal<S, E> literals() {
     return hasLabel(LITERAL);
+  }
+
+  /**
+   * Returns nodes with a label {@code VariableDeclaration}.
+   *
+   * @return
+   */
+  @GremlinDsl.AnonymousMethod(
+      returnTypeParameters = {"A", "B"}, // c/p from example, unclear.
+      methodTypeParameters = {"A", "B"})
+  public default CrymlinTraversal<S, E> variables() {
+    return (CrymlinTraversal<S, E>) hasLabel(VariableDeclaration.class.getSimpleName());
+  }
+
+  /**
+   * Shortcut for {@code .values("name")}.
+   *
+   * @return
+   */
+  @GremlinDsl.AnonymousMethod(
+      returnTypeParameters = {"A", "Object"}, // c/p from example, unclear.
+      methodTypeParameters = {"A"})
+  public default CrymlinTraversal<S, Object> name() {
+    return (CrymlinTraversal<S, Object>) values("name");
+  }
+
+  /**
+   * Shortcut for {@code .values("code")}.
+   *
+   * @return
+   */
+  @GremlinDsl.AnonymousMethod(
+      returnTypeParameters = {"A", "Object"}, // c/p from example, unclear.
+      methodTypeParameters = {"A"})
+  public default CrymlinTraversal<S, Object> sourcecode() {
+    return (CrymlinTraversal<S, Object>) values("code");
   }
 }

@@ -167,6 +167,12 @@ public class CrymlinTraversalSource extends CrymlinTraversalSourceDsl {
   }
 
   @Override
+  public CrymlinTraversal<Vertex, Vertex> methods() {
+    CrymlinTraversalSource clone = this.clone();
+    return new DefaultCrymlinTraversal (clone, super.methods().asAdmin());
+  }
+
+  @Override
   public CrymlinTraversal<Vertex, Vertex> cipherListSetterCalls() {
     CrymlinTraversalSource clone = this.clone();
     return new DefaultCrymlinTraversal (clone, super.cipherListSetterCalls().asAdmin());

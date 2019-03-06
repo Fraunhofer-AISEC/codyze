@@ -1,5 +1,7 @@
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.cpg.graph.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
@@ -46,12 +48,29 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     return traversal.hasLabel(VARIABLE_DECLARATION);
   }
 
+  /**
+   * Returns nodes with a label {@code CallExpression}.
+   *
+   * @return
+   */
   public GraphTraversal<Vertex, Vertex> calls() {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal.hasLabel(CALL_EXPRESSION);
+    return traversal.has(T.label, LabelP.of(CallExpression.class.getSimpleName()));
   }
 
+  /**
+   * Returns nodes with a label {@code MethodDeclaration}.
+   *
+   * @return
+   */
+  public GraphTraversal<Vertex, Vertex> methods() {
+    GraphTraversalSource traversal = this.clone();
+
+    return traversal.V().has(T.label, LabelP.of(MethodDeclaration.class.getSimpleName()));
+  }
+
+  @Deprecated
   public GraphTraversal<Vertex, Vertex> cipherListSetterCalls() {
     GraphTraversalSource traversal = this.clone();
 

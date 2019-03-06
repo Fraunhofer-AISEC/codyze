@@ -47,6 +47,18 @@ public final class __ {
     return __.<A>start().literals();
   }
 
+  public static <A, B> CrymlinTraversal<A, B> variables() {
+    return __.<A>start().variables();
+  }
+
+  public static <A> CrymlinTraversal<A, Object> name() {
+    return __.<A>start().name();
+  }
+
+  public static <A> CrymlinTraversal<A, Object> sourcecode() {
+    return __.<A>start().sourcecode();
+  }
+
   public static <A> CrymlinTraversal<A, A> __(A... starts) {
     return inject(starts);
   }

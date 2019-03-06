@@ -15,7 +15,7 @@ public class JythonInterpreterTest {
   public void jythonClosingTest() throws Exception {
     JythonInterpreter interp = new JythonInterpreter();
 
-    // Expecting an engine with initialized objects
+    // Expecting an unconnected engine, throwing exceptions.
     assertNotNull(interp.engine);
     assertThrows(
         ScriptException.class,
@@ -28,8 +28,10 @@ public class JythonInterpreterTest {
           interp.query("crymlin");
         });
 
+    // Connect engine to DB
     interp.connect();
 
+    // Expect a connected engine w/o exceptions.
     assertNotNull(interp.engine);
     assertDoesNotThrow(
         () -> {
@@ -86,12 +88,13 @@ public class JythonInterpreterTest {
       // Run crymlin queries directly in Java
       CrymlinTraversalSource crymlin = interp.getCrymlinTraversal();
       List<Vertex> stmts = crymlin.recorddeclarations().toList();
-      //      List<Vertex> stmts = crymlin.recorddeclarations().toList();
       assertNotNull(stmts);
 
       crymlin.cipherListSetterCalls().literals().toList();
       crymlin.V().literals().toList();
       crymlin.translationunits().literals().toList();
+      crymlin.recorddeclarations().variables().name().toList();
+      crymlin.methods().sourcecode().toList();
     }
   }
 
@@ -104,6 +107,10 @@ public class JythonInterpreterTest {
       // Run crymlin queries as strings and get back the results as Java objects:
       List<Vertex> classes = (List<Vertex>) interp.query("crymlin.recorddeclarations().toList()");
       assertNotNull(classes);
+
+      List<Vertex> literals =
+          (List<Vertex>) interp.query("crymlin.translationunits().literals().toList()");
+      assertNotNull(literals);
     }
   }
 }

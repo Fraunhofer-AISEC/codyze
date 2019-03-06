@@ -56,11 +56,13 @@ val versions = mapOf(
         "log4j" to "2.11.1",
         "jersey" to "2.28",
         "javaparser" to "3.11.0",
+        "commons-lang3" to "3.8.1",
         "jython" to "2.7.1b3",
         "tinkerpop" to "3.3.4"
 )
 
 dependencies {
+    implementation("org.apache.commons", "commons-lang3", versions["commons-lang3"])
     api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
     api("org.slf4j", "jul-to-slf4j", "1.8.0-beta2")
     implementation("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])

@@ -2,7 +2,6 @@ plugins {
     // built-in
     java
     application
-    antlr
     jacoco
     `maven-publish`
     `java-library`
@@ -11,10 +10,28 @@ plugins {
     id("com.diffplug.gradle.spotless") version "3.18.0"
 }
 
+group = "de.fraunhofer.aisec"
+version = "1.0-SNAPSHOT"
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
+        }
+    }
+
+    repositories {
+        maven {
+            val repoUrl = "http://repository.***REMOVED***"
+
+            val releasesRepoUrl = "$repoUrl/repository/releases"
+            val snapshotsRepoUrl = "$repoUrl/repository/snapshots"
+            url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+
+            credentials {
+                username = deployUsername
+                password = deployPassword
+            }
         }
     }
 }
@@ -40,9 +57,6 @@ repositories {
         url = uri("http://repository.***REMOVED***/repository/snapshots/")
     }
 }
-
-group = "de.fraunhofer.aisec"
-version = "1.0-SNAPSHOT"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11

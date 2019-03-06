@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.crymlin;
+package de.fraunhofer.aisec.crymlin.dsl;
 
 import java.lang.Class;
 import java.lang.Exception;

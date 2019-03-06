@@ -1,8 +1,8 @@
-package de.fraunhofer.aisec.crymlin;
+package de.fraunhofer.aisec.crymlin.dsl;
 
-import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.ARGUMENTS;
-import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.ARGUMENT_INDEX;
-import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.LITERAL;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.ARGUMENTS;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.ARGUMENT_INDEX;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.LITERAL;
 
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
@@ -31,7 +31,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
  *
  * @author julian
  */
-@GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl")
+@GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl")
 public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 
   public default CrymlinTraversalDsl<S, Vertex> argument(int i) {

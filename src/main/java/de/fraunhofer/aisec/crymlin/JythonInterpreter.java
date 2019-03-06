@@ -1,10 +1,12 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static de.fraunhofer.aisec.crymlin.CrymlinTraversalSourceDsl.NAME;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.NAME;
 
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
 import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;

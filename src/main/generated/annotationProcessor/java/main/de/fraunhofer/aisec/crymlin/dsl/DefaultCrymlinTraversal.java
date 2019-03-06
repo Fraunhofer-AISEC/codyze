@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.crymlin;
+package de.fraunhofer.aisec.crymlin.dsl;
 
 import java.lang.Override;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;

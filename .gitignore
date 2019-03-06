@@ -4,3 +4,5 @@
 /logs/
 /out/
 /build/
+/.apt_generated/
+/apt_generated/

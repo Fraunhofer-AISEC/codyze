@@ -1,6 +1,10 @@
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.cpg.AnalysisConfiguration;
 import de.fraunhofer.aisec.cpg.AnalysisManager;
+import de.fraunhofer.aisec.cpg.AnalysisResult;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
@@ -12,8 +16,12 @@ public class Main {
     System.out.println("Analysis server starting ...");
 
     // TODO Initialize CPG
-    AnalysisManager aServer = AnalysisManager.builder().build();
-    aServer.analyze().get();
+    AnalysisManager aServer = AnalysisManager.builder()
+            .config(AnalysisConfiguration.builder()
+                    .sourceFiles(new File("src/test/resources/good/Bouncycastle.java"))
+                    .build())
+            .build();
+    AnalysisResult result = aServer.analyze().get();
 
     // Initialize JythonInterpreter
     System.out.println("Launching query interpreter ...");
@@ -21,6 +29,7 @@ public class Main {
     interp.connect();
 
     // Spawn an interactive console for gremlin experiments/controlling the server. Blocks forever.
+    // May be replaced by custom JLine console later (not important for the moment)
     interp.spawnInteractiveConsole();
   }
 }

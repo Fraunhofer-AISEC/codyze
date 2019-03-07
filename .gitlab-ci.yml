@@ -11,7 +11,7 @@ stages:
 
 variables:
   DOCKER_REGISTRY_URL: "registry.netsec.aisec.fraunhofer.de"
-  PARENT_PROJECT_NAME: "analysisserver"
+  PARENT_PROJECT_NAME: "cpg"
 
   # for the neo4j service
   NEO4J_AUTH: neo4j/password

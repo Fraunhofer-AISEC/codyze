@@ -45,8 +45,12 @@ public class JythonInterpreter implements AutoCloseable {
    * @throws IOException
    */
   public void connect() throws IOException {
+    var uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
+    var username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
+    var password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
+
     // TODO parameterize
-    Driver driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "password"));
+    Driver driver = GraphDatabase.driver(uri, AuthTokens.basic(username, password));
 
     // Connect to to Neo4J as usual and return generic Tinkerpop "Graph" object
     Neo4JElementIdProvider<?> vertexIdProvider = new Neo4JNativeElementIdProvider();

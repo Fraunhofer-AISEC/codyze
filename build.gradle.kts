@@ -6,6 +6,7 @@ plugins {
     java
     application
     jacoco
+    idea
     `maven-publish`
     `java-library`
 
@@ -15,6 +16,11 @@ plugins {
 
 group = "de.fraunhofer.aisec"
 version = "1.0-SNAPSHOT"
+
+idea.module {
+    // mark as generated sources for IDEA
+    generatedSourceDirs.add(file("src/main/generated/annotationProcessor/java/main"))
+}
 
 publishing {
     publications {
@@ -90,12 +96,12 @@ dependencies {
 
     implementation("de.fraunhofer.aisec", "cpg", "1.0-SNAPSHOT")
 
-    // api stuff
+// api stuff
     api("org.glassfish.jersey.inject", "jersey-hk2", versions["jersey"])
     api("org.glassfish.jersey.containers", "jersey-container-grizzly2-http", versions["jersey"])
     api("org.glassfish.jersey.media", "jersey-media-json-jackson", versions["jersey"])
 
-    // seriously eclipse...
+// seriously eclipse...
     api("org.eclipse", "osgi", "3.13.200.v20181130-2106")
     api("org.eclipse.equinox", "common", "3.10.200.v20181021-1645")
     api("org.eclipse.equinox", "preferences", "3.7.200.v20180827-1235")
@@ -115,7 +121,7 @@ dependencies {
 
     api("org.python", "jython-standalone", versions["jython"])
 
-    // needed for jersey, not part of JDK anymore
+// needed for jersey, not part of JDK anymore
     api("javax.xml.bind", "jaxb-api", "2.3.1")
 
     testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])

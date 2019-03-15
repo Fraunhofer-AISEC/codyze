@@ -131,32 +131,16 @@ public class JythonInterpreter implements AutoCloseable {
             + " \\___|_|   \\__, |_| |_| |_|_|_|_| |_|\n"
             + "            __/ |                    \n"
             + "           |___/                     \n"
-            + "\n"
-            + "You may now start writing crymlin queries.\n"
-            + "\n"
-            + "Examples: \n"
-            + "   crymlin.recorddeclarations().toList()\n"
-            + "          Returns array of vertices representing RecordDeclarations.\n"
-            + "\n"
-            + "   crymlin.recorddeclaration(\"good.Bouncycastle\").next()\n"
-            + "          Returns vertex representing the RecordDeclarations of \"good.Bouncycastle\".\n"
-            + "\n"
-            + "   crymlin.recorddeclaration(\"good.Bouncycastle\").sourcecode().next()\n"
-            + "          Returns source code of \"good.Bouncycastle\".\n"
-            + "\n"
-            + "   crymlin.translationunits().name().toList()\n"
-            + "          Returns array of strings representing the names of TranslationUnits.\n"
-            + "\n"
-            + "   crymlin.translationunits().next()\n"
-            + "          Returns the first TranslationUnit vertex (or null if none exists).\n"
-            + "\n"
-            + "   dir(crymlin.translationunits())\n"
-            + "          Good ol' Python dir() to find out what properties/methods are available.\n");
+            + "\n");
+    // Print help
+    new Commands().help();
+
     InteractiveConsole c = new InteractiveConsole();
     for (Map.Entry<String, Object> kv :
         this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
       c.set(kv.getKey(), kv.getValue());
     }
+    c.set("server", new Commands());
     c.interact();
   }
 

@@ -1,15 +1,18 @@
 package de.fraunhofer.aisec.crymlin.server;
 
+import java.io.File;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.fraunhofer.aisec.cpg.AnalysisConfiguration;
 import de.fraunhofer.aisec.cpg.AnalysisManager;
 import de.fraunhofer.aisec.cpg.AnalysisResult;
 import de.fraunhofer.aisec.cpg.Database;
+import de.fraunhofer.aisec.cpg.graph.Statement;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
+import de.fraunhofer.aisec.crymlin.structures.Method;
 
 /**
  * This is the main CPG analysis server.
@@ -31,18 +34,19 @@ public class AnalysisServer {
 
   /**
    * Starts the server in a separate threat, returns as soon as the server is ready to operate.
-   *
-   * @throws ExecutionException
-   * @throws InterruptedException
-   * @throws IOException
+ * @throws Exception 
    */
-  public void start() throws InterruptedException, ExecutionException, IOException {
+  public void start() throws Exception {
     // TODO Initialize CPG
+
+    // TODO requires refactoring. Ctx must be global per analysis run, not for all runs.
+    AnalysisContext ctx = new AnalysisContext();
     AnalysisManager aServer =
         AnalysisManager.builder()
             .config(
                 AnalysisConfiguration.builder()
                     .sourceFiles(new File("src/test/resources/good/Bouncycastle.java"))
+                    .registerPass(new StatementsPerMethodPass(ctx))
                     .build())
             .build();
 
@@ -54,6 +58,14 @@ public class AnalysisServer {
     db.connect();
     result.persist(db);
 
+    for (Method m : ctx.methods.values()) {
+      System.out.println("    -> " + m.getSignature());
+      for (Statement stmt : m.getStatements()) {
+    	  System.out.println("        - " + stmt.getCode()); 
+      }
+    }
+
+
     // Initialize JythonInterpreter
     System.out.println("Launching query interpreter ...");
     JythonInterpreter interp = new JythonInterpreter();
@@ -64,6 +76,8 @@ public class AnalysisServer {
     if (config.launchConsole) {
       interp.spawnInteractiveConsole();
     }
+    
+    interp.close();
   }
 
   public static Builder builder() {

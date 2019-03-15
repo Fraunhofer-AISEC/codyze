@@ -1,10 +1,5 @@
 package de.fraunhofer.aisec.crymlin.server;
 
-import java.io.File;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.fraunhofer.aisec.cpg.AnalysisConfiguration;
 import de.fraunhofer.aisec.cpg.AnalysisManager;
 import de.fraunhofer.aisec.cpg.AnalysisResult;
@@ -13,6 +8,9 @@ import de.fraunhofer.aisec.cpg.graph.Statement;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
 import de.fraunhofer.aisec.crymlin.structures.Method;
+import java.io.File;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the main CPG analysis server.
@@ -34,7 +32,8 @@ public class AnalysisServer {
 
   /**
    * Starts the server in a separate threat, returns as soon as the server is ready to operate.
- * @throws Exception 
+   *
+   * @throws Exception
    */
   public void start() throws Exception {
     // TODO Initialize CPG
@@ -61,10 +60,9 @@ public class AnalysisServer {
     for (Method m : ctx.methods.values()) {
       System.out.println("    -> " + m.getSignature());
       for (Statement stmt : m.getStatements()) {
-    	  System.out.println("        - " + stmt.getCode()); 
+        System.out.println("        - " + stmt.getCode());
       }
     }
-
 
     // Initialize JythonInterpreter
     System.out.println("Launching query interpreter ...");
@@ -76,7 +74,7 @@ public class AnalysisServer {
     if (config.launchConsole) {
       interp.spawnInteractiveConsole();
     }
-    
+
     interp.close();
   }
 

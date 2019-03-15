@@ -56,14 +56,19 @@ public class AnalysisServer {
     }
 
     // Initialize JythonInterpreter
-    System.out.println("Launching query interpreter ...");
+    log.info("Launching crymlin query interpreter ...");
     JythonInterpreter interp = new JythonInterpreter();
     interp.connect();
 
     // Spawn an interactive console for gremlin experiments/controlling the server. Blocks forever.
     // May be replaced by custom JLine console later (not important for the moment)
     if (config.launchConsole) {
-      interp.spawnInteractiveConsole();
+      if (!config.launchLsp) {
+        interp.spawnInteractiveConsole();
+      } else {
+        log.warn(
+            "Running in LSP mode. Refusing to start interactive console as stdin/stdout is occupied by LSP.");
+      }
     }
 
     interp.close();

@@ -104,7 +104,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   }
 
   /**
-   * Returns all RecordDeclarations (e.g., Java classes).
+   * Returns the RecordDeclarations with a given name.
    *
    * @return
    */

@@ -1,14 +1,12 @@
 package de.fraunhofer.aisec.crymlin.server;
 
-import de.fraunhofer.aisec.cpg.AnalysisConfiguration;
 import de.fraunhofer.aisec.cpg.AnalysisManager;
-import de.fraunhofer.aisec.cpg.AnalysisResult;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.graph.Statement;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
-import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
+import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.structures.Method;
-import java.io.File;
+import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +19,8 @@ public class AnalysisServer {
 
   private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
 
+  private static AnalysisServer instance;
+
   private ServerConfiguration config;
 
   /** Connector(s) receive(s) the incoming requests from IDE/CI and returns results. */
@@ -28,6 +28,16 @@ public class AnalysisServer {
 
   private AnalysisServer(ServerConfiguration config) {
     this.config = config;
+    AnalysisServer.instance = this;
+  }
+
+  /**
+   * Singleton must be initialized with AnalysisServer.builder().build() first.
+   *
+   * @return
+   */
+  public static AnalysisServer getInstance() {
+    return instance;
   }
 
   /**
@@ -39,29 +49,10 @@ public class AnalysisServer {
     // TODO Initialize CPG
 
     // TODO requires refactoring. Ctx must be global per analysis run, not for all runs.
-    AnalysisContext ctx = new AnalysisContext();
-    AnalysisManager aServer =
-        AnalysisManager.builder()
-            .config(
-                AnalysisConfiguration.builder()
-                    .sourceFiles(new File("src/test/resources/good/Bouncycastle.java"))
-                    .registerPass(new StatementsPerMethodPass(ctx))
-                    .build())
-            .build();
 
-    // Run all passes. This will *not* yet persist the result
-    AnalysisResult result = aServer.analyze().get();
-
-    // Persist the result
-    Database db = Database.getInstance();
-    db.connect();
-    result.persist(db);
-
-    for (Method m : ctx.methods.values()) {
-      System.out.println("    -> " + m.getSignature());
-      for (Statement stmt : m.getStatements()) {
-        System.out.println("        - " + stmt.getCode());
-      }
+    // Launch LSP server
+    if (config.launchLsp) {
+      launchLspServer();
     }
 
     // Initialize JythonInterpreter
@@ -76,6 +67,75 @@ public class AnalysisServer {
     }
 
     interp.close();
+  }
+
+  /** Launches the LSP server. */
+  private void launchLspServer() {
+    var lsp = new CpgLanguageServer();
+
+    /*var pool = Executors.newCachedThreadPool();
+
+    var port = 9000;
+
+    try (var serverSocket = new ServerSocket(port)) {
+      System.out.println("The language server is running on port " + port);
+      pool.submit(
+          () -> {
+            while (true) {
+              var clientSocket = serverSocket.accept();
+
+              var launcher =
+                  LSPLauncher.createServerLauncher(
+                      lsp, clientSocket.getInputStream(), clientSocket.getOutputStream());
+
+              launcher.startListening();
+
+              var client = launcher.getRemoteProxy();
+              lsp.connect(client);
+            }
+          });
+      System.in.read();
+    }*/
+    var launcher = LSPLauncher.createServerLauncher(lsp, System.in, System.out);
+
+    log.info("LSP server starting");
+    launcher.startListening();
+
+    var client = launcher.getRemoteProxy();
+    lsp.connect(client);
+  }
+
+  /**
+   * Runs an analysis and persists the result.
+   *
+   * @param analyzer
+   */
+  public void analyze(AnalysisManager analyzer) {
+    AnalysisContext ctx = new AnalysisContext();
+
+    // Run all passes and persist the result
+    analyzer
+        .analyze()
+        .thenAccept(
+            (result) -> {
+              // Persist the result
+              Database db = Database.getInstance();
+              try {
+                db.connect();
+              } catch (InterruptedException e) {
+                log.warn(e.getMessage(), e);
+              }
+              result.persist(db);
+            });
+
+    if (log.isDebugEnabled()) {
+      for (Method m : ctx.methods.values()) {
+        log.debug("    meth: " + m.getSignature());
+        for (Statement stmt : m.getStatements()) {
+          log.debug("       stmt: " + stmt.getCode());
+        }
+      }
+    }
   }
 
   public static Builder builder() {

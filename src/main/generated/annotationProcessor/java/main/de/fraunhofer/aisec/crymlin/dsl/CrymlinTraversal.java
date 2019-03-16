@@ -62,6 +62,11 @@ public interface CrymlinTraversal<S, E> extends CrymlinTraversalDsl<S, E> {
   }
 
   @Override
+  default CrymlinTraversal statements() {
+    return (CrymlinTraversal) CrymlinTraversalDsl.super.statements();
+  }
+
+  @Override
   default <E2> CrymlinTraversal<S, E2> map(Function<Traverser<E>, E2> function) {
     return (CrymlinTraversal) CrymlinTraversalDsl.super.map(function);
   }

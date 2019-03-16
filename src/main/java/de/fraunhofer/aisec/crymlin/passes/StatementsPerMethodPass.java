@@ -1,5 +1,7 @@
 package de.fraunhofer.aisec.crymlin.passes;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import de.fraunhofer.aisec.cpg.AnalysisResult;
 import de.fraunhofer.aisec.cpg.graph.CompoundStatement;
 import de.fraunhofer.aisec.cpg.graph.Declaration;
@@ -7,7 +9,6 @@ import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Statement;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
-import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.structures.Method;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
@@ -17,11 +18,12 @@ import de.fraunhofer.aisec.crymlin.utils.Utils;
  *
  * @author julian
  */
-public class StatementsPerMethodPass implements Pass {
+public class StatementsPerMethodPass implements PassWithContext {
   private AnalysisResult result;
   private AnalysisContext ctx;
 
-  public StatementsPerMethodPass(AnalysisContext ctx) {
+  @Override
+  public void setContext(@NonNull AnalysisContext ctx) {
     this.ctx = ctx;
   }
 

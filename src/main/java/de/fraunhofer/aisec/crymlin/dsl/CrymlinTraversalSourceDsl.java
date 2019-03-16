@@ -1,18 +1,17 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
+import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
+import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+
 import de.fraunhofer.aisec.cpg.graph.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
-import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
-import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.DefaultGraphTraversal;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
-import org.apache.tinkerpop.gremlin.process.traversal.step.map.GraphStep;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 /**
  * The DSL definition must be a class that extends {@code GraphTraversalSource} and should be
@@ -83,13 +82,9 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
    * @return
    */
   public GraphTraversal<Vertex, Vertex> translationunits() {
-    GraphTraversalSource clone = this.clone();
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    clone.getBytecode().addStep(GraphTraversal.Symbols.V);
-    GraphTraversal<Vertex, Vertex> traversal = new DefaultGraphTraversal<>(clone);
-    traversal.asAdmin().addStep(new GraphStep<>(traversal.asAdmin(), Vertex.class, true));
-    traversal = traversal.has(T.label, LabelP.of(TranslationUnitDeclaration.class.getSimpleName()));
-    return traversal;
+    return traversal.has(T.label, LabelP.of(TranslationUnitDeclaration.class.getSimpleName()));
   }
 
   /**

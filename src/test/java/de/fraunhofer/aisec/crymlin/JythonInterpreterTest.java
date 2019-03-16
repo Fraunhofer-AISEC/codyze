@@ -109,7 +109,7 @@ public class JythonInterpreterTest {
 
       // Run crymlin queries directly in Java
       CrymlinTraversalSource crymlin = interp.getCrymlinTraversal();
-      Long count = crymlin.recorddeclarations().statements().count().next();
+      Long count = (Long) crymlin.recorddeclarations().statements().count().next();
       System.out.println(count);
       assertNotNull(count);
     }

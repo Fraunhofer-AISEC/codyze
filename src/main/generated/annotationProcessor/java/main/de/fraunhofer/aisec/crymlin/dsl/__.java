@@ -59,6 +59,10 @@ public final class __ {
     return __.<A>start().sourcecode();
   }
 
+  public static <A> CrymlinTraversal<A, Vertex> statements() {
+    return __.<A>start().statements();
+  }
+
   public static <A> CrymlinTraversal<A, A> __(A... starts) {
     return inject(starts);
   }

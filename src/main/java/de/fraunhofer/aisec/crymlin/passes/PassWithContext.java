@@ -1,9 +1,8 @@
 package de.fraunhofer.aisec.crymlin.passes;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * A {@code Pass} that has access to an in-memory analysis context.

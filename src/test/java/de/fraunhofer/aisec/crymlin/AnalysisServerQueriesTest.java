@@ -5,19 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import de.fraunhofer.aisec.cpg.AnalysisConfiguration;
-import de.fraunhofer.aisec.cpg.AnalysisManager;
-import de.fraunhofer.aisec.cpg.AnalysisResult;
 import de.fraunhofer.aisec.cpg.Database;
+import de.fraunhofer.aisec.cpg.TranslationConfiguration;
+import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.passes.CallResolver;
 import de.fraunhofer.aisec.cpg.passes.ControlFlowGenerator;
 import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
@@ -25,11 +16,18 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.structures.Method;
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class AnalysisServerQueriesTest {
 
   private static AnalysisServer server;
-  private static AnalysisResult result;
+  private static TranslationResult result;
 
   @BeforeAll
   public static void startup() throws Exception {
@@ -125,10 +123,10 @@ public class AnalysisServerQueriesTest {
    * @param sourceFiles
    * @return
    */
-  private static AnalysisManager newJavaAnalysisRun(File... sourceFiles) {
-    return AnalysisManager.builder()
+  private static TranslationManager newJavaAnalysisRun(File... sourceFiles) {
+    return TranslationManager.builder()
         .config(
-            AnalysisConfiguration.builder()
+            TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
                 .registerPass(new ControlFlowGenerator()) // creates CFG

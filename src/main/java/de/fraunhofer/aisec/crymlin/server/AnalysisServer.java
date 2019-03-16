@@ -1,21 +1,18 @@
 package de.fraunhofer.aisec.crymlin.server;
 
-import java.util.concurrent.CompletableFuture;
-
-import javax.script.ScriptException;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import de.fraunhofer.aisec.cpg.AnalysisManager;
-import de.fraunhofer.aisec.cpg.AnalysisResult;
 import de.fraunhofer.aisec.cpg.Database;
+import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
+import java.util.concurrent.CompletableFuture;
+import javax.script.ScriptException;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the main CPG analysis server.
@@ -125,7 +122,7 @@ public class AnalysisServer {
    * @param analyzer
    * @return
    */
-  public CompletableFuture<AnalysisResult> analyze(AnalysisManager analyzer) {
+  public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer) {
     /* Create analysis context (in-memory structures) and register at all passes supporting
     contexts. */
     this.ctx = new AnalysisContext();

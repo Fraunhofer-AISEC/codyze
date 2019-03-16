@@ -1,14 +1,14 @@
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.cpg.AnalysisConfiguration;
-import de.fraunhofer.aisec.cpg.AnalysisManager;
-import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
-import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
-import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import de.fraunhofer.aisec.cpg.AnalysisConfiguration;
+import de.fraunhofer.aisec.cpg.AnalysisManager;
+import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
+import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 
 /**
  * These commands are only used by the Jython console.
@@ -31,13 +31,12 @@ public class Commands {
       files.add(f);
     }
 
-    AnalysisContext ctx = new AnalysisContext();
     AnalysisManager analyzer =
         AnalysisManager.builder()
             .config(
                 AnalysisConfiguration.builder()
                     .sourceFiles(files.toArray(new File[0]))
-                    .registerPass(new StatementsPerMethodPass(ctx))
+                    .registerPass(new StatementsPerMethodPass())
                     .build())
             .build();
 

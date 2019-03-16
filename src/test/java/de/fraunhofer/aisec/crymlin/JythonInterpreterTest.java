@@ -102,6 +102,24 @@ public class JythonInterpreterTest {
     }
   }
 
+  @Test
+  public void crymlinDslTest() throws Exception {
+    try (JythonInterpreter interp = new JythonInterpreter()) {
+      interp.connect();
+
+      // Run crymlin queries directly in Java
+      CrymlinTraversalSource crymlin = interp.getCrymlinTraversal();
+      Long count = crymlin
+    		  .recorddeclarations()
+    		  .statements()
+    		  .count()
+    		  .next();
+      System.out.println(count);
+      assertNotNull(count);
+    }
+  }
+
+
   @SuppressWarnings("unchecked")
   @Test
   public void crymlinOverJythonTest() throws Exception {

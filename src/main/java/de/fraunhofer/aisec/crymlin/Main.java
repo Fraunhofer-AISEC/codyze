@@ -19,7 +19,7 @@ public class Main {
     System.out.println("Analysis server starting ...");
     AnalysisServer server =
         AnalysisServer.builder()
-            .config(ServerConfiguration.builder().launchLsp(true).launchConsole(true).build())
+            .config(ServerConfiguration.builder().launchLsp(false).launchConsole(true).build())
             .build();
 
     server.start();

@@ -4,10 +4,21 @@ import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.ARGUMENT
 import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.ARGUMENT_INDEX;
 import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.LITERAL;
 
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import java.util.List;
+import java.util.Random;
+
+import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Property;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.Statement;
+import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
+import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 
 /**
  * Instead of starting a traversal with "g.V().", we start Crymlin with "crymlin.".
@@ -79,5 +90,32 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
       methodTypeParameters = {"A"})
   public default CrymlinTraversal<S, Object> sourcecode() {
     return (CrymlinTraversal<S, Object>) values("code");
+  }
+
+  /**
+   * Example of a Crymlin step that operates on the in-memory AnalysisContext and returns its results in form of a GraphTraversal step.
+   * 
+   * @return
+   */
+  @GremlinDsl.AnonymousMethod(
+	      returnTypeParameters = {"A", "Vertex"}, // c/p from example, unclear.
+	      methodTypeParameters = {"A"})
+  public default CrymlinTraversal<S, Vertex> statements() {
+    AnalysisContext ctx = AnalysisServer.getInstance().retrieveContext();
+    if (ctx == null) {
+    	return (CrymlinTraversal<S, Vertex>) this;
+    }
+    List<Statement> stmts =
+        ctx.methods.get("good.Bouncycastle.main(java.lang.String[])void").getStatements();
+    CrymlinTraversal<S, Vertex> t = (CrymlinTraversal<S, Vertex>) this;
+    for (Statement stmt : stmts) {
+    	System.out.println("Adding " + stmt.toString()); 
+    	t = t.addV()
+    		  .property(T.label, Statement.class.getSimpleName()+stmt.toString())
+    		  .property("code", stmt.getCode())
+    		  .property("region", stmt.getRegion().toString())
+    		  .as(stmt.toString());
+    }
+    return (CrymlinTraversal<S, Vertex>) t;
   }
 }

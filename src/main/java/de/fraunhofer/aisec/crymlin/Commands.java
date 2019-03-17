@@ -39,7 +39,10 @@ public class Commands {
                     .build())
             .build();
 
-    AnalysisServer.getInstance().analyze(analyzer);
+    AnalysisServer server = AnalysisServer.getInstance();
+    if (server != null) {
+      server.analyze(analyzer);
+    }
   }
 
   /** Prints help to stdout. */

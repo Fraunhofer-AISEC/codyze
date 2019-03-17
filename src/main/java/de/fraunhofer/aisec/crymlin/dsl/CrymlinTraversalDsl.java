@@ -96,10 +96,15 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
       returnTypeParameters = {"A", "Vertex"}, // c/p from example, unclear.
       methodTypeParameters = {"A"})
   public default CrymlinTraversal<S, Vertex> statements() {
-    AnalysisContext ctx = AnalysisServer.getInstance().retrieveContext();
+    AnalysisServer server = AnalysisServer.getInstance();
+    if (server == null) {
+      return (CrymlinTraversal<S, Vertex>) this;
+    }
+    AnalysisContext ctx = server.retrieveContext();
     if (ctx == null) {
       return (CrymlinTraversal<S, Vertex>) this;
     }
+
     List<Statement> stmts =
         ctx.methods.get("good.Bouncycastle.main(java.lang.String[])void").getStatements();
     CrymlinTraversal<S, Vertex> t = (CrymlinTraversal<S, Vertex>) this;

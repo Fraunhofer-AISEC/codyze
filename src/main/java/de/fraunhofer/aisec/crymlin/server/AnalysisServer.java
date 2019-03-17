@@ -43,6 +43,7 @@ public class AnalysisServer {
    *
    * @return
    */
+  @Nullable
   public static AnalysisServer getInstance() {
     return instance;
   }

@@ -70,7 +70,7 @@ public class AnalysisServerQueriesTest {
     assertFalse(meth.getStatements().isEmpty());
 
     // Get analysis context from server
-    AnalysisContext ctx2 = AnalysisServer.getInstance().retrieveContext();
+    AnalysisContext ctx2 = server.retrieveContext();
     assertNotNull(ctx2);
 
     // Make sure they are the same

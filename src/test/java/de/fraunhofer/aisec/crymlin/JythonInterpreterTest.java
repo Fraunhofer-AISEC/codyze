@@ -6,9 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import javax.script.ScriptException;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.process.traversal.step.util.BulkSet;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.Test;
 
@@ -114,6 +118,56 @@ public class JythonInterpreterTest {
       assertNotNull(count);
     }
   }
+
+  /**
+   * Adding nodes to the graph. Note that <code>addV</code> will add nodes to the in-memory graph so
+   * future queries will see them.
+   *
+   * @throws Exception
+   */
+  @SuppressWarnings("unchecked")
+  @Test
+  public void gremlinGraphMutationTest() throws Exception {
+    try (JythonInterpreter interp = new JythonInterpreter()) {
+      interp.connect();
+
+      GraphTraversalSource g = interp.getGremlinTraversal();
+      List<Object> t =
+          g.addV()
+              .property(T.label, "Test")
+              .property("some_key", "some_value")
+              .store("one")
+              .addV()
+              .property(T.label, "AnotherTest")
+              .property("another_key", "another_value")
+              .store("one")
+              .cap("one")
+              .toList();
+
+      assertNotNull(t);
+
+      List<String> labels = new ArrayList<>();
+      for (Object x : t) {
+        BulkSet<Vertex> v = (BulkSet<Vertex>) x;
+        for (Vertex a : v) {
+          labels.add(a.label());
+        }
+      }
+
+      assertEquals(2, labels.size());
+      assertEquals("Test", labels.get(0));
+      assertEquals("AnotherTest", labels.get(1));
+    }
+  }
+  //
+  //  public void gremlinConstantNodesTest() throws Exception {
+  //    try (JythonInterpreter interp = new JythonInterpreter()) {
+  //      interp.connect();
+  //
+  //      GraphTraversalSource g = interp.getGremlinTraversal();
+  //      g.V().constant()
+  //    }
+  //  }
 
   @SuppressWarnings("unchecked")
   @Test

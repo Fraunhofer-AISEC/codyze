@@ -15,6 +15,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.neo4j.driver.v1.AuthTokens;
@@ -39,6 +40,8 @@ public class JythonInterpreter implements AutoCloseable {
   private Graph tg;
   private CrymlinTraversalSource crymlinSource;
 
+  private GraphTraversalSource gremlinSource;
+
   /**
    * Connect to the graph database and initialize the internal Jython engine.
    *
@@ -57,6 +60,7 @@ public class JythonInterpreter implements AutoCloseable {
     Neo4JElementIdProvider<?> edgeIdProvider = new Neo4JNativeElementIdProvider();
     this.tg = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider);
     this.crymlinSource = tg.traversal(CrymlinTraversalSource.class);
+    this.gremlinSource = tg.traversal();
 
     // Make Java objects available in python
     this.engine.getBindings(ScriptContext.ENGINE_SCOPE).put("graph", tg); // Generic graph
@@ -109,6 +113,10 @@ public class JythonInterpreter implements AutoCloseable {
 
   public CrymlinTraversalSource getCrymlinTraversal() {
     return this.crymlinSource;
+  }
+
+  public GraphTraversalSource getGremlinTraversal() {
+    return this.gremlinSource;
   }
 
   /**

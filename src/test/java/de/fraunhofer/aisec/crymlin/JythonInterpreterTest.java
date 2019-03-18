@@ -2,7 +2,9 @@ package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -132,6 +134,8 @@ public class JythonInterpreterTest {
       interp.connect();
 
       GraphTraversalSource g = interp.getGremlinTraversal();
+
+      Long size = g.V().count().next();
       List<Object> t =
           g.addV()
               .property(T.label, "Test")
@@ -153,21 +157,21 @@ public class JythonInterpreterTest {
           labels.add(a.label());
         }
       }
-
       assertEquals(2, labels.size());
       assertEquals("Test", labels.get(0));
       assertEquals("AnotherTest", labels.get(1));
+      Long sizeNew = g.V().count().next();
+
+      // New graph is expected to be +2 nodes larger.
+      assertSame(size + 2, sizeNew);
+
+      // Even with a new traversal object, the graph will remain larger
+      GraphTraversalSource g2 = interp.getGremlinTraversal();
+      assertNotEquals(g, g2);
+      Long sizeAgain = g2.V().count().next();
+      assertSame(size + 2, sizeAgain);
     }
   }
-  //
-  //  public void gremlinConstantNodesTest() throws Exception {
-  //    try (JythonInterpreter interp = new JythonInterpreter()) {
-  //      interp.connect();
-  //
-  //      GraphTraversalSource g = interp.getGremlinTraversal();
-  //      g.V().constant()
-  //    }
-  //  }
 
   @SuppressWarnings("unchecked")
   @Test

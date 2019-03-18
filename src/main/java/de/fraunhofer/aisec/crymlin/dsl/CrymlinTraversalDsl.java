@@ -11,8 +11,8 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import java.util.List;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
-import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedVertex;
 
 /**
  * Instead of starting a traversal with "g.V().", we start Crymlin with "crymlin.".
@@ -108,14 +108,27 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
     List<Statement> stmts =
         ctx.methods.get("good.Bouncycastle.main(java.lang.String[])void").getStatements();
     CrymlinTraversal<S, Vertex> t = (CrymlinTraversal<S, Vertex>) this;
+    System.out.println("Graph: " + t.getGraph().isPresent());
     for (Statement stmt : stmts) {
       System.out.println("Adding " + stmt.toString());
-      t =
-          t.addV()
-              .property(T.label, Statement.class.getSimpleName() + stmt.toString())
-              .property("code", stmt.getCode())
-              .property("region", stmt.getRegion().toString())
-              .as(stmt.toString());
+
+      DetachedVertex v =
+          new TransientVertex(
+              "Statement",
+              "name",
+              stmt.getName(),
+              "code",
+              stmt.getCode(),
+              "argument_index",
+              stmt.getArgumentIndex());
+      t = t.inject(v);
+
+      //      new Neo4jVertex()
+      //    Vertex v = new DetachedVertex() {
+      //	  @Override
+      //	  public Vertex attach(Function f) { return this; }
+      //  };
+      //      t = t.inject(stmt);
     }
     return (CrymlinTraversal<S, Vertex>) t;
   }

@@ -106,14 +106,14 @@ public class AnalysisServerQueriesTest {
   @SuppressWarnings("unchecked")
   @Test
   public void statementsTest() throws Exception {
-    List<Vertex> tus = (List<Vertex>) server.query("crymlin.methods().statements().toList()");
-    System.out.println(tus.size());
+    List<Vertex> result = (List<Vertex>) server.query("crymlin.methods().statements().toList()");
+    List<Vertex> tus = (List<Vertex>) result;
     assertNotNull(tus);
     assertFalse(tus.isEmpty());
     for (Vertex x : tus) {
-      System.out.println(x + "  " + x.getClass());
-      System.out.println(x.property("region"));
-      System.out.println(x.property("code"));
+      // System.out.println(x + "  " + x.getClass());
+      // System.out.println(x.property("name").value());
+      System.out.println(x.property("code").value());
     }
   }
 

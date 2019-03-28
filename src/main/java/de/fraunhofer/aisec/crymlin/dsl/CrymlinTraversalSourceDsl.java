@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.crymlin.dsl;
 import de.fraunhofer.aisec.cpg.graph.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.Declaration;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
@@ -58,6 +59,19 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   }
 
   /**
+   * Returns the calls with a given name.
+   *
+   * @return
+   */
+  public GraphTraversal<Vertex, Vertex> calls(String callee_name) {
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+    return traversal
+            .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
+            .has("name", callee_name);
+  }
+
+  /**
    * Returns nodes with a label {@code MethodDeclaration}.
    *
    * @return
@@ -97,6 +111,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     return traversal.has(T.label, LabelP.of(RecordDeclaration.class.getSimpleName()));
   }
 
+
   /**
    * Returns the RecordDeclarations with a given name.
    *
@@ -107,6 +122,19 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
     return traversal
         .has(T.label, LabelP.of(RecordDeclaration.class.getSimpleName()))
-        .property("name", recordname);
+        .has("name", recordname);
   }
+
+  /**
+   * Returns all Declarations (e.g., variables).
+   *
+   * @return
+   */
+  public GraphTraversal<Vertex, Vertex> declarations() {
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+    return traversal.has(T.label, LabelP.of(Declaration.class.getSimpleName()));
+  }
+
+
 }

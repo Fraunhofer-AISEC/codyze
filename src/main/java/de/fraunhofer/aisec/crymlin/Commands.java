@@ -43,10 +43,32 @@ public class Commands {
     AnalysisServer server = AnalysisServer.getInstance();
     if (server != null) {
       try {
-				server.analyze(analyzer);
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-			}
+        server.analyze(analyzer);
+      } catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  /**
+   * Loads MARK rules into the server. Must be called before analyze, otherwise no rules will be
+   * evaluated.
+   *
+   * @param fileName
+   */
+  public void load_rules(String fileName) {
+    AnalysisServer server = AnalysisServer.getInstance();
+    if (server != null) {
+      server.loadMarkRules(new File(fileName));
+    }
+  }
+
+  public void list_rules() {
+    AnalysisServer server = AnalysisServer.getInstance();
+    if (server != null) {
+      for (String rule : server.listMarkRules()) {
+        System.out.println(rule);
+      }
     }
   }
 
@@ -55,11 +77,14 @@ public class Commands {
     System.out.println(
         "Use the \"server\" object to control the analysis server.\n"
             + "\n"
+            + "   server.load_rules(\"server.load_rules(\"../mark-crymlin-eclipse-plugin/examples/Test/Rules.mark\")\")\n"
+            + "          Load MARK rules.\n"
+            + "\n"
             + "   server.analyze(\"src/test/resources/good/Bouncycastle.java\")\n"
-            + "          Analyze a single source file.\n"
+            + "          Analyze a single source file. Remember to load MARK rules before analyzing.\n"
             + "\n"
             + "   server.analyze(\"src/test/resources/good\")\n"
-            + "          Analyze all source files in a directory \n"
+            + "          Analyze all source files in a directory. Remember to load MARK rules before analyzing.\n"
             + "\n"
             + "\n"
             + "You may then start writing crymlin queries using the \"crymlin\" object.\n"

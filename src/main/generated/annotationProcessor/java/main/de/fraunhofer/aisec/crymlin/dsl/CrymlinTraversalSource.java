@@ -167,6 +167,12 @@ public class CrymlinTraversalSource extends CrymlinTraversalSourceDsl {
   }
 
   @Override
+  public CrymlinTraversal<Vertex, Vertex> calls(String callee_name) {
+    CrymlinTraversalSource clone = this.clone();
+    return new DefaultCrymlinTraversal (clone, super.calls(callee_name).asAdmin());
+  }
+
+  @Override
   public CrymlinTraversal<Vertex, Vertex> methods() {
     CrymlinTraversalSource clone = this.clone();
     return new DefaultCrymlinTraversal (clone, super.methods().asAdmin());
@@ -194,6 +200,12 @@ public class CrymlinTraversalSource extends CrymlinTraversalSourceDsl {
   public CrymlinTraversal<Vertex, Vertex> recorddeclaration(String recordname) {
     CrymlinTraversalSource clone = this.clone();
     return new DefaultCrymlinTraversal (clone, super.recorddeclaration(recordname).asAdmin());
+  }
+
+  @Override
+  public CrymlinTraversal<Vertex, Vertex> declarations() {
+    CrymlinTraversalSource clone = this.clone();
+    return new DefaultCrymlinTraversal (clone, super.declarations().asAdmin());
   }
 
   @Override

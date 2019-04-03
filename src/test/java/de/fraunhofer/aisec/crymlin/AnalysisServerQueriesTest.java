@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
@@ -32,9 +33,14 @@ public class AnalysisServerQueriesTest {
   @BeforeAll
   public static void startup() throws Exception {
     // Make sure we start with a clean (and connected) db
-    Database db = Database.getInstance();
-    db.connect();
-    db.purgeDatabase();
+    try {
+      Database db = Database.getInstance();
+      db.connect();
+      db.purgeDatabase();
+    } catch (Throwable e) {
+      e.printStackTrace();
+      assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
+    }
 
     // Start an analysis server
     server =

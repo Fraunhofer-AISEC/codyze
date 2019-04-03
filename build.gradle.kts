@@ -46,6 +46,8 @@ publishing {
 }
 
 repositories {
+    mavenLocal()
+
     mavenCentral()
 
     ivy {
@@ -89,19 +91,23 @@ val versions = mapOf(
 )
 
 dependencies {
-    implementation("org.apache.commons", "commons-lang3", versions["commons-lang3"])
+    api("org.apache.commons", "commons-lang3", versions["commons-lang3"])
     api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
     api("org.slf4j", "jul-to-slf4j", "1.8.0-beta2")
-    implementation("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
+    api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
-    implementation("de.fraunhofer.aisec", "cpg", "1.0-SNAPSHOT")
+    // Code Property Graph
+    api("de.fraunhofer.aisec", "cpg", "1.0-SNAPSHOT")
 
-// api stuff
+    // MARK DSL (use fat jar). changing=true circumvents gradle cache
+	api("de.fhg.aisec.mark:de.fhg.aisec.mark:1.0.0-SNAPSHOT:repackaged") { changing = true }
+
+    // api stuff
     api("org.glassfish.jersey.inject", "jersey-hk2", versions["jersey"])
     api("org.glassfish.jersey.containers", "jersey-container-grizzly2-http", versions["jersey"])
     api("org.glassfish.jersey.media", "jersey-media-json-jackson", versions["jersey"])
 
-// seriously eclipse...
+    // CDT parser
     api("org.eclipse", "osgi", "3.13.200.v20181130-2106")
     api("org.eclipse.equinox", "common", "3.10.200.v20181021-1645")
     api("org.eclipse.equinox", "preferences", "3.7.200.v20180827-1235")
@@ -109,19 +115,22 @@ dependencies {
     api("org.eclipse.core", "jobs", "3.10.200.v20180912-1356")
     api("org.eclipse.cdt", "core", "6.6.0.201812101042")
 
+    // LSP
     api("org.eclipse.lsp4j", "org.eclipse.lsp4j", "0.6.0")
 
+    // Gremlin
     api("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])
-    annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])  // Newer Gradle versions require specific classpath for annotatation processors
+    annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])      // Newer Gradle versions require specific classpath for annotatation processors
     api("org.apache.tinkerpop", "gremlin-python", versions["tinkerpop"])
     api("org.apache.tinkerpop", "tinkergraph-gremlin", versions["tinkerpop"])
     api("org.apache.tinkerpop", "gremlin-driver", versions["tinkerpop"])
-    api("org.apache.tinkerpop", "neo4j-gremlin", versions["tinkerpop"])  // Neo4j multi-label support for gremlin
-    api("com.steelbridgelabs.oss", "neo4j-gremlin-bolt", "0.3.1")  // For fast bolt:// access to Neo4J
+    api("org.apache.tinkerpop", "neo4j-gremlin", versions["tinkerpop"])     // Neo4j multi-label support for gremlin
+    api("com.steelbridgelabs.oss", "neo4j-gremlin-bolt", "0.3.1")   // For fast bolt:    // access to Neo4J
 
+    // Jython (Scripting engine)
     api("org.python", "jython-standalone", versions["jython"])
 
-// needed for jersey, not part of JDK anymore
+    // needed for jersey, not part of JDK anymore
     api("javax.xml.bind", "jaxb-api", "2.3.1")
 
     testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])

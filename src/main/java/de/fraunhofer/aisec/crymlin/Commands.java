@@ -77,7 +77,7 @@ public class Commands {
     System.out.println(
         "Use the \"server\" object to control the analysis server.\n"
             + "\n"
-            + "   server.load_rules(\"server.load_rules(\"../mark-crymlin-eclipse-plugin/examples/Test/Rules.mark\")\")\n"
+            + "   server.load_rules(\"../mark-crymlin-eclipse-plugin/examples/Test/Rules.mark\")\n"
             + "          Load MARK rules.\n"
             + "\n"
             + "   server.analyze(\"src/test/resources/good/Bouncycastle.java\")\n"

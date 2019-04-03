@@ -100,7 +100,7 @@ dependencies {
     api("de.fraunhofer.aisec", "cpg", "1.0-SNAPSHOT")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
-	api("de.fhg.aisec.mark:de.fhg.aisec.mark:1.0.0-SNAPSHOT:repackaged") { changing = true }
+	api("de.fhg.aisec.mark:de.fhg.aisec.mark:1.0.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // api stuff
     api("org.glassfish.jersey.inject", "jersey-hk2", versions["jersey"])

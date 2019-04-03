@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * These commands are only used by the Jython console.
@@ -41,7 +42,11 @@ public class Commands {
 
     AnalysisServer server = AnalysisServer.getInstance();
     if (server != null) {
-      server.analyze(analyzer);
+      try {
+				server.analyze(analyzer);
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
     }
   }
 

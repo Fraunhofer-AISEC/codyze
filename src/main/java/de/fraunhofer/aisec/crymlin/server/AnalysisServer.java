@@ -1,8 +1,25 @@
 package de.fraunhofer.aisec.crymlin.server;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import javax.script.ScriptException;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.fhg.aisec.mark.XtextParser;
 import de.fhg.aisec.mark.markDsl.MarkModel;
-import de.fhg.aisec.mark.markDsl.RuleDeclaration;
+import de.fhg.aisec.markmodel.MRule;
+import de.fhg.aisec.markmodel.Mark;
+import de.fhg.aisec.markmodel.MarkModelLoader;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -10,16 +27,6 @@ import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import javax.script.ScriptException;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This is the main CPG analysis server.
@@ -46,7 +53,11 @@ public class AnalysisServer {
 
   private AnalysisContext ctx = new AnalysisContext();
 
-  private MarkModel markModel;
+  @NonNull
+  private Mark markModel = new Mark();
+  
+  @Nullable
+  Set<String> evidences; 
 
   private AnalysisServer(ServerConfiguration config) {
     this.config = config;
@@ -180,12 +191,12 @@ public class AnalysisServer {
    * @param result
    */
   private TranslationResult evaluate(TranslationResult result) {
-    MarkModel markModel = this.markModel;
+    Mark markModel = this.markModel;
     if (markModel == null) {
       return result;
     }
 
-    for (RuleDeclaration r : markModel.getRule()) {
+    for (MRule r : markModel.getRules()) {
       log.debug("Processing rule {}", r.getName());
       // TODO parse rule and do something with it
     }
@@ -200,7 +211,12 @@ public class AnalysisServer {
   public void loadMarkRules(File markFile) {
     XtextParser parser = new XtextParser();
     MarkModel markModel = parser.parse(markFile);
-    this.markModel = markModel;
+
+    // Extract "evidences" from MARK entities. Evidences are either method calls or declarations that we want to use as a start for our analysis
+    this.markModel = new MarkModelLoader().load(markModel);
+    
+    log.info("Loaded {} entities and {} rules.", this.markModel.getEntities().size(), this.markModel.getRules().size());
+
   }
 
   /**
@@ -210,10 +226,10 @@ public class AnalysisServer {
    * @return
    */
   public List<String> listMarkRules() {
-    MarkModel markModel = this.markModel;
+    Mark markModel = this.markModel;
     List<String> rules = new ArrayList<>();
     if (markModel != null) {
-      for (RuleDeclaration r : markModel.getRule()) {
+      for (MRule r : markModel.getRules()) {
         rules.add(r.getName());
       }
     }

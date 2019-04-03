@@ -19,7 +19,13 @@ public class Main {
     System.out.println("Analysis server starting ...");
     AnalysisServer server =
         AnalysisServer.builder()
-            .config(ServerConfiguration.builder().launchLsp(false).launchConsole(true).build())
+            .config(
+                ServerConfiguration.builder()
+                    .launchLsp(false)
+                    .launchConsole(true)
+                    .dbUser("neo4j")
+                    .dbPassword("password")
+                    .build())
             .build();
 
     server.start();

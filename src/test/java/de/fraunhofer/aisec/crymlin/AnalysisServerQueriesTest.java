@@ -96,7 +96,7 @@ public class AnalysisServerQueriesTest {
   @Test
   public void recorddeclarationTest() throws Exception {
     List<Vertex> classes =
-        (List<Vertex>) server.query("crymlin.recorddeclaration(\"Bouncycastle\").toList()");
+        (List<Vertex>) server.query("crymlin.recorddeclaration(\"good.Bouncycastle\").toList()");
     assertNotNull(classes);
     assertFalse(classes.isEmpty());
   }

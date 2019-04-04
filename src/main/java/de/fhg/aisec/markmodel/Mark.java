@@ -2,7 +2,6 @@ package de.fhg.aisec.markmodel;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class Mark {
@@ -19,5 +18,4 @@ public class Mark {
   public List<MRule> getRules() {
     return this.rules;
   }
-
 }

@@ -21,5 +21,4 @@ public class MOpCallStmt {
   public String getCondition() {
     return condition;
   }
-
 }

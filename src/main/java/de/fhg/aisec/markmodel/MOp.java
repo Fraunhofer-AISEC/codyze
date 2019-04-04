@@ -2,7 +2,6 @@ package de.fhg.aisec.markmodel;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -26,7 +25,7 @@ public class MOp {
   }
 
   public void setName(String name) {
-    this.name = name;    
+    this.name = name;
   }
 
   @NonNull
@@ -38,5 +37,4 @@ public class MOp {
   public List<MOpCallStmt> getStatements() {
     return this.statements;
   }
-
 }

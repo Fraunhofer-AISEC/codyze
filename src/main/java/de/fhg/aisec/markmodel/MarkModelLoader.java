@@ -20,19 +20,21 @@ import org.python.jline.internal.Log;
  */
 public class MarkModelLoader {
 
-  public Mark load(MarkModel model) {
+  public Mark load(List<MarkModel> markModels) {
     Mark m = new Mark();
 
-    // Parse "entities" (=cryptographic objects)
-    for (EntityDeclaration decl : model.getDecl()) {
-      MEntity entity = parseEntity(decl);
-      m.getEntities().add(entity);
-    }
+    for (MarkModel markModel : markModels) {
+      // Parse "entities" (=cryptographic objects)
+      for (EntityDeclaration decl : markModel.getDecl()) {
+        MEntity entity = parseEntity(decl);
+        m.getEntities().add(entity);
+      }
 
-    // Parse rules
-    for (RuleDeclaration r : model.getRule()) {
-      MRule rule = parseRule(r);
-      m.getRules().add(rule);
+      // Parse rules
+      for (RuleDeclaration r : markModel.getRule()) {
+        MRule rule = parseRule(r);
+        m.getRules().add(rule);
+      }
     }
     return m;
   }

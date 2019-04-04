@@ -199,17 +199,18 @@ public class AnalysisServer {
   }
 
   /**
-   * Loads all MARK rules from a file. // TODO allow providing whole directories
+   * Loads all MARK rules from a file or a directory.
    *
    * @param markFile
    */
   public void loadMarkRules(File markFile) {
     XtextParser parser = new XtextParser();
-    MarkModel markModel = parser.parse(markFile);
+    parser.addMarkFile(markFile);
+    List<MarkModel> markModels = parser.parse();
 
     // Extract "evidences" from MARK entities. Evidences are either method calls or declarations
     // that we want to use as a start for our analysis
-    this.markModel = new MarkModelLoader().load(markModel);
+    this.markModel = new MarkModelLoader().load(markModels);
 
     log.info(
         "Loaded {} entities and {} rules.",

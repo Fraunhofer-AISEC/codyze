@@ -1,29 +1,21 @@
 package de.fhg.aisec.markmodel;
 
+import de.fhg.aisec.mark.markDsl.CallStatement;
+import de.fhg.aisec.mark.markDsl.DeclarationStatement;
+import de.fhg.aisec.mark.markDsl.ImportStatement;
 import java.util.ArrayList;
-
 import java.util.List;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import de.fhg.aisec.mark.markDsl.CallStatement;
-import de.fhg.aisec.mark.markDsl.DeclarationStatement;
-import de.fhg.aisec.mark.markDsl.ImportStatement;
-import de.fhg.aisec.mark.markDsl.MarkModel;
-
 public class MOp {
 
   private String name;
-  @NonNull
-  private List<String> parameters = new ArrayList<>();
-  @NonNull
-  private List<MOpCallStmt> statements = new ArrayList<>();
-  @NonNull
-  private List<CallStatement> callStatements = new ArrayList<>();
-  @NonNull
-  private List<ImportStatement> importStatements = new ArrayList<>();
-  @NonNull
-  private List<DeclarationStatement> declStatements = new ArrayList<>();
+  @NonNull private List<String> parameters = new ArrayList<>();
+  @NonNull private List<MOpCallStmt> statements = new ArrayList<>();
+  @NonNull private List<CallStatement> callStatements = new ArrayList<>();
+  @NonNull private List<ImportStatement> importStatements = new ArrayList<>();
+  @NonNull private List<DeclarationStatement> declStatements = new ArrayList<>();
 
   @Nullable
   public String getName() {

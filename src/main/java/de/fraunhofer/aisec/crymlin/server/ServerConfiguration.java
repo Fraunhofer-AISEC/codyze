@@ -18,13 +18,16 @@ public class ServerConfiguration {
   /** Neo4J password. */
   public String dbPassword;
 
-  /**
-   * Directory or file with MARK entities/rules.
-   */
+  /** Directory or file with MARK entities/rules. */
   public String markModelFiles;
 
   private ServerConfiguration(
-      boolean launchConsole, boolean launchLsp, String dbUri, String dbUser, String dbPassword, String markModelFiles) {
+      boolean launchConsole,
+      boolean launchLsp,
+      String dbUri,
+      String dbUser,
+      String dbPassword,
+      String markModelFiles) {
     this.launchConsole = launchConsole;
     this.launchLsp = launchLsp;
     this.dbUri = dbUri;
@@ -43,7 +46,7 @@ public class ServerConfiguration {
     private String dbUri = "bolt://localhost";
     private String dbUser = "neo4j";
     private String dbPassword = "password";
-    private String markModelFiles = "";  // Path of a file or directory
+    private String markModelFiles = ""; // Path of a file or directory
 
     public Builder launchConsole(boolean launchConsole) {
       this.launchConsole = launchConsole;
@@ -76,7 +79,8 @@ public class ServerConfiguration {
     }
 
     public ServerConfiguration build() {
-      return new ServerConfiguration(launchConsole, launchLsp, dbUri, dbUser, dbPassword, markModelFiles);
+      return new ServerConfiguration(
+          launchConsole, launchLsp, dbUri, dbUser, dbPassword, markModelFiles);
     }
   }
 }

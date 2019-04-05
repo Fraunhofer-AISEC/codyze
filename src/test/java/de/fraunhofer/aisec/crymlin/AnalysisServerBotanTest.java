@@ -4,30 +4,31 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import de.fhg.aisec.markmodel.MEntity;
+import de.fhg.aisec.markmodel.MRule;
+import de.fhg.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.ControlFlowGenerator;
-import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
+import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
-import de.fraunhofer.aisec.crymlin.structures.Method;
 
-public class AnalysisServerQueriesTest {
+public class AnalysisServerBotanTest {
 
   private static AnalysisServer server;
   private static TranslationResult result;
@@ -57,10 +58,10 @@ public class AnalysisServerQueriesTest {
             .build();
     server.start();
 
-    // Start the analysis
+    // Start the analysis (BOTAN Symmetric Example by Oliver)
     result =
         server
-            .analyze(newJavaAnalysisRun(new File("src/test/resources/good/Bouncycastle.java")))
+            .analyze(newAnalysisRun(new File("../cpg/src/test/resources/botan/symm_block_cipher.cpp")))
             .get(120, TimeUnit.SECONDS);
   }
 
@@ -75,13 +76,11 @@ public class AnalysisServerQueriesTest {
   public void contextTest() {
     // Get analysis context from scratch
     AnalysisContext ctx =
-        (AnalysisContext) AnalysisServerQueriesTest.result.getScratch().get("ctx");
+        (AnalysisContext) AnalysisServerBotanTest.result.getScratch().get("ctx");
 
-    // We expect at least some methods
+    // We expect no methods (as there is no class)
     assertNotNull(ctx);
-    assertFalse(ctx.methods.isEmpty());
-    Method meth = ctx.methods.entrySet().stream().findFirst().get().getValue();
-    assertFalse(meth.getStatements().isEmpty());
+    assertTrue(ctx.methods.isEmpty());
 
     // Get analysis context from server
     AnalysisContext ctx2 = server.retrieveContext();
@@ -94,58 +93,50 @@ public class AnalysisServerQueriesTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void recorddeclarationsTest() throws Exception {
-    List<Vertex> classes = (List<Vertex>) server.query("crymlin.recorddeclarations().toList()");
-    assertNotNull(classes);
-    assertFalse(classes.isEmpty());
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void recorddeclarationTest() throws Exception {
-    List<Vertex> classes =
-        (List<Vertex>) server.query("crymlin.recorddeclaration(\"good.Bouncycastle\").toList()");
-    assertNotNull(classes);
-    assertFalse(classes.isEmpty());
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
   public void translationunitsTest() throws Exception {
     List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
     assertNotNull(tus);
     assertFalse(tus.isEmpty());
   }
 
-  @SuppressWarnings("unchecked")
+  
   @Test
-  public void statementsTest() throws Exception {
-    List<Vertex> result = (List<Vertex>) server.query("crymlin.methods().statements().toList()");
-    List<Vertex> tus = (List<Vertex>) result;
-    assertNotNull(tus);
-    assertFalse(tus.isEmpty());
-    for (Vertex x : tus) {
-      // System.out.println(x + "  " + x.getClass());
-      // System.out.println(x.property("name").value());
-      System.out.println(x.property("code").value());
+  public void markModelTest() throws Exception {
+    Mark markModel = server.getMarkModel();
+    assertNotNull(markModel);
+    List<MRule> rules = markModel.getRules();
+    assertEquals(2, rules.size());
+    
+    List<MEntity> ents = markModel.getEntities();
+    assertEquals(6, ents.size());
+  }
+
+
+  @Test
+  public void markEvaluationTest() throws Exception {
+    List<String> findings = server.getFindings();
+    assertNotNull(findings);
+    
+    for (String finding : findings) {
+      System.out.println(finding);
     }
   }
 
+  
   /**
    * Helper method for initializing an Analysis Run.
    *
    * @param sourceFiles
    * @return
    */
-  private static TranslationManager newJavaAnalysisRun(File... sourceFiles) {
+  private static TranslationManager newAnalysisRun(File... sourceFiles) {
     return TranslationManager.builder()
         .config(
             TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
-                .registerPass(new ControlFlowGenerator()) // creates CFG
-                .registerPass(new CallResolver()) // creates CG
-                .registerPass(new StatementsPerMethodPass())
+                //.registerPass(new SimpleForwardCfgPass()) // creates CFG   -> will block the OGM when calling Database.persist() on the resulting graph.
+                .registerPass(new EvaluationOrderGraphPass()) // creates EOG
                 .sourceFiles(sourceFiles)
                 .build())
         .build();

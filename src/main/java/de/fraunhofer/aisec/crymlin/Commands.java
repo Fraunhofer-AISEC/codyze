@@ -1,5 +1,7 @@
 package de.fraunhofer.aisec.crymlin;
 
+import de.fhg.aisec.markmodel.MRule;
+import de.fhg.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
@@ -58,20 +60,41 @@ public class Commands {
    */
   public void load_rules(String fileName) {
     AnalysisServer server = AnalysisServer.getInstance();
-    if (server != null) {
-      server.loadMarkRules(new File(fileName));
+    if (server == null) {
+      System.err.println("Server not initialized");
+      return;
     }
+
+    server.loadMarkRules(new File(fileName));
   }
 
   public void list_rules() {
     AnalysisServer server = AnalysisServer.getInstance();
-    if (server != null) {
-      for (String rule : server.listMarkRules()) {
-        System.out.println(rule);
+    if (server == null) {
+      System.err.println("Server not initialized");
+      return;
+    }
+    
+    Mark markModel = server.getMarkModel();
+    if (markModel != null) {
+      for (MRule r : markModel.getRules()) {
+        System.out.println(r.getName());
       }
     }
   }
 
+  public void show_findings() {
+    AnalysisServer server = AnalysisServer.getInstance();
+    if (server == null) {
+      System.err.println("Server not initialized");
+      return;
+    }
+    
+    for (String fi : server.getFindings()) {
+      System.out.println(fi);
+    }
+  }
+  
   /** Prints help to stdout. */
   public void help() {
     System.out.println(

@@ -1,5 +1,23 @@
 package de.fraunhofer.aisec.crymlin.server;
 
+import de.fhg.aisec.mark.XtextParser;
+import de.fhg.aisec.mark.markDsl.CallStatement;
+import de.fhg.aisec.mark.markDsl.Expression;
+import de.fhg.aisec.mark.markDsl.MarkModel;
+import de.fhg.aisec.markmodel.MEntity;
+import de.fhg.aisec.markmodel.MOp;
+import de.fhg.aisec.markmodel.MRule;
+import de.fhg.aisec.markmodel.Mark;
+import de.fhg.aisec.markmodel.MarkInterpreter;
+import de.fhg.aisec.markmodel.MarkModelLoader;
+import de.fraunhofer.aisec.cpg.Database;
+import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.passes.Pass;
+import de.fraunhofer.aisec.crymlin.JythonInterpreter;
+import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -11,38 +29,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
 import javax.script.ScriptException;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.fhg.aisec.mark.XtextParser;
-import de.fhg.aisec.mark.markDsl.Argument;
-import de.fhg.aisec.mark.markDsl.CallStatement;
-import de.fhg.aisec.mark.markDsl.ComparisonExpression;
-import de.fhg.aisec.mark.markDsl.Expression;
-import de.fhg.aisec.mark.markDsl.FunctionCallExpression;
-import de.fhg.aisec.mark.markDsl.LogicalAndExpression;
-import de.fhg.aisec.mark.markDsl.LogicalOrExpression;
-import de.fhg.aisec.mark.markDsl.MarkModel;
-import de.fhg.aisec.markmodel.MEntity;
-import de.fhg.aisec.markmodel.MOp;
-import de.fhg.aisec.markmodel.MRule;
-import de.fhg.aisec.markmodel.Mark;
-import de.fhg.aisec.markmodel.MarkModelLoader;
-import de.fraunhofer.aisec.cpg.Database;
-import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.passes.Pass;
-import de.fraunhofer.aisec.crymlin.JythonInterpreter;
-import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
 
 /**
  * This is the main CPG analysis server.
@@ -69,11 +61,9 @@ public class AnalysisServer {
 
   private AnalysisContext ctx = new AnalysisContext();
 
-  @NonNull
-  private Mark markModel = new Mark();
+  @NonNull private Mark markModel = new Mark();
 
-  @Nullable
-  Set<String> evidences;
+  @Nullable Set<String> evidences;
 
   private AnalysisServer(ServerConfiguration config) {
     this.config = config;
@@ -175,7 +165,6 @@ public class AnalysisServer {
       } else {
         loadMarkRules(markModelLocation);
       }
-
     }
 
     /*
@@ -219,6 +208,7 @@ public class AnalysisServer {
    *
    * @param result
    */
+  @SuppressWarnings("unchecked")
   private TranslationResult evaluate(TranslationResult result) {
 
     // "Populate" objects
@@ -228,52 +218,34 @@ public class AnalysisServer {
           CrymlinTraversalSource g = interp.getCrymlinTraversal();
 
           List<String> myCalls = g.calls().has("name", call.getCall().getName()).name().toList();
-          System.out.println("my calls: " + myCalls);
-          // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the object.
+          if (!myCalls.isEmpty()) {
+            log.debug("my calls: " + myCalls);
+            // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
+            // object.
 
-          // TODO Find out arguments of the call and try to resolve concrete values for them
+            // TODO Find out arguments of the call and try to resolve concrete values for them
 
-          // TODO "Populate" the entity and assign the resolved values to the entity's variables
+            // TODO "Populate" the entity and assign the resolved values to the entity's variables
+          }
           this.markModel.getPopulatedEntities().put(ent.getName(), ent);
         }
       }
     }
 
+    // Evaluate rules against populated objects
+    MarkInterpreter interp = new MarkInterpreter(this.markModel);
     for (MRule r : this.markModel.getRules()) {
       log.debug("Processing rule {}", r.getName());
       // TODO parse rule and do something with it
-      if (this.markModel.getPopulatedEntities().containsKey(r.getStatement().getEntity().getName())) {
+      if (this.markModel
+          .getPopulatedEntities()
+          .containsKey(r.getStatement().getEntity().getName())) {
         Expression ensureExpr = r.getStatement().getEnsure().getExp();
-        System.out.println(exprToString(ensureExpr));
+        log.debug(interp.exprToString(ensureExpr));
+        // TODO evaluate expression against populated mark entities
       }
     }
     return result;
-  }
-
-  // TODO This method should be moved out of AnalysisServer into MarkUtils.
-  private String argToString(Argument arg) {
-    return exprToString((Expression) arg);  // Every Argument is also an Expression
-  }
-  
-  // TODO This method should be moved out of AnalysisServer into MarkUtils.
-  private String exprToString(Expression expr) {
-    if (expr == null) {
-      return "";
-    }
-
-    if (expr instanceof LogicalOrExpression) {
-      return exprToString(((LogicalOrExpression) expr).getLeft()) + " || " + exprToString(((LogicalOrExpression) expr).getRight());
-    } else if (expr instanceof LogicalAndExpression) {
-      return exprToString(((LogicalOrExpression) expr).getLeft()) + " && " + exprToString(((LogicalOrExpression) expr).getRight());
-    } else if (expr instanceof ComparisonExpression) {
-      ComparisonExpression compExpr = (ComparisonExpression) expr;
-      return exprToString(compExpr.getLeft()) + " " + compExpr.getOp() + " " + exprToString(compExpr.getRight());
-    } else if (expr instanceof FunctionCallExpression) {
-      FunctionCallExpression fExpr = (FunctionCallExpression) expr;
-      String name = fExpr.getName();
-      return name + "(" + String.join(",", fExpr.getArgs().stream().map(arg -> argToString(arg)).collect(Collectors.<String>toList())) + ")";
-    }
-    return expr.toString();
   }
 
   /**
@@ -365,9 +337,10 @@ public class AnalysisServer {
   }
 
   /**
-   * Returns a (possibly empty) list of findings, i.e. violations of MARK rules that were found during analysis.
-   * Make sure to call {@code analyze()} before as otherwise this method will return an empty list.
-   *  
+   * Returns a (possibly empty) list of findings, i.e. violations of MARK rules that were found
+   * during analysis. Make sure to call {@code analyze()} before as otherwise this method will
+   * return an empty list.
+   *
    * @return
    */
   @NonNull
@@ -397,5 +370,4 @@ public class AnalysisServer {
       return new AnalysisServer(this.config);
     }
   }
-
 }

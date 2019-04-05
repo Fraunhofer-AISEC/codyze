@@ -74,7 +74,7 @@ public class Commands {
       System.err.println("Server not initialized");
       return;
     }
-    
+
     Mark markModel = server.getMarkModel();
     if (markModel != null) {
       for (MRule r : markModel.getRules()) {
@@ -89,12 +89,12 @@ public class Commands {
       System.err.println("Server not initialized");
       return;
     }
-    
+
     for (String fi : server.getFindings()) {
       System.out.println(fi);
     }
   }
-  
+
   /** Prints help to stdout. */
   public void help() {
     System.out.println(

@@ -1,8 +1,7 @@
 package de.fhg.aisec.markmodel;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import de.fhg.aisec.mark.markDsl.RuleStatement;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class MRule {
 
@@ -20,11 +19,10 @@ public class MRule {
 
   public void setStatement(RuleStatement stmt) {
     // This is an ECore RuleStatement.
-    this.statement = stmt;    
+    this.statement = stmt;
   }
 
   public RuleStatement getStatement() {
     return statement;
   }
-
 }

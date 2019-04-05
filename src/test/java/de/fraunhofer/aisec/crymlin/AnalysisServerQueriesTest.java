@@ -6,15 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
@@ -26,6 +17,13 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.structures.Method;
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class AnalysisServerQueriesTest {
 
@@ -44,16 +42,18 @@ public class AnalysisServerQueriesTest {
       assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
     }
 
-    String markModelFiles = "../mark-crymlin-eclipse-plugin/examples/PoC_MS1/";  // Directory containing MARK files
-    
+    String markModelFiles =
+        "../mark-crymlin-eclipse-plugin/examples/PoC_MS1/"; // Directory containing MARK files
+
     // Start an analysis server
     server =
         AnalysisServer.builder()
-            .config(ServerConfiguration.builder()
-                .launchConsole(false)
-                .launchLsp(false)
-                .markFiles(markModelFiles)
-                .build())
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markModelFiles)
+                    .build())
             .build();
     server.start();
 

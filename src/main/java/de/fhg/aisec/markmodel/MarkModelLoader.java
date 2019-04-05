@@ -1,12 +1,5 @@
 package de.fhg.aisec.markmodel;
 
-import java.util.List;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.emf.ecore.EObject;
-import org.python.jline.internal.Log;
-
 import de.fhg.aisec.mark.markDsl.CallStatement;
 import de.fhg.aisec.mark.markDsl.DeclarationStatement;
 import de.fhg.aisec.mark.markDsl.EntityDeclaration;
@@ -15,6 +8,11 @@ import de.fhg.aisec.mark.markDsl.MarkModel;
 import de.fhg.aisec.mark.markDsl.OpDeclaration;
 import de.fhg.aisec.mark.markDsl.OpStatement;
 import de.fhg.aisec.mark.markDsl.RuleDeclaration;
+import java.util.List;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.emf.ecore.EObject;
+import org.python.jline.internal.Log;
 
 /**
  * Parses a MarkModel provided by XText in the form of an ECore hierarchy into a simple (ECore-free)
@@ -60,7 +58,7 @@ public class MarkModelLoader {
 
   /**
    * Modifies the given MEntity object.
-   * 
+   *
    * @param content
    * @param me
    */
@@ -95,5 +93,4 @@ public class MarkModelLoader {
     }
     me.getOps().add(mOp);
   }
- 
 }

@@ -7,15 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import de.fhg.aisec.markmodel.MEntity;
 import de.fhg.aisec.markmodel.MRule;
 import de.fhg.aisec.markmodel.Mark;
@@ -27,6 +18,12 @@ import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class AnalysisServerBotanTest {
 
@@ -45,23 +42,26 @@ public class AnalysisServerBotanTest {
       assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
     }
 
-    String markModelFiles = "../mark-crymlin-eclipse-plugin/examples/PoC_MS1/";  // Directory containing MARK files
-    
+    String markModelFiles =
+        "../mark-crymlin-eclipse-plugin/examples/PoC_MS1/"; // Directory containing MARK files
+
     // Start an analysis server
     server =
         AnalysisServer.builder()
-            .config(ServerConfiguration.builder()
-                .launchConsole(false)
-                .launchLsp(false)
-                .markFiles(markModelFiles)
-                .build())
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markModelFiles)
+                    .build())
             .build();
     server.start();
 
     // Start the analysis (BOTAN Symmetric Example by Oliver)
     result =
         server
-            .analyze(newAnalysisRun(new File("../cpg/src/test/resources/botan/symm_block_cipher.cpp")))
+            .analyze(
+                newAnalysisRun(new File("../cpg/src/test/resources/botan/symm_block_cipher.cpp")))
             .get(120, TimeUnit.SECONDS);
   }
 
@@ -75,8 +75,7 @@ public class AnalysisServerBotanTest {
   @Test
   public void contextTest() {
     // Get analysis context from scratch
-    AnalysisContext ctx =
-        (AnalysisContext) AnalysisServerBotanTest.result.getScratch().get("ctx");
+    AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result.getScratch().get("ctx");
 
     // We expect no methods (as there is no class)
     assertNotNull(ctx);
@@ -99,30 +98,27 @@ public class AnalysisServerBotanTest {
     assertFalse(tus.isEmpty());
   }
 
-  
   @Test
   public void markModelTest() throws Exception {
     Mark markModel = server.getMarkModel();
     assertNotNull(markModel);
     List<MRule> rules = markModel.getRules();
     assertEquals(2, rules.size());
-    
+
     List<MEntity> ents = markModel.getEntities();
     assertEquals(6, ents.size());
   }
-
 
   @Test
   public void markEvaluationTest() throws Exception {
     List<String> findings = server.getFindings();
     assertNotNull(findings);
-    
+
     for (String finding : findings) {
       System.out.println(finding);
     }
   }
 
-  
   /**
    * Helper method for initializing an Analysis Run.
    *
@@ -135,7 +131,8 @@ public class AnalysisServerBotanTest {
             TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
-                //.registerPass(new SimpleForwardCfgPass()) // creates CFG   -> will block the OGM when calling Database.persist() on the resulting graph.
+                // .registerPass(new SimpleForwardCfgPass()) // creates CFG   -> will block the OGM
+                // when calling Database.persist() on the resulting graph.
                 .registerPass(new EvaluationOrderGraphPass()) // creates EOG
                 .sourceFiles(sourceFiles)
                 .build())

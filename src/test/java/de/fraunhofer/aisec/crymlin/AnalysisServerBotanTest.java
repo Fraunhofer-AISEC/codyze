@@ -103,10 +103,10 @@ public class AnalysisServerBotanTest {
     Mark markModel = server.getMarkModel();
     assertNotNull(markModel);
     List<MRule> rules = markModel.getRules();
-    assertEquals(2, rules.size());
+    assertEquals(6, rules.size());
 
     List<MEntity> ents = markModel.getEntities();
-    assertEquals(6, ents.size());
+    assertEquals(9, ents.size());
   }
 
   @Test

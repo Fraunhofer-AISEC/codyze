@@ -10,7 +10,6 @@ import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.structures.Method;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * This pass collects all statements in a method's body in the correct order.
@@ -22,7 +21,7 @@ public class StatementsPerMethodPass implements PassWithContext {
   private AnalysisContext ctx;
 
   @Override
-  public void setContext(@NonNull AnalysisContext ctx) {
+  public void setContext(AnalysisContext ctx) {
     this.ctx = ctx;
   }
 

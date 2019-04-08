@@ -1,8 +1,28 @@
 package de.fraunhofer.aisec.crymlin.server;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import javax.script.ScriptException;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.fhg.aisec.mark.XtextParser;
 import de.fhg.aisec.mark.markDsl.CallStatement;
-import de.fhg.aisec.mark.markDsl.Expression;
 import de.fhg.aisec.mark.markDsl.MarkModel;
 import de.fhg.aisec.markmodel.MEntity;
 import de.fhg.aisec.markmodel.MOp;
@@ -18,24 +38,7 @@ import de.fraunhofer.aisec.crymlin.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import javax.script.ScriptException;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import de.fraunhofer.aisec.crymlin.utils.Utils;
 
 /**
  * This is the main CPG analysis server.
@@ -206,21 +209,27 @@ public class AnalysisServer {
 
   /**
    * Evaluates the {@code markModel} against the currently analyzed program.
+   * 
+   * TODO Needs rewrite!! Just for demo!
    *
    * @param result
    */
   @SuppressWarnings("unchecked")
   private TranslationResult evaluate(TranslationResult result) {
+    
+    // Maintain all method calls in a list
+    CrymlinTraversalSource g = interp.getCrymlinTraversal();
+    List<String> myCalls = g.calls().name().toList();
 
-    // "Populate" objects
+    // "Populate" MARK objects
     for (MEntity ent : this.markModel.getEntities()) {
       for (MOp op : ent.getOps()) {
-        for (CallStatement call : op.getCallStatements()) {
-          CrymlinTraversalSource g = interp.getCrymlinTraversal();
+        for (CallStatement opCall : op.getCallStatements()) {
 
-          List<String> myCalls = g.calls().has("name", call.getCall().getName()).name().toList();
-          if (!myCalls.isEmpty()) {
-            log.debug("my calls: " + myCalls);
+          Optional<String> call = containsCall(myCalls, opCall);           
+          
+          if (call.isPresent()) {
+            log.debug("my calls: " + call.get());
             // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
             // object.
 
@@ -237,19 +246,20 @@ public class AnalysisServer {
     MarkInterpreter interp = new MarkInterpreter(this.markModel);
     for (MRule r : this.markModel.getRules()) {
       log.debug("Processing rule {}", r.getName());
-      // TODO parse rule and do something with it
-      Optional<String> matchingEntity =
-          r.getStatement().getEntities().stream()
-              .map(ent -> ent.getN())
-              .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
-              .findAny();
-      if (matchingEntity.isPresent()) {
-        Expression ensureExpr = r.getStatement().getEnsure().getExp();
-        log.debug(interp.exprToString(ensureExpr));
-        // TODO evaluate expression against populated mark entities
-      }
+        // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and violated/triggered and satisfied".
+        if (interp.evaluateRule(r)) {
+          this.getFindings().add("Rule " + r.getName() + " is satisfied");
+        }
     }
     return result;
+  }
+
+  private Optional<String> containsCall(List<String> myCalls, CallStatement opCall) {
+    // Extract only the method Botan::Cipher_Mode::start())  -> start()
+    final String methodName = Utils.extractMethodName(opCall.getCall().getName());
+    return myCalls.stream().filter(
+        sourceCodeCall -> sourceCodeCall.endsWith(methodName))
+        .findAny();
   }
 
   /**

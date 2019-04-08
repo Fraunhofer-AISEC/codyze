@@ -11,7 +11,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class MOp {
 
   private String name;
-  @NonNull private List<String> parameters = new ArrayList<>();
   @NonNull private List<MOpCallStmt> statements = new ArrayList<>();
   @NonNull private List<CallStatement> callStatements = new ArrayList<>();
   @NonNull private List<ImportStatement> importStatements = new ArrayList<>();
@@ -24,11 +23,6 @@ public class MOp {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  @NonNull
-  public List<String> getParameters() {
-    return this.parameters;
   }
 
   @NonNull

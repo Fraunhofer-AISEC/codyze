@@ -114,6 +114,7 @@ public class AnalysisServerBotanTest {
     List<String> findings = server.getFindings();
     assertNotNull(findings);
 
+    System.out.println("Findings");
     for (String finding : findings) {
       System.out.println(finding);
     }

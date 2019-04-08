@@ -36,7 +36,7 @@ build:
     - mkdir -p /cache/.gradle
     # build
     - echo $GRADLE_PROPERTIES > gradle.properties
-    - ./gradlew -Dsonar.host.url=https://sonar.netsec.aisec.fraunhofer.de -Dsonar.exclusions=build/generated-src/** --parallel --refresh-dependencies clean docker sonarqube
+    - ./gradlew --parallel --refresh-dependencies clean docker sonarqube
   artifacts:
     when: always
     paths:

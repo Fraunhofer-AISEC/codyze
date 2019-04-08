@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -237,9 +238,12 @@ public class AnalysisServer {
     for (MRule r : this.markModel.getRules()) {
       log.debug("Processing rule {}", r.getName());
       // TODO parse rule and do something with it
-      if (this.markModel
-          .getPopulatedEntities()
-          .containsKey(r.getStatement().getEntity().getName())) {
+      Optional<String> matchingEntity =
+          r.getStatement().getEntities().stream()
+              .map(ent -> ent.getN())
+              .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
+              .findAny();
+      if (matchingEntity.isPresent()) {
         Expression ensureExpr = r.getStatement().getEnsure().getExp();
         log.debug(interp.exprToString(ensureExpr));
         // TODO evaluate expression against populated mark entities

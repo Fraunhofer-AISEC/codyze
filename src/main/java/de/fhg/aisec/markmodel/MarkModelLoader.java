@@ -3,6 +3,7 @@ package de.fhg.aisec.markmodel;
 import de.fhg.aisec.mark.markDsl.CallStatement;
 import de.fhg.aisec.mark.markDsl.DeclarationStatement;
 import de.fhg.aisec.mark.markDsl.EntityDeclaration;
+import de.fhg.aisec.mark.markDsl.EntityStatement;
 import de.fhg.aisec.mark.markDsl.ImportStatement;
 import de.fhg.aisec.mark.markDsl.MarkModel;
 import de.fhg.aisec.mark.markDsl.OpDeclaration;
@@ -10,8 +11,6 @@ import de.fhg.aisec.mark.markDsl.OpStatement;
 import de.fhg.aisec.mark.markDsl.RuleDeclaration;
 import java.util.List;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.emf.ecore.EObject;
 import org.python.jline.internal.Log;
 
 /**
@@ -59,14 +58,14 @@ public class MarkModelLoader {
   /**
    * Modifies the given MEntity object.
    *
-   * @param content
+   * @param stmts
    * @param me
    */
-  private void parseEntityContent(@Nullable List<EObject> content, @NonNull MEntity me) {
-    if (content == null) {
+  private void parseEntityContent(List<EntityStatement> stmts, @NonNull MEntity me) {
+    if (stmts == null) {
       return;
     }
-    for (EObject c : content) {
+    for (EntityStatement c : stmts) {
       if (c instanceof OpDeclaration) {
         OpDeclaration op = (OpDeclaration) c;
         parseOp(op, me);
@@ -79,7 +78,6 @@ public class MarkModelLoader {
   private void parseOp(OpDeclaration op, MEntity me) {
     MOp mOp = new MOp();
     mOp.setName(op.getName());
-    mOp.getParameters().addAll(op.getParams());
     for (OpStatement stmt : op.getStmts()) {
       if (stmt instanceof CallStatement) {
         mOp.getCallStatements().add((CallStatement) stmt);

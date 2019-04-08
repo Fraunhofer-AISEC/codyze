@@ -4,7 +4,6 @@ import de.fhg.aisec.mark.markDsl.CallStatement;
 import de.fhg.aisec.mark.markDsl.DeclarationStatement;
 import de.fhg.aisec.mark.markDsl.EntityDeclaration;
 import de.fhg.aisec.mark.markDsl.EntityStatement;
-import de.fhg.aisec.mark.markDsl.ImportStatement;
 import de.fhg.aisec.mark.markDsl.MarkModel;
 import de.fhg.aisec.mark.markDsl.OpDeclaration;
 import de.fhg.aisec.mark.markDsl.OpStatement;
@@ -83,8 +82,6 @@ public class MarkModelLoader {
         mOp.getCallStatements().add((CallStatement) stmt);
       } else if (stmt instanceof DeclarationStatement) {
         mOp.getDeclStatements().add((DeclarationStatement) stmt);
-      } else if (stmt instanceof ImportStatement) {
-        mOp.getImportStatements().add((ImportStatement) stmt);
       } else {
         Log.warn("Not yet implemented: Handling of Mark {}", stmt.getClass().getName());
       }

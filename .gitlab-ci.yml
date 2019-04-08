@@ -29,14 +29,14 @@ build:
   tags:
     - docker
   before_script:
-    - cp sonar.crt /usr/local/share/ca-certificates/sonar.crt
+    #- cp sonar.crt /usr/local/share/ca-certificates/sonar.crt
     - update-ca-certificates
   script:
     # make sure the cached gradle directory exists
     - mkdir -p /cache/.gradle
     # build
     - echo $GRADLE_PROPERTIES > gradle.properties
-    - ./gradlew --parallel --refresh-dependencies --edit clean docker sonarqube
+    - ./gradlew --parallel --refresh-dependencies --debug clean docker sonarqube
   artifacts:
     when: always
     paths:

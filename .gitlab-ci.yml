@@ -20,6 +20,7 @@ variables:
   NEO4J_URI: bolt://neo4j
 
 build:
+  cache: {}
   stage: build
   variables:
     GRADLE_USER_HOME: "/cache/.gradle"

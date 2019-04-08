@@ -36,7 +36,7 @@ build:
     - mkdir -p /cache/.gradle
     # build
     - echo $GRADLE_PROPERTIES > gradle.properties
-    - ./gradlew --parallel --refresh-dependencies clean docker sonarqube
+    - ./gradlew --parallel --refresh-dependencies --edit clean docker sonarqube
   artifacts:
     when: always
     paths:

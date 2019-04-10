@@ -16,14 +16,13 @@ public class Utils {
   public static String toFullyQualifiedSignature(RecordDeclaration r, MethodDeclaration m) {
     return r.getName() + "." + m.getSignature();
   }
-  
+
   public static String extractMethodName(String opName) {
     if (opName.contains("::")) {
-      opName = opName.substring(opName.lastIndexOf("::")+2);
+      opName = opName.substring(opName.lastIndexOf("::") + 2);
     } else if (opName.contains("->")) {
-      opName = opName.substring(opName.lastIndexOf("->")+2);
+      opName = opName.substring(opName.lastIndexOf("->") + 2);
     }
     return opName;
   }
-
 }

@@ -1,26 +1,5 @@
 package de.fraunhofer.aisec.crymlin.server;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import javax.script.ScriptException;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.fhg.aisec.mark.XtextParser;
 import de.fhg.aisec.mark.markDsl.CallStatement;
 import de.fhg.aisec.mark.markDsl.MarkModel;
@@ -39,6 +18,24 @@ import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import javax.script.ScriptException;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the main CPG analysis server.
@@ -171,6 +168,16 @@ public class AnalysisServer {
       }
     }
 
+    // Clear database
+    Database dbase = Database.getInstance();
+    try {
+      dbase.connect(config.dbUri, config.dbUser, config.dbPassword);
+      dbase.purgeDatabase();
+      dbase.close();
+    } catch (InterruptedException e) {
+      log.warn(e.getMessage(), e);
+    }
+
     /*
      * Create analysis context (in-memory structures) and register at all passes
      * supporting contexts.
@@ -209,14 +216,14 @@ public class AnalysisServer {
 
   /**
    * Evaluates the {@code markModel} against the currently analyzed program.
-   * 
-   * TODO Needs rewrite!! Just for demo!
+   *
+   * <p>TODO Needs rewrite!! Just for demo!
    *
    * @param result
    */
   @SuppressWarnings("unchecked")
   private TranslationResult evaluate(TranslationResult result) {
-    
+
     // Maintain all method calls in a list
     CrymlinTraversalSource g = interp.getCrymlinTraversal();
     List<String> myCalls = g.calls().name().toList();
@@ -226,8 +233,8 @@ public class AnalysisServer {
       for (MOp op : ent.getOps()) {
         for (CallStatement opCall : op.getCallStatements()) {
 
-          Optional<String> call = containsCall(myCalls, opCall);           
-          
+          Optional<String> call = containsCall(myCalls, opCall);
+
           if (call.isPresent()) {
             log.debug("my calls: " + call.get());
             // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
@@ -246,10 +253,11 @@ public class AnalysisServer {
     MarkInterpreter interp = new MarkInterpreter(this.markModel);
     for (MRule r : this.markModel.getRules()) {
       log.debug("Processing rule {}", r.getName());
-        // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and violated/triggered and satisfied".
-        if (interp.evaluateRule(r)) {
-          this.getFindings().add("Rule " + r.getName() + " is satisfied");
-        }
+      // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and
+      // violated/triggered and satisfied".
+      if (interp.evaluateRule(r)) {
+        this.getFindings().add("Rule " + r.getName() + " is satisfied");
+      }
     }
     return result;
   }
@@ -257,9 +265,7 @@ public class AnalysisServer {
   private Optional<String> containsCall(List<String> myCalls, CallStatement opCall) {
     // Extract only the method Botan::Cipher_Mode::start())  -> start()
     final String methodName = Utils.extractMethodName(opCall.getCall().getName());
-    return myCalls.stream().filter(
-        sourceCodeCall -> sourceCodeCall.endsWith(methodName))
-        .findAny();
+    return myCalls.stream().filter(sourceCodeCall -> sourceCodeCall.endsWith(methodName)).findAny();
   }
 
   /**

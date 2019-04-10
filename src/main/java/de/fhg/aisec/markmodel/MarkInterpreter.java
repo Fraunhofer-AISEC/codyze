@@ -1,12 +1,5 @@
 package de.fhg.aisec.markmodel;
 
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.fhg.aisec.mark.markDsl.Argument;
 import de.fhg.aisec.mark.markDsl.ComparisonExpression;
 import de.fhg.aisec.mark.markDsl.Expression;
@@ -20,6 +13,11 @@ import de.fhg.aisec.mark.markDsl.OrderExpression;
 import de.fhg.aisec.mark.markDsl.SequenceExpression;
 import de.fhg.aisec.mark.markDsl.Terminal;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MarkInterpreter {
   private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
@@ -94,8 +92,9 @@ public class MarkInterpreter {
 
   /**
    * DUMMY. JUST FOR DEMO. REWRITE.
-   * 
-   * Evaluates a MARK rule against the results of the analysis.
+   *
+   * <p>Evaluates a MARK rule against the results of the analysis.
+   *
    * @param r
    * @return
    */
@@ -129,7 +128,7 @@ public class MarkInterpreter {
       return evaluateExpr(left) && evaluateExpr(right);
     } else if (expr instanceof Terminal) {
       return containedInModel((Terminal) expr);
-    } else if (expr instanceof OrderExpression) {      
+    } else if (expr instanceof OrderExpression) {
       SequenceExpression seqxpr = (SequenceExpression) ((OrderExpression) expr).getExp();
       if (seqxpr != null) {
         return evaluateExpr(seqxpr);
@@ -142,16 +141,16 @@ public class MarkInterpreter {
 
   /**
    * DUMMY FOR DEMO.
-   * 
-   * Method fakes that a statement is contained in the a MARK entity
-   * 
+   *
+   * <p>Method fakes that a statement is contained in the a MARK entity
+   *
    * @param orderExpression
    * @param orderExpression2
    * @return
    */
   private boolean containedInModel(Terminal expr) {
     System.out.println(exprToString(expr));
-    
+
     return true;
   }
 }

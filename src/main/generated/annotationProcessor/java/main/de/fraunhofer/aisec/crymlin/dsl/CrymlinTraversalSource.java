@@ -203,6 +203,18 @@ public class CrymlinTraversalSource extends CrymlinTraversalSourceDsl {
   }
 
   @Override
+  public CrymlinTraversal<Vertex, Vertex> functiondeclarations() {
+    CrymlinTraversalSource clone = this.clone();
+    return new DefaultCrymlinTraversal (clone, super.functiondeclarations().asAdmin());
+  }
+
+  @Override
+  public CrymlinTraversal<Vertex, Vertex> functiondeclaration(String functionname) {
+    CrymlinTraversalSource clone = this.clone();
+    return new DefaultCrymlinTraversal (clone, super.functiondeclaration(functionname).asAdmin());
+  }
+
+  @Override
   public CrymlinTraversal<Vertex, Vertex> declarations() {
     CrymlinTraversalSource clone = this.clone();
     return new DefaultCrymlinTraversal (clone, super.declarations().asAdmin());

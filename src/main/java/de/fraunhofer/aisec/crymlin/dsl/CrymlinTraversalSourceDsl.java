@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.crymlin.dsl;
 
 import de.fraunhofer.aisec.cpg.graph.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.Declaration;
+import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
@@ -122,6 +123,30 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     return traversal
         .has(T.label, LabelP.of(RecordDeclaration.class.getSimpleName()))
         .has("name", recordname);
+  }
+
+  /**
+   * Returns all RecordDeclarations (e.g., Java classes).
+   *
+   * @return
+   */
+  public GraphTraversal<Vertex, Vertex> functiondeclarations() {
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+    return traversal.has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()));
+  }
+
+  /**
+   * Returns the FunctionDeclarations with a given name.
+   *
+   * @return
+   */
+  public GraphTraversal<Vertex, Vertex> functiondeclaration(String functionname) {
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+    return traversal
+        .has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()))
+        .has("name", functionname);
   }
 
   /**

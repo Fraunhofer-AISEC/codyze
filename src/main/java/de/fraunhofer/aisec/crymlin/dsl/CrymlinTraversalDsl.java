@@ -87,8 +87,22 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   }
 
   /**
+   * Shortcut for {@code .out("CFG")}.
+   *
+   * @return
+   */
+  @GremlinDsl.AnonymousMethod(
+      returnTypeParameters = {"A", "Vertex"}, // c/p from example, unclear.
+      methodTypeParameters = {"A"})
+  public default CrymlinTraversal<S, Vertex> cfg() {
+    return (CrymlinTraversal<S, Vertex>) out("CFG");
+  }
+
+  /**
    * Example of a Crymlin step that operates on the in-memory AnalysisContext and returns its
    * results in form of a GraphTraversal step.
+   * 
+   * TODO This is just an example of creating Vertices that do not actually exist in the DB and returning them from a query. Turns out that this is not so simple and should probably be avoided.
    *
    * @return
    */
@@ -123,12 +137,6 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
               stmt.getArgumentIndex());
       t = t.inject(v);
 
-      //      new Neo4jVertex()
-      //    Vertex v = new DetachedVertex() {
-      //	  @Override
-      //	  public Vertex attach(Function f) { return this; }
-      //  };
-      //      t = t.inject(stmt);
     }
     return (CrymlinTraversal<S, Vertex>) t;
   }

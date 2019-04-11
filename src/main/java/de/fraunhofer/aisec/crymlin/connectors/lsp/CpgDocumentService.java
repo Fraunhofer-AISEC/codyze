@@ -1,10 +1,15 @@
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
+import de.fraunhofer.aisec.cpg.Database;
+import de.fraunhofer.aisec.cpg.TranslationConfiguration;
+import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.passes.CallResolver;
+import de.fraunhofer.aisec.cpg.passes.ControlFlowGenerator;
+import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
@@ -18,13 +23,6 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.fraunhofer.aisec.cpg.Database;
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.ControlFlowGenerator;
-import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
 
 /**
  * Implementation of a {@link TextDocumentService}, which handles certain notifications from a

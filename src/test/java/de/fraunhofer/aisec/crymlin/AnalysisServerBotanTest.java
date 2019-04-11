@@ -63,7 +63,7 @@ public class AnalysisServerBotanTest {
         server
             .analyze(
                 newAnalysisRun(new File("../cpg/src/test/resources/botan/symm_block_cipher.cpp")))
-            .get(120, TimeUnit.SECONDS);
+            .get(5, TimeUnit.MINUTES);
   }
 
   @AfterAll

@@ -62,6 +62,16 @@ public interface CrymlinTraversal<S, E> extends CrymlinTraversalDsl<S, E> {
   }
 
   @Override
+  default CrymlinTraversal cfg() {
+    return (CrymlinTraversal) CrymlinTraversalDsl.super.cfg();
+  }
+
+  @Override
+  default CrymlinTraversal body() {
+    return (CrymlinTraversal) CrymlinTraversalDsl.super.body();
+  }
+
+  @Override
   default CrymlinTraversal statements() {
     return (CrymlinTraversal) CrymlinTraversalDsl.super.statements();
   }

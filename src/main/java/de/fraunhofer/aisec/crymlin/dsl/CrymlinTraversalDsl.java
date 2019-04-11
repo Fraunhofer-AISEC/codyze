@@ -92,10 +92,22 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
    * @return
    */
   @GremlinDsl.AnonymousMethod(
-      returnTypeParameters = {"A", "Vertex"}, // c/p from example, unclear.
+      returnTypeParameters = {"A", "Vertex"},
       methodTypeParameters = {"A"})
   public default CrymlinTraversal<S, Vertex> cfg() {
     return (CrymlinTraversal<S, Vertex>) out("CFG");
+  }
+
+  /**
+   * Shortcut for {@code .out("BODY")}.
+   *
+   * @return
+   */
+  @GremlinDsl.AnonymousMethod(
+      returnTypeParameters = {"A", "Vertex"},
+      methodTypeParameters = {"A"})
+  public default CrymlinTraversal<S, Vertex> body() {
+    return (CrymlinTraversal<S, Vertex>) out("BODY");
   }
 
   /**

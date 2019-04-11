@@ -11,7 +11,7 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.ControlFlowGenerator;
+import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
 import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
@@ -125,8 +125,6 @@ public class AnalysisServerQueriesTest {
     assertNotNull(tus);
     assertFalse(tus.isEmpty());
     for (Vertex x : tus) {
-      // System.out.println(x + "  " + x.getClass());
-      // System.out.println(x.property("name").value());
       System.out.println(x.property("code").value());
     }
   }
@@ -143,7 +141,7 @@ public class AnalysisServerQueriesTest {
             TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
-                .registerPass(new ControlFlowGenerator()) // creates CFG
+                .registerPass(new SimpleForwardCfgPass()) // creates CFG
                 .registerPass(new CallResolver()) // creates CG
                 .registerPass(new StatementsPerMethodPass())
                 .sourceFiles(sourceFiles)

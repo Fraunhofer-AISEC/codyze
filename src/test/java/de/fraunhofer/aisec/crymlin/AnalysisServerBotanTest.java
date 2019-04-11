@@ -15,6 +15,7 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
+import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
@@ -132,7 +133,7 @@ public class AnalysisServerBotanTest {
             TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
-                // .registerPass(new SimpleForwardCfgPass()) // creates CFG   -> will block the OGM
+                .registerPass(new SimpleForwardCfgPass()) // creates CFG
                 // when calling Database.persist() on the resulting graph.
                 .registerPass(new EvaluationOrderGraphPass()) // creates EOG
                 .sourceFiles(sourceFiles)

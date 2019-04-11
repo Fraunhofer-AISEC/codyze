@@ -113,8 +113,10 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   /**
    * Example of a Crymlin step that operates on the in-memory AnalysisContext and returns its
    * results in form of a GraphTraversal step.
-   * 
-   * TODO This is just an example of creating Vertices that do not actually exist in the DB and returning them from a query. Turns out that this is not so simple and should probably be avoided.
+   *
+   * <p>TODO This is just an example of creating Vertices that do not actually exist in the DB and
+   * returning them from a query. Turns out that this is not so simple and should probably be
+   * avoided.
    *
    * @return
    */
@@ -148,7 +150,6 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
               "argument_index",
               stmt.getArgumentIndex());
       t = t.inject(v);
-
     }
     return (CrymlinTraversal<S, Vertex>) t;
   }

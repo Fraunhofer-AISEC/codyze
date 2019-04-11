@@ -14,6 +14,9 @@ import de.fraunhofer.aisec.crymlin.utils.Utils;
 /**
  * This pass collects all statements in a method's body in the correct order.
  *
+ * <p>TODO This is only an experiment for a Pass outside of the CPG project. It is not used at the
+ * moment.
+ *
  * @author julian
  */
 public class StatementsPerMethodPass implements PassWithContext {

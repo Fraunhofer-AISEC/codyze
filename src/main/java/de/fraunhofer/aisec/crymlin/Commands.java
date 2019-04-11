@@ -4,7 +4,7 @@ import de.fhg.aisec.markmodel.MRule;
 import de.fhg.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
+import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import java.io.File;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class Commands {
             .config(
                 TranslationConfiguration.builder()
                     .sourceFiles(files.toArray(new File[0]))
-                    .registerPass(new StatementsPerMethodPass())
+                    .registerPass(new SimpleForwardCfgPass())
                     .build())
             .build();
 

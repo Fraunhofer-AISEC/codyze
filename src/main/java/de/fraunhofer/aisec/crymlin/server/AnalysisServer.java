@@ -62,9 +62,11 @@ public class AnalysisServer {
 
   private AnalysisContext ctx = new AnalysisContext();
 
-  @NonNull private Mark markModel = new Mark();
+  @NonNull
+  private Mark markModel = new Mark();
 
-  @Nullable Set<String> evidences;
+  @Nullable
+  Set<String> evidences;
 
   private AnalysisServer(ServerConfiguration config) {
     this.config = config;
@@ -179,8 +181,10 @@ public class AnalysisServer {
     }
 
     /*
-     * Create analysis context (in-memory structures) and register at all passes
-     * supporting contexts.
+     * Create analysis context and register at all passes supporting contexts.
+     * 
+     * An analysis context is an in-memory data structure that can be used to 
+     * exchange data across passes outside of the actual CPG.
      */
     this.ctx = new AnalysisContext();
     for (Pass p : analyzer.getPasses()) {
@@ -191,8 +195,8 @@ public class AnalysisServer {
 
     // Run all passes and persist the result
     return analyzer
-        .analyze()
-        .thenApply(
+        .analyze()   // Run analysis
+        .thenApply(  // Persist to DB
             (result) -> {
               // Attach analysis context to result
               result.getScratch().put("ctx", ctx);
@@ -209,7 +213,7 @@ public class AnalysisServer {
             })
         .thenApply(
             (result) -> {
-              // Evaluate all rules
+              // Evaluate all MARK rules
               return evaluate(result);
             });
   }
@@ -217,12 +221,41 @@ public class AnalysisServer {
   /**
    * Evaluates the {@code markModel} against the currently analyzed program.
    *
-   * <p>TODO Needs rewrite!! Just for demo!
+   * <p>TODO This is the core of the MARK evaluation. It needs a complete rewrite.
+   * 
+   * The pesudocode comment outlines a "proper" analysis (but it is still incomplete), while the actual Java code below was just a quick'n dirty hack for the PoC demonstration. 
    *
    * @param result
    */
   @SuppressWarnings("unchecked")
   private TranslationResult evaluate(TranslationResult result) {
+
+    /*
+     * 
+     *  // Iterate over all statements of the program, along the CFG (created by SimpleForwardCFG)
+     *  for tu in translationunits:
+     *    for func in tu.functions:
+     *      for stmt in func.cfg:
+     *        
+     *        // If an object of interest is created -> track it as an "abstract object"
+     *        // "of interest" = mentioned as an Entity in at least one MARK "rule".
+     *        if is_object_creation(stmt):
+     *          a_obj = create_abstract_object(stmt)
+     *          init_typestate(a_obj)
+     *          object_table.add(a_obj)
+     *        
+     *        // If an abstract object is "used" (= one of its fields is set or one of its methods is called) -> update its typestate.
+     *        // "update its typestate" needs further detailing
+     *        if uses_abstract_object(stmt):
+     *          update_typestate(stmt)
+     *          
+     */
+
+    /*
+     * A "typestate" item is an object that approximates the "states" of a real object instances at runtime.
+     * 
+     * States are defined as the (approximated) values of the object's member fields. 
+     */
 
     // Maintain all method calls in a list
     CrymlinTraversalSource g = interp.getCrymlinTraversal();

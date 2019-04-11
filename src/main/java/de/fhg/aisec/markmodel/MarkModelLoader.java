@@ -55,7 +55,7 @@ public class MarkModelLoader {
   }
 
   /**
-   * Modifies the given MEntity object.
+   * Note: Modifies the given MEntity object.
    *
    * @param stmts
    * @param me

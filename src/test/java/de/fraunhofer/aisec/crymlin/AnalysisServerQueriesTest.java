@@ -61,7 +61,7 @@ public class AnalysisServerQueriesTest {
     result =
         server
             .analyze(newJavaAnalysisRun(new File("src/test/resources/good/Bouncycastle.java")))
-            .get(120, TimeUnit.SECONDS);
+            .get(5, TimeUnit.MINUTES);
   }
 
   @AfterAll

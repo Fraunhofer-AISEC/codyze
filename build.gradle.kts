@@ -108,12 +108,12 @@ dependencies {
     api("org.glassfish.jersey.media", "jersey-media-json-jackson", versions["jersey"])
 
     // CDT parser
-    api("org.eclipse", "osgi", "3.13.200.v20181130-2106")
-    api("org.eclipse.equinox", "common", "3.10.200.v20181021-1645")
-    api("org.eclipse.equinox", "preferences", "3.7.200.v20180827-1235")
-    api("org.eclipse.core", "runtime", "3.15.100.v20181107-1343")
-    api("org.eclipse.core", "jobs", "3.10.200.v20180912-1356")
-    api("org.eclipse.cdt", "core", "6.6.0.201812101042")
+    api("org.eclipse.platform", "org.eclipse.osgi", "3.13.200")
+    api("org.eclipse.platform", "org.eclipse.equinox.common", "3.10.200")
+    api("org.eclipse.platform", "org.eclipse.equinox.preferences", "3.7.200")
+    api("org.eclipse.platform", "org.eclipse.core.runtime", "3.15.100")
+    api("org.eclipse.platform", "org.eclipse.core.jobs", "3.10.200")
+    api("org.eclipse.cdt", "core", "6.6.0.201812101042")  // This is a dynamic version and might disappear in the future.
 
     // LSP
     api("org.eclipse.lsp4j", "org.eclipse.lsp4j", "0.6.0")

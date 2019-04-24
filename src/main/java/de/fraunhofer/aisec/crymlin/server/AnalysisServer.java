@@ -162,7 +162,7 @@ public class AnalysisServer {
     // Clear database
     Database dbase = Database.getInstance();
     try {
-      dbase.connect(config.dbUri, config.dbUser, config.dbPassword);
+      dbase.connect();
       dbase.purgeDatabase();
       dbase.close();
     } catch (InterruptedException e) {
@@ -193,7 +193,7 @@ public class AnalysisServer {
               // Persist the result
               Database db = Database.getInstance();
               try {
-                db.connect(config.dbUri, config.dbUser, config.dbPassword);
+                db.connect();
               } catch (InterruptedException e) {
                 log.warn(e.getMessage(), e);
               }
@@ -352,7 +352,6 @@ public class AnalysisServer {
   /**
    * Returns a list with the names of the currently loaded MARK rules.
    *
-   * @param markFile
    * @return
    */
   public @NonNull Mark getMarkModel() {

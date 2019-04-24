@@ -18,6 +18,7 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.structures.Method;
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -42,8 +43,18 @@ public class AnalysisServerQueriesTest {
       assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
     }
 
-    String markModelFiles =
-        "../mark-crymlin-eclipse-plugin/examples/PoC_MS1/"; // Directory containing MARK files
+    ClassLoader classLoader = AnalysisServerQueriesTest.class.getClassLoader();
+
+    URL resource = classLoader.getResource("good/Bouncycastle.java");
+    assertNotNull(resource);
+    File javaFile = new File(resource.getFile());
+    assertNotNull(javaFile);
+
+    resource = classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark");
+    assertNotNull(resource);
+    File markPoC1 = new File(resource.getFile());
+    assertNotNull(markPoC1);
+    String markModelFiles = markPoC1.getParent();
 
     // Start an analysis server
     server =
@@ -58,10 +69,7 @@ public class AnalysisServerQueriesTest {
     server.start();
 
     // Start the analysis
-    result =
-        server
-            .analyze(newJavaAnalysisRun(new File("src/test/resources/good/Bouncycastle.java")))
-            .get(5, TimeUnit.MINUTES);
+    result = server.analyze(newJavaAnalysisRun(javaFile)).get(5, TimeUnit.MINUTES);
   }
 
   @AfterAll

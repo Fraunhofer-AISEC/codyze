@@ -9,30 +9,12 @@ public class ServerConfiguration {
   /** Should the server launch an LSP server? */
   public final boolean launchLsp;
 
-  /** Neo4J URI. */
-  public String dbUri;
-
-  /** Neo4J username. */
-  public String dbUser;
-
-  /** Neo4J password. */
-  public String dbPassword;
-
   /** Directory or file with MARK entities/rules. */
   public String markModelFiles;
 
-  private ServerConfiguration(
-      boolean launchConsole,
-      boolean launchLsp,
-      String dbUri,
-      String dbUser,
-      String dbPassword,
-      String markModelFiles) {
+  private ServerConfiguration(boolean launchConsole, boolean launchLsp, String markModelFiles) {
     this.launchConsole = launchConsole;
     this.launchLsp = launchLsp;
-    this.dbUri = dbUri;
-    this.dbUser = dbUser;
-    this.dbPassword = dbPassword;
     this.markModelFiles = markModelFiles;
   }
 
@@ -43,9 +25,6 @@ public class ServerConfiguration {
   public static class Builder {
     private boolean launchConsole = true;
     private boolean launchLsp = true;
-    private String dbUri = "bolt://localhost";
-    private String dbUser = "neo4j";
-    private String dbPassword = "password";
     private String markModelFiles = ""; // Path of a file or directory
 
     public Builder launchConsole(boolean launchConsole) {
@@ -58,29 +37,13 @@ public class ServerConfiguration {
       return this;
     }
 
-    public Builder dbUri(String dbUri) {
-      this.dbUri = dbUri;
-      return this;
-    }
-
-    public Builder dbUser(String dbUser) {
-      this.dbUser = dbUser;
-      return this;
-    }
-
-    public Builder dbPassword(String dbPassword) {
-      this.dbPassword = dbPassword;
-      return this;
-    }
-
     public Builder markFiles(String markModelFiles) {
       this.markModelFiles = markModelFiles;
       return this;
     }
 
     public ServerConfiguration build() {
-      return new ServerConfiguration(
-          launchConsole, launchLsp, dbUri, dbUser, dbPassword, markModelFiles);
+      return new ServerConfiguration(launchConsole, launchLsp, markModelFiles);
     }
   }
 }

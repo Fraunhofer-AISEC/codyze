@@ -156,22 +156,13 @@ public class AnalysisServer {
    */
   public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer)
       throws InterruptedException, ExecutionException {
-    /*
-     * Load MARK model as given in configuration, if it has not been set manually before.
-     */
-    if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
-      File markModelLocation = new File(config.markModelFiles);
-      if (!markModelLocation.exists() || !markModelLocation.canRead()) {
-        log.warn("Cannot read MARK model from {}", markModelLocation.getAbsolutePath());
-      } else {
-        loadMarkRules(markModelLocation);
-      }
-    }
+
+    loadMarkRulesFromConfig();
 
     // Clear database
     Database dbase = Database.getInstance();
     try {
-      dbase.connect(config.dbUri, config.dbUser, config.dbPassword);
+      dbase.connect();
       dbase.purgeDatabase();
       dbase.close();
     } catch (InterruptedException e) {
@@ -202,7 +193,7 @@ public class AnalysisServer {
               // Persist the result
               Database db = Database.getInstance();
               try {
-                db.connect(config.dbUri, config.dbUser, config.dbPassword);
+                db.connect();
               } catch (InterruptedException e) {
                 log.warn(e.getMessage(), e);
               }
@@ -300,6 +291,20 @@ public class AnalysisServer {
     return myCalls.stream().filter(sourceCodeCall -> sourceCodeCall.endsWith(methodName)).findAny();
   }
 
+  public void loadMarkRulesFromConfig() {
+    /*
+     * Load MARK model as given in configuration, if it has not been set manually before.
+     */
+    if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
+      File markModelLocation = new File(config.markModelFiles);
+      if (!markModelLocation.exists() || !markModelLocation.canRead()) {
+        log.warn("Cannot read MARK model from {}", markModelLocation.getAbsolutePath());
+      } else {
+        loadMarkRules(markModelLocation);
+      }
+    }
+  }
+
   /**
    * Loads all MARK rules from a file or a directory.
    *
@@ -347,7 +352,6 @@ public class AnalysisServer {
   /**
    * Returns a list with the names of the currently loaded MARK rules.
    *
-   * @param markFile
    * @return
    */
   public @NonNull Mark getMarkModel() {

@@ -1,4 +1,4 @@
-image: openjdk:13-alpine
+image: openjdk:11
 
 services:
   - neo4j:3.5.3
@@ -28,7 +28,10 @@ build:
   tags:
     - docker
   before_script:
-    - apk add --no-cache ca-certificates docker
+    - apt update && apt install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+    - curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+    - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+    - apt update && apt install -y docker-ce
     - cp sonar.crt /usr/local/share/ca-certificates/sonar.crt
     - update-ca-certificates
   script:

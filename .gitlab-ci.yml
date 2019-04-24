@@ -1,5 +1,4 @@
-# probably need to change this to something else in the future, but this image has Docker + java
-image: registry.netsec.aisec.fraunhofer.de/clouditor/build
+image: openjdk:13-alpine
 
 services:
   - neo4j:3.5.3
@@ -31,6 +30,7 @@ build:
   before_script:
     #- cp sonar.crt /usr/local/share/ca-certificates/sonar.crt
     - update-ca-certificates
+    - apk add --no-cache docker
   script:
     # make sure the cached gradle directory exists
     - mkdir -p /cache/.gradle
@@ -43,6 +43,7 @@ build:
       - build/reports
 
 push_as_is:
+  image: docker
   stage: push
   tags:
     - docker  

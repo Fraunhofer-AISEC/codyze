@@ -133,6 +133,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
       return (CrymlinTraversal<S, Vertex>) this;
     }
 
+    // TODO what is this?
     List<Statement> stmts =
         ctx.methods.get("good.Bouncycastle.main(java.lang.String[])void").getStatements();
     CrymlinTraversal<S, Vertex> t = (CrymlinTraversal<S, Vertex>) this;

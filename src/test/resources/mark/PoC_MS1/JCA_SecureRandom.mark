@@ -1,0 +1,6 @@
+package jca
+
+
+entity java.security.SecureRandom isa RandomSource {
+	
+}

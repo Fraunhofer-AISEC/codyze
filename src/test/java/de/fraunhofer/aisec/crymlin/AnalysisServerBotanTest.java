@@ -20,6 +20,7 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
@@ -33,6 +34,20 @@ public class AnalysisServerBotanTest {
 
   @BeforeAll
   public static void startup() throws Exception {
+
+    ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
+
+    URL resource = classLoader.getResource("symm_block_cipher.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
+
+    resource = classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark");
+    assertNotNull(resource);
+    File markPoC1 = new File(resource.getFile());
+    assertNotNull(markPoC1);
+    String markModelFiles = markPoC1.getParent();
+
     // Make sure we start with a clean (and connected) db
     try {
       Database db = Database.getInstance();
@@ -42,9 +57,6 @@ public class AnalysisServerBotanTest {
       e.printStackTrace();
       assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
     }
-
-    String markModelFiles =
-        "../mark-crymlin-eclipse-plugin/examples/PoC_MS1/"; // Directory containing MARK files
 
     // Start an analysis server
     server =
@@ -59,11 +71,7 @@ public class AnalysisServerBotanTest {
     server.start();
 
     // Start the analysis (BOTAN Symmetric Example by Oliver)
-    result =
-        server
-            .analyze(
-                newAnalysisRun(new File("../cpg/src/test/resources/botan/symm_block_cipher.cpp")))
-            .get(5, TimeUnit.MINUTES);
+    result = server.analyze(newAnalysisRun(cppFile)).get(5, TimeUnit.MINUTES);
   }
 
   @AfterAll

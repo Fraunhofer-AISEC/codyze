@@ -1,0 +1,8 @@
+package base
+
+
+entity RandomSource {
+	
+	op generate() {}
+	
+}

@@ -123,6 +123,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   @GremlinDsl.AnonymousMethod(
       returnTypeParameters = {"A", "Vertex"}, // c/p from example, unclear.
       methodTypeParameters = {"A"})
+  @Deprecated
   public default CrymlinTraversal<S, Vertex> statements() {
     AnalysisServer server = AnalysisServer.getInstance();
     if (server == null) {

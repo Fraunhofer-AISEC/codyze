@@ -28,9 +28,9 @@ build:
   tags:
     - docker
   before_script:
-    #- cp sonar.crt /usr/local/share/ca-certificates/sonar.crt
+    - apk add --no-cache ca-certificates docker
+    - cp sonar.crt /usr/local/share/ca-certificates/sonar.crt
     - update-ca-certificates
-    - apk add --no-cache docker
   script:
     # make sure the cached gradle directory exists
     - mkdir -p /cache/.gradle

@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -163,13 +162,13 @@ public class JythonInterpreterTest {
       Long sizeNew = g.V().count().next();
 
       // New graph is expected to be +2 nodes larger.
-      assertSame(size + 2, sizeNew);
+      assertEquals(sizeNew - size, 2);
 
       // Even with a new traversal object, the graph will remain larger
       GraphTraversalSource g2 = interp.getGremlinTraversal();
       assertNotEquals(g, g2);
       Long sizeAgain = g2.V().count().next();
-      assertSame(size + 2, sizeAgain);
+      assertEquals(sizeAgain - size, 2);
     }
   }
 

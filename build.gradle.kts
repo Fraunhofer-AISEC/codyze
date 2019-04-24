@@ -57,13 +57,6 @@ repositories {
         }
     }
 
-    ivy {
-        url = uri("https://ftp.gnome.org/mirror/eclipse.org/oomph/products/repository/plugins/")
-        patternLayout {
-            artifact("/[organisation].[artifact]_[revision].[ext]")
-        }
-    }
-
     maven {
         url = uri("http://repository.netsec.aisec.fraunhofer.de/repository/snapshots/")
     }
@@ -106,14 +99,6 @@ dependencies {
     api("org.glassfish.jersey.inject", "jersey-hk2", versions["jersey"])
     api("org.glassfish.jersey.containers", "jersey-container-grizzly2-http", versions["jersey"])
     api("org.glassfish.jersey.media", "jersey-media-json-jackson", versions["jersey"])
-
-    // CDT parser
-    api("org.eclipse", "osgi", "3.13.200.v20181130-2106")
-    api("org.eclipse.equinox", "common", "3.10.200.v20181021-1645")
-    api("org.eclipse.equinox", "preferences", "3.7.200.v20180827-1235")
-    api("org.eclipse.core", "runtime", "3.15.100.v20181107-1343")
-    api("org.eclipse.core", "jobs", "3.10.200.v20180912-1356")
-    api("org.eclipse.cdt", "core", "6.6.0.201812101042")
 
     // LSP
     api("org.eclipse.lsp4j", "org.eclipse.lsp4j", "0.6.0")

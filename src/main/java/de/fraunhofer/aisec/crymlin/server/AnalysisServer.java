@@ -156,17 +156,8 @@ public class AnalysisServer {
    */
   public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer)
       throws InterruptedException, ExecutionException {
-    /*
-     * Load MARK model as given in configuration, if it has not been set manually before.
-     */
-    if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
-      File markModelLocation = new File(config.markModelFiles);
-      if (!markModelLocation.exists() || !markModelLocation.canRead()) {
-        log.warn("Cannot read MARK model from {}", markModelLocation.getAbsolutePath());
-      } else {
-        loadMarkRules(markModelLocation);
-      }
-    }
+
+    loadMarkRulesFromConfig();
 
     // Clear database
     Database dbase = Database.getInstance();
@@ -298,6 +289,20 @@ public class AnalysisServer {
     // Extract only the method Botan::Cipher_Mode::start())  -> start()
     final String methodName = Utils.extractMethodName(opCall.getCall().getName());
     return myCalls.stream().filter(sourceCodeCall -> sourceCodeCall.endsWith(methodName)).findAny();
+  }
+
+  public void loadMarkRulesFromConfig() {
+    /*
+     * Load MARK model as given in configuration, if it has not been set manually before.
+     */
+    if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
+      File markModelLocation = new File(config.markModelFiles);
+      if (!markModelLocation.exists() || !markModelLocation.canRead()) {
+        log.warn("Cannot read MARK model from {}", markModelLocation.getAbsolutePath());
+      } else {
+        loadMarkRules(markModelLocation);
+      }
+    }
   }
 
   /**

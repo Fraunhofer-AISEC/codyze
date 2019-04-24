@@ -1,5 +1,6 @@
 # probably need to change this to something else in the future, but this image has Docker + java
-image: registry.netsec.aisec.fraunhofer.de/clouditor/build
+image: openjdk:11
+#registry.netsec.aisec.fraunhofer.de/clouditor/build
 
 services:
   - neo4j:3.5.3

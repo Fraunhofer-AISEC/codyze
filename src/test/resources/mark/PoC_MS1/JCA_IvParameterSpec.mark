@@ -1,0 +1,9 @@
+package jca
+
+
+entity javax.crypto.spec.IvParameterSpec isa java.security.spec.AlgorithmParameterSpec {
+	
+	var iv : byte[];
+	
+	
+}

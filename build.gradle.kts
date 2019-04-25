@@ -17,11 +17,6 @@ plugins {
 group = "de.fraunhofer.aisec"
 version = "1.0-SNAPSHOT"
 
-idea.module {
-    // mark as generated sources for IDEA
-    generatedSourceDirs.add(file("src/main/generated/annotationProcessor/java/main"))
-}
-
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -133,6 +128,7 @@ tasks.named<Test>("test") {
 sourceSets.configureEach {
     tasks.named<JavaCompile>(compileJavaTaskName) {
         options.annotationProcessorGeneratedSourcesDirectory = file("$projectDir/src/main/generated/annotationProcessor/java/${this@configureEach.name}")
+        java.srcDir(file("$projectDir/src/main/generated/annotationProcessor/java/main")) // adding as generated souce dir did not work in Idea 2019.1
     }
 }
 

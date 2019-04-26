@@ -65,9 +65,7 @@ public class MRule {
                   .collect(Collectors.joining(", \n\t\t")));
     }
     if (statement.getCond() != null) {
-      sb.append(
-              "\n\twhen "
-                      + MarkInterpreter.exprToString(statement.getCond().getExp()));
+      sb.append("\n\twhen " + MarkInterpreter.exprToString(statement.getCond().getExp()));
     }
     sb.append(
         "\n\tensure\n\t\t"

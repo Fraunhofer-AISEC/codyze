@@ -1,11 +1,9 @@
 package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.python.jline.internal.Log;
 
@@ -21,9 +19,8 @@ public class MarkModelLoader {
   public Mark load(HashMap<String, MarkModel> markModels, String onlyfromthisfile) {
     Mark m = new Mark();
 
-    for (Map.Entry<String, MarkModel> entry: markModels.entrySet()) {
-      if (onlyfromthisfile != null &&
-              !onlyfromthisfile.equals(entry.getKey())){
+    for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
+      if (onlyfromthisfile != null && !onlyfromthisfile.equals(entry.getKey())) {
         // if we want the mark model only for one file, this can be specified here.
         // dependencies then still work, iff they were part of the xtext
         continue;

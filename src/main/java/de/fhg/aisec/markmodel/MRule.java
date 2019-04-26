@@ -28,31 +28,6 @@ public class MRule {
     return statement;
   }
 
-  /**
-   * Order-Statement to FSM
-   *
-   * <p>Possible classes of the order construct: Terminal SequenceExpression RepetitionExpression
-   * (mit ?, *, +)
-   *
-   * <p>Start with a "empty" FSM with only StartNode and EndNode
-   *
-   * <p>prevPointer = [&StartNode]
-   *
-   * <p>For each Terminal Add node, connect each last node (= each Node in prevPointer) to the
-   * current node, return current node as only new prevPointer
-   *
-   * <p>For each Exp in SequenceExpression: call algo recursively, update (=overwrite)
-   * prevPointer-List after each algo-call
-   *
-   * <p>For RepetitionExpression For + algo(inner) use * - part below once For ? algo(inner) the
-   * resulting prevPointer-List needs to be added to the outer prevPointer List For * algo(inner),
-   * BUT: the last node of the inner construct needs to point to the first node of the inner
-   * construct the resulting prevPointer-List needs to be added to the outer prevPointer List
-   */
-
-  // TODO this and the following function might be obsolete once the statement is parsed
-  // as objects with nice toString() functions. unclear yet if this will be the case
-
   // https://javapapers.com/java/java-string-vs-stringbuilder-vs-stringbuffer-concatenation-performance-micro-benchmark/
   public String toString() {
     StringBuilder sb = new StringBuilder();

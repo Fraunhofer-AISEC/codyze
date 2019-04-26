@@ -6,3 +6,5 @@
 /build/
 /.apt_generated/
 /apt_generated/
+/src/main/generated/
+/.data/

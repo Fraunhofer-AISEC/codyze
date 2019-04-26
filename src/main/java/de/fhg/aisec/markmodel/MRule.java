@@ -28,81 +28,50 @@ public class MRule {
     return statement;
   }
 
+  /**
+   * Order-Statement to FSM
+   *
+   * <p>Possible classes of the order construct: Terminal SequenceExpression RepetitionExpression
+   * (mit ?, *, +)
+   *
+   * <p>Start with a "empty" FSM with only StartNode and EndNode
+   *
+   * <p>prevPointer = [&StartNode]
+   *
+   * <p>For each Terminal Add node, connect each last node (= each Node in prevPointer) to the
+   * current node, return current node as only new prevPointer
+   *
+   * <p>For each Exp in SequenceExpression: call algo recursively, update (=overwrite)
+   * prevPointer-List after each algo-call
+   *
+   * <p>For RepetitionExpression For + algo(inner) use * - part below once For ? algo(inner) the
+   * resulting prevPointer-List needs to be added to the outer prevPointer List For * algo(inner),
+   * BUT: the last node of the inner construct needs to point to the first node of the inner
+   * construct the resulting prevPointer-List needs to be added to the outer prevPointer List
+   */
+
   // TODO this and the following function might be obsolete once the statement is parsed
   // as objects with nice toString() functions. unclear yet if this will be the case
-  private String argToString(Argument arg) {
-    if (arg instanceof OperandImpl) {
-      OperandImpl inner = (OperandImpl) arg;
-      return inner.getOperand();
-    } else if (arg instanceof LiteralImpl) {
-      LiteralImpl inner = (LiteralImpl) arg;
-      return inner.getValue();
-    } else if (arg instanceof Expression) {
-      return exprToString((Expression) arg);
-    } else {
-      return "UNKNOWN ARGUMENT TYPE " + arg.getClass();
-    }
-  }
-
-  private String exprToString(Expression exp) {
-    if (exp instanceof ComparisonExpressionImpl) {
-      ComparisonExpressionImpl inner = (ComparisonExpressionImpl) exp;
-      return exprToString(inner.getLeft())
-          + " "
-          + inner.getOp()
-          + " "
-          + exprToString(inner.getRight());
-    } else if (exp instanceof LogicalAndExpressionImpl) {
-      LogicalAndExpressionImpl inner = (LogicalAndExpressionImpl) exp;
-      return exprToString(inner.getLeft())
-          + " "
-          + inner.getOp()
-          + " "
-          + exprToString(inner.getRight());
-    } else if (exp instanceof SequenceExpressionImpl) {
-      SequenceExpressionImpl inner = (SequenceExpressionImpl) exp;
-      return exprToString(inner.getLeft()) + inner.getOp() + " " + exprToString(inner.getRight());
-    } else if (exp instanceof RepetitionExpressionImpl) {
-      RepetitionExpressionImpl inner = (RepetitionExpressionImpl) exp;
-      return "(" + exprToString(inner.getExpr()) + ")" + inner.getOp();
-    } else if (exp instanceof TerminalImpl) {
-      TerminalImpl inner = (TerminalImpl) exp;
-      return inner.getEntity() + "." + inner.getOp();
-    } else if (exp instanceof FunctionCallExpressionImpl) {
-      FunctionCallExpressionImpl inner = (FunctionCallExpressionImpl) exp;
-      String args =
-          inner.getArgs().stream().map(x -> argToString(x)).collect(Collectors.joining(", "));
-      return inner.getName() + "(" + args + ")";
-    } else if (exp instanceof LiteralListExpressionImpl) {
-      LiteralListExpressionImpl inner = (LiteralListExpressionImpl) exp;
-      String list =
-          inner.getValues().stream().map(x -> x.getValue()).collect(Collectors.joining(", "));
-      return "[ " + list + " ]";
-    } else if (exp instanceof OperandImpl) {
-      OperandImpl inner = (OperandImpl) exp;
-      return inner.getOperand();
-    } else if (exp instanceof OrderExpressionImpl) {
-      OrderExpressionImpl inner = (OrderExpressionImpl) exp;
-      return "order " + exprToString(inner.getExp());
-    } else {
-      return "UNKNOWN EXPRESSION TYPE: " + exp.getClass();
-    }
-  }
 
   // https://javapapers.com/java/java-string-vs-stringbuilder-vs-stringbuffer-concatenation-performance-micro-benchmark/
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("rule " + getName() + " {\n");
+    sb.append("rule " + getName() + " {");
     if (!statement.getEntities().isEmpty()) {
       sb.append(
-          "\tfor"
+          "\n\tfor "
               + statement.getEntities().stream()
-                  .map(entity -> "\n\t\t" + entity.getE().getName() + " as " + entity.getN())
-                  .collect(Collectors.joining(", ")));
+                  .map(entity -> entity.getE().getName() + " as " + entity.getN())
+                  .collect(Collectors.joining(", \n\t\t")));
+    }
+    if (statement.getCond() != null) {
+      sb.append(
+              "\n\twhen "
+                      + MarkInterpreter.exprToString(statement.getCond().getExp()));
     }
     sb.append(
         "\n\tensure\n\t\t"
-            + exprToString(statement.getEnsure().getExp())
+            + MarkInterpreter.exprToString(statement.getEnsure().getExp())
             + "\n\tonfail "
             + statement.getMsg()
             + "\n}");

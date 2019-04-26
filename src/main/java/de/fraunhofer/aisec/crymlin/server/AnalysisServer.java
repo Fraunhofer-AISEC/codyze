@@ -23,11 +23,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import javax.script.ScriptException;
@@ -337,7 +333,7 @@ public class AnalysisServer {
       parser.addMarkFile(markFile);
     }
 
-    List<MarkModel> markModels = parser.parse();
+    HashMap<String, MarkModel> markModels = parser.parse();
 
     // Extract "evidences" from MARK entities. Evidences are either method calls or declarations
     // that we want to use as a start for our analysis

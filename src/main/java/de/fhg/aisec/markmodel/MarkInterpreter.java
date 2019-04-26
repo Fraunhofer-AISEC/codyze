@@ -1,17 +1,6 @@
 package de.fhg.aisec.markmodel;
 
-import de.fhg.aisec.mark.markDsl.Argument;
-import de.fhg.aisec.mark.markDsl.ComparisonExpression;
-import de.fhg.aisec.mark.markDsl.Expression;
-import de.fhg.aisec.mark.markDsl.FunctionCallExpression;
-import de.fhg.aisec.mark.markDsl.Literal;
-import de.fhg.aisec.mark.markDsl.LiteralListExpression;
-import de.fhg.aisec.mark.markDsl.LogicalAndExpression;
-import de.fhg.aisec.mark.markDsl.LogicalOrExpression;
-import de.fhg.aisec.mark.markDsl.Operand;
-import de.fhg.aisec.mark.markDsl.OrderExpression;
-import de.fhg.aisec.mark.markDsl.SequenceExpression;
-import de.fhg.aisec.mark.markDsl.Terminal;
+import de.fhg.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,9 +16,9 @@ public class MarkInterpreter {
     this.markModel = markModel;
   }
 
-  public String exprToString(Expression expr) {
+  public static String exprToString(Expression expr) {
     if (expr == null) {
-      return "";
+      return " null ";
     }
 
     if (expr instanceof LogicalOrExpression) {
@@ -52,41 +41,40 @@ public class MarkInterpreter {
       String name = fExpr.getName();
       return name
           + "("
-          + String.join(
-              ",",
-              fExpr.getArgs().stream()
-                  .map(arg -> argToString(arg))
-                  .collect(Collectors.<String>toList()))
+          + fExpr.getArgs().stream().map(arg -> argToString(arg)).collect(Collectors.joining(", "))
           + ")";
     } else if (expr instanceof LiteralListExpression) {
-      return "["
-          + String.join(
-              ",",
-              ((LiteralListExpression) expr)
-                  .getValues().stream().map(val -> val.getValue()).collect(Collectors.toList()))
-          + "]";
+      return "[ "
+          + ((LiteralListExpression) expr)
+              .getValues().stream().map(val -> val.getValue()).collect(Collectors.joining(", "))
+          + " ]";
+    } else if (expr instanceof RepetitionExpression) {
+      RepetitionExpression inner = (RepetitionExpression) expr;
+      // todo @FW do we want this optimization () can be omitted if inner is no sequence
+      if (inner.getExpr() instanceof SequenceExpression) {
+        return "(" + exprToString(inner.getExpr()) + ")" + inner.getOp();
+      } else {
+        return exprToString(inner.getExpr()) + inner.getOp();
+      }
     } else if (expr instanceof Operand) {
       return ((Operand) expr).getOperand();
     } else if (expr instanceof Literal) {
       return ((Literal) expr).getValue();
     } else if (expr instanceof SequenceExpression) {
       SequenceExpression seq = ((SequenceExpression) expr);
-      return exprToString(seq.getLeft()) + " => " + exprToString(seq.getRight());
+      return exprToString(seq.getLeft()) + seq.getOp() + " " + exprToString(seq.getRight());
     } else if (expr instanceof Terminal) {
-      return ((Terminal) expr).getOp();
+      Terminal inner = (Terminal) expr;
+      return inner.getEntity() + "." + inner.getOp() + "()";
     } else if (expr instanceof OrderExpression) {
       OrderExpression order = (OrderExpression) expr;
       SequenceExpression seq = (SequenceExpression) order.getExp();
-      if (seq != null) {
-        return exprToString(seq);
-      } else {
-        return order.toString();
-      }
+      return "order " + exprToString(seq);
     }
-    return expr.toString();
+    return "UNKNOWN EXPRESSION TYPE: " + expr.getClass();
   }
 
-  private String argToString(Argument arg) {
+  public static String argToString(Argument arg) {
     return exprToString((Expression) arg); // Every Argument is also an Expression
   }
 

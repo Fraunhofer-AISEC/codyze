@@ -1,16 +1,13 @@
 package de.fhg.aisec.markmodel.fsm;
 
 import java.util.HashSet;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.neo4j.ogm.annotation.GeneratedValue;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.*;
 
+@NodeEntity
 public class Node {
-  @Id @GeneratedValue private Long id;
+  @Id private Long id;
 
   @Relationship(value = "s")
-  @NonNull
   private HashSet<Node> successors = new HashSet<>();
 
   private String name;
@@ -18,8 +15,11 @@ public class Node {
   private boolean isStart = false;
   private boolean isEnd = false;
 
-  public Node(String name) {
+  public Node() {}
+
+  public Node(String name, long id) {
     this.name = name;
+    this.id = id;
   }
 
   public void addSuccessor(Node s) {

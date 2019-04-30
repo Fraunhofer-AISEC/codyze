@@ -27,9 +27,9 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 
   @Override
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-    var result = new InitializeResult();
+    InitializeResult result = new InitializeResult();
 
-    var capabilities = new ServerCapabilities();
+    ServerCapabilities capabilities = new ServerCapabilities();
     capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
 
     result.setCapabilities(capabilities);

@@ -29,7 +29,9 @@ import java.util.concurrent.ExecutionException;
 import javax.script.ScriptException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,28 +119,28 @@ public class AnalysisServer {
     lsp = new CpgLanguageServer();
 
     /*
-     * var pool = Executors.newCachedThreadPool();
+     *  pool = Executors.newCachedThreadPool();
      *
-     * var port = 9000;
+     *  port = 9000;
      *
-     * try (var serverSocket = new ServerSocket(port)) {
+     * try ( serverSocket = new ServerSocket(port)) {
      * System.out.println("The language server is running on port " + port);
-     * pool.submit( () -> { while (true) { var clientSocket = serverSocket.accept();
+     * pool.submit( () -> { while (true) {  clientSocket = serverSocket.accept();
      *
-     * var launcher = LSPLauncher.createServerLauncher( lsp,
+     *  launcher = LSPLauncher.createServerLauncher( lsp,
      * clientSocket.getInputStream(), clientSocket.getOutputStream());
      *
      * launcher.startListening();
      *
-     * var client = launcher.getRemoteProxy(); lsp.connect(client); } });
+     *  client = launcher.getRemoteProxy(); lsp.connect(client); } });
      * System.in.read(); }
      */
-    var launcher = LSPLauncher.createServerLauncher(lsp, System.in, System.out);
+    Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(lsp, System.in, System.out);
 
     log.info("LSP server starting");
     launcher.startListening();
 
-    var client = launcher.getRemoteProxy();
+    LanguageClient client = launcher.getRemoteProxy();
     lsp.connect(client);
   }
 

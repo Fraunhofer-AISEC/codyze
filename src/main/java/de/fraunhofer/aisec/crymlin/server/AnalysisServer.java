@@ -135,7 +135,8 @@ public class AnalysisServer {
      *  client = launcher.getRemoteProxy(); lsp.connect(client); } });
      * System.in.read(); }
      */
-    Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(lsp, System.in, System.out);
+    Launcher<LanguageClient> launcher =
+        LSPLauncher.createServerLauncher(lsp, System.in, System.out);
 
     log.info("LSP server starting");
     launcher.startListening();

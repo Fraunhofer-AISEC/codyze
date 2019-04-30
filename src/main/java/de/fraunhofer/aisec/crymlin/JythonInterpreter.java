@@ -47,9 +47,9 @@ public class JythonInterpreter implements AutoCloseable {
    * @throws IOException
    */
   public void connect() throws IOException {
-    var uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
-    var username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
-    var password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
+    String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
+    String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
+    String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
 
     // TODO parameterize
     Driver driver = GraphDatabase.driver(uri, AuthTokens.basic(username, password));

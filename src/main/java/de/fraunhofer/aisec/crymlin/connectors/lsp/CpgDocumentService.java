@@ -3,6 +3,8 @@ package de.fraunhofer.aisec.crymlin.connectors.lsp;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import de.fraunhofer.aisec.cpg.passes.CallResolver;
 import de.fraunhofer.aisec.cpg.passes.ControlFlowGenerator;
 import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
@@ -38,8 +40,8 @@ public class CpgDocumentService implements TextDocumentService {
   public void didOpen(DidOpenTextDocumentParams params) {
     log.info("Handling didOpen: {}", params);
 
-    var diagnostics = new PublishDiagnosticsParams();
-    var diagnostic = new Diagnostic();
+    PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
+    Diagnostic diagnostic = new Diagnostic();
     diagnostic.setCode("SomeCode");
     diagnostic.setMessage("Bad bad crypto");
     diagnostic.setSeverity(DiagnosticSeverity.Warning);
@@ -53,9 +55,9 @@ public class CpgDocumentService implements TextDocumentService {
 
     Database.getInstance().purgeDatabase();
 
-    var uri = URI.create(params.getTextDocument().getUri());
+    URI uri = URI.create(params.getTextDocument().getUri());
 
-    var file = new File(uri);
+    File file = new File(uri);
 
     TranslationManager analyzer =
         TranslationManager.builder()
@@ -70,9 +72,9 @@ public class CpgDocumentService implements TextDocumentService {
             .build();
 
     try {
-      var result = analyzer.analyze().get();
+      TranslationResult result = analyzer.analyze().get();
 
-      var declaration = result.getTranslationUnits().get(0);
+      TranslationUnitDeclaration declaration = result.getTranslationUnits().get(0);
 
       Database.getInstance().save(declaration);
     } catch (InterruptedException | ExecutionException e) {

@@ -12,6 +12,7 @@ import org.neo4j.ogm.session.SessionFactory;
 public class FSM {
 
   private HashSet<Node> startNodes = new HashSet<>();
+  private long nodeNumber = 0;
 
   public FSM() {}
 
@@ -92,7 +93,7 @@ public class FSM {
    * construct the resulting prevPointer-List needs to be added to the outer prevPointer List
    */
   public void sequenceToFSM(final Expression seq) {
-    Node start = new Node("BEGIN");
+    Node start = new Node("BEGIN", nodeNumber++);
     start.setStart(true);
     startNodes.add(start);
 
@@ -102,7 +103,7 @@ public class FSM {
     addExpr(seq, currentNodes);
 
     // not strictly needed, we could simply set end=true for all the returned nodes
-    Node end = new Node("END");
+    Node end = new Node("END", nodeNumber);
     start.setEnd(true);
     currentNodes.stream().forEach(x -> x.addSuccessor(end));
 
@@ -112,7 +113,7 @@ public class FSM {
   private HashSet<Node> addExpr(final Expression expr, final HashSet<Node> currentNodes) {
     if (expr instanceof Terminal) {
       Terminal inner = (Terminal) expr;
-      Node n = new Node(inner.getEntity() + "." + inner.getOp());
+      Node n = new Node(inner.getEntity() + "." + inner.getOp(), nodeNumber++);
       currentNodes.stream().forEach(x -> x.addSuccessor(n));
       currentNodes.clear();
       currentNodes.add(n);

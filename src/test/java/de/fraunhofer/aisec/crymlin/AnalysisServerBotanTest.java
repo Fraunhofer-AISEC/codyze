@@ -14,8 +14,8 @@ import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.passes.ControlFlowGraphPass;
 import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
-import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
@@ -89,14 +89,6 @@ public class AnalysisServerBotanTest {
     // We expect no methods (as there is no class)
     assertNotNull(ctx);
     assertTrue(ctx.methods.isEmpty());
-
-    // Get analysis context from server
-    AnalysisContext ctx2 = server.retrieveContext();
-    assertNotNull(ctx2);
-
-    // Make sure they are the same
-    assertEquals(ctx, ctx2);
-    assertSame(ctx, ctx2);
   }
 
   @SuppressWarnings("unchecked")
@@ -120,7 +112,9 @@ public class AnalysisServerBotanTest {
 
   @Test
   public void markEvaluationTest() throws Exception {
-    List<String> findings = server.getFindings();
+    AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result.getScratch().get("ctx");
+    assertNotNull(ctx);
+    List<String> findings = ctx.getFindings();
     assertNotNull(findings);
 
     System.out.println("Findings");
@@ -141,7 +135,7 @@ public class AnalysisServerBotanTest {
             TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
-                .registerPass(new SimpleForwardCfgPass()) // creates CFG
+                .registerPass(new ControlFlowGraphPass()) // creates CFG
                 // when calling Database.persist() on the resulting graph.
                 .registerPass(new EvaluationOrderGraphPass()) // creates EOG
                 .sourceFiles(sourceFiles)

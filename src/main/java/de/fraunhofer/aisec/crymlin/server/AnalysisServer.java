@@ -58,7 +58,8 @@ public class AnalysisServer {
 
   private CpgLanguageServer lsp;
 
-  private AnalysisContext ctx = new AnalysisContext();
+  // TODO to be removed
+  private AnalysisContext lastCtx = new AnalysisContext();
 
   @NonNull private Mark markModel = new Mark();
 
@@ -86,9 +87,6 @@ public class AnalysisServer {
    */
   public void start() throws Exception {
     // TODO Initialize CPG
-
-    // TODO requires refactoring. Ctx must be global per analysis run, not for all
-    // runs.
 
     // Launch LSP server
     if (config.launchLsp) {
@@ -174,10 +172,10 @@ public class AnalysisServer {
      * An analysis context is an in-memory data structure that can be used to
      * exchange data across passes outside of the actual CPG.
      */
-    this.ctx = new AnalysisContext();
+    AnalysisContext ctx = new AnalysisContext();
     for (Pass p : analyzer.getPasses()) {
       if (p instanceof PassWithContext) {
-        ((PassWithContext) p).setContext(this.ctx);
+        ((PassWithContext) p).setContext(ctx);
       }
     }
 
@@ -202,7 +200,7 @@ public class AnalysisServer {
         .thenApply(
             (result) -> {
               // Evaluate all MARK rules
-              return evaluate(result);
+              return evaluate(result, ctx);
             });
   }
 
@@ -217,7 +215,7 @@ public class AnalysisServer {
    * @param result
    */
   @SuppressWarnings("unchecked")
-  private TranslationResult evaluate(TranslationResult result) {
+  private TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
 
     /*
      *
@@ -278,7 +276,7 @@ public class AnalysisServer {
       // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and
       // violated/triggered and satisfied".
       if (interp.evaluateRule(r)) {
-        this.getFindings().add("Rule " + r.getName() + " is satisfied");
+        ctx.getFindings().add("Rule " + r.getName() + " is satisfied");
       }
     }
     return result;
@@ -378,8 +376,9 @@ public class AnalysisServer {
    * @return
    */
   @Nullable
-  public AnalysisContext retrieveContext() {
-    return this.ctx;
+  @Deprecated
+  public AnalysisContext retrieveLastContextTEMP() {
+    return this.lastCtx;
   }
 
   public void stop() throws Exception {
@@ -388,22 +387,6 @@ public class AnalysisServer {
     }
     if (lsp != null) {
       lsp.shutdown();
-    }
-  }
-
-  /**
-   * Returns a (possibly empty) list of findings, i.e. violations of MARK rules that were found
-   * during analysis. Make sure to call {@code analyze()} before as otherwise this method will
-   * return an empty list.
-   *
-   * @return
-   */
-  @NonNull
-  public List<String> getFindings() {
-    if (this.ctx != null) {
-      return this.ctx.getFindings();
-    } else {
-      return new ArrayList<>();
     }
   }
 

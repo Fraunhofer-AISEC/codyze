@@ -18,6 +18,13 @@ public class AnalysisContext {
   /** Map of method signatures to {@code Method}s. */
   public final Map<String, Method> methods = new HashMap<>();
 
+  /**
+   * Returns a (possibly empty) list of findings, i.e. violations of MARK rules that were found
+   * during analysis. Make sure to call {@code analyze()} before as otherwise this method will
+   * return an empty list.
+   *
+   * @return
+   */
   public @NonNull List<String> getFindings() {
     return this.findings;
   }

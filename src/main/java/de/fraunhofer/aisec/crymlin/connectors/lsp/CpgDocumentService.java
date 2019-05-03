@@ -6,8 +6,7 @@ import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.ControlFlowGenerator;
-import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
+import de.fraunhofer.aisec.cpg.passes.ControlFlowGraphPass;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -64,9 +63,8 @@ public class CpgDocumentService implements TextDocumentService {
             .config(
                 TranslationConfiguration.builder()
                     .sourceFiles(file)
-                    .registerPass(new ControlFlowGenerator()) // creates CFG
+                    .registerPass(new ControlFlowGraphPass()) // creates CFG
                     .registerPass(new CallResolver()) // creates CG
-                    .registerPass(new SimpleForwardCfgPass())
                     .debugParser(true)
                     .build())
             .build();

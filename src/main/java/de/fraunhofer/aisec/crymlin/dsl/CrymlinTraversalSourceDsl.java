@@ -83,12 +83,12 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     return traversal.V().has(T.label, LabelP.of(MethodDeclaration.class.getSimpleName()));
   }
 
-  @Deprecated
-  public GraphTraversal<Vertex, Vertex> cipherListSetterCalls() {
-    GraphTraversalSource traversal = this.clone();
-
-    return this.calls().has(NAME, "SSL_CTX_set_cipher_list");
-  }
+  //  @Deprecated
+  //  public GraphTraversal<Vertex, Vertex> cipherListSetterCalls() {
+  //    GraphTraversalSource traversal = this.clone();
+  //
+  //    return this.calls().has(NAME, "SSL_CTX_set_cipher_list");
+  //  }
 
   /**
    * Returns all TranslationUnitDeclaration nodes.

@@ -115,18 +115,6 @@ public class AnalysisServerQueriesTest {
     assertFalse(tus.isEmpty());
   }
 
-  @SuppressWarnings("unchecked")
-  @Test
-  public void statementsTest() throws Exception {
-    List<Vertex> result = (List<Vertex>) server.query("crymlin.methods().statements().toList()");
-    List<Vertex> tus = (List<Vertex>) result;
-    assertNotNull(tus);
-    assertFalse(tus.isEmpty());
-    for (Vertex x : tus) {
-      System.out.println(x.property("code").value());
-    }
-  }
-
   /**
    * Helper method for initializing an Analysis Run.
    *

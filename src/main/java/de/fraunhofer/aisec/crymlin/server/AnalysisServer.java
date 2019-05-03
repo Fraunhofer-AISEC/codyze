@@ -1,11 +1,7 @@
 package de.fraunhofer.aisec.crymlin.server;
 
 import de.fhg.aisec.mark.XtextParser;
-import de.fhg.aisec.mark.markDsl.CallStatement;
 import de.fhg.aisec.mark.markDsl.MarkModel;
-import de.fhg.aisec.markmodel.MEntity;
-import de.fhg.aisec.markmodel.MOp;
-import de.fhg.aisec.markmodel.MRule;
 import de.fhg.aisec.markmodel.Mark;
 import de.fhg.aisec.markmodel.MarkInterpreter;
 import de.fhg.aisec.markmodel.MarkModelLoader;
@@ -15,9 +11,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
-import de.fraunhofer.aisec.crymlin.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -58,12 +52,7 @@ public class AnalysisServer {
 
   private CpgLanguageServer lsp;
 
-  // TODO to be removed
-  private AnalysisContext lastCtx = new AnalysisContext();
-
   @NonNull private Mark markModel = new Mark();
-
-  @Nullable Set<String> evidences;
 
   private AnalysisServer(ServerConfiguration config) {
     this.config = config;
@@ -151,8 +140,7 @@ public class AnalysisServer {
    * @throws ExecutionException
    * @throws InterruptedException
    */
-  public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer)
-      throws InterruptedException, ExecutionException {
+  public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer) {
 
     loadMarkRulesFromConfig();
 
@@ -200,92 +188,10 @@ public class AnalysisServer {
         .thenApply(
             (result) -> {
               // Evaluate all MARK rules
-              return evaluate(result, ctx);
+              MarkInterpreter mi =
+                  new MarkInterpreter(this.markModel, this.interp.getCrymlinTraversal());
+              return mi.evaluate(result, ctx);
             });
-  }
-
-  /**
-   * Evaluates the {@code markModel} against the currently analyzed program.
-   *
-   * <p>TODO This is the core of the MARK evaluation. It needs a complete rewrite.
-   *
-   * <p>The pesudocode comment outlines a "proper" analysis (but it is still incomplete), while the
-   * actual Java code below was just a quick'n dirty hack for the PoC demonstration.
-   *
-   * @param result
-   */
-  @SuppressWarnings("unchecked")
-  private TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
-
-    /*
-     *
-     *  // Iterate over all statements of the program, along the CFG (created by SimpleForwardCFG)
-     *  for tu in translationunits:
-     *    for func in tu.functions:
-     *      for stmt in func.cfg:
-     *
-     *        // If an object of interest is created -> track it as an "abstract object"
-     *        // "of interest" = mentioned as an Entity in at least one MARK "rule".
-     *        if is_object_creation(stmt):
-     *          a_obj = create_abstract_object(stmt)
-     *          init_typestate(a_obj)
-     *          object_table.add(a_obj)
-     *
-     *        // If an abstract object is "used" (= one of its fields is set or one of its methods is called) -> update its typestate.
-     *        // "update its typestate" needs further detailing
-     *        if uses_abstract_object(stmt):
-     *          update_typestate(stmt)
-     *
-     */
-
-    /*
-     * A "typestate" item is an object that approximates the "states" of a real object instances at runtime.
-     *
-     * States are defined as the (approximated) values of the object's member fields.
-     */
-
-    // Maintain all method calls in a list
-    CrymlinTraversalSource g = interp.getCrymlinTraversal();
-    List<String> myCalls = g.calls().name().toList();
-
-    // "Populate" MARK objects
-    for (MEntity ent : this.markModel.getEntities()) {
-      for (MOp op : ent.getOps()) {
-        for (CallStatement opCall : op.getCallStatements()) {
-
-          Optional<String> call = containsCall(myCalls, opCall);
-
-          if (call.isPresent()) {
-            log.debug("my calls: " + call.get());
-            // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
-            // object.
-
-            // TODO Find out arguments of the call and try to resolve concrete values for them
-
-            // TODO "Populate" the entity and assign the resolved values to the entity's variables
-          }
-          this.markModel.getPopulatedEntities().put(ent.getName(), ent);
-        }
-      }
-    }
-
-    // Evaluate rules against populated objects
-    MarkInterpreter interp = new MarkInterpreter(this.markModel);
-    for (MRule r : this.markModel.getRules()) {
-      log.debug("Processing rule {}", r.getName());
-      // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and
-      // violated/triggered and satisfied".
-      if (interp.evaluateRule(r)) {
-        ctx.getFindings().add("Rule " + r.getName() + " is satisfied");
-      }
-    }
-    return result;
-  }
-
-  private Optional<String> containsCall(List<String> myCalls, CallStatement opCall) {
-    // Extract only the method Botan::Cipher_Mode::start())  -> start()
-    final String methodName = Utils.extractMethodName(opCall.getCall().getName());
-    return myCalls.stream().filter(sourceCodeCall -> sourceCodeCall.endsWith(methodName)).findAny();
   }
 
   public void loadMarkRulesFromConfig() {
@@ -327,8 +233,7 @@ public class AnalysisServer {
           }
         }
       } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        log.error("Failed to load MARK file", e);
       }
     } else {
       parser.addMarkFile(markFile);
@@ -336,8 +241,6 @@ public class AnalysisServer {
 
     HashMap<String, MarkModel> markModels = parser.parse();
 
-    // Extract "evidences" from MARK entities. Evidences are either method calls or declarations
-    // that we want to use as a start for our analysis
     this.markModel = new MarkModelLoader().load(markModels);
 
     log.info(
@@ -366,19 +269,6 @@ public class AnalysisServer {
    */
   public Object query(String crymlin) throws ScriptException {
     return interp.query(crymlin);
-  }
-
-  /**
-   * Returns the analysis context of the last analysis run.
-   *
-   * <p>This methods will return a different object after each call to {@code analyze()}.
-   *
-   * @return
-   */
-  @Nullable
-  @Deprecated
-  public AnalysisContext retrieveLastContextTEMP() {
-    return this.lastCtx;
   }
 
   public void stop() throws Exception {

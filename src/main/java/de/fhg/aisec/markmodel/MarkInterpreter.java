@@ -1,7 +1,12 @@
 package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
+import de.fraunhofer.aisec.crymlin.utils.Utils;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -10,10 +15,12 @@ import org.slf4j.LoggerFactory;
 
 public class MarkInterpreter {
   private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
-  @NonNull private Mark markModel;
+  private final CrymlinTraversalSource crymlinTraversal;
+  @NonNull private final Mark markModel;
 
-  public MarkInterpreter(@NonNull Mark markModel) {
+  public MarkInterpreter(@NonNull Mark markModel, CrymlinTraversalSource crymlinTraversal) {
     this.markModel = markModel;
+    this.crymlinTraversal = crymlinTraversal;
   }
 
   public static String exprToString(Expression expr) {
@@ -79,6 +86,87 @@ public class MarkInterpreter {
   }
 
   /**
+   * Evaluates the {@code markModel} against the currently analyzed program.
+   *
+   * <p>TODO This is the core of the MARK evaluation. It needs a complete rewrite.
+   *
+   * <p>The pesudocode comment outlines a "proper" analysis (but it is still incomplete), while the
+   * actual Java code below was just a quick'n dirty hack for the PoC demonstration.
+   *
+   * @param result
+   */
+  public TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
+    /*
+     *
+     *  // Iterate over all statements of the program, along the CFG (created by SimpleForwardCFG)
+     *  for tu in translationunits:
+     *    for func in tu.functions:
+     *      for stmt in func.cfg:
+     *
+     *        // If an object of interest is created -> track it as an "abstract object"
+     *        // "of interest" = mentioned as an Entity in at least one MARK "rule".
+     *        if is_object_creation(stmt):
+     *          a_obj = create_abstract_object(stmt)
+     *          init_typestate(a_obj)
+     *          object_table.add(a_obj)
+     *
+     *        // If an abstract object is "used" (= one of its fields is set or one of its methods is called) -> update its typestate.
+     *        // "update its typestate" needs further detailing
+     *        if uses_abstract_object(stmt):
+     *          update_typestate(stmt)
+     *
+     */
+
+    /*
+     * A "typestate" item is an object that approximates the "states" of a real object instances at runtime.
+     *
+     * States are defined as the (approximated) values of the object's member fields.
+     */
+
+    // Maintain all method calls in a list
+    List<String> myCalls = crymlinTraversal.calls().name().toList();
+
+    // "Populate" MARK objects
+    for (MEntity ent : this.markModel.getEntities()) {
+      for (MOp op : ent.getOps()) {
+        for (CallStatement opCall : op.getCallStatements()) {
+
+          Optional<String> call = containsCall(myCalls, opCall);
+
+          if (call.isPresent()) {
+            log.debug("my calls: " + call.get());
+            // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
+            // object.
+
+            // TODO Find out arguments of the call and try to resolve concrete values for them
+
+            // TODO "Populate" the entity and assign the resolved values to the entity's variables
+          }
+          this.markModel.getPopulatedEntities().put(ent.getName(), ent);
+        }
+      }
+    }
+
+    // Evaluate rules against populated objects
+
+    for (MRule r : this.markModel.getRules()) {
+      log.debug("Processing rule {}", r.getName());
+      // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and
+      // violated/triggered and satisfied".
+      if (evaluateRule(r)) {
+        ctx.getFindings().add("Rule " + r.getName() + " is satisfied");
+      }
+    }
+    return result;
+  }
+
+  private Optional<String> containsCall(List<String> myCalls, CallStatement opCall) {
+    // Extract only the method Botan::Cipher_Mode::start())  -> start()
+    final String methodName = Utils.extractMethodName(opCall.getCall().getName());
+    return myCalls.stream().filter(sourceCodeCall -> sourceCodeCall.endsWith(methodName)).findAny();
+  }
+
+  /**
    * DUMMY. JUST FOR DEMO. REWRITE.
    *
    * <p>Evaluates a MARK rule against the results of the analysis.
@@ -132,8 +220,6 @@ public class MarkInterpreter {
    *
    * <p>Method fakes that a statement is contained in the a MARK entity
    *
-   * @param orderExpression
-   * @param orderExpression2
    * @return
    */
   private boolean containedInModel(Terminal expr) {

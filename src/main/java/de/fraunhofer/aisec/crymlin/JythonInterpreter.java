@@ -1,7 +1,5 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.NAME;
-
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
 import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
@@ -9,16 +7,13 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
@@ -68,37 +63,6 @@ public class JythonInterpreter implements AutoCloseable {
     this.engine
         .getBindings(ScriptContext.ENGINE_SCOPE)
         .put("crymlin", crymlinSource); // Trav. source of crymlin
-  }
-
-  @Deprecated() // Just for testing. Use Main class instead
-  public static void main(String[] args) {
-    try (Driver driver =
-        GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "password")); ) {
-      // Connect to to Neo4J as usual and return generic Tinkerpop "Graph" object
-      Neo4JElementIdProvider<?> vertexIdProvider = new Neo4JNativeElementIdProvider();
-      Neo4JElementIdProvider<?> edgeIdProvider = new Neo4JNativeElementIdProvider();
-      Graph tg = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider);
-      CrymlinTraversalSourceDsl code = tg.traversal(CrymlinTraversalSourceDsl.class);
-
-      // all variable declarations
-      List<Vertex> declarations = code.variableDeclarations().toList();
-      System.out.println(
-          declarations.stream().map(d -> d.value(NAME)).collect(Collectors.toList()));
-
-      // all calls declarations
-      List<Vertex> calls = code.calls().toList();
-      System.out.println(calls.stream().map(c -> c.value(NAME)).collect(Collectors.toList()));
-
-      // calls that have SSL_ in the name
-      calls = code.calls().filter(c -> c.get().<String>value(NAME).startsWith("SSL")).toList();
-      System.out.println(calls.stream().map(c -> c.value(NAME)).collect(Collectors.toList()));
-
-      // all ciphers (only literals at the moment)
-      // List<Vertex> ciphers = code.cipherListSetterCalls().ciphers().toList();
-      // System.out.println(ciphers.stream().map(c -> c.value(VALUE)).collect(Collectors.toList()));
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    }
   }
 
   /**

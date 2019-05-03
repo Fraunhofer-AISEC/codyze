@@ -99,7 +99,6 @@ public class JythonInterpreterTest {
       List<Vertex> stmts = crymlin.recorddeclarations().toList();
       assertNotNull(stmts);
 
-      crymlin.cipherListSetterCalls().literals().toList();
       crymlin.V().literals().toList();
       crymlin.translationunits().literals().toList();
       crymlin.recorddeclarations().variables().name().toList();

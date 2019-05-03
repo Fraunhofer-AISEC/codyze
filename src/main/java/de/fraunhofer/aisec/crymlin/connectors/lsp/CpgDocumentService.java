@@ -41,6 +41,7 @@ public class CpgDocumentService implements TextDocumentService {
 
     PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
     Diagnostic diagnostic = new Diagnostic();
+    // TODO dummy code
     diagnostic.setCode("SomeCode");
     diagnostic.setMessage("Bad bad crypto");
     diagnostic.setSeverity(DiagnosticSeverity.Warning);

@@ -5,6 +5,7 @@ import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.NAME;
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
 import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
+import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
 import java.io.IOException;
@@ -41,6 +42,9 @@ public class JythonInterpreter implements AutoCloseable {
 
   private CrymlinTraversalSource crymlinSource;
 
+  // store last result
+  private TranslationResult lastTranslationResult = null;
+
   /**
    * Connect to the graph database and initialize the internal Jython engine.
    *
@@ -51,7 +55,6 @@ public class JythonInterpreter implements AutoCloseable {
     String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
     String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
 
-    // TODO parameterize
     Driver driver = GraphDatabase.driver(uri, AuthTokens.basic(username, password));
 
     // Connect to to Neo4J as usual and return generic Tinkerpop "Graph" object
@@ -140,14 +143,15 @@ public class JythonInterpreter implements AutoCloseable {
             + "           |___/                     \n"
             + "\n");
     // Print help
-    new Commands().help();
+    Commands commands = new Commands(this);
+    commands.help();
 
     InteractiveConsole c = new InteractiveConsole();
     for (Map.Entry<String, Object> kv :
         this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
       c.set(kv.getKey(), kv.getValue());
     }
-    c.set("server", new Commands());
+    c.set("server", commands);
     c.interact();
   }
 
@@ -167,5 +171,13 @@ public class JythonInterpreter implements AutoCloseable {
     this.engine
         .getBindings(ScriptContext.ENGINE_SCOPE)
         .remove("crymlin"); // Trav. source of crymlin
+  }
+
+  public void setResult(TranslationResult translationResult) {
+    this.lastTranslationResult = translationResult;
+  }
+
+  public TranslationResult getLastResult() {
+    return lastTranslationResult;
   }
 }

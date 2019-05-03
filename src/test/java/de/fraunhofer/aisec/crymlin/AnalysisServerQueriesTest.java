@@ -11,7 +11,7 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
+import de.fraunhofer.aisec.cpg.passes.ControlFlowGraphPass;
 import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
@@ -90,14 +90,6 @@ public class AnalysisServerQueriesTest {
     assertFalse(ctx.methods.isEmpty());
     Method meth = ctx.methods.entrySet().stream().findFirst().get().getValue();
     assertFalse(meth.getStatements().isEmpty());
-
-    // Get analysis context from server
-    AnalysisContext ctx2 = server.retrieveContext();
-    assertNotNull(ctx2);
-
-    // Make sure they are the same
-    assertEquals(ctx, ctx2);
-    assertSame(ctx, ctx2);
   }
 
   @SuppressWarnings("unchecked")
@@ -149,7 +141,7 @@ public class AnalysisServerQueriesTest {
             TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
-                .registerPass(new SimpleForwardCfgPass()) // creates CFG
+                .registerPass(new ControlFlowGraphPass()) // creates CFG
                 .registerPass(new CallResolver()) // creates CG
                 .registerPass(new StatementsPerMethodPass())
                 .sourceFiles(sourceFiles)

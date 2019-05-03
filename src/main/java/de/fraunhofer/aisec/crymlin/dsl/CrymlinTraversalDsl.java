@@ -125,34 +125,46 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
       methodTypeParameters = {"A"})
   @Deprecated
   public default CrymlinTraversal<S, Vertex> statements() {
-    AnalysisServer server = AnalysisServer.getInstance();
-    if (server == null) {
-      return (CrymlinTraversal<S, Vertex>) this;
-    }
-    AnalysisContext ctx = server.retrieveContext();
-    if (ctx == null) {
-      return (CrymlinTraversal<S, Vertex>) this;
-    }
+//    AnalysisServer server = AnalysisServer.getInstance();
+//    if (server == null) {
+//      return (CrymlinTraversal<S, Vertex>) this;
+//    }
+//    AnalysisContext ctx = server.retrieveLastContext();
+//    if (ctx == null) {
+//      return (CrymlinTraversal<S, Vertex>) this;
+//    }
+//
+//    List<Statement> stmts =
+//        ctx.methods.get("good.Bouncycastle.main(java.lang.String[])void").getStatements();
+//    CrymlinTraversal<S, Vertex> t = (CrymlinTraversal<S, Vertex>) this;
+//    System.out.println("Graph: " + t.getGraph().isPresent());
+//    for (Statement stmt : stmts) {
+//      System.out.println("Adding " + stmt.toString());
+//
+//      DetachedVertex v =
+//          new TransientVertex(
+//              "Statement",
+//              "name",
+//              stmt.getName(),
+//              "code",
+//              stmt.getCode(),
+//              "argument_index",
+//              stmt.getArgumentIndex());
+//      t = t.inject(v);
+//    }
 
-    // TODO what is this?
-    List<Statement> stmts =
-        ctx.methods.get("good.Bouncycastle.main(java.lang.String[])void").getStatements();
     CrymlinTraversal<S, Vertex> t = (CrymlinTraversal<S, Vertex>) this;
     System.out.println("Graph: " + t.getGraph().isPresent());
-    for (Statement stmt : stmts) {
-      System.out.println("Adding " + stmt.toString());
-
-      DetachedVertex v =
-          new TransientVertex(
-              "Statement",
-              "name",
-              stmt.getName(),
-              "code",
-              stmt.getCode(),
-              "argument_index",
-              stmt.getArgumentIndex());
-      t = t.inject(v);
-    }
+    DetachedVertex v =
+            new TransientVertex(
+                    "Statement",
+                    "name",
+                    "DUMMY",
+                    "code",
+                    "NO CODE",
+                    "argument_index",
+                    "AI");
+    t = t.inject(v);
     return (CrymlinTraversal<S, Vertex>) t;
   }
 }

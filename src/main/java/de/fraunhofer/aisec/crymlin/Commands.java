@@ -4,13 +4,17 @@ import de.fhg.aisec.markmodel.MRule;
 import de.fhg.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.passes.SimpleForwardCfgPass;
+import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.passes.ControlFlowGraphPass;
+import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * These commands are only used by the Jython console.
@@ -18,6 +22,13 @@ import java.util.concurrent.ExecutionException;
  * @author julian
  */
 public class Commands {
+
+  // backref
+  private final JythonInterpreter jythonInterpreter;
+
+  public Commands(JythonInterpreter jythonInterpreter) {
+    this.jythonInterpreter = jythonInterpreter;
+  }
 
   /**
    * Starts the analysis of a single file or all files in a directory.
@@ -38,16 +49,19 @@ public class Commands {
             .config(
                 TranslationConfiguration.builder()
                     .sourceFiles(files.toArray(new File[0]))
-                    .registerPass(new SimpleForwardCfgPass())
+                    .registerPass(new ControlFlowGraphPass())
                     .build())
             .build();
 
     AnalysisServer server = AnalysisServer.getInstance();
     if (server != null) {
       try {
-        server.analyze(analyzer);
+        TranslationResult translationResult = server.analyze(analyzer).get(10, TimeUnit.MINUTES);
+        jythonInterpreter.setResult(translationResult);
       } catch (InterruptedException | ExecutionException e) {
         e.printStackTrace();
+      } catch (TimeoutException e) {
+        System.out.println("Analysis interrupted after timeout of 10 minutes.");
       }
     }
   }
@@ -84,13 +98,15 @@ public class Commands {
   }
 
   public void show_findings() {
-    AnalysisServer server = AnalysisServer.getInstance();
-    if (server == null) {
-      System.err.println("Server not initialized");
+    TranslationResult lastResult = jythonInterpreter.getLastResult();
+    if (lastResult == null) {
+      System.err.println("No analysis run yet.");
       return;
     }
+    AnalysisContext ctx = (AnalysisContext) lastResult.getScratch().get("ctx");
 
-    for (String fi : server.getFindings()) {
+    // TODO context needs to be retrieved differently soon
+    for (String fi : ctx.getFindings()) {
       System.out.println(fi);
     }
   }

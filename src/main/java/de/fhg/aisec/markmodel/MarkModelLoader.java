@@ -39,7 +39,7 @@ public class MarkModelLoader {
 
       // Parse rules
       for (RuleDeclaration r : markModel.getRule()) {
-        // todo should rules also have package names??
+        // todo @FW: should rules also have package names? what is the exact reasoning behind packages?
         MRule rule = parseRule(r);
         m.getRules().add(rule);
       }

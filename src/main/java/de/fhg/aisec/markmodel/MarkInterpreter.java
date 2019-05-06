@@ -2,6 +2,7 @@ package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
@@ -9,6 +10,8 @@ import de.fraunhofer.aisec.crymlin.utils.Utils;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,10 +91,7 @@ public class MarkInterpreter {
   /**
    * Evaluates the {@code markModel} against the currently analyzed program.
    *
-   * <p>TODO This is the core of the MARK evaluation. It needs a complete rewrite.
-   *
-   * <p>The pesudocode comment outlines a "proper" analysis (but it is still incomplete), while the
-   * actual Java code below was just a quick'n dirty hack for the PoC demonstration.
+   * <p>This is the core of the MARK evaluation.s
    *
    * @param result
    */
@@ -124,23 +124,74 @@ public class MarkInterpreter {
      */
 
     // Maintain all method calls in a list
-    List<String> myCalls = crymlinTraversal.calls().name().toList();
+    CrymlinTraversal<Vertex, Vertex> calls =
+        (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
+    List<Vertex> vertices = calls.toList();
+    for (Vertex v : vertices) {
+      v.property("dennis", "test"); // attach temporary property?!
+      System.out.println(v + " " + v.label() + " (" + v.property("name") + ")");
+      v.edges(Direction.OUT)
+          .forEachRemaining(
+              x ->
+                  System.out.println(
+                      x.label()
+                          + ": "
+                          + x.inVertex().label()
+                          + " ("
+                          + x.inVertex().property("name")
+                          + ")"
+                          + " -> "
+                          + x.outVertex().label()
+                          + " ("
+                          + x.inVertex().property("name")
+                          + ")"));
+
+      if (v.graph().tx().isOpen()) {
+        v.graph()
+            .tx()
+            .readWrite(); // should not be called by a program according to docu, but this persists
+        // our new property
+      } else {
+        System.out.println("cannot persist, tx is not open");
+      }
+    }
+
+    //    calls = (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
+    //    for (Vertex v: calls.toList()) {
+    //      System.out.println("TESTEST" + v.property("dennis"));
+    //    }
+
+    calls = (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
+    List<String> myCalls = calls.name().toList();
 
     // "Populate" MARK objects
     for (MEntity ent : this.markModel.getEntities()) {
       for (MOp op : ent.getOps()) {
         for (CallStatement opCall : op.getCallStatements()) {
 
-          Optional<String> call = containsCall(myCalls, opCall);
+          // Extract only the method Botan::Cipher_Mode::start())  -> start()
+          final String methodName = Utils.extractMethodName(opCall.getCall().getName());
+          Optional<String> call =
+              myCalls.stream()
+                  .filter(sourceCodeCall -> sourceCodeCall.endsWith(methodName))
+                  .findAny();
+
+          // TODO now, only the function name is checked. We also need to check the Type the
+          // function is executed on.
 
           if (call.isPresent()) {
-            log.debug("my calls: " + call.get());
+            System.out.println("my calls: " + call.get());
             // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
             // object.
 
             // TODO Find out arguments of the call and try to resolve concrete values for them
 
             // TODO "Populate" the entity and assign the resolved values to the entity's variables
+
+            // one should be enough?
+            break;
+          } else {
+            System.out.println("no call to " + methodName + " found.");
           }
           this.markModel.getPopulatedEntities().put(ent.getName(), ent);
         }
@@ -150,7 +201,7 @@ public class MarkInterpreter {
     // Evaluate rules against populated objects
 
     for (MRule r : this.markModel.getRules()) {
-      log.debug("Processing rule {}", r.getName());
+      // System.out.println("Processing rule " + r.getName());
       // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and
       // violated/triggered and satisfied".
       if (evaluateRule(r)) {
@@ -158,12 +209,6 @@ public class MarkInterpreter {
       }
     }
     return result;
-  }
-
-  private Optional<String> containsCall(List<String> myCalls, CallStatement opCall) {
-    // Extract only the method Botan::Cipher_Mode::start())  -> start()
-    final String methodName = Utils.extractMethodName(opCall.getCall().getName());
-    return myCalls.stream().filter(sourceCodeCall -> sourceCodeCall.endsWith(methodName)).findAny();
   }
 
   /**
@@ -182,15 +227,15 @@ public class MarkInterpreter {
             .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
             .findAny();
     if (matchingEntity.isPresent()) {
-      System.out.println("Found matching entity " + matchingEntity.get());
+      // System.out.println("Found matching entity " + matchingEntity.get());
       Expression ensureExpr = r.getStatement().getEnsure().getExp();
-      log.debug(exprToString(ensureExpr));
+      // System.out.println(exprToString(ensureExpr));
       // TODO evaluate expression against populated mark entities
       if (evaluateExpr(ensureExpr)) {
-        log.debug("Rule {} is satisfied.", r.getName());
+        // System.out.println("Rule " + r.getName() + " is satisfied.");
         return true;
       } else {
-        log.debug("Rule {} is matched but violated.", r.getName());
+        // System.out.println("Rule " + r.getName() + " is matched but violated.");
         return false;
       }
     }
@@ -210,7 +255,7 @@ public class MarkInterpreter {
         return evaluateExpr(seqxpr);
       }
     } else {
-      System.out.println("Cannot evaluate " + expr.getClass());
+      // System.out.println("Cannot evaluate " + expr.getClass());
     }
     return false;
   }
@@ -223,8 +268,6 @@ public class MarkInterpreter {
    * @return
    */
   private boolean containedInModel(Terminal expr) {
-    System.out.println(exprToString(expr));
-
     return true;
   }
 }

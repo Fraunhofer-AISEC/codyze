@@ -5,7 +5,7 @@ import org.neo4j.ogm.annotation.*;
 
 @NodeEntity
 public class Node {
-  @Id private Long id;
+  @GeneratedValue @Id private Long id;
 
   @Relationship(value = "s")
   private HashSet<Node> successors = new HashSet<>();
@@ -17,9 +17,8 @@ public class Node {
 
   public Node() {}
 
-  public Node(String name, long id) {
+  public Node(String name) {
     this.name = name;
-    this.id = id;
   }
 
   public void addSuccessor(Node s) {

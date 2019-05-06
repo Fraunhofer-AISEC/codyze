@@ -6,7 +6,6 @@ import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdPro
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
-import java.io.IOException;
 import java.util.Map;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -40,12 +39,8 @@ public class JythonInterpreter implements AutoCloseable {
   // store last result
   private TranslationResult lastTranslationResult = null;
 
-  /**
-   * Connect to the graph database and initialize the internal Jython engine.
-   *
-   * @throws IOException
-   */
-  public void connect() throws IOException {
+  /** Connect to the graph database and initialize the internal Jython engine. */
+  public void connect() {
     String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
     String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
     String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
@@ -77,7 +72,6 @@ public class JythonInterpreter implements AutoCloseable {
   }
 
   public CrymlinTraversalSource getCrymlinTraversal() {
-    this.crymlinSource = this.tg.traversal(CrymlinTraversalSource.class);
     return this.crymlinSource;
   }
 

@@ -12,7 +12,6 @@ import org.neo4j.ogm.session.SessionFactory;
 public class FSM {
 
   private HashSet<Node> startNodes = new HashSet<>();
-  private long nodeNumber = 0;
 
   public FSM() {}
 
@@ -38,13 +37,13 @@ public class FSM {
   }
 
   public static void clearDB() {
-    String uri = (String) System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
-    String username = (String) System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
-    String password = (String) System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
+    String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
+    String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
+    String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
     Configuration configuration =
         (new Configuration.Builder())
             .uri(uri)
-            .autoIndex("update")
+            .autoIndex("none")
             .credentials(username, password)
             .verifyConnection(true)
             .build();
@@ -55,13 +54,13 @@ public class FSM {
   }
 
   public void pushToDB() {
-    String uri = (String) System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
-    String username = (String) System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
-    String password = (String) System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
+    String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
+    String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
+    String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
     Configuration configuration =
         (new Configuration.Builder())
             .uri(uri)
-            .autoIndex("update")
+            .autoIndex("none")
             .credentials(username, password)
             .verifyConnection(true)
             .build();
@@ -93,7 +92,7 @@ public class FSM {
    * construct the resulting prevPointer-List needs to be added to the outer prevPointer List
    */
   public void sequenceToFSM(final Expression seq) {
-    Node start = new Node("BEGIN", nodeNumber++);
+    Node start = new Node("BEGIN");
     start.setStart(true);
     startNodes.add(start);
 
@@ -103,7 +102,7 @@ public class FSM {
     addExpr(seq, currentNodes);
 
     // not strictly needed, we could simply set end=true for all the returned nodes
-    Node end = new Node("END", nodeNumber);
+    Node end = new Node("END");
     start.setEnd(true);
     currentNodes.stream().forEach(x -> x.addSuccessor(end));
 
@@ -113,7 +112,7 @@ public class FSM {
   private HashSet<Node> addExpr(final Expression expr, final HashSet<Node> currentNodes) {
     if (expr instanceof Terminal) {
       Terminal inner = (Terminal) expr;
-      Node n = new Node(inner.getEntity() + "." + inner.getOp(), nodeNumber++);
+      Node n = new Node(inner.getEntity() + "." + inner.getOp());
       currentNodes.stream().forEach(x -> x.addSuccessor(n));
       currentNodes.clear();
       currentNodes.add(n);

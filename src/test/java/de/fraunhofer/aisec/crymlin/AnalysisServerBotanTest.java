@@ -14,7 +14,6 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.passes.ControlFlowGraphPass;
-import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
@@ -136,7 +135,7 @@ public class AnalysisServerBotanTest {
                 .failOnError(false)
                 .registerPass(new ControlFlowGraphPass()) // creates CFG
                 // when calling Database.persist() on the resulting graph.
-                .registerPass(new EvaluationOrderGraphPass()) // creates EOG
+                // .registerPass(new EvaluationOrderGraphPass()) // creates EOG
                 .sourceFiles(sourceFiles)
                 .build())
         .build();

@@ -75,7 +75,17 @@ public class AnalysisServer {
    * @throws Exception
    */
   public void start() throws Exception {
-    // TODO Initialize CPG
+
+    // Clear database
+    log.info("Clearing Database ...");
+    Database dbase = Database.getInstance();
+    try {
+      dbase.connect();
+      dbase.purgeDatabase();
+      dbase.close();
+    } catch (InterruptedException e) {
+      log.warn(e.getMessage(), e);
+    }
 
     // Launch LSP server
     if (config.launchLsp) {
@@ -143,17 +153,6 @@ public class AnalysisServer {
   public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer) {
 
     loadMarkRulesFromConfig();
-
-    // Clear database
-    Database dbase = Database.getInstance();
-    try {
-      dbase.connect();
-      dbase.purgeDatabase();
-      dbase.close();
-    } catch (InterruptedException e) {
-      log.warn(e.getMessage(), e);
-    }
-
     /*
      * Create analysis context and register at all passes supporting contexts.
      *
@@ -178,7 +177,7 @@ public class AnalysisServer {
               // Persist the result
               Database db = Database.getInstance();
               try {
-                db.connect();
+                db.connect(); // this does not connect again if we are already connected
               } catch (InterruptedException e) {
                 log.warn(e.getMessage(), e);
               }
@@ -278,6 +277,7 @@ public class AnalysisServer {
     if (lsp != null) {
       lsp.shutdown();
     }
+    Database.getInstance().close();
   }
 
   public static Builder builder() {

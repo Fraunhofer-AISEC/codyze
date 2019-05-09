@@ -90,10 +90,8 @@ public class Commands {
     }
 
     Mark markModel = server.getMarkModel();
-    if (markModel != null) {
-      for (MRule r : markModel.getRules()) {
-        System.out.println(r.getName());
-      }
+    for (MRule r : markModel.getRules()) {
+      System.out.println(r.getName());
     }
   }
 
@@ -105,7 +103,6 @@ public class Commands {
     }
     AnalysisContext ctx = (AnalysisContext) lastResult.getScratch().get("ctx");
 
-    // TODO context needs to be retrieved differently soon
     for (String fi : ctx.getFindings()) {
       System.out.println(fi);
     }

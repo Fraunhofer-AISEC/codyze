@@ -23,6 +23,7 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
   private static final Logger log = LoggerFactory.getLogger(CpgLanguageServer.class);
 
   private CpgDocumentService textDocumentService = new CpgDocumentService();
+  // TODO what is the workspaceservice?
   private CpgWorkspaceService workspaceService = new CpgWorkspaceService();
 
   @Override

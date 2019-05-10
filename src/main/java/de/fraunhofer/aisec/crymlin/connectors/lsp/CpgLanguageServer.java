@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
+import de.fraunhofer.aisec.cpg.Database;
 import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
@@ -23,11 +24,14 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
   private static final Logger log = LoggerFactory.getLogger(CpgLanguageServer.class);
 
   private CpgDocumentService textDocumentService = new CpgDocumentService();
-  // TODO what is the workspaceservice?
+
   private CpgWorkspaceService workspaceService = new CpgWorkspaceService();
 
   @Override
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+    log.debug("Pre-connecting to DB");
+    Database.getInstance().connect();
+
     InitializeResult result = new InitializeResult();
 
     ServerCapabilities capabilities = new ServerCapabilities();

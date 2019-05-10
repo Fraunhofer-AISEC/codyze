@@ -78,14 +78,9 @@ public class AnalysisServer {
 
     // Clear database
     log.info("Clearing Database ...");
-    Database dbase = Database.getInstance();
-    try {
-      dbase.connect();
-      dbase.purgeDatabase();
-      dbase.close();
-    } catch (InterruptedException e) {
-      log.warn(e.getMessage(), e);
-    }
+    Database.getInstance().connect();
+    Database.getInstance().purgeDatabase();
+    Database.getInstance().close();
 
     // Launch LSP server
     if (config.launchLsp) {
@@ -175,13 +170,9 @@ public class AnalysisServer {
               result.getScratch().put("ctx", ctx);
 
               // Persist the result
-              Database db = Database.getInstance();
-              try {
-                db.connect(); // this does not connect again if we are already connected
-              } catch (InterruptedException e) {
-                log.warn(e.getMessage(), e);
-              }
-              result.persist(db);
+              Database.getInstance()
+                  .connect(); // this does not connect again if we are already connected
+              result.persist(Database.getInstance());
               return result;
             })
         .thenApply(

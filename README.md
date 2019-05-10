@@ -39,7 +39,7 @@ This should trigger the LSP server to translate the document into the graph.
 
 1. Download and install the `LSP Support` plugin. Restart IntelliJ.
 2. Goto `Settings` -> `Language Server Protocol` -> `Server Definitions`
-3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `build/install/cpg/bin/cpg` script. 
+3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `build/install/cpganalysisserver/bin/cpganalysisserver` script. 
  
 ![](lsp-settings-intellij.png "IntelliJ LSP Setttings")
 
@@ -54,8 +54,8 @@ Additionally, the `cpganalysisserver` program should log debug messages into `lo
 2019-03-01 16:40:05,792 WARN  GenericEndpoint Unsupported notification method: workspace/didChangeWatchedFiles
 2019-03-01 16:40:09,449 INFO  TranslationTextDocumentService Handling didOpen: DidOpenTextDocumentParams [
   textDocument = TextDocumentItem [
-    uri = "file:///Users/banse/Repositories/cpg/src/test/java/de/fraunhofer/aisec/cpg/frontends/cpp/CXXLanguageFrontendTest.java"
-    languageId = "java"
+    uri = "file:///tmp/client.cpp"
+    languageId = "cpp"
     version = -1
 ```
 

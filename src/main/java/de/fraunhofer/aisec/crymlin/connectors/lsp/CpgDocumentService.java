@@ -10,6 +10,7 @@ import de.fraunhofer.aisec.cpg.passes.ControlFlowGraphPass;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
@@ -43,7 +44,7 @@ public class CpgDocumentService implements TextDocumentService {
     Diagnostic diagnostic = new Diagnostic();
     // TODO dummy code
     diagnostic.setCode("SomeCode");
-    diagnostic.setMessage("Bad bad crypto");
+    diagnostic.setMessage(UUID.randomUUID().toString());
     diagnostic.setSeverity(DiagnosticSeverity.Warning);
     diagnostic.setRange(new Range(new Position(1, 2), new Position(2, 4)));
 
@@ -53,6 +54,11 @@ public class CpgDocumentService implements TextDocumentService {
     // sending diagnostics
     client.publishDiagnostics(diagnostics);
 
+    Database.getInstance().connect(); // simply returns if already connected
+    if (!Database.getInstance().isConnected()) {
+      log.error("Could not connect to DB. Aborting.");
+      return;
+    }
     Database.getInstance().purgeDatabase();
 
     URI uri = URI.create(params.getTextDocument().getUri());
@@ -82,13 +88,17 @@ public class CpgDocumentService implements TextDocumentService {
   }
 
   @Override
-  public void didChange(DidChangeTextDocumentParams params) {}
+  public void didChange(DidChangeTextDocumentParams params) {
+    log.info("Handling didChange: {}", params);
+  }
 
   @Override
   public void didClose(DidCloseTextDocumentParams params) {}
 
   @Override
-  public void didSave(DidSaveTextDocumentParams params) {}
+  public void didSave(DidSaveTextDocumentParams params) {
+    log.info("Handling didSave: {}", params);
+  }
 
   void setClient(LanguageClient client) {
     this.client = client;

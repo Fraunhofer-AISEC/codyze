@@ -7,12 +7,14 @@ import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.eclipse.emf.common.util.EList;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +90,22 @@ public class MarkInterpreter {
     return exprToString((Expression) arg); // Every Argument is also an Expression
   }
 
+  public void dumpCFG(Edge edge, String pref, HashSet<Vertex> seen) {
+
+    Vertex outV = edge.inVertex();
+    if (seen.contains(outV)) {
+      System.out.println("Already seen: " + edge);
+      return;
+    }
+    seen.add(outV);
+    System.out.println(pref + outV.label() + " - " + outV.property("name"));
+    Iterator<Edge> cfg = outV.edges(Direction.OUT, "CFG");
+    while (cfg.hasNext()) {
+      Edge next = cfg.next();
+      dumpCFG(next, pref + "\t", seen);
+    }
+  }
+
   /**
    * Evaluates the {@code markModel} against the currently analyzed program.
    *
@@ -96,6 +114,8 @@ public class MarkInterpreter {
    * @param result
    */
   public TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
+
+    evaluateForbiddenCalls(ctx);
     /*
      *
      *  // Iterate over all statements of the program, along the CFG (created by SimpleForwardCFG)
@@ -128,23 +148,23 @@ public class MarkInterpreter {
         (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
     List<Vertex> vertices = calls.toList();
     for (Vertex v : vertices) {
-      v.property("dennis", "test"); // attach temporary property?!
-      System.out.println(v + " " + v.label() + " (" + v.property("name") + ")");
-      v.edges(Direction.OUT)
-          .forEachRemaining(
-              x ->
-                  System.out.println(
-                      x.label()
-                          + ": "
-                          + x.inVertex().label()
-                          + " ("
-                          + x.inVertex().property("name")
-                          + ")"
-                          + " -> "
-                          + x.outVertex().label()
-                          + " ("
-                          + x.inVertex().property("name")
-                          + ")"));
+      v.property("dennis", "test"); // attach temporary property
+      // System.out.println(v + " " + v.label() + " (" + v.property("name") + ")");
+      //      v.edges(Direction.OUT)
+      //          .forEachRemaining(
+      //              x ->
+      //                  System.out.println(
+      //                      x.label()
+      //                          + ": "
+      //                          + x.inVertex().label()
+      //                          + " ("
+      //                          + x.inVertex().property("name")
+      //                          + ")"
+      //                          + " -> "
+      //                          + x.outVertex().label()
+      //                          + " ("
+      //                          + x.inVertex().property("name")
+      //                          + ")"));
 
       if (v.graph().tx().isOpen()) {
         v.graph()
@@ -156,50 +176,51 @@ public class MarkInterpreter {
       }
     }
 
-    //    calls = (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
-    //    for (Vertex v: calls.toList()) {
-    //      System.out.println("TESTEST" + v.property("dennis"));
-    //    }
+    // TEST
+    /*
+    List<Vertex> do_crypt = crymlinTraversal.functiondeclaration("do_crypt").clone().toList();
+    if (do_crypt.size() != 1) {
+      System.err.println("Multiple functions with name do_crypt found");
+    }
+    Edge current = do_crypt.get(0).edges(Direction.OUT, "BODY").next();
+    */
+    // dumpCFG(current, "", new HashSet<>());
 
     calls = (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
     List<String> myCalls = calls.name().toList();
 
     // "Populate" MARK objects
     for (MEntity ent : this.markModel.getEntities()) {
-      for (MOp op : ent.getOps()) {
-        for (CallStatement opCall : op.getCallStatements()) {
+      Set<String> collect =
+          ent.getOps().stream()
+              .map(
+                  x ->
+                      x.getCallStatements().stream()
+                          .map(cs -> cs.getCall().getName())
+                          .collect(Collectors.toSet()))
+              .flatMap(Collection::stream)
+              .collect(Collectors.toSet());
 
-          // Extract only the method Botan::Cipher_Mode::start())  -> start()
-          final String methodName = Utils.extractMethodName(opCall.getCall().getName());
-          Optional<String> call =
-              myCalls.stream()
-                  .filter(sourceCodeCall -> sourceCodeCall.endsWith(methodName))
-                  .findAny();
+      Optional<String> any =
+          myCalls.stream()
+              .filter(
+                  call -> collect.stream().anyMatch(x -> x.endsWith(Utils.extractMethodName(call))))
+              .findAny();
+      // TODO now, only the function name is checked. We also need to check the Type the
+      // function is executed on.
 
-          // TODO now, only the function name is checked. We also need to check the Type the
-          // function is executed on.
-
-          if (call.isPresent()) {
-            System.out.println("my calls: " + call.get());
-            // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
-            // object.
-
-            // TODO Find out arguments of the call and try to resolve concrete values for them
-
-            // TODO "Populate" the entity and assign the resolved values to the entity's variables
-
-            // one should be enough?
-            break;
-          } else {
-            System.out.println("no call to " + methodName + " found.");
-          }
-          this.markModel.getPopulatedEntities().put(ent.getName(), ent);
-        }
+      if (any.isPresent()) {
+        System.out.println("MARK MATCHED - " + ent.getName());
+        System.out.println("\t\t" + any.get());
+        // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
+        // object.
+        // TODO Find out arguments of the call and try to resolve concrete values for them
+        // TODO "Populate" the entity and assign the resolved values to the entity's variables
+        this.markModel.getPopulatedEntities().put(ent.getName(), ent);
       }
     }
 
     // Evaluate rules against populated objects
-
     for (MRule r : this.markModel.getRules()) {
       // System.out.println("Processing rule " + r.getName());
       // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and
@@ -209,6 +230,116 @@ public class MarkInterpreter {
       }
     }
     return result;
+  }
+
+  private void evaluateForbiddenCalls(AnalysisContext ctx) {
+    log.info("Looking for forbidden calls");
+    for (MEntity ent : this.markModel.getEntities()) {
+
+      Set<FunctionDeclaration> collect =
+          ent.getOps().stream()
+              .map(
+                  x ->
+                      x.getCallStatements().stream()
+                          .filter(y -> "forbidden".equals(y.getForbidden()))
+                          .map(CallStatement::getCall)
+                          .collect(Collectors.toSet()))
+              .flatMap(Collection::stream)
+              .collect(Collectors.toSet());
+
+      if (collect.size() > 0) {
+        log.info(
+            "Entity {} has {} forbidden calls: {}",
+            ent.getName(),
+            collect.size(),
+            collect.stream().map(FunctionDeclaration::getName).collect(Collectors.joining(", ")));
+
+        // todo what to do with unknown types here? overapproximate?
+        for (FunctionDeclaration functionDeclaration : collect) {
+          String functionName = Utils.extractMethodName(functionDeclaration.getName());
+          String baseType = Utils.extractType(functionDeclaration.getName());
+          for (Vertex v :
+              crymlinTraversal.calls(functionName, baseType).toList()) { // todo subtypes?
+            log.debug(
+                "Matching cpg-node "
+                    + v.value("type").toString()
+                    + "::"
+                    + v.value("name").toString()
+                    + " to "
+                    + functionDeclaration.getName());
+            /*
+            function name and base type already match
+            check if parameters match, the parameters can be specified in the MARK-entity as:
+                - "_" which indicates we do not care about the type, i.e., match any
+                - a type itself (i.e., int), which will be matched
+                - a variable name, with the type specified in the var section of the MARK-entity
+            */
+
+            boolean parameters_match = true;
+            EList<String> params = functionDeclaration.getParams();
+            boolean[] checkedParameters = new boolean[params.size()]; // defaults to false!
+
+            Iterator<Edge> arguments = v.edges(Direction.OUT, "ARGUMENTS");
+            while (arguments.hasNext()) {
+              Vertex arg = arguments.next().inVertex();
+              int argumentIndex = Integer.parseInt(arg.value("argumentIndex").toString());
+              // argumentIndex starts at 0!
+              if (argumentIndex >= params.size()) {
+                // argumentlength mismatch
+                parameters_match = false;
+                break;
+              }
+              checkedParameters[argumentIndex] =
+                  true; // this parameter is now checked. If it does not match we bail out early
+
+              log.debug(
+                  "Argument #" + argumentIndex + " from    MARK: " + arg.value("type").toString());
+              log.debug(
+                  "Argument #" + argumentIndex + " for cpg-node: " + params.get(argumentIndex));
+              if (params.get(argumentIndex).equals("_")) {
+                // skip matching
+              } else {
+                String typeForVar = ent.getTypeForVar(params.get(argumentIndex));
+                log.debug("Argument #" + argumentIndex + " for cpg-node resolved: " + typeForVar);
+                // either the param in the mark file directly matches, or it has to have a
+                // corresponding var which indicates the type
+                // todo check parent types as well?
+                if (!(params.get(argumentIndex).equals(arg.value("type").toString())
+                    || (typeForVar != null && typeForVar.equals(arg.value("type").toString())))) {
+                  parameters_match = false;
+                  break;
+                }
+              }
+            }
+            if (parameters_match) {
+              // now check if all parameters were validated
+              for (int i = 0; i < params.size(); i++) {
+                if (!checkedParameters[i]) {
+                  parameters_match = false;
+                  break;
+                }
+              }
+              if (parameters_match) { // if all of them were checked
+                // now we have a match
+                log.debug("MATCH: " + v.toString());
+                log.debug("code: " + v.value("code").toString());
+                String finding =
+                    "Violation against forbidden call "
+                        + functionDeclaration.getName()
+                        + "("
+                        + String.join(",", functionDeclaration.getParams())
+                        + ") in Entity "
+                        + ent.getName()
+                        + ". Call was "
+                        + v.value("code").toString();
+                ctx.getFindings().add(finding);
+                log.info(finding);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**

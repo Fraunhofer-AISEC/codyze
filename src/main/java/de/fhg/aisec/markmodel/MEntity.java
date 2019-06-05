@@ -3,6 +3,7 @@ package de.fhg.aisec.markmodel;
 import de.fhg.aisec.mark.markDsl.CallStatement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -52,6 +53,11 @@ public class MEntity {
   @NonNull
   public List<MVar> getVars() {
     return this.vars;
+  }
+
+  public String getTypeForVar(String name) {
+    Optional<MVar> first = this.vars.stream().filter(v -> v.getName().equals(name)).findFirst();
+    return first.map(MVar::getType).orElse(null);
   }
 
   public String toString() {

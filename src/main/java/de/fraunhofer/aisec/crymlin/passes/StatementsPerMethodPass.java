@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.crymlin.passes;
 
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
 import de.fraunhofer.aisec.cpg.graph.CompoundStatement;
 import de.fraunhofer.aisec.cpg.graph.Declaration;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
@@ -70,4 +71,7 @@ public class StatementsPerMethodPass implements PassWithContext {
       handleStatement(methodSignature, s);
     }
   }
+
+  @Override
+  public void setLang(LanguageFrontend languageFrontend) {}
 }

@@ -72,6 +72,15 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
         .has("name", callee_name);
   }
 
+  public GraphTraversal<Vertex, Vertex> calls(String callee_name, String base_type) {
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+    return traversal
+        .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
+        .has("name", callee_name)
+        .has("type", base_type);
+  }
+
   /**
    * Returns nodes with a label {@code MethodDeclaration}.
    *

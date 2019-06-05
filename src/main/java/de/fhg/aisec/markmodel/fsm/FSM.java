@@ -104,7 +104,7 @@ public class FSM {
     // not strictly needed, we could simply set end=true for all the returned nodes
     Node end = new Node("END");
     start.setEnd(true);
-    currentNodes.stream().forEach(x -> x.addSuccessor(end));
+    currentNodes.forEach(x -> x.addSuccessor(end));
 
     // we could remove BEGIN here, and set begin=true for its successors
   }
@@ -113,7 +113,7 @@ public class FSM {
     if (expr instanceof Terminal) {
       Terminal inner = (Terminal) expr;
       Node n = new Node(inner.getEntity() + "." + inner.getOp());
-      currentNodes.stream().forEach(x -> x.addSuccessor(n));
+      currentNodes.forEach(x -> x.addSuccessor(n));
       currentNodes.clear();
       currentNodes.add(n);
       return currentNodes;
@@ -123,29 +123,37 @@ public class FSM {
       return addExpr(inner.getRight(), currentNodes);
     } else if (expr instanceof RepetitionExpression) {
       RepetitionExpression inner = (RepetitionExpression) expr;
-      if (inner.getOp().equals("?")) {
-        HashSet<Node> remember = new HashSet<>(currentNodes);
-        addExpr(inner.getExpr(), currentNodes);
-        currentNodes.addAll(remember);
-        return currentNodes;
-      } else if (inner
-          .getOp()
-          .equals("+")) { // add the whole expression once, and then a second time as optional (*)
-        addExpr(inner.getExpr(), currentNodes);
-        // go to isoptional!
-      } else if (inner.getOp().equals("*")) {
-        // go to isoptional!
-      } else {
-        System.out.println("UNKNOWN OP: " + inner.getOp());
-        return addExpr(inner.getExpr(), currentNodes);
+      switch (inner.getOp()) {
+        case "?":
+          {
+            HashSet<Node> remember = new HashSet<>(currentNodes);
+            addExpr(inner.getExpr(), currentNodes);
+            currentNodes.addAll(remember);
+            return currentNodes;
+          }
+        case "+":
+          {
+            HashSet<Node> remember = new HashSet<>(currentNodes);
+            addExpr(inner.getExpr(), currentNodes);
+            for (Node n : remember) {
+              currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
+            }
+            return currentNodes;
+          }
+        case "*":
+          {
+            HashSet<Node> remember = new HashSet<>(currentNodes);
+            addExpr(inner.getExpr(), currentNodes);
+            for (Node n : remember) {
+              currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
+            }
+            currentNodes.addAll(remember);
+            return currentNodes;
+          }
+        default:
+          System.out.println("UNKNOWN OP: " + inner.getOp());
+          return addExpr(inner.getExpr(), currentNodes);
       }
-      HashSet<Node> remember = new HashSet<>(currentNodes);
-      addExpr(inner.getExpr(), currentNodes);
-      for (Node n : remember) {
-        currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
-      }
-      currentNodes.addAll(remember);
-      return currentNodes;
     }
 
     System.out.println("ERROR, unknown Expression: " + expr.getClass());

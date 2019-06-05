@@ -25,4 +25,13 @@ public class Utils {
     }
     return opName;
   }
+
+  public static String extractType(String opName) {
+    if (opName.contains("::")) {
+      opName = opName.substring(0, opName.lastIndexOf("::"));
+    } else if (opName.contains("->")) {
+      opName = opName.substring(0, opName.lastIndexOf("->"));
+    }
+    return opName;
+  }
 }

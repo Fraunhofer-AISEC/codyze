@@ -82,6 +82,7 @@ dependencies {
     api("org.apache.commons", "commons-lang3", versions["commons-lang3"])
     api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
     api("org.slf4j", "jul-to-slf4j", "1.8.0-beta2")
+    api("org.slf4j:slf4j-simple:1.7.21")
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
     // Code Property Graph

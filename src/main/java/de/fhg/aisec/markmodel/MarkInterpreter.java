@@ -106,6 +106,24 @@ public class MarkInterpreter {
     }
   }
 
+  private HashSet<Vertex> getVerticesForFunctionDeclaration(
+      FunctionDeclaration functionDeclaration, MEntity ent) {
+    String functionName = Utils.extractMethodName(functionDeclaration.getName());
+    String baseType = Utils.extractType(functionDeclaration.getName());
+
+    EList<String> params = functionDeclaration.getParams();
+    // resolve parameters which have a corresponding var part in the entity
+    ArrayList<String> cloned = new ArrayList<>(params);
+    for (int i = 0; i < cloned.size(); i++) {
+      String typeForVar = ent.getTypeForVar(cloned.get(i));
+      if (typeForVar != null) {
+        cloned.set(i, typeForVar);
+      }
+    }
+
+    return crymlinTraversal.calls(functionName, baseType, cloned);
+  }
+
   /**
    * Evaluates the {@code markModel} against the currently analyzed program.
    *
@@ -114,6 +132,24 @@ public class MarkInterpreter {
    * @param result
    */
   public TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
+
+    /*
+    iterate all entities and precalculate some things:
+       -
+    */
+    for (MEntity ent : this.markModel.getEntities()) {
+      ent.parseVars();
+      for (MOp op : ent.getOps()) {
+        // todo rewrite once the grammar changed
+        log.info("{} Parsing Call Statements", op.getName());
+        for (OpStatement a : op.getStatements()) {
+          HashSet<Vertex> temp = getVerticesForFunctionDeclaration(a.getCall(), ent);
+          System.out.println(a.getCall().getName() + ": " + temp.size());
+          op.addVertex(a, temp);
+        }
+        op.setParsingFinished();
+      }
+    }
 
     evaluateForbiddenCalls(ctx);
     /*
@@ -195,7 +231,7 @@ public class MarkInterpreter {
           ent.getOps().stream()
               .map(
                   x ->
-                      x.getCallStatements().stream()
+                      x.getStatements().stream()
                           .map(cs -> cs.getCall().getName())
                           .collect(Collectors.toSet()))
               .flatMap(Collection::stream)
@@ -233,109 +269,55 @@ public class MarkInterpreter {
   }
 
   private void evaluateForbiddenCalls(AnalysisContext ctx) {
+    /*
+     * For a call to be forbidden, it needs to:
+     * - matches any forbidden signature (as callstatment in an op)
+     *    - with * for arbitrary parameters,
+     *    - _ for ignoring one parameter type, or
+     *    - a reference to a var in the entity to specify a concrete type (no type hierarchy is analyzed!)
+     * - _and_ is not allowed by any other non-forbidden matching call statement (in _any_ op)
+     */
+
     log.info("Looking for forbidden calls");
     for (MEntity ent : this.markModel.getEntities()) {
 
-      Set<FunctionDeclaration> collect =
-          ent.getOps().stream()
-              .map(
-                  x ->
-                      x.getCallStatements().stream()
-                          .filter(y -> "forbidden".equals(y.getForbidden()))
-                          .map(CallStatement::getCall)
-                          .collect(Collectors.toSet()))
-              .flatMap(Collection::stream)
-              .collect(Collectors.toSet());
+      for (MOp op : ent.getOps()) {
+        for (Map.Entry<Vertex, HashSet<OpStatement>> entry :
+            op.getVertexToCallStatementsMap().entrySet()) {
+          if (entry.getValue().stream()
+              .noneMatch(call -> "forbidden".equals(call.getForbidden()))) {
+            // only allowed entries
+            continue;
+          }
+          Vertex v = entry.getKey();
+          boolean vertex_allowed = false;
+          HashSet<String> violating = new HashSet<>();
+          for (OpStatement call : entry.getValue()) {
+            String callString =
+                call.getCall().getName() + "(" + String.join(",", call.getCall().getParams()) + ")";
 
-      if (collect.size() > 0) {
-        log.info(
-            "Entity {} has {} forbidden calls: {}",
-            ent.getName(),
-            collect.size(),
-            collect.stream().map(FunctionDeclaration::getName).collect(Collectors.joining(", ")));
-
-        // todo what to do with unknown types here? overapproximate?
-        for (FunctionDeclaration functionDeclaration : collect) {
-          String functionName = Utils.extractMethodName(functionDeclaration.getName());
-          String baseType = Utils.extractType(functionDeclaration.getName());
-          for (Vertex v :
-              crymlinTraversal.calls(functionName, baseType).toList()) { // todo subtypes?
-            log.debug(
-                "Matching cpg-node "
-                    + v.value("type").toString()
-                    + "::"
-                    + v.value("name").toString()
-                    + " to "
-                    + functionDeclaration.getName());
-            /*
-            function name and base type already match
-            check if parameters match, the parameters can be specified in the MARK-entity as:
-                - "_" which indicates we do not care about the type, i.e., match any
-                - a type itself (i.e., int), which will be matched
-                - a variable name, with the type specified in the var section of the MARK-entity
-            */
-
-            boolean parameters_match = true;
-            EList<String> params = functionDeclaration.getParams();
-            boolean[] checkedParameters = new boolean[params.size()]; // defaults to false!
-
-            Iterator<Edge> arguments = v.edges(Direction.OUT, "ARGUMENTS");
-            while (arguments.hasNext()) {
-              Vertex arg = arguments.next().inVertex();
-              int argumentIndex = Integer.parseInt(arg.value("argumentIndex").toString());
-              // argumentIndex starts at 0!
-              if (argumentIndex >= params.size()) {
-                // argumentlength mismatch
-                parameters_match = false;
-                break;
-              }
-              checkedParameters[argumentIndex] =
-                  true; // this parameter is now checked. If it does not match we bail out early
-
-              log.debug(
-                  "Argument #" + argumentIndex + " from    MARK: " + arg.value("type").toString());
-              log.debug(
-                  "Argument #" + argumentIndex + " for cpg-node: " + params.get(argumentIndex));
-              if (params.get(argumentIndex).equals("_")) {
-                // skip matching
-              } else {
-                String typeForVar = ent.getTypeForVar(params.get(argumentIndex));
-                log.debug("Argument #" + argumentIndex + " for cpg-node resolved: " + typeForVar);
-                // either the param in the mark file directly matches, or it has to have a
-                // corresponding var which indicates the type
-                // todo check parent types as well?
-                if (!(params.get(argumentIndex).equals(arg.value("type").toString())
-                    || (typeForVar != null && typeForVar.equals(arg.value("type").toString())))) {
-                  parameters_match = false;
-                  break;
-                }
-              }
+            if (!"forbidden".equals(call.getForbidden())) {
+              // there is at least one CallStatement which explicitly allows this Vertex!
+              log.info(
+                  "Vertex |{}| is allowed, since it matches whitelist entry {}",
+                  v.value("code"),
+                  callString);
+              vertex_allowed = true;
+              break;
+            } else {
+              violating.add(callString);
             }
-            if (parameters_match) {
-              // now check if all parameters were validated
-              for (int i = 0; i < params.size(); i++) {
-                if (!checkedParameters[i]) {
-                  parameters_match = false;
-                  break;
-                }
-              }
-              if (parameters_match) { // if all of them were checked
-                // now we have a match
-                log.debug("MATCH: " + v.toString());
-                log.debug("code: " + v.value("code").toString());
-                String finding =
-                    "Violation against forbidden call "
-                        + functionDeclaration.getName()
-                        + "("
-                        + String.join(",", functionDeclaration.getParams())
-                        + ") in Entity "
-                        + ent.getName()
-                        + ". Call was "
-                        + v.value("code").toString();
-                ctx.getFindings().add(finding);
-                log.info(finding);
-              }
-            }
+          }
+          if (!vertex_allowed) {
+            String finding =
+                "Violation against forbidden call(s) "
+                    + String.join(", ", violating)
+                    + " in Entity "
+                    + ent.getName()
+                    + ". Call was "
+                    + v.value("code").toString();
+            ctx.getFindings().add(finding);
+            log.info(finding);
           }
         }
       }

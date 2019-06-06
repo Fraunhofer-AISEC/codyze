@@ -5,7 +5,7 @@ entity Botan::AutoSeededRNG isa RandomSource {
 	var myValue : Botan::InitializationVector;
 	
 	op generate() {
-		decl myValue = Botan::AutoSeededRNG::random_vec(_);
+		myValue = Botan::AutoSeededRNG::random_vec(_);
 	}
 	
 }

@@ -30,15 +30,15 @@ entity Botan::Cipher_Mode isa Cipher {
 		 * function call(s):
 		 * - Cipher_Mode* get_cipher_mode(const std::string& algo_spec, Cipher_Dir direction, const std::string& provider = "")
 		 */
-		call Botan::get_cipher_mode(algorithm, direction);
-		call Botan::get_cipher_mode(algorithm, direction, provider);
+		Botan::get_cipher_mode(algorithm, direction);
+		Botan::get_cipher_mode(algorithm, direction, provider);
 
 		/* this is only for botan version >= 2.6.0  
-		call Botan::Cipher_Mode::create(algorithm, direction);
-		call Botan::Cipher_Mode::create(algorithm, direction, provider);
+		Botan::Cipher_Mode::create(algorithm, direction);
+		Botan::Cipher_Mode::create(algorithm, direction, provider);
 	
-		call Botan::Cipher_Mode::create_or_throw(algorithm, direction);
-		call Botan::Cipher_Mode::create_or_throw(algorithm, direction, provider); 
+		Botan::Cipher_Mode::create_or_throw(algorithm, direction);
+		Botan::Cipher_Mode::create_or_throw(algorithm, direction, provider);
 		*/
 	}
 	
@@ -50,9 +50,9 @@ entity Botan::Cipher_Mode isa Cipher {
 		 *   void set_key(const std::vector<uint8_t, Alloc>& key)
 		 * - void set_key(const uint8_t key[], size_t length);
 		 */
-		call Botan::Cipher_Mode::set_key(symkey);
-		call Botan::Cipher_Mode::set_key(svkey);
-		call forbidden Botan::Cipher_Mode::set_key(_, _);
+		Botan::Cipher_Mode::set_key(symkey);
+		Botan::Cipher_Mode::set_key(svkey);
+		forbidden Botan::Cipher_Mode::set_key(_, _);
 	}
 	
 	op start() {
@@ -65,11 +65,11 @@ entity Botan::Cipher_Mode isa Cipher {
 		 * 
 		 * - virtual void start_msg(const uint8_t nonce[], size_t nonce_len) = 0;
 		 */
-    	call forbidden Botan::Cipher_Mode::start();
-		call Botan::Cipher_Mode::start(iv);
-		call forbidden Botan::Cipher_Mode::start(nonce, nonce_length);
+    	forbidden Botan::Cipher_Mode::start();
+		Botan::Cipher_Mode::start(iv);
+		forbidden Botan::Cipher_Mode::start(nonce, nonce_length);
 		
-		call forbidden Botan::Cipher_Mode::start_msg(nonce, nonce_length);
+		forbidden Botan::Cipher_Mode::start_msg(nonce, nonce_length);
 	}
 	
 	op process() {
@@ -79,10 +79,10 @@ entity Botan::Cipher_Mode isa Cipher {
 		 * 
 		 * - virtual size_t process(uint8_t msg[], size_t msg_len) = 0;
 		 */
-		call Botan::Cipher_Mode::process(input, input_length);
+		Botan::Cipher_Mode::process(input, input_length);
 		
-		call Botan::Cipher_Mode::update(buffer);
-		call Botan::Cipher_Mode::update(buffer, _);
+		Botan::Cipher_Mode::update(buffer);
+		Botan::Cipher_Mode::update(buffer, _);
 	}
 	
 	op finish() {
@@ -90,8 +90,8 @@ entity Botan::Cipher_Mode isa Cipher {
 		 * method call(s):
 		 * - virtual void finish(secure_vector<uint8_t>& final_block, size_t offset = 0) = 0;
 		 */
-		call Botan::Cipher_Mode::finish(input);
-		call Botan::Cipher_Mode::finish(input, _);
+		Botan::Cipher_Mode::finish(input);
+		Botan::Cipher_Mode::finish(input, _);
 	}
 	
 	op reset() {
@@ -99,21 +99,21 @@ entity Botan::Cipher_Mode isa Cipher {
 		 * method call(s):
 		 * - virtual void reset() = 0;
 		 */
-		call Botan::Cipher_Mode::reset();
+		Botan::Cipher_Mode::reset();
 	}
 	
 }
 
 
 rule BlockCiphers {
-	for Botan::Cipher_Mode as cm
+	using Botan::Cipher_Mode as cm
 	ensure
 		_split(cm.algorithm, "/", 0) in [ "AES" ]  // TODO Nicetohave: Vordefinierte Methoden highlighten
 	onfail WrongBlockCipher
 }
 
 rule UseOfBotan_CipherMode {
-	for Botan::Cipher_Mode as cm
+	using Botan::Cipher_Mode as cm
 	ensure
 		order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
 	onfail WrongUseOfBotan_CipherMode
@@ -121,14 +121,22 @@ rule UseOfBotan_CipherMode {
 
 // Just for demo
 rule SimpleUseOfBotan_CipherMode {
-	for Botan::Cipher_Mode as cm
+	using Botan::Cipher_Mode as cm
 	ensure
-		order cm.create(), cm.init(), cm.start(), cm.finish()
+		order cm.create(), cm.init(), cm.start()*, cm.finish()
+	onfail WrongUseOfBotan_CipherMode
+}
+
+// Just for demo
+rule SimpleUseOfBotan2_CipherMode {
+	using Botan::Cipher_Mode as cm
+	ensure
+		order cm.create(), cm.init(), cm.start()+, cm.finish()
 	onfail WrongUseOfBotan_CipherMode
 }
 
 rule UseRandomIV {
-	for Botan::Cipher_Mode as cm,
+	using Botan::Cipher_Mode as cm,
 		Botan::AutoSeededRNG as rng
 	when _split(cm.algorithm, "/", 1) == "CBC" && cm.direction == Botan::Cipher_Dir::ENCRYPTION
 	ensure
@@ -138,7 +146,7 @@ rule UseRandomIV {
 
 
 //rule OnlyAES_256 {
-//	for Botan_CipherMode
+//	using Botan_CipherMode
 //	when _part(1, "/", algorithm) == "AES"
 //	ensure
 //		_length(key) == 256

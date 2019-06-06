@@ -34,7 +34,7 @@ public class MRule {
     sb.append("rule " + getName() + " {");
     if (!statement.getEntities().isEmpty()) {
       sb.append(
-          "\n\tfor "
+          "\n\tusing "
               + statement.getEntities().stream()
                   .map(entity -> entity.getE().getName() + " as " + entity.getN())
                   .collect(Collectors.joining(", \n\t\t")));

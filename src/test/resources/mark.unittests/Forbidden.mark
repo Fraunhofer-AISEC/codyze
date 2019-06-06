@@ -1,103 +1,27 @@
 entity Forbidden isa Cipher {
-
-	var algorithm : std::string;
-	var direction : Botan::Cipher_Dir; // an enum of underlying type int
-	var provider : std::String;
-
-	var symkey : Botan::SymmetricKey; // aka Botan::OctetString; class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
-	var svkey : Botan::secure_vector<uint8_t>;
-
-	var iv : Botan::InitializationVector; // aka Botan::OctetString; class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
-
-	var input : Botan::secure_vector<uint8_t>;
-	var input_length : std::size_t;
-
-	var buffer : std::uint8_t[];
-
 	var nonce : uint8_t;
 	var nonce_length : std::size_t;
-
+	var iv : Botan::InitializationVector;
+	var myValue : Botan::InitializationVector;
 
 	op create() {
-		/*
-		 * method call(s):
-		 * - static std::unique_ptr<Cipher_Mode> create(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
-		 * - static std::unique_ptr<Cipher_Mode> create_or_throw(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
-		 *
-		 * function call(s):
-		 * - Cipher_Mode* get_cipher_mode(const std::string& algo_spec, Cipher_Dir direction, const std::string& provider = "")
-		 */
-		call Botan::get_cipher_mode(algorithm, direction);
-		call Botan::get_cipher_mode(algorithm, direction, provider);
-
-		/* this is only for botan version >= 2.6.0
-		call Botan::Cipher_Mode::create(algorithm, direction);
-		call Botan::Cipher_Mode::create(algorithm, direction, provider);
-
-		call Botan::Cipher_Mode::create_or_throw(algorithm, direction);
-		call Botan::Cipher_Mode::create_or_throw(algorithm, direction, provider);
-		*/
+        Botan::get_cipher_mode(_, _);
 	}
 
 	op init() {
-		/*
-		 * method call(s) inherited from Botan::SymmetricAlgorithm:
-		 * - void set_key(const SymmetricKey& key)
-		 * - template<typename Alloc>
-		 *   void set_key(const std::vector<uint8_t, Alloc>& key)
-		 * - void set_key(const uint8_t key[], size_t length);
-		 */
-		call Botan::Cipher_Mode::set_key(symkey);
-		call Botan::Cipher_Mode::set_key(svkey);
-		call forbidden Botan::Cipher_Mode::set_key(_, _);
+        Botan::set_key(_);
+
+		myValue = Botan::random_vec(_);
+
+        forbidden Botan::set_key(_, _);
 	}
 
 	op start() {
-		/*
-		 * method call(s):
-		 * - template<typename Alloc>
-		 *   void start(const std::vector<uint8_t, Alloc>& nonce)
-		 * - void start(const uint8_t nonce[], size_t nonce_len)
-		 * - void start()
-		 *
-		 * - virtual void start_msg(const uint8_t nonce[], size_t nonce_len) = 0;
-		 */
-    	call forbidden Botan::Cipher_Mode::start();
-		call Botan::Cipher_Mode::start(iv);
-		call forbidden Botan::Cipher_Mode::start(nonce, nonce_length);
-		call forbidden Botan::Cipher_Mode::start(nonce, _);
+        Botan::start(iv);
 
-		call forbidden Botan::Cipher_Mode::start_msg(nonce, nonce_length);
+    	forbidden Botan::start();
+    	forbidden Botan::start(_);
+        forbidden Botan::start(nonce, _);
+        forbidden Botan::start_msg(*);
 	}
-
-	op process() {
-		/*
-		 * method call(s):
-		 * - void update(secure_vector<uint8_t>& buffer, size_t offset = 0)
-		 *
-		 * - virtual size_t process(uint8_t msg[], size_t msg_len) = 0;
-		 */
-		call Botan::Cipher_Mode::process(input, input_length);
-
-		call Botan::Cipher_Mode::update(buffer);
-		call Botan::Cipher_Mode::update(buffer, _);
-	}
-
-	op finish() {
-		/*
-		 * method call(s):
-		 * - virtual void finish(secure_vector<uint8_t>& final_block, size_t offset = 0) = 0;
-		 */
-		call Botan::Cipher_Mode::finish(input);
-		call Botan::Cipher_Mode::finish(input, _);
-	}
-
-	op reset() {
-		/*
-		 * method call(s):
-		 * - virtual void reset() = 0;
-		 */
-		call Botan::Cipher_Mode::reset();
-	}
-
 }

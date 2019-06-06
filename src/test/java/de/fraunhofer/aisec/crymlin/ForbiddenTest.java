@@ -113,12 +113,16 @@ public class ForbiddenTest {
     assertNotNull(ctx.getFindings());
     List<String> findings = ctx.getFindings();
     assertEquals(
-        2, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
+        3, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
+
     assertTrue(
         findings.contains(
-            "Violation against forbidden call Botan::Cipher_Mode::set_key(_,_) in Entity Forbidden. Call was processor->set_key(key, key);"));
+            "Violation against forbidden call(s) Botan::set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
     assertTrue(
         findings.contains(
-            "Violation against forbidden call Botan::Cipher_Mode::start(nonce,_) in Entity Forbidden. Call was processor->start(a, a);"));
+            "Violation against forbidden call(s) Botan::start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
+    assertTrue(
+        findings.contains(
+            "Violation against forbidden call(s) Botan::start() in Entity Forbidden. Call was b.start();"));
   }
 }

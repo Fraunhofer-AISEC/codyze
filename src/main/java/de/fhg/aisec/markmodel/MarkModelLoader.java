@@ -103,15 +103,7 @@ public class MarkModelLoader {
   private void parseOp(OpDeclaration op, MEntity me) {
     MOp mOp = new MOp();
     mOp.setName(op.getName());
-    for (OpStatement stmt : op.getStmts()) {
-      if (stmt instanceof CallStatement) {
-        mOp.getCallStatements().add((CallStatement) stmt);
-      } else if (stmt instanceof DeclarationStatement) {
-        mOp.getDeclStatements().add((DeclarationStatement) stmt);
-      } else {
-        Log.warn("Op not yet implemented: Handling of Mark {}", stmt.getClass().getName());
-      }
-    }
+    mOp.getStatements().addAll(op.getStmts());
     me.getOps().add(mOp);
   }
 }

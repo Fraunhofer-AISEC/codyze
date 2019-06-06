@@ -6,7 +6,7 @@ entity Botan::SymmetricKey {
 	var length : uint;
 	
 	op create() {
-		call constructor(_, length);
+		constructor(_, length);
 	}
 	
 }

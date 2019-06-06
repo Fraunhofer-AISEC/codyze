@@ -6,10 +6,15 @@ import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -79,6 +84,64 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
         .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
         .has("name", callee_name)
         .has("type", base_type);
+  }
+
+  public HashSet<Vertex> calls(String callee_name, String base_type, List<String> parameter) {
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+    HashSet<Vertex> ret = new HashSet<>();
+
+    for (Vertex v :
+        traversal
+            .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
+            .has("name", callee_name)
+            .has("type", base_type)
+            .toList()) {
+
+      boolean parameters_match = true;
+      if (parameter.size() > 0 && parameter.get(0).equals("*")) {
+        // ALL FUNCTIONS WITH THIS BASE TYPE AND NAME MATCH, PARAMETERS ARE IGNORED
+      } else {
+        boolean[] checkedParameters = new boolean[parameter.size()]; // defaults to false
+
+        Iterator<Edge> arguments = v.edges(Direction.OUT, "ARGUMENTS");
+        while (arguments.hasNext()) {
+          Vertex arg = arguments.next().inVertex();
+          int argumentIndex = Integer.parseInt(arg.value("argumentIndex").toString());
+          // argumentIndex starts at 0!
+          if (argumentIndex >= parameter.size()) {
+            // argumentlength mismatch
+            parameters_match = false;
+            break;
+          }
+          checkedParameters[argumentIndex] =
+              true; // this parameter is now checked. If it does not match we bail out early
+
+          if (parameter.get(argumentIndex).equals("_")) {
+            // skip matching
+          } else {
+            // either the param in the mark file directly matches, or it has to have a
+            // corresponding var which indicates the type
+            if (!parameter.get(argumentIndex).equals(arg.value("type").toString())) {
+              parameters_match = false;
+              break;
+            }
+          }
+        }
+        if (parameters_match) {
+          // now check if all parameters were validated
+          for (int i = 0; i < parameter.size(); i++) {
+            if (!checkedParameters[i]) {
+              parameters_match = false;
+              break;
+            }
+          }
+        }
+      }
+      if (parameters_match) { // if all of them were checked
+        ret.add(v);
+      }
+    }
+    return ret;
   }
 
   /**

@@ -20,9 +20,9 @@ entity javax.crypto.Cipher isa Cipher {
 		 * static Cipher getInstance(String transformation, Provider provider)
 		 * static Cipher getInstance(String transformation, String provider)
 		 */
-		call Cipher.getInstance(transformation);
-		call Cipher.getInstance(transformation, provider);
-		call Cipher.getInstance(transformation, providerAsString);
+		Cipher.getInstance(transformation);
+		Cipher.getInstance(transformation, provider);
+		Cipher.getInstance(transformation, providerAsString);
 	}
 	
 	op init() {
@@ -36,10 +36,10 @@ entity javax.crypto.Cipher isa Cipher {
 		 * void init(int opmode, Key key, AlgorithmParameters params, SecureRandom random)
 		 * void init(int opmode, Key key, SecureRandom random)
 		 */
-		call Cipher.init(direction, key);
-		call Cipher.init(direction, key, paramSpec);
-		call Cipher.init(direction, key, paramSpec, random);
-		call Cipher.init(direction, key, random);
+		Cipher.init(direction, key);
+		Cipher.init(direction, key, paramSpec);
+		Cipher.init(direction, key, paramSpec, random);
+		Cipher.init(direction, key, random);
 	}
 	
 	op process() {
@@ -50,7 +50,7 @@ entity javax.crypto.Cipher isa Cipher {
 		 * int update(byte[] input, int inputOffset, int inputLen, byte[] output, int outputOffset)
 		 * int update(ByteBuffer input, ByteBuffer output)
 		 */
-		call Cipher.update();
+		Cipher.update();
 	}
 	
 	op finish() {
@@ -63,27 +63,27 @@ entity javax.crypto.Cipher isa Cipher {
 		 * int doFinal(byte[] input, int inputOffset, int inputLen, byte[] output, int outputOffset)
 		 * int doFinal(ByteBuffer input, ByteBuffer output)
 		 */
-		call Cipher.doFinal(_, _);
+		Cipher.doFinal(_, _);
 	}
 	
 }
 
 rule BlockCiphers {
-	for javax.crypto.Cipher as c
+	using javax.crypto.Cipher as c
 	ensure
 		_split(c.transformation, "/", 0) in [ "AES" ]  // TODO Nicetohave: Vordefinierte Methoden highlighten
 	onfail WrongBlockCipher
 }
 
 rule UseBouncyCastle {
-	for javax.crypto.Cipher as c
+	using javax.crypto.Cipher as c
 	ensure 
 		c.provider in [ "BC" ]
 	onfail NoBouncyCastleProvider
 }
 
 rule UseRandomIV {
-	for javax.crypto.Cipher as myCipherMode,
+	using javax.crypto.Cipher as myCipherMode,
 		java.security.SecureRandom as myRng,
 		javax.crypto.spec.IvParameterSpec as paramSpec
 	when _split(algorithm, "/", 1) == "CBC" && myCipherMode.direction == javax.crypto.Cipher.ENCRYPT_MODE // == 1

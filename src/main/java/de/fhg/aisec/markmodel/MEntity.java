@@ -1,7 +1,8 @@
 package de.fhg.aisec.markmodel;
 
-import de.fhg.aisec.mark.markDsl.CallStatement;
+import de.fhg.aisec.mark.markDsl.OpStatement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,6 +14,8 @@ public class MEntity {
   private String name;
   private String superName = null;
   private String packageName = null;
+
+  private HashMap<String, String> parsedVars = null;
 
   @NonNull private final List<MOp> ops = new ArrayList<>();
 
@@ -55,11 +58,6 @@ public class MEntity {
     return this.vars;
   }
 
-  public String getTypeForVar(String name) {
-    Optional<MVar> first = this.vars.stream().filter(v -> v.getName().equals(name)).findFirst();
-    return first.map(MVar::getType).orElse(null);
-  }
-
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("entity " + getName());
@@ -76,20 +74,11 @@ public class MEntity {
     }
     for (MOp op : getOps()) {
       sb.append("\top " + op.getName() + "() {\n");
-      sb.append(
-          op.getDeclStatements().stream()
-              .map(
-                  x ->
-                      "\t\tdecl "
-                          + x.getRes()
-                          + " = "
-                          + MarkInterpreter.exprToString(x.getDecl())
-                          + ";\n")
-              .collect(Collectors.joining()));
-      for (CallStatement callStatement : op.getCallStatements()) {
+      for (OpStatement callStatement : op.getStatements()) {
         sb.append(
-            "\t\tcall "
+            "\t\t"
                 + (callStatement.getForbidden() == null ? "" : callStatement.getForbidden() + " ")
+                + (callStatement.getVar() == null ? "" : callStatement.getVar() + " = ")
                 + callStatement.getCall().getName()
                 + "("
                 + callStatement.getCall().getParams().stream().collect(Collectors.joining(", "))
@@ -99,5 +88,23 @@ public class MEntity {
     }
     sb.append("}");
     return sb.toString();
+  }
+
+  public void parseVars() {
+    if (parsedVars == null) {
+      parsedVars = new HashMap<>();
+    }
+    for (MVar var : vars) {
+      parsedVars.put(var.getName(), var.getType());
+    }
+  }
+
+  public String getTypeForVar(String name) {
+    if (parsedVars == null) { // do a real search
+      Optional<MVar> first = this.vars.stream().filter(v -> v.getName().equals(name)).findFirst();
+      return first.map(MVar::getType).orElse(null);
+    } else { // we prepared this already
+      return parsedVars.get(name);
+    }
   }
 }

@@ -1,18 +1,23 @@
 package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.CallStatement;
-import de.fhg.aisec.mark.markDsl.DeclarationStatement;
+import de.fhg.aisec.mark.markDsl.OpStatement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class MOp {
 
   private String name;
-  @NonNull private List<MOpCallStmt> statements = new ArrayList<>();
-  @NonNull private List<CallStatement> callStatements = new ArrayList<>();
-  @NonNull private List<DeclarationStatement> declStatements = new ArrayList<>();
+  @NonNull private List<OpStatement> statements = new ArrayList<>();
+
+  private boolean parsed = false;
+  private HashMap<OpStatement, HashSet<Vertex>> statementToCPGVertex = new HashMap<>();
+  private HashMap<Vertex, HashSet<OpStatement>> vertexToStatements = new HashMap<>();
 
   @Nullable
   public String getName() {
@@ -24,17 +29,38 @@ public class MOp {
   }
 
   @NonNull
-  public List<MOpCallStmt> getStatements() {
+  public List<OpStatement> getStatements() {
     return this.statements;
   }
 
-  @NonNull
-  public List<CallStatement> getCallStatements() {
-    return this.callStatements;
+  public HashSet<Vertex> getVertices(CallStatement stmt) {
+    if (!parsed) {
+      throw new RuntimeException("MOp not parsed! Do not call getVertex!");
+    }
+    return statementToCPGVertex.get(stmt);
   }
 
-  @NonNull
-  public List<DeclarationStatement> getDeclStatements() {
-    return this.declStatements;
+  public HashSet<OpStatement> getCallStatements(Vertex v) {
+    if (!parsed) {
+      throw new RuntimeException("MOp not parsed! Do not call getCallStatements!");
+    }
+    return vertexToStatements.get(v);
+  }
+
+  public HashMap<Vertex, HashSet<OpStatement>> getVertexToCallStatementsMap() {
+    return vertexToStatements;
+  }
+
+  public void addVertex(OpStatement stmt, HashSet<Vertex> verts) {
+    statementToCPGVertex.put(stmt, verts);
+    for (Vertex v : verts) {
+      HashSet<OpStatement> callStatements =
+          vertexToStatements.computeIfAbsent(v, k -> new HashSet<>());
+      callStatements.add(stmt);
+    }
+  }
+
+  public void setParsingFinished() {
+    parsed = true;
   }
 }

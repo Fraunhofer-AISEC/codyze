@@ -6,6 +6,7 @@ import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
+import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -121,7 +122,7 @@ public class MarkInterpreter {
       }
     }
 
-    return crymlinTraversal.calls(functionName, baseType, cloned);
+    return CrymlinQueryWrapper.getCalls(crymlinTraversal, functionName, baseType, cloned);
   }
 
   /**

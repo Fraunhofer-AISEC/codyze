@@ -26,45 +26,23 @@ public class JythonInterpreterTest {
 
     // Expecting an unconnected engine, throwing exceptions.
     assertNotNull(interp.engine);
-    assertThrows(
-        ScriptException.class,
-        () -> {
-          interp.query("graph");
-        });
-    assertThrows(
-        ScriptException.class,
-        () -> {
-          interp.query("crymlin");
-        });
+    assertThrows(ScriptException.class, () -> interp.query("graph"));
+    assertThrows(ScriptException.class, () -> interp.query("crymlin"));
 
     // Connect engine to DB
     interp.connect();
 
     // Expect a connected engine w/o exceptions.
     assertNotNull(interp.engine);
-    assertDoesNotThrow(
-        () -> {
-          interp.query("graph");
-        });
-    assertDoesNotThrow(
-        () -> {
-          interp.query("crymlin");
-        });
+    assertDoesNotThrow(() -> interp.query("graph"));
+    assertDoesNotThrow(() -> interp.query("crymlin"));
 
     interp.close();
 
     // Expecting an empty engine
     assertNotNull(interp.engine);
-    assertThrows(
-        ScriptException.class,
-        () -> {
-          interp.query("graph");
-        });
-    assertThrows(
-        ScriptException.class,
-        () -> {
-          interp.query("crymlin");
-        });
+    assertThrows(ScriptException.class, () -> interp.query("graph"));
+    assertThrows(ScriptException.class, () -> interp.query("crymlin"));
   }
 
   @Test
@@ -113,7 +91,7 @@ public class JythonInterpreterTest {
 
       // Run crymlin queries directly in Java
       CrymlinTraversalSource crymlin = interp.getCrymlinTraversal();
-      Long count = (Long) crymlin.recorddeclarations().count().next();
+      Long count = crymlin.recorddeclarations().count().next();
       System.out.println(count);
       assertNotNull(count);
     }

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -81,7 +80,7 @@ public class MEntity {
                 + (callStatement.getVar() == null ? "" : callStatement.getVar() + " = ")
                 + callStatement.getCall().getName()
                 + "("
-                + callStatement.getCall().getParams().stream().collect(Collectors.joining(", "))
+                + String.join(", ", callStatement.getCall().getParams())
                 + ");\n");
       }
       sb.append("\t}\n");

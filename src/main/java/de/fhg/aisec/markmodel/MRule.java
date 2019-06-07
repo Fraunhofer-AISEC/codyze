@@ -31,23 +31,22 @@ public class MRule {
   // https://javapapers.com/java/java-string-vs-stringbuilder-vs-stringbuffer-concatenation-performance-micro-benchmark/
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("rule " + getName() + " {");
+    sb.append("rule ").append(getName()).append(" {");
     if (!statement.getEntities().isEmpty()) {
-      sb.append(
-          "\n\tusing "
-              + statement.getEntities().stream()
+      sb.append("\n\tusing ")
+          .append(
+              statement.getEntities().stream()
                   .map(entity -> entity.getE().getName() + " as " + entity.getN())
                   .collect(Collectors.joining(", \n\t\t")));
     }
     if (statement.getCond() != null) {
-      sb.append("\n\twhen " + MarkInterpreter.exprToString(statement.getCond().getExp()));
+      sb.append("\n\twhen ").append(MarkInterpreter.exprToString(statement.getCond().getExp()));
     }
-    sb.append(
-        "\n\tensure\n\t\t"
-            + MarkInterpreter.exprToString(statement.getEnsure().getExp())
-            + "\n\tonfail "
-            + statement.getMsg()
-            + "\n}");
+    sb.append("\n\tensure\n\t\t")
+        .append(MarkInterpreter.exprToString(statement.getEnsure().getExp()))
+        .append("\n\tonfail ")
+        .append(statement.getMsg())
+        .append("\n}");
     return sb.toString();
   }
 }

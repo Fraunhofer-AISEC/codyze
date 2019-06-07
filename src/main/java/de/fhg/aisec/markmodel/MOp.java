@@ -1,6 +1,5 @@
 package de.fhg.aisec.markmodel;
 
-import de.fhg.aisec.mark.markDsl.CallStatement;
 import de.fhg.aisec.mark.markDsl.OpStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ public class MOp {
     return this.statements;
   }
 
-  public HashSet<Vertex> getVertices(CallStatement stmt) {
+  public HashSet<Vertex> getVertices(OpStatement stmt) {
     if (!parsed) {
       throw new RuntimeException("MOp not parsed! Do not call getVertex!");
     }

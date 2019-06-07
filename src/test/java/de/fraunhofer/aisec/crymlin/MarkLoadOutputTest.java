@@ -38,6 +38,8 @@ public class MarkLoadOutputTest {
     String[] directories =
         (new File(markModelFiles)).list((current, name) -> name.endsWith(".mark"));
 
+    assertNotNull(directories);
+
     XtextParser parser = new XtextParser();
     for (String markFile : directories) {
       String fullName = markModelFiles + File.separator + markFile;
@@ -65,7 +67,10 @@ public class MarkLoadOutputTest {
       StringBuilder reconstructed = new StringBuilder();
       if (!markModel.getEntities().isEmpty()) {
         // they all have the same packed name in our context
-        reconstructed.append("package " + markModel.getEntities().get(0).getPackageName() + "\n");
+        reconstructed
+            .append("package ")
+            .append(markModel.getEntities().get(0).getPackageName())
+            .append("\n");
       }
 
       for (MEntity entity : markModel.getEntities()) {
@@ -84,14 +89,14 @@ public class MarkLoadOutputTest {
       full = full.replaceAll("(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)", "");
       for (String line : full.split("\n")) {
         if (!line.strip().isEmpty()) {
-          sanitizedOriginal.append(line.strip() + "\n");
+          sanitizedOriginal.append(line.strip()).append("\n");
         }
       }
 
       StringBuilder sanitizedReconstructed = new StringBuilder();
       for (String line : reconstructed.toString().split("\n")) {
         if (!line.strip().isEmpty()) {
-          sanitizedReconstructed.append(line.strip() + "\n");
+          sanitizedReconstructed.append(line.strip()).append("\n");
         }
       }
 

@@ -19,7 +19,9 @@ Botan::secure_vector<uint8_t> do_crypt(const std::string &cipher,
     if(iv.size() == 0)
         throw std::runtime_error("IV must not be empty");
 
-    std::unique_ptr<Botan::Cipher_Mode> processor(Botan::get_cipher_mode(cipher, direction));
+    //std::unique_ptr<Botan::Cipher_Mode> processor(Botan::get_cipher_mode(cipher, direction));
+    Botan::Cipher_Mode processor(Botan::get_cipher_mode(cipher, direction));
+    Botan::Cipher_Mode processor2(Botan::get_cipher_mode(cipher, direction));
     if(!processor)
         throw std::runtime_error("Cipher algorithm not found");
 
@@ -31,6 +33,10 @@ Botan::secure_vector<uint8_t> do_crypt(const std::string &cipher,
 
     Botan::secure_vector<uint8_t> buf(input.begin(), input.end());
     processor->finish(buf);
+
+    processor2->start(iv.bits_of());
+    processor2->finish(buf);
+
 
     return buf;
 }

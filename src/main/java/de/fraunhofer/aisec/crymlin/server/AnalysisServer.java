@@ -214,9 +214,7 @@ public class AnalysisServer {
       log.debug("Loading MARK from directory {}", markFile.getAbsolutePath());
       try {
         DirectoryStream<Path> fileStream = Files.newDirectoryStream(markFile.toPath());
-        Iterator<Path> it = fileStream.iterator();
-        while (it.hasNext()) {
-          Path f = it.next();
+        for (Path f : fileStream) {
           if (f.getFileName().toString().endsWith(".mark")) {
             log.debug("  Loading MARK file {}", f.toFile().getAbsolutePath());
             parser.addMarkFile(f.toFile());

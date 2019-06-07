@@ -36,6 +36,8 @@ public class FSMTest {
     String[] directories =
         (new File(markModelFiles)).list((current, name) -> name.endsWith(".mark"));
 
+    assertNotNull(directories);
+
     XtextParser parser = new XtextParser();
     for (String markFile : directories) {
       String fullName = markModelFiles + File.separator + markFile;

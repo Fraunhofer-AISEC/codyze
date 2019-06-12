@@ -17,6 +17,7 @@ public class MOp {
   private boolean parsed = false;
   private HashMap<OpStatement, HashSet<Vertex>> statementToCPGVertex = new HashMap<>();
   private HashMap<Vertex, HashSet<OpStatement>> vertexToStatements = new HashMap<>();
+  private HashSet<Vertex> allVertices = new HashSet<>();
 
   @Nullable
   public String getName() {
@@ -50,6 +51,10 @@ public class MOp {
     return vertexToStatements;
   }
 
+  public HashSet<Vertex> getAllVertices() {
+    return allVertices;
+  }
+
   public void addVertex(OpStatement stmt, HashSet<Vertex> verts) {
     statementToCPGVertex.put(stmt, verts);
     for (Vertex v : verts) {
@@ -57,6 +62,7 @@ public class MOp {
           vertexToStatements.computeIfAbsent(v, k -> new HashSet<>());
       callStatements.add(stmt);
     }
+    allVertices.addAll(verts);
   }
 
   public void setParsingFinished() {

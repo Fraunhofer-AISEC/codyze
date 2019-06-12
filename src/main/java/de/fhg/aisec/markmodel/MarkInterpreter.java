@@ -136,16 +136,20 @@ public class MarkInterpreter {
 
     /*
     iterate all entities and precalculate some things:
-       -
+       - call statements to vertices
     */
     for (MEntity ent : this.markModel.getEntities()) {
       ent.parseVars();
       for (MOp op : ent.getOps()) {
-        // todo rewrite once the grammar changed
-        log.info("{} Parsing Call Statements", op.getName());
+        log.info("Parsing Call Statements for {}", op.getName());
         for (OpStatement a : op.getStatements()) {
           HashSet<Vertex> temp = getVerticesForFunctionDeclaration(a.getCall(), ent);
-          System.out.println(a.getCall().getName() + ": " + temp.size());
+          System.out.println(
+              a.getCall().getName()
+                  + "("
+                  + String.join(", ", a.getCall().getParams())
+                  + "): "
+                  + temp.size());
           op.addVertex(a, temp);
         }
         op.setParsingFinished();
@@ -153,6 +157,9 @@ public class MarkInterpreter {
     }
 
     evaluateForbiddenCalls(ctx);
+
+    evaluateOrder(ctx);
+
     /*
      *
      *  // Iterate over all statements of the program, along the CFG (created by SimpleForwardCFG)
@@ -267,6 +274,17 @@ public class MarkInterpreter {
       }
     }
     return result;
+  }
+
+  private void evaluateOrder(AnalysisContext ctx) {
+    log.info("Evaluating order");
+    for (MEntity ent : this.markModel.getEntities()) {
+
+      for (MOp op : ent.getOps()) {
+        System.out.println(op.getName() + ": " + op.getAllVertices().size());
+      }
+    }
+    log.info("Done evaluating order");
   }
 
   private void evaluateForbiddenCalls(AnalysisContext ctx) {

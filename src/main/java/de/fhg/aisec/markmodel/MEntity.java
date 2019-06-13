@@ -52,6 +52,10 @@ public class MEntity {
     return this.ops;
   }
 
+  public MOp getOp(@NonNull String op) {
+    return ops.stream().filter(x -> op.equals(x.getName())).findAny().orElse(null);
+  }
+
   @NonNull
   public List<MVar> getVars() {
     return this.vars;

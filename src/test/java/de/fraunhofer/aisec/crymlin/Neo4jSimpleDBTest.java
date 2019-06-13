@@ -32,8 +32,8 @@ public class Neo4jSimpleDBTest {
     final String test = UUID.randomUUID().toString();
     {
       tx = session.beginTransaction();
-      Node n = new Node(test);
-      Node n2 = new Node(test);
+      Node n = new Node(test, test);
+      Node n2 = new Node(test, test);
       n.addSuccessor(n2);
       session.save(n);
       tx.commit();

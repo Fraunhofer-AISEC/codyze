@@ -24,6 +24,10 @@ public class Mark {
     return this.entities;
   }
 
+  public MEntity getEntity(@NonNull String name) {
+    return entities.stream().filter(x -> name.equals(x.getName())).findAny().orElse(null);
+  }
+
   @NonNull
   public List<MRule> getRules() {
     return this.rules;

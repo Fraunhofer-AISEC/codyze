@@ -1,0 +1,42 @@
+entity Forbidden isa Cipher {
+	var nonce : uint8_t;
+	var nonce_length : std::size_t;
+	var iv : Botan::InitializationVector;
+	var myValue : Botan::InitializationVector;
+
+	op create() {
+        Botan::get_cipher_mode(_, _);
+	}
+
+	op init() {
+        Botan::set_key(_);
+		myValue = Botan::random_vec(_);
+        Botan::set_key(_, _);
+	}
+
+	op start() {
+        Botan::start(iv);
+
+    	Botan::start();
+    	Botan::start(_);
+        Botan::start(nonce, _);
+        Botan::start_msg(*);
+	}
+	op finish() {
+        Botan::finish(_)
+    }
+}
+
+rule UseOfBotan_CipherMode {
+	using Forbidden as cm
+	ensure
+		order cm.start(), cm.finish()
+	onfail WrongUseOfBotan_CipherMode
+}
+
+//rule UseOfBotan_CipherMode {
+//	using Forbidden as cm
+//	ensure
+//		order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
+//	onfail WrongUseOfBotan_CipherMode
+//}

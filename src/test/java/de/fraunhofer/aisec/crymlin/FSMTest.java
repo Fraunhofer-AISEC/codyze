@@ -12,66 +12,157 @@ import de.fhg.aisec.markmodel.fsm.FSM;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.AfterAll;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-public class FSMTest {
+class FSMTest {
 
-  private static Map<String, Mark> allModels = new HashMap<>();
+  private static Mark mark;
 
   @BeforeAll
-  public static void startup() throws Exception {
+  static void startup() throws Exception {
 
     URL resource =
-        MarkLoadOutputTest.class
-            .getClassLoader()
-            .getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark");
+        MarkLoadOutputTest.class.getClassLoader().getResource("mark/PoC_MS1/Botan_CipherMode.mark");
     assertNotNull(resource);
     File markPoC1 = new File(resource.getFile());
     assertNotNull(markPoC1);
-    String markModelFiles = markPoC1.getParent();
-
-    String[] directories =
-        (new File(markModelFiles)).list((current, name) -> name.endsWith(".mark"));
-
-    assertNotNull(directories);
 
     XtextParser parser = new XtextParser();
-    for (String markFile : directories) {
-      String fullName = markModelFiles + File.separator + markFile;
-      parser.addMarkFile(new File(fullName));
-    }
+    parser.addMarkFile(markPoC1);
+
     HashMap<String, MarkModel> markModels = parser.parse();
-    for (String markFile : directories) {
-      String fullName = markModelFiles + File.separator + markFile;
-      allModels.put(
-          fullName,
-          new MarkModelLoader().load(markModels, fullName)); // only load the model from this file
+    mark = new MarkModelLoader().load(markModels, null);
+    assertNotNull(mark);
+  }
+
+  @Test
+  void parseTest() {
+    assertEquals(5, mark.getRules().size()); // 5 total
+    assertEquals(
+        3,
+        mark.getRules().stream()
+            .filter(
+                rule ->
+                    rule.getStatement() != null
+                        && rule.getStatement().getEnsure() != null
+                        && rule.getStatement().getEnsure().getExp() instanceof OrderExpression)
+            .count()); // 3 order
+
+    assertEquals(
+        1, mark.getRules().stream().filter(x -> x.getName().equals("BlockCiphers")).count());
+    assertEquals(
+        1,
+        mark.getRules().stream().filter(x -> x.getName().equals("UseOfBotan_CipherMode")).count());
+    assertEquals(
+        1,
+        mark.getRules().stream()
+            .filter(x -> x.getName().equals("SimpleUseOfBotan_CipherMode"))
+            .count());
+    assertEquals(
+        1,
+        mark.getRules().stream()
+            .filter(x -> x.getName().equals("SimpleUseOfBotan2_CipherMode"))
+            .count());
+    assertEquals(
+        1, mark.getRules().stream().filter(x -> x.getName().equals("UseRandomIV")).count());
+  }
+
+  @Test
+  @Disabled
+  void fsmTest() {
+
+    FSM.clearDB();
+    for (MRule rule : mark.getRules()) {
+      if (rule.getStatement() != null
+          && rule.getStatement().getEnsure() != null
+          && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
+        OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
+        FSM fsm = new FSM();
+        fsm.sequenceToFSM(inner.getExp());
+        fsm.pushToDB();
+      }
     }
   }
 
-  @AfterAll
-  public static void teardown() throws Exception {}
+  private FSM load(String ruleName) {
+    Optional<MRule> opt =
+        mark.getRules().stream().filter(x -> x.getName().equals(ruleName)).findFirst();
+    assertTrue(opt.isPresent());
+    MRule rule = opt.get();
+    assertNotNull(rule.getStatement());
+    assertNotNull(rule.getStatement().getEnsure());
+    assertNotNull(rule.getStatement().getEnsure().getExp());
+    assertTrue(rule.getStatement().getEnsure().getExp() instanceof OrderExpression);
+    OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
+    FSM fsm = new FSM();
+    assertNotNull(fsm);
+    fsm.sequenceToFSM(inner.getExp());
+
+    return fsm;
+  }
 
   @Test
-  public void fsmTest() throws Exception {
+  void testUseOfBotan_CipherMode() {
+    FSM fsm = load("UseOfBotan_CipherMode");
 
-    FSM.clearDB();
-    for (Map.Entry<String, Mark> entry : allModels.entrySet()) {
+    assertEquals(
+        "cm.create (0)\n"
+            + "\t-> cm.init(1)\n"
+            + "cm.init (1)\n"
+            + "\t-> cm.start(2)\n"
+            + "cm.start (2)\n"
+            + "\t-> cm.finish(3)\n"
+            + "\t-> cm.process(4)\n"
+            + "cm.finish (3)\n"
+            + "\t-> END(5)\n"
+            + "\t-> cm.reset(6)\n"
+            + "\t-> cm.start(2)\n"
+            + "cm.process (4)\n"
+            + "\t-> cm.finish(3)\n"
+            + "\t-> cm.process(4)\n"
+            + "END (5)\n"
+            + "cm.reset (6)\n"
+            + "\t-> END(5)\n",
+        fsm.toString());
+  }
 
-      Mark markModel = entry.getValue();
-      for (MRule rule : markModel.getRules()) {
-        if (rule.getStatement() != null
-            && rule.getStatement().getEnsure() != null
-            && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
-          OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
-          FSM fsm = new FSM();
-          fsm.sequenceToFSM(inner.getExp());
-          fsm.pushToDB();
-        }
-      }
-    }
+  @Test
+  void testSimpleUseOfBotan_CipherMode() {
+    FSM fsm = load("SimpleUseOfBotan_CipherMode");
+
+    assertEquals(
+        "cm.create (0)\n"
+            + "\t-> cm.init(1)\n"
+            + "cm.init (1)\n"
+            + "\t-> cm.finish(2)\n"
+            + "\t-> cm.start(3)\n"
+            + "cm.finish (2)\n"
+            + "\t-> END(4)\n"
+            + "cm.start (3)\n"
+            + "\t-> cm.finish(2)\n"
+            + "\t-> cm.start(3)\n"
+            + "END (4)\n",
+        fsm.toString());
+  }
+
+  @Test
+  void testSimpleUseOfBotan2_CipherMode() {
+    FSM fsm = load("SimpleUseOfBotan2_CipherMode");
+
+    assertEquals(
+        "cm.create (0)\n"
+            + "\t-> cm.init(1)\n"
+            + "cm.init (1)\n"
+            + "\t-> cm.start(2)\n"
+            + "cm.start (2)\n"
+            + "\t-> cm.finish(3)\n"
+            + "\t-> cm.start(2)\n"
+            + "cm.finish (3)\n"
+            + "\t-> END(4)\n"
+            + "END (4)\n",
+        fsm.toString());
   }
 }

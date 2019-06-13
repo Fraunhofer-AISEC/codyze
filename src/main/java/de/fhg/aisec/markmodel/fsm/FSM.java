@@ -4,36 +4,59 @@ import de.fhg.aisec.mark.markDsl.Expression;
 import de.fhg.aisec.mark.markDsl.RepetitionExpression;
 import de.fhg.aisec.mark.markDsl.SequenceExpression;
 import de.fhg.aisec.mark.markDsl.Terminal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 
 public class FSM {
 
-  private HashSet<Node> startNodes = new HashSet<>();
+  private HashSet<Node> startNodes = null;
 
   public FSM() {}
 
-  public void dump() {
+  public String toString() {
     HashSet<Node> seen = new HashSet<>();
-    HashSet<Node> current = new HashSet<>(startNodes);
+    ArrayList<Node> current = new ArrayList<>(startNodes);
+    HashMap<Node, Integer> nodeToId = new HashMap<>();
+    StringBuilder sb = new StringBuilder();
+    int node_counter = 0;
     while (!current.isEmpty()) {
-      HashSet<Node> newWork = new HashSet<>();
+      ArrayList<Node> newWork = new ArrayList<>();
       for (Node n : current) {
         if (!seen.contains(n)) {
-          System.out.println(n);
+          Integer id = nodeToId.get(n);
+          if (id == null) {
+            id = node_counter++;
+            nodeToId.put(n, id);
+          }
+          sb.append(n).append(" (").append(id).append(")\n");
+          TreeMap<String, Node> sorted = new TreeMap<>();
           for (Node s : n.getSuccessors()) {
-            System.out.println("\t-> " + s);
+            sorted.put(s.getName(), s);
+          }
+          for (Map.Entry<String, Node> entry : sorted.entrySet()) {
+            Node s = entry.getValue();
+            Integer id_succ = nodeToId.get(s);
+            if (id_succ == null) {
+              id_succ = node_counter++;
+              nodeToId.put(s, id_succ);
+            }
             if (!seen.contains(s)) {
               newWork.add(s);
             }
+            sb.append("\t-> ").append(s).append("(").append(id_succ).append(")").append("\n");
           }
           seen.add(n);
         }
       }
       current = newWork;
     }
+    return sb.toString();
   }
 
   public static void clearDB() {
@@ -92,9 +115,8 @@ public class FSM {
    * construct the resulting prevPointer-List needs to be added to the outer prevPointer List
    */
   public void sequenceToFSM(final Expression seq) {
-    Node start = new Node("BEGIN");
+    Node start = new Node(null, "BEGIN");
     start.setStart(true);
-    startNodes.add(start);
 
     HashSet<Node> currentNodes = new HashSet<>();
     currentNodes.add(start);
@@ -102,17 +124,21 @@ public class FSM {
     addExpr(seq, currentNodes);
 
     // not strictly needed, we could simply set end=true for all the returned nodes
-    Node end = new Node("END");
-    start.setEnd(true);
+    Node end = new Node(null, "END");
+    end.setEnd(true);
     currentNodes.forEach(x -> x.addSuccessor(end));
 
     // we could remove BEGIN here, and set begin=true for its successors
+    for (Node n : start.getSuccessors()) {
+      n.setStart(true);
+    }
+    startNodes = start.getSuccessors();
   }
 
   private HashSet<Node> addExpr(final Expression expr, final HashSet<Node> currentNodes) {
     if (expr instanceof Terminal) {
       Terminal inner = (Terminal) expr;
-      Node n = new Node(inner.getEntity() + "." + inner.getOp());
+      Node n = new Node(inner.getEntity(), inner.getOp());
       currentNodes.forEach(x -> x.addSuccessor(n));
       currentNodes.clear();
       currentNodes.add(n);
@@ -158,5 +184,9 @@ public class FSM {
 
     System.out.println("ERROR, unknown Expression: " + expr.getClass());
     return null;
+  }
+
+  public HashSet<Node> getStart() {
+    return startNodes;
   }
 }

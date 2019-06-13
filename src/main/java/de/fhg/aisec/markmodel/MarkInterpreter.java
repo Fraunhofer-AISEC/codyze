@@ -1,8 +1,9 @@
 package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
+import de.fhg.aisec.markmodel.fsm.FSM;
+import de.fhg.aisec.markmodel.fsm.Node;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
@@ -54,12 +55,14 @@ public class MarkInterpreter {
       String name = fExpr.getName();
       return name
           + "("
-          + fExpr.getArgs().stream().map(arg -> argToString(arg)).collect(Collectors.joining(", "))
+          + fExpr.getArgs().stream()
+              .map(MarkInterpreter::argToString)
+              .collect(Collectors.joining(", "))
           + ")";
     } else if (expr instanceof LiteralListExpression) {
       return "[ "
           + ((LiteralListExpression) expr)
-              .getValues().stream().map(val -> val.getValue()).collect(Collectors.joining(", "))
+              .getValues().stream().map(Literal::getValue).collect(Collectors.joining(", "))
           + " ]";
     } else if (expr instanceof RepetitionExpression) {
       RepetitionExpression inner = (RepetitionExpression) expr;
@@ -144,7 +147,7 @@ public class MarkInterpreter {
         log.info("Parsing Call Statements for {}", op.getName());
         for (OpStatement a : op.getStatements()) {
           HashSet<Vertex> temp = getVerticesForFunctionDeclaration(a.getCall(), ent);
-          System.out.println(
+          log.info(
               a.getCall().getName()
                   + "("
                   + String.join(", ", a.getCall().getParams())
@@ -153,6 +156,17 @@ public class MarkInterpreter {
           op.addVertex(a, temp);
         }
         op.setParsingFinished();
+      }
+    }
+
+    for (MRule rule : markModel.getRules()) {
+      if (rule.getStatement() != null
+          && rule.getStatement().getEnsure() != null
+          && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
+        OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
+        FSM fsm = new FSM();
+        fsm.sequenceToFSM(inner.getExp());
+        rule.setFSM(fsm);
       }
     }
 
@@ -188,37 +202,38 @@ public class MarkInterpreter {
      */
 
     // Maintain all method calls in a list
-    CrymlinTraversal<Vertex, Vertex> calls =
-        (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
-    List<Vertex> vertices = calls.toList();
-    for (Vertex v : vertices) {
-      v.property("dennis", "test"); // attach temporary property
-      // System.out.println(v + " " + v.label() + " (" + v.property("name") + ")");
-      //      v.edges(Direction.OUT)
-      //          .forEachRemaining(
-      //              x ->
-      //                  System.out.println(
-      //                      x.label()
-      //                          + ": "
-      //                          + x.inVertex().label()
-      //                          + " ("
-      //                          + x.inVertex().property("name")
-      //                          + ")"
-      //                          + " -> "
-      //                          + x.outVertex().label()
-      //                          + " ("
-      //                          + x.inVertex().property("name")
-      //                          + ")"));
-
-      if (v.graph().tx().isOpen()) {
-        v.graph()
-            .tx()
-            .readWrite(); // should not be called by a program according to docu, but this persists
-        // our new property
-      } else {
-        System.out.println("cannot persist, tx is not open");
-      }
-    }
+    //    CrymlinTraversal<Vertex, Vertex> calls =
+    //        (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
+    //    List<Vertex> vertices = calls.toList();
+    //    for (Vertex v : vertices) {
+    //      v.property("dennis", "test"); // attach temporary property
+    //      // System.out.println(v + " " + v.label() + " (" + v.property("name") + ")");
+    //      //      v.edges(Direction.OUT)
+    //      //          .forEachRemaining(
+    //      //              x ->
+    //      //                  System.out.println(
+    //      //                      x.label()
+    //      //                          + ": "
+    //      //                          + x.inVertex().label()
+    //      //                          + " ("
+    //      //                          + x.inVertex().property("name")
+    //      //                          + ")"
+    //      //                          + " -> "
+    //      //                          + x.outVertex().label()
+    //      //                          + " ("
+    //      //                          + x.inVertex().property("name")
+    //      //                          + ")"));
+    //
+    //      if (v.graph().tx().isOpen()) {
+    //        v.graph()
+    //            .tx()
+    //            .readWrite(); // should not be called by a program according to docu, but this
+    // persists
+    //        // our new property
+    //      } else {
+    //        System.out.println("cannot persist, tx is not open");
+    //      }
+    //    }
 
     // TEST
     /*
@@ -230,58 +245,277 @@ public class MarkInterpreter {
     */
     // dumpCFG(current, "", new HashSet<>());
 
-    calls = (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
-    List<String> myCalls = calls.name().toList();
-
-    // "Populate" MARK objects
-    for (MEntity ent : this.markModel.getEntities()) {
-      Set<String> collect =
-          ent.getOps().stream()
-              .map(
-                  x ->
-                      x.getStatements().stream()
-                          .map(cs -> cs.getCall().getName())
-                          .collect(Collectors.toSet()))
-              .flatMap(Collection::stream)
-              .collect(Collectors.toSet());
-
-      Optional<String> any =
-          myCalls.stream()
-              .filter(
-                  call -> collect.stream().anyMatch(x -> x.endsWith(Utils.extractMethodName(call))))
-              .findAny();
-      // TODO now, only the function name is checked. We also need to check the Type the
-      // function is executed on.
-
-      if (any.isPresent()) {
-        System.out.println("MARK MATCHED - " + ent.getName());
-        System.out.println("\t\t" + any.get());
-        // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate" the
-        // object.
-        // TODO Find out arguments of the call and try to resolve concrete values for them
-        // TODO "Populate" the entity and assign the resolved values to the entity's variables
-        this.markModel.getPopulatedEntities().put(ent.getName(), ent);
-      }
-    }
-
-    // Evaluate rules against populated objects
-    for (MRule r : this.markModel.getRules()) {
-      // System.out.println("Processing rule " + r.getName());
-      // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and
-      // violated/triggered and satisfied".
-      if (evaluateRule(r)) {
-        ctx.getFindings().add("Rule " + r.getName() + " is satisfied");
-      }
-    }
+    //    calls = (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
+    //    List<String> myCalls = calls.name().toList();
+    //
+    //    // "Populate" MARK objects
+    //    for (MEntity ent : this.markModel.getEntities()) {
+    //      Set<String> collect =
+    //          ent.getOps().stream()
+    //              .map(
+    //                  x ->
+    //                      x.getStatements().stream()
+    //                          .map(cs -> cs.getCall().getName())
+    //                          .collect(Collectors.toSet()))
+    //              .flatMap(Collection::stream)
+    //              .collect(Collectors.toSet());
+    //
+    //      Optional<String> any =
+    //          myCalls.stream()
+    //              .filter(
+    //                  call -> collect.stream().anyMatch(x ->
+    // x.endsWith(Utils.extractMethodName(call))))
+    //              .findAny();
+    //      // TODO now, only the function name is checked. We also need to check the Type the
+    //      // function is executed on.
+    //
+    //      if (any.isPresent()) {
+    //        System.out.println("MARK MATCHED - " + ent.getName());
+    //        System.out.println("\t\t" + any.get());
+    //        // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate"
+    // the
+    //        // object.
+    //        // TODO Find out arguments of the call and try to resolve concrete values for them
+    //        // TODO "Populate" the entity and assign the resolved values to the entity's variables
+    //        this.markModel.getPopulatedEntities().put(ent.getName(), ent);
+    //      }
+    //    }
+    //
+    //    // Evaluate rules against populated objects
+    //    for (MRule r : this.markModel.getRules()) {
+    //      // System.out.println("Processing rule " + r.getName());
+    //      // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered and
+    //      // violated/triggered and satisfied".
+    //      if (evaluateRule(r)) {
+    //        ctx.getFindings().add("Rule " + r.getName() + " is satisfied");
+    //      }
+    //    }
     return result;
+  }
+
+  private String getBase(Vertex v) {
+    Iterator<Edge> base = v.edges(Direction.OUT, "BASE");
+    if (base.hasNext()) {
+      return base.next().inVertex().value("name");
+    } else {
+      return null;
+    }
   }
 
   private void evaluateOrder(AnalysisContext ctx) {
     log.info("Evaluating order");
-    for (MEntity ent : this.markModel.getEntities()) {
 
+    /*
+    We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
+    Any function calls to functions on an entity which are not specified in an entity are _ignored_
+     */
+
+    // Cache which Vertex belongs to which Op/Entity
+    HashMap<Vertex, MOp> verticesToOp = new HashMap<>();
+    for (MEntity ent : this.markModel.getEntities()) {
       for (MOp op : ent.getOps()) {
-        System.out.println(op.getName() + ": " + op.getAllVertices().size());
+        op.getAllVertices().forEach(v -> verticesToOp.put(v, op));
+      }
+    }
+
+    for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations().toList()) {
+      log.info("Evaluating function " + functionDeclaration.value("name"));
+
+      for (MRule rule : this.markModel.getRules()) {
+
+        if (rule.getFSM() != null) {
+          log.info("\tEvaluating rule " + rule.getName());
+          /* todo
+          differentiate objects on a scope-level!
+          what if one step of the FSM is done inside a scope, and the rest outside??
+
+          should we allow this different entities in an order?
+          rule UseOfBotan_CipherMode {
+            using Forbidden as cm, Foo as f
+            ensure
+                order cm.start(), cm.finish(), f.done()
+            onfail WrongUseOfBotan_CipherMode
+          }
+           */
+
+          HashSet<Vertex> currentWorklist = new HashSet<>();
+          functionDeclaration.property("eogpath", "0");
+          currentWorklist.add(functionDeclaration);
+
+          // which vertices did we already visit
+          // at each branching, we allow each fork to visit all eog nodes
+          HashSet<String> seen = new HashSet<>();
+          // which bases did we already see, but are not initialized correctly
+          HashSet<String> disallowedBases = new HashSet<>();
+          // stores the current markings in the FSM (i.e., which base is at which FSM-node)
+          HashMap<String, HashSet<Node>> baseToFSMNodes = new HashMap<>();
+
+          while (currentWorklist.size() > 0) {
+            //            StringBuilder s = new StringBuilder();
+            //            for(Vertex v: currentWorklist) {
+            //              s.append("("+v.label()+") ");
+            //              s.append(v.property("eogpath").value() +"." + v.id() + " ");
+            //              try {
+            //                s.append(v.value("name").toString() + ", ");
+            //              } catch (Exception e) {
+            //                s.append("noname" + ", ");
+            //              }
+            //            }
+            //            System.out.println("This step contains: " + s.toString());
+            HashSet<Vertex> nextWorklist = new HashSet<>();
+
+            for (Vertex vertex : currentWorklist) {
+              String eogPath = vertex.property("eogpath").value().toString();
+
+              if (vertex
+                  .label()
+                  .contains(
+                      "MemberCallExpression")) { // ... no direct access to the labels TreeSet of
+                // Neo4JVertex.
+                System.out.println(
+                    "\t"
+                        + vertex.value("code").toString()
+                        + " "
+                        + vertex.label()
+                        + " "
+                        + verticesToOp.get(vertex));
+                if (verticesToOp.get(vertex)
+                    != null) { // is the vertex part of any op of any mentioned entity? If not,
+                  // ignore.
+                  String base = getBase(vertex);
+                  if (base == null) {
+                    throw new RuntimeException("base must not be null for MemberCallExpressions");
+                  }
+                  String prefixedBase = eogPath + "." + base;
+                  if (disallowedBases.contains(prefixedBase)) {
+                    // !! FINDING
+                    String finding =
+                        "Violation against Order: "
+                            + vertex.value("code")
+                            + " is not allowed. Base contains errors already.";
+                    ctx.getFindings().add(finding);
+                    log.info("Finding: {}", finding);
+                  } else {
+                    HashSet<Node> nodesInFSM;
+                    if (baseToFSMNodes.get(prefixedBase)
+                        == null) { // we have not seen this base before. check if this is the start
+                      // of an order
+                      nodesInFSM = rule.getFSM().getStart(); // start nodes
+                    } else {
+                      nodesInFSM =
+                          baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
+                    }
+                    assert nodesInFSM.size()
+                        > 0; // =0 only happens if the fsm is broken, i.e., has a node without
+                    // successors which is not an END node
+
+                    HashSet<Node> nextNodesInFSM = new HashSet<>();
+                    // which op does this vertex belong to?
+                    MOp op = verticesToOp.get(vertex);
+
+                    boolean match = false; // did at least one fsm-Node-match occur?
+                    for (Node n : nodesInFSM) {
+                      // are there any ops corresponding to the current base and the current
+                      // function name?
+                      if (op != null && op.getName().equals(n.getOp())) {
+                        nextNodesInFSM.addAll(n.getSuccessors());
+                        match = true;
+                      }
+                    }
+                    if (!match) {
+                      // if not, this call is not allowed, and this base must not be used in the
+                      // following eog
+                      // !! FINDING
+                      String finding =
+                          "Violation against Order: "
+                              + vertex.value("code")
+                              + " ("
+                              + (op == null ? "null" : op.getName())
+                              + ") is not allowed. Expected one of: "
+                              + nodesInFSM.stream()
+                                  .map(Node::getName)
+                                  .collect(Collectors.joining(", "));
+                      ctx.getFindings().add(finding);
+                      log.info("Finding: {}", finding);
+                      disallowedBases.add(prefixedBase);
+                    } else {
+                      baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
+                    }
+                  }
+                }
+              }
+              ArrayList<Vertex> outVertices = new ArrayList<>();
+              vertex
+                  .edges(Direction.OUT, "EOG")
+                  .forEachRemaining(
+                      edge -> {
+                        Vertex v = edge.inVertex();
+                        if (!seen.contains(eogPath + "." + v.id())) {
+                          outVertices.add(v);
+                        }
+                      });
+              // we are now done with this node over this path. will skip if we ever reach it again
+              seen.add(eogPath + "." + vertex.id());
+
+              // if more than one vertex follows the current one, we need to branch the eogPath
+              if (outVertices.size() > 1) { // split
+                String oldEOGPath = vertex.property("eogpath").value().toString();
+                HashSet<String> oldBases = new HashSet<>();
+                HashMap<String, HashSet<Node>> newBases = new HashMap<>();
+                // first we collect all entries which we need to remove from the baseToFSMNodes map
+                // we also store these entries without the eog path prefix, to update later in (1)
+                for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+                  if (entry.getKey().startsWith(oldEOGPath)) {
+                    oldBases.add(entry.getKey());
+                    // keep the "." before the real base, as we need it later anyway
+                    newBases.put(entry.getKey().substring(oldEOGPath.length()), entry.getValue());
+                  }
+                }
+                oldBases.forEach(baseToFSMNodes::remove);
+
+                // (1) update all entries previously removed from the baseToFSMNodes map with the
+                // new eogpath as prefix to the base
+                for (int i = 0; i < outVertices.size(); i++) {
+                  String newEOGPath = oldEOGPath + i;
+                  // update the eogpath directly in the vertices for the next step
+                  outVertices.get(i).property("eogpath", newEOGPath);
+                  // also update them in the baseToFSMNodes map
+                  newBases.forEach(
+                      (k, v) -> {
+                        baseToFSMNodes.put(newEOGPath + k, v);
+                      });
+                }
+              } else if (outVertices.size()
+                  == 1) { // else, if we only have one vertex following this vertex, simply
+                // propagate the current eogpath to the next vertex
+                outVertices
+                    .get(0)
+                    .property("eogpath", vertex.property("eogpath").value().toString());
+              }
+              nextWorklist.addAll(outVertices);
+            }
+            currentWorklist = nextWorklist;
+          }
+          // now the whole function was evaluated.
+          // Check that the FSM is in its end/beginning state for all bases
+          HashSet<String> nonterminatedBases = new HashSet<>();
+          for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+            for (Node n : entry.getValue()) {
+              if (!n.getEnd() && !n.getStart()) {
+                // extract the real base name from eogpath.base
+                nonterminatedBases.add(entry.getKey().substring(entry.getKey().indexOf(".") + 1));
+                break;
+              }
+            }
+          }
+          for (String base : nonterminatedBases) {
+            // !! FINDING
+            String finding =
+                "Violation against Order: Base " + base + " is not correctly terminated.";
+            ctx.getFindings().add(finding);
+            log.info("Finding: {}", finding);
+          }
+        }
       }
     }
     log.info("Done evaluating order");
@@ -336,7 +570,7 @@ public class MarkInterpreter {
                     + ". Call was "
                     + v.value("code").toString();
             ctx.getFindings().add(finding);
-            log.info(finding);
+            log.info("Finding: {}", finding);
           }
         }
       }

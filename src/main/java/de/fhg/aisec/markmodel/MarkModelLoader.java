@@ -101,7 +101,7 @@ public class MarkModelLoader {
   }
 
   private void parseOp(OpDeclaration op, MEntity me) {
-    MOp mOp = new MOp();
+    MOp mOp = new MOp(me);
     mOp.setName(op.getName());
     mOp.getStatements().addAll(op.getStmts());
     me.getOps().add(mOp);

@@ -7,11 +7,11 @@ import java.util.HashSet;
 import java.util.List;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class MOp {
 
   private String name;
+  private MEntity parent;
   @NonNull private List<OpStatement> statements = new ArrayList<>();
 
   private boolean parsed = false;
@@ -19,7 +19,11 @@ public class MOp {
   private HashMap<Vertex, HashSet<OpStatement>> vertexToStatements = new HashMap<>();
   private HashSet<Vertex> allVertices = new HashSet<>();
 
-  @Nullable
+  public MOp(MEntity parent) {
+    this.parent = parent;
+  }
+
+  @NonNull
   public String getName() {
     return name;
   }
@@ -67,5 +71,9 @@ public class MOp {
 
   public void setParsingFinished() {
     parsed = true;
+  }
+
+  public MEntity getParent() {
+    return parent;
   }
 }

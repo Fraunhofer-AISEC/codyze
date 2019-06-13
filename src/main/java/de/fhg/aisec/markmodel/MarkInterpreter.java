@@ -302,6 +302,19 @@ public class MarkInterpreter {
     }
   }
 
+  private String eogPathToString(HashSet<String> in) {
+    return String.join("|", in);
+  }
+
+  private HashSet<String> stringToEogPath(String s) {
+    if (s == null || s.isEmpty()) {
+      return new HashSet<>();
+    } else {
+      String[] split = s.split("\\|");
+      return new HashSet<>(Arrays.asList(split));
+    }
+  }
+
   private void evaluateOrder(AnalysisContext ctx) {
     log.info("Evaluating order");
 
@@ -336,6 +349,10 @@ public class MarkInterpreter {
                 order cm.start(), cm.finish(), f.done()
             onfail WrongUseOfBotan_CipherMode
           }
+
+          does the grammar validate that each function in an order is actually an op?
+
+          can we merge paths again? right now, at each branch, the path is split in the fsm, and each token is run through the eog
            */
 
           HashSet<Vertex> currentWorklist = new HashSet<>();
@@ -351,150 +368,162 @@ public class MarkInterpreter {
           HashMap<String, HashSet<Node>> baseToFSMNodes = new HashMap<>();
 
           while (currentWorklist.size() > 0) {
-            //            StringBuilder s = new StringBuilder();
-            //            for(Vertex v: currentWorklist) {
-            //              s.append("("+v.label()+") ");
-            //              s.append(v.property("eogpath").value() +"." + v.id() + " ");
-            //              try {
-            //                s.append(v.value("name").toString() + ", ");
-            //              } catch (Exception e) {
-            //                s.append("noname" + ", ");
-            //              }
-            //            }
-            //            System.out.println("This step contains: " + s.toString());
             HashSet<Vertex> nextWorklist = new HashSet<>();
 
+            //            System.out.println("--");
+            //            for(Vertex s: currentWorklist) {
+            //              HashSet<String> eogPathSet =
+            // stringToEogPath(s.property("eogpath").value().toString());
+            //              System.out.print("WL: " + eogPathSet + " ");
+            //              try {
+            //                System.out.println(s.value("code").toString());
+            //              } catch (Exception e) {
+            //                System.out.println("<< no code");
+            //              }
+            //            }
+
             for (Vertex vertex : currentWorklist) {
-              String eogPath = vertex.property("eogpath").value().toString();
+              HashSet<String> eogPathSet =
+                  stringToEogPath(vertex.property("eogpath").value().toString());
+              for (String eogPath : eogPathSet) {
+                if (seen.contains(eogPath + "." + vertex.id())) {
+                  // this path has already been taken. skip
+                  continue;
+                }
 
-              if (vertex
-                  .label()
-                  .contains(
-                      "MemberCallExpression")) { // ... no direct access to the labels TreeSet of
-                // Neo4JVertex.
-                System.out.println(
-                    "\t"
-                        + vertex.value("code").toString()
-                        + " "
-                        + vertex.label()
-                        + " "
-                        + verticesToOp.get(vertex));
-                if (verticesToOp.get(vertex)
-                    != null) { // is the vertex part of any op of any mentioned entity? If not,
-                  // ignore.
-                  String base = getBase(vertex);
-                  if (base == null) {
-                    throw new RuntimeException("base must not be null for MemberCallExpressions");
-                  }
-                  String prefixedBase = eogPath + "." + base;
-                  if (disallowedBases.contains(prefixedBase)) {
-                    // !! FINDING
-                    String finding =
-                        "Violation against Order: "
-                            + vertex.value("code")
-                            + " is not allowed. Base contains errors already.";
-                    ctx.getFindings().add(finding);
-                    log.info("Finding: {}", finding);
-                  } else {
-                    HashSet<Node> nodesInFSM;
-                    if (baseToFSMNodes.get(prefixedBase)
-                        == null) { // we have not seen this base before. check if this is the start
-                      // of an order
-                      nodesInFSM = rule.getFSM().getStart(); // start nodes
-                    } else {
-                      nodesInFSM =
-                          baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
+                if (vertex
+                    .label()
+                    .contains(
+                        "MemberCallExpression")) { // ... no direct access to the labels TreeSet of
+                  // Neo4JVertex
+                  if (verticesToOp.get(vertex)
+                      != null) { // is the vertex part of any op of any mentioned entity? If not,
+                    // ignore.
+                    String base = getBase(vertex);
+                    if (base == null) {
+                      throw new RuntimeException("base must not be null for MemberCallExpressions");
                     }
-                    assert nodesInFSM.size()
-                        > 0; // =0 only happens if the fsm is broken, i.e., has a node without
-                    // successors which is not an END node
+                    String prefixedBase = eogPath + "." + base;
 
-                    HashSet<Node> nextNodesInFSM = new HashSet<>();
-                    // which op does this vertex belong to?
-                    MOp op = verticesToOp.get(vertex);
-
-                    boolean match = false; // did at least one fsm-Node-match occur?
-                    for (Node n : nodesInFSM) {
-                      // are there any ops corresponding to the current base and the current
-                      // function name?
-                      if (op != null && op.getName().equals(n.getOp())) {
-                        nextNodesInFSM.addAll(n.getSuccessors());
-                        match = true;
-                      }
-                    }
-                    if (!match) {
-                      // if not, this call is not allowed, and this base must not be used in the
-                      // following eog
+                    //                    System.out.println(
+                    //                            "\t" + prefixedBase + " "
+                    //                                    + vertex.value("code").toString()
+                    //                                    + " "
+                    //                                    + vertex.label()
+                    //                                    + " "
+                    //                                    + verticesToOp.get(vertex));
+                    if (disallowedBases.contains(prefixedBase)) {
                       // !! FINDING
                       String finding =
                           "Violation against Order: "
                               + vertex.value("code")
-                              + " ("
-                              + (op == null ? "null" : op.getName())
-                              + ") is not allowed. Expected one of: "
-                              + nodesInFSM.stream()
-                                  .map(Node::getName)
-                                  .collect(Collectors.joining(", "));
+                              + " is not allowed. Base contains errors already.";
                       ctx.getFindings().add(finding);
                       log.info("Finding: {}", finding);
-                      disallowedBases.add(prefixedBase);
                     } else {
-                      baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
+                      HashSet<Node> nodesInFSM;
+                      if (baseToFSMNodes.get(prefixedBase)
+                          == null) { // we have not seen this base before. check if this is the
+                        // start
+                        // of an order
+                        nodesInFSM = rule.getFSM().getStart(); // start nodes
+                      } else {
+                        nodesInFSM =
+                            baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
+                      }
+                      assert nodesInFSM.size()
+                          > 0; // =0 only happens if the fsm is broken, i.e., has a node without
+                      // successors which is not an END node
+
+                      HashSet<Node> nextNodesInFSM = new HashSet<>();
+                      // which op does this vertex belong to?
+                      MOp op = verticesToOp.get(vertex);
+
+                      boolean match = false; // did at least one fsm-Node-match occur?
+                      for (Node n : nodesInFSM) {
+                        // are there any ops corresponding to the current base and the current
+                        // function name?
+                        if (op != null && op.getName().equals(n.getOp())) {
+                          nextNodesInFSM.addAll(n.getSuccessors());
+                          match = true;
+                        }
+                      }
+                      if (!match) {
+                        // if not, this call is not allowed, and this base must not be used in the
+                        // following eog
+                        // !! FINDING
+                        String finding =
+                            "Violation against Order: "
+                                + vertex.value("code")
+                                + " ("
+                                + (op == null ? "null" : op.getName())
+                                + ") is not allowed. Expected one of: "
+                                + nodesInFSM.stream()
+                                    .map(Node::getName)
+                                    .collect(Collectors.joining(", "));
+                        ctx.getFindings().add(finding);
+                        log.info("Finding: {}", finding);
+                        disallowedBases.add(prefixedBase);
+                      } else {
+                        baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
+                      }
                     }
                   }
                 }
-              }
-              ArrayList<Vertex> outVertices = new ArrayList<>();
-              vertex
-                  .edges(Direction.OUT, "EOG")
-                  .forEachRemaining(
-                      edge -> {
-                        Vertex v = edge.inVertex();
-                        if (!seen.contains(eogPath + "." + v.id())) {
-                          outVertices.add(v);
-                        }
-                      });
-              // we are now done with this node over this path. will skip if we ever reach it again
-              seen.add(eogPath + "." + vertex.id());
+                ArrayList<Vertex> outVertices = new ArrayList<>();
+                vertex
+                    .edges(Direction.OUT, "EOG")
+                    .forEachRemaining(
+                        edge -> {
+                          Vertex v = edge.inVertex();
+                          if (!seen.contains(eogPath + "." + v.id())) {
+                            outVertices.add(v);
+                          }
+                        });
+                // we are now done with this node over this path. will skip if we ever reach it
+                // again
+                seen.add(eogPath + "." + vertex.id());
 
-              // if more than one vertex follows the current one, we need to branch the eogPath
-              if (outVertices.size() > 1) { // split
-                String oldEOGPath = vertex.property("eogpath").value().toString();
-                HashSet<String> oldBases = new HashSet<>();
-                HashMap<String, HashSet<Node>> newBases = new HashMap<>();
-                // first we collect all entries which we need to remove from the baseToFSMNodes map
-                // we also store these entries without the eog path prefix, to update later in (1)
-                for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
-                  if (entry.getKey().startsWith(oldEOGPath)) {
-                    oldBases.add(entry.getKey());
-                    // keep the "." before the real base, as we need it later anyway
-                    newBases.put(entry.getKey().substring(oldEOGPath.length()), entry.getValue());
+                // if more than one vertex follows the current one, we need to branch the eogPath
+                if (outVertices.size() > 1) { // split
+                  HashSet<String> oldBases = new HashSet<>();
+                  HashMap<String, HashSet<Node>> newBases = new HashMap<>();
+                  // first we collect all entries which we need to remove from the baseToFSMNodes
+                  // map
+                  // we also store these entries without the eog path prefix, to update later in (1)
+                  for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+                    if (entry.getKey().startsWith(eogPath)) {
+                      oldBases.add(entry.getKey());
+                      // keep the "." before the real base, as we need it later anyway
+                      newBases.put(entry.getKey().substring(eogPath.length()), entry.getValue());
+                    }
                   }
-                }
-                oldBases.forEach(baseToFSMNodes::remove);
+                  oldBases.forEach(baseToFSMNodes::remove);
 
-                // (1) update all entries previously removed from the baseToFSMNodes map with the
-                // new eogpath as prefix to the base
-                for (int i = 0; i < outVertices.size(); i++) {
-                  String newEOGPath = oldEOGPath + i;
-                  // update the eogpath directly in the vertices for the next step
-                  outVertices.get(i).property("eogpath", newEOGPath);
-                  // also update them in the baseToFSMNodes map
-                  newBases.forEach(
-                      (k, v) -> {
-                        baseToFSMNodes.put(newEOGPath + k, v);
-                      });
+                  // (1) update all entries previously removed from the baseToFSMNodes map with the
+                  // new eogpath as prefix to the base
+                  for (int i = 0; i < outVertices.size(); i++) {
+                    String newEOGPath = eogPath + i;
+                    // update the eogpath directly in the vertices for the next step
+                    HashSet<String> eogpathSet =
+                        stringToEogPath((String) outVertices.get(i).property("eogpath").orElse(""));
+                    eogpathSet.add(newEOGPath);
+                    outVertices.get(i).property("eogpath", eogPathToString(eogpathSet));
+                    // also update them in the baseToFSMNodes map
+                    newBases.forEach((k, v) -> baseToFSMNodes.put(newEOGPath + k, v));
+                  }
+                } else if (outVertices.size()
+                    == 1) { // else, if we only have one vertex following this vertex, simply
+                  // propagate the current eogpath to the next vertex
+                  HashSet<String> eogpathSet =
+                      stringToEogPath((String) outVertices.get(0).property("eogpath").orElse(""));
+                  eogpathSet.add(eogPath);
+                  outVertices.get(0).property("eogpath", eogPathToString(eogpathSet));
                 }
-              } else if (outVertices.size()
-                  == 1) { // else, if we only have one vertex following this vertex, simply
-                // propagate the current eogpath to the next vertex
-                outVertices
-                    .get(0)
-                    .property("eogpath", vertex.property("eogpath").value().toString());
+                nextWorklist.addAll(outVertices);
               }
-              nextWorklist.addAll(outVertices);
+              currentWorklist = nextWorklist;
             }
-            currentWorklist = nextWorklist;
           }
           // now the whole function was evaluated.
           // Check that the FSM is in its end/beginning state for all bases

@@ -1,0 +1,28 @@
+entity Forbidden {
+
+	op create() {
+        Botan::create();
+	}
+	op init() {
+        Botan::init();
+	}
+	op start() {
+    	Botan::start();
+	}
+	op process() {
+        Botan::process();
+    }
+	op finish() {
+        Botan::finish()
+    }
+    op reset() {
+        Botan::reset()
+    }
+}
+
+rule UseOfBotan_CipherMode {
+	using Forbidden as cm
+	ensure
+		order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
+	onfail WrongUseOfBotan_CipherMode
+}

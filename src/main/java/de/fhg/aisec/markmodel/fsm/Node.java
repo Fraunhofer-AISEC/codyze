@@ -10,15 +10,19 @@ public class Node {
   @Relationship(value = "s")
   private HashSet<Node> successors = new HashSet<>();
 
-  private String name;
+  private HashSet<String> markings = new HashSet<>();
+
+  private String base;
+  private String op;
 
   private boolean isStart = false;
   private boolean isEnd = false;
 
   public Node() {}
 
-  public Node(String name) {
-    this.name = name;
+  public Node(String base, String op) {
+    this.base = base;
+    this.op = op;
   }
 
   public void addSuccessor(Node s) {
@@ -30,7 +34,19 @@ public class Node {
   }
 
   public String getName() {
-    return name;
+    if (base == null) {
+      return op;
+    } else {
+      return base + "." + op;
+    }
+  }
+
+  public String getBase() {
+    return base;
+  }
+
+  public String getOp() {
+    return op;
   }
 
   public void setStart(boolean b) {
@@ -53,9 +69,13 @@ public class Node {
     return successors;
   }
 
-  public String toString() {
+  public String toStringWithAddress() {
     String addr = super.toString();
     addr = addr.substring(addr.lastIndexOf("@") + 1);
-    return getName() + "(" + addr + ")";
+    return getName() + "(" + addr + "), MARKING: " + String.join(", ", markings);
+  }
+
+  public String toString() {
+    return getName(); // + ", MARKING: " + String.join(", ", markings);
   }
 }

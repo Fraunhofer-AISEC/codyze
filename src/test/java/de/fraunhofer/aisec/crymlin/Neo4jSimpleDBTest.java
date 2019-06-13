@@ -43,7 +43,8 @@ public class Neo4jSimpleDBTest {
       Collection<Node> nodes = session.loadAll(Node.class);
       assertEquals(2, nodes.size());
       for (Node n : nodes) {
-        assertEquals(test, n.getName());
+        assertEquals(test, n.getOp());
+        assertEquals(test, n.getBase());
       }
       tx.commit();
     }

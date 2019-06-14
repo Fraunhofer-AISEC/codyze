@@ -44,4 +44,15 @@ public class Someclass {
     p4.start(iv); // not ok, p4 is already finished
     p4.finish(buf);
   }
+  void nok5() {
+    // ok:
+    {
+      Botan p5 = new Botan(2);
+      p5.start(iv);
+    }
+    {
+      Botan p5 = new Botan(2);
+      p5.finish(buf);
+    }
+  }
 }

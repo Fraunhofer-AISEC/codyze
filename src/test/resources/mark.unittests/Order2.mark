@@ -20,6 +20,11 @@ entity Forbidden {
     }
 }
 
+entity Foo {
+    op close() {
+        Foo::close()
+    }
+}
 rule UseOfBotan_CipherMode {
 	using Forbidden as cm
 	ensure

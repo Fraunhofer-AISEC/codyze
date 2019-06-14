@@ -16,7 +16,6 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -293,15 +292,6 @@ public class MarkInterpreter {
     return result;
   }
 
-  private String getBase(Vertex v) {
-    Iterator<Edge> base = v.edges(Direction.OUT, "BASE");
-    if (base.hasNext()) {
-      return base.next().inVertex().value("name");
-    } else {
-      return null;
-    }
-  }
-
   private String eogPathToString(HashSet<String> in) {
     return String.join("|", in);
   }
@@ -320,7 +310,7 @@ public class MarkInterpreter {
 
     /*
     We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
-    Any function calls to functions on an entity which are not specified in an entity are _ignored_
+    Any function calls to functions which are not specified in an entity are _ignored_
      */
 
     // Cache which Vertex belongs to which Op/Entity
@@ -337,6 +327,7 @@ public class MarkInterpreter {
       for (MRule rule : this.markModel.getRules()) {
 
         if (rule.getFSM() != null) {
+          // rule.getFSM().pushToDB();
           log.info("\tEvaluating rule " + rule.getName());
           /* todo
           differentiate objects on a scope-level!
@@ -349,11 +340,22 @@ public class MarkInterpreter {
                 order cm.start(), cm.finish(), f.done()
             onfail WrongUseOfBotan_CipherMode
           }
+          -> this does currently not work, as we store for each base, where in the FSM it is. BUT in this case, an instance of cm would always have a different base than f.
 
           does the grammar validate that each function in an order is actually an op?
 
-          can we merge paths again? right now, at each branch, the path is split in the fsm, and each token is run through the eog
-           */
+          is aliasing inside an order rule allowed? I.e. order x.a, x.b, x.c
+          x i1;
+          i1.a();
+          i1.b();
+          x i2 = i1;
+          i2.c();
+          -> do we know if i2 is a copy, or an alias?
+          -> always mark as error?
+          -> currently this will result in:
+              Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
+              Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
+          */
 
           HashSet<Vertex> currentWorklist = new HashSet<>();
           functionDeclaration.property("eogpath", "0");
@@ -398,20 +400,39 @@ public class MarkInterpreter {
                   // Neo4JVertex
                   if (verticesToOp.get(vertex)
                       != null) { // is the vertex part of any op of any mentioned entity? If not,
+
                     // ignore.
-                    String base = getBase(vertex);
-                    if (base == null) {
+                    Iterator<Edge> it = vertex.edges(Direction.OUT, "BASE");
+                    String base = null;
+                    String ref = null;
+                    if (it.hasNext()) {
+                      Vertex baseVertex = it.next().inVertex();
+                      base = baseVertex.value("name");
+                      Iterator<Edge> it_ref = baseVertex.edges(Direction.OUT, "REFERS_TO");
+                      if (it_ref.hasNext()) {
+                        ref = it_ref.next().inVertex().id().toString();
+                      }
+                    } else {
                       throw new RuntimeException("base must not be null for MemberCallExpressions");
                     }
+
                     String prefixedBase = eogPath + "." + base;
 
-                    //                    System.out.println(
-                    //                            "\t" + prefixedBase + " "
-                    //                                    + vertex.value("code").toString()
-                    //                                    + " "
-                    //                                    + vertex.label()
-                    //                                    + " "
-                    //                                    + verticesToOp.get(vertex));
+                    if (ref != null) {
+                      prefixedBase += "|" + ref;
+                    }
+
+                    // todo: potential optimization: move prefixBase-String to own data structure
+
+                    System.out.println(
+                        "\t"
+                            + prefixedBase
+                            + " "
+                            + vertex.value("code").toString()
+                            + " "
+                            + vertex.label()
+                            + " "
+                            + verticesToOp.get(vertex));
                     if (disallowedBases.contains(prefixedBase)) {
                       // !! FINDING
                       String finding =
@@ -467,6 +488,24 @@ public class MarkInterpreter {
                       } else {
                         baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
                       }
+                    }
+                  } else {
+                    try {
+                      System.out.println(
+                          "\tSKIPPING "
+                              + vertex.value("code").toString()
+                              + " "
+                              + vertex.label()
+                              + " "
+                              + verticesToOp.get(vertex)
+                              + " not defined in an op");
+                    } catch (Exception e) {
+                      System.out.println(
+                          "\tSKIPPING nocode "
+                              + vertex.label()
+                              + " "
+                              + verticesToOp.get(vertex)
+                              + " not defined in an op");
                     }
                   }
                 }
@@ -564,20 +603,37 @@ public class MarkInterpreter {
           }
           // now the whole function was evaluated.
           // Check that the FSM is in its end/beginning state for all bases
-          HashSet<String> nonterminatedBases = new HashSet<>();
+          HashMap<String, HashSet<String>> nonterminatedBases = new HashMap<>();
           for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+            boolean hasEnd = false;
+            HashSet<String> notEnded = new HashSet<>();
             for (Node n : entry.getValue()) {
-              if (!n.getEnd()) { // todo: && !n.getStart() getstart does not make sense?
-                // extract the real base name from eogpath.base
-                nonterminatedBases.add(entry.getKey().substring(entry.getKey().indexOf(".") + 1));
+              if (n.getEnd()) {
+                // if one of the nodes in this fsm is at an END-node, this is fine.
+                hasEnd = true;
                 break;
+              } else {
+                notEnded.add(n.getName());
               }
             }
+            if (!hasEnd) {
+              // extract the real base name from eogpath.base
+              HashSet<String> next =
+                  nonterminatedBases.computeIfAbsent(
+                      entry.getKey().substring(entry.getKey().indexOf(".") + 1),
+                      x -> new HashSet<>());
+              next.addAll(notEnded);
+            }
           }
-          for (String base : nonterminatedBases) {
+          for (Map.Entry<String, HashSet<String>> entry : nonterminatedBases.entrySet()) {
             // !! FINDING
+            String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
             String finding =
-                "Violation against Order: Base " + base + " is not correctly terminated.";
+                "Violation against Order: Base "
+                    + base
+                    + " is not correctly terminated. Expected one of ["
+                    + String.join(", ", entry.getValue())
+                    + "] to follow the correct last call on this base.";
             ctx.getFindings().add(finding);
             log.info("Finding: {}", finding);
           }

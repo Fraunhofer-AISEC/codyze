@@ -112,7 +112,7 @@ class OrderTestComplex {
   }
 
   @Test
-  void orderTest() throws Exception {
+  void orderTest() {
     AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
     assertNotNull(ctx.getFindings());
     List<String> findings = ctx.getFindings();
@@ -120,6 +120,25 @@ class OrderTestComplex {
       System.out.println(s);
     }
 
-    assertEquals(0, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+    assertEquals(6, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+
+    assertTrue(
+        findings.contains(
+            "Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start"));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base."));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create"));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: p5.start(); is not allowed. Base contains errors already."));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: p5.process(); is not allowed. Base contains errors already."));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: p5.finish(); is not allowed. Base contains errors already."));
   }
 }

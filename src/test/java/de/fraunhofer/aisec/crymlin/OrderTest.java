@@ -120,7 +120,7 @@ class OrderTest {
       System.out.println(s);
     }
 
-    assertEquals(8, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+    assertEquals(10, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
     assertTrue(
         findings.contains(
@@ -134,7 +134,9 @@ class OrderTest {
     assertTrue(
         findings.contains(
             "Violation against Order: p.set_key(key); is not allowed. Base contains errors already."));
-    assertTrue(findings.contains("Violation against Order: Base p2 is not correctly terminated."));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base."));
     assertTrue(
         findings.contains(
             "Violation against Order: p3.finish(buf); (finish) is not allowed. Expected one of: cm.start"));
@@ -144,5 +146,11 @@ class OrderTest {
     assertTrue(
         findings.contains(
             "Violation against Order: p4.finish(buf); is not allowed. Base contains errors already."));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: p5.finish(buf); (finish) is not allowed. Expected one of: cm.start"));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: Base p5 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base."));
   }
 }

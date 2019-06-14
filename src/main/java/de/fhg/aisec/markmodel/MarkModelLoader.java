@@ -57,6 +57,7 @@ public class MarkModelLoader {
     MRule mRule = new MRule();
     mRule.setName(rule.getName());
     mRule.setStatement(rule.getStmt());
+    mRule.setErrorMessage(rule.getStmt().getMsg());
     return mRule;
   }
 

@@ -1,7 +1,6 @@
 package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
-import de.fhg.aisec.mark.markDsl.impl.*;
 import de.fhg.aisec.markmodel.fsm.FSM;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -11,6 +10,7 @@ public class MRule {
   private String name;
   private RuleStatement statement;
   private FSM fsm = null;
+  private String errorMessage;
 
   @Nullable
   public String getName() {
@@ -58,5 +58,13 @@ public class MRule {
 
   public FSM getFSM() {
     return fsm;
+  }
+
+  public void setErrorMessage(String msg) {
+    this.errorMessage = msg;
+  }
+
+  public String getErrorMessage() {
+    return errorMessage;
   }
 }

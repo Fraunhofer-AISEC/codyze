@@ -124,21 +124,21 @@ class OrderTestComplex {
 
     assertTrue(
         findings.contains(
-            "Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start"));
+            "line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
     assertTrue(
         findings.contains(
-            "Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base."));
+            "line 54: Violation against Order: p5.start(); is not allowed. Base contains errors already. (WrongUseOfBotan_CipherMode)"));
     assertTrue(
         findings.contains(
-            "Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create"));
+            "line 55: Violation against Order: p5.process(); is not allowed. Base contains errors already. (WrongUseOfBotan_CipherMode)"));
     assertTrue(
         findings.contains(
-            "Violation against Order: p5.start(); is not allowed. Base contains errors already."));
+            "line 56: Violation against Order: p5.finish(); is not allowed. Base contains errors already. (WrongUseOfBotan_CipherMode)"));
     assertTrue(
         findings.contains(
-            "Violation against Order: p5.process(); is not allowed. Base contains errors already."));
+            "line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
     assertTrue(
         findings.contains(
-            "Violation against Order: p5.finish(); is not allowed. Base contains errors already."));
+            "line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
   }
 }

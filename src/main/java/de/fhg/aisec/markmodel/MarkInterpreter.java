@@ -520,8 +520,45 @@ public class MarkInterpreter {
                   eogpathSet.add(eogPath);
                   outVertices.get(0).property("eogpath", eogPathToString(eogpathSet));
                 }
+
+                /* this optimization would prevent the detection of:
+                Botan p4 = new Botan(2);
+                if (true) {
+                  p4.start(iv);
+                  p4.finish(buf);
+                }
+                p4.start(iv); // not ok, p4 is already finished
+                p4.finish(buf);
+
+                  outer:
+                  for (int i = outVertices.size() - 1; i >= 0; i--) {
+                    Vertex v = outVertices.get(i);
+                    Optional<String> any = seen.stream().filter(x -> x.endsWith("." + v.id())).findAny();
+                    if (any.isPresent()) {
+                      System.out.println("Vertex " + v.id() + " was already done for " + any.get() + ", now needs to be handled for " + eogPath);
+                      baseToFSMNodes.forEach((k, j) -> System.out.println("\t" + k + " " + j.stream().map(Node::getName).collect(Collectors.joining(", "))));
+                      if (baseToFSMNodes.get(eogPath + "." + v.id()) != null) {
+                        for (Node n : baseToFSMNodes.get(eogPath + "." + v.id())) {
+                          if (!n.getEnd()) { // if at least one node is not at END, we potentially have to look at this again, do not shortcut
+                            continue outer;
+                          }
+                        }
+                      }
+
+                      // all FSM-nodes for this base (not prefixed are either non-existent, or already in an end state. break
+                      System.out.println("Skip this path");
+                      outVertices.remove(i);
+                    }
+                  }
+                    */
                 nextWorklist.addAll(outVertices);
               }
+              // optimize:
+              // we could also optimize, if all nodes in one FSM are in a START-state
+
+              // if the current path has already been visited, and all stuff in baseToFSMNodes is at
+              // start or beginning, remove the current path
+              // weiter
               currentWorklist = nextWorklist;
             }
           }
@@ -530,7 +567,7 @@ public class MarkInterpreter {
           HashSet<String> nonterminatedBases = new HashSet<>();
           for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
             for (Node n : entry.getValue()) {
-              if (!n.getEnd() && !n.getStart()) {
+              if (!n.getEnd()) { // todo: && !n.getStart() getstart does not make sense?
                 // extract the real base name from eogpath.base
                 nonterminatedBases.add(entry.getKey().substring(entry.getKey().indexOf(".") + 1));
                 break;

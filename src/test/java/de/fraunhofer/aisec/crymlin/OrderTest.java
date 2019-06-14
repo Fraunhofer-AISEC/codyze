@@ -120,7 +120,7 @@ class OrderTest {
       System.out.println(s);
     }
 
-    assertEquals(6, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+    assertEquals(8, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
     assertTrue(
         findings.contains(
@@ -138,5 +138,11 @@ class OrderTest {
     assertTrue(
         findings.contains(
             "Violation against Order: p3.finish(buf); (finish) is not allowed. Expected one of: cm.start"));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: p4.start(iv); (start) is not allowed. Expected one of: END"));
+    assertTrue(
+        findings.contains(
+            "Violation against Order: p4.finish(buf); is not allowed. Base contains errors already."));
   }
 }

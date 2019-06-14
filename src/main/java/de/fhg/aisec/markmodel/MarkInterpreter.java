@@ -368,6 +368,8 @@ public class MarkInterpreter {
           HashSet<String> disallowedBases = new HashSet<>();
           // stores the current markings in the FSM (i.e., which base is at which FSM-node)
           HashMap<String, HashSet<Node>> baseToFSMNodes = new HashMap<>();
+          // last usage of base
+          HashMap<String, Long> lastBaseUsage = new HashMap<>();
 
           while (currentWorklist.size() > 0) {
             HashSet<Vertex> nextWorklist = new HashSet<>();
@@ -436,10 +438,13 @@ public class MarkInterpreter {
                     if (disallowedBases.contains(prefixedBase)) {
                       // !! FINDING
                       String finding =
-                          "Violation against Order: "
+                          "line "
+                              + vertex.value("startLine")
+                              + ": "
+                              + "Violation against Order: "
                               + vertex.value("code")
                               + " is not allowed. Base contains errors already.";
-                      ctx.getFindings().add(finding);
+                      ctx.getFindings().add(finding + " (" + rule.getErrorMessage() + ")");
                       log.info("Finding: {}", finding);
                     } else {
                       HashSet<Node> nodesInFSM;
@@ -465,6 +470,9 @@ public class MarkInterpreter {
                         // are there any ops corresponding to the current base and the current
                         // function name?
                         if (op != null && op.getName().equals(n.getOp())) {
+                          // this also has as effect, that if the FSM is in a end-state and a
+                          // intermediate state, and we follow the intermediate state, the end-state
+                          // is removed again, which is correct!
                           nextNodesInFSM.addAll(n.getSuccessors());
                           match = true;
                         }
@@ -474,7 +482,10 @@ public class MarkInterpreter {
                         // following eog
                         // !! FINDING
                         String finding =
-                            "Violation against Order: "
+                            "line "
+                                + vertex.value("startLine")
+                                + ": "
+                                + "Violation against Order: "
                                 + vertex.value("code")
                                 + " ("
                                 + (op == null ? "null" : op.getName())
@@ -482,10 +493,16 @@ public class MarkInterpreter {
                                 + nodesInFSM.stream()
                                     .map(Node::getName)
                                     .collect(Collectors.joining(", "));
-                        ctx.getFindings().add(finding);
+                        ctx.getFindings().add(finding + " (" + rule.getErrorMessage() + ")");
                         log.info("Finding: {}", finding);
                         disallowedBases.add(prefixedBase);
                       } else {
+                        String baseLocal = prefixedBase.split("\\.")[1]; // remove eogpath
+                        Long aLong = lastBaseUsage.computeIfAbsent(baseLocal, x -> 0L);
+                        lastBaseUsage.put(baseLocal, Long.max(vertex.value("startLine"), aLong));
+                        // System.out.println("[" +
+                        // nextNodesInFSM.stream().map(Node::getName).collect(Collectors.joining(",
+                        // ")) + "]");
                         baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
                       }
                     }
@@ -592,8 +609,6 @@ public class MarkInterpreter {
                     */
                 nextWorklist.addAll(outVertices);
               }
-              // optimize:
-              // we could also optimize, if all nodes in one FSM are in a START-state
 
               // if the current path has already been visited, and all stuff in baseToFSMNodes is at
               // start or beginning, remove the current path
@@ -627,14 +642,20 @@ public class MarkInterpreter {
           }
           for (Map.Entry<String, HashSet<String>> entry : nonterminatedBases.entrySet()) {
             // !! FINDING
+            System.out.println(entry.getKey());
+            lastBaseUsage.forEach((k, v) -> System.out.println(k + ": " + v));
+            Long line = lastBaseUsage.get(entry.getKey());
             String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
             String finding =
-                "Violation against Order: Base "
+                "line "
+                    + line
+                    + ": "
+                    + "Violation against Order: Base "
                     + base
                     + " is not correctly terminated. Expected one of ["
                     + String.join(", ", entry.getValue())
                     + "] to follow the correct last call on this base.";
-            ctx.getFindings().add(finding);
+            ctx.getFindings().add(finding + " (" + rule.getErrorMessage() + ")");
             log.info("Finding: {}", finding);
           }
         }

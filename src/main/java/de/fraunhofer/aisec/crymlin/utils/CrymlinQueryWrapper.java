@@ -17,6 +17,8 @@ public class CrymlinQueryWrapper {
       String baseType,
       ArrayList<String> parameter) {
     HashSet<Vertex> ret = new HashSet<>();
+    // unify base type
+    baseType = Utils.unifyType(baseType);
     List<Vertex> vertices = crymlinTraversal.calls(functionName, baseType).toList();
 
     for (Vertex v : vertices) {
@@ -45,7 +47,8 @@ public class CrymlinQueryWrapper {
           } else {
             // either the param in the mark file directly matches, or it has to have a
             // corresponding var which indicates the type
-            if (!parameter.get(argumentIndex).equals(arg.value("type").toString())) {
+            if (!Utils.unifyType(parameter.get(argumentIndex))
+                .equals(Utils.unifyType(arg.value("type").toString()))) {
               parameters_match = false;
               break;
             }

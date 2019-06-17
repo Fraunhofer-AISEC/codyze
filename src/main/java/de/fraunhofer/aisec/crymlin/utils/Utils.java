@@ -17,6 +17,19 @@ public class Utils {
     return r.getName() + "." + m.getSignature();
   }
 
+  /**
+   * Return a unified type String (i.e. changeing cpp-type-separators to Java-type-separators)
+   *
+   * @param name
+   * @return a type string which is separated via "."
+   */
+  public static String unifyType(String name) {
+    if (name == null) {
+      return null;
+    }
+    return name.replaceAll("::", "\\.");
+  }
+
   public static String extractMethodName(String opName) {
     if (opName.contains("::")) {
       opName = opName.substring(opName.lastIndexOf("::") + 2);

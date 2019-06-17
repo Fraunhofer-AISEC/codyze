@@ -19,26 +19,19 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class OrderTestComplex {
 
-  private static AnalysisServer server;
-  private static TranslationResult result;
-
-  @BeforeAll
-  static void startup() throws Exception {
-
+  private void performTest(String sourceFileName) throws Exception {
     ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
-    URL resource = classLoader.getResource("java/order2.java");
+    URL resource = classLoader.getResource(sourceFileName);
     assertNotNull(resource);
     File cppFile = new File(resource.getFile());
     assertNotNull(cppFile);
 
-    resource = classLoader.getResource("mark.unittests/Order2.mark");
+    resource = classLoader.getResource("unittests/order2.mark");
     assertNotNull(resource);
     File markPoC1 = new File(resource.getFile());
     assertNotNull(markPoC1);
@@ -54,7 +47,7 @@ class OrderTestComplex {
     }
 
     // Start an analysis server
-    server =
+    AnalysisServer server =
         AnalysisServer.builder()
             .config(
                 ServerConfiguration.builder()
@@ -66,7 +59,7 @@ class OrderTestComplex {
     server.start();
 
     // Start the analysis
-    result =
+    TranslationResult result =
         server
             .analyze(
                 TranslationManager.builder()
@@ -87,34 +80,16 @@ class OrderTestComplex {
                             .build())
                     .build())
             .get(20, TimeUnit.MINUTES);
-  }
 
-  @AfterAll
-  static void teardown() throws Exception {
-    // Stop the analysis server
-    server.stop();
-  }
-
-  @Test
-  void sanityTest() {
     AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
     assertNotNull(ctx);
     assertTrue(ctx.methods.isEmpty());
-  }
 
-  @SuppressWarnings("unchecked")
-  @Test
-  void translationunitsTest() throws Exception {
     List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
     assertNotNull(tus);
     assertEquals(1, tus.size());
-    assertTrue(tus.get(0).endsWith("java/order2.java"));
-  }
+    assertTrue(tus.get(0).endsWith(sourceFileName));
 
-  @Test
-  void orderTest() {
-    AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-    assertNotNull(ctx.getFindings());
     List<String> findings = ctx.getFindings();
     for (String s : findings) {
       System.out.println(s);
@@ -140,5 +115,17 @@ class OrderTestComplex {
     assertTrue(
         findings.contains(
             "line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+
+    server.stop();
+  }
+
+  @Test
+  void testJava() throws Exception {
+    performTest("unittests/order2.java");
+  }
+
+  @Test
+  void testCpp() throws Exception {
+    performTest("unittests/order2.cpp");
   }
 }

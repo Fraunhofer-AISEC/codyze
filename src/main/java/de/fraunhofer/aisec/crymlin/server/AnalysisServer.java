@@ -76,15 +76,12 @@ public class AnalysisServer {
    */
   public void start() throws Exception {
 
-    // Clear database
-    log.info("Clearing Database ...");
-    Database.getInstance().connect();
-    Database.getInstance().purgeDatabase();
-    Database.getInstance().close();
+    loadMarkRulesFromConfig();
 
     // Launch LSP server
     if (config.launchLsp) {
       launchLspServer();
+      return;
     }
 
     // Initialize JythonInterpreter
@@ -146,19 +143,25 @@ public class AnalysisServer {
    * @throws InterruptedException
    */
   public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer) {
-
-    loadMarkRulesFromConfig();
     /*
      * Create analysis context and register at all passes supporting contexts.
      *
      * An analysis context is an in-memory data structure that can be used to
      * exchange data across passes outside of the actual CPG.
      */
+
     AnalysisContext ctx = new AnalysisContext();
     for (Pass p : analyzer.getPasses()) {
       if (p instanceof PassWithContext) {
         ((PassWithContext) p).setContext(ctx);
       }
+    }
+
+    if (this.interp == null) {
+      // moved here to provide faster startup for lsp
+      // todo move up again?
+      interp = new JythonInterpreter();
+      interp.connect();
     }
 
     // Run all passes and persist the result
@@ -177,6 +180,10 @@ public class AnalysisServer {
             })
         .thenApply(
             (result) -> {
+              log.info(
+                  "Evaluating mark: {} entities, {} rules",
+                  this.markModel.getEntities().size(),
+                  this.markModel.getRules().size());
               // Evaluate all MARK rules
               MarkInterpreter mi =
                   new MarkInterpreter(this.markModel, this.interp.getCrymlinTraversal());

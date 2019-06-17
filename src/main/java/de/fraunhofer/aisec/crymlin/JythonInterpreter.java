@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.crymlin;
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
 import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
+import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
@@ -90,6 +91,11 @@ public class JythonInterpreter implements AutoCloseable {
    * gremlin/crymlin queries.
    */
   public void spawnInteractiveConsole() {
+
+    // Clear database
+    Database.getInstance().connect();
+    Database.getInstance().purgeDatabase();
+
     System.out.println(
         "                           _ _       \n"
             + "                          | (_)      \n"

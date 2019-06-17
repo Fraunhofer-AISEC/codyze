@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
 import java.net.URL;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
@@ -104,7 +105,7 @@ public class AnalysisServerBotanTest {
     List<MRule> rules = markModel.getRules();
     assertEquals(8, rules.size());
 
-    List<MEntity> ents = markModel.getEntities();
+    Collection<MEntity> ents = markModel.getEntities();
     assertEquals(9, ents.size());
   }
 

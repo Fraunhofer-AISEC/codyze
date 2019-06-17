@@ -1,6 +1,7 @@
 package de.fhg.aisec.markmodel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +9,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class Mark {
 
-  @NonNull private List<MEntity> entities = new ArrayList<>();
+  @NonNull private HashMap<String, MEntity> entityByName = new HashMap<>();
 
   @NonNull private List<MRule> rules = new ArrayList<>();
 
@@ -19,13 +20,16 @@ public class Mark {
    */
   private Map<String, MEntity> populatedEntities = new HashMap<>();
 
-  @NonNull
-  public List<MEntity> getEntities() {
-    return this.entities;
+  public void addEntities(String name, MEntity ent) {
+    this.entityByName.put(name, ent);
+  }
+
+  public Collection<MEntity> getEntities() {
+    return this.entityByName.values();
   }
 
   public MEntity getEntity(@NonNull String name) {
-    return entities.stream().filter(x -> name.equals(x.getName())).findAny().orElse(null);
+    return entityByName.get(name);
   }
 
   @NonNull

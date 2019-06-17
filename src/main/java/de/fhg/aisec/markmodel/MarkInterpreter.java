@@ -16,6 +16,7 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,6 +167,48 @@ public class MarkInterpreter {
         FSM fsm = new FSM();
         fsm.sequenceToFSM(inner.getExp());
         rule.setFSM(fsm);
+
+        // check that the fsm is valid:
+        // TODO fw: does the grammar validate that each function in an order is actually
+        //  an op already? then the following might be obsolete
+        HashSet<Node> worklist = new HashSet<>(fsm.getStart());
+        HashSet<Node> seen = new HashSet<>();
+        while (!worklist.isEmpty()) {
+          HashSet<Node> nextWorkList = new HashSet<>();
+          seen.addAll(worklist);
+
+          for (Node n : worklist) {
+            // check that the op exists
+            if (!n.isFake()) {
+              MEntity entity = rule.getEntityReferences().get(n.getBase()).getValue1();
+              String entityName = rule.getEntityReferences().get(n.getBase()).getValue0();
+              if (entity == null) {
+                log.error(
+                    "Entity is not parsed: "
+                        + entityName
+                        + " which is specified in rule "
+                        + rule.getName());
+              } else {
+                MOp op = entity.getOp(n.getOp());
+                if (op == null) {
+                  log.error(
+                      "Entity "
+                          + entity.getName()
+                          + " does not contain op "
+                          + n.getOp()
+                          + " which is specified in rule "
+                          + rule.getName());
+                }
+              }
+            }
+            for (Node s : n.getSuccessors()) {
+              if (!seen.contains(s)) {
+                nextWorkList.add(s);
+              }
+            }
+          }
+          worklist = nextWorkList;
+        }
       }
     }
 
@@ -330,8 +373,10 @@ public class MarkInterpreter {
           // rule.getFSM().pushToDB();
           log.info("\tEvaluating rule " + rule.getName());
           /* todo
-          differentiate objects on a scope-level!
-          what if one step of the FSM is done inside a scope, and the rest outside??
+
+
+
+
 
           should we allow this different entities in an order?
           rule UseOfBotan_CipherMode {
@@ -342,7 +387,7 @@ public class MarkInterpreter {
           }
           -> this does currently not work, as we store for each base, where in the FSM it is. BUT in this case, an instance of cm would always have a different base than f.
 
-          does the grammar validate that each function in an order is actually an op?
+
 
           is aliasing inside an order rule allowed? I.e. order x.a, x.b, x.c
           x i1;
@@ -426,15 +471,15 @@ public class MarkInterpreter {
 
                     // todo: potential optimization: move prefixBase-String to own data structure
 
-                    System.out.println(
-                        "\t"
-                            + prefixedBase
-                            + " "
-                            + vertex.value("code").toString()
-                            + " "
-                            + vertex.label()
-                            + " "
-                            + verticesToOp.get(vertex));
+                    //                    System.out.println(
+                    //                        "\t"
+                    //                            + prefixedBase
+                    //                            + " "
+                    //                            + vertex.value("code").toString()
+                    //                            + " "
+                    //                            + vertex.label()
+                    //                            + " "
+                    //                            + verticesToOp.get(vertex));
                     if (disallowedBases.contains(prefixedBase)) {
                       // !! FINDING
                       String finding =
@@ -505,24 +550,6 @@ public class MarkInterpreter {
                         // ")) + "]");
                         baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
                       }
-                    }
-                  } else {
-                    try {
-                      System.out.println(
-                          "\tSKIPPING "
-                              + vertex.value("code").toString()
-                              + " "
-                              + vertex.label()
-                              + " "
-                              + verticesToOp.get(vertex)
-                              + " not defined in an op");
-                    } catch (Exception e) {
-                      System.out.println(
-                          "\tSKIPPING nocode "
-                              + vertex.label()
-                              + " "
-                              + verticesToOp.get(vertex)
-                              + " not defined in an op");
                     }
                   }
                 }
@@ -595,7 +622,7 @@ public class MarkInterpreter {
                       baseToFSMNodes.forEach((k, j) -> System.out.println("\t" + k + " " + j.stream().map(Node::getName).collect(Collectors.joining(", "))));
                       if (baseToFSMNodes.get(eogPath + "." + v.id()) != null) {
                         for (Node n : baseToFSMNodes.get(eogPath + "." + v.id())) {
-                          if (!n.getEnd()) { // if at least one node is not at END, we potentially have to look at this again, do not shortcut
+                          if (!n.isEnd()) { // if at least one node is not at END, we potentially have to look at this again, do not shortcut
                             continue outer;
                           }
                         }
@@ -623,7 +650,7 @@ public class MarkInterpreter {
             boolean hasEnd = false;
             HashSet<String> notEnded = new HashSet<>();
             for (Node n : entry.getValue()) {
-              if (n.getEnd()) {
+              if (n.isEnd()) {
                 // if one of the nodes in this fsm is at an END-node, this is fine.
                 hasEnd = true;
                 break;
@@ -642,8 +669,6 @@ public class MarkInterpreter {
           }
           for (Map.Entry<String, HashSet<String>> entry : nonterminatedBases.entrySet()) {
             // !! FINDING
-            System.out.println(entry.getKey());
-            lastBaseUsage.forEach((k, v) -> System.out.println(k + ": " + v));
             Long line = lastBaseUsage.get(entry.getKey());
             String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
             String finding =

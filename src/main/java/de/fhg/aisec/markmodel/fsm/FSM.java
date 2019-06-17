@@ -126,6 +126,7 @@ public class FSM {
     // not strictly needed, we could simply set end=true for all the returned nodes
     Node end = new Node(null, "END");
     end.setEnd(true);
+    end.setFake(true);
     currentNodes.forEach(x -> x.addSuccessor(end));
 
     // we could remove BEGIN here, and set begin=true for its successors

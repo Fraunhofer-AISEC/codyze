@@ -17,6 +17,7 @@ public class Node {
 
   private boolean isStart = false;
   private boolean isEnd = false;
+  private boolean isFake = false; // if this is a fake start/end node
 
   public Node() {}
 
@@ -53,7 +54,7 @@ public class Node {
     this.isStart = b;
   }
 
-  public boolean getStart() {
+  public boolean isStart() {
     return isStart;
   }
 
@@ -61,8 +62,16 @@ public class Node {
     this.isEnd = b;
   }
 
-  public boolean getEnd() {
+  public boolean isEnd() {
     return isEnd;
+  }
+
+  public void setFake(boolean b) {
+    this.isFake = b;
+  }
+
+  public boolean isFake() {
+    return isFake;
   }
 
   public HashSet<Node> getSuccessors() {

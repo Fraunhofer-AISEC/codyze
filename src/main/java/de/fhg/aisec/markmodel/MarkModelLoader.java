@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.javatuples.Pair;
 import org.python.jline.internal.Log;
 
 /**
@@ -36,12 +37,19 @@ public class MarkModelLoader {
         entity.setPackageName(packagename);
         m.getEntities().add(entity);
       }
-
+    }
+    for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
+      if (onlyfromthisfile != null && !onlyfromthisfile.equals(entry.getKey())) {
+        // if we want the mark model only for one file, this can be specified here.
+        // dependencies then still work, iff they were part of the xtext
+        continue;
+      }
+      MarkModel markModel = entry.getValue();
       // Parse rules
       for (RuleDeclaration r : markModel.getRule()) {
         // todo @FW: should rules also have package names? what is the exact reasoning behind
         // packages?
-        MRule rule = parseRule(r);
+        MRule rule = parseRule(r, m);
         m.getRules().add(rule);
       }
     }
@@ -53,11 +61,24 @@ public class MarkModelLoader {
     return load(markModels, null);
   }
 
-  private MRule parseRule(RuleDeclaration rule) {
+  private MRule parseRule(RuleDeclaration rule, Mark mark) {
     MRule mRule = new MRule();
     mRule.setName(rule.getName());
-    mRule.setStatement(rule.getStmt());
+    mRule.setStatement(rule.getStmt()); // todo remove in the long run
     mRule.setErrorMessage(rule.getStmt().getMsg());
+
+    HashMap<String, Pair<String, MEntity>> entityReferences = new HashMap<>();
+    rule.getStmt()
+        .getEntities()
+        .forEach(
+            entity -> {
+              Pair<String, MEntity> e =
+                  new Pair<>(entity.getE().getName(), mark.getEntity(entity.getE().getName()));
+              entityReferences.put(entity.getN(), e);
+            });
+
+    mRule.setEntityReferences(entityReferences);
+
     return mRule;
   }
 

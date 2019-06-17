@@ -2,8 +2,10 @@ package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
 import de.fhg.aisec.markmodel.fsm.FSM;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.javatuples.Pair;
 
 public class MRule {
 
@@ -11,6 +13,7 @@ public class MRule {
   private RuleStatement statement;
   private FSM fsm = null;
   private String errorMessage;
+  private HashMap<String, Pair<String, MEntity>> entityReferences;
 
   @Nullable
   public String getName() {
@@ -66,5 +69,13 @@ public class MRule {
 
   public String getErrorMessage() {
     return errorMessage;
+  }
+
+  public void setEntityReferences(HashMap<String, Pair<String, MEntity>> entityReferences) {
+    this.entityReferences = entityReferences;
+  }
+
+  public HashMap<String, Pair<String, MEntity>> getEntityReferences() {
+    return entityReferences;
   }
 }

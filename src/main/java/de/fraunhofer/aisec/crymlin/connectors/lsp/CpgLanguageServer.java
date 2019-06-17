@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
-import de.fraunhofer.aisec.cpg.Database;
 import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
@@ -29,8 +28,9 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 
   @Override
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-    log.debug("Pre-connecting to DB");
-    Database.getInstance().connect();
+    log.debug("initialize");
+    //    log.debug("Pre-connecting to DB");
+    //    Database.getInstance().connect();
 
     InitializeResult result = new InitializeResult();
 
@@ -44,6 +44,7 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 
   @Override
   public CompletableFuture<Object> shutdown() {
+    log.debug("shutdown");
     return CompletableFuture.completedFuture(null);
   }
 

@@ -76,4 +76,11 @@ public class MOp {
   public MEntity getParent() {
     return parent;
   }
+
+  public void reset() {
+    parsed = false;
+    statementToCPGVertex = new HashMap<>();
+    vertexToStatements = new HashMap<>();
+    allVertices = new HashSet<>();
+  }
 }

@@ -14,6 +14,7 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -95,19 +96,21 @@ class ForbiddenTest {
     assertEquals(1, tus.size());
     assertTrue(tus.get(0).endsWith(sourceFilename));
 
-    List<String> findings = ctx.getFindings();
+    List<String> findings = new ArrayList<>();
+    ctx.getFindings().forEach(x -> findings.add(x.toString()));
+
     assertEquals(
         3, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
 
     assertTrue(
         findings.contains(
-            "Violation against forbidden call(s) Botan::set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
+            "line 42: Violation against forbidden call(s) Botan::set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
     assertTrue(
         findings.contains(
-            "Violation against forbidden call(s) Botan::start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
+            "line 37: Violation against forbidden call(s) Botan::start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
     assertTrue(
         findings.contains(
-            "Violation against forbidden call(s) Botan::start() in Entity Forbidden. Call was b.start();"));
+            "line 36: Violation against forbidden call(s) Botan::start() in Entity Forbidden. Call was b.start();"));
 
     // Stop the analysis server
     server.stop();

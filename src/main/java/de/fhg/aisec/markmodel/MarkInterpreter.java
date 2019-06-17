@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
+import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import java.util.*;
@@ -136,6 +137,9 @@ public class MarkInterpreter {
    * @param result
    */
   public TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
+
+    // reset stuff attached to this model
+    this.markModel.reset();
 
     /*
     iterate all entities and precalculate some things:
@@ -414,7 +418,7 @@ public class MarkInterpreter {
           // stores the current markings in the FSM (i.e., which base is at which FSM-node)
           HashMap<String, HashSet<Node>> baseToFSMNodes = new HashMap<>();
           // last usage of base
-          HashMap<String, Long> lastBaseUsage = new HashMap<>();
+          HashMap<String, Vertex> lastBaseUsage = new HashMap<>();
 
           while (currentWorklist.size() > 0) {
             HashSet<Vertex> nextWorklist = new HashSet<>();
@@ -482,15 +486,20 @@ public class MarkInterpreter {
                     //                            + verticesToOp.get(vertex));
                     if (disallowedBases.contains(prefixedBase)) {
                       // !! FINDING
-                      String finding =
-                          "line "
-                              + vertex.value("startLine")
-                              + ": "
-                              + "Violation against Order: "
-                              + vertex.value("code")
-                              + " is not allowed. Base contains errors already.";
-                      ctx.getFindings().add(finding + " (" + rule.getErrorMessage() + ")");
-                      log.info("Finding: {}", finding);
+                      Finding f =
+                          new Finding(
+                              "Violation against Order: "
+                                  + vertex.value("code")
+                                  + " is not allowed. Base contains errors already."
+                                  + " ("
+                                  + rule.getErrorMessage()
+                                  + ")",
+                              vertex.value("startLine"),
+                              vertex.value("endLine"),
+                              vertex.value("startColumn"),
+                              vertex.value("endColumn"));
+                      ctx.getFindings().add(f);
+                      log.info("Finding: {}", f.toString());
                     } else {
                       HashSet<Node> nodesInFSM;
                       if (baseToFSMNodes.get(prefixedBase)
@@ -526,25 +535,37 @@ public class MarkInterpreter {
                         // if not, this call is not allowed, and this base must not be used in the
                         // following eog
                         // !! FINDING
-                        String finding =
-                            "line "
-                                + vertex.value("startLine")
-                                + ": "
-                                + "Violation against Order: "
-                                + vertex.value("code")
-                                + " ("
-                                + (op == null ? "null" : op.getName())
-                                + ") is not allowed. Expected one of: "
-                                + nodesInFSM.stream()
-                                    .map(Node::getName)
-                                    .collect(Collectors.joining(", "));
-                        ctx.getFindings().add(finding + " (" + rule.getErrorMessage() + ")");
-                        log.info("Finding: {}", finding);
+                        Finding f =
+                            new Finding(
+                                "Violation against Order: "
+                                    + vertex.value("code")
+                                    + " ("
+                                    + (op == null ? "null" : op.getName())
+                                    + ") is not allowed. Expected one of: "
+                                    + nodesInFSM.stream()
+                                        .map(Node::getName)
+                                        .collect(Collectors.joining(", "))
+                                    + " ("
+                                    + rule.getErrorMessage()
+                                    + ")",
+                                vertex.value("startLine"),
+                                vertex.value("endLine"),
+                                vertex.value("startColumn"),
+                                vertex.value("endColumn"));
+                        ctx.getFindings().add(f);
+                        log.info("Finding: {}", f.toString());
                         disallowedBases.add(prefixedBase);
                       } else {
                         String baseLocal = prefixedBase.split("\\.")[1]; // remove eogpath
-                        Long aLong = lastBaseUsage.computeIfAbsent(baseLocal, x -> 0L);
-                        lastBaseUsage.put(baseLocal, Long.max(vertex.value("startLine"), aLong));
+                        Vertex vertex1 = lastBaseUsage.get(baseLocal);
+                        long prevMaxLine = 0;
+                        if (vertex1 != null) {
+                          prevMaxLine = vertex1.value("startLine");
+                        }
+                        long newLine = vertex.value("startLine");
+                        if (prevMaxLine <= newLine) {
+                          lastBaseUsage.put(baseLocal, vertex);
+                        }
                         // System.out.println("[" +
                         // nextNodesInFSM.stream().map(Node::getName).collect(Collectors.joining(",
                         // ")) + "]");
@@ -669,19 +690,24 @@ public class MarkInterpreter {
           }
           for (Map.Entry<String, HashSet<String>> entry : nonterminatedBases.entrySet()) {
             // !! FINDING
-            Long line = lastBaseUsage.get(entry.getKey());
+            Vertex vertex = lastBaseUsage.get(entry.getKey());
             String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
-            String finding =
-                "line "
-                    + line
-                    + ": "
-                    + "Violation against Order: Base "
-                    + base
-                    + " is not correctly terminated. Expected one of ["
-                    + String.join(", ", entry.getValue())
-                    + "] to follow the correct last call on this base.";
-            ctx.getFindings().add(finding + " (" + rule.getErrorMessage() + ")");
-            log.info("Finding: {}", finding);
+            Finding f =
+                new Finding(
+                    "Violation against Order: Base "
+                        + base
+                        + " is not correctly terminated. Expected one of ["
+                        + String.join(", ", entry.getValue())
+                        + "] to follow the correct last call on this base."
+                        + " ("
+                        + rule.getErrorMessage()
+                        + ")",
+                    vertex.value("startLine"),
+                    vertex.value("endLine"),
+                    vertex.value("startColumn"),
+                    vertex.value("endColumn"));
+            ctx.getFindings().add(f);
+            log.info("Finding: {}", f.toString());
           }
         }
       }
@@ -730,51 +756,57 @@ public class MarkInterpreter {
             }
           }
           if (!vertex_allowed) {
-            String finding =
-                "Violation against forbidden call(s) "
-                    + String.join(", ", violating)
-                    + " in Entity "
-                    + ent.getName()
-                    + ". Call was "
-                    + v.value("code").toString();
-            ctx.getFindings().add(finding);
-            log.info("Finding: {}", finding);
+            Finding f =
+                new Finding(
+                    "Violation against forbidden call(s) "
+                        + String.join(", ", violating)
+                        + " in Entity "
+                        + ent.getName()
+                        + ". Call was "
+                        + v.value("code").toString(),
+                    v.value("startLine"),
+                    v.value("endLine"),
+                    v.value("startColumn"),
+                    v.value("endColumn"));
+            ;
+            ctx.getFindings().add(f);
+            log.info("Finding: {}", f.toString());
           }
         }
       }
     }
   }
 
-  /**
-   * DUMMY. JUST FOR DEMO. REWRITE.
-   *
-   * <p>Evaluates a MARK rule against the results of the analysis.
-   *
-   * @param r
-   * @return
-   */
-  public boolean evaluateRule(MRule r) {
-    // TODO parse rule and do something with it
-    Optional<String> matchingEntity =
-        r.getStatement().getEntities().stream()
-            .map(ent -> ent.getE().getName())
-            .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
-            .findAny();
-    if (matchingEntity.isPresent()) {
-      // System.out.println("Found matching entity " + matchingEntity.get());
-      Expression ensureExpr = r.getStatement().getEnsure().getExp();
-      // System.out.println(exprToString(ensureExpr));
-      // TODO evaluate expression against populated mark entities
-      if (evaluateExpr(ensureExpr)) {
-        // System.out.println("Rule " + r.getName() + " is satisfied.");
-        return true;
-      } else {
-        // System.out.println("Rule " + r.getName() + " is matched but violated.");
-        return false;
-      }
-    }
-    return false;
-  }
+  //  /**
+  //   * DUMMY. JUST FOR DEMO. REWRITE.
+  //   *
+  //   * <p>Evaluates a MARK rule against the results of the analysis.
+  //   *
+  //   * @param r
+  //   * @return
+  //   */
+  //  public boolean evaluateRule(MRule r) {
+  //    // TODO parse rule and do something with it
+  //    Optional<String> matchingEntity =
+  //        r.getStatement().getEntities().stream()
+  //            .map(ent -> ent.getE().getName())
+  //            .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
+  //            .findAny();
+  //    if (matchingEntity.isPresent()) {
+  //      // System.out.println("Found matching entity " + matchingEntity.get());
+  //      Expression ensureExpr = r.getStatement().getEnsure().getExp();
+  //      // System.out.println(exprToString(ensureExpr));
+  //      // TODO evaluate expression against populated mark entities
+  //      if (evaluateExpr(ensureExpr)) {
+  //        // System.out.println("Rule " + r.getName() + " is satisfied.");
+  //        return true;
+  //      } else {
+  //        // System.out.println("Rule " + r.getName() + " is matched but violated.");
+  //        return false;
+  //      }
+  //    }
+  //    return false;
+  //  }
 
   private boolean evaluateExpr(Expression expr) {
     if (expr instanceof SequenceExpression) {

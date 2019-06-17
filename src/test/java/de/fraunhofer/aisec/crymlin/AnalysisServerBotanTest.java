@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -113,8 +114,9 @@ public class AnalysisServerBotanTest {
   public void markEvaluationTest() throws Exception {
     AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result.getScratch().get("ctx");
     assertNotNull(ctx);
-    List<String> findings = ctx.getFindings();
-    assertNotNull(findings);
+    List<String> findings = new ArrayList<>();
+    assertNotNull(ctx.getFindings());
+    ctx.getFindings().forEach(x -> findings.add(x.toString()));
 
     System.out.println("Findings");
     for (String finding : findings) {

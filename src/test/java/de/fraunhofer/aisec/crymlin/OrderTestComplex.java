@@ -17,6 +17,7 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -90,7 +91,10 @@ class OrderTestComplex {
     assertEquals(1, tus.size());
     assertTrue(tus.get(0).endsWith(sourceFileName));
 
-    List<String> findings = ctx.getFindings();
+    List<String> findings = new ArrayList<>();
+    assertNotNull(ctx.getFindings());
+    ctx.getFindings().forEach(x -> findings.add(x.toString()));
+
     for (String s : findings) {
       System.out.println(s);
     }

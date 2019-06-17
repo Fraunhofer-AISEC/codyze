@@ -8,6 +8,7 @@ import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
@@ -15,26 +16,23 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class ForbiddenTest {
+class ForbiddenTest {
 
   private static AnalysisServer server;
   private static TranslationResult result;
 
-  @BeforeAll
-  public static void startup() throws Exception {
+  private void performTest(String sourceFilename) throws Exception {
 
     ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
-    URL resource = classLoader.getResource("cpp/forbidden.cpp");
+    URL resource = classLoader.getResource(sourceFilename);
     assertNotNull(resource);
     File cppFile = new File(resource.getFile());
     assertNotNull(cppFile);
 
-    resource = classLoader.getResource("mark.unittests/Forbidden.mark");
+    resource = classLoader.getResource("unittests/forbidden.mark");
     assertNotNull(resource);
     File markPoC1 = new File(resource.getFile());
     assertNotNull(markPoC1);
@@ -71,46 +69,32 @@ public class ForbiddenTest {
                             .debugParser(true)
                             .failOnError(false)
                             .codeInNodes(true)
-                            // no further passes needed for this simple test
-                            // .registerPass(new TypeHierarchyResolver())
-                            // .registerPass(new VariableUsageResolver())
-                            // .registerPass(new CallResolver()) // creates CG
-                            // .registerPass(new DataFlowPass())
-                            // .registerPass(new CallResolver()) // creates CG
-                            // .registerPass(new DataFlowPass())
-                            // .registerPass(new EvaluationOrderGraphPass()) // creates CFG
+                            //                            .registerPass(new TypeHierarchyResolver())
+                            .registerPass(
+                                new VariableUsageResolver()) // needed to also resolve more types in
+                            // Java
+                            //                            .registerPass(new CallResolver()) //
+                            // creates CG
+                            //                            .registerPass(new DataFlowPass())
+                            //                            .registerPass(new CallResolver()) //
+                            // creates CG
+                            //                            .registerPass(new DataFlowPass())
+                            //                            .registerPass(new
+                            // EvaluationOrderGraphPass()) // creates CFG
                             .sourceFiles(cppFile)
                             .build())
                     .build())
             .get(5, TimeUnit.MINUTES);
-  }
 
-  @AfterAll
-  public static void teardown() throws Exception {
-    // Stop the analysis server
-    server.stop();
-  }
-
-  @Test
-  public void sanityTest() {
     AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
     assertNotNull(ctx);
     assertTrue(ctx.methods.isEmpty());
-  }
 
-  @SuppressWarnings("unchecked")
-  @Test
-  public void translationunitsTest() throws Exception {
     List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
     assertNotNull(tus);
     assertEquals(1, tus.size());
-    assertTrue(tus.get(0).endsWith("cpp/forbidden.cpp"));
-  }
+    assertTrue(tus.get(0).endsWith(sourceFilename));
 
-  @Test
-  public void forbiddenTest() throws Exception {
-    AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-    assertNotNull(ctx.getFindings());
     List<String> findings = ctx.getFindings();
     assertEquals(
         3, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
@@ -124,5 +108,18 @@ public class ForbiddenTest {
     assertTrue(
         findings.contains(
             "Violation against forbidden call(s) Botan::start() in Entity Forbidden. Call was b.start();"));
+
+    // Stop the analysis server
+    server.stop();
+  }
+
+  @Test
+  void testJava() throws Exception {
+    performTest("unittests/forbidden.java");
+  }
+
+  @Test
+  void testCpp() throws Exception {
+    performTest("unittests/forbidden.cpp");
   }
 }

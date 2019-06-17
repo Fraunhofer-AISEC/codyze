@@ -2,10 +2,10 @@ package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
 import de.fhg.aisec.markmodel.fsm.FSM;
+import de.fraunhofer.aisec.crymlin.utils.Pair;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.javatuples.Pair;
 
 public class MRule {
 

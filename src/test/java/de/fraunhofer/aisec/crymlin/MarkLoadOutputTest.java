@@ -13,6 +13,7 @@ import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
@@ -65,15 +66,13 @@ public class MarkLoadOutputTest {
       Mark markModel = entry.getValue();
 
       StringBuilder reconstructed = new StringBuilder();
-      if (!markModel.getEntities().isEmpty()) {
+      ArrayList<MEntity> entities = new ArrayList<>(markModel.getEntities());
+      if (!entities.isEmpty()) {
         // they all have the same packed name in our context
-        reconstructed
-            .append("package ")
-            .append(markModel.getEntities().get(0).getPackageName())
-            .append("\n");
+        reconstructed.append("package ").append(entities.get(0).getPackageName()).append("\n");
       }
 
-      for (MEntity entity : markModel.getEntities()) {
+      for (MEntity entity : entities) {
         reconstructed.append(entity.toString());
         reconstructed.append("\n");
       }

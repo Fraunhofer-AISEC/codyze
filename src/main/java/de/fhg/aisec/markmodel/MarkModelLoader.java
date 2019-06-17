@@ -1,11 +1,11 @@
 package de.fhg.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.crymlin.utils.Pair;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.javatuples.Pair;
 import org.python.jline.internal.Log;
 
 /**
@@ -35,7 +35,7 @@ public class MarkModelLoader {
       for (EntityDeclaration decl : markModel.getDecl()) {
         MEntity entity = parseEntity(decl);
         entity.setPackageName(packagename);
-        m.getEntities().add(entity);
+        m.addEntities(entity.getName(), entity);
       }
     }
     for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {

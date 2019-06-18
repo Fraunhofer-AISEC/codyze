@@ -1,6 +1,7 @@
 # Requirements
 
-The jar runs without any dependencies, but expects a reachable Neo4J Server (with default credentials=)
+The jar runs without any dependencies, but expects a reachable Neo4J Server (with default credentials)
+
 Start it locally with:
 
 ```

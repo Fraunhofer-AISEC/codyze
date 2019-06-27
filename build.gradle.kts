@@ -89,7 +89,7 @@ dependencies {
     api("de.fraunhofer.aisec", "cpg", "1.0-SNAPSHOT") { setChanging(true) }
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
-	api("de.fhg.aisec.mark:de.fhg.aisec.mark:1.0.0-SNAPSHOT:repackaged") { setChanging(true) }
+    api("de.fhg.aisec.mark:de.fhg.aisec.mark:1.0.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // api stuff
     api("org.glassfish.jersey.inject", "jersey-hk2", versions["jersey"])
@@ -148,6 +148,23 @@ tasks {
                 ?: "latest"),
                 '.'))
     }
+    
+    jar {
+        manifest {
+            attributes(
+                mapOf("Name" to "CPG Analysis Server",
+                      "Implementation-Title" to project.name,
+                      "Implementation-Version" to project.version,
+                      "Class-Path" to configurations.runtimeClasspath.files.map { it.name }.joinToString(" "),
+                      "Main-Class" to application.mainClassName
+                )
+            )
+        }
+    }
+    
+    startScripts {
+      classpath = files(project.name + "-" + project.version + ".jar")
+    }
 }
 
 spotless {
@@ -160,3 +177,5 @@ spotless {
         googleJavaFormat()
     }
 }
+
+

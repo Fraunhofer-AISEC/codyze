@@ -251,10 +251,22 @@ public class MarkInterpreter {
       MarkRuleEvaluationResult evalResult = evaluateRule(rule);
       switch (evalResult.getStatus()) {
         //TODO: rewrite. what must be done in the cases?
-        case NOT_TRIGGERED: log.info("Rule was not triggered:\n" + rule);
-        case UNKNOWN: ctx.getFindings().add(evalResult.getFinding());
-        case VIOLATED: ctx.getFindings().add(evalResult.getFinding());
-        case SATISFIED: log.info("Rule is satisfied:\n" + rule);
+        case NOT_TRIGGERED:
+          log.info("Rule '" + rule.getName() + "' was not triggered");
+          break;
+        case UNKNOWN:
+          log.warn("Rule '" + rule.getName() + "' cannot be checked");
+          ctx.getFindings().add(evalResult.getFinding());
+          break;
+        case VIOLATED:
+          log.error("Rule '" + rule.getName() + "' is violated");
+          ctx.getFindings().add(evalResult.getFinding());
+          break;
+        case SATISFIED:
+          log.info("Rule '" + rule.getName() + "' is satisfied");
+          break;
+        default:
+          assert false;
       }
     }
 

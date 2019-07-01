@@ -12,8 +12,6 @@ import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import javassist.expr.Expr;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -23,8 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class MarkRuleEvaluationResult {
-  final private MarkRuleEvaluationStatus status;
-  final private Finding finding;
+  private final MarkRuleEvaluationStatus status;
+  private final Finding finding;
 
   public MarkRuleEvaluationResult(Finding finding, MarkRuleEvaluationStatus status) {
     this.finding = finding;
@@ -46,8 +44,6 @@ class MarkRuleEvaluationResult {
     return status;
   }
 }
-
-
 
 public class MarkInterpreter {
   private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
@@ -250,7 +246,7 @@ public class MarkInterpreter {
       }
       MarkRuleEvaluationResult evalResult = evaluateRule(rule);
       switch (evalResult.getStatus()) {
-        //TODO: rewrite. what must be done in the cases?
+          // TODO: rewrite. what must be done in the cases?
         case NOT_TRIGGERED:
           log.info("Rule '" + rule.getName() + "' was not triggered");
           break;
@@ -831,51 +827,58 @@ public class MarkInterpreter {
     }
   }
 
-
-   private MarkRuleEvaluationResult evaluateRule(MRule rule) {
-      //TODO use meaningful findings
-      Finding dummyFinding = new Finding("MarkRuleEvaluationFinding", -1, -1, -1, -1);
-      RuleStatement s = rule.getStatement();
-      log.debug("checking rule " + rule);
-      if (s.getCond() != null) {
-       if (evaluateExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
-         log.info("   terminate rule checking due to unsatisfied guarding condition: " + s.getCond());
-         return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
-       } else if (evaluateExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
-         log.warn("The following rule will not be checked because it's guarding condition cannot be evaluated.\n" + rule);
-         return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
-       }
+  private MarkRuleEvaluationResult evaluateRule(MRule rule) {
+    // TODO use meaningful findings
+    Finding dummyFinding = new Finding("MarkRuleEvaluationFinding", -1, -1, -1, -1);
+    RuleStatement s = rule.getStatement();
+    log.debug("checking rule " + rule);
+    if (s.getCond() != null) {
+      if (evaluateExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
+        log.info(
+            "   terminate rule checking due to unsatisfied guarding condition: " + s.getCond());
+        return new MarkRuleEvaluationResult(
+            dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
+      } else if (evaluateExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
+        log.warn(
+            "The following rule will not be checked because it's guarding condition cannot be evaluated.\n"
+                + rule);
+        return new MarkRuleEvaluationResult(
+            dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
       }
-
-      log.trace("checking 'ensure'-statement");
-
-      if (evaluateExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
-        return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.UNKNOWN);
-      } else if (evaluateExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
-        return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.VIOLATED);
-      }
-      return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.SATISFIED);
-      /*// TODO parse rule and do something with it
-      Optional<String> matchingEntity =
-          r.getStatement().getEntities().stream()
-              .map(ent -> ent.getE().getName())
-              .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
-              .findAny();
-      if (matchingEntity.isPresent()) {
-        // System.out.println("Found matching entity " + matchingEntity.get());
-        Expression ensureExpr = r.getStatement().getEnsure().getExp();
-        // System.out.println(exprToString(ensureExpr));
-        // TODO evaluate expression against populated mark entities
-        if (evaluateExpr(ensureExpr)) {
-          // System.out.println("Rule " + r.getName() + " is satisfied.");
-          return true;
-        } else {
-          // System.out.println("Rule " + r.getName() + " is matched but violated.");
-          return false;
-        }
-      }
-      return false;*/
     }
+
+    log.trace("checking 'ensure'-statement");
+
+    if (evaluateExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
+      return new MarkRuleEvaluationResult(
+          dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.UNKNOWN);
+    } else if (evaluateExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
+      return new MarkRuleEvaluationResult(
+          dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.VIOLATED);
+    }
+    return new MarkRuleEvaluationResult(
+        dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.SATISFIED);
+    /*// TODO parse rule and do something with it
+    Optional<String> matchingEntity =
+        r.getStatement().getEntities().stream()
+            .map(ent -> ent.getE().getName())
+            .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
+            .findAny();
+    if (matchingEntity.isPresent()) {
+      // System.out.println("Found matching entity " + matchingEntity.get());
+      Expression ensureExpr = r.getStatement().getEnsure().getExp();
+      // System.out.println(exprToString(ensureExpr));
+      // TODO evaluate expression against populated mark entities
+      if (evaluateExpr(ensureExpr)) {
+        // System.out.println("Rule " + r.getName() + " is satisfied.");
+        return true;
+      } else {
+        // System.out.println("Rule " + r.getName() + " is matched but violated.");
+        return false;
+      }
+    }
+    return false;*/
+  }
 
   private TRISTATE evaluateExpr(Expression expr) {
     if (expr instanceof SequenceExpression) {

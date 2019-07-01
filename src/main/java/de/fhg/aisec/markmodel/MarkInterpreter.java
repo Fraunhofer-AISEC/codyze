@@ -833,15 +833,14 @@ public class MarkInterpreter {
     RuleStatement s = rule.getStatement();
     log.debug("checking rule " + rule);
     if (s.getCond() != null) {
-      if (evaluateExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
+      if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
         log.info(
             "   terminate rule checking due to unsatisfied guarding condition: " + s.getCond());
         return new MarkRuleEvaluationResult(
             dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
-      } else if (evaluateExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
+      } else if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
         log.warn(
-            "The following rule will not be checked because it's guarding condition cannot be evaluated.\n"
-                + rule);
+            "The rule '"+ rule.getName() + "' will not be checked because it's guarding condition cannot be evaluated:" + exprToString(s.getCond().getExp()));
         return new MarkRuleEvaluationResult(
             dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
       }
@@ -849,10 +848,10 @@ public class MarkInterpreter {
 
     log.trace("checking 'ensure'-statement");
 
-    if (evaluateExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
+    if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
       return new MarkRuleEvaluationResult(
           dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.UNKNOWN);
-    } else if (evaluateExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
+    } else if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
       return new MarkRuleEvaluationResult(
           dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.VIOLATED);
     }
@@ -880,50 +879,122 @@ public class MarkInterpreter {
     return false;*/
   }
 
-  private TRISTATE evaluateExpr(Expression expr) {
-    if (expr instanceof SequenceExpression) {
-      OrderExpression left = ((SequenceExpression) expr).getLeft();
-      OrderExpression right = ((SequenceExpression) expr).getRight();
-      if (evaluateExpr(left) == TRISTATE.TRUE && evaluateExpr(right) == TRISTATE.TRUE) {
-        return TRISTATE.TRUE;
-      } else {
-        return TRISTATE.FALSE;
-      }
-    } else if (expr instanceof Terminal) {
-      return containedInModel((Terminal) expr) ? TRISTATE.TRUE : TRISTATE.FALSE;
-    } else if (expr instanceof AdditionExpression) {
-      return TRISTATE.UNKNOWN;
-    } else if (expr instanceof ComparisonExpression) {
-      Expression left = ((ComparisonExpression) expr).getLeft();
-      Expression right = ((ComparisonExpression) expr).getRight();
 
+
+
+
+  private TRISTATE evaluateTopLevelExpr(Expression expr) {
+    if (expr instanceof OrderExpression) {
+      return evaluateOrderExpression((OrderExpression) expr);
+    }
+
+    Optional<Boolean> result = evaluateLogicalExpr(expr);
+    if (result.isEmpty()) {
       return TRISTATE.UNKNOWN;
-    } else if (expr instanceof FunctionCallExpression) {
-      return TRISTATE.UNKNOWN;
-    } else if (expr instanceof Literal) {
-      return TRISTATE.UNKNOWN;
-    } else if (expr instanceof LiteralList) {
-      return TRISTATE.UNKNOWN;
-    } else if (expr instanceof LogicalAndExpression) {
-      return TRISTATE.UNKNOWN;
-    } else if (expr instanceof LogicalOrExpression) {
-      return TRISTATE.UNKNOWN;
-    } else if (expr instanceof MultiplicationExpression) {
-      return TRISTATE.UNKNOWN;
-    } else if (expr instanceof Operand) {
-      return TRISTATE.UNKNOWN;
-    } else if (expr instanceof OrderExpression) {
-      SequenceExpression seqxpr = (SequenceExpression) ((OrderExpression) expr).getExp();
-      if (seqxpr != null) {
-        return evaluateExpr(seqxpr);
-      } else {
-        return TRISTATE.UNKNOWN;
-      }
-    } else if (expr instanceof UnaryExpression) {
-      return TRISTATE.UNKNOWN;
+    }
+
+    if (result.get()) {
+      return TRISTATE.TRUE;
     } else {
-      assert false; // all expression types must be handled
+      return TRISTATE.FALSE;
+    }
+  }
+
+
+  private TRISTATE evaluateOrderExpression (OrderExpression orderExpression) {
+    if(orderExpression instanceof Terminal) {
+      return containedInModel((Terminal) orderExpression) ? TRISTATE.TRUE : TRISTATE.FALSE;
+    } else {
       return TRISTATE.UNKNOWN;
+    }
+  }
+
+
+  private Optional<Boolean> evaluateLogicalExpr(Expression expr) {
+    if (expr instanceof ComparisonExpression) {
+      return evaluateComparisonExpr((ComparisonExpression) expr);
+
+    } else if (expr instanceof LogicalAndExpression) {
+      Expression left = ((LogicalAndExpression) expr).getLeft();
+      Expression right = ((LogicalAndExpression) expr).getRight();
+      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
+      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+      if (leftResult.isEmpty() || rightResult.isEmpty()) {
+        return Optional.empty();
+      } else {
+        return Optional.of(leftResult.get() || rightResult.get());
+      }
+
+    } else if (expr instanceof LogicalOrExpression) {
+      Expression left = ((LogicalOrExpression) expr).getLeft();
+      Expression right = ((LogicalOrExpression) expr).getRight();
+      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
+      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+      if (leftResult.isEmpty()) {
+        return rightResult;
+      } else if (rightResult.isEmpty()) {
+        return leftResult;
+      } else {
+        return Optional.of(leftResult.get() || rightResult.get());
+      }
+    } else {
+      // TODO: create custom exceptions
+      throw new RuntimeException("not a logical expression: " + expr);
+    }
+  }
+
+  private Optional<Boolean> evaluateComparisonExpr(ComparisonExpression expr) {
+    String op = expr.getOp();
+    Expression left = expr.getLeft();
+    Expression right = expr.getRight();
+    Optional leftResult = evaluateUnknownExpr(left);
+    Optional rightResult = evaluateUnknownExpr(right);
+    if (leftResult.isEmpty() || rightResult.isEmpty()) {
+      return Optional.empty();
+    }
+
+    switch (op) {
+      case "==":
+        return Optional.of(leftResult.get() == rightResult.get());
+      case "!=":
+      case "<":
+      case "<=":
+      case ">":
+      case ">=":
+      case "in":
+      case "like":
+        return Optional.empty();
+      default:
+        assert false;
+        return Optional.empty();
+    }
+  }
+
+  private Optional evaluateUnknownExpr(Expression expr) {
+    if (expr instanceof AdditionExpression) {
+      return Optional.empty();
+    } else if (expr instanceof ComparisonExpression) {
+      return Optional.empty();
+    } else if (expr instanceof FunctionCallExpression) {
+      return Optional.empty();
+    } else if (expr instanceof Literal) {
+      return Optional.empty();
+    } else if (expr instanceof LiteralListExpression) {
+      return Optional.empty();
+    } else if (expr instanceof LogicalAndExpression) {
+      return Optional.empty();
+    } else if (expr instanceof LogicalOrExpression) {
+      return Optional.empty();
+    } else if (expr instanceof MultiplicationExpression) {
+      return Optional.empty();
+    } else if (expr instanceof Operand) {
+      return Optional.empty();
+    } else if (expr instanceof UnaryExpression) {
+      return Optional.empty();
+    } else {
+      log.info("unknown expression: " + exprToString(expr));
+      assert false; // all expression types must be handled
+      return Optional.empty();
     }
   }
 

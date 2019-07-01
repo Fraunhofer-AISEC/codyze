@@ -15,6 +15,7 @@ import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import de.fraunhofer.aisec.crymlin.structures.Finding;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
@@ -22,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import de.fraunhofer.aisec.crymlin.structures.Finding;
 
 public class RuleCheckTest {
 
@@ -122,7 +122,7 @@ public class RuleCheckTest {
         markRuleEvaluationFindingCount++;
       }
     }
-    //TODO  meaningful test conditions
+    // TODO  meaningful test conditions
     assertEquals(100, markRuleEvaluationFindingCount);
   }
 }

@@ -12,14 +12,42 @@ import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import javassist.expr.Expr;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+class MarkRuleEvaluationResult {
+  final private MarkRuleEvaluationStatus status;
+  final private Finding finding;
+
+  public MarkRuleEvaluationResult(Finding finding, MarkRuleEvaluationStatus status) {
+    this.finding = finding;
+    this.status = status;
+  }
+
+  public enum MarkRuleEvaluationStatus {
+    SATISFIED,
+    VIOLATED,
+    UNKNOWN,
+    NOT_TRIGGERED
+  }
+
+  public Finding getFinding() {
+    return finding;
+  }
+
+  public MarkRuleEvaluationStatus getStatus() {
+    return status;
+  }
+}
+
+
 
 public class MarkInterpreter {
   private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
@@ -29,6 +57,12 @@ public class MarkInterpreter {
   public MarkInterpreter(@NonNull Mark markModel, CrymlinTraversalSource crymlinTraversal) {
     this.markModel = markModel;
     this.crymlinTraversal = crymlinTraversal;
+  }
+
+  enum TRISTATE {
+    TRUE,
+    FALSE,
+    UNKNOWN
   }
 
   public static String exprToString(Expression expr) {
@@ -213,6 +247,14 @@ public class MarkInterpreter {
           }
           worklist = nextWorkList;
         }
+      }
+      MarkRuleEvaluationResult evalResult = evaluateRule(rule);
+      switch (evalResult.getStatus()) {
+        //TODO: rewrite. what must be done in the cases?
+        case NOT_TRIGGERED: log.info("Rule was not triggered:\n" + rule);
+        case UNKNOWN: ctx.getFindings().add(evalResult.getFinding());
+        case VIOLATED: ctx.getFindings().add(evalResult.getFinding());
+        case SATISFIED: log.info("Rule is satisfied:\n" + rule);
       }
     }
 
@@ -777,53 +819,97 @@ public class MarkInterpreter {
     }
   }
 
-  //  /**
-  //   * DUMMY. JUST FOR DEMO. REWRITE.
-  //   *
-  //   * <p>Evaluates a MARK rule against the results of the analysis.
-  //   *
-  //   * @param r
-  //   * @return
-  //   */
-  //  public boolean evaluateRule(MRule r) {
-  //    // TODO parse rule and do something with it
-  //    Optional<String> matchingEntity =
-  //        r.getStatement().getEntities().stream()
-  //            .map(ent -> ent.getE().getName())
-  //            .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
-  //            .findAny();
-  //    if (matchingEntity.isPresent()) {
-  //      // System.out.println("Found matching entity " + matchingEntity.get());
-  //      Expression ensureExpr = r.getStatement().getEnsure().getExp();
-  //      // System.out.println(exprToString(ensureExpr));
-  //      // TODO evaluate expression against populated mark entities
-  //      if (evaluateExpr(ensureExpr)) {
-  //        // System.out.println("Rule " + r.getName() + " is satisfied.");
-  //        return true;
-  //      } else {
-  //        // System.out.println("Rule " + r.getName() + " is matched but violated.");
-  //        return false;
-  //      }
-  //    }
-  //    return false;
-  //  }
 
-  private boolean evaluateExpr(Expression expr) {
+   private MarkRuleEvaluationResult evaluateRule(MRule rule) {
+      //TODO use meaningful findings
+      Finding dummyFinding = new Finding("MarkRuleEvaluationFinding", -1, -1, -1, -1);
+      RuleStatement s = rule.getStatement();
+      log.debug("checking rule " + rule);
+      if (s.getCond() != null) {
+       if (evaluateExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
+         log.info("   terminate rule checking due to unsatisfied guarding condition: " + s.getCond());
+         return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
+       } else if (evaluateExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
+         log.warn("The following rule will not be checked because it's guarding condition cannot be evaluated.\n" + rule);
+         return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
+       }
+      }
+
+      log.trace("checking 'ensure'-statement");
+
+      if (evaluateExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
+        return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.UNKNOWN);
+      } else if (evaluateExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
+        return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.VIOLATED);
+      }
+      return new MarkRuleEvaluationResult(dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.SATISFIED);
+      /*// TODO parse rule and do something with it
+      Optional<String> matchingEntity =
+          r.getStatement().getEntities().stream()
+              .map(ent -> ent.getE().getName())
+              .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
+              .findAny();
+      if (matchingEntity.isPresent()) {
+        // System.out.println("Found matching entity " + matchingEntity.get());
+        Expression ensureExpr = r.getStatement().getEnsure().getExp();
+        // System.out.println(exprToString(ensureExpr));
+        // TODO evaluate expression against populated mark entities
+        if (evaluateExpr(ensureExpr)) {
+          // System.out.println("Rule " + r.getName() + " is satisfied.");
+          return true;
+        } else {
+          // System.out.println("Rule " + r.getName() + " is matched but violated.");
+          return false;
+        }
+      }
+      return false;*/
+    }
+
+  private TRISTATE evaluateExpr(Expression expr) {
     if (expr instanceof SequenceExpression) {
       OrderExpression left = ((SequenceExpression) expr).getLeft();
       OrderExpression right = ((SequenceExpression) expr).getRight();
-      return evaluateExpr(left) && evaluateExpr(right);
+      if (evaluateExpr(left) == TRISTATE.TRUE && evaluateExpr(right) == TRISTATE.TRUE) {
+        return TRISTATE.TRUE;
+      } else {
+        return TRISTATE.FALSE;
+      }
     } else if (expr instanceof Terminal) {
-      return containedInModel((Terminal) expr);
+      return containedInModel((Terminal) expr) ? TRISTATE.TRUE : TRISTATE.FALSE;
+    } else if (expr instanceof AdditionExpression) {
+      return TRISTATE.UNKNOWN;
+    } else if (expr instanceof ComparisonExpression) {
+      Expression left = ((ComparisonExpression) expr).getLeft();
+      Expression right = ((ComparisonExpression) expr).getRight();
+
+      return TRISTATE.UNKNOWN;
+    } else if (expr instanceof FunctionCallExpression) {
+      return TRISTATE.UNKNOWN;
+    } else if (expr instanceof Literal) {
+      return TRISTATE.UNKNOWN;
+    } else if (expr instanceof LiteralList) {
+      return TRISTATE.UNKNOWN;
+    } else if (expr instanceof LogicalAndExpression) {
+      return TRISTATE.UNKNOWN;
+    } else if (expr instanceof LogicalOrExpression) {
+      return TRISTATE.UNKNOWN;
+    } else if (expr instanceof MultiplicationExpression) {
+      return TRISTATE.UNKNOWN;
+    } else if (expr instanceof Operand) {
+      return TRISTATE.UNKNOWN;
     } else if (expr instanceof OrderExpression) {
       SequenceExpression seqxpr = (SequenceExpression) ((OrderExpression) expr).getExp();
       if (seqxpr != null) {
         return evaluateExpr(seqxpr);
+      } else {
+        return TRISTATE.UNKNOWN;
       }
+    } else if (expr instanceof UnaryExpression) {
+      return TRISTATE.UNKNOWN;
     } else {
-      // System.out.println("Cannot evaluate " + expr.getClass());
+      assert false; // all expression types must be handled
+      return TRISTATE.UNKNOWN;
     }
-    return false;
   }
 
   /**

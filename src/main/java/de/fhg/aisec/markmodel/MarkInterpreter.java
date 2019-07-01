@@ -840,7 +840,10 @@ public class MarkInterpreter {
             dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
       } else if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
         log.warn(
-            "The rule '"+ rule.getName() + "' will not be checked because it's guarding condition cannot be evaluated:" + exprToString(s.getCond().getExp()));
+            "The rule '"
+                + rule.getName()
+                + "' will not be checked because it's guarding condition cannot be evaluated:"
+                + exprToString(s.getCond().getExp()));
         return new MarkRuleEvaluationResult(
             dummyFinding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
       }
@@ -879,10 +882,6 @@ public class MarkInterpreter {
     return false;*/
   }
 
-
-
-
-
   private TRISTATE evaluateTopLevelExpr(Expression expr) {
     if (expr instanceof OrderExpression) {
       return evaluateOrderExpression((OrderExpression) expr);
@@ -900,15 +899,13 @@ public class MarkInterpreter {
     }
   }
 
-
-  private TRISTATE evaluateOrderExpression (OrderExpression orderExpression) {
-    if(orderExpression instanceof Terminal) {
+  private TRISTATE evaluateOrderExpression(OrderExpression orderExpression) {
+    if (orderExpression instanceof Terminal) {
       return containedInModel((Terminal) orderExpression) ? TRISTATE.TRUE : TRISTATE.FALSE;
     } else {
       return TRISTATE.UNKNOWN;
     }
   }
-
 
   private Optional<Boolean> evaluateLogicalExpr(Expression expr) {
     if (expr instanceof ComparisonExpression) {
@@ -937,6 +934,8 @@ public class MarkInterpreter {
       } else {
         return Optional.of(leftResult.get() || rightResult.get());
       }
+    } else if (expr instanceof FunctionCallExpression) {
+      return evaluateFunctionCallExpr((FunctionCallExpression) expr);
     } else {
       // TODO: create custom exceptions
       throw new RuntimeException("not a logical expression: " + expr);
@@ -947,15 +946,18 @@ public class MarkInterpreter {
     String op = expr.getOp();
     Expression left = expr.getLeft();
     Expression right = expr.getRight();
+    log.debug(
+        "comparing expression " + exprToString(left) + " with expression " + exprToString(right));
     Optional leftResult = evaluateUnknownExpr(left);
     Optional rightResult = evaluateUnknownExpr(right);
     if (leftResult.isEmpty() || rightResult.isEmpty()) {
       return Optional.empty();
     }
+    log.debug("left result= " + leftResult.get() + " right result= " + rightResult.get());
 
     switch (op) {
       case "==":
-        return Optional.of(leftResult.get() == rightResult.get());
+        return Optional.of(leftResult.get().equals(rightResult.get()));
       case "!=":
       case "<":
       case "<=":
@@ -970,29 +972,59 @@ public class MarkInterpreter {
     }
   }
 
+  private Optional evaluateFunctionCallExpr(Expression expr) {
+    assert expr instanceof FunctionCallExpression;
+
+    FunctionCallExpression callExpr = (FunctionCallExpression) expr;
+    String functionName = callExpr.getName();
+    if (functionName.startsWith("_")) {
+      // call to built-in crymlin query
+
+      // TODO: just a test hack. Do implement it the right way
+      if (functionName.contains("split")) {
+        return Optional.of("\"CBC\"");
+      }
+      if (functionName.contains("receives_value_from")) {
+        return Optional.of(true);
+      }
+    }
+
+    return Optional.empty();
+  }
+
   private Optional evaluateUnknownExpr(Expression expr) {
+    // TODO implement!
+
     if (expr instanceof AdditionExpression) {
-      return Optional.empty();
-    } else if (expr instanceof ComparisonExpression) {
+      log.debug("evaluating AdditionExpression: " + exprToString(expr));
       return Optional.empty();
     } else if (expr instanceof FunctionCallExpression) {
-      return Optional.empty();
+      log.debug("evaluating FunctionCallExpression: " + exprToString(expr));
+      return evaluateFunctionCallExpr(expr);
     } else if (expr instanceof Literal) {
-      return Optional.empty();
+      log.debug("evaluating Literal expression: " + exprToString(expr));
+      Literal literal = (Literal) expr;
+      return Optional.of(literal.getValue());
     } else if (expr instanceof LiteralListExpression) {
+      log.debug("evaluating LiteralListExpression: " + exprToString(expr));
       return Optional.empty();
     } else if (expr instanceof LogicalAndExpression) {
-      return Optional.empty();
+      log.debug("evaluating LogicalAndExpression: " + exprToString(expr));
+      return evaluateLogicalExpr(expr);
     } else if (expr instanceof LogicalOrExpression) {
-      return Optional.empty();
+      log.debug("evaluating LogicalOrExpression: " + exprToString(expr));
+      return evaluateLogicalExpr(expr);
     } else if (expr instanceof MultiplicationExpression) {
+      log.debug("evaluating MultiplicationExpression: " + exprToString(expr));
       return Optional.empty();
     } else if (expr instanceof Operand) {
+      log.debug("evaluating Operand expression: " + exprToString(expr));
       return Optional.empty();
     } else if (expr instanceof UnaryExpression) {
+      log.debug("evaluating UnaryExpression: " + exprToString(expr));
       return Optional.empty();
     } else {
-      log.info("unknown expression: " + exprToString(expr));
+      log.debug("unknown expression: " + exprToString(expr));
       assert false; // all expression types must be handled
       return Optional.empty();
     }

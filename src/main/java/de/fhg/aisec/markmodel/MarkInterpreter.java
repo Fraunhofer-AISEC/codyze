@@ -922,7 +922,7 @@ public class MarkInterpreter {
       if (leftResult.isEmpty() || rightResult.isEmpty()) {
         return Optional.empty();
       } else {
-        return Optional.of(leftResult.get() || rightResult.get());
+        return Optional.of(leftResult.get() && rightResult.get());
       }
 
     } else if (expr instanceof LogicalOrExpression) {

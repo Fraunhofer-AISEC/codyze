@@ -117,12 +117,37 @@ public class RuleCheckTest {
     assertNotNull(ctx.getFindings());
     List<Finding> findings = ctx.getFindings();
     int markRuleEvaluationFindingCount = 0;
+    int satisfied = 0;
+    int violated = 0;
+    int unknown = 0;
+    int guardingUnsatisfied = 0;
+    int guardingUnknown = 0;
     for (Finding f : findings) {
+      System.out.println(f.getFinding());
       if (f.getFinding().contains("MarkRuleEvaluationFinding")) {
         markRuleEvaluationFindingCount++;
+        if (f.getFinding().contains("guarding condition unsatisfied")) {
+          guardingUnsatisfied++;
+
+        } else if (f.getFinding().contains("guarding condition unknown")) {
+          guardingUnknown++;
+
+        } else if (f.getFinding().contains("ensure condition unknown")) {
+          unknown++;
+
+        } else if (f.getFinding().contains("ensure condition violated")) {
+          violated++;
+
+        } else if (f.getFinding().contains("ensure condition satisfied")) {
+          satisfied++;
+        }
       }
     }
-    // TODO  meaningful test conditions
-    assertEquals(100, markRuleEvaluationFindingCount);
+    assertEquals(5, markRuleEvaluationFindingCount);
+    assertEquals(0, satisfied);
+    assertEquals(0, violated);
+    assertEquals(4, unknown);
+    assertEquals(0, guardingUnsatisfied);
+    assertEquals(1, guardingUnknown);
   }
 }

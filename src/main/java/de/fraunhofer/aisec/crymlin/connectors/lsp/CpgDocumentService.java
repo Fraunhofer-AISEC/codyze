@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -44,63 +45,69 @@ public class CpgDocumentService implements TextDocumentService {
   public void didOpen(DidOpenTextDocumentParams params) {
     log.info("Handling didOpen: {}", params);
 
-    Database.getInstance().connect();
-    Database.getInstance().purgeDatabase();
+    synchronized (log) {
+      MessageParams mp = new MessageParams();
+      mp.setMessage("testmessage");
+      client.logMessage(mp);
 
-    URI uri = URI.create(params.getTextDocument().getUri());
+      Database.getInstance().connect();
+      Database.getInstance().purgeDatabase();
 
-    File file = new File(uri);
-    try {
-      AnalysisServer instance = AnalysisServer.getInstance();
-      if (instance == null) {
-        log.error("Server instance is null.");
-        return;
+      URI uri = URI.create(params.getTextDocument().getUri());
+
+      File file = new File(uri);
+      try {
+        AnalysisServer instance = AnalysisServer.getInstance();
+        if (instance == null) {
+          log.error("Server instance is null.");
+          return;
+        }
+        TranslationResult result =
+            instance
+                .analyze(
+                    TranslationManager.builder()
+                        .config(
+                            TranslationConfiguration.builder()
+                                .debugParser(false)
+                                .failOnError(false)
+                                .codeInNodes(true)
+                                .registerPass(new TypeHierarchyResolver())
+                                .registerPass(new VariableUsageResolver())
+                                .registerPass(new CallResolver()) // creates CG
+                                .registerPass(new DataFlowPass())
+                                .registerPass(new CallResolver()) // creates CG
+                                .registerPass(new DataFlowPass())
+                                .registerPass(new EvaluationOrderGraphPass()) // creates EOG
+                                .sourceFiles(file)
+                                .build())
+                        .build())
+                .get(5, TimeUnit.MINUTES);
+        AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+
+        if (ctx == null) {
+          log.error("ctx is null. Did the analysis run without errors?");
+          return;
+        }
+
+        ArrayList<Diagnostic> allDiags = new ArrayList<>();
+        for (Finding f : ctx.getFindings()) {
+          Diagnostic diagnostic = new Diagnostic();
+          diagnostic.setSeverity(DiagnosticSeverity.Warning);
+          diagnostic.setMessage(f.getFinding());
+          diagnostic.setRange(f.getRange());
+          allDiags.add(diagnostic);
+        }
+
+        PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
+        diagnostics.setDiagnostics(allDiags);
+        diagnostics.setUri(params.getTextDocument().getUri());
+
+        // sending diagnostics
+        client.publishDiagnostics(diagnostics);
+
+      } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        e.printStackTrace();
       }
-      TranslationResult result =
-          instance
-              .analyze(
-                  TranslationManager.builder()
-                      .config(
-                          TranslationConfiguration.builder()
-                              .debugParser(true)
-                              .failOnError(false)
-                              .codeInNodes(true)
-                              .registerPass(new TypeHierarchyResolver())
-                              .registerPass(new VariableUsageResolver())
-                              .registerPass(new CallResolver()) // creates CG
-                              .registerPass(new DataFlowPass())
-                              .registerPass(new CallResolver()) // creates CG
-                              .registerPass(new DataFlowPass())
-                              .registerPass(new EvaluationOrderGraphPass()) // creates EOG
-                              .sourceFiles(file)
-                              .build())
-                      .build())
-              .get(5, TimeUnit.MINUTES);
-      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-
-      if (ctx == null) {
-        log.error("ctx is null. Did the analysis run without errors?");
-        return;
-      }
-
-      ArrayList<Diagnostic> allDiags = new ArrayList<>();
-      for (Finding f : ctx.getFindings()) {
-        Diagnostic diagnostic = new Diagnostic();
-        diagnostic.setSeverity(DiagnosticSeverity.Warning);
-        diagnostic.setMessage(f.getFinding());
-        diagnostic.setRange(f.getRange());
-        allDiags.add(diagnostic);
-      }
-
-      PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
-      diagnostics.setDiagnostics(allDiags);
-      diagnostics.setUri(params.getTextDocument().getUri());
-
-      // sending diagnostics
-      client.publishDiagnostics(diagnostics);
-
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      e.printStackTrace();
     }
   }
 

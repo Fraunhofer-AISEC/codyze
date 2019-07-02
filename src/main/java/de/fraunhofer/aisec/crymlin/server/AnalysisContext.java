@@ -2,16 +2,16 @@ package de.fraunhofer.aisec.crymlin.server;
 
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.structures.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class AnalysisContext {
 
   /** List of violations of MARK rules. the region, etc. */
-  @NonNull private final List<Finding> findings = new ArrayList<>();
+  @NonNull private final Set<Finding> findings = new HashSet<>();
 
   /** Map of method signatures to {@code Method}s. */
   public final Map<String, Method> methods = new HashMap<>();
@@ -23,7 +23,7 @@ public class AnalysisContext {
    *
    * @return
    */
-  public @NonNull List<Finding> getFindings() {
+  public @NonNull Set<Finding> getFindings() {
     return this.findings;
   }
 }

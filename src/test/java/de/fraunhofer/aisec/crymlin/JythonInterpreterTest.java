@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -69,11 +70,10 @@ public class JythonInterpreterTest {
 
   @Test
   public void crymlinTest() throws Exception {
-    try (JythonInterpreter interp = new JythonInterpreter()) {
-      interp.connect();
+    try (TraversalConnection traversalConnection = new TraversalConnection()) {
 
       // Run crymlin queries directly in Java
-      CrymlinTraversalSource crymlin = interp.getCrymlinTraversal();
+      CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
       List<Vertex> stmts = crymlin.recorddeclarations().toList();
       assertNotNull(stmts);
 
@@ -86,11 +86,10 @@ public class JythonInterpreterTest {
 
   @Test
   public void crymlinDslTest() throws Exception {
-    try (JythonInterpreter interp = new JythonInterpreter()) {
-      interp.connect();
+    try (TraversalConnection traversalConnection = new TraversalConnection()) {
 
       // Run crymlin queries directly in Java
-      CrymlinTraversalSource crymlin = interp.getCrymlinTraversal();
+      CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
       Long count = crymlin.recorddeclarations().count().next();
       System.out.println(count);
       assertNotNull(count);
@@ -106,10 +105,8 @@ public class JythonInterpreterTest {
   @SuppressWarnings("unchecked")
   @Test
   public void gremlinGraphMutationTest() throws Exception {
-    try (JythonInterpreter interp = new JythonInterpreter()) {
-      interp.connect();
-
-      GraphTraversalSource g = interp.getGremlinTraversal();
+    try (TraversalConnection traversalConnection = new TraversalConnection()) {
+      GraphTraversalSource g = traversalConnection.getGremlinTraversal();
 
       Long size = g.V().count().next();
       List<Object> t =
@@ -141,8 +138,8 @@ public class JythonInterpreterTest {
       // New graph is expected to be +2 nodes larger.
       assertEquals(sizeNew - size, 2);
 
-      // Even with a new traversal object, the graph will remain larger
-      GraphTraversalSource g2 = interp.getGremlinTraversal();
+      // Even with a new traversalConnection object, the graph will remain larger
+      GraphTraversalSource g2 = traversalConnection.getGremlinTraversal();
       assertNotEquals(g, g2);
       Long sizeAgain = g2.V().count().next();
       assertEquals(sizeAgain - size, 2);

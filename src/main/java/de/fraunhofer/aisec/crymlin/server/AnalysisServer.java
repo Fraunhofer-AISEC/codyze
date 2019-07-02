@@ -50,7 +50,7 @@ public class AnalysisServer {
 
   private JythonInterpreter interp;
 
-  private CpgLanguageServer lsp;
+  public CpgLanguageServer lsp;
 
   @NonNull private Mark markModel = new Mark();
 
@@ -185,8 +185,7 @@ public class AnalysisServer {
                   this.markModel.getEntities().size(),
                   this.markModel.getRules().size());
               // Evaluate all MARK rules
-              MarkInterpreter mi =
-                  new MarkInterpreter(this.markModel, this.interp.getCrymlinTraversal());
+              MarkInterpreter mi = new MarkInterpreter(this.markModel);
               return mi.evaluate(result, ctx);
             });
   }

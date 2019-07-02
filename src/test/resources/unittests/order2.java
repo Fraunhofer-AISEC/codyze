@@ -6,7 +6,7 @@ public class Someclass {
 // cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
 
   void ok_minimal() {
-    Botan p1 = new Botan(1);
+    Botan2 p1 = new Botan2(1);
     p1.create();
     p1.init();
     p1.start();
@@ -16,7 +16,7 @@ public class Someclass {
   }
 
   void ok2() {
-    Botan p2 = new Botan(1);
+    Botan2 p2 = new Botan2(1);
     p2.create();
     p2.init();
     p2.start();
@@ -28,7 +28,7 @@ public class Someclass {
   }
 
   void ok3() {
-    Botan p3 = new Botan(1);
+    Botan2 p3 = new Botan2(1);
     p3.create();
     p3.init();
     p3.start();
@@ -37,7 +37,7 @@ public class Someclass {
   }
 
   void ok4() {
-    Botan p4 = new Botan(1);
+    Botan2 p4 = new Botan2(1);
     p4.create();
     p4.init();
     p4.start();
@@ -49,7 +49,7 @@ public class Someclass {
   }
 
   void nok1() {
-    Botan p5 = new Botan(1);
+    Botan2 p5 = new Botan2(1);
     p5.init();
     p5.start();
     p5.process();
@@ -57,7 +57,7 @@ public class Someclass {
   }
 
   void nok2() {
-    Botan p6 = new Botan(1);
+    Botan2 p6 = new Botan2(1);
     p6.create();
     p6.init();
     if (false) {

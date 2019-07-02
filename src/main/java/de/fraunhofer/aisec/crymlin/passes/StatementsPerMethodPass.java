@@ -34,11 +34,13 @@ public class StatementsPerMethodPass implements PassWithContext {
   public void accept(TranslationResult t) {
     for (TranslationUnitDeclaration tu : t.getTranslationUnits()) {
       for (Declaration d : tu.getDeclarations()) {
-        if (d instanceof TranslationUnitDeclaration) {
+        if (d instanceof TranslationUnitDeclaration) { // anything which has Declarations
           // loop through functions
           for (Declaration child : ((TranslationUnitDeclaration) d).getDeclarations()) {
             handleDeclaration(child);
           }
+        } else {
+          handleDeclaration(d);
         }
       }
     }

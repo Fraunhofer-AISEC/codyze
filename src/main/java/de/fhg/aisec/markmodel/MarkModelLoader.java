@@ -53,6 +53,12 @@ public class MarkModelLoader {
         m.getRules().add(rule);
       }
     }
+    /*
+    todo validate MARK files. check e.g.:
+     - each function in an order is actually in an op already? then the following might be obsolete
+     - one function call is not part of two ops (of one or two entities)
+         if this would be the case, many strange things will happen
+    */
     return m;
   }
 

@@ -14,7 +14,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class FSMTest {
@@ -70,22 +69,21 @@ class FSMTest {
         1, mark.getRules().stream().filter(x -> x.getName().equals("UseRandomIV")).count());
   }
 
-  @Test
-  @Disabled
-  void fsmTest() {
-
-    FSM.clearDB();
-    for (MRule rule : mark.getRules()) {
-      if (rule.getStatement() != null
-          && rule.getStatement().getEnsure() != null
-          && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
-        OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
-        FSM fsm = new FSM();
-        fsm.sequenceToFSM(inner.getExp());
-        fsm.pushToDB();
-      }
-    }
-  }
+  //  @Test
+  //  void fsmTest() {
+  //
+  //    FSM.clearDB();
+  //    for (MRule rule : mark.getRules()) {
+  //      if (rule.getStatement() != null
+  //          && rule.getStatement().getEnsure() != null
+  //          && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
+  //        OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
+  //        FSM fsm = new FSM();
+  //        fsm.sequenceToFSM(inner.getExp());
+  //        fsm.pushToDB();
+  //      }
+  //    }
+  //  }
 
   private FSM load(String ruleName) {
     Optional<MRule> opt =

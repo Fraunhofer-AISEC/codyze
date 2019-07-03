@@ -180,10 +180,7 @@ public class MarkInterpreter {
           rule.setFSM(fsm);
 
           // check that the fsm is valid:
-          // TODO fw: does the grammar validate that each function in an order is actually
-          //  an op already? then the following might be obsolete
-          // TODO: this should maybe also check, that one function call is not part of two ops (of
-          // one or two entities. if this would be the case, many strange things will happen
+          // todo remove once the modelloader performs these checks!
           HashSet<Node> worklist = new HashSet<>(fsm.getStart());
           HashSet<Node> seen = new HashSet<>();
           while (!worklist.isEmpty()) {
@@ -229,138 +226,7 @@ public class MarkInterpreter {
 
       evaluateOrder(ctx, crymlinTraversal);
 
-      /*
-       *
-       *  // Iterate over all statements of the program, along the CFG (created by SimpleForwardCFG)
-       *  for tu in translationunits:
-       *    for func in tu.functions:
-       *      for stmt in func.cfg:
-       *
-       *        // If an object of interest is created -> track it as an "abstract object"
-       *        // "of interest" = mentioned as an Entity in at least one MARK "rule".
-       *        if is_object_creation(stmt):
-       *          a_obj = create_abstract_object(stmt)
-       *          init_typestate(a_obj)
-       *          object_table.add(a_obj)
-       *
-       *        // If an abstract object is "used" (= one of its fields is set or one of its methods is called) -> update its typestate.
-       *        // "update its typestate" needs further detailing
-       *        if uses_abstract_object(stmt):
-       *          update_typestate(stmt)
-       *
-       */
-
-      /*
-       * A "typestate" item is an object that approximates the "states" of a real object instances at runtime.
-       *
-       * States are defined as the (approximated) values of the object's member fields.
-       */
-
-      // Maintain all method calls in a list
-      //    CrymlinTraversal<Vertex, Vertex> calls =
-      //        (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
-      //    List<Vertex> vertices = calls.toList();
-      //    for (Vertex v : vertices) {
-      //      v.property("dennis", "test"); // attach temporary property
-      //      // System.out.println(v + " " + v.label() + " (" + v.property("name") + ")");
-      //      //      v.edges(Direction.OUT)
-      //      //          .forEachRemaining(
-      //      //              x ->
-      //      //                  System.out.println(
-      //      //                      x.label()
-      //      //                          + ": "
-      //      //                          + x.inVertex().label()
-      //      //                          + " ("
-      //      //                          + x.inVertex().property("name")
-      //      //                          + ")"
-      //      //                          + " -> "
-      //      //                          + x.outVertex().label()
-      //      //                          + " ("
-      //      //                          + x.inVertex().property("name")
-      //      //                          + ")"));
-      //
-      //      if (v.graph().tx().isOpen()) {
-      //        v.graph()
-      //            .tx()
-      //            .readWrite(); // should not be called by a program according to docu, but this
-      // persists
-      //        // our new property
-      //      } else {
-      //        System.out.println("cannot persist, tx is not open");
-      //      }
-      //    }
-
-      // TEST
-      /*
-      List<Vertex> do_crypt = crymlinTraversal.functiondeclaration("do_crypt").clone().toList();
-      if (do_crypt.size() != 1) {
-        System.err.println("Multiple functions with name do_crypt found");
-      }
-      Edge current = do_crypt.get(0).edges(Direction.OUT, "BODY").next();
-      */
-      // dumpCFG(current, "", new HashSet<>());
-
-      //    calls = (CrymlinTraversal<Vertex, Vertex>) crymlinTraversal.calls().clone();
-      //    List<String> myCalls = calls.name().toList();
-      //
-      //    // "Populate" MARK objects
-      //    for (MEntity ent : this.markModel.getEntities()) {
-      //      Set<String> collect =
-      //          ent.getOps().stream()
-      //              .map(
-      //                  x ->
-      //                      x.getStatements().stream()
-      //                          .map(cs -> cs.getCall().getName())
-      //                          .collect(Collectors.toSet()))
-      //              .flatMap(Collection::stream)
-      //              .collect(Collectors.toSet());
-      //
-      //      Optional<String> any =
-      //          myCalls.stream()
-      //              .filter(
-      //                  call -> collect.stream().anyMatch(x ->
-      // x.endsWith(Utils.extractMethodName(call))))
-      //              .findAny();
-      //      // TODO now, only the function name is checked. We also need to check the Type the
-      //      // function is executed on.
-      //
-      //      if (any.isPresent()) {
-      //        System.out.println("MARK MATCHED - " + ent.getName());
-      //        System.out.println("\t\t" + any.get());
-      //        // TODO if myCalls.size()>0, we found a call that was specified in MARK. "Populate"
-      // the
-      //        // object.
-      //        // TODO Find out arguments of the call and try to resolve concrete values for them
-      //        // TODO "Populate" the entity and assign the resolved values to the entity's
-      // variables
-      //        this.markModel.getPopulatedEntities().put(ent.getName(), ent);
-      //      }
-      //    }
-      //
-      //    // Evaluate rules against populated objects
-      //    for (MRule r : this.markModel.getRules()) {
-      //      // System.out.println("Processing rule " + r.getName());
-      //      // TODO Result of rule evaluation will not be a boolean but "not triggered/triggered
-      // and
-      //      // violated/triggered and satisfied".
-      //      if (evaluateRule(r)) {
-      //        ctx.getFindings().add("Rule " + r.getName() + " is satisfied");
-      //      }
-      //    }
       return result;
-    }
-  }
-
-  private String eogPathToString(HashSet<String> in) {
-    return String.join("|", in);
-  }
-
-  private HashSet<String> stringToEogPath(String s) {
-    if (s == null || s.isEmpty()) {
-      return new HashSet<>();
-    } else {
-      String[] split = s.split("\\|");
-      return new HashSet<>(Arrays.asList(split));
     }
   }
 
@@ -387,7 +253,7 @@ public class MarkInterpreter {
       for (MRule rule : this.markModel.getRules()) {
 
         if (rule.getFSM() != null) {
-          rule.getFSM().pushToDB();
+          // rule.getFSM().pushToDB(); //debug only
           log.info("\tEvaluating rule " + rule.getName());
           /* todo
           should we allow this different entities in an order?

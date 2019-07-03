@@ -1,8 +1,8 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
-import de.fhg.aisec.markmodel.fsm.FSM;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
+import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;

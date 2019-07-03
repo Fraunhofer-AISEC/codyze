@@ -10,6 +10,7 @@ import de.fraunhofer.aisec.crymlin.structures.Finding;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -35,10 +36,19 @@ public class CpgDocumentService implements TextDocumentService {
 
   private static final Logger log = LoggerFactory.getLogger(CpgDocumentService.class);
 
+  private HashMap<String, String> lastScan = new HashMap<>();
+
   private LanguageClient client;
 
   private void analyze(String uriString, String text) {
-    {
+    String sanitizedText = text.replaceAll("[\\n ]", "");
+    if (lastScan.get(uriString) != null && lastScan.get(uriString).equals(sanitizedText)) {
+      log.info("Same file already scanned, ignoring");
+      return;
+    }
+    lastScan.put(uriString, sanitizedText);
+
+    { // mark the whole file with _Information_ to indicate that the file is being scanned
       ArrayList<Diagnostic> allDiags = new ArrayList<>();
       Diagnostic diagnostic = new Diagnostic();
       diagnostic.setSeverity(DiagnosticSeverity.Information);
@@ -47,7 +57,7 @@ public class CpgDocumentService implements TextDocumentService {
       diagnostic.setRange(
           new Range(
               new Position(0, 0),
-              new Position(split.length - 1, split[split.length - 1].length() - 1)));
+              new Position(split.length - 1, split[split.length - 1].length())));
       allDiags.add(diagnostic);
       PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
       diagnostics.setDiagnostics(allDiags);
@@ -85,6 +95,7 @@ public class CpgDocumentService implements TextDocumentService {
         log.error("ctx is null. Did the analysis run without errors?");
         return;
       }
+      log.info("Analysis for {} done. Returning {} findings", uriString, ctx.getFindings().size());
 
       ArrayList<Diagnostic> allDiags = new ArrayList<>();
       for (Finding f : ctx.getFindings()) {
@@ -115,7 +126,7 @@ public class CpgDocumentService implements TextDocumentService {
 
   @Override
   public void didChange(DidChangeTextDocumentParams params) {
-    log.info("Handling didChange: {}", params);
+    // log.info("Handling didChange: {}", params);
   }
 
   @Override

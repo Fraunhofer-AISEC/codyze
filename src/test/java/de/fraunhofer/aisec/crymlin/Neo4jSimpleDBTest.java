@@ -2,7 +2,7 @@ package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import de.fhg.aisec.markmodel.fsm.Node;
+import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.util.Collection;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,8 @@ public class Neo4jSimpleDBTest {
             .credentials(username, password)
             .verifyConnection(true)
             .build();
-    SessionFactory sessionFactory = new SessionFactory(configuration, "de.fhg.aisec.markmodel.fsm");
+    SessionFactory sessionFactory =
+        new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
     Session session = sessionFactory.openSession();
     session.purgeDatabase();
     Transaction tx;

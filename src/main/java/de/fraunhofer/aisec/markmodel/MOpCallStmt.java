@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 

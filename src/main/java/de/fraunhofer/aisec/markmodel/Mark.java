@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 import java.util.ArrayList;
 import java.util.Collection;

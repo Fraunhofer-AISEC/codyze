@@ -2,9 +2,6 @@ package de.fraunhofer.aisec.crymlin.server;
 
 import de.fhg.aisec.mark.XtextParser;
 import de.fhg.aisec.mark.markDsl.MarkModel;
-import de.fhg.aisec.markmodel.Mark;
-import de.fhg.aisec.markmodel.MarkInterpreter;
-import de.fhg.aisec.markmodel.MarkModelLoader;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -12,6 +9,9 @@ import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
+import de.fraunhofer.aisec.markmodel.Mark;
+import de.fraunhofer.aisec.markmodel.MarkInterpreter;
+import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -210,12 +210,12 @@ public class AnalysisServer {
     }
 
     if (markFile.isDirectory()) {
-      log.debug("Loading MARK from directory {}", markFile.getAbsolutePath());
+      log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
       try {
         DirectoryStream<Path> fileStream = Files.newDirectoryStream(markFile.toPath());
         for (Path f : fileStream) {
           if (f.getFileName().toString().endsWith(".mark")) {
-            log.debug("  Loading MARK file {}", f.toFile().getAbsolutePath());
+            log.info("  Loading MARK file {}", f.toFile().getAbsolutePath());
             parser.addMarkFile(f.toFile());
           }
         }
@@ -266,6 +266,7 @@ public class AnalysisServer {
       lsp.shutdown();
     }
     Database.getInstance().close();
+    log.info("stop.");
   }
 
   public static Builder builder() {

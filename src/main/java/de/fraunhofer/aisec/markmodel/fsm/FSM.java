@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel.fsm;
+package de.fraunhofer.aisec.markmodel.fsm;
 
 import de.fhg.aisec.mark.markDsl.Expression;
 import de.fhg.aisec.mark.markDsl.RepetitionExpression;

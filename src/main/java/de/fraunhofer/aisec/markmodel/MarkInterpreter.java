@@ -1,8 +1,6 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.*;
-import de.fhg.aisec.markmodel.fsm.FSM;
-import de.fhg.aisec.markmodel.fsm.Node;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -11,6 +9,8 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
+import de.fraunhofer.aisec.markmodel.fsm.FSM;
+import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -18,7 +18,6 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

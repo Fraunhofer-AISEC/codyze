@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel.fsm;
+package de.fraunhofer.aisec.markmodel.fsm;
 
 import java.util.HashSet;
 import org.neo4j.ogm.annotation.*;

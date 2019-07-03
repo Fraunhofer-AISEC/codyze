@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import de.fhg.aisec.mark.XtextParser;
 import de.fhg.aisec.mark.markDsl.MarkModel;
-import de.fhg.aisec.markmodel.MEntity;
-import de.fhg.aisec.markmodel.MRule;
-import de.fhg.aisec.markmodel.Mark;
-import de.fhg.aisec.markmodel.MarkModelLoader;
+import de.fraunhofer.aisec.markmodel.MEntity;
+import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.Mark;
+import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;

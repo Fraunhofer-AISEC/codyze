@@ -1,7 +1,5 @@
 package de.fraunhofer.aisec.crymlin;
 
-import de.fhg.aisec.markmodel.MRule;
-import de.fhg.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
@@ -9,6 +7,8 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
+import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.Mark;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +51,6 @@ public class Commands {
     }
     Database.getInstance().purgeDatabase();
 
-    // todo can we move this to a default translation manager config?
     TranslationManager analyzer =
         TranslationManager.builder()
             .config(

@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.OpStatement;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 public class MVar {
   private String name;

@@ -102,7 +102,9 @@ dependencies {
 
     // Gremlin
     api("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])
-    annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])      // Newer Gradle versions require specific classpath for annotatation processors
+    annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"]) {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }      // Newer Gradle versions require specific classpath for annotatation processors
     api("org.apache.tinkerpop", "gremlin-python", versions["tinkerpop"])
     api("org.apache.tinkerpop", "tinkergraph-gremlin", versions["tinkerpop"])
     api("org.apache.tinkerpop", "gremlin-driver", versions["tinkerpop"])
@@ -117,6 +119,8 @@ dependencies {
 
     testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", versions["junit5"])
+
+
 }
 
 application {

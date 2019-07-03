@@ -8,9 +8,6 @@ import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.ControlFlowGraphPass;
-import de.fraunhofer.aisec.crymlin.passes.StatementsPerMethodPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
@@ -127,9 +124,7 @@ public class AnalysisServerQueriesTest {
             TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
-                .registerPass(new ControlFlowGraphPass()) // creates CFG
-                .registerPass(new CallResolver()) // creates CG
-                .registerPass(new StatementsPerMethodPass())
+                .defaultPasses()
                 .sourceFiles(sourceFiles)
                 .build())
         .build();

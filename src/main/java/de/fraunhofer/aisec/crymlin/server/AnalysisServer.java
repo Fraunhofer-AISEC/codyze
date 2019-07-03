@@ -157,13 +157,6 @@ public class AnalysisServer {
       }
     }
 
-    if (this.interp == null) {
-      // moved here to provide faster startup for lsp
-      // todo move up again?
-      interp = new JythonInterpreter();
-      interp.connect();
-    }
-
     // Run all passes and persist the result
     return analyzer
         .analyze() // Run analysis

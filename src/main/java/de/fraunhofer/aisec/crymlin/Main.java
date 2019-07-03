@@ -55,7 +55,7 @@ public class Main {
       log.info("Do not load any MARK files.");
     }
 
-    System.out.println("Analysis server starting ...");
+    log.info("Analysis server starting ...");
     AnalysisServer server =
         AnalysisServer.builder()
             .config(

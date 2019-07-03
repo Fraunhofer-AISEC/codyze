@@ -51,12 +51,20 @@ class LSPTest {
 
     LanguageClient lc =
         new LanguageClient() {
+          boolean first = true;
+
           @Override
           public void telemetryEvent(Object o) {}
 
           @Override
           public void publishDiagnostics(PublishDiagnosticsParams publishDiagnosticsParams) {
-            assertEquals(3, publishDiagnosticsParams.getDiagnostics().size());
+            if (first) {
+              // a generic message to mark the whole file
+              first = false;
+              assertEquals(1, publishDiagnosticsParams.getDiagnostics().size());
+            } else {
+              assertEquals(3, publishDiagnosticsParams.getDiagnostics().size());
+            }
           }
 
           @Override
@@ -85,14 +93,23 @@ class LSPTest {
 
   @Test
   void testOrder() {
+
     LanguageClient lc =
         new LanguageClient() {
+          boolean first = true;
+
           @Override
           public void telemetryEvent(Object o) {}
 
           @Override
           public void publishDiagnostics(PublishDiagnosticsParams publishDiagnosticsParams) {
-            assertEquals(10, publishDiagnosticsParams.getDiagnostics().size());
+            if (first) {
+              // a generic message to mark the whole file
+              first = false;
+              assertEquals(1, publishDiagnosticsParams.getDiagnostics().size());
+            } else {
+              assertEquals(10, publishDiagnosticsParams.getDiagnostics().size());
+            }
           }
 
           @Override

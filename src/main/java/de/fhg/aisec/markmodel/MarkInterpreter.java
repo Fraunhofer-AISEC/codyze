@@ -8,6 +8,7 @@ import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
+import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import java.util.*;
@@ -817,7 +818,6 @@ public class MarkInterpreter {
                     v.value("endLine"),
                     v.value("startColumn"),
                     v.value("endColumn"));
-            ;
             ctx.getFindings().add(f);
             log.info("Finding: {}", f.toString());
           }
@@ -833,7 +833,8 @@ public class MarkInterpreter {
     if (s.getCond() != null) {
       if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
         log.info(
-            "   terminate rule checking due to unsatisfied guarding condition: " + s.getCond());
+            "   terminate rule checking due to unsatisfied guarding condition: "
+                + exprToString(s.getCond().getExp()));
         Finding finding = new Finding("MarkRuleEvaluationFinding: guarding condition unsatisfied");
         return new MarkRuleEvaluationResult(
             finding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
@@ -958,6 +959,7 @@ public class MarkInterpreter {
     }
     log.debug("left result= " + leftResult.get() + " right result= " + rightResult.get());
 
+    // TODO implement remaining operations
     switch (op) {
       case "==":
         return Optional.of(leftResult.get().equals(rightResult.get()));
@@ -975,24 +977,55 @@ public class MarkInterpreter {
     }
   }
 
+  private Vector<Optional> evaluateArgs(EList<Argument> argList, int n) {
+    Vector<Optional> result = new Vector<Optional>();
+    for (int i = 0; i < n; i++) {
+      Expression arg = (Expression) argList.get(i);
+      result.add(evaluateUnknownExpr(arg));
+    }
+    return result;
+  }
+
   private Optional evaluateFunctionCallExpr(Expression expr) {
     assert expr instanceof FunctionCallExpression;
 
     FunctionCallExpression callExpr = (FunctionCallExpression) expr;
     String functionName = callExpr.getName();
     if (functionName.startsWith("_")) {
-      // call to built-in crymlin query
+      // call to built-in functions
 
-      // TODO: just a test hack. Do implement it the right way
-      if (functionName.contains("split")) {
-        return Optional.of("\"CBC\"");
+      if (functionName.equals("_split")) {
+        Vector<Optional> argOptionals = evaluateArgs(callExpr.getArgs(), 3);
+        int i = 0;
+        for (Optional arg : argOptionals) {
+          if (arg.isEmpty()) {
+            return Optional.empty();
+          }
+          i++;
+        }
+        String s = (String) argOptionals.get(0).get();
+        String regex = (String) argOptionals.get(1).get();
+        int index = (Integer) argOptionals.get(2).get();
+        log.debug("args are: " + s + "; " + regex + "; " + index);
+        return Optional.of(Builtins._split(s, regex, index));
       }
+
       if (functionName.contains("receives_value_from")) {
-        return Optional.of(true);
+        return Optional.of(Builtins._receives_value_from());
       }
     }
 
     return Optional.empty();
+  }
+
+  private Optional evaluateLiteral(Literal literal) {
+    if (literal instanceof StringLiteral) {
+      return Optional.of(Utils.stripQuotedString(literal.getValue()));
+    } else if (literal instanceof IntegerLiteral) {
+      return Optional.of(Integer.valueOf(literal.getValue()));
+    } else {
+      throw new RuntimeException("not yet implemented");
+    }
   }
 
   private Optional evaluateUnknownExpr(Expression expr) {
@@ -1007,7 +1040,7 @@ public class MarkInterpreter {
     } else if (expr instanceof Literal) {
       log.debug("evaluating Literal expression: " + exprToString(expr));
       Literal literal = (Literal) expr;
-      return Optional.of(literal.getValue());
+      return evaluateLiteral(literal);
     } else if (expr instanceof LiteralListExpression) {
       log.debug("evaluating LiteralListExpression: " + exprToString(expr));
       return Optional.empty();
@@ -1022,12 +1055,14 @@ public class MarkInterpreter {
       return Optional.empty();
     } else if (expr instanceof Operand) {
       log.debug("evaluating Operand expression: " + exprToString(expr));
-      return Optional.empty();
+      Operand o = (Operand) expr;
+      // TODO just for test. Implement!
+      return Optional.of(o.getOperand());
     } else if (expr instanceof UnaryExpression) {
       log.debug("evaluating UnaryExpression: " + exprToString(expr));
       return Optional.empty();
     } else {
-      log.debug("unknown expression: " + exprToString(expr));
+      log.error("unknown expression: " + exprToString(expr));
       assert false; // all expression types must be handled
       return Optional.empty();
     }

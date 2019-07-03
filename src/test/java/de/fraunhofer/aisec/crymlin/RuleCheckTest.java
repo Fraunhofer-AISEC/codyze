@@ -123,7 +123,6 @@ public class RuleCheckTest {
     int guardingUnsatisfied = 0;
     int guardingUnknown = 0;
     for (Finding f : findings) {
-      System.out.println(f.getFinding());
       if (f.getFinding().contains("MarkRuleEvaluationFinding")) {
         markRuleEvaluationFindingCount++;
         if (f.getFinding().contains("guarding condition unsatisfied")) {

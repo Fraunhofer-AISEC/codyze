@@ -194,4 +194,21 @@ public class FSM {
   public HashSet<Node> getStart() {
     return startNodes;
   }
+
+  public void clear() {
+    HashSet<Node> seen = new HashSet<>();
+    ArrayList<Node> current = new ArrayList<>(startNodes);
+    while (!current.isEmpty()) {
+      ArrayList<Node> newWork = new ArrayList<>();
+      for (Node n : current) {
+        if (!seen.contains(n)) {
+          for (Node s : n.getSuccessors()) {
+            s.clear();
+          }
+          seen.add(n);
+        }
+      }
+      current = newWork;
+    }
+  }
 }

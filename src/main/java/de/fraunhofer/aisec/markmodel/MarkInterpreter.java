@@ -5,11 +5,9 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
-import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.time.Duration;
 import java.time.Instant;
@@ -24,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MarkInterpreter {
-  private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
+  private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
   @NonNull private final Mark markModel;
 
   public MarkInterpreter(@NonNull Mark markModel) {
@@ -155,9 +153,10 @@ public class MarkInterpreter {
          - call statements to vertices
       */
       for (MEntity ent : this.markModel.getEntities()) {
+        log.info("Precalculating call statments for entity {}", ent.getName());
         ent.parseVars();
         for (MOp op : ent.getOps()) {
-          log.debug("Parsing Call Statements for {}", op.getName());
+          log.debug("Looking for call statements for {}", op.getName());
           int numMatches = 0;
           for (OpStatement a : op.getStatements()) {
             HashSet<Vertex> temp =
@@ -172,64 +171,7 @@ public class MarkInterpreter {
             op.addVertex(a, temp);
           }
           op.setParsingFinished();
-          log.info("Parsed call statements for {}: {} matches", op.getName(), numMatches);
-        }
-      }
-      log.info(
-          "Done precalculating matching nodes in {} ms.",
-          Duration.between(start, Instant.now()).toMillis());
-
-      log.info("Parse FSM, perform sanity checks on MarkModel");
-      start = Instant.now();
-      for (MRule rule : markModel.getRules()) {
-        if (rule.getStatement() != null
-            && rule.getStatement().getEnsure() != null
-            && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
-          OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
-          FSM fsm = new FSM();
-          fsm.sequenceToFSM(inner.getExp());
-          rule.setFSM(fsm);
-
-          // check that the fsm is valid:
-          // todo remove once the modelloader performs these checks!
-          HashSet<Node> worklist = new HashSet<>(fsm.getStart());
-          HashSet<Node> seen = new HashSet<>();
-          while (!worklist.isEmpty()) {
-            HashSet<Node> nextWorkList = new HashSet<>();
-            seen.addAll(worklist);
-
-            for (Node n : worklist) {
-              // check that the op exists
-              if (!n.isFake()) {
-                MEntity entity = rule.getEntityReferences().get(n.getBase()).getValue1();
-                String entityName = rule.getEntityReferences().get(n.getBase()).getValue0();
-                if (entity == null) {
-                  log.error(
-                      "Entity is not parsed: "
-                          + entityName
-                          + " which is specified in rule "
-                          + rule.getName());
-                } else {
-                  MOp op = entity.getOp(n.getOp());
-                  if (op == null) {
-                    log.error(
-                        "Entity "
-                            + entity.getName()
-                            + " does not contain op "
-                            + n.getOp()
-                            + " which is specified in rule "
-                            + rule.getName());
-                  }
-                }
-              }
-              for (Node s : n.getSuccessors()) {
-                if (!seen.contains(s)) {
-                  nextWorkList.add(s);
-                }
-              }
-            }
-            worklist = nextWorkList;
-          }
+          log.info("Found {} call statements in the cpg for {}", op.getName(), numMatches);
         }
       }
       log.info(
@@ -246,10 +188,11 @@ public class MarkInterpreter {
       log.info("Evaluate order");
       start = Instant.now();
       evaluateOrder(ctx, crymlinTraversal);
-      log.info("Done evaluate order in {} ms.", Duration.between(start, Instant.now()).toMillis());
+      log.info(
+          "Done evaluating  order in {} ms.", Duration.between(start, Instant.now()).toMillis());
 
       log.info(
-          "Done evaluate all MARK rules in {} ms.",
+          "Done evaluating   all MARK rules in {} ms.",
           Duration.between(start, Instant.now()).toMillis());
 
       return result;
@@ -599,7 +542,6 @@ public class MarkInterpreter {
         }
       }
     }
-    log.info("Done evaluating order");
   }
 
   private void evaluateForbiddenCalls(AnalysisContext ctx) {

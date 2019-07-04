@@ -34,12 +34,12 @@ public class RuleCheckTest {
 
     ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
-    URL resource = classLoader.getResource("symm_block_cipher.cpp");
+    URL resource = classLoader.getResource("mark_rule_eval.cpp");
     assertNotNull(resource);
     File cppFile = new File(resource.getFile());
     assertNotNull(cppFile);
 
-    resource = classLoader.getResource("mark/PoC_MS1/Botan_CipherMode.mark");
+    resource = classLoader.getResource("mark_rule_eval.mark");
     assertNotNull(resource);
     File markPoC1 = new File(resource.getFile());
     assertNotNull(markPoC1);
@@ -143,10 +143,10 @@ public class RuleCheckTest {
       }
     }
     assertEquals(5, markRuleEvaluationFindingCount);
-    assertEquals(0, satisfied);
+    assertEquals(1, satisfied);
     assertEquals(0, violated);
     assertEquals(4, unknown);
     assertEquals(0, guardingUnsatisfied);
-    assertEquals(1, guardingUnknown);
+    assertEquals(0, guardingUnknown);
   }
 }

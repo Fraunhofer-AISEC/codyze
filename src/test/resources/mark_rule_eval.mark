@@ -1,0 +1,154 @@
+package botan
+
+
+entity Botan::Cipher_Mode isa Cipher {
+	
+	var algorithm : std::string;
+	var direction : Botan::Cipher_Dir; // an enum of underlying type int
+	var provider : std::String;
+	
+	var symkey : Botan::SymmetricKey; // aka Botan::OctetString; class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
+	var svkey : Botan::secure_vector<uint8_t>;
+	
+	var iv : Botan::InitializationVector; // aka Botan::OctetString; class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
+	
+	var input : Botan::secure_vector<uint8_t>;
+	var input_length : std::size_t;
+	
+	var buffer : std::uint8_t[];
+	
+	var nonce : std::uint8_t[];
+	var nonce_length : std::size_t;
+	
+	
+	op create() {
+		/*
+		 * method call(s):
+		 * - static std::unique_ptr<Cipher_Mode> create(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
+		 * - static std::unique_ptr<Cipher_Mode> create_or_throw(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
+		 * 
+		 * function call(s):
+		 * - Cipher_Mode* get_cipher_mode(const std::string& algo_spec, Cipher_Dir direction, const std::string& provider = "")
+		 */
+		Botan::get_cipher_mode(algorithm, direction);
+		Botan::get_cipher_mode(algorithm, direction, provider);
+
+		/* this is only for botan version >= 2.6.0  
+		Botan::Cipher_Mode::create(algorithm, direction);
+		Botan::Cipher_Mode::create(algorithm, direction, provider);
+	
+		Botan::Cipher_Mode::create_or_throw(algorithm, direction);
+		Botan::Cipher_Mode::create_or_throw(algorithm, direction, provider);
+		*/
+	}
+	
+	op init() {
+		/*
+		 * method call(s) inherited from Botan::SymmetricAlgorithm:
+		 * - void set_key(const SymmetricKey& key)
+		 * - template<typename Alloc>
+		 *   void set_key(const std::vector<uint8_t, Alloc>& key)
+		 * - void set_key(const uint8_t key[], size_t length);
+		 */
+		Botan::Cipher_Mode::set_key(symkey);
+		Botan::Cipher_Mode::set_key(svkey);
+		forbidden Botan::Cipher_Mode::set_key(_, _);
+	}
+	
+	op start() {
+		/* 
+		 * method call(s):
+		 * - template<typename Alloc>
+		 *   void start(const std::vector<uint8_t, Alloc>& nonce)
+		 * - void start(const uint8_t nonce[], size_t nonce_len)
+		 * - void start()
+		 * 
+		 * - virtual void start_msg(const uint8_t nonce[], size_t nonce_len) = 0;
+		 */
+    	forbidden Botan::Cipher_Mode::start();
+		Botan::Cipher_Mode::start(iv);
+		forbidden Botan::Cipher_Mode::start(nonce, nonce_length);
+		
+		forbidden Botan::Cipher_Mode::start_msg(nonce, nonce_length);
+	}
+	
+	op process() {
+		/*
+		 * method call(s): 
+		 * - void update(secure_vector<uint8_t>& buffer, size_t offset = 0)
+		 * 
+		 * - virtual size_t process(uint8_t msg[], size_t msg_len) = 0;
+		 */
+		Botan::Cipher_Mode::process(input, input_length);
+		
+		Botan::Cipher_Mode::update(buffer);
+		Botan::Cipher_Mode::update(buffer, _);
+	}
+	
+	op finish() {
+		/*
+		 * method call(s):
+		 * - virtual void finish(secure_vector<uint8_t>& final_block, size_t offset = 0) = 0;
+		 */
+		Botan::Cipher_Mode::finish(input);
+		Botan::Cipher_Mode::finish(input, _);
+	}
+	
+	op reset() {
+		/*
+		 * method call(s):
+		 * - virtual void reset() = 0;
+		 */
+		Botan::Cipher_Mode::reset();
+	}
+	
+}
+
+
+rule BlockCiphers {
+	using Botan::Cipher_Mode as cm
+	ensure
+		_split("AES/CBC", "/", 0) in [ "AES" ]  // TODO Nicetohave: Vordefinierte Methoden highlighten
+	onfail WrongBlockCipher
+}
+
+rule UseOfBotan_CipherMode {
+	using Botan::Cipher_Mode as cm
+	ensure
+		order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
+	onfail WrongUseOfBotan_CipherMode
+}
+
+// Just for demo
+rule SimpleUseOfBotan_CipherMode {
+	using Botan::Cipher_Mode as cm
+	ensure
+		order cm.create(), cm.init(), cm.start()*, cm.finish()
+	onfail WrongUseOfBotan_CipherMode
+}
+
+// Just for demo
+rule SimpleUseOfBotan2_CipherMode {
+	using Botan::Cipher_Mode as cm
+	ensure
+		order cm.create(), cm.init(), cm.start()+, cm.finish()
+	onfail WrongUseOfBotan_CipherMode
+}
+
+rule UseRandomIV {
+	using Botan::Cipher_Mode as cm,
+		Botan::AutoSeededRNG as rng
+	when _split("AES/CBC", "/", 1) == "CBC" || cm.direction == Botan::Cipher_Dir::ENCRYPTION
+	ensure
+		_receives_value_from(cm.iv, rng.myValue)  // TODO "def" trifft es hier nicht ganz. Es geht genaugenommen nicht um die Definition der Variablen, sondern um *alle möglichen* Werte, die sie zur Laufzeit annehmen kann.
+	onfail NoRandomIV
+}
+
+
+//rule OnlyAES_256 {
+//	using Botan_CipherMode
+//	when _part(1, "/", algorithm) == "AES"
+//	ensure
+//		_length(key) == 256
+//}
+

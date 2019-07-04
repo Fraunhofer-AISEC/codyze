@@ -6,7 +6,7 @@ public class Builtins {
   }
 
   public static boolean _receives_value_from() {
-    //TODO implement
+    // TODO implement
     return true;
   }
 }

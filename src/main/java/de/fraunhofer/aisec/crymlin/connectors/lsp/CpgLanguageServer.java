@@ -1,5 +1,7 @@
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
@@ -26,10 +28,12 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 
   private CpgWorkspaceService workspaceService = new CpgWorkspaceService();
 
+  private Instant start;
+
   @Override
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-    log.debug("initialize");
-    //    log.debug("Pre-connecting to DB");
+    start = Instant.now();
+    //    log.info("Pre-connecting to DB");
     //    Database.getInstance().connect();
 
     InitializeResult result = new InitializeResult();
@@ -44,12 +48,12 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 
   @Override
   public CompletableFuture<Object> shutdown() {
-    log.debug("shutdown");
+    log.info("shutdown after  {} ms.", Duration.between(start, Instant.now()).toMillis());
     return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public void exit() {}
+  public void exit() {} // this is never called?
 
   @Override
   public TextDocumentService getTextDocumentService() {

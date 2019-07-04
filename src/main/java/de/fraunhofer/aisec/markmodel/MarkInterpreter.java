@@ -11,6 +11,8 @@ import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -138,7 +140,7 @@ public class MarkInterpreter {
    */
   public TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
 
-    log.info("TEMP num findings: {}", ctx.getFindings().size());
+    Instant outer_start = Instant.now();
 
     // reset stuff attached to this model
     this.markModel.reset();
@@ -146,6 +148,8 @@ public class MarkInterpreter {
     try (TraversalConnection t = new TraversalConnection()) { // this connects to the DB
       CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
 
+      log.info("Precalculating matching nodes");
+      Instant start = Instant.now();
       /*
       iterate all entities and precalculate some things:
          - call statements to vertices
@@ -153,22 +157,30 @@ public class MarkInterpreter {
       for (MEntity ent : this.markModel.getEntities()) {
         ent.parseVars();
         for (MOp op : ent.getOps()) {
-          log.info("Parsing Call Statements for {}", op.getName());
+          log.debug("Parsing Call Statements for {}", op.getName());
+          int numMatches = 0;
           for (OpStatement a : op.getStatements()) {
             HashSet<Vertex> temp =
                 getVerticesForFunctionDeclaration(a.getCall(), ent, crymlinTraversal);
-            log.info(
+            log.debug(
                 a.getCall().getName()
                     + "("
                     + String.join(", ", a.getCall().getParams())
                     + "): "
                     + temp.size());
+            numMatches += temp.size();
             op.addVertex(a, temp);
           }
           op.setParsingFinished();
+          log.info("Parsed call statements for {}: {} matches", op.getName(), numMatches);
         }
       }
+      log.info(
+          "Done precalculating matching nodes in {} ms.",
+          Duration.between(start, Instant.now()).toMillis());
 
+      log.info("Parse FSM, perform sanity checks on MarkModel");
+      start = Instant.now();
       for (MRule rule : markModel.getRules()) {
         if (rule.getStatement() != null
             && rule.getStatement().getEnsure() != null
@@ -220,18 +232,31 @@ public class MarkInterpreter {
           }
         }
       }
+      log.info(
+          "Done precalculating matching nodes in {} ms.",
+          Duration.between(start, Instant.now()).toMillis());
 
+      log.info("Evaluate forbidden calls");
+      start = Instant.now();
       evaluateForbiddenCalls(ctx);
+      log.info(
+          "Done evaluate forbidden calls in {} ms.",
+          Duration.between(start, Instant.now()).toMillis());
 
+      log.info("Evaluate order");
+      start = Instant.now();
       evaluateOrder(ctx, crymlinTraversal);
+      log.info("Done evaluate order in {} ms.", Duration.between(start, Instant.now()).toMillis());
+
+      log.info(
+          "Done evaluate all MARK rules in {} ms.",
+          Duration.between(start, Instant.now()).toMillis());
 
       return result;
     }
   }
 
   private void evaluateOrder(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal) {
-    log.info("Evaluating order");
-
     /*
     We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
     Any function calls to functions which are not specified in an entity are _ignored_
@@ -338,8 +363,8 @@ public class MarkInterpreter {
                           ref = it_ref.next().inVertex().id().toString();
                         }
                       } else {
-                        throw new RuntimeException(
-                            "base must not be null for MemberCallExpressions");
+                        log.error("base must not be null for MemberCallExpressions");
+                        assert false;
                       }
 
                       String prefixedBase = eogPath + "." + base;
@@ -587,7 +612,6 @@ public class MarkInterpreter {
      * - _and_ is not allowed by any other non-forbidden matching call statement (in _any_ op)
      */
 
-    log.info("Looking for forbidden calls");
     for (MEntity ent : this.markModel.getEntities()) {
 
       for (MOp op : ent.getOps()) {

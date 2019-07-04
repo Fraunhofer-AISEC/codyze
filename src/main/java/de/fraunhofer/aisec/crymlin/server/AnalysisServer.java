@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -127,11 +129,11 @@ public class AnalysisServer {
     Launcher<LanguageClient> launcher =
         LSPLauncher.createServerLauncher(lsp, System.in, System.out);
 
-    log.info("LSP server starting");
     launcher.startListening();
 
     LanguageClient client = launcher.getRemoteProxy();
     lsp.connect(client);
+    log.info("LSP server started");
   }
 
   /**
@@ -203,6 +205,9 @@ public class AnalysisServer {
    * @param markFile
    */
   public void loadMarkRules(@NonNull File markFile) {
+    log.info("Parsing MARK files");
+    Instant start = Instant.now();
+
     XtextParser parser = new XtextParser();
 
     if (!markFile.exists() || !markFile.canRead()) {
@@ -227,8 +232,14 @@ public class AnalysisServer {
     }
 
     HashMap<String, MarkModel> markModels = parser.parse();
+    log.info("Done parsing MARK files in {} ms", Duration.between(start, Instant.now()).toMillis());
 
+    start = Instant.now();
+    log.info("Transforming MARK Xtext to internal format");
     this.markModel = new MarkModelLoader().load(markModels);
+    log.info(
+        "Done Transforming MARK Xtext to internal format in {} ms",
+        Duration.between(start, Instant.now()).toMillis());
 
     log.info(
         "Loaded {} entities and {} rules.",

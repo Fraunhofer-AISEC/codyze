@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
+import de.fraunhofer.aisec.crymlin.utils.Pair;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -36,17 +37,18 @@ public class CpgDocumentService implements TextDocumentService {
 
   private static final Logger log = LoggerFactory.getLogger(CpgDocumentService.class);
 
-  private HashMap<String, String> lastScan = new HashMap<>();
+  private HashMap<String, Pair<String, PublishDiagnosticsParams>> lastScan = new HashMap<>();
 
   private LanguageClient client;
 
   private void analyze(String uriString, String text) {
     String sanitizedText = text.replaceAll("[\\n ]", "");
-    if (lastScan.get(uriString) != null && lastScan.get(uriString).equals(sanitizedText)) {
+    if (lastScan.get(uriString) != null
+        && lastScan.get(uriString).getValue0().equals(sanitizedText)) {
       log.info("Same file already scanned, ignoring");
+      client.publishDiagnostics(lastScan.get(uriString).getValue1());
       return;
     }
-    lastScan.put(uriString, sanitizedText);
 
     { // mark the whole file with _Information_ to indicate that the file is being scanned
       ArrayList<Diagnostic> allDiags = new ArrayList<>();
@@ -101,6 +103,7 @@ public class CpgDocumentService implements TextDocumentService {
       for (Finding f : ctx.getFindings()) {
         Diagnostic diagnostic = new Diagnostic();
         diagnostic.setSeverity(DiagnosticSeverity.Warning);
+        diagnostic.setCode("test");
         diagnostic.setMessage(f.getFinding());
         diagnostic.setRange(f.getRange());
         allDiags.add(diagnostic);
@@ -109,6 +112,8 @@ public class CpgDocumentService implements TextDocumentService {
       PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
       diagnostics.setDiagnostics(allDiags);
       diagnostics.setUri(uriString);
+
+      lastScan.put(uriString, new Pair<>(sanitizedText, diagnostics));
 
       // sending diagnostics
       client.publishDiagnostics(diagnostics);

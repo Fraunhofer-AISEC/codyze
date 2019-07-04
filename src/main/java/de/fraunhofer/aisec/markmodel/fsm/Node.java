@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel.fsm;
+package de.fraunhofer.aisec.markmodel.fsm;
 
 import java.util.HashSet;
 import org.neo4j.ogm.annotation.*;
@@ -86,5 +86,9 @@ public class Node {
 
   public String toString() {
     return getName(); // + ", MARKING: " + String.join(", ", markings);
+  }
+
+  public void clear() {
+    this.markings.clear();
   }
 }

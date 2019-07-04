@@ -1,9 +1,10 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.OpStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -19,6 +20,16 @@ public class MEntity {
   @NonNull private final List<MOp> ops = new ArrayList<>();
 
   @NonNull private final List<MVar> vars = new ArrayList<>();
+
+  public boolean equals(Object obj) {
+    if (!(obj instanceof MEntity)) {
+      return false;
+    }
+    MEntity other = (MEntity) obj;
+    return Objects.equals(packageName, other.packageName)
+        && Objects.equals(superName, other.superName)
+        && Objects.equals(name, other.name);
+  }
 
   @Nullable
   public String getName() {

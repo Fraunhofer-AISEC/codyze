@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.crymlin.structures.Finding;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -115,7 +116,7 @@ public class RuleCheckTest {
   public void ruleCheckTest() throws Exception {
     AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
     assertNotNull(ctx.getFindings());
-    List<Finding> findings = ctx.getFindings();
+    Set<Finding> findings = ctx.getFindings();
     int markRuleEvaluationFindingCount = 0;
     int satisfied = 0;
     int violated = 0;

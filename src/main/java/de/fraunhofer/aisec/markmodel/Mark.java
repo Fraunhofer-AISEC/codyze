@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,6 +34,11 @@ public class Mark {
     for (MEntity entity : getEntities()) {
       for (MOp op : entity.getOps()) {
         op.reset();
+      }
+    }
+    for (MRule rule : getRules()) {
+      if (rule.getFSM() != null) {
+        rule.getFSM().clear();
       }
     }
   }

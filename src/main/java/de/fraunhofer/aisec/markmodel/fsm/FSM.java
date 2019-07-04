@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel.fsm;
+package de.fraunhofer.aisec.markmodel.fsm;
 
 import de.fhg.aisec.mark.markDsl.Expression;
 import de.fhg.aisec.mark.markDsl.RepetitionExpression;
@@ -12,8 +12,12 @@ import java.util.TreeMap;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FSM {
+
+  private static final Logger log = LoggerFactory.getLogger(FSM.class);
 
   private HashSet<Node> startNodes = null;
 
@@ -178,16 +182,33 @@ public class FSM {
             return currentNodes;
           }
         default:
-          System.out.println("UNKNOWN OP: " + inner.getOp());
+          log.error("UNKNOWN OP: " + inner.getOp());
           return addExpr(inner.getExpr(), currentNodes);
       }
     }
 
-    System.out.println("ERROR, unknown Expression: " + expr.getClass());
+    log.error("ERROR, unknown Expression: " + expr.getClass());
     return null;
   }
 
   public HashSet<Node> getStart() {
     return startNodes;
+  }
+
+  public void clear() {
+    HashSet<Node> seen = new HashSet<>();
+    ArrayList<Node> current = new ArrayList<>(startNodes);
+    while (!current.isEmpty()) {
+      ArrayList<Node> newWork = new ArrayList<>();
+      for (Node n : current) {
+        if (!seen.contains(n)) {
+          for (Node s : n.getSuccessors()) {
+            s.clear();
+          }
+          seen.add(n);
+        }
+      }
+      current = newWork;
+    }
   }
 }

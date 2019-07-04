@@ -2,9 +2,6 @@ package de.fraunhofer.aisec.crymlin.server;
 
 import de.fhg.aisec.mark.XtextParser;
 import de.fhg.aisec.mark.markDsl.MarkModel;
-import de.fhg.aisec.markmodel.Mark;
-import de.fhg.aisec.markmodel.MarkInterpreter;
-import de.fhg.aisec.markmodel.MarkModelLoader;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -12,11 +9,16 @@ import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
+import de.fraunhofer.aisec.markmodel.Mark;
+import de.fraunhofer.aisec.markmodel.MarkInterpreter;
+import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +52,7 @@ public class AnalysisServer {
 
   private JythonInterpreter interp;
 
-  private CpgLanguageServer lsp;
+  public CpgLanguageServer lsp;
 
   @NonNull private Mark markModel = new Mark();
 
@@ -69,20 +71,18 @@ public class AnalysisServer {
     return instance;
   }
 
-  /**
-   * Starts the server in a separate threat, returns as soon as the server is ready to operate.
-   *
-   * @throws Exception
-   */
-  public void start() throws Exception {
-
-    loadMarkRulesFromConfig();
-
-    // Launch LSP server
+  /** Starts the server in a separate threat, returns as soon as the server is ready to operate. */
+  public void start() {
     if (config.launchLsp) {
       launchLspServer();
-      return;
+    } else {
+      launchConsole();
     }
+  }
+
+  private void launchConsole() {
+
+    loadMarkRulesFromConfig();
 
     // Initialize JythonInterpreter
     log.info("Launching crymlin query interpreter ...");
@@ -93,13 +93,8 @@ public class AnalysisServer {
     // Blocks forever.
     // May be replaced by custom JLine console later (not important for the moment)
     if (config.launchConsole) {
-      if (!config.launchLsp) {
-        // Blocks forever:
-        interp.spawnInteractiveConsole();
-      } else {
-        log.warn(
-            "Running in LSP mode. Refusing to start interactive console as stdin/stdout is occupied by LSP.");
-      }
+      // Blocks forever:
+      interp.spawnInteractiveConsole();
     }
   }
 
@@ -127,11 +122,13 @@ public class AnalysisServer {
     Launcher<LanguageClient> launcher =
         LSPLauncher.createServerLauncher(lsp, System.in, System.out);
 
-    log.info("LSP server starting");
     launcher.startListening();
 
     LanguageClient client = launcher.getRemoteProxy();
     lsp.connect(client);
+    log.info("LSP server started");
+
+    loadMarkRulesFromConfig();
   }
 
   /**
@@ -157,13 +154,6 @@ public class AnalysisServer {
       }
     }
 
-    if (this.interp == null) {
-      // moved here to provide faster startup for lsp
-      // todo move up again?
-      interp = new JythonInterpreter();
-      interp.connect();
-    }
-
     // Run all passes and persist the result
     return analyzer
         .analyze() // Run analysis
@@ -185,8 +175,7 @@ public class AnalysisServer {
                   this.markModel.getEntities().size(),
                   this.markModel.getRules().size());
               // Evaluate all MARK rules
-              MarkInterpreter mi =
-                  new MarkInterpreter(this.markModel, this.interp.getCrymlinTraversal());
+              MarkInterpreter mi = new MarkInterpreter(this.markModel);
               return mi.evaluate(result, ctx);
             });
   }
@@ -211,6 +200,9 @@ public class AnalysisServer {
    * @param markFile
    */
   public void loadMarkRules(@NonNull File markFile) {
+    log.info("Parsing MARK files");
+    Instant start = Instant.now();
+
     XtextParser parser = new XtextParser();
 
     if (!markFile.exists() || !markFile.canRead()) {
@@ -218,12 +210,12 @@ public class AnalysisServer {
     }
 
     if (markFile.isDirectory()) {
-      log.debug("Loading MARK from directory {}", markFile.getAbsolutePath());
+      log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
       try {
         DirectoryStream<Path> fileStream = Files.newDirectoryStream(markFile.toPath());
         for (Path f : fileStream) {
           if (f.getFileName().toString().endsWith(".mark")) {
-            log.debug("  Loading MARK file {}", f.toFile().getAbsolutePath());
+            log.info("  Loading MARK file {}", f.toFile().getAbsolutePath());
             parser.addMarkFile(f.toFile());
           }
         }
@@ -235,8 +227,14 @@ public class AnalysisServer {
     }
 
     HashMap<String, MarkModel> markModels = parser.parse();
+    log.info("Done parsing MARK files in {} ms", Duration.between(start, Instant.now()).toMillis());
 
+    start = Instant.now();
+    log.info("Transforming MARK Xtext to internal format");
     this.markModel = new MarkModelLoader().load(markModels);
+    log.info(
+        "Done Transforming MARK Xtext to internal format in {} ms",
+        Duration.between(start, Instant.now()).toMillis());
 
     log.info(
         "Loaded {} entities and {} rules.",
@@ -274,6 +272,7 @@ public class AnalysisServer {
       lsp.shutdown();
     }
     Database.getInstance().close();
+    log.info("stop.");
   }
 
   public static Builder builder() {

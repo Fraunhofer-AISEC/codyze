@@ -22,31 +22,6 @@ import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class MarkRuleEvaluationResult {
-  private final MarkRuleEvaluationStatus status;
-  private final Finding finding;
-
-  public MarkRuleEvaluationResult(Finding finding, MarkRuleEvaluationStatus status) {
-    this.finding = finding;
-    this.status = status;
-  }
-
-  public enum MarkRuleEvaluationStatus {
-    SATISFIED,
-    VIOLATED,
-    UNKNOWN,
-    NOT_TRIGGERED
-  }
-
-  public Finding getFinding() {
-    return finding;
-  }
-
-  public MarkRuleEvaluationStatus getStatus() {
-    return status;
-  }
-}
-
 public class MarkInterpreter {
   private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
   @NonNull private final Mark markModel;
@@ -221,10 +196,13 @@ public class MarkInterpreter {
       start = Instant.now();
       evaluateOrder(ctx, crymlinTraversal);
       log.info(
-          "Done evaluating  order in {} ms.", Duration.between(start, Instant.now()).toMillis());
+          "Done evaluating order in {} ms.", Duration.between(start, Instant.now()).toMillis());
 
+      log.info("Evaluate rules");
+      start = Instant.now();
+      evaluateRules(ctx);
       log.info(
-          "Done evaluating   all MARK rules in {} ms.",
+          "Done evaluating all MARK rules in {} ms.",
           Duration.between(start, Instant.now()).toMillis());
 
       return result;
@@ -636,64 +614,71 @@ public class MarkInterpreter {
     }
   }
 
-  private MarkRuleEvaluationResult evaluateRule(MRule rule) {
-    // TODO use meaningful findings
-    RuleStatement s = rule.getStatement();
-    log.debug("checking rule " + rule);
-    if (s.getCond() != null) {
-      if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
-        log.info(
-            "   terminate rule checking due to unsatisfied guarding condition: "
-                + exprToString(s.getCond().getExp()));
-        Finding finding = new Finding("MarkRuleEvaluationFinding: guarding condition unsatisfied");
-        return new MarkRuleEvaluationResult(
-            finding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
-      } else if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
-        log.warn(
-            "The rule '"
-                + rule.getName()
-                + "' will not be checked because it's guarding condition cannot be evaluated:"
-                + exprToString(s.getCond().getExp()));
-        Finding finding = new Finding("MarkRuleEvaluationFinding: guarding condition unknown");
-        return new MarkRuleEvaluationResult(
-            finding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.NOT_TRIGGERED);
+  private void evaluateRules(AnalysisContext ctx) {
+    for (MRule rule : markModel.getRules()) {
+      if (rule.getStatement() != null && rule.getStatement().getEnsure() != null) {
+        RuleStatement s = rule.getStatement();
+        log.info("checking rule " + rule.getName());
+        if (s.getCond() != null) {
+          if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
+            log.info(
+                "   terminate rule checking due to unsatisfied guarding condition: "
+                    + exprToString(s.getCond().getExp()));
+            ctx.getFindings()
+                .add(
+                    new Finding(
+                        "MarkRuleEvaluationFinding: Rule "
+                            + rule.getName()
+                            + ": guarding condition unsatisfied"));
+          } else if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
+            log.warn(
+                "The rule '"
+                    + rule.getName()
+                    + "' will not be checked because it's guarding condition cannot be evaluated: "
+                    + exprToString(s.getCond().getExp()));
+            ctx.getFindings()
+                .add(
+                    new Finding(
+                        "MarkRuleEvaluationFinding: Rule "
+                            + rule.getName()
+                            + ": guarding condition unknown"));
+          }
+        }
+
+        log.debug("checking 'ensure'-statement");
+        if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
+          log.warn(
+              "Ensure statement of rule '"
+                  + rule.getName()
+                  + "' cannot be evaluated: "
+                  + exprToString(s.getEnsure().getExp()));
+          ctx.getFindings()
+              .add(
+                  new Finding(
+                      "MarkRuleEvaluationFinding: Rule "
+                          + rule.getName()
+                          + ": ensure condition unknown"));
+        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
+          log.error("Rule '" + rule.getName() + "' is violated.");
+          ctx.getFindings()
+              .add(
+                  new Finding(
+                      "MarkRuleEvaluationFinding: Rule "
+                          + rule.getName()
+                          + ": ensure condition violated"));
+        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.TRUE) {
+          log.info("Rule '" + rule.getName() + "' is satisfied.");
+          ctx.getFindings()
+              .add(
+                  new Finding(
+                      "MarkRuleEvaluationFinding: Rule "
+                          + rule.getName()
+                          + ": ensure condition satisfied"));
+        } else {
+          assert false; // no other paths expected here
+        }
       }
     }
-
-    log.trace("checking 'ensure'-statement");
-
-    if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
-      Finding finding = new Finding("MarkRuleEvaluationFinding: ensure condition unknown");
-      return new MarkRuleEvaluationResult(
-          finding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.UNKNOWN);
-    } else if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
-      Finding finding = new Finding("MarkRuleEvaluationFinding: ensure condition violated");
-      return new MarkRuleEvaluationResult(
-          finding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.VIOLATED);
-    }
-    Finding finding = new Finding("MarkRuleEvaluationFinding: ensure condition satisfied");
-    return new MarkRuleEvaluationResult(
-        finding, MarkRuleEvaluationResult.MarkRuleEvaluationStatus.SATISFIED);
-    /*// TODO parse rule and do something with it
-    Optional<String> matchingEntity =
-        r.getStatement().getEntities().stream()
-            .map(ent -> ent.getE().getName())
-            .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
-            .findAny();
-    if (matchingEntity.isPresent()) {
-      // System.out.println("Found matching entity " + matchingEntity.get());
-      Expression ensureExpr = r.getStatement().getEnsure().getExp();
-      // System.out.println(exprToString(ensureExpr));
-      // TODO evaluate expression against populated mark entities
-      if (evaluateExpr(ensureExpr)) {
-        // System.out.println("Rule " + r.getName() + " is satisfied.");
-        return true;
-      } else {
-        // System.out.println("Rule " + r.getName() + " is matched but violated.");
-        return false;
-      }
-    }
-    return false;*/
   }
 
   private TRISTATE evaluateTopLevelExpr(Expression expr) {

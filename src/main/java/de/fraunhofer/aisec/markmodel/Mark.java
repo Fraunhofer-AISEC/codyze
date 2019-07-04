@@ -36,5 +36,10 @@ public class Mark {
         op.reset();
       }
     }
+    for (MRule rule : getRules()) {
+      if (rule.getFSM() != null) {
+        rule.getFSM().clear();
+      }
+    }
   }
 }

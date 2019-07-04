@@ -97,7 +97,10 @@ public class CpgDocumentService implements TextDocumentService {
         log.error("ctx is null. Did the analysis run without errors?");
         return;
       }
-      log.info("Analysis for {} done. Returning {} findings", uriString, ctx.getFindings().size());
+      log.info(
+          "Analysis for {} done. Returning {} findings\n-------------------------------------------------------------------",
+          uriString,
+          ctx.getFindings().size());
 
       ArrayList<Diagnostic> allDiags = new ArrayList<>();
       for (Finding f : ctx.getFindings()) {
@@ -125,7 +128,7 @@ public class CpgDocumentService implements TextDocumentService {
 
   @Override
   public void didOpen(DidOpenTextDocumentParams params) {
-    log.info("Handling didOpen: {}", params);
+    log.info("Handling didOpen for file: {}", params.getTextDocument().getUri());
     analyze(params.getTextDocument().getUri(), params.getTextDocument().getText());
   }
 
@@ -139,7 +142,7 @@ public class CpgDocumentService implements TextDocumentService {
 
   @Override
   public void didSave(DidSaveTextDocumentParams params) {
-    log.info("Handling didSave: {}", params);
+    log.info("Handling didSave for file: {}", params.getTextDocument().getUri());
     analyze(params.getTextDocument().getUri(), params.getText());
   }
 

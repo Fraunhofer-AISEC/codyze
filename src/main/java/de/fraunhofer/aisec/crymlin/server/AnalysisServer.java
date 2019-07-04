@@ -71,20 +71,18 @@ public class AnalysisServer {
     return instance;
   }
 
-  /**
-   * Starts the server in a separate threat, returns as soon as the server is ready to operate.
-   *
-   * @throws Exception
-   */
-  public void start() throws Exception {
-
-    loadMarkRulesFromConfig();
-
-    // Launch LSP server
+  /** Starts the server in a separate threat, returns as soon as the server is ready to operate. */
+  public void start() {
     if (config.launchLsp) {
       launchLspServer();
-      return;
+    } else {
+      launchConsole();
     }
+  }
+
+  private void launchConsole() {
+
+    loadMarkRulesFromConfig();
 
     // Initialize JythonInterpreter
     log.info("Launching crymlin query interpreter ...");
@@ -95,13 +93,8 @@ public class AnalysisServer {
     // Blocks forever.
     // May be replaced by custom JLine console later (not important for the moment)
     if (config.launchConsole) {
-      if (!config.launchLsp) {
-        // Blocks forever:
-        interp.spawnInteractiveConsole();
-      } else {
-        log.warn(
-            "Running in LSP mode. Refusing to start interactive console as stdin/stdout is occupied by LSP.");
-      }
+      // Blocks forever:
+      interp.spawnInteractiveConsole();
     }
   }
 
@@ -134,6 +127,8 @@ public class AnalysisServer {
     LanguageClient client = launcher.getRemoteProxy();
     lsp.connect(client);
     log.info("LSP server started");
+
+    loadMarkRulesFromConfig();
   }
 
   /**

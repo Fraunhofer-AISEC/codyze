@@ -104,13 +104,13 @@ class ForbiddenTest {
 
     assertTrue(
         findings.contains(
-            "line 42: Violation against forbidden call(s) Botan::set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
+            "line 42: Violation against forbidden call(s) BotanF::set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
     assertTrue(
         findings.contains(
-            "line 37: Violation against forbidden call(s) Botan::start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
+            "line 37: Violation against forbidden call(s) BotanF::start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
     assertTrue(
         findings.contains(
-            "line 36: Violation against forbidden call(s) Botan::start() in Entity Forbidden. Call was b.start();"));
+            "line 36: Violation against forbidden call(s) BotanF::start() in Entity Forbidden. Call was b.start();"));
 
     // Stop the analysis server
     server.stop();

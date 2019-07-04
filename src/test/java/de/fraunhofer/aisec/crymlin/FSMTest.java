@@ -5,16 +5,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import de.fhg.aisec.mark.XtextParser;
 import de.fhg.aisec.mark.markDsl.MarkModel;
 import de.fhg.aisec.mark.markDsl.OrderExpression;
-import de.fhg.aisec.markmodel.MRule;
-import de.fhg.aisec.markmodel.Mark;
-import de.fhg.aisec.markmodel.MarkModelLoader;
-import de.fhg.aisec.markmodel.fsm.FSM;
+import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.Mark;
+import de.fraunhofer.aisec.markmodel.MarkModelLoader;
+import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class FSMTest {
@@ -70,22 +69,21 @@ class FSMTest {
         1, mark.getRules().stream().filter(x -> x.getName().equals("UseRandomIV")).count());
   }
 
-  @Test
-  @Disabled
-  void fsmTest() {
-
-    FSM.clearDB();
-    for (MRule rule : mark.getRules()) {
-      if (rule.getStatement() != null
-          && rule.getStatement().getEnsure() != null
-          && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
-        OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
-        FSM fsm = new FSM();
-        fsm.sequenceToFSM(inner.getExp());
-        fsm.pushToDB();
-      }
-    }
-  }
+  //  @Test
+  //  void fsmTest() {
+  //
+  //    FSM.clearDB();
+  //    for (MRule rule : mark.getRules()) {
+  //      if (rule.getStatement() != null
+  //          && rule.getStatement().getEnsure() != null
+  //          && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
+  //        OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
+  //        FSM fsm = new FSM();
+  //        fsm.sequenceToFSM(inner.getExp());
+  //        fsm.pushToDB();
+  //      }
+  //    }
+  //  }
 
   private FSM load(String ruleName) {
     Optional<MRule> opt =

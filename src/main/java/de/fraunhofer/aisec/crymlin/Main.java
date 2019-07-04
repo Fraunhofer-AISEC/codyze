@@ -2,6 +2,8 @@ package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.logging.LogManager;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
@@ -20,6 +22,8 @@ public class Main {
   }
 
   public static void main(String... args) throws Exception {
+    Instant start = Instant.now();
+    log.info("Analysis server starting");
 
     Options options = new Options();
 
@@ -55,7 +59,6 @@ public class Main {
       log.info("Do not load any MARK files.");
     }
 
-    System.out.println("Analysis server starting ...");
     AnalysisServer server =
         AnalysisServer.builder()
             .config(
@@ -67,5 +70,7 @@ public class Main {
             .build();
 
     server.start();
+    log.info(
+        "Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
   }
 }

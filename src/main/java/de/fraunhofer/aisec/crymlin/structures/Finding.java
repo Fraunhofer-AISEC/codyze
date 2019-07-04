@@ -42,4 +42,15 @@ public class Finding {
     // simple for now
     return "line " + humanRange.getStart().getLine() + ": " + finding;
   }
+
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Finding)) {
+      return false;
+    }
+    return this.toString().equals(obj.toString());
+  }
+
+  public int hashCode() {
+    return toString().hashCode();
+  }
 }

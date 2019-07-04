@@ -8,22 +8,22 @@ void do_crypt()
 
         uint8_t nonce;
         size_t nonce_length;
-        Botan.InitializationVector iv;
-        Botan b;
+        BotanF.InitializationVector iv;
+        BotanF b;
 
 /*
-              Botan::get_cipher_mode(_, _);
-    decl myValue = Botan::AutoSeededRNG::random_vec(_);
+              BotanF::get_cipher_mode(_, _);
+    decl myValue = BotanF::AutoSeededRNG::random_vec(_);
 
-              Botan::set_key(_);
-    forbidden Botan::set_key(_, _);
+              BotanF::set_key(_);
+    forbidden BotanF::set_key(_, _);
 
-              Botan::start(iv);
-    forbidden Botan::start();
-    forbidden Botan::start(_);
-    forbidden Botan::start(nonce, _);
+              BotanF::start(iv);
+    forbidden BotanF::start();
+    forbidden BotanF::start(_);
+    forbidden BotanF::start(nonce, _);
 
-    forbidden Botan::start_msg(*);
+    forbidden BotanF::start_msg(*);
 */
 
 // the following are directly allowed

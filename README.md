@@ -79,3 +79,9 @@ echo "Starting" > /tmp/bla
 echo "$JAVACMD" "$@" > /tmp/bla
 exec "$JAVACMD" "$@" | tee -a /tmp/bla
 ```
+
+automate with:
+
+```
+./gradlew installDist; and sed -i '$ d' build/install/cpganalysisserver/bin/cpganalysisserver ; and echo 'exec "$JAVACMD" "$@" | tee -a /tmp/cpgoutput' >> build/install/cpganalysisserver/bin/cpganalysisserver
+```

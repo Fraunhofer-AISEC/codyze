@@ -1,19 +1,14 @@
 package de.fraunhofer.aisec.crymlin;
 
-import de.fhg.aisec.markmodel.MRule;
-import de.fhg.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.DataFlowPass;
-import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
-import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
-import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
+import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.Mark;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +51,6 @@ public class Commands {
     }
     Database.getInstance().purgeDatabase();
 
-    // todo can we move this to a default translation manager config?
     TranslationManager analyzer =
         TranslationManager.builder()
             .config(
@@ -64,13 +58,7 @@ public class Commands {
                     .debugParser(true)
                     .failOnError(false)
                     .codeInNodes(true)
-                    .registerPass(new TypeHierarchyResolver())
-                    .registerPass(new VariableUsageResolver())
-                    .registerPass(new CallResolver()) // creates CG
-                    .registerPass(new DataFlowPass())
-                    .registerPass(new CallResolver()) // creates CG
-                    .registerPass(new DataFlowPass())
-                    .registerPass(new EvaluationOrderGraphPass()) // creates EOG
+                    .defaultPasses()
                     .sourceFiles(files.toArray(new File[0]))
                     .build())
             .build();

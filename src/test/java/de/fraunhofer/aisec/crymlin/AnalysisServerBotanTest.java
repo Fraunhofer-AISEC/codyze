@@ -6,17 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-import de.fhg.aisec.markmodel.MEntity;
-import de.fhg.aisec.markmodel.MRule;
-import de.fhg.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.passes.ControlFlowGraphPass;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import de.fraunhofer.aisec.markmodel.MEntity;
+import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.Mark;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -136,9 +135,7 @@ public class AnalysisServerBotanTest {
             TranslationConfiguration.builder()
                 .debugParser(true)
                 .failOnError(false)
-                .registerPass(new ControlFlowGraphPass()) // creates CFG
-                // when calling Database.persist() on the resulting graph.
-                // .registerPass(new EvaluationOrderGraphPass()) // creates EOG
+                .defaultPasses()
                 .sourceFiles(sourceFiles)
                 .build())
         .build();

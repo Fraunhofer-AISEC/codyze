@@ -71,18 +71,23 @@ configurations.all {
 val versions = mapOf(
         "junit5" to "5.3.1",
         "log4j" to "2.11.1",
+        "slf4j" to "1.8.0-beta2",
+        "lsp4j" to "0.6.0",
         "jersey" to "2.28",
         "javaparser" to "3.11.0",
         "commons-lang3" to "3.8.1",
         "jython" to "2.7.1b3",
-        "tinkerpop" to "3.3.4"
+        "tinkerpop" to "3.3.4",
+        "neo4j-gremlin-bolt" to "0.3.1",
+        "xml.bind" to "2.3.1"
 )
 
 dependencies {
     api("org.apache.commons", "commons-lang3", versions["commons-lang3"])
     api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
-    api("org.slf4j", "jul-to-slf4j", "1.8.0-beta2")
-    api("org.slf4j:slf4j-simple:1.7.21")
+    api("org.slf4j", "jul-to-slf4j", versions["slf4j"])
+    api("org.slf4j", "slf4j-api", versions["slf4j"])
+
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
     // Code Property Graph
@@ -97,25 +102,29 @@ dependencies {
     api("org.glassfish.jersey.media", "jersey-media-json-jackson", versions["jersey"])
 
     // LSP
-    api("org.eclipse.lsp4j", "org.eclipse.lsp4j", "0.6.0")
+    api("org.eclipse.lsp4j", "org.eclipse.lsp4j", versions["lsp4j"])
 
     // Gremlin
     api("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])
-    annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])      // Newer Gradle versions require specific classpath for annotatation processors
+    annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"]) {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }      // Newer Gradle versions require specific classpath for annotatation processors
     api("org.apache.tinkerpop", "gremlin-python", versions["tinkerpop"])
     api("org.apache.tinkerpop", "tinkergraph-gremlin", versions["tinkerpop"])
     api("org.apache.tinkerpop", "gremlin-driver", versions["tinkerpop"])
     api("org.apache.tinkerpop", "neo4j-gremlin", versions["tinkerpop"])     // Neo4j multi-label support for gremlin
-    api("com.steelbridgelabs.oss", "neo4j-gremlin-bolt", "0.3.1")   // For fast bolt:    // access to Neo4J
+    api("com.steelbridgelabs.oss", "neo4j-gremlin-bolt", versions["neo4j-gremlin-bolt"])   // For fast bolt:    // access to Neo4J
 
     // Jython (Scripting engine)
     api("org.python", "jython-standalone", versions["jython"])
 
     // needed for jersey, not part of JDK anymore
-    api("javax.xml.bind", "jaxb-api", "2.3.1")
+    api("javax.xml.bind", "jaxb-api", versions["xml.bind"])
 
     testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", versions["junit5"])
+
+
 }
 
 application {
@@ -174,7 +183,10 @@ spotless {
                     include("src/main/generated/**")
                 }
         )
+
         googleJavaFormat()
+        // XML file dumped out by the Eclipse formatter (will be used in the near future)
+        //eclipse().configFile("spotless.eclipseformat.xml")
     }
 }
 

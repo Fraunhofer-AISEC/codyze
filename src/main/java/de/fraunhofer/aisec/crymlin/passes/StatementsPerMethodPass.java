@@ -11,6 +11,7 @@ import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.structures.Method;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
+import org.python.antlr.base.stmt;
 
 /**
  * This pass collects all statements in a method's body in the correct order.
@@ -33,10 +34,21 @@ public class StatementsPerMethodPass implements PassWithContext {
   public void accept(TranslationResult t) {
     for (TranslationUnitDeclaration tu : t.getTranslationUnits()) {
       for (Declaration d : tu.getDeclarations()) {
-        if (d instanceof RecordDeclaration) {
-          handleRecordDeclaration((RecordDeclaration) d);
+        if (d instanceof TranslationUnitDeclaration) { // anything which has Declarations
+          // loop through functions
+          for (Declaration child : ((TranslationUnitDeclaration) d).getDeclarations()) {
+            handleDeclaration(child);
+          }
+        } else {
+          handleDeclaration(d);
         }
       }
+    }
+  }
+
+  private void handleDeclaration(Declaration d) {
+    if (d instanceof RecordDeclaration) {
+      handleRecordDeclaration((RecordDeclaration) d);
     }
   }
 

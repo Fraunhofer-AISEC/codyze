@@ -1,4 +1,4 @@
-package de.fhg.aisec.markmodel;
+package de.fraunhofer.aisec.markmodel;
 
 import de.fhg.aisec.mark.markDsl.OpStatement;
 import java.util.ArrayList;
@@ -7,8 +7,12 @@ import java.util.HashSet;
 import java.util.List;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MOp {
+
+  private static final Logger log = LoggerFactory.getLogger(MOp.class);
 
   private String name;
   private MEntity parent;
@@ -39,14 +43,16 @@ public class MOp {
 
   public HashSet<Vertex> getVertices(OpStatement stmt) {
     if (!parsed) {
-      throw new RuntimeException("MOp not parsed! Do not call getVertex!");
+      log.error("MOp not parsed! Do not call getVertex!");
+      assert false;
     }
     return statementToCPGVertex.get(stmt);
   }
 
   public HashSet<OpStatement> getCallStatements(Vertex v) {
     if (!parsed) {
-      throw new RuntimeException("MOp not parsed! Do not call getCallStatements!");
+      log.error("MOp not parsed! Do not call getCallStatements!");
+      assert false;
     }
     return vertexToStatements.get(v);
   }

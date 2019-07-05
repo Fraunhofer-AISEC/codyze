@@ -13,6 +13,15 @@ public class MRule {
   private RuleStatement statement;
   private FSM fsm = null;
   private String errorMessage;
+  /**
+   * stores Entity-alias to Pair(Name of Entity, EntityReference). The EntityReference can be NULL
+   * if the entity is not available/parsed. E.g. for the rule rule UseOfBotan_CipherMode { using
+   * Order as cm ensure order cm.start(), cm.finish() onfail WrongUseOfBotan_CipherMode } this would
+   * store: cm -> Pair(Order, Reference to the Order-Entity)
+   *
+   * <p>todo maybe we should not allow rules with NULL references here, as they cannot be evaluated
+   * anyway
+   */
   private HashMap<String, Pair<String, MEntity>> entityReferences;
 
   @Nullable

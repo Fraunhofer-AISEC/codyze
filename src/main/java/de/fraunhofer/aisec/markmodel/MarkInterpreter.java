@@ -143,7 +143,7 @@ public class MarkInterpreter {
     // reset stuff attached to this model
     this.markModel.reset();
 
-    try (TraversalConnection t = new TraversalConnection()) { // this connects to the DB
+    try (TraversalConnection t = new TraversalConnection()) { // connects to the DB
       CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
 
       log.info("Precalculating matching nodes");
@@ -171,7 +171,9 @@ public class MarkInterpreter {
             op.addVertex(a, temp);
           }
           op.setParsingFinished();
-          log.info("Found {} call statements in the cpg for {}", op.getName(), numMatches);
+          if (numMatches > 0) {
+            log.info("Found {} call statements in the cpg for {}", numMatches, op.getName());
+          }
         }
       }
       log.info(
@@ -193,7 +195,7 @@ public class MarkInterpreter {
 
       log.info(
           "Done evaluating   all MARK rules in {} ms.",
-          Duration.between(start, Instant.now()).toMillis());
+          Duration.between(outer_start, Instant.now()).toMillis());
 
       return result;
     }

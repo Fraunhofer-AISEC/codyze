@@ -4,22 +4,23 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.logging.LogManager;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /** Start point of the standalone analysis server. */
 public class Main {
 
   private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-  static {
-    // bridge java.util.logging to slf4j
-    LogManager.getLogManager().reset();
-    SLF4JBridgeHandler.install();
-  }
+  //  static {
+  //    // bridge java.util.logging to slf4j
+  //    // we do this here and in the Analysisserver, as both can be the entrypoint (Main for normal
+  //    // start, Analysserver for tests)
+  //    log.debug("Resetting logging handlers (log4j, jul)");
+  //    SLF4JBridgeHandler.removeHandlersForRootLogger(); // (since SLF4J 1.6.5)
+  //    SLF4JBridgeHandler.install();
+  //  }
 
   public static void main(String... args) throws Exception {
     Instant start = Instant.now();

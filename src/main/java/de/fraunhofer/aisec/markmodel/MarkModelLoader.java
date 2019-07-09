@@ -56,20 +56,12 @@ public class MarkModelLoader {
       for (RuleDeclaration r : markModel.getRule()) {
         // todo @FW: should rules also have package names? what is the exact reasoning behind
         // packages?
-        MRule rule = parseRule(r, m);
+        MRule rule = parseRule(r, m, entry.getKey());
         m.getRules().add(rule);
       }
     }
 
-    /*
-    VALIDATE
-    each function in an order is actually in an op already? then the following might be obsolete
-
-    todo validate MARK files. check e.g.:
-     - one function call is not part of two ops (of one or two entities)
-         if this would be the case, many strange things will happen
-    */
-
+    // parse all FSMs
     for (MRule rule : m.getRules()) {
       if (rule.getStatement() != null
           && rule.getStatement().getEnsure() != null
@@ -78,10 +70,42 @@ public class MarkModelLoader {
         FSM fsm = new FSM();
         fsm.sequenceToFSM(inner.getExp());
         rule.setFSM(fsm);
+      }
+    }
+    /*
+    VALIDATE
+
+    todo validate MARK files. check e.g.:
+     - Entities
+       - one function call is not part of two ops (of one or two entities)
+           if this would be the case, many strange things will happen
+     - Rules
+       - each alias is defined in the using-part of the rule
+       - each entity reference actually has an entity
+       - one order is only allowed to reference the same alias
+
+     to discuss:
+       - should multiple aliases to a same entity be allowed? (at least for order, this is problematic for analysis, and likely not needed)
+
+    */
+
+    // todo cleanup the following code, or remove if xtext performs this validation already
+    // collect all references to entities
+    for (MRule rule : m.getRules()) {
+      final HashSet<String> entityRefs = new HashSet<>();
+      final HashSet<String> functionRefs = new HashSet<>();
+      collectEntityReferences(rule, entityRefs, functionRefs);
+    }
+
+    for (MRule rule : m.getRules()) {
+      if (rule.getStatement() != null
+          && rule.getStatement().getEnsure() != null
+          && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
+        OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
 
         // check that the fsm is valid:
         // todo remove once the modelloader performs these checks!
-        HashSet<Node> worklist = new HashSet<>(fsm.getStart());
+        HashSet<Node> worklist = new HashSet<>(rule.getFSM().getStart());
         HashSet<Node> seen = new HashSet<>();
         while (!worklist.isEmpty()) {
           HashSet<Node> nextWorkList = new HashSet<>();
@@ -124,12 +148,96 @@ public class MarkModelLoader {
     return m;
   }
 
+  private void collectEntityReferences(
+      MRule rule, HashSet<String> entityRefs, HashSet<String> functionRefs) {
+    if (rule.getStatement() == null) {
+      return;
+    }
+
+    //    for (Map.Entry<String, Pair<String, MEntity>> entry :
+    // rule.getEntityReferences().entrySet()) {
+    //      if (entry.getValue().getValue1() == null) {
+    //        System.out.println(entry.getKey() + ": " + entry.getValue().getValue0() + " - NULL");
+    //      } else {
+    //        System.out.println(
+    //            entry.getKey()
+    //                + ": "
+    //                + entry.getValue().getValue0()
+    //                + " - "
+    //                + entry.getValue().getValue1().getName());
+    //      }
+    //    }
+
+    if (rule.getStatement().getEnsure() != null) {
+      getRefsFromExp(rule.getStatement().getEnsure().getExp(), entityRefs, functionRefs);
+    }
+    //    System.out.println("eref");
+    //    for(String s: entityRefs) {
+    //      System.out.println("\t" + s);
+    //    }
+    //    System.out.println("fref");
+    //    for(String s: functionRefs) {
+    //      System.out.println("\t" + s);
+    //    }
+  }
+
+  private void getRefsFromExp(
+      Expression exp, HashSet<String> entityRefs, HashSet<String> functionRefs) {
+    if (exp instanceof ComparisonExpression) {
+      getRefsFromExp((((ComparisonExpression) exp).getLeft()), entityRefs, functionRefs);
+      getRefsFromExp((((ComparisonExpression) exp).getRight()), entityRefs, functionRefs);
+    } else if (exp instanceof AdditionExpression) {
+      getRefsFromExp((((AdditionExpression) exp).getLeft()), entityRefs, functionRefs);
+      getRefsFromExp((((AdditionExpression) exp).getRight()), entityRefs, functionRefs);
+    } else if (exp instanceof LiteralListExpression) {
+      // only literals
+    } else if (exp instanceof LogicalAndExpression) {
+      getRefsFromExp((((LogicalAndExpression) exp).getLeft()), entityRefs, functionRefs);
+      getRefsFromExp((((LogicalAndExpression) exp).getRight()), entityRefs, functionRefs);
+    } else if (exp instanceof AlternativeExpression) {
+      getRefsFromExp((((AlternativeExpression) exp).getLeft()), entityRefs, functionRefs);
+      getRefsFromExp((((AlternativeExpression) exp).getRight()), entityRefs, functionRefs);
+    } else if (exp instanceof Terminal) {
+      entityRefs.add(((Terminal) exp).getEntity() + "." + ((Terminal) exp).getOp());
+    } else if (exp instanceof SequenceExpression) {
+      getRefsFromExp((((SequenceExpression) exp).getLeft()), entityRefs, functionRefs);
+      getRefsFromExp((((SequenceExpression) exp).getRight()), entityRefs, functionRefs);
+    } else if (exp instanceof RepetitionExpression) {
+      getRefsFromExp((((RepetitionExpression) exp).getExpr()), entityRefs, functionRefs);
+    } else if (exp instanceof OrderExpression) { // collects also ExclusionExpression
+      getRefsFromExp(((OrderExpression) exp).getExp(), entityRefs, functionRefs);
+    } else if (exp instanceof MultiplicationExpression) {
+      getRefsFromExp((((MultiplicationExpression) exp).getLeft()), entityRefs, functionRefs);
+      getRefsFromExp((((MultiplicationExpression) exp).getRight()), entityRefs, functionRefs);
+    } else if (exp instanceof LogicalOrExpression) {
+      getRefsFromExp((((LogicalOrExpression) exp).getLeft()), entityRefs, functionRefs);
+      getRefsFromExp((((LogicalOrExpression) exp).getRight()), entityRefs, functionRefs);
+    } else if (exp instanceof FunctionCallExpression) {
+      functionRefs.add(((FunctionCallExpression) exp).getName());
+      for (Argument s : ((FunctionCallExpression) exp).getArgs()) {
+        if (s instanceof Expression) {
+          getRefsFromExp((Expression) s, entityRefs, functionRefs);
+        } else {
+          log.error("Argument is not an Expression, but a " + s.getClass());
+        }
+      }
+    } else if (exp instanceof Literal) {
+      // only literal
+    } else if (exp instanceof Operand) {
+      entityRefs.add(((Operand) exp).getOperand());
+    } else if (exp instanceof UnaryExpression) {
+      getRefsFromExp((((UnaryExpression) exp).getExp()), entityRefs, functionRefs);
+    } else {
+      log.error("Not implemented yet: " + exp.getClass() + " " + exp.toString());
+    }
+  }
+
   @NonNull
   public Mark load(HashMap<String, MarkModel> markModels) {
     return load(markModels, null);
   }
 
-  private MRule parseRule(RuleDeclaration rule, Mark mark) {
+  private MRule parseRule(RuleDeclaration rule, Mark mark, String containedInThisFile) {
     MRule mRule = new MRule();
     mRule.setName(rule.getName());
     mRule.setStatement(rule.getStmt()); // todo remove in the long run
@@ -140,8 +248,15 @@ public class MarkModelLoader {
         .getEntities()
         .forEach(
             entity -> {
-              Pair<String, MEntity> e =
-                  new Pair<>(entity.getE().getName(), mark.getEntity(entity.getE().getName()));
+              MEntity ref = mark.getEntity(entity.getE().getName());
+              if (ref == null) {
+                log.error(
+                    "Entity {} not loaded. Referenced in rule {} in file {}",
+                    entity.getE().getName(),
+                    rule.getName(),
+                    containedInThisFile);
+              }
+              Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
               entityReferences.put(entity.getN(), e);
             });
 

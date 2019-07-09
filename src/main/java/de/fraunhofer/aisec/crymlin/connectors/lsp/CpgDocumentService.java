@@ -10,6 +10,8 @@ import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import java.io.File;
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
@@ -67,6 +69,8 @@ public class CpgDocumentService implements TextDocumentService {
       client.publishDiagnostics(diagnostics);
     }
 
+    Instant start = Instant.now();
+
     Database.getInstance().connect();
     Database.getInstance().purgeDatabase();
 
@@ -98,14 +102,15 @@ public class CpgDocumentService implements TextDocumentService {
         return;
       }
       log.info(
-          "Analysis for {} done. Returning {} findings\n-------------------------------------------------------------------",
+          "Analysis for {} done. Returning {} findings. Took {} ms\n-------------------------------------------------------------------",
           uriString,
-          ctx.getFindings().size());
+          ctx.getFindings().size(),
+          Duration.between(start, Instant.now()).toMillis());
 
       ArrayList<Diagnostic> allDiags = new ArrayList<>();
       for (Finding f : ctx.getFindings()) {
         Diagnostic diagnostic = new Diagnostic();
-        diagnostic.setSeverity(DiagnosticSeverity.Warning);
+        diagnostic.setSeverity(DiagnosticSeverity.Error);
         diagnostic.setCode("test");
         diagnostic.setMessage(f.getFinding());
         diagnostic.setRange(f.getRange());

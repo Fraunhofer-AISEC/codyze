@@ -71,12 +71,12 @@ configurations.all {
 val versions = mapOf(
         "junit5" to "5.3.1",
         "log4j" to "2.11.1",
-        "slf4j" to "1.8.0-beta2",
+        "slf4j" to "1.8.0-beta4",
         "lsp4j" to "0.6.0",
         "jersey" to "2.28",
         "javaparser" to "3.11.0",
         "commons-lang3" to "3.8.1",
-        "jython" to "2.7.1b3",
+        "jython" to "2.7.1",
         "tinkerpop" to "3.3.4",
         "neo4j-gremlin-bolt" to "0.3.1",
         "xml.bind" to "2.3.1"
@@ -85,7 +85,8 @@ val versions = mapOf(
 dependencies {
     api("org.apache.commons", "commons-lang3", versions["commons-lang3"])
     api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
-    api("org.slf4j", "jul-to-slf4j", versions["slf4j"])
+    // api("org.slf4j", "jul-to-slf4j", versions["slf4j"]) included in cpg as it is needed there
+    api("org.slf4j", "log4j-over-slf4j", versions["slf4j"]) // needed for xtext.parser.antlr
     api("org.slf4j", "slf4j-api", versions["slf4j"])
 
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
@@ -108,6 +109,7 @@ dependencies {
     api("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])
     annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"]) {
         exclude(group = "org.slf4j", module = "slf4j-api")
+        exclude(group = "org.slf4j", module = "jcl-over-slf4j")
     }      // Newer Gradle versions require specific classpath for annotatation processors
     api("org.apache.tinkerpop", "gremlin-python", versions["tinkerpop"])
     api("org.apache.tinkerpop", "tinkergraph-gremlin", versions["tinkerpop"])
@@ -123,8 +125,6 @@ dependencies {
 
     testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", versions["junit5"])
-
-
 }
 
 application {

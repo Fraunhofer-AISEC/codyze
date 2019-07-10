@@ -74,7 +74,8 @@ public class FSM {
             .credentials(username, password)
             .verifyConnection(true)
             .build();
-    SessionFactory sessionFactory = new SessionFactory(configuration, "de.fhg.aisec.markmodel.fsm");
+    SessionFactory sessionFactory =
+        new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
     Session session = sessionFactory.openSession();
     session.purgeDatabase();
     sessionFactory.close();
@@ -91,7 +92,8 @@ public class FSM {
             .credentials(username, password)
             .verifyConnection(true)
             .build();
-    SessionFactory sessionFactory = new SessionFactory(configuration, "de.fhg.aisec.markmodel.fsm");
+    SessionFactory sessionFactory =
+        new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
     Session session = sessionFactory.openSession();
     startNodes.forEach(session::save);
     sessionFactory.close();

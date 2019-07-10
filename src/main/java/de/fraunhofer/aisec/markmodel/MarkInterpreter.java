@@ -18,6 +18,7 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -268,16 +269,17 @@ public class MarkInterpreter {
           while (currentWorklist.size() > 0) {
             HashSet<Vertex> nextWorklist = new HashSet<>();
 
-            //            System.out.println("--");
-            //            for(Vertex s: currentWorklist) {
-            //              HashSet<String> eogPathSet = nodeIDtoEOGPathSet.get((Long)s.id());
-            //              System.out.print("WL: " + eogPathSet + " ");
-            //              try {
-            //                System.out.println(s.value("code").toString());
-            //              } catch (Exception e) {
-            //                System.out.println("<< no code");
-            //              }
-            //            }
+            //                        for(Vertex s: currentWorklist) {
+            //                          HashSet<String> eogPathSet =
+            // nodeIDtoEOGPathSet.get((Long)s.id());
+            //                          System.out.print("WL: " + eogPathSet + " ");
+            //                          try {
+            //                            System.out.println(s.value("code").toString());
+            //                          } catch (Exception e) {
+            //                            System.out.println("<< no code");
+            //                          }
+            //                        }
+            //              System.out.println("--");
 
             for (Vertex vertex : currentWorklist) {
               HashSet<String> eogPathSet = nodeIDtoEOGPathSet.get((Long) vertex.id());
@@ -422,32 +424,61 @@ public class MarkInterpreter {
                 // again
                 seen.add(eogPath + "." + vertex.id());
 
-                // if more than one vertex follows the current one, we need to branch the eogPath
-                if (outVertices.size() > 1) { // split
-                  HashSet<String> oldBases = new HashSet<>();
-                  HashMap<String, HashSet<Node>> newBases = new HashMap<>();
-                  // first we collect all entries which we need to remove from the baseToFSMNodes
-                  // map
-                  // we also store these entries without the eog path prefix, to update later in (1)
-                  for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
-                    if (entry.getKey().startsWith(eogPath)) {
-                      oldBases.add(entry.getKey());
-                      // keep the "." before the real base, as we need it later anyway
-                      newBases.put(entry.getKey().substring(eogPath.length()), entry.getValue());
+                // skip the paths we came from
+                for (int i = outVertices.size() - 1; i > 0; i--) {
+                  HashSet<String> paths = nodeIDtoEOGPathSet.get((Long) outVertices.get(i).id());
+                  if (paths == null) {
+                    continue; // never seen this node
+                  }
+                  for (String p : paths) {
+                    if (eogPath.startsWith(p)) { // this is where we came from
+                      log.debug(
+                          "Skip path to node #"
+                              + outVertices.get(i).id()
+                              + " since this is where we came from");
+                      System.out.println(
+                          "Skip path to "
+                              + outVertices.get(i).id()
+                              + " since this is where we came from");
+                      outVertices.remove(i);
+                      break;
                     }
                   }
-                  oldBases.forEach(baseToFSMNodes::remove);
+                }
 
-                  // (1) update all entries previously removed from the baseToFSMNodes map with the
-                  // new eogpath as prefix to the base
-                  for (int i = 0; i < outVertices.size(); i++) {
-                    String newEOGPath = eogPath + i;
-                    // update the eogpath directly in the vertices for the next step
-                    nodeIDtoEOGPathSet
-                        .computeIfAbsent((Long) outVertices.get(i).id(), x -> new HashSet<>())
-                        .add(newEOGPath);
-                    // also update them in the baseToFSMNodes map
-                    newBases.forEach((k, v) -> baseToFSMNodes.put(newEOGPath + k, v));
+                // if more than one vertex follows the current one, we need to branch the eogPath
+                if (outVertices.size() > 1) { // split
+                  if (eogPath.length() > 5) {
+                    log.error("EOG Path > 5 is probably Bug #9");
+                    // skipping the following will very likely break this order evaluation!
+                  } else {
+                    HashSet<String> oldBases = new HashSet<>();
+                    HashMap<String, HashSet<Node>> newBases = new HashMap<>();
+                    // first we collect all entries which we need to remove from the baseToFSMNodes
+                    // map
+                    // we also store these entries without the eog path prefix, to update later in
+                    // (1)
+                    for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+                      if (entry.getKey().startsWith(eogPath)) {
+                        oldBases.add(entry.getKey());
+                        // keep the "." before the real base, as we need it later anyway
+                        newBases.put(entry.getKey().substring(eogPath.length()), entry.getValue());
+                      }
+                    }
+                    oldBases.forEach(baseToFSMNodes::remove);
+
+                    // (1) update all entries previously removed from the baseToFSMNodes map with
+                    // the
+                    // new eogpath as prefix to the base
+                    for (int i = 0; i < outVertices.size(); i++) {
+                      String newEOGPath = eogPath + i;
+                      // update the eogpath directly in the vertices for the next step
+                      nodeIDtoEOGPathSet
+                          .computeIfAbsent((Long) outVertices.get(i).id(), x -> new HashSet<>())
+                          .add(newEOGPath);
+                      // also update them in the baseToFSMNodes map
+                      newBases.forEach((k, v) -> baseToFSMNodes.put(newEOGPath + k, v));
+                    }
                   }
                 } else if (outVertices.size()
                     == 1) { // else, if we only have one vertex following this vertex, simply

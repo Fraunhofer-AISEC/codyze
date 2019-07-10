@@ -75,8 +75,11 @@ public class AnalysisServer {
   public void start() {
     if (config.launchLsp) {
       launchLspServer();
-    } else {
+    } else if (config.launchConsole) {
       launchConsole();
+    } else {
+      // only load rules
+      loadMarkRulesFromConfig();
     }
   }
 
@@ -92,10 +95,8 @@ public class AnalysisServer {
     // Spawn an interactive console for gremlin experiments/controlling the server.
     // Blocks forever.
     // May be replaced by custom JLine console later (not important for the moment)
-    if (config.launchConsole) {
-      // Blocks forever:
-      interp.spawnInteractiveConsole();
-    }
+    // Blocks forever:
+    interp.spawnInteractiveConsole();
   }
 
   /** Launches the LSP server. */
@@ -260,7 +261,13 @@ public class AnalysisServer {
    * @return
    * @throws ScriptException
    */
+  // todo remove. Then it is sufficient to initialize Jython only for the console case!
+  @Deprecated
   public Object query(String crymlin) throws ScriptException {
+    if (interp == null) {
+      interp = new JythonInterpreter();
+      interp.connect();
+    }
     return interp.query(crymlin);
   }
 

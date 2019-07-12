@@ -31,3 +31,6 @@ rule UseOfBotan2_CipherMode {
 		order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
 	onfail WrongUseOfBotan_CipherMode
 }
+
+
+foo(a(), b())

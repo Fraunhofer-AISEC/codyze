@@ -10,8 +10,6 @@ public class Node {
   @Relationship(value = "s")
   private HashSet<Node> successors = new HashSet<>();
 
-  private HashSet<String> markings = new HashSet<>();
-
   private String base;
   private String op;
 
@@ -81,14 +79,10 @@ public class Node {
   public String toStringWithAddress() {
     String addr = super.toString();
     addr = addr.substring(addr.lastIndexOf("@") + 1);
-    return getName() + "(" + addr + "), MARKING: " + String.join(", ", markings);
+    return getName() + "(" + addr + ")";
   }
 
   public String toString() {
     return getName(); // + ", MARKING: " + String.join(", ", markings);
-  }
-
-  public void clear() {
-    this.markings.clear();
   }
 }

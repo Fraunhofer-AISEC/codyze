@@ -85,6 +85,7 @@ val versions = mapOf(
 dependencies {
     api("org.apache.commons", "commons-lang3", versions["commons-lang3"])
     api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
+    api("org.apache.logging.log4j", "log4j-core", versions["log4j"])
     // api("org.slf4j", "jul-to-slf4j", versions["slf4j"]) included in cpg as it is needed there
     api("org.slf4j", "log4j-over-slf4j", versions["slf4j"]) // needed for xtext.parser.antlr
     api("org.slf4j", "slf4j-api", versions["slf4j"])
@@ -125,6 +126,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", versions["junit5"])
+    testRuntimeOnly("org.junit.jupiter", "junit-jupiter-params", versions["junit5"])
 }
 
 application {

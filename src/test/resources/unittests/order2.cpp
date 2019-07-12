@@ -67,3 +67,15 @@
     }
     p6.reset();
   }
+
+  void nok3() {
+      Botan2 p6 = new Botan2(1);
+      while (true) {
+        p6.create();
+        p6.init();
+        p6.start();
+        p6.process();
+        p6.finish();
+      }
+      p6.reset();
+    }

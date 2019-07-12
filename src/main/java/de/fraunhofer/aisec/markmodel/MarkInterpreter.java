@@ -94,22 +94,6 @@ public class MarkInterpreter {
     return exprToString((Expression) arg); // Every Argument is also an Expression
   }
 
-  public void dumpCFG(Edge edge, String pref, HashSet<Vertex> seen) {
-
-    Vertex outV = edge.inVertex();
-    if (seen.contains(outV)) {
-      System.out.println("Already seen: " + edge);
-      return;
-    }
-    seen.add(outV);
-    System.out.println(pref + outV.label() + " - " + outV.property("name"));
-    Iterator<Edge> cfg = outV.edges(Direction.OUT, "CFG");
-    while (cfg.hasNext()) {
-      Edge next = cfg.next();
-      dumpCFG(next, pref + "\t", seen);
-    }
-  }
-
   private HashSet<Vertex> getVerticesForFunctionDeclaration(
       FunctionDeclaration functionDeclaration,
       MEntity ent,
@@ -217,6 +201,11 @@ public class MarkInterpreter {
       }
     }
 
+    if (verticesToOp.isEmpty()) {
+      log.info("no nodes match for TU and MARK-model. Skipping evaluation.");
+      return;
+    }
+
     for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations().toList()) {
       log.info("Evaluating function " + functionDeclaration.value("name"));
 
@@ -251,11 +240,9 @@ public class MarkInterpreter {
           HashSet<Vertex> currentWorklist = new HashSet<>();
           currentWorklist.add(functionDeclaration);
 
-          // which vertices did we already visit
-          // at each branching, we allow each fork to visit all eog nodes
-          HashSet<String> seen = new HashSet<>();
           // which bases did we already see, but are not initialized correctly
-          HashSet<String> disallowedBases = new HashSet<>();
+          // base to set of eogpaths
+          HashMap<String, HashSet<String>> disallowedBases = new HashMap<>();
           // stores the current markings in the FSM (i.e., which base is at which FSM-node)
           HashMap<String, HashSet<Node>> baseToFSMNodes = new HashMap<>();
           // last usage of base
@@ -266,29 +253,23 @@ public class MarkInterpreter {
           startEOG.add("0");
           nodeIDtoEOGPathSet.put((Long) functionDeclaration.id(), startEOG);
 
+          HashSet<String> seenStates = new HashSet<>();
+          long visitedNodes = 0;
+
           while (currentWorklist.size() > 0) {
             HashSet<Vertex> nextWorklist = new HashSet<>();
-
-            //                                    for(Vertex s: currentWorklist) {
-            //                                      HashSet<String> eogPathSet =
-            //             nodeIDtoEOGPathSet.get((Long)s.id());
-            //                                      System.out.print("WL: " + eogPathSet + " ");
-            //                                      try {
-            //
-            // System.out.println(s.value("code").toString());
-            //                                      } catch (Exception e) {
-            //                                        System.out.println("<< no code");
-            //                                      }
-            //                                    }
-            //                          System.out.println("--");
+            //            System.out.println("SEEN: " + String.join(", ", seenStates));
+            //            printWorklist(currentWorklist, nodeIDtoEOGPathSet);
+            //            System.out.println();
 
             for (Vertex vertex : currentWorklist) {
+              visitedNodes++;
+
+              String currentState = getStateSnapshot(vertex, baseToFSMNodes);
+              seenStates.add(currentState);
+
               HashSet<String> eogPathSet = nodeIDtoEOGPathSet.get((Long) vertex.id());
               for (String eogPath : eogPathSet) {
-                if (seen.contains(eogPath + "." + vertex.id())) {
-                  // this path has already been taken. skip
-                  continue;
-                }
 
                 // ... no direct access to the labels TreeSet of Neo4JVertex
                 if (vertex.label().contains("MemberCallExpression")) {
@@ -315,14 +296,18 @@ public class MarkInterpreter {
                         assert false;
                       }
 
-                      String prefixedBase = eogPath + "." + base;
-
+                      // if we have a reference to a node in the cpg, we add this to the prefixed
+                      // base
+                      // this way, we could differentiate between nodes with the same base name, but
+                      // referencing
+                      // different variables (e.g., if they are used in different blocks)
                       if (ref != null) {
-                        prefixedBase += "|" + ref;
+                        base += "|" + ref;
                       }
 
-                      if (disallowedBases.contains(prefixedBase)) {
-                        // !! FINDING
+                      String prefixedBase = eogPath + "." + base;
+
+                      if (isDisallowedBase(disallowedBases, eogPath, base)) {
                         Finding f =
                             new Finding(
                                 "Violation against Order: "
@@ -335,22 +320,19 @@ public class MarkInterpreter {
                                 vertex.value("endLine"),
                                 vertex.value("startColumn"),
                                 vertex.value("endColumn"));
-                        ctx.getFindings().add(f);
-                        log.info("Finding: {}", f.toString());
+                        // we hide base errors for now!
+                        // ctx.getFindings().add(f);
+                        // log.info("Finding: {}", f.toString());
                       } else {
                         HashSet<Node> nodesInFSM;
-                        if (baseToFSMNodes.get(prefixedBase)
-                            == null) { // we have not seen this base before. check if this is the
-                          // start
-                          // of an order
+                        if (baseToFSMNodes.get(prefixedBase) == null) {
+                          // we have not seen this base before. check if this is the
+                          // start of an order
                           nodesInFSM = rule.getFSM().getStart(); // start nodes
                         } else {
                           nodesInFSM =
                               baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
                         }
-                        assert nodesInFSM.size()
-                            > 0; // =0 only happens if the fsm is broken, i.e., has a node without
-                        // successors which is not an END node
 
                         HashSet<Node> nextNodesInFSM = new HashSet<>();
 
@@ -361,8 +343,7 @@ public class MarkInterpreter {
                           if (op != null && op.getName().equals(n.getOp())) {
                             // this also has as effect, that if the FSM is in a end-state and a
                             // intermediate state, and we follow the intermediate state, the
-                            // end-state
-                            // is removed again, which is correct!
+                            // end-state is removed again, which is correct!
                             nextNodesInFSM.addAll(n.getSuccessors());
                             match = true;
                           }
@@ -370,7 +351,6 @@ public class MarkInterpreter {
                         if (!match) {
                           // if not, this call is not allowed, and this base must not be used in the
                           // following eog
-                          // !! FINDING
                           Finding f =
                               new Finding(
                                   "Violation against Order: "
@@ -380,6 +360,7 @@ public class MarkInterpreter {
                                       + ") is not allowed. Expected one of: "
                                       + nodesInFSM.stream()
                                           .map(Node::getName)
+                                          .sorted()
                                           .collect(Collectors.joining(", "))
                                       + " ("
                                       + rule.getErrorMessage()
@@ -390,7 +371,7 @@ public class MarkInterpreter {
                                   vertex.value("endColumn"));
                           ctx.getFindings().add(f);
                           log.info("Finding: {}", f.toString());
-                          disallowedBases.add(prefixedBase);
+                          disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
                         } else {
                           String baseLocal = prefixedBase.split("\\.")[1]; // remove eogpath
                           Vertex vertex1 = lastBaseUsage.get(baseLocal);
@@ -402,9 +383,6 @@ public class MarkInterpreter {
                           if (prevMaxLine <= newLine) {
                             lastBaseUsage.put(baseLocal, vertex);
                           }
-                          // System.out.println("[" +
-                          // nextNodesInFSM.stream().map(Node::getName).collect(Collectors.joining(",
-                          // ")) + "]");
                           baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
                         }
                       }
@@ -414,63 +392,53 @@ public class MarkInterpreter {
                 ArrayList<Vertex> outVertices = new ArrayList<>();
                 vertex
                     .edges(Direction.OUT, "EOG")
-                    .forEachRemaining(
-                        edge -> {
-                          Vertex v = edge.inVertex();
-                          if (!seen.contains(eogPath + "." + v.id())) {
-                            outVertices.add(v);
-                          }
-                        });
-                // we are now done with this node over this path. will skip if we ever reach it
-                // again
-                seen.add(eogPath + "." + vertex.id());
-
-                // skip the paths we came from
-                for (int i = outVertices.size() - 1; i > 0; i--) {
-                  HashSet<String> paths = nodeIDtoEOGPathSet.get((Long) outVertices.get(i).id());
-                  if (paths == null) {
-                    continue; // never seen this node
-                  }
-                  for (String p : paths) {
-                    if (eogPath.startsWith(p)) { // this is where we came from
-                      log.debug(
-                          "Skip path to node #"
-                              + outVertices.get(i).id()
-                              + " since this is where we came from");
-                      outVertices.remove(i);
-                      break;
-                    }
-                  }
-                }
+                    .forEachRemaining(edge -> outVertices.add(edge.inVertex()));
 
                 // if more than one vertex follows the current one, we need to branch the eogPath
                 if (outVertices.size() > 1) { // split
-                  HashSet<String> oldBases = new HashSet<>();
-                  HashMap<String, HashSet<Node>> newBases = new HashMap<>();
-                  // first we collect all entries which we need to remove from the baseToFSMNodes
-                  // map
-                  // we also store these entries without the eog path prefix, to update later in
-                  // (1)
-                  for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
-                    if (entry.getKey().startsWith(eogPath)) {
-                      oldBases.add(entry.getKey());
-                      // keep the "." before the real base, as we need it later anyway
-                      newBases.put(entry.getKey().substring(eogPath.length()), entry.getValue());
+                  if (eogPath.length() > 20) {
+                    log.error(
+                        "Very long eogpath. This is very likely a bug. Do not split, ignore this node");
+                    throw new RuntimeException(
+                        "Very long eogpath. This is very likely a bug. Do not split, ignore this node");
+                  } else {
+                    HashSet<String> oldBases = new HashSet<>();
+                    HashMap<String, HashSet<Node>> newBases = new HashMap<>();
+                    // first we collect all entries which we need to remove from the baseToFSMNodes
+                    // map we also store these entries without the eog path prefix, to update
+                    // later in (1)
+                    for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+                      if (entry.getKey().startsWith(eogPath)) {
+                        oldBases.add(entry.getKey());
+                        // keep the "." before the real base, as we need it later anyway
+                        newBases.put(entry.getKey().substring(eogPath.length()), entry.getValue());
+                      }
                     }
-                  }
-                  oldBases.forEach(baseToFSMNodes::remove);
+                    oldBases.forEach(baseToFSMNodes::remove);
 
-                  // (1) update all entries previously removed from the baseToFSMNodes map with
-                  // the
-                  // new eogpath as prefix to the base
-                  for (int i = 0; i < outVertices.size(); i++) {
-                    String newEOGPath = eogPath + i;
-                    // update the eogpath directly in the vertices for the next step
-                    nodeIDtoEOGPathSet
-                        .computeIfAbsent((Long) outVertices.get(i).id(), x -> new HashSet<>())
-                        .add(newEOGPath);
-                    // also update them in the baseToFSMNodes map
-                    newBases.forEach((k, v) -> baseToFSMNodes.put(newEOGPath + k, v));
+                    // (1) update all entries previously removed from the baseToFSMNodes map with
+                    // the new eogpath as prefix to the base
+                    for (int i = outVertices.size() - 1; i >= 0; i--) {
+                      // also update them in the baseToFSMNodes map
+                      String newEOGPath = eogPath + i;
+                      newBases.forEach((k, v) -> baseToFSMNodes.put(newEOGPath + k, v));
+
+                      String stateOfNext = getStateSnapshot(outVertices.get(i), baseToFSMNodes);
+                      if (seenStates.contains(stateOfNext)) {
+                        log.warn(
+                            "node/FSM state already visited: "
+                                + stateOfNext
+                                + ". Do not split into this.");
+                        // todo log.debug
+                        outVertices.remove(i);
+                      } else {
+
+                        // update the eogpath directly in the vertices for the next step
+                        nodeIDtoEOGPathSet
+                            .computeIfAbsent((Long) outVertices.get(i).id(), x -> new HashSet<>())
+                            .add(newEOGPath);
+                      }
+                    }
                   }
                 } else if (outVertices.size()
                     == 1) { // else, if we only have one vertex following this vertex, simply
@@ -480,45 +448,20 @@ public class MarkInterpreter {
                       .add(eogPath);
                 }
 
-                /* this optimization would prevent the detection of:
-                Botan p4 = new Botan(2);
-                if (true) {
-                  p4.start(iv);
-                  p4.finish(buf);
-                }
-                p4.start(iv); // not ok, p4 is already finished
-                p4.finish(buf);
-
-                  outer:
-                  for (int i = outVertices.size() - 1; i >= 0; i--) {
-                    Vertex v = outVertices.get(i);
-                    Optional<String> any = seen.stream().filter(x -> x.endsWith("." + v.id())).findAny();
-                    if (any.isPresent()) {
-                      System.out.println("Vertex " + v.id() + " was already done for " + any.get() + ", now needs to be handled for " + eogPath);
-                      baseToFSMNodes.forEach((k, j) -> System.out.println("\t" + k + " " + j.stream().map(Node::getName).collect(Collectors.joining(", "))));
-                      if (baseToFSMNodes.get(eogPath + "." + v.id()) != null) {
-                        for (Node n : baseToFSMNodes.get(eogPath + "." + v.id())) {
-                          if (!n.isEnd()) { // if at least one node is not at END, we potentially have to look at this again, do not shortcut
-                            continue outer;
-                          }
-                        }
-                      }
-
-                      // all FSM-nodes for this base (not prefixed are either non-existent, or already in an end state. break
-                      System.out.println("Skip this path");
-                      outVertices.remove(i);
-                    }
-                  }
-                    */
                 nextWorklist.addAll(outVertices);
               }
-
-              // if the current path has already been visited, and all stuff in baseToFSMNodes is at
-              // start or beginning, remove the current path
-              // weiter
-              currentWorklist = nextWorklist;
+              // the current vertex has been analyzed with all these eogpath. remove from map, if we
+              // visit it in another iteration
+              nodeIDtoEOGPathSet.remove((Long) vertex.id());
             }
+            currentWorklist = nextWorklist;
           }
+
+          log.info(
+              "Done evaluating function {}, rule {}. Visited Nodes: {}",
+              functionDeclaration.value("name"),
+              rule.getName(),
+              visitedNodes);
           // now the whole function was evaluated.
           // Check that the FSM is in its end/beginning state for all bases
           HashMap<String, HashSet<String>> nonterminatedBases = new HashMap<>();
@@ -544,7 +487,6 @@ public class MarkInterpreter {
             }
           }
           for (Map.Entry<String, HashSet<String>> entry : nonterminatedBases.entrySet()) {
-            // !! FINDING
             Vertex vertex = lastBaseUsage.get(entry.getKey());
             String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
             Finding f =
@@ -552,7 +494,7 @@ public class MarkInterpreter {
                     "Violation against Order: Base "
                         + base
                         + " is not correctly terminated. Expected one of ["
-                        + String.join(", ", entry.getValue())
+                        + entry.getValue().stream().sorted().collect(Collectors.joining(", "))
                         + "] to follow the correct last call on this base."
                         + " ("
                         + rule.getErrorMessage()
@@ -565,6 +507,54 @@ public class MarkInterpreter {
             log.info("Finding: {}", f.toString());
           }
         }
+      }
+    }
+  }
+
+  private boolean isDisallowedBase(
+      HashMap<String, HashSet<String>> disallowedBases, String eogpath, String base) {
+    HashSet<String> disallowedEOGPaths = disallowedBases.get(base);
+    if (disallowedEOGPaths != null) {
+      return disallowedEOGPaths.stream().anyMatch(eogpath::startsWith);
+    }
+    return false;
+  }
+
+  private String getStateSnapshot(Vertex v, HashMap<String, HashSet<Node>> baseToFSMNodes) {
+    HashMap<String, HashSet<Node>> simplified = new HashMap<>();
+
+    for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+      simplified
+          .computeIfAbsent(entry.getKey().split("\\.")[1], x -> new HashSet<>())
+          .addAll(entry.getValue());
+    }
+
+    List<String> fsmStates =
+        simplified.entrySet().stream()
+            .map(
+                x ->
+                    x.getKey()
+                        + "("
+                        + x.getValue().stream().map(Node::toString).collect(Collectors.joining(","))
+                        + ")")
+            .distinct()
+            .sorted()
+            .collect(Collectors.toList());
+
+    return v.id() + " " + String.join(",", fsmStates);
+  }
+
+  private void printWorklist(
+      HashSet<Vertex> currentWorklist, HashMap<Long, HashSet<String>> nodeIDtoEOGPathSet) {
+    for (Vertex s : currentWorklist) {
+      HashSet<String> eogPathSet = nodeIDtoEOGPathSet.get((Long) s.id());
+      System.out.print("WL: " + eogPathSet + " ");
+      System.out.print(s.id() + " ");
+      try {
+
+        System.out.println(s.value("code").toString().split("\\n")[0]);
+      } catch (Exception e) {
+        System.out.println("<< no code");
       }
     }
   }
@@ -629,37 +619,6 @@ public class MarkInterpreter {
       }
     }
   }
-
-  //  /**
-  //   * DUMMY. JUST FOR DEMO. REWRITE.
-  //   *
-  //   * <p>Evaluates a MARK rule against the results of the analysis.
-  //   *
-  //   * @param r
-  //   * @return
-  //   */
-  //  public boolean evaluateRule(MRule r) {
-  //    // TODO parse rule and do something with it
-  //    Optional<String> matchingEntity =
-  //        r.getStatement().getEntities().stream()
-  //            .map(ent -> ent.getE().getName())
-  //            .filter(entityName -> this.markModel.getPopulatedEntities().containsKey(entityName))
-  //            .findAny();
-  //    if (matchingEntity.isPresent()) {
-  //      // System.out.println("Found matching entity " + matchingEntity.get());
-  //      Expression ensureExpr = r.getStatement().getEnsure().getExp();
-  //      // System.out.println(exprToString(ensureExpr));
-  //      // TODO evaluate expression against populated mark entities
-  //      if (evaluateExpr(ensureExpr)) {
-  //        // System.out.println("Rule " + r.getName() + " is satisfied.");
-  //        return true;
-  //      } else {
-  //        // System.out.println("Rule " + r.getName() + " is matched but violated.");
-  //        return false;
-  //      }
-  //    }
-  //    return false;
-  //  }
 
   private boolean evaluateExpr(Expression expr) {
     if (expr instanceof SequenceExpression) {

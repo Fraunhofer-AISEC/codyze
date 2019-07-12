@@ -75,11 +75,6 @@ class OrderTestComplex {
     assertNotNull(ctx);
     assertTrue(ctx.methods.isEmpty());
 
-    List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
-    assertNotNull(tus);
-    assertEquals(1, tus.size());
-    assertTrue(tus.get(0).endsWith(sourceFileName));
-
     List<String> findings = new ArrayList<>();
     assertNotNull(ctx.getFindings());
     ctx.getFindings().forEach(x -> findings.add(x.toString()));
@@ -88,26 +83,35 @@ class OrderTestComplex {
       System.out.println(s);
     }
 
-    assertEquals(6, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+    assertEquals(5, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
     assertTrue(
         findings.contains(
             "line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
-    assertTrue(
-        findings.contains(
-            "line 54: Violation against Order: p5.start(); is not allowed. Base contains errors already. (WrongUseOfBotan_CipherMode)"));
-    assertTrue(
-        findings.contains(
-            "line 55: Violation against Order: p5.process(); is not allowed. Base contains errors already. (WrongUseOfBotan_CipherMode)"));
-    assertTrue(
-        findings.contains(
-            "line 56: Violation against Order: p5.finish(); is not allowed. Base contains errors already. (WrongUseOfBotan_CipherMode)"));
+    // assertTrue(
+    //    findings.contains(
+    //        "line 54: Violation against Order: p5.start(); is not allowed. Base contains errors
+    // already. (WrongUseOfBotan_CipherMode)"));
+    // assertTrue(
+    //    findings.contains(
+    //        "line 55: Violation against Order: p5.process(); is not allowed. Base contains errors
+    // already. (WrongUseOfBotan_CipherMode)"));
+    // assertTrue(
+    //    findings.contains(
+    //        "line 56: Violation against Order: p5.finish(); is not allowed. Base contains errors
+    // already. (WrongUseOfBotan_CipherMode)"));
     assertTrue(
         findings.contains(
             "line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
     assertTrue(
         findings.contains(
             "line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+    assertTrue(
+        findings.contains(
+            "line 80: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
+    assertTrue(
+        findings.contains(
+            "line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode)"));
 
     server.stop();
   }

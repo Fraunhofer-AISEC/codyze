@@ -8,6 +8,10 @@ public class Finding {
   private Range range;
   private Range humanRange;
 
+  public Finding(String name) {
+    this(name, -1, -1, -1, -1);
+  }
+
   public Finding(String name, long startLine, long endLine, long startColumn, long endColumn) {
     this.finding = name;
     assert startLine < Integer.MAX_VALUE;

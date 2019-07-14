@@ -6,6 +6,7 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
+import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
@@ -28,6 +29,12 @@ public class MarkInterpreter {
 
   public MarkInterpreter(@NonNull Mark markModel) {
     this.markModel = markModel;
+  }
+
+  enum TRISTATE {
+    TRUE,
+    FALSE,
+    UNKNOWN
   }
 
   public static String exprToString(Expression expr) {
@@ -176,11 +183,14 @@ public class MarkInterpreter {
       start = Instant.now();
       evaluateOrder(ctx, crymlinTraversal);
       log.info(
-          "Done evaluating  order in {} ms.", Duration.between(start, Instant.now()).toMillis());
+          "Done evaluating order in {} ms.", Duration.between(start, Instant.now()).toMillis());
 
+      log.info("Evaluate rules");
+      start = Instant.now();
+      evaluateRules(ctx);
       log.info(
-          "Done evaluating   all MARK rules in {} ms.",
-          Duration.between(outer_start, Instant.now()).toMillis());
+          "Done evaluating all MARK rules in {} ms.",
+          Duration.between(start, Instant.now()).toMillis());
 
       return result;
     }
@@ -611,7 +621,6 @@ public class MarkInterpreter {
                     v.value("endLine"),
                     v.value("startColumn"),
                     v.value("endColumn"));
-            ;
             ctx.getFindings().add(f);
             log.info("Finding: {}", f.toString());
           }
@@ -620,22 +629,253 @@ public class MarkInterpreter {
     }
   }
 
-  private boolean evaluateExpr(Expression expr) {
-    if (expr instanceof SequenceExpression) {
-      OrderExpression left = ((SequenceExpression) expr).getLeft();
-      OrderExpression right = ((SequenceExpression) expr).getRight();
-      return evaluateExpr(left) && evaluateExpr(right);
-    } else if (expr instanceof Terminal) {
-      return containedInModel((Terminal) expr);
-    } else if (expr instanceof OrderExpression) {
-      SequenceExpression seqxpr = (SequenceExpression) ((OrderExpression) expr).getExp();
-      if (seqxpr != null) {
-        return evaluateExpr(seqxpr);
+  private void evaluateRules(AnalysisContext ctx) {
+    for (MRule rule : markModel.getRules()) {
+      if (rule.getStatement() != null && rule.getStatement().getEnsure() != null) {
+        RuleStatement s = rule.getStatement();
+        log.info("checking rule " + rule.getName());
+        if (s.getCond() != null) {
+          if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
+            log.info(
+                "   terminate rule checking due to unsatisfied guarding condition: "
+                    + exprToString(s.getCond().getExp()));
+            ctx.getFindings()
+                .add(
+                    new Finding(
+                        "MarkRuleEvaluationFinding: Rule "
+                            + rule.getName()
+                            + ": guarding condition unsatisfied"));
+          } else if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
+            log.warn(
+                "The rule '"
+                    + rule.getName()
+                    + "' will not be checked because it's guarding condition cannot be evaluated: "
+                    + exprToString(s.getCond().getExp()));
+            ctx.getFindings()
+                .add(
+                    new Finding(
+                        "MarkRuleEvaluationFinding: Rule "
+                            + rule.getName()
+                            + ": guarding condition unknown"));
+          }
+        }
+
+        log.debug("checking 'ensure'-statement");
+        if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
+          log.warn(
+              "Ensure statement of rule '"
+                  + rule.getName()
+                  + "' cannot be evaluated: "
+                  + exprToString(s.getEnsure().getExp()));
+          ctx.getFindings()
+              .add(
+                  new Finding(
+                      "MarkRuleEvaluationFinding: Rule "
+                          + rule.getName()
+                          + ": ensure condition unknown"));
+        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
+          log.error("Rule '" + rule.getName() + "' is violated.");
+          ctx.getFindings()
+              .add(
+                  new Finding(
+                      "MarkRuleEvaluationFinding: Rule "
+                          + rule.getName()
+                          + ": ensure condition violated"));
+        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.TRUE) {
+          log.info("Rule '" + rule.getName() + "' is satisfied.");
+          ctx.getFindings()
+              .add(
+                  new Finding(
+                      "MarkRuleEvaluationFinding: Rule "
+                          + rule.getName()
+                          + ": ensure condition satisfied"));
+        } else {
+          assert false; // no other paths expected here
+        }
       }
-    } else {
-      // System.out.println("Cannot evaluate " + expr.getClass());
     }
-    return false;
+  }
+
+  private TRISTATE evaluateTopLevelExpr(Expression expr) {
+    if (expr instanceof OrderExpression) {
+      return evaluateOrderExpression((OrderExpression) expr);
+    }
+
+    Optional<Boolean> result = evaluateLogicalExpr(expr);
+    if (result.isEmpty()) {
+      return TRISTATE.UNKNOWN;
+    }
+
+    if (result.get()) {
+      return TRISTATE.TRUE;
+    } else {
+      return TRISTATE.FALSE;
+    }
+  }
+
+  private TRISTATE evaluateOrderExpression(OrderExpression orderExpression) {
+    if (orderExpression instanceof Terminal) {
+      return containedInModel((Terminal) orderExpression) ? TRISTATE.TRUE : TRISTATE.FALSE;
+    } else {
+      return TRISTATE.UNKNOWN;
+    }
+  }
+
+  private Optional<Boolean> evaluateLogicalExpr(Expression expr) {
+    if (expr instanceof ComparisonExpression) {
+      return evaluateComparisonExpr((ComparisonExpression) expr);
+
+    } else if (expr instanceof LogicalAndExpression) {
+      Expression left = ((LogicalAndExpression) expr).getLeft();
+      Expression right = ((LogicalAndExpression) expr).getRight();
+      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
+      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+      if (leftResult.isEmpty() || rightResult.isEmpty()) {
+        return Optional.empty();
+      } else {
+        return Optional.of(leftResult.get() && rightResult.get());
+      }
+
+    } else if (expr instanceof LogicalOrExpression) {
+      Expression left = ((LogicalOrExpression) expr).getLeft();
+      Expression right = ((LogicalOrExpression) expr).getRight();
+      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
+      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+      if (leftResult.isEmpty()) {
+        return rightResult;
+      } else if (rightResult.isEmpty()) {
+        return leftResult;
+      } else {
+        return Optional.of(leftResult.get() || rightResult.get());
+      }
+    } else if (expr instanceof FunctionCallExpression) {
+      return evaluateFunctionCallExpr((FunctionCallExpression) expr);
+    } else {
+      // TODO: create custom exceptions
+      throw new RuntimeException("not a logical expression: " + expr);
+    }
+  }
+
+  private Optional<Boolean> evaluateComparisonExpr(ComparisonExpression expr) {
+    String op = expr.getOp();
+    Expression left = expr.getLeft();
+    Expression right = expr.getRight();
+    log.debug(
+        "comparing expression " + exprToString(left) + " with expression " + exprToString(right));
+    Optional leftResult = evaluateUnknownExpr(left);
+    Optional rightResult = evaluateUnknownExpr(right);
+    if (leftResult.isEmpty() || rightResult.isEmpty()) {
+      return Optional.empty();
+    }
+    log.debug("left result= " + leftResult.get() + " right result= " + rightResult.get());
+
+    // TODO implement remaining operations
+    switch (op) {
+      case "==":
+        return Optional.of(leftResult.get().equals(rightResult.get()));
+      case "!=":
+      case "<":
+      case "<=":
+      case ">":
+      case ">=":
+      case "in":
+      case "like":
+        return Optional.empty();
+      default:
+        assert false;
+        return Optional.empty();
+    }
+  }
+
+  private Vector<Optional> evaluateArgs(EList<Argument> argList, int n) {
+    Vector<Optional> result = new Vector<Optional>();
+    for (int i = 0; i < n; i++) {
+      Expression arg = (Expression) argList.get(i);
+      result.add(evaluateUnknownExpr(arg));
+    }
+    return result;
+  }
+
+  private Optional evaluateFunctionCallExpr(Expression expr) {
+    assert expr instanceof FunctionCallExpression;
+
+    FunctionCallExpression callExpr = (FunctionCallExpression) expr;
+    String functionName = callExpr.getName();
+    if (functionName.startsWith("_")) {
+      // call to built-in functions
+
+      if (functionName.equals("_split")) {
+        Vector<Optional> argOptionals = evaluateArgs(callExpr.getArgs(), 3);
+        int i = 0;
+        for (Optional arg : argOptionals) {
+          if (arg.isEmpty()) {
+            return Optional.empty();
+          }
+          i++;
+        }
+        String s = (String) argOptionals.get(0).get();
+        String regex = (String) argOptionals.get(1).get();
+        int index = (Integer) argOptionals.get(2).get();
+        log.debug("args are: " + s + "; " + regex + "; " + index);
+        return Optional.of(Builtins._split(s, regex, index));
+      }
+
+      if (functionName.contains("receives_value_from")) {
+        return Optional.of(Builtins._receives_value_from());
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  private Optional evaluateLiteral(Literal literal) {
+    if (literal instanceof StringLiteral) {
+      return Optional.of(Utils.stripQuotedString(literal.getValue()));
+    } else if (literal instanceof IntegerLiteral) {
+      return Optional.of(Integer.valueOf(literal.getValue()));
+    } else {
+      throw new RuntimeException("not yet implemented");
+    }
+  }
+
+  private Optional evaluateUnknownExpr(Expression expr) {
+    // TODO implement!
+
+    if (expr instanceof AdditionExpression) {
+      log.debug("evaluating AdditionExpression: " + exprToString(expr));
+      return Optional.empty();
+    } else if (expr instanceof FunctionCallExpression) {
+      log.debug("evaluating FunctionCallExpression: " + exprToString(expr));
+      return evaluateFunctionCallExpr(expr);
+    } else if (expr instanceof Literal) {
+      log.debug("evaluating Literal expression: " + exprToString(expr));
+      Literal literal = (Literal) expr;
+      return evaluateLiteral(literal);
+    } else if (expr instanceof LiteralListExpression) {
+      log.debug("evaluating LiteralListExpression: " + exprToString(expr));
+      return Optional.empty();
+    } else if (expr instanceof LogicalAndExpression) {
+      log.debug("evaluating LogicalAndExpression: " + exprToString(expr));
+      return evaluateLogicalExpr(expr);
+    } else if (expr instanceof LogicalOrExpression) {
+      log.debug("evaluating LogicalOrExpression: " + exprToString(expr));
+      return evaluateLogicalExpr(expr);
+    } else if (expr instanceof MultiplicationExpression) {
+      log.debug("evaluating MultiplicationExpression: " + exprToString(expr));
+      return Optional.empty();
+    } else if (expr instanceof Operand) {
+      log.debug("evaluating Operand expression: " + exprToString(expr));
+      Operand o = (Operand) expr;
+      // TODO just for test. Implement!
+      return Optional.of(o.getOperand());
+    } else if (expr instanceof UnaryExpression) {
+      log.debug("evaluating UnaryExpression: " + exprToString(expr));
+      return Optional.empty();
+    } else {
+      log.error("unknown expression: " + exprToString(expr));
+      assert false; // all expression types must be handled
+      return Optional.empty();
+    }
   }
 
   /**

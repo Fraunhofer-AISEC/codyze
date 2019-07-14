@@ -47,4 +47,12 @@ public class Utils {
     }
     return opName;
   }
+
+  public static String stripQuotedString(String s) {
+    // TODO re-check with MARK grammar
+    if (s.startsWith("\"") && s.endsWith("\"")) {
+      s = s.substring(1, s.length() - 1);
+    }
+    return s;
+  }
 }

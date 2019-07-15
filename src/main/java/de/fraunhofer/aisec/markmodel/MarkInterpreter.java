@@ -221,7 +221,7 @@ public class MarkInterpreter {
 
       for (MRule rule : this.markModel.getRules()) {
 
-        if (rule.getFSM() != null) {
+        if (rule.getFSM() != null) { // if this is null, there is no order-statement for this rule
           // rule.getFSM().pushToDB(); //debug only
           log.info("\tEvaluating rule " + rule.getName());
           /* todo
@@ -634,7 +634,16 @@ public class MarkInterpreter {
       if (rule.getStatement() != null && rule.getStatement().getEnsure() != null) {
         RuleStatement s = rule.getStatement();
         log.info("checking rule " + rule.getName());
+
+        if (s.getEnsure() != null && s.getEnsure().getExp() instanceof OrderExpression) {
+          continue;
+          // todo maybe comment in again, if the order-statements are generally caught by this
+          // function.
+          // for now, order is done separately.
+        }
+
         if (s.getCond() != null) {
+
           if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
             log.info(
                 "   terminate rule checking due to unsatisfied guarding condition: "

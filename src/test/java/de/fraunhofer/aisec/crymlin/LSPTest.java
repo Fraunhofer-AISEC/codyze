@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
+import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.MessageActionItem;
 import org.eclipse.lsp4j.MessageParams;
@@ -58,6 +59,9 @@ class LSPTest {
 
           @Override
           public void publishDiagnostics(PublishDiagnosticsParams publishDiagnosticsParams) {
+            for (Diagnostic d : publishDiagnosticsParams.getDiagnostics()) {
+              System.out.println(d.getMessage());
+            }
             if (first) {
               // a generic message to mark the whole file
               first = false;

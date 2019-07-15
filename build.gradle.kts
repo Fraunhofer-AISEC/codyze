@@ -186,9 +186,8 @@ spotless {
                 }
         )
 
+        //googleJavaFormat().aosp()
         googleJavaFormat()
-        // XML file dumped out by the Eclipse formatter (will be used in the near future)
-        //eclipse().configFile("spotless.eclipseformat.xml")
     }
 }
 

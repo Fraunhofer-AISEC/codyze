@@ -221,7 +221,8 @@ public class MarkInterpreter {
 
       for (MRule rule : this.markModel.getRules()) {
 
-        if (rule.getFSM() != null) { // if this is null, there is no order-statement for this rule
+        // if this is null, there is no order-statement for this rule
+        if (rule.getFSM() != null) {
           // rule.getFSM().pushToDB(); //debug only
           log.info("\tEvaluating rule " + rule.getName());
           /* todo
@@ -253,7 +254,8 @@ public class MarkInterpreter {
           // which bases did we already see, but are not initialized correctly
           // base to set of eogpaths
           HashMap<String, HashSet<String>> disallowedBases = new HashMap<>();
-          // stores the current markings in the FSM (i.e., which base is at which FSM-node)
+          // stores the current markings in the FSM (i.e., which base is at which
+          // FSM-node)
           HashMap<String, HashSet<Node>> baseToFSMNodes = new HashMap<>();
           // last usage of base
           HashMap<String, Vertex> lastBaseUsage = new HashMap<>();
@@ -307,10 +309,9 @@ public class MarkInterpreter {
                       }
 
                       // if we have a reference to a node in the cpg, we add this to the prefixed
-                      // base
-                      // this way, we could differentiate between nodes with the same base name, but
-                      // referencing
-                      // different variables (e.g., if they are used in different blocks)
+                      // base this way, we could differentiate between nodes with the same base
+                      // name, but referencing different variables (e.g., if they are used in
+                      // different blocks)
                       if (ref != null) {
                         base += "|" + ref;
                       }
@@ -336,17 +337,18 @@ public class MarkInterpreter {
                       } else {
                         HashSet<Node> nodesInFSM;
                         if (baseToFSMNodes.get(prefixedBase) == null) {
-                          // we have not seen this base before. check if this is the
-                          // start of an order
+                          // we have not seen this base before. check if this is the start of an
+                          // order
                           nodesInFSM = rule.getFSM().getStart(); // start nodes
                         } else {
-                          nodesInFSM =
-                              baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
+                          nodesInFSM = baseToFSMNodes.get(prefixedBase); // nodes
+                          // calculated in previous step
                         }
 
                         HashSet<Node> nextNodesInFSM = new HashSet<>();
 
-                        boolean match = false; // did at least one fsm-Node-match occur?
+                        // did at least one fsm-Node-match occur?
+                        boolean match = false;
                         for (Node n : nodesInFSM) {
                           // are there any ops corresponding to the current base and the current
                           // function name?
@@ -415,8 +417,8 @@ public class MarkInterpreter {
                     HashSet<String> oldBases = new HashSet<>();
                     HashMap<String, HashSet<Node>> newBases = new HashMap<>();
                     // first we collect all entries which we need to remove from the baseToFSMNodes
-                    // map we also store these entries without the eog path prefix, to update
-                    // later in (1)
+                    // map we also store these entries without the eog path prefix, to update later
+                    // in (1)
                     for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
                       if (entry.getKey().startsWith(eogPath)) {
                         oldBases.add(entry.getKey());
@@ -450,9 +452,9 @@ public class MarkInterpreter {
                       }
                     }
                   }
-                } else if (outVertices.size()
-                    == 1) { // else, if we only have one vertex following this vertex, simply
-                  // propagate the current eogpath to the next vertex
+                } else if (outVertices.size() == 1) {
+                  // else, if we only have one vertex following this
+                  // vertex, simply propagate the current eogpath to the next vertex
                   nodeIDtoEOGPathSet
                       .computeIfAbsent((Long) outVertices.get(0).id(), x -> new HashSet<>())
                       .add(eogPath);
@@ -637,9 +639,8 @@ public class MarkInterpreter {
 
         if (s.getEnsure() != null && s.getEnsure().getExp() instanceof OrderExpression) {
           continue;
-          // todo maybe comment in again, if the order-statements are generally caught by this
-          // function.
-          // for now, order is done separately.
+          // todo maybe comment in again, if the order-statements are generally caught by
+          // this function. for now, order is done separately.
         }
 
         if (s.getCond() != null) {

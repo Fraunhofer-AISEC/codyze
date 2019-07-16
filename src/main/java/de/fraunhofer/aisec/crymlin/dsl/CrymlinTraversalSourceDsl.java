@@ -1,11 +1,15 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
+
 import de.fraunhofer.aisec.cpg.graph.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.Declaration;
 import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.MemberCallExpression;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
+import de.fraunhofer.aisec.cpg.graph.ValueDeclaration;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -22,17 +26,6 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
  */
 public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
-  private static final String CALL_EXPRESSION = "CallExpressicon::Expression::Statement";
-  public static final String TRANSLATION_UNIT_DECLARATION = "Expression::Literal::Statement";
-  public static final String LITERAL = "Expression::Literal::Statement";
-  public static final String VARIABLE_DECLARATION = "Declaration::VariableDeclaration";
-
-  public static final String ARGUMENTS = "ARGUMENTS";
-
-  public static final String ARGUMENT_INDEX = "argumentIndex";
-  public static final String NAME = "name";
-  public static final String VALUE = "value";
-
   public CrymlinTraversalSourceDsl(
       final Graph graph, final TraversalStrategies traversalStrategies) {
     super(graph, traversalStrategies);
@@ -45,7 +38,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   public GraphTraversal<Vertex, Vertex> variableDeclarations() {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal.hasLabel(VARIABLE_DECLARATION);
+    return traversal.hasLabel(LabelP.of(ValueDeclaration.class.getSimpleName()));
   }
 
   /**
@@ -78,7 +71,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     return traversal
         .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
         .has("name", callee_name)
-        .where(__.out("BASE").has("type", base_type));
+        .where(out("BASE").has("type", base_type));
 
     //    return traversal
     //        .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
@@ -172,5 +165,38 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
     return traversal.has(T.label, LabelP.of(Declaration.class.getSimpleName()));
+  }
+
+  /**
+   * Returns the next nodes connected via EOG
+   *
+   * @return
+   */
+  public GraphTraversal<Vertex, Vertex> byID(long id) {
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+    return traversal.has(T.id, id);
+  }
+
+  /**
+   * Returns the next nodes connected via EOG
+   *
+   * @return
+   */
+  public GraphTraversal<Vertex, Vertex> nextEOGFromID(long id) {
+
+    //    this.clone().V().has(T.id, id)
+    //            .repeat(out("EOG").simplePath().store("x"))
+    //            .cap("x")
+    //            .unfold()
+    //            .dedup()
+
+    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+    return traversal
+        .has(T.id, id)
+        .repeat(out("EOG"))
+        .until(hasLabel(LabelP.of(MemberCallExpression.class.getSimpleName())))
+        .emit(hasLabel(LabelP.of(MemberCallExpression.class.getSimpleName())));
   }
 }

@@ -74,11 +74,6 @@ class OrderTest {
     assertNotNull(ctx);
     assertTrue(ctx.methods.isEmpty());
 
-    List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
-    assertNotNull(tus);
-    assertEquals(1, tus.size());
-    assertTrue(tus.get(0).endsWith(sourceFileName));
-
     List<String> findings = new ArrayList<>();
     assertNotNull(ctx.getFindings());
     ctx.getFindings().forEach(x -> findings.add(x.toString()));

@@ -765,10 +765,19 @@ public class MarkInterpreter {
         return Optional.of(leftResult.get() || rightResult.get());
       }
     } else if (expr instanceof FunctionCallExpression) {
-      return evaluateFunctionCallExpr((FunctionCallExpression) expr);
+      Optional result = evaluateFunctionCallExpr((FunctionCallExpression) expr);
+      if (result.isEmpty()) {
+        return Optional.empty();
+      } else if (result.get() instanceof Boolean) {
+        return Optional.of((Boolean) result.get());
+      } else {
+        // TODO report error in MARK file: "Use of non-boolean function call as top level
+        // ensure/when expression"
+        return Optional.empty();
+      }
     } else {
-      // TODO: create custom exceptions
-      throw new RuntimeException("not a logical expression: " + expr);
+      assert false; // not a logical expression
+      return Optional.empty();
     }
   }
 
@@ -812,17 +821,14 @@ public class MarkInterpreter {
     return result;
   }
 
-  private Optional evaluateFunctionCallExpr(Expression expr) {
-    assert expr instanceof FunctionCallExpression;
-
-    FunctionCallExpression callExpr = (FunctionCallExpression) expr;
-    String functionName = callExpr.getName();
+  private Optional evaluateFunctionCallExpr(FunctionCallExpression expr) {
+    String functionName = expr.getName();
     if (functionName.startsWith("_")) {
       // call to built-in functions
 
       // TODO: use Java reflections to get name and arguments of builtin functions
       if (functionName.equals("_split")) {
-        Vector<Optional> argOptionals = evaluateArgs(callExpr.getArgs(), 3);
+        Vector<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
         int i = 0;
         for (Optional arg : argOptionals) {
           if (arg.isEmpty()) {
@@ -851,7 +857,8 @@ public class MarkInterpreter {
     } else if (literal instanceof IntegerLiteral) {
       return Optional.of(Integer.valueOf(literal.getValue()));
     } else {
-      throw new RuntimeException("not yet implemented");
+      assert false; // TODO not yet implemented
+      return Optional.empty();
     }
   }
 
@@ -863,7 +870,7 @@ public class MarkInterpreter {
       return Optional.empty();
     } else if (expr instanceof FunctionCallExpression) {
       log.debug("evaluating FunctionCallExpression: " + exprToString(expr));
-      return evaluateFunctionCallExpr(expr);
+      return evaluateFunctionCallExpr((FunctionCallExpression) expr);
     } else if (expr instanceof Literal) {
       log.debug("evaluating Literal expression: " + exprToString(expr));
       Literal literal = (Literal) expr;

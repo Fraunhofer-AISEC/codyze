@@ -1,10 +1,8 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.ARGUMENTS;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.ARGUMENT_INDEX;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl.LITERAL;
-
+import de.fraunhofer.aisec.cpg.graph.Literal;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -34,15 +32,18 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 @GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl")
 public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 
-  public default CrymlinTraversalDsl<S, Vertex> argument(int i) {
+  String ARGUMENTS = "ARGUMENTS";
+  String ARGUMENT_INDEX = "argumentIndex";
+
+  default CrymlinTraversalDsl<S, Vertex> argument(int i) {
     return (CrymlinTraversalDsl<S, Vertex>) out(ARGUMENTS).has(ARGUMENT_INDEX, i);
   }
 
   @GremlinDsl.AnonymousMethod(
       returnTypeParameters = {"A", "A"}, // c/p from example, unclear.
       methodTypeParameters = {"A"})
-  public default GraphTraversal<S, E> literals() {
-    return hasLabel(LITERAL);
+  default GraphTraversal<S, E> literals() {
+    return hasLabel(LabelP.of(Literal.class.getSimpleName()));
   }
 
   /**
@@ -53,8 +54,8 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   @GremlinDsl.AnonymousMethod(
       returnTypeParameters = {"A", "B"}, // c/p from example, unclear.
       methodTypeParameters = {"A", "B"})
-  public default CrymlinTraversal<S, E> variables() {
-    return (CrymlinTraversal<S, E>) hasLabel(VariableDeclaration.class.getSimpleName());
+  default CrymlinTraversal<S, E> variables() {
+    return (CrymlinTraversal<S, E>) hasLabel(LabelP.of(VariableDeclaration.class.getSimpleName()));
   }
 
   /**
@@ -65,7 +66,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   @GremlinDsl.AnonymousMethod(
       returnTypeParameters = {"A", "Object"}, // c/p from example, unclear.
       methodTypeParameters = {"A"})
-  public default CrymlinTraversal<S, Object> name() {
+  default CrymlinTraversal<S, Object> name() {
     return (CrymlinTraversal<S, Object>) values("name");
   }
 
@@ -77,7 +78,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   @GremlinDsl.AnonymousMethod(
       returnTypeParameters = {"A", "Object"}, // c/p from example, unclear.
       methodTypeParameters = {"A"})
-  public default CrymlinTraversal<S, Object> sourcecode() {
+  default CrymlinTraversal<S, Object> sourcecode() {
     return (CrymlinTraversal<S, Object>) values("code");
   }
 
@@ -89,7 +90,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   @GremlinDsl.AnonymousMethod(
       returnTypeParameters = {"A", "Vertex"},
       methodTypeParameters = {"A"})
-  public default CrymlinTraversal<S, Vertex> cfg() {
+  default CrymlinTraversal<S, Vertex> cfg() {
     return (CrymlinTraversal<S, Vertex>) out("CFG");
   }
 
@@ -101,7 +102,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   @GremlinDsl.AnonymousMethod(
       returnTypeParameters = {"A", "Vertex"},
       methodTypeParameters = {"A"})
-  public default CrymlinTraversal<S, Vertex> body() {
+  default CrymlinTraversal<S, Vertex> body() {
     return (CrymlinTraversal<S, Vertex>) out("BODY");
   }
 
@@ -120,7 +121,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
   //      returnTypeParameters = {"A", "Vertex"}, // c/p from example, unclear.
   //      methodTypeParameters = {"A"})
   //  @Deprecated
-  //  public default CrymlinTraversal<S, Vertex> statements() {
+  //  default CrymlinTraversal<S, Vertex> statements() {
   //    //    AnalysisServer server = AnalysisServer.getInstance();
   //    //    if (server == null) {
   //    //      return (CrymlinTraversal<S, Vertex>) this;

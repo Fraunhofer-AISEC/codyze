@@ -32,12 +32,6 @@ public class MarkInterpreter {
     this.markModel = markModel;
   }
 
-  enum TRISTATE {
-    TRUE,
-    FALSE,
-    UNKNOWN
-  }
-
   public static String exprToString(Expression expr) {
     if (expr == null) {
       return " null ";
@@ -669,7 +663,7 @@ public class MarkInterpreter {
 
         if (s.getCond() != null) {
 
-          if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.FALSE) {
+          if (evaluateTopLevelExpr(s.getCond().getExp()).get() == false) {
             log.info(
                 "   terminate rule checking due to unsatisfied guarding condition: "
                     + exprToString(s.getCond().getExp()));
@@ -679,7 +673,7 @@ public class MarkInterpreter {
                         "MarkRuleEvaluationFinding: Rule "
                             + rule.getName()
                             + ": guarding condition unsatisfied"));
-          } else if (evaluateTopLevelExpr(s.getCond().getExp()) == TRISTATE.UNKNOWN) {
+          } else if (evaluateTopLevelExpr(s.getCond().getExp()).isEmpty()) {
             log.warn(
                 "The rule '"
                     + rule.getName()
@@ -695,7 +689,7 @@ public class MarkInterpreter {
         }
 
         log.debug("checking 'ensure'-statement");
-        if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.UNKNOWN) {
+        if (evaluateTopLevelExpr(s.getEnsure().getExp()).isEmpty()) {
           log.warn(
               "Ensure statement of rule '"
                   + rule.getName()
@@ -707,7 +701,7 @@ public class MarkInterpreter {
                       "MarkRuleEvaluationFinding: Rule "
                           + rule.getName()
                           + ": ensure condition unknown"));
-        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.FALSE) {
+        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()).get() == false) {
           log.error("Rule '" + rule.getName() + "' is violated.");
           ctx.getFindings()
               .add(
@@ -715,7 +709,7 @@ public class MarkInterpreter {
                       "MarkRuleEvaluationFinding: Rule "
                           + rule.getName()
                           + ": ensure condition violated"));
-        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()) == TRISTATE.TRUE) {
+        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()).get() == true) {
           log.info("Rule '" + rule.getName() + "' is satisfied.");
           ctx.getFindings()
               .add(
@@ -730,29 +724,17 @@ public class MarkInterpreter {
     }
   }
 
-  private TRISTATE evaluateTopLevelExpr(Expression expr) {
+  private Optional<Boolean> evaluateTopLevelExpr(Expression expr) {
     if (expr instanceof OrderExpression) {
       return evaluateOrderExpression((OrderExpression) expr);
-    }
-
-    Optional<Boolean> result = evaluateLogicalExpr(expr);
-    if (result.isEmpty()) {
-      return TRISTATE.UNKNOWN;
-    }
-
-    if (result.get()) {
-      return TRISTATE.TRUE;
     } else {
-      return TRISTATE.FALSE;
+      return evaluateLogicalExpr(expr);
     }
   }
 
-  private TRISTATE evaluateOrderExpression(OrderExpression orderExpression) {
-    if (orderExpression instanceof Terminal) {
-      return containedInModel((Terminal) orderExpression) ? TRISTATE.TRUE : TRISTATE.FALSE;
-    } else {
-      return TRISTATE.UNKNOWN;
-    }
+  private Optional<Boolean> evaluateOrderExpression(OrderExpression orderExpression) {
+    // TODO integrate Dennis' evaluateOrder()-function
+    return Optional.empty();
   }
 
   private Optional<Boolean> evaluateLogicalExpr(Expression expr) {
@@ -838,6 +820,7 @@ public class MarkInterpreter {
     if (functionName.startsWith("_")) {
       // call to built-in functions
 
+      // TODO: use Java reflections to get name and arguments of builtin functions
       if (functionName.equals("_split")) {
         Vector<Optional> argOptionals = evaluateArgs(callExpr.getArgs(), 3);
         int i = 0;

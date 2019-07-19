@@ -2,14 +2,7 @@ package de.fraunhofer.aisec.crymlin.dsl;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
-import de.fraunhofer.aisec.cpg.graph.CallExpression;
-import de.fraunhofer.aisec.cpg.graph.Declaration;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.MemberCallExpression;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
-import de.fraunhofer.aisec.cpg.graph.ValueDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -40,7 +33,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   public GraphTraversal<Vertex, Vertex> variableDeclarations() {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal.hasLabel(LabelP.of(ValueDeclaration.class.getSimpleName()));
+    return traversal.hasLabel(LabelP.of(VariableDeclaration.class.getSimpleName()));
   }
 
   /**

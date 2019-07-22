@@ -50,6 +50,9 @@ public class RuleCheckTest {
       assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
     }
 
+    System.out.println(markPoC1.getAbsolutePath());
+    System.out.println(cppFile.getAbsolutePath());
+
     // Start an analysis server
     server =
         AnalysisServer.builder()

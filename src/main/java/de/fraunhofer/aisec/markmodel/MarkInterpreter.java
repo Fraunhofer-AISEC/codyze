@@ -852,14 +852,38 @@ public class MarkInterpreter {
   }
 
   private Optional evaluateLiteral(Literal literal) {
-    if (literal instanceof StringLiteral) {
-      return Optional.of(Utils.stripQuotedString(literal.getValue()));
-    } else if (literal instanceof IntegerLiteral) {
-      return Optional.of(Integer.valueOf(literal.getValue()));
-    } else {
-      assert false; // TODO not yet implemented
-      return Optional.empty();
+    String v = literal.getValue();
+    log.info("Literal with value: {}", v);
+
+    // ordering based on Mark grammar
+    if (literal instanceof IntegerLiteral) {
+      log.info("Literal is Integer: {}", v);
+      if (v.startsWith("0x")) {
+        return Optional.of(Integer.parseInt(v, 16));
+      }
+      return Optional.of(Integer.parseInt(v));
+    } else if (literal instanceof FloatingPointLiteral) {
+      log.info("Literal is Floating Point: {}", v);
+      return Optional.of(Float.parseFloat(v));
+    } else if (literal instanceof BooleanLiteral) {
+      log.info("Literal is Boolean: {}", v);
+      return Optional.of(Boolean.parseBoolean(v));
+    } else if (literal instanceof CharacterLiteral) {
+      log.info("Literal is Character: {}", v);
+      String strippedV = Utils.stripQuotedCharacter(v);
+
+      if (strippedV.length() > 1){
+        log.warn("Character literal with length greater 1 found: {}", strippedV);
+      }
+
+      return Optional.of(strippedV.charAt(0));
+    } else if (literal instanceof StringLiteral) {
+      log.info("Literal is String: {}", v);
+      return Optional.of(Utils.stripQuotedString(v));
     }
+
+    log.error("Unknown literal encountered: {}", v);
+    return Optional.empty();
   }
 
   private Optional evaluateUnknownExpr(Expression expr) {

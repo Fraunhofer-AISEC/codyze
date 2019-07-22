@@ -19,7 +19,9 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 /**
- * The DSL definition must be a class that extends {@code GraphTraversalSource} and should be
+ * This class adds new functions to the traversal to START from
+ *
+ * <p>The DSL definition must be a class that extends {@code GraphTraversalSource} and should be
  * referenced in the {@code GremlinDsl} annotation on the {@code GraphTraversal} extension - in this
  * example {@link CrymlinTraversalDsl}. The methods on this class will be exposed with the other
  * traversal start steps on {@code GraphTraversalSource}.
@@ -168,7 +170,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   }
 
   /**
-   * Returns the next nodes connected via EOG
+   * Returns the node by ID
    *
    * @return
    */

@@ -5,9 +5,12 @@ import de.fhg.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
+import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkInterpreter;
@@ -163,10 +166,25 @@ public class AnalysisServer {
               // Attach analysis context to result
               result.getScratch().put("ctx", ctx);
 
+              Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
               // Persist the result
               Database.getInstance()
                   .connect(); // this does not connect again if we are already connected
               result.persist(Database.getInstance());
+              long duration = b.stop();
+              try (TraversalConnection t = new TraversalConnection()) { // connects to the DB
+                CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
+                Long numEdges = crymlinTraversal.E().count().next();
+                Long numVertices = crymlinTraversal.V().count().next();
+                log.info(
+                    "Nodes in graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
+                    numVertices,
+                    String.format("%.2f", (double) duration / numVertices),
+                    numEdges,
+                    String.format("%.2f", (double) duration / numEdges));
+              }
+              log.info(
+                  "Benchmark: Persisted approx {} nodes", Database.getInstance().getNumNodes());
               return result;
             })
         .thenApply(

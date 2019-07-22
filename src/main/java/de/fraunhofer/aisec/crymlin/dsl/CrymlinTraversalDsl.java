@@ -8,7 +8,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 /**
- * Instead of starting a traversal with "g.V().", we start Crymlin with "crymlin.".
+ * this class adds new Traversal-Steps
  *
  * <p>This is the implementation of a custom DSL for graph traversals. A DSL definition must be an
  * interface and extend {@code GraphTraversal.Admin} and should be annotated with the {@code

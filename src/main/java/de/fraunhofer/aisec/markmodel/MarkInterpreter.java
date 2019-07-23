@@ -127,9 +127,6 @@ public class MarkInterpreter {
 
     Instant outer_start = Instant.now();
 
-    // reset stuff attached to this model
-    this.markModel.reset();
-
     try (TraversalConnection t = new TraversalConnection()) { // connects to the DB
       CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
 
@@ -188,6 +185,10 @@ public class MarkInterpreter {
           Duration.between(start, Instant.now()).toMillis());
 
       return result;
+    } finally {
+
+      // reset stuff attached to this model
+      this.markModel.reset();
     }
   }
 
@@ -872,7 +873,7 @@ public class MarkInterpreter {
       log.info("Literal is Character: {}", v);
       String strippedV = Utils.stripQuotedCharacter(v);
 
-      if (strippedV.length() > 1){
+      if (strippedV.length() > 1) {
         log.warn("Character literal with length greater 1 found: {}", strippedV);
       }
 

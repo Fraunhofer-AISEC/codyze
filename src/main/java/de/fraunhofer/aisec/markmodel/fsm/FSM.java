@@ -1,9 +1,9 @@
 package de.fraunhofer.aisec.markmodel.fsm;
 
-import de.fhg.aisec.mark.markDsl.Expression;
-import de.fhg.aisec.mark.markDsl.RepetitionExpression;
-import de.fhg.aisec.mark.markDsl.SequenceExpression;
-import de.fhg.aisec.mark.markDsl.Terminal;
+import de.fraunhofer.aisec.mark.markDsl.Expression;
+import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
+import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
+import de.fraunhofer.aisec.mark.markDsl.Terminal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

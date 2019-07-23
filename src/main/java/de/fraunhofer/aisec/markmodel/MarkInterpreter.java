@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.markmodel;
 
-import de.fhg.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -10,6 +9,7 @@ import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
+import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.time.Duration;
 import java.time.Instant;

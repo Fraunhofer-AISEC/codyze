@@ -1,6 +1,6 @@
 package de.fraunhofer.aisec.markmodel;
 
-import de.fhg.aisec.mark.markDsl.OpStatement;
+import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

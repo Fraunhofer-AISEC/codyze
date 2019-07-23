@@ -3,8 +3,8 @@ package de.fraunhofer.aisec.crymlin;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import de.fhg.aisec.mark.XtextParser;
-import de.fhg.aisec.mark.markDsl.MarkModel;
+import de.fraunhofer.aisec.mark.XtextParser;
+import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;

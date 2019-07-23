@@ -22,7 +22,6 @@ import org.python.antlr.base.stmt;
  * @author julian
  */
 public class StatementsPerMethodPass implements PassWithContext {
-  private TranslationResult result;
   private AnalysisContext ctx;
 
   @Override
@@ -86,4 +85,9 @@ public class StatementsPerMethodPass implements PassWithContext {
 
   @Override
   public void setLang(LanguageFrontend languageFrontend) {}
+
+  @Override
+  public void cleanup() {
+    ctx = null;
+  }
 }

@@ -1,7 +1,5 @@
 package de.fraunhofer.aisec.crymlin.server;
 
-import de.fhg.aisec.mark.XtextParser;
-import de.fhg.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -12,6 +10,8 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
+import de.fraunhofer.aisec.mark.XtextParser;
+import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkInterpreter;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
@@ -195,7 +195,8 @@ public class AnalysisServer {
                   this.markModel.getRules().size());
               // Evaluate all MARK rules
               MarkInterpreter mi = new MarkInterpreter(this.markModel);
-              return mi.evaluate(result, ctx);
+              TranslationResult evaluate = mi.evaluate(result, ctx);
+              return evaluate;
             });
   }
 

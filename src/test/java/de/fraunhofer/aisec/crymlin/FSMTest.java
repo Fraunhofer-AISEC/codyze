@@ -2,9 +2,9 @@ package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import de.fhg.aisec.mark.XtextParser;
-import de.fhg.aisec.mark.markDsl.MarkModel;
-import de.fhg.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.XtextParser;
+import de.fraunhofer.aisec.mark.markDsl.MarkModel;
+import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;

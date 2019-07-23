@@ -57,7 +57,7 @@ public class AnalysisServer {
 
   public CpgLanguageServer lsp;
 
-  @NonNull private Mark markModel = new Mark();
+  private Mark markModel = new Mark();
 
   private AnalysisServer(ServerConfiguration config) {
     this.config = config;
@@ -292,11 +292,16 @@ public class AnalysisServer {
   public void stop() throws Exception {
     if (interp != null) {
       interp.close();
+      interp = null;
     }
     if (lsp != null) {
       lsp.shutdown();
+      lsp = null;
     }
     Database.getInstance().close();
+    config = null;
+    markModel = null;
+
     log.info("stop.");
   }
 

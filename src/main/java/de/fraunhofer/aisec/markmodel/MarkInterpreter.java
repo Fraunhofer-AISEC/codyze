@@ -21,7 +21,6 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -727,8 +726,19 @@ public class MarkInterpreter {
       return evaluateOrderExpression((OrderExpression) expr);
     }
 
-    Optional<Boolean> result = evaluateLogicalExpr(expr);
-    log.debug("Top level expression was evaluated: {}", result.orElse(null));
+    Optional result = evaluateExpression(expr);
+
+    if (result.isEmpty()) {
+      log.error("Expression could not be evaluated: {}", exprToString(expr));
+      return Optional.empty();
+    }
+
+    log.debug("Top level expression was evaluated: {}", result.get());
+
+    if (!result.get().getClass().equals(Boolean.class)) {
+      log.error("Expression result is not Boolean");
+      return Optional.empty();
+    }
 
     return result;
   }
@@ -739,47 +749,42 @@ public class MarkInterpreter {
   }
 
   private Optional<Boolean> evaluateLogicalExpr(Expression expr) {
+    log.debug("Evaluating logical expression: {}", exprToString(expr));
+
     if (expr instanceof ComparisonExpression) {
       return evaluateComparisonExpr((ComparisonExpression) expr);
-
     } else if (expr instanceof LogicalAndExpression) {
-      Expression left = ((LogicalAndExpression) expr).getLeft();
-      Expression right = ((LogicalAndExpression) expr).getRight();
-      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
-      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
-      if (leftResult.isEmpty() || rightResult.isEmpty()) {
-        return Optional.empty();
-      } else {
-        return Optional.of(leftResult.get() && rightResult.get());
-      }
+      LogicalAndExpression lae = (LogicalAndExpression) expr;
 
-    } else if (expr instanceof LogicalOrExpression) {
-      Expression left = ((LogicalOrExpression) expr).getLeft();
-      Expression right = ((LogicalOrExpression) expr).getRight();
+      Expression left = lae.getLeft();
+      Expression right = lae.getRight();
+
       Optional<Boolean> leftResult = evaluateLogicalExpr(left);
       Optional<Boolean> rightResult = evaluateLogicalExpr(right);
-      if (leftResult.isEmpty()) {
-        return rightResult;
-      } else if (rightResult.isEmpty()) {
-        return leftResult;
-      } else {
-        return Optional.of(leftResult.get() || rightResult.get());
-      }
-    } else if (expr instanceof FunctionCallExpression) {
-      Optional result = evaluateFunctionCallExpr((FunctionCallExpression) expr);
-      if (result.isEmpty()) {
-        return Optional.empty();
-      } else if (result.get() instanceof Boolean) {
-        return Optional.of((Boolean) result.get());
-      } else {
-        // TODO report error in MARK file: "Use of non-boolean function call as top level
-        // ensure/when expression"
+
+      if (leftResult.isEmpty() || rightResult.isEmpty()) {
+        log.error("At least one subexpression could not be evaluated");
         return Optional.empty();
       }
-    } else {
-      assert false; // not a logical expression
-      return Optional.empty();
+      return Optional.of(leftResult.get() && rightResult.get());
+    } else if (expr instanceof LogicalOrExpression) {
+      LogicalOrExpression loe = (LogicalOrExpression) expr;
+
+      Expression left = loe.getLeft();
+      Expression right = loe.getRight();
+
+      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
+      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+
+      if (leftResult.isEmpty() || rightResult.isEmpty()) {
+        log.error("At least one subexpression could not be evaluated");
+        return Optional.empty();
+      }
+      return Optional.of(leftResult.get() || rightResult.get());
     }
+
+    assert false; // not a logical expression
+    return Optional.empty();
   }
 
   private Optional<Boolean> evaluateComparisonExpr(ComparisonExpression expr) {
@@ -790,8 +795,8 @@ public class MarkInterpreter {
     log.debug(
         "comparing expression " + exprToString(left) + " with expression " + exprToString(right));
 
-    Optional leftResult = evaluateUnknownExpr(left);
-    Optional rightResult = evaluateUnknownExpr(right);
+    Optional leftResult = evaluateExpression(left);
+    Optional rightResult = evaluateExpression(right);
 
     if (leftResult.isEmpty() || rightResult.isEmpty()) {
       return Optional.empty();
@@ -964,7 +969,7 @@ public class MarkInterpreter {
     Vector<Optional> result = new Vector<Optional>();
     for (int i = 0; i < n; i++) {
       Expression arg = (Expression) argList.get(i);
-      result.add(evaluateUnknownExpr(arg));
+      result.add(evaluateExpression(arg));
     }
     return result;
   }
@@ -1033,7 +1038,7 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional evaluateUnknownExpr(Expression expr) {
+  private Optional evaluateExpression(Expression expr) {
     // from lowest to highest operator precedence
 
     if (expr instanceof LogicalOrExpression) {

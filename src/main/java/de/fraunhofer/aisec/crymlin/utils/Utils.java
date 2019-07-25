@@ -5,6 +5,9 @@ import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 
 public class Utils {
 
+  // do not instantiate
+  private Utils() {}
+
   /**
    * Returns the fully qualified signature of a method within a record declaration (e.g., a Java
    * class).

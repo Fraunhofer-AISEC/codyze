@@ -11,6 +11,9 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 public class CrymlinQueryWrapper {
 
+  // do not instantiate
+  private CrymlinQueryWrapper() {}
+
   public static HashSet<Vertex> getCalls(
       CrymlinTraversalSource crymlinTraversal,
       String functionName,
@@ -24,7 +27,7 @@ public class CrymlinQueryWrapper {
     for (Vertex v : vertices) {
 
       boolean parameters_match = true;
-      if (parameter.size() > 0 && parameter.get(0).equals("*")) {
+      if (!parameter.isEmpty() && parameter.get(0).equals("*")) {
         // ALL FUNCTIONS WITH THIS BASE TYPE AND NAME MATCH, PARAMETERS ARE IGNORED
       } else {
         boolean[] checkedParameters = new boolean[parameter.size()]; // defaults to false

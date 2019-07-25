@@ -136,13 +136,13 @@ public class JythonInterpreterTest {
       Long sizeNew = g.V().count().next();
 
       // New graph is expected to be +2 nodes larger.
-      assertEquals(sizeNew - size, 2);
+      assertEquals(2, sizeNew - size);
 
       // Even with a new traversalConnection object, the graph will remain larger
       GraphTraversalSource g2 = traversalConnection.getGremlinTraversal();
       assertNotEquals(g, g2);
       Long sizeAgain = g2.V().count().next();
-      assertEquals(sizeAgain - size, 2);
+      assertEquals(2, sizeAgain - size);
     }
   }
 

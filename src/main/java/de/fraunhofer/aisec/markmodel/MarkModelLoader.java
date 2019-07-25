@@ -101,7 +101,6 @@ public class MarkModelLoader {
       if (rule.getStatement() != null
           && rule.getStatement().getEnsure() != null
           && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
-        OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
 
         // check that the fsm is valid:
         // todo remove once the modelloader performs these checks!
@@ -218,7 +217,7 @@ public class MarkModelLoader {
         if (s instanceof Expression) {
           getRefsFromExp((Expression) s, entityRefs, functionRefs);
         } else {
-          log.error("Argument is not an Expression, but a " + s.getClass());
+          log.error("Argument is not an Expression, but a {}", s.getClass());
         }
       }
     } else if (exp instanceof Literal) {
@@ -228,7 +227,7 @@ public class MarkModelLoader {
     } else if (exp instanceof UnaryExpression) {
       getRefsFromExp((((UnaryExpression) exp).getExp()), entityRefs, functionRefs);
     } else {
-      log.error("Not implemented yet: " + exp.getClass() + " " + exp.toString());
+      log.error("Not implemented yet: {} {}", exp.getClass(), exp.toString());
     }
   }
 

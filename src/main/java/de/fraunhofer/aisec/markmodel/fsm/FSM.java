@@ -184,12 +184,12 @@ public class FSM {
             return currentNodes;
           }
         default:
-          log.error("UNKNOWN OP: " + inner.getOp());
+          log.error("UNKNOWN OP: {}", inner.getOp());
           return addExpr(inner.getExpr(), currentNodes);
       }
     }
 
-    log.error("ERROR, unknown Expression: " + expr.getClass());
+    log.error("ERROR, unknown Expression: {}", expr.getClass());
     return null;
   }
 

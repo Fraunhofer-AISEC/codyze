@@ -112,7 +112,7 @@ public class CpgDocumentService implements TextDocumentService {
         Diagnostic diagnostic = new Diagnostic();
         diagnostic.setSeverity(DiagnosticSeverity.Error);
         diagnostic.setCode("test");
-        diagnostic.setMessage(f.getFinding());
+        diagnostic.setMessage(f.getName());
         diagnostic.setRange(f.getRange());
         allDiags.add(diagnostic);
       }
@@ -125,8 +125,10 @@ public class CpgDocumentService implements TextDocumentService {
 
       // sending diagnostics
       client.publishDiagnostics(diagnostics);
-
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+    } catch (InterruptedException e) {
+      log.error("Analysis error: ", e);
+      Thread.currentThread().interrupt();
+    } catch (ExecutionException | TimeoutException e) {
       log.error("Analysis error: ", e);
     }
   }

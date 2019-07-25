@@ -87,6 +87,11 @@ public class StatementsPerMethodPass implements PassWithContext {
   public void setLang(LanguageFrontend languageFrontend) {}
 
   @Override
+  public LanguageFrontend getLang() {
+    return null;
+  }
+
+  @Override
   public void cleanup() {
     ctx = null;
   }

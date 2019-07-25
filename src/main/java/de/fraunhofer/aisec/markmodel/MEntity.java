@@ -21,6 +21,7 @@ public class MEntity {
 
   @NonNull private final List<MVar> vars = new ArrayList<>();
 
+  @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof MEntity)) {
       return false;
@@ -29,6 +30,21 @@ public class MEntity {
     return Objects.equals(packageName, other.packageName)
         && Objects.equals(superName, other.superName)
         && Objects.equals(name, other.name);
+  }
+
+  @Override
+  public int hashCode() {
+    int ret = 0;
+    if (name != null) {
+      ret += name.hashCode();
+    }
+    if (superName != null) {
+      ret += superName.hashCode();
+    }
+    if (packageName != null) {
+      ret += packageName.hashCode();
+    }
+    return ret;
   }
 
   @Nullable

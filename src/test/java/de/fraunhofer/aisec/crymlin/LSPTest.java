@@ -83,7 +83,7 @@ class LSPTest {
           @Override
           public void logMessage(MessageParams messageParams) {}
         };
-    server.lsp.connect(lc);
+    server.getLSP().connect(lc);
 
     TextDocumentItem tdi = new TextDocumentItem();
     tdi.setLanguageId("cpp");
@@ -92,7 +92,7 @@ class LSPTest {
     tdi.setUri("file://" + parentFolder + "forbidden.cpp");
     DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(tdi);
 
-    server.lsp.getTextDocumentService().didOpen(params);
+    server.getLSP().getTextDocumentService().didOpen(params);
   }
 
   @Test
@@ -128,7 +128,7 @@ class LSPTest {
           @Override
           public void logMessage(MessageParams messageParams) {}
         };
-    server.lsp.connect(lc);
+    server.getLSP().connect(lc);
 
     TextDocumentItem tdi = new TextDocumentItem();
     tdi.setLanguageId("cpp");
@@ -137,6 +137,6 @@ class LSPTest {
     tdi.setUri("file://" + parentFolder + "order.cpp");
     DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(tdi);
 
-    server.lsp.getTextDocumentService().didOpen(params);
+    server.getLSP().getTextDocumentService().didOpen(params);
   }
 }

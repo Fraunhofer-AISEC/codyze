@@ -85,13 +85,14 @@ public class JythonInterpreter implements AutoCloseable {
     Commands commands = new Commands(this);
     commands.help();
 
-    InteractiveConsole c = new InteractiveConsole();
-    for (Map.Entry<String, Object> kv :
-        this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
-      c.set(kv.getKey(), kv.getValue());
+    try (InteractiveConsole c = new InteractiveConsole()) {
+      for (Map.Entry<String, Object> kv :
+          this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
+        c.set(kv.getKey(), kv.getValue());
+      }
+      c.set("server", commands);
+      c.interact();
     }
-    c.set("server", commands);
-    c.interact();
   }
 
   @Override

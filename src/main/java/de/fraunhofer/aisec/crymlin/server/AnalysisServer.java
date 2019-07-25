@@ -55,7 +55,7 @@ public class AnalysisServer {
 
   private JythonInterpreter interp;
 
-  public CpgLanguageServer lsp;
+  private CpgLanguageServer lsp;
 
   private Mark markModel = new Mark();
 
@@ -162,7 +162,7 @@ public class AnalysisServer {
     return analyzer
         .analyze() // Run analysis
         .thenApply( // Persist to DB
-            (result) -> {
+            result -> {
               // Attach analysis context to result
               result.getScratch().put("ctx", ctx);
 
@@ -188,15 +188,14 @@ public class AnalysisServer {
               return result;
             })
         .thenApply(
-            (result) -> {
+            result -> {
               log.info(
                   "Evaluating mark: {} entities, {} rules",
                   this.markModel.getEntities().size(),
                   this.markModel.getRules().size());
               // Evaluate all MARK rules
               MarkInterpreter mi = new MarkInterpreter(this.markModel);
-              TranslationResult evaluate = mi.evaluate(result, ctx);
-              return evaluate;
+              return mi.evaluate(result, ctx);
             });
   }
 
@@ -231,8 +230,7 @@ public class AnalysisServer {
 
     if (markFile.isDirectory()) {
       log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
-      try {
-        DirectoryStream<Path> fileStream = Files.newDirectoryStream(markFile.toPath());
+      try (DirectoryStream<Path> fileStream = Files.newDirectoryStream(markFile.toPath())) {
         for (Path f : fileStream) {
           if (f.getFileName().toString().endsWith(".mark")) {
             log.info("  Loading MARK file {}", f.toFile().getAbsolutePath());
@@ -290,7 +288,7 @@ public class AnalysisServer {
     return interp.query(crymlin);
   }
 
-  public void stop() throws Exception {
+  public void stop() {
     if (interp != null) {
       interp.close();
       interp = null;
@@ -308,6 +306,10 @@ public class AnalysisServer {
 
   public static Builder builder() {
     return new Builder();
+  }
+
+  public CpgLanguageServer getLSP() {
+    return lsp;
   }
 
   public static class Builder {

@@ -10,7 +10,7 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.sonarqube") version "2.6"
+    id("org.sonarqube") version "2.7"
     id("com.diffplug.gradle.spotless") version "3.18.0"
 }
 
@@ -125,8 +125,8 @@ dependencies {
     api("javax.xml.bind", "jaxb-api", versions["xml.bind"])
 
     testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])
+    testImplementation("org.junit.jupiter", "junit-jupiter-params", versions["junit5"])
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", versions["junit5"])
-    testRuntimeOnly("org.junit.jupiter", "junit-jupiter-params", versions["junit5"])
 }
 
 application {

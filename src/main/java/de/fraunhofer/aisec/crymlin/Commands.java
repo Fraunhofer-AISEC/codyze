@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * These commands are only used by the Jython console.
@@ -23,6 +25,8 @@ import java.util.concurrent.TimeoutException;
  * @author julian
  */
 public class Commands {
+
+  private static final Logger log = LoggerFactory.getLogger(Commands.class);
 
   // backref
   private final JythonInterpreter jythonInterpreter;
@@ -68,8 +72,11 @@ public class Commands {
       try {
         TranslationResult translationResult = server.analyze(analyzer).get(10, TimeUnit.MINUTES);
         jythonInterpreter.setResult(translationResult);
-      } catch (InterruptedException | ExecutionException e) {
-        e.printStackTrace();
+      } catch (InterruptedException e) {
+        log.error("Interrupted", e);
+        Thread.currentThread().interrupt();
+      } catch (ExecutionException e) {
+        log.error("Exception", e);
       } catch (TimeoutException e) {
         System.out.println("Analysis interrupted after timeout of 10 minutes.");
       }

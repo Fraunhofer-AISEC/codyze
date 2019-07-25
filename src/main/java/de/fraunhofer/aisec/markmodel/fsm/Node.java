@@ -78,7 +78,7 @@ public class Node {
 
   public String toStringWithAddress() {
     String addr = super.toString();
-    addr = addr.substring(addr.lastIndexOf("@") + 1);
+    addr = addr.substring(addr.lastIndexOf('@') + 1);
     return getName() + "(" + addr + ")";
   }
 

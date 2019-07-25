@@ -10,7 +10,7 @@ public class ServerConfiguration {
   public final boolean launchLsp;
 
   /** Directory or file with MARK entities/rules. */
-  public String markModelFiles;
+  public final String markModelFiles;
 
   private ServerConfiguration(boolean launchConsole, boolean launchLsp, String markModelFiles) {
     this.launchConsole = launchConsole;

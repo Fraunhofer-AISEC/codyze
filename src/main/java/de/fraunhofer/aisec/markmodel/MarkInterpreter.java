@@ -689,18 +689,9 @@ public class MarkInterpreter {
         }
 
         if (s.getCond() != null) {
+          Optional<Boolean> condResult = evaluateTopLevelExpr(s.getCond().getExp());
 
-          if (evaluateTopLevelExpr(s.getCond().getExp()).get() == false) {
-            log.info(
-                "   terminate rule checking due to unsatisfied guarding condition: "
-                    + exprToString(s.getCond().getExp()));
-            ctx.getFindings()
-                .add(
-                    new Finding(
-                        "MarkRuleEvaluationFinding: Rule "
-                            + rule.getName()
-                            + ": guarding condition unsatisfied"));
-          } else if (evaluateTopLevelExpr(s.getCond().getExp()).isEmpty()) {
+          if (condResult.isEmpty()) {
             log.warn(
                 "The rule '"
                     + rule.getName()
@@ -712,11 +703,23 @@ public class MarkInterpreter {
                         "MarkRuleEvaluationFinding: Rule "
                             + rule.getName()
                             + ": guarding condition unknown"));
+          } else if (!condResult.get()) {
+            log.info(
+                "   terminate rule checking due to unsatisfied guarding condition: "
+                    + exprToString(s.getCond().getExp()));
+            ctx.getFindings()
+                .add(
+                    new Finding(
+                        "MarkRuleEvaluationFinding: Rule "
+                            + rule.getName()
+                            + ": guarding condition unsatisfied"));
           }
         }
 
         log.debug("checking 'ensure'-statement");
-        if (evaluateTopLevelExpr(s.getEnsure().getExp()).isEmpty()) {
+        Optional<Boolean> ensureResult = evaluateTopLevelExpr(s.getEnsure().getExp());
+
+        if (ensureResult.isEmpty()) {
           log.warn(
               "Ensure statement of rule '"
                   + rule.getName()
@@ -728,15 +731,7 @@ public class MarkInterpreter {
                       "MarkRuleEvaluationFinding: Rule "
                           + rule.getName()
                           + ": ensure condition unknown"));
-        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()).get() == false) {
-          log.error("Rule '" + rule.getName() + "' is violated.");
-          ctx.getFindings()
-              .add(
-                  new Finding(
-                      "MarkRuleEvaluationFinding: Rule "
-                          + rule.getName()
-                          + ": ensure condition violated"));
-        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()).get() == true) {
+        } else if (ensureResult.get()) {
           log.info("Rule '" + rule.getName() + "' is satisfied.");
           ctx.getFindings()
               .add(
@@ -745,7 +740,13 @@ public class MarkInterpreter {
                           + rule.getName()
                           + ": ensure condition satisfied"));
         } else {
-          assert false; // no other paths expected here
+          log.error("Rule '" + rule.getName() + "' is violated.");
+          ctx.getFindings()
+              .add(
+                  new Finding(
+                      "MarkRuleEvaluationFinding: Rule "
+                          + rule.getName()
+                          + ": ensure condition violated"));
         }
       }
     }
@@ -1023,8 +1024,8 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Vector<Optional> evaluateArgs(EList<Argument> argList, int n) {
-    Vector<Optional> result = new Vector<Optional>();
+  private List<Optional> evaluateArgs(EList<Argument> argList, int n) {
+    List<Optional> result = new ArrayList<>();
     for (int i = 0; i < n; i++) {
       Expression arg = (Expression) argList.get(i);
       result.add(evaluateExpression(arg));
@@ -1039,14 +1040,14 @@ public class MarkInterpreter {
 
       // TODO: use Java reflections to get name and arguments of builtin functions
       if (functionName.equals("_split")) {
-        Vector<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
-        int i = 0;
+        List<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
+
         for (Optional arg : argOptionals) {
           if (arg.isEmpty()) {
             return Optional.empty();
           }
-          i++;
         }
+
         String s = (String) argOptionals.get(0).get();
         String regex = (String) argOptionals.get(1).get();
         int index = (Integer) argOptionals.get(2).get();

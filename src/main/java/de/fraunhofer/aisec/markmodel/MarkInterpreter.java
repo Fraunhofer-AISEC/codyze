@@ -9,11 +9,41 @@ import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.AdditionExpression;
+import de.fraunhofer.aisec.mark.markDsl.Argument;
+import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
+import de.fraunhofer.aisec.mark.markDsl.CharacterLiteral;
+import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
+import de.fraunhofer.aisec.mark.markDsl.Expression;
+import de.fraunhofer.aisec.mark.markDsl.FloatingPointLiteral;
+import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
+import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration;
+import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
+import de.fraunhofer.aisec.mark.markDsl.Literal;
+import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
+import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
+import de.fraunhofer.aisec.mark.markDsl.OpStatement;
+import de.fraunhofer.aisec.mark.markDsl.Operand;
+import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
+import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
+import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
+import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
+import de.fraunhofer.aisec.mark.markDsl.Terminal;
+import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -759,14 +789,27 @@ public class MarkInterpreter {
       Expression left = lae.getLeft();
       Expression right = lae.getRight();
 
-      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
-      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+      Optional leftResult = evaluateExpression(left);
+      Optional rightResult = evaluateExpression(right);
 
       if (leftResult.isEmpty() || rightResult.isEmpty()) {
         log.error("At least one subexpression could not be evaluated");
         return Optional.empty();
       }
-      return Optional.of(leftResult.get() && rightResult.get());
+
+      if (leftResult.get().getClass().equals(Boolean.class)
+          && rightResult.get().getClass().equals(Boolean.class)) {
+        return Optional.of(
+            Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
+      }
+
+      // TODO #8
+      log.error(
+          "At least one subexpression is not of type Boolean: {} vs. {}",
+          exprToString(left),
+          exprToString(right));
+
+      return Optional.empty();
     } else if (expr instanceof LogicalOrExpression) {
       LogicalOrExpression loe = (LogicalOrExpression) expr;
 
@@ -780,8 +823,23 @@ public class MarkInterpreter {
         log.error("At least one subexpression could not be evaluated");
         return Optional.empty();
       }
-      return Optional.of(leftResult.get() || rightResult.get());
+
+      if (leftResult.get().getClass().equals(Boolean.class)
+          && rightResult.get().getClass().equals(Boolean.class)) {
+        return Optional.of(
+            Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
+      }
+
+      // TODO #8
+      log.error(
+          "At least one subexpression is not of type Boolean: {} vs. {}",
+          exprToString(left),
+          exprToString(right));
+
+      return Optional.empty();
     }
+
+    log.error("Trying to evaluate unknown logical expression: {}", exprToString(expr));
 
     assert false; // not a logical expression
     return Optional.empty();

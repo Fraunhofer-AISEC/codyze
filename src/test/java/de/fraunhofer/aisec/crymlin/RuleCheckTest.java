@@ -136,7 +136,7 @@ public class RuleCheckTest {
       }
     }
     assertEquals(2, markRuleEvaluationFindingCount);
-    assertEquals(1, satisfied);
+    assertEquals(2, satisfied);
     assertEquals(0, violated);
     assertEquals(1, unknown);
     assertEquals(0, guardingUnsatisfied);

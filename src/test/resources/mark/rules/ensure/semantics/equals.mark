@@ -1,0 +1,57 @@
+package test.rules.semantics.comparison
+
+rule Equals_1_true {
+    using A as a
+    ensure
+        1 == 1
+    onfail B
+}
+
+rule Equals_2_true {
+    using A as a
+    ensure
+        1 == 0x1
+    onfail B
+}
+
+rule Equals_3_fail {
+    using A as a
+    ensure
+        1 == 1.1
+    onfail B
+}
+
+rule Equals_4_fail {
+    using A as a
+    ensure
+        1 == "1"
+    onfail B
+}
+
+rule Equals_5_fail {
+    using A as a
+    ensure
+        2147483648 == 1
+    onfail B
+}
+
+rule Equals_6_true {
+    using A as a
+    ensure
+        2147483647 == 0x7fffffff
+    onfail B
+}
+
+rule Equals_7_true {
+    using A as a
+    ensure
+        1 == 0x0001
+    onfail B
+}
+
+rule Equals_8_true {
+    using A as a
+    ensure
+        0x1 == 0x00001
+    onfail B
+}

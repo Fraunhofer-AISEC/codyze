@@ -137,11 +137,11 @@ public class RuleCheckTest {
         }
       }
     }
-    assertEquals(2, markRuleEvaluationFindingCount);
+    assertEquals(3, markRuleEvaluationFindingCount);
     assertEquals(2, satisfied);
     assertEquals(0, violated);
-    assertEquals(1, unknown);
-    assertEquals(0, guardingUnsatisfied);
+    assertEquals(0, unknown);
+    assertEquals(1, guardingUnsatisfied);
     assertEquals(0, guardingUnknown);
   }
 }

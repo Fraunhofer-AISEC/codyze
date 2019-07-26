@@ -6,6 +6,7 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
@@ -89,7 +90,7 @@ class LSPTest {
     tdi.setLanguageId("cpp");
     tdi.setText("dummy");
     tdi.setVersion(-1);
-    tdi.setUri("file://" + parentFolder + "forbidden.cpp");
+    tdi.setUri(Paths.get(parentFolder, "forbidden.cpp").toUri().toString());
     DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(tdi);
 
     server.getLSP().getTextDocumentService().didOpen(params);
@@ -134,7 +135,7 @@ class LSPTest {
     tdi.setLanguageId("cpp");
     tdi.setText("dummy");
     tdi.setVersion(-1);
-    tdi.setUri("file://" + parentFolder + "order.cpp");
+    tdi.setUri(Paths.get(parentFolder, "order.cpp").toUri().toString());
     DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(tdi);
 
     server.getLSP().getTextDocumentService().didOpen(params);

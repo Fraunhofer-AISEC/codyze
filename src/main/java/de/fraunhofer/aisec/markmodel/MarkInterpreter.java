@@ -1011,10 +1011,16 @@ public class MarkInterpreter {
     // ordering based on Mark grammar
     if (literal instanceof IntegerLiteral) {
       log.debug("Literal is Integer: {}", v);
-      if (v.startsWith("0x")) {
-        return Optional.of(Integer.parseInt(v.substring(2), 16));
+
+      try {
+        if (v.startsWith("0x")) {
+          return Optional.of(Integer.parseInt(v.substring(2), 16));
+        }
+        return Optional.of(Integer.parseInt(v));
+      } catch (NumberFormatException nfe) {
+        log.error("Unable to convert integer literal to Integer: {}\n{}", v, nfe);
       }
-      return Optional.of(Integer.parseInt(v));
+      return Optional.empty();
     } else if (literal instanceof FloatingPointLiteral) {
       log.debug("Literal is Floating Point: {}", v);
       return Optional.of(Float.parseFloat(v));

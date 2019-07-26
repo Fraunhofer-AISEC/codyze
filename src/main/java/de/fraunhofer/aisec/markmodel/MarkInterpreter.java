@@ -43,7 +43,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -817,8 +816,8 @@ public class MarkInterpreter {
       Expression left = loe.getLeft();
       Expression right = loe.getRight();
 
-      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
-      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+      Optional leftResult = evaluateExpression(left);
+      Optional rightResult = evaluateExpression(right);
 
       if (leftResult.isEmpty() || rightResult.isEmpty()) {
         log.error("At least one subexpression could not be evaluated");

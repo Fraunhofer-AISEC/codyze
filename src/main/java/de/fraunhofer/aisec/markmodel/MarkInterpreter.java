@@ -9,11 +9,40 @@ import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.AdditionExpression;
+import de.fraunhofer.aisec.mark.markDsl.Argument;
+import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
+import de.fraunhofer.aisec.mark.markDsl.CharacterLiteral;
+import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
+import de.fraunhofer.aisec.mark.markDsl.Expression;
+import de.fraunhofer.aisec.mark.markDsl.FloatingPointLiteral;
+import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
+import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration;
+import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
+import de.fraunhofer.aisec.mark.markDsl.Literal;
+import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
+import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
+import de.fraunhofer.aisec.mark.markDsl.OpStatement;
+import de.fraunhofer.aisec.mark.markDsl.Operand;
+import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
+import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
+import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
+import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
+import de.fraunhofer.aisec.mark.markDsl.Terminal;
+import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -659,18 +688,9 @@ public class MarkInterpreter {
         }
 
         if (s.getCond() != null) {
+          Optional<Boolean> condResult = evaluateTopLevelExpr(s.getCond().getExp());
 
-          if (evaluateTopLevelExpr(s.getCond().getExp()).get() == false) {
-            log.info(
-                "   terminate rule checking due to unsatisfied guarding condition: "
-                    + exprToString(s.getCond().getExp()));
-            ctx.getFindings()
-                .add(
-                    new Finding(
-                        "MarkRuleEvaluationFinding: Rule "
-                            + rule.getName()
-                            + ": guarding condition unsatisfied"));
-          } else if (evaluateTopLevelExpr(s.getCond().getExp()).isEmpty()) {
+          if (condResult.isEmpty()) {
             log.warn(
                 "The rule '"
                     + rule.getName()
@@ -682,11 +702,23 @@ public class MarkInterpreter {
                         "MarkRuleEvaluationFinding: Rule "
                             + rule.getName()
                             + ": guarding condition unknown"));
+          } else if (!condResult.get()) {
+            log.info(
+                "   terminate rule checking due to unsatisfied guarding condition: "
+                    + exprToString(s.getCond().getExp()));
+            ctx.getFindings()
+                .add(
+                    new Finding(
+                        "MarkRuleEvaluationFinding: Rule "
+                            + rule.getName()
+                            + ": guarding condition unsatisfied"));
           }
         }
 
         log.debug("checking 'ensure'-statement");
-        if (evaluateTopLevelExpr(s.getEnsure().getExp()).isEmpty()) {
+        Optional<Boolean> ensureResult = evaluateTopLevelExpr(s.getEnsure().getExp());
+
+        if (ensureResult.isEmpty()) {
           log.warn(
               "Ensure statement of rule '"
                   + rule.getName()
@@ -698,15 +730,7 @@ public class MarkInterpreter {
                       "MarkRuleEvaluationFinding: Rule "
                           + rule.getName()
                           + ": ensure condition unknown"));
-        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()).get() == false) {
-          log.error("Rule '" + rule.getName() + "' is violated.");
-          ctx.getFindings()
-              .add(
-                  new Finding(
-                      "MarkRuleEvaluationFinding: Rule "
-                          + rule.getName()
-                          + ": ensure condition violated"));
-        } else if (evaluateTopLevelExpr(s.getEnsure().getExp()).get() == true) {
+        } else if (ensureResult.get()) {
           log.info("Rule '" + rule.getName() + "' is satisfied.");
           ctx.getFindings()
               .add(
@@ -715,7 +739,13 @@ public class MarkInterpreter {
                           + rule.getName()
                           + ": ensure condition satisfied"));
         } else {
-          assert false; // no other paths expected here
+          log.error("Rule '" + rule.getName() + "' is violated.");
+          ctx.getFindings()
+              .add(
+                  new Finding(
+                      "MarkRuleEvaluationFinding: Rule "
+                          + rule.getName()
+                          + ": ensure condition violated"));
         }
       }
     }
@@ -759,29 +789,57 @@ public class MarkInterpreter {
       Expression left = lae.getLeft();
       Expression right = lae.getRight();
 
-      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
-      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+      Optional leftResult = evaluateExpression(left);
+      Optional rightResult = evaluateExpression(right);
 
       if (leftResult.isEmpty() || rightResult.isEmpty()) {
         log.error("At least one subexpression could not be evaluated");
         return Optional.empty();
       }
-      return Optional.of(leftResult.get() && rightResult.get());
+
+      if (leftResult.get().getClass().equals(Boolean.class)
+          && rightResult.get().getClass().equals(Boolean.class)) {
+        return Optional.of(
+            Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
+      }
+
+      // TODO #8
+      log.error(
+          "At least one subexpression is not of type Boolean: {} vs. {}",
+          exprToString(left),
+          exprToString(right));
+
+      return Optional.empty();
     } else if (expr instanceof LogicalOrExpression) {
       LogicalOrExpression loe = (LogicalOrExpression) expr;
 
       Expression left = loe.getLeft();
       Expression right = loe.getRight();
 
-      Optional<Boolean> leftResult = evaluateLogicalExpr(left);
-      Optional<Boolean> rightResult = evaluateLogicalExpr(right);
+      Optional leftResult = evaluateExpression(left);
+      Optional rightResult = evaluateExpression(right);
 
       if (leftResult.isEmpty() || rightResult.isEmpty()) {
         log.error("At least one subexpression could not be evaluated");
         return Optional.empty();
       }
-      return Optional.of(leftResult.get() || rightResult.get());
+
+      if (leftResult.get().getClass().equals(Boolean.class)
+          && rightResult.get().getClass().equals(Boolean.class)) {
+        return Optional.of(
+            Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
+      }
+
+      // TODO #8
+      log.error(
+          "At least one subexpression is not of type Boolean: {} vs. {}",
+          exprToString(left),
+          exprToString(right));
+
+      return Optional.empty();
     }
+
+    log.error("Trying to evaluate unknown logical expression: {}", exprToString(expr));
 
     assert false; // not a logical expression
     return Optional.empty();
@@ -965,8 +1023,8 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Vector<Optional> evaluateArgs(EList<Argument> argList, int n) {
-    Vector<Optional> result = new Vector<Optional>();
+  private List<Optional> evaluateArgs(EList<Argument> argList, int n) {
+    List<Optional> result = new ArrayList<>();
     for (int i = 0; i < n; i++) {
       Expression arg = (Expression) argList.get(i);
       result.add(evaluateExpression(arg));
@@ -981,14 +1039,14 @@ public class MarkInterpreter {
 
       // TODO: use Java reflections to get name and arguments of builtin functions
       if (functionName.equals("_split")) {
-        Vector<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
-        int i = 0;
+        List<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
+
         for (Optional arg : argOptionals) {
           if (arg.isEmpty()) {
             return Optional.empty();
           }
-          i++;
         }
+
         String s = (String) argOptionals.get(0).get();
         String regex = (String) argOptionals.get(1).get();
         int index = (Integer) argOptionals.get(2).get();
@@ -1011,10 +1069,16 @@ public class MarkInterpreter {
     // ordering based on Mark grammar
     if (literal instanceof IntegerLiteral) {
       log.debug("Literal is Integer: {}", v);
-      if (v.startsWith("0x")) {
-        return Optional.of(Integer.parseInt(v.substring(2), 16));
+
+      try {
+        if (v.startsWith("0x")) {
+          return Optional.of(Integer.parseInt(v.substring(2), 16));
+        }
+        return Optional.of(Integer.parseInt(v));
+      } catch (NumberFormatException nfe) {
+        log.error("Unable to convert integer literal to Integer: {}\n{}", v, nfe);
       }
-      return Optional.of(Integer.parseInt(v));
+      return Optional.empty();
     } else if (literal instanceof FloatingPointLiteral) {
       log.debug("Literal is Floating Point: {}", v);
       return Optional.of(Float.parseFloat(v));
@@ -1052,21 +1116,21 @@ public class MarkInterpreter {
       return evaluateLogicalExpr(expr);
     } else if (expr instanceof AdditionExpression) {
       log.debug("evaluating AdditionExpression: " + exprToString(expr));
-      return Optional.empty(); // TODO implement AdditionExpression
+      return evaluateAdditionExpr((AdditionExpression) expr);
     } else if (expr instanceof MultiplicationExpression) {
       log.debug("evaluating MultiplicationExpression: " + exprToString(expr));
-      return Optional.empty(); // TODO implement MultiplicationExpression
+      return evaluateMultiplicationExpr((MultiplicationExpression) expr);
     } else if (expr instanceof UnaryExpression) {
       log.debug("evaluating UnaryExpression: " + exprToString(expr));
-      return Optional.empty(); // TODO implement UnaryExpression
+      return evaluateUnaryExpr((UnaryExpression) expr);
     } else if (expr instanceof Literal) {
       log.debug("evaluating Literal expression: " + exprToString(expr));
-      Literal literal = (Literal) expr;
-      return evaluateLiteral(literal);
+      return evaluateLiteral((Literal) expr);
     } else if (expr instanceof Operand) {
       log.debug("evaluating Operand expression: " + exprToString(expr));
-      Operand o = (Operand) expr;
+
       // TODO just for test. Implement!
+      Operand o = (Operand) expr;
       return Optional.of(o.getOperand());
     } else if (expr instanceof FunctionCallExpression) {
       log.debug("evaluating FunctionCallExpression: " + exprToString(expr));
@@ -1086,6 +1150,375 @@ public class MarkInterpreter {
 
     log.error("unknown expression: " + exprToString(expr));
     assert false; // all expression types must be handled
+    return Optional.empty();
+  }
+
+  private Optional evaluateAdditionExpr(AdditionExpression expr) {
+    log.debug("Evaluating addition expression: {}", exprToString(expr));
+
+    String op = expr.getOp();
+    Expression left = expr.getLeft();
+    Expression right = expr.getRight();
+
+    Optional leftResult = evaluateExpression(left);
+    Optional rightResult = evaluateExpression(right);
+
+    if (leftResult.isEmpty() || rightResult.isEmpty()) {
+      log.error("Unable to evaluate at least one subexpression");
+      return Optional.empty();
+    }
+
+    Class leftResultType = leftResult.get().getClass();
+    Class rightResultType = rightResult.get().getClass();
+
+    switch (op) {
+      case "+":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) + ((Integer) rightResult.get()));
+          } else if (leftResultType.equals(Float.class)) {
+            return Optional.of(((Float) leftResult.get()) + ((Float) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Addition operator plus ('+') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case "-":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) - ((Integer) rightResult.get()));
+          } else if (leftResultType.equals(Float.class)) {
+            return Optional.of(((Float) leftResult.get()) - ((Float) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Addition operator minus ('-') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case "|":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) | ((Integer) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Addition operator bitwise or ('|') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case "^":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) ^ ((Integer) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Addition operator bitwise xor ('^') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+    }
+
+    log.error("Trying to evaluate unknown addition expression: {}", exprToString(expr));
+
+    assert false; // not an addition expression
+    return Optional.empty();
+  }
+
+  private Optional evaluateMultiplicationExpr(MultiplicationExpression expr) {
+    log.debug("Evaluating multiplication expression: {}", exprToString(expr));
+
+    String op = expr.getOp();
+    Expression left = expr.getLeft();
+    Expression right = expr.getRight();
+
+    Optional leftResult = evaluateExpression(left);
+    Optional rightResult = evaluateExpression(right);
+
+    if (leftResult.isEmpty() || rightResult.isEmpty()) {
+      log.error("Unable to evaluate at least one subexpression");
+      return Optional.empty();
+    }
+
+    Class leftResultType = leftResult.get().getClass();
+    Class rightResultType = rightResult.get().getClass();
+
+    switch (op) {
+      case "*":
+        if (leftResultType.equals(rightResultType)) {
+          // TODO check if an overflow occurs
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) * ((Integer) rightResult.get()));
+          } else if (leftResultType.equals(Float.class)) {
+            return Optional.of(((Float) leftResult.get()) * ((Float) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Multiplication operator multiplication ('*') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case "/":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) / ((Integer) rightResult.get()));
+          } else if (leftResultType.equals(Float.class)) {
+            return Optional.of(((Float) leftResult.get()) / ((Float) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Multiplication operator division ('/') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case "%":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) % ((Integer) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Multiplication operator remainder ('%') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case "<<":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            if (((Integer) rightResult.get()) >= 0) {
+              Optional.of(((Integer) leftResult.get()) << ((Integer) rightResult.get()));
+            }
+
+            // TODO #8
+            log.error(
+                "Left shift operator supports only non-negative integers as its right operand");
+            return Optional.empty();
+          }
+
+          // TODO #8
+          log.error(
+              "Multiplication operator left shift ('<<') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case ">>":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            if (((Integer) rightResult.get()) >= 0) {
+              Optional.of(((Integer) leftResult.get()) >> ((Integer) rightResult.get()));
+            }
+
+            // TODO #8
+            log.error(
+                "Right shift operator supports only non-negative integers as its right operand");
+            return Optional.empty();
+          }
+
+          // TODO #8
+          log.error(
+              "Multiplication operator right shift ('>>') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case "&":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) & ((Integer) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Addition operator bitwise and ('&') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+      case "&^":
+        if (leftResultType.equals(rightResultType)) {
+          if (leftResultType.equals(Integer.class)) {
+            return Optional.of(((Integer) leftResult.get()) & ~((Integer) rightResult.get()));
+          }
+
+          // TODO #8
+          log.error(
+              "Addition operator bitwise or ('|') not supported for type: {}",
+              leftResultType.getSimpleName());
+          return Optional.empty();
+        }
+
+        // TODO #8
+        log.error(
+            "Type of left expression does not match type of right expression: {} vs. {}",
+            leftResultType.getSimpleName(),
+            rightResultType.getSimpleName());
+
+        return Optional.empty();
+    }
+
+    // TODO #8
+    log.error("Trying to evaluate unknown multiplication expression: {}", exprToString(expr));
+
+    assert false; // not an addition expression
+    return Optional.empty();
+  }
+
+  private Optional evaluateUnaryExpr(UnaryExpression expr) {
+    log.debug("Evaluating unary expression: {}", exprToString(expr));
+
+    String op = expr.getOp();
+    Expression subExpr = expr.getExp();
+
+    Optional subExprResult = evaluateExpression(subExpr);
+
+    if (subExprResult.isEmpty()) {
+      log.error("Unable to evaluate subexpression");
+      return Optional.empty();
+    }
+
+    Class subExprResultType = subExprResult.get().getClass();
+
+    switch (op) {
+      case "+":
+        if (subExprResultType.equals(Integer.class) || subExprResultType.equals(Float.class)) {
+          return subExprResult;
+        }
+
+        // TODO #8
+        log.error(
+            "Unary operator plus sign ('+') not supported for type: {}",
+            subExprResultType.getSimpleName());
+
+        return Optional.empty();
+      case "-":
+        if (subExprResultType.equals(Integer.class)) {
+          return Optional.of(-((Integer) subExprResult.get()));
+        } else if (subExprResultType.equals(Float.class)) {
+          return Optional.of(-((Float) subExprResult.get()));
+        }
+
+        // TODO #8
+        log.error(
+            "Unary operator minus sign ('-') not supported for type: {}",
+            subExprResultType.getSimpleName());
+
+        return Optional.empty();
+      case "!":
+        if (subExprResultType.equals(Boolean.class)) {
+          return Optional.of(!((Boolean) subExprResult.get()));
+        }
+
+        // TODO #8
+        log.error(
+            "Unary operator logical not ('!') not supported for type: {}",
+            subExprResultType.getSimpleName());
+
+        return Optional.empty();
+      case "^":
+        if (subExprResultType.equals(Integer.class)) {
+          return Optional.of(~((Integer) subExprResult.get()));
+        }
+
+        // TODO #8
+        log.error(
+            "Unary operator bitwise complement ('~') not supported for type: {}",
+            subExprResultType.getSimpleName());
+
+        return Optional.empty();
+    }
+
+    // TODO #8
+    log.error("Trying to evaluate unknown unary expression: {}", exprToString(expr));
+
+    assert false; // not an addition expression
     return Optional.empty();
   }
 

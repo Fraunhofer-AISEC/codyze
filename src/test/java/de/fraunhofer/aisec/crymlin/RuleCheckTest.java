@@ -1,6 +1,8 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import de.fraunhofer.aisec.cpg.Database;
@@ -135,11 +137,11 @@ public class RuleCheckTest {
         }
       }
     }
-    assertEquals(2, markRuleEvaluationFindingCount);
-    assertEquals(1, satisfied);
+    assertEquals(3, markRuleEvaluationFindingCount);
+    assertEquals(2, satisfied);
     assertEquals(0, violated);
-    assertEquals(1, unknown);
-    assertEquals(0, guardingUnsatisfied);
+    assertEquals(0, unknown);
+    assertEquals(1, guardingUnsatisfied);
     assertEquals(0, guardingUnknown);
   }
 }

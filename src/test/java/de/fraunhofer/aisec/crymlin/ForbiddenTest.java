@@ -14,6 +14,7 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -94,7 +95,7 @@ class ForbiddenTest {
     List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
     assertNotNull(tus);
     assertEquals(1, tus.size());
-    assertTrue(tus.get(0).endsWith(sourceFilename));
+    assertTrue(Paths.get(tus.get(0)).endsWith(sourceFilename));
 
     List<String> findings = new ArrayList<>();
     ctx.getFindings().forEach(x -> findings.add(x.toString()));

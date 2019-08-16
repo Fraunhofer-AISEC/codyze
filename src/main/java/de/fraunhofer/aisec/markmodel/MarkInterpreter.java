@@ -1034,11 +1034,22 @@ public class MarkInterpreter {
 
   private Optional evaluateFunctionCallExpr(FunctionCallExpression expr) {
     String functionName = expr.getName();
-    if (functionName.startsWith("_")) {
-      // call to built-in functions
-
-      // TODO: use Java reflections to get name and arguments of builtin functions
-      if (functionName.equals("_split")) {
+    if (!functionName.startsWith("_")) {
+      log.error("Invalid function {}", functionName);
+    }
+    /*
+     * currently we allow:
+     *
+     * boolean = _is_instance(var, String)
+     * int     = _length(var)
+     * boolean = _receives_value_from(var, var)
+     * String  = _split(String, String, int)
+     */
+    switch (functionName) {
+      case "_split":
+        // arguments: String, String, int
+        // example:
+        // _split("ASD/EFG/JKL", "/", 1) returns "EFG
         List<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
 
         for (Optional arg : argOptionals) {
@@ -1047,16 +1058,59 @@ public class MarkInterpreter {
           }
         }
 
+        // todo validate that the arguments have the correct type
         String s = (String) argOptionals.get(0).get();
         String regex = (String) argOptionals.get(1).get();
         int index = (Integer) argOptionals.get(2).get();
         log.debug("args are: " + s + "; " + regex + "; " + index);
+        // returns String
         return Optional.of(Builtins._split(s, regex, index));
-      }
 
-      if (functionName.contains("receives_value_from")) {
+      case "_receives_value_from":
+        // arguments: var, var
+        // example:
+
+        // todo needs to be discussed, I am not clear what this should achieve
+        // the example is:
+        /*
+        rule UseRandomIV {
+          using Botan::Cipher_Mode as cm,
+                Botan::AutoSeededRNG as rng
+          when
+            _split(cm.algorithm, "/", 1) == "CBC" && cm.direction == Botan::Cipher_Dir::ENCRYPTION
+          ensure
+            _receives_value_from(cm.iv, rng.myValue)
+          onfail NoRandomIV
+        }
+        */
         return Optional.of(Builtins._receives_value_from());
-      }
+
+      case "_is_instance":
+        // arguments: var, String
+        // example:
+        // _is_instance(cm.rand, java.security.SecureRandom)
+        /* algo:
+        start at the DeclaredReferenceExpression of var
+        check that the type of the node equals the second argument
+         */
+        // returns boolean
+        break;
+      case "_length":
+        // todo what should this exactly to? check the array length?
+
+        // arguments: var
+        // example:
+        // _length(cm.rand)
+
+        /* algo:
+        start at the DeclaredReferenceExpression
+        go to VariableDeclaration via REFERS_TO edge
+        go to <<?>> via INITIALIZER edge
+        check array initialization length
+         */
+
+        // returns int
+        break;
     }
 
     return Optional.empty();

@@ -1182,10 +1182,7 @@ public class MarkInterpreter {
       return evaluateLiteral((Literal) expr);
     } else if (expr instanceof Operand) {
       log.debug("evaluating Operand expression: " + exprToString(expr));
-
-      // TODO just for test. Implement!
-      Operand o = (Operand) expr;
-      return Optional.of(o.getOperand());
+      return Optional.of(evaluateOperand((Operand) expr));
     } else if (expr instanceof FunctionCallExpression) {
       log.debug("evaluating FunctionCallExpression: " + exprToString(expr));
       return evaluateFunctionCallExpr((FunctionCallExpression) expr);
@@ -1574,6 +1571,23 @@ public class MarkInterpreter {
 
     assert false; // not an addition expression
     return Optional.empty();
+  }
+
+  private Optional evaluateOperand(Operand operand) {
+    log.warn("Operand: {}", operand.getOperand());
+
+    /* FIXME need to know the rule I'm evaluating here
+     * rule contains using declarations with identifiers for entities. here I'm just presented with
+     * {identifier}.{foobar}. Without using I'm unable to reconstruct what entity the {identifier}
+     * refers to. In addition, this mapping is unique to each rule.
+     */
+
+    /* FIXME need to differentiate between entity reference and actual code references to Botan/BouncyCastle
+     * Currently, I just get some text that can be anything -- entity references, classes/variables/
+     * types from Java or C++
+     */
+
+    return Optional.of(true);
   }
 
   /**

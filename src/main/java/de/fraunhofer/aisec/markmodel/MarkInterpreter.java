@@ -33,6 +33,7 @@ import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
+import de.fraunhofer.aisec.markmodel.EvaluationContext.EvaluationContextType;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.time.Duration;
 import java.time.Instant;
@@ -43,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -677,6 +679,8 @@ public class MarkInterpreter {
 
   private void evaluateRules(AnalysisContext ctx) {
     for (MRule rule : markModel.getRules()) {
+      EvaluationContext ec = new EvaluationContext(EvaluationContextType.RULE, rule);
+
       if (rule.getStatement() != null && rule.getStatement().getEnsure() != null) {
         RuleStatement s = rule.getStatement();
         log.info("checking rule " + rule.getName());
@@ -688,7 +692,7 @@ public class MarkInterpreter {
         }
 
         if (s.getCond() != null) {
-          Optional<Boolean> condResult = evaluateTopLevelExpr(s.getCond().getExp());
+          Optional<Boolean> condResult = evaluateTopLevelExpr(s.getCond().getExp(), ec);
 
           if (condResult.isEmpty()) {
             log.warn(
@@ -716,7 +720,7 @@ public class MarkInterpreter {
         }
 
         log.debug("checking 'ensure'-statement");
-        Optional<Boolean> ensureResult = evaluateTopLevelExpr(s.getEnsure().getExp());
+        Optional<Boolean> ensureResult = evaluateTopLevelExpr(s.getEnsure().getExp(), ec);
 
         if (ensureResult.isEmpty()) {
           log.warn(
@@ -751,12 +755,12 @@ public class MarkInterpreter {
     }
   }
 
-  private Optional<Boolean> evaluateTopLevelExpr(Expression expr) {
+  private Optional<Boolean> evaluateTopLevelExpr(Expression expr, final EvaluationContext evalCtx) {
     if (expr instanceof OrderExpression) {
       return evaluateOrderExpression((OrderExpression) expr);
     }
 
-    Optional result = evaluateExpression(expr);
+    Optional result = evaluateExpression(expr, evalCtx);
 
     if (result.isEmpty()) {
       log.error("Expression could not be evaluated: {}", exprToString(expr));
@@ -778,19 +782,19 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional<Boolean> evaluateLogicalExpr(Expression expr) {
+  private Optional<Boolean> evaluateLogicalExpr(Expression expr, EvaluationContext evalCtx) {
     log.debug("Evaluating logical expression: {}", exprToString(expr));
 
     if (expr instanceof ComparisonExpression) {
-      return evaluateComparisonExpr((ComparisonExpression) expr);
+      return evaluateComparisonExpr((ComparisonExpression) expr, evalCtx);
     } else if (expr instanceof LogicalAndExpression) {
       LogicalAndExpression lae = (LogicalAndExpression) expr;
 
       Expression left = lae.getLeft();
       Expression right = lae.getRight();
 
-      Optional leftResult = evaluateExpression(left);
-      Optional rightResult = evaluateExpression(right);
+      Optional leftResult = evaluateExpression(left, evalCtx);
+      Optional rightResult = evaluateExpression(right, evalCtx);
 
       if (leftResult.isEmpty() || rightResult.isEmpty()) {
         log.error("At least one subexpression could not be evaluated");
@@ -816,8 +820,8 @@ public class MarkInterpreter {
       Expression left = loe.getLeft();
       Expression right = loe.getRight();
 
-      Optional leftResult = evaluateExpression(left);
-      Optional rightResult = evaluateExpression(right);
+      Optional leftResult = evaluateExpression(left, evalCtx);
+      Optional rightResult = evaluateExpression(right, evalCtx);
 
       if (leftResult.isEmpty() || rightResult.isEmpty()) {
         log.error("At least one subexpression could not be evaluated");
@@ -845,7 +849,7 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional<Boolean> evaluateComparisonExpr(ComparisonExpression expr) {
+  private Optional<Boolean> evaluateComparisonExpr(ComparisonExpression expr, EvaluationContext evalCtx) {
     String op = expr.getOp();
     Expression left = expr.getLeft();
     Expression right = expr.getRight();
@@ -853,8 +857,8 @@ public class MarkInterpreter {
     log.debug(
         "comparing expression " + exprToString(left) + " with expression " + exprToString(right));
 
-    Optional leftResult = evaluateExpression(left);
-    Optional rightResult = evaluateExpression(right);
+    Optional leftResult = evaluateExpression(left, evalCtx);
+    Optional rightResult = evaluateExpression(right, evalCtx);
 
     if (leftResult.isEmpty() || rightResult.isEmpty()) {
       return Optional.empty();
@@ -1023,16 +1027,16 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private List<Optional> evaluateArgs(EList<Argument> argList, int n) {
+  private List<Optional> evaluateArgs(EList<Argument> argList, int n, EvaluationContext evalCtx) {
     List<Optional> result = new ArrayList<>();
     for (int i = 0; i < n; i++) {
       Expression arg = (Expression) argList.get(i);
-      result.add(evaluateExpression(arg));
+      result.add(evaluateExpression(arg, evalCtx));
     }
     return result;
   }
 
-  private Optional evaluateFunctionCallExpr(FunctionCallExpression expr) {
+  private Optional evaluateFunctionCallExpr(FunctionCallExpression expr, EvaluationContext evalCtx) {
     String functionName = expr.getName();
     if (!functionName.startsWith("_")) {
       log.error("Invalid function {}", functionName);
@@ -1050,7 +1054,7 @@ public class MarkInterpreter {
         // arguments: String, String, int
         // example:
         // _split("ASD/EFG/JKL", "/", 1) returns "EFG
-        List<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
+        List<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3, evalCtx);
 
         for (Optional arg : argOptionals) {
           if (arg.isEmpty()) {
@@ -1156,36 +1160,36 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional evaluateExpression(Expression expr) {
+  private Optional evaluateExpression(Expression expr, EvaluationContext evalCtx) {
     // from lowest to highest operator precedence
 
     if (expr instanceof LogicalOrExpression) {
       log.debug("evaluating LogicalOrExpression: " + exprToString(expr));
-      return evaluateLogicalExpr(expr);
+      return evaluateLogicalExpr(expr, evalCtx);
     } else if (expr instanceof LogicalAndExpression) {
       log.debug("evaluating LogicalAndExpression: " + exprToString(expr));
-      return evaluateLogicalExpr(expr);
+      return evaluateLogicalExpr(expr, evalCtx);
     } else if (expr instanceof ComparisonExpression) {
       log.debug("evaluating ComparisonExpression: " + exprToString(expr));
-      return evaluateLogicalExpr(expr);
+      return evaluateLogicalExpr(expr, evalCtx);
     } else if (expr instanceof AdditionExpression) {
       log.debug("evaluating AdditionExpression: " + exprToString(expr));
-      return evaluateAdditionExpr((AdditionExpression) expr);
+      return evaluateAdditionExpr((AdditionExpression) expr, evalCtx);
     } else if (expr instanceof MultiplicationExpression) {
       log.debug("evaluating MultiplicationExpression: " + exprToString(expr));
-      return evaluateMultiplicationExpr((MultiplicationExpression) expr);
+      return evaluateMultiplicationExpr((MultiplicationExpression) expr, evalCtx);
     } else if (expr instanceof UnaryExpression) {
       log.debug("evaluating UnaryExpression: " + exprToString(expr));
-      return evaluateUnaryExpr((UnaryExpression) expr);
+      return evaluateUnaryExpr((UnaryExpression) expr, evalCtx);
     } else if (expr instanceof Literal) {
       log.debug("evaluating Literal expression: " + exprToString(expr));
       return evaluateLiteral((Literal) expr);
     } else if (expr instanceof Operand) {
       log.debug("evaluating Operand expression: " + exprToString(expr));
-      return Optional.of(evaluateOperand((Operand) expr));
+      return Optional.of(evaluateOperand((Operand) expr, evalCtx));
     } else if (expr instanceof FunctionCallExpression) {
       log.debug("evaluating FunctionCallExpression: " + exprToString(expr));
-      return evaluateFunctionCallExpr((FunctionCallExpression) expr);
+      return evaluateFunctionCallExpr((FunctionCallExpression) expr, evalCtx);
     } else if (expr instanceof LiteralListExpression) {
       log.debug("evaluating LiteralListExpression: " + exprToString(expr));
 
@@ -1204,15 +1208,15 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional evaluateAdditionExpr(AdditionExpression expr) {
+  private Optional evaluateAdditionExpr(AdditionExpression expr, EvaluationContext evalCtx) {
     log.debug("Evaluating addition expression: {}", exprToString(expr));
 
     String op = expr.getOp();
     Expression left = expr.getLeft();
     Expression right = expr.getRight();
 
-    Optional leftResult = evaluateExpression(left);
-    Optional rightResult = evaluateExpression(right);
+    Optional leftResult = evaluateExpression(left, evalCtx);
+    Optional rightResult = evaluateExpression(right, evalCtx);
 
     if (leftResult.isEmpty() || rightResult.isEmpty()) {
       log.error("Unable to evaluate at least one subexpression");
@@ -1315,15 +1319,15 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional evaluateMultiplicationExpr(MultiplicationExpression expr) {
+  private Optional evaluateMultiplicationExpr(MultiplicationExpression expr, EvaluationContext evalCtx) {
     log.debug("Evaluating multiplication expression: {}", exprToString(expr));
 
     String op = expr.getOp();
     Expression left = expr.getLeft();
     Expression right = expr.getRight();
 
-    Optional leftResult = evaluateExpression(left);
-    Optional rightResult = evaluateExpression(right);
+    Optional leftResult = evaluateExpression(left, evalCtx);
+    Optional rightResult = evaluateExpression(right, evalCtx);
 
     if (leftResult.isEmpty() || rightResult.isEmpty()) {
       log.error("Unable to evaluate at least one subexpression");
@@ -1502,13 +1506,13 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional evaluateUnaryExpr(UnaryExpression expr) {
+  private Optional evaluateUnaryExpr(UnaryExpression expr, EvaluationContext evalCtx) {
     log.debug("Evaluating unary expression: {}", exprToString(expr));
 
     String op = expr.getOp();
     Expression subExpr = expr.getExp();
 
-    Optional subExprResult = evaluateExpression(subExpr);
+    Optional subExprResult = evaluateExpression(subExpr, evalCtx);
 
     if (subExprResult.isEmpty()) {
       log.error("Unable to evaluate subexpression");
@@ -1573,14 +1577,54 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional evaluateOperand(Operand operand) {
+  private Optional evaluateOperand(Operand operand, final EvaluationContext evalCtx) {
     log.warn("Operand: {}", operand.getOperand());
 
-    /* FIXME need to know the rule I'm evaluating here
-     * rule contains using declarations with identifiers for entities. here I'm just presented with
-     * {identifier}.{foobar}. Without using I'm unable to reconstruct what entity the {identifier}
-     * refers to. In addition, this mapping is unique to each rule.
-     */
+    String operandString = operand.getOperand();
+
+    if (evalCtx.hasContext(EvaluationContextType.RULE)) {
+      final MRule rule = evalCtx.getRule();
+
+      if (operandString.contains(".")) {
+        String[] operandParts = operandString.split("\\.");
+
+        if (operandParts.length == 2) {
+          String instance = operandParts[0];
+          String attribute = operandParts[1];
+
+          Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
+          String entityName = ref.getValue0();
+          MEntity referencedEntity = ref.getValue1();
+
+          String attributeType = referencedEntity.getTypeForVar(attribute);
+
+          Set<OpStatement> referencingOperations = new HashSet<>();
+          Set<Vertex> codeVertices = new HashSet<>();
+
+          for (MOp operation : referencedEntity.getOps()) {
+            for (OpStatement opStmt : operation.getStatements()) {
+              if (attribute.equals(opStmt.getVar()) {
+                referencingOperations.add(opStmt);
+
+              }
+
+              FunctionDeclaration fd = opStmt.getCall();
+              for (String param : fd.getParams()) {
+                if (attribute.equals(param)) {
+                  referencingOperations.add(opStmt);
+                }
+              }
+            }
+
+
+          }
+
+
+          // TODO at this point I know what I need to look for: either assignments or function calls
+
+        }
+      }
+    }
 
     /* FIXME need to differentiate between entity reference and actual code references to Botan/BouncyCastle
      * Currently, I just get some text that can be anything -- entity references, classes/variables/

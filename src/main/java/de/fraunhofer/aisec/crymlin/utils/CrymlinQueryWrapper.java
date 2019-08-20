@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -71,6 +72,69 @@ public class CrymlinQueryWrapper {
         ret.add(v);
       }
     }
+    return ret;
+  }
+
+  public static Set<Vertex> getCppCalls(
+      CrymlinTraversalSource crymlinTraversal,
+      String fqn,
+      String functionName,
+      String type,
+      List<String> parameterTypes) {
+
+    Set<Vertex> ret = new HashSet<>();
+
+    // reconstruct what type of call we're expecting
+    boolean isMethod = fqn.endsWith(type);
+
+    if (isMethod) {
+      // it's static method or an instance method
+    } else {
+      // it's a function -> name == fqn::functionName
+      ret.addAll(crymlinTraversal.calls(fqn + "::" + functionName).toList());
+    }
+
+    // now, ret contains possible candidates --> need to filter out calls where params don't match
+    ret.removeIf(
+        (v) -> {
+          Iterator<Edge> referencedArguments = v.edges(Direction.OUT, "ARGUMENTS");
+
+          if ((parameterTypes.size() == 0) && referencedArguments.hasNext()) {
+            // expecting no arguments but got at least one -> remove
+            return true;
+          }
+
+          if ((parameterTypes.size() != 0) && !referencedArguments.hasNext()) {
+            // expecting some parameters but got no arguments -> remove
+            return true;
+          }
+
+          while (referencedArguments.hasNext()) {
+            // check each argument against parameter type
+            Vertex argument = referencedArguments.next().inVertex();
+            long argumentIndex = argument.<Long>property("argumentIndex").value();
+
+            if (argumentIndex >= parameterTypes.size()) {
+              // last given parameter type must be "*" or remove
+              return !"*".equals(parameterTypes.get(parameterTypes.size() - 1));
+            } else {
+              // remove if types don't match
+              String paramType = parameterTypes.get((int) argumentIndex);
+              if (!"_".equals(paramType)) {
+                // it's not a single type wild card -> types must match
+                // TODO improve type matching
+                // currently, we check for perfect match but we may need to be more fuzzy e.g. ignore
+                // type qualifier (e.g. const) or strip reference types
+                if (!paramType.equals(argument.<String>property("type").value())) {
+                  // types don't match -> remove
+                  return true;
+                }
+              }
+            }
+          }
+          return false;
+        });
+
     return ret;
   }
 }

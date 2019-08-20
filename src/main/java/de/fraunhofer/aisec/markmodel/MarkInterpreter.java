@@ -38,6 +38,7 @@ import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -849,7 +850,8 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional<Boolean> evaluateComparisonExpr(ComparisonExpression expr, EvaluationContext evalCtx) {
+  private Optional<Boolean> evaluateComparisonExpr(
+      ComparisonExpression expr, EvaluationContext evalCtx) {
     String op = expr.getOp();
     Expression left = expr.getLeft();
     Expression right = expr.getRight();
@@ -1036,7 +1038,8 @@ public class MarkInterpreter {
     return result;
   }
 
-  private Optional evaluateFunctionCallExpr(FunctionCallExpression expr, EvaluationContext evalCtx) {
+  private Optional evaluateFunctionCallExpr(
+      FunctionCallExpression expr, EvaluationContext evalCtx) {
     String functionName = expr.getName();
     if (!functionName.startsWith("_")) {
       log.error("Invalid function {}", functionName);
@@ -1319,7 +1322,8 @@ public class MarkInterpreter {
     return Optional.empty();
   }
 
-  private Optional evaluateMultiplicationExpr(MultiplicationExpression expr, EvaluationContext evalCtx) {
+  private Optional evaluateMultiplicationExpr(
+      MultiplicationExpression expr, EvaluationContext evalCtx) {
     log.debug("Evaluating multiplication expression: {}", exprToString(expr));
 
     String op = expr.getOp();
@@ -1598,16 +1602,18 @@ public class MarkInterpreter {
 
           String attributeType = referencedEntity.getTypeForVar(attribute);
 
-          Set<OpStatement> referencingOperations = new HashSet<>();
-          Set<Vertex> codeVertices = new HashSet<>();
+          List<Pair<MOp, Set<OpStatement>>> uses = new ArrayList<>();
 
           for (MOp operation : referencedEntity.getOps()) {
-            for (OpStatement opStmt : operation.getStatements()) {
-              if (attribute.equals(opStmt.getVar()) {
-                referencingOperations.add(opStmt);
+            Set<OpStatement> referencingOperations = new HashSet<>();
 
+            for (OpStatement opStmt : operation.getStatements()) {
+              // simple assignment, i.e. var = something()
+              if (attribute.equals(opStmt.getVar())) {
+                referencingOperations.add(opStmt);
               }
 
+              // ...or it's used as a function parameter, i.e. something(..., var, ...)
               FunctionDeclaration fd = opStmt.getCall();
               for (String param : fd.getParams()) {
                 if (attribute.equals(param)) {
@@ -1616,9 +1622,34 @@ public class MarkInterpreter {
               }
             }
 
-
+            if (referencingOperations.size() > 0) {
+              // all places where the operand is used
+              uses.add(new Pair<>(operation, referencingOperations));
+            }
           }
 
+          try (TraversalConnection conn = new TraversalConnection()) {
+            CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+
+            for (Pair<MOp, Set<OpStatement>> pair : uses) {
+              MOp mop = pair.getValue0();
+              Set<OpStatement> opstmts = pair.getValue1();
+
+              for (OpStatement stmt : opstmts) {
+                Set<Vertex> vertices = mop.getVertices(stmt);
+
+                vertices.forEach((v) -> log.warn("Operand used in OpStatement with vertex: {}", v));
+              }
+            }
+
+            Set<Vertex> vertices =
+                CrymlinQueryWrapper.getCppCalls(
+                    crymlin,
+                    "Botan",
+                    "get_cipher_mode",
+                    entityName,
+                    Arrays.asList("const std::string &", "Botan::Cipher_Dir"));
+          }
 
           // TODO at this point I know what I need to look for: either assignments or function calls
 

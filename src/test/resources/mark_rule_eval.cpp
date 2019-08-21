@@ -32,10 +32,6 @@ Botan::secure_vector<uint8_t> do_crypt(const std::string &cipher,
     Botan::secure_vector<uint8_t> buf(input.begin(), input.end());
     processor->finish(buf);
 
-    processor2->start(iv.bits_of());
-    processor2->finish(buf);
-
-
     return buf;
 }
 

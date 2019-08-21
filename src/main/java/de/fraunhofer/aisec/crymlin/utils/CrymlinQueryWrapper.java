@@ -88,11 +88,12 @@ public class CrymlinQueryWrapper {
     boolean isMethod = fqn.endsWith(type);
 
     if (isMethod) {
-      // it's static method or an instance method
-    } else {
-      // it's a function -> name == fqn::functionName
-      ret.addAll(crymlinTraversal.calls(fqn + "::" + functionName).toList());
+      // it's a method call on an instances
+      ret.addAll(crymlinTraversal.calls(functionName, type).toList());
     }
+
+    // it's a function OR a static method call -> name == fqn::functionName
+    ret.addAll(crymlinTraversal.calls(fqn + "::" + functionName).toList());
 
     // now, ret contains possible candidates --> need to filter out calls where params don't match
     ret.removeIf(
@@ -120,7 +121,7 @@ public class CrymlinQueryWrapper {
             } else {
               // remove if types don't match
               String paramType = parameterTypes.get((int) argumentIndex);
-              if (!"_".equals(paramType)) {
+              if (!("_".equals(paramType) || "*".equals(paramType))) {
                 // it's not a single type wild card -> types must match
                 // TODO improve type matching
                 // currently, we check for perfect match but we may need to be more fuzzy e.g. ignore

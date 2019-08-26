@@ -9,6 +9,7 @@ import java.util.Set;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class CrymlinQueryWrapper {
 
@@ -75,12 +76,23 @@ public class CrymlinQueryWrapper {
     return ret;
   }
 
-  public static Set<Vertex> getCppCalls(
-      CrymlinTraversalSource crymlinTraversal,
-      String fqn,
-      String functionName,
-      String type,
-      List<String> parameterTypes) {
+  /**
+   * @param crymlinTraversal
+   * @param fqn fully qualified name w/o function name itself
+   * @param functionName name of the function
+   * @param type type of the object used to call the function (i.e. method); should be name of the
+   *     MARK entity
+   * @param parameterTypes list of parameter types; must appear in order (i.e. index 0 = type of
+   *     first parameter, etc.); currently, types must be precise (i.e. with qualifiers, pointer,
+   *     reference)
+   * @return
+   */
+  public static Set<Vertex> getCalls(
+      @NonNull CrymlinTraversalSource crymlinTraversal,
+      @NonNull String fqn,
+      @NonNull String functionName,
+      @NonNull String type,
+      @NonNull List<String> parameterTypes) {
 
     Set<Vertex> ret = new HashSet<>();
 
@@ -94,6 +106,11 @@ public class CrymlinQueryWrapper {
 
     // it's a function OR a static method call -> name == fqn::functionName
     ret.addAll(crymlinTraversal.calls(fqn + "::" + functionName).toList());
+
+    // FIXME we're not setting the default (i.e. global) namespace
+    if (fqn.length() == 0) {
+      ret.addAll(crymlinTraversal.calls(functionName).toList());
+    }
 
     // now, ret contains possible candidates --> need to filter out calls where params don't match
     ret.removeIf(
@@ -124,7 +141,8 @@ public class CrymlinQueryWrapper {
               if (!("_".equals(paramType) || "*".equals(paramType))) {
                 // it's not a single type wild card -> types must match
                 // TODO improve type matching
-                // currently, we check for perfect match but we may need to be more fuzzy e.g. ignore
+                // currently, we check for perfect match but we may need to be more fuzzy e.g.
+                // ignore
                 // type qualifier (e.g. const) or strip reference types
                 if (!paramType.equals(argument.<String>property("type").value())) {
                   // types don't match -> remove

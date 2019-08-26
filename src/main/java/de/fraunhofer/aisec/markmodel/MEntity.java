@@ -11,15 +11,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class MEntity {
 
+  @NonNull private final List<MOp> ops = new ArrayList<>();
+  @NonNull private final List<MVar> vars = new ArrayList<>();
   private String name;
   private String superName = null;
   private String packageName = null;
-
   private HashMap<String, String> parsedVars = null;
-
-  @NonNull private final List<MOp> ops = new ArrayList<>();
-
-  @NonNull private final List<MVar> vars = new ArrayList<>();
 
   @Override
   public boolean equals(Object obj) {

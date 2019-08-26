@@ -1,38 +1,45 @@
 package de.fraunhofer.aisec.markmodel;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 public class EvaluationContext {
 
-  private EvaluationContextType currentContextType;
-  private Object currentContext;
+  @NonNull private Type contextType;
+  @NonNull private Object context;
 
-  public EvaluationContext(EvaluationContextType type, Object context) {
-    currentContextType = type;
-    currentContext = context;
+  public EvaluationContext(@NonNull Object context, @NonNull Type type) {
+    this.context = context;
+
+    assert(type.clazz.equals(context.getClass()));
+    this.contextType = type;
   }
 
-  public boolean hasContext(EvaluationContextType t) {
-    if (t == null) {
-      return false;
-    }
-    return t.equals(currentContextType);
+  public boolean hasContextType(EvaluationContext.Type t) {
+    return (contextType == t);
   }
 
   public MRule getRule() {
-    if (hasContext(EvaluationContextType.RULE)) {
-      return (MRule) currentContext;
+    if (hasContextType(Type.RULE)) {
+      return (MRule) context;
     }
     return null;
   }
 
   public MEntity getEntity() {
-    if (hasContext(EvaluationContextType.ENTITY)) {
-      return (MEntity) currentContext;
+    if (hasContextType(Type.ENTITY)) {
+      return (MEntity) context;
     }
     return null;
   }
 
-  enum EvaluationContextType {
-    ENTITY,
-    RULE
+  enum Type {
+    ENTITY(MEntity.class),
+    RULE(MRule.class);
+
+    private Class clazz;
+
+    Type(Class clazz) {
+      this.clazz = clazz;
+    }
   }
 }

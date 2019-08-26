@@ -5,48 +5,35 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
-import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import de.fraunhofer.aisec.mark.markDsl.AdditionExpression;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
-import de.fraunhofer.aisec.mark.markDsl.CharacterLiteral;
 import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.FloatingPointLiteral;
 import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
 import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration;
-import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
 import de.fraunhofer.aisec.mark.markDsl.Literal;
 import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
 import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
 import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
-import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.Operand;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
 import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
 import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
-import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
-import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
-import de.fraunhofer.aisec.markmodel.EvaluationContext.EvaluationContextType;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -680,7 +667,7 @@ public class MarkInterpreter {
 
   private void evaluateRules(AnalysisContext ctx) {
     for (MRule rule : markModel.getRules()) {
-      EvaluationContext ec = new EvaluationContext(EvaluationContextType.RULE, rule);
+      EvaluationContext ec = new EvaluationContext(rule, EvaluationContext.Type.RULE);
       ExpressionEvaluator ee = new ExpressionEvaluator(ec);
 
       if (rule.getStatement() != null && rule.getStatement().getEnsure() != null) {
@@ -757,8 +744,6 @@ public class MarkInterpreter {
       }
     }
   }
-
-
 
   /**
    * DUMMY FOR DEMO.

@@ -1,8 +1,16 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
 
-import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.cpg.graph.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.Declaration;
+import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.MemberCallExpression;
+import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
+import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -36,10 +44,15 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     return traversal.hasLabel(LabelP.of(VariableDeclaration.class.getSimpleName()));
   }
 
+  // FIXME names of functions are '<namespace>::<function name>'
+  // Thus, we would need to search for labels with the fully qualified name.
+  // I think C++ discourages the use of namespace names as class/struct names. We could "interpret"
+  // namespaces as "types".
+
   /**
-   * Returns nodes with a label {@code CallExpression}.
+   * Returns function and method calls.
    *
-   * @return
+   * @return traversal of matched {@code CallExpression} vertices
    */
   public GraphTraversal<Vertex, Vertex> calls() {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
@@ -48,9 +61,10 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   }
 
   /**
-   * Returns the calls with a given name.
+   * Returns function and method calls with the given name.
    *
-   * @return
+   * @param callee_name name of the called function/method
+   * @return traversal of matched {@code CallExpression} vertices
    */
   public GraphTraversal<Vertex, Vertex> calls(String callee_name) {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
@@ -60,6 +74,14 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
         .has("name", callee_name);
   }
 
+  /**
+   * Returns method calls on an instance (object) with the given name and where the instance has the
+   * specified type.
+   *
+   * @param callee_name name of the called method
+   * @param base_type type of the instance (object)
+   * @return traversal of matched {@code CallExpression} vertices
+   */
   public GraphTraversal<Vertex, Vertex> calls(String callee_name, String base_type) {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -67,11 +89,6 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
         .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
         .has("name", callee_name)
         .where(out("BASE").has("type", base_type));
-
-    //    return traversal
-    //        .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
-    //        .has("name", callee_name)
-    //        .has("type", base_type);
   }
 
   /**

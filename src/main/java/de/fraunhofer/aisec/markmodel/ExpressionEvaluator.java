@@ -1,10 +1,12 @@
 package de.fraunhofer.aisec.markmodel;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.in;
 
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
@@ -31,13 +33,14 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
+import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -940,9 +943,11 @@ public class ExpressionEvaluator {
             }
 
             if (args.size() > 0) {
-              usesAsFunctionArgs.add(new Pair<>(operation, vars));
+              usesAsFunctionArgs.add(new Pair<>(operation, args));
             }
           }
+
+          dump(usesAsVar, usesAsFunctionArgs);
 
           // know which ops and opstatements use operand
           // resolve vars
@@ -996,43 +1001,104 @@ public class ExpressionEvaluator {
                   List<Vertex> nextVertices = nextTraversalStep.toList();
                   log.warn("found traversals: {}", nextVertices);
                 }
-                // TODO why am I doing all this work? what are we hoping to get from this opstatement?
+                // TODO why am I doing all this work? what are we hoping to get from this
+                // opstatement?
                 // 2. see if EOG leads to Expression with BinaryOperator {operatorCode: '='}
               }
             }
 
-            Set<Pair<MOp, Set<OpStatement>>> uses = new HashSet<>();
-            uses.addAll(usesAsVar);
-            uses.addAll(usesAsFunctionArgs);
+            for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
+              for (OpStatement opstmt : p.getValue1()) {
+                FunctionDeclaration fd = opstmt.getCall();
 
-            for (Pair<MOp, Set<OpStatement>> p : uses) {
-              log.warn("Number of uses in {}: {}", p.getValue0(), p.getValue1().size());
-              for (OpStatement os : p.getValue1()) {
-                log.warn("OpStatment: {}", os);
+                String fqFunctionName = fd.getName();
+                String functionName = Utils.extractMethodName(fqFunctionName);
+                String fqName =
+                    fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
+
+                if (fqName.endsWith("::")) {
+                  fqName = fqName.substring(0, fqName.length() - 2);
+                }
+
+                List<String> argumentTypes = fd.getParams();
+                int argumentIndex = -1;
+                for (int i = 0; i < argumentTypes.size(); i++) {
+                  String argVar = argumentTypes.get(i);
+
+                  if (attribute.equals(argVar)) {
+                    argumentIndex = i;
+                  }
+
+                  if ("_".equals(argumentTypes) || "*".equals(argumentTypes)) {
+                    continue;
+                  }
+
+                  argumentTypes.set(i, referencedEntity.getTypeForVar(argVar));
+                }
+
+                // vertices in CPG where we call a function from a MARK OpStatement and we're
+                // looking for one of the arguments
+                Set<Vertex> vertices =
+                    CrymlinQueryWrapper.getCalls(
+                        crymlin, fqName, functionName, entityName, argumentTypes);
+
+                // further investigate each function call
+                for (Vertex v : vertices) {
+                  // vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
+                  // argument we're using in the function call
+                  CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal =
+                      crymlin
+                          .byID((long) v.id())
+                          .out("ARGUMENTS")
+                          .has("argumentIndex", argumentIndex)
+                          .out("REFERS_TO");
+
+                  // TODO potential NullPointerException
+                  Vertex variableDeclarationVertex = variableDeclarationTraversal.toList().get(0);
+
+                  // FIXME and now this code doesn't work as expected, especially path()
+
+                  /* TODO general idea
+                   *
+                   *  1.  from CPG vertex representing the function argument
+                   *      ('crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex", argumentIndex)')
+                   *      create all paths to vertex with variable declaration ('variableDeclarationVertex')
+                   *      in theory 'crymlin.byID((long) v.id()).repeat(in("EOG").simplePath())
+                   *          .until(hasId(variableDeclarationVertex.id())).path()'
+                   *  2.  traverse this path from 'v' ---> 'variableDeclarationVertex'
+                   *  3.  for each assignment, i.e. BinaryOperator{operatorCode: "="}
+                   *  4.    check if -{"LHS"}-> v -{"REFERS_TO"}-> variableDeclarationVertex
+                   *  5.    then determine value RHS
+                   *  6.    done
+                   *  7.  {no interjacent assignment} determine value of variableDeclarationVertex (e.g. from its initializer)
+                   *  8.  {no intializer with value e.g. function argument} continue traversing the graph
+                   */
+
+                  //                  CrymlinTraversal<Vertex, Path> eogPathTraversal =
+                  //                      crymlin
+                  //                          .byID((long) variableDeclarationVertex.id())
+                  //                          .repeat(out("EOG").simplePath())
+                  //                          .until(hasId(v.id()))
+                  //                          .path();
+                  dumpVertices(crymlin.byID((long) v.id()).emit().repeat(in("EOG")).toList());
+                  //                  dumpPaths();
+
+                  Traversal<Vertex, Path> pathTraversal =
+                      crymlin.byID((long) v.id()).emit().repeat(in("EOG")).path();
+                  log.warn("Path {}", pathTraversal.next());
+
+                  Path path =
+                      crymlin
+                          .byID((long) v.id())
+                          .emit()
+                          .repeat(in("EOG").simplePath())
+                          .path()
+                          .next();
+                  log.warn("Path {}", path);
+                  //                  List<Path> eogPaths = eogPathTraversal.toList();
+                  //                  dumpPaths(eogPaths);
+                }
               }
-            }
-
-            for (Pair<MOp, Set<OpStatement>> pair : uses) {
-              MOp mop = pair.getValue0();
-              Set<OpStatement> opstmts = pair.getValue1();
-
-              for (OpStatement stmt : opstmts) {
-                Set<Vertex> vertices = mop.getVertices(stmt);
-
-                vertices.forEach((v) -> log.warn("Operand used in OpStatement with vertex: {}", v));
-              }
-            }
-
-            Set<Vertex> vertices =
-                CrymlinQueryWrapper.getCalls(
-                    crymlin,
-                    "Botan",
-                    "get_cipher_mode",
-                    entityName,
-                    Arrays.asList("const std::string &", "Botan::Cipher_Dir"));
-
-            for (Vertex v : vertices) {
-              log.warn("Properties of vertex {}: {}", v.id(), v.keys());
             }
           }
 
@@ -1048,5 +1114,51 @@ public class ExpressionEvaluator {
      */
 
     return Optional.of(true);
+  }
+
+  private void dump(
+      List<Pair<MOp, Set<OpStatement>>> usesAsVar,
+      List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArg) {
+    Set<Pair<MOp, Set<OpStatement>>> uses = new HashSet<>();
+    uses.addAll(usesAsVar);
+    uses.addAll(usesAsFunctionArg);
+
+    for (Pair<MOp, Set<OpStatement>> p : uses) {
+      log.warn("Number of uses in {}: {}", p.getValue0(), p.getValue1().size());
+      for (OpStatement os : p.getValue1()) {
+        log.warn("OpStatment: {}", os);
+      }
+    }
+
+    for (Pair<MOp, Set<OpStatement>> pair : uses) {
+      MOp mop = pair.getValue0();
+      Set<OpStatement> opstmts = pair.getValue1();
+
+      for (OpStatement stmt : opstmts) {
+        Set<Vertex> vertices = mop.getVertices(stmt);
+
+        vertices.forEach((v) -> log.warn("Operand used in OpStatement with vertex: {}", v));
+      }
+    }
+  }
+
+  private void dumpVertices(Collection<Vertex> vertices) {
+    log.warn("Dumping vertices: {}", vertices.size());
+
+    int i = 0;
+    for (Vertex v : vertices) {
+      log.warn("Vertex {}: {}", i++, v);
+    }
+  }
+
+  private void dumpPaths(Collection<Path> paths) {
+    log.warn("Number of paths: {}", paths.size());
+
+    for (Path p : paths) {
+      log.warn("Path of length: {}", p.size());
+      for (Object o : p) {
+        log.warn("Path step: {}", o);
+      }
+    }
   }
 }

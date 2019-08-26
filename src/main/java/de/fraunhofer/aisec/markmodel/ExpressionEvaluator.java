@@ -1,5 +1,9 @@
 package de.fraunhofer.aisec.markmodel;
 
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
+
+import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
+import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.utils.Builtins;
@@ -26,7 +30,6 @@ import de.fraunhofer.aisec.mark.markDsl.Operand;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
-import de.fraunhofer.aisec.markmodel.EvaluationContext.EvaluationContextType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,6 +37,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
+import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
@@ -137,20 +143,23 @@ public class ExpressionEvaluator {
       return Optional.empty();
     }
 
-    log.error("Trying to evaluate unknown logical expression: {}", MarkInterpreter.exprToString(expr));
+    log.error(
+        "Trying to evaluate unknown logical expression: {}", MarkInterpreter.exprToString(expr));
 
     assert false; // not a logical expression
     return Optional.empty();
   }
 
-  private Optional<Boolean> evaluateComparisonExpr(
-      ComparisonExpression expr) {
+  private Optional<Boolean> evaluateComparisonExpr(ComparisonExpression expr) {
     String op = expr.getOp();
     Expression left = expr.getLeft();
     Expression right = expr.getRight();
 
     log.debug(
-        "comparing expression " + MarkInterpreter.exprToString(left) + " with expression " + MarkInterpreter.exprToString(right));
+        "comparing expression "
+            + MarkInterpreter.exprToString(left)
+            + " with expression "
+            + MarkInterpreter.exprToString(right));
 
     Optional leftResult = evaluateExpression(left);
     Optional rightResult = evaluateExpression(right);
@@ -331,8 +340,7 @@ public class ExpressionEvaluator {
     return result;
   }
 
-  private Optional evaluateFunctionCallExpr(
-      FunctionCallExpression expr) {
+  private Optional evaluateFunctionCallExpr(FunctionCallExpression expr) {
     String functionName = expr.getName();
     if (!functionName.startsWith("_")) {
       log.error("Invalid function {}", functionName);
@@ -609,14 +617,14 @@ public class ExpressionEvaluator {
         return Optional.empty();
     }
 
-    log.error("Trying to evaluate unknown addition expression: {}", MarkInterpreter.exprToString(expr));
+    log.error(
+        "Trying to evaluate unknown addition expression: {}", MarkInterpreter.exprToString(expr));
 
     assert false; // not an addition expression
     return Optional.empty();
   }
 
-  private Optional evaluateMultiplicationExpr(
-      MultiplicationExpression expr) {
+  private Optional evaluateMultiplicationExpr(MultiplicationExpression expr) {
     log.debug("Evaluating multiplication expression: {}", MarkInterpreter.exprToString(expr));
 
     String op = expr.getOp();
@@ -797,7 +805,9 @@ public class ExpressionEvaluator {
     }
 
     // TODO #8
-    log.error("Trying to evaluate unknown multiplication expression: {}", MarkInterpreter.exprToString(expr));
+    log.error(
+        "Trying to evaluate unknown multiplication expression: {}",
+        MarkInterpreter.exprToString(expr));
 
     assert false; // not an addition expression
     return Optional.empty();
@@ -868,7 +878,8 @@ public class ExpressionEvaluator {
     }
 
     // TODO #8
-    log.error("Trying to evaluate unknown unary expression: {}", MarkInterpreter.exprToString(expr));
+    log.error(
+        "Trying to evaluate unknown unary expression: {}", MarkInterpreter.exprToString(expr));
 
     assert false; // not an addition expression
     return Optional.empty();
@@ -879,7 +890,14 @@ public class ExpressionEvaluator {
 
     String operandString = operand.getOperand();
 
-    if (context.hasContext(EvaluationContextType.RULE)) {
+    // TODO instead of doing the hard lifting here, I'd rather call out to something that can
+    // "resolve" text
+    // what heavy lifting?
+    // 1. resolve the meaning of text within the context of MARK
+    // 2. link MARK definitions to graph components in CPG
+    // 3. resolve information to perform evaluation (e.g. retrieve assigned values)
+
+    if (context.hasContextType(EvaluationContext.Type.RULE)) {
       final MRule rule = context.getRule();
 
       if (operandString.contains(".")) {
@@ -895,34 +913,104 @@ public class ExpressionEvaluator {
 
           String attributeType = referencedEntity.getTypeForVar(attribute);
 
-          List<Pair<MOp, Set<OpStatement>>> uses = new ArrayList<>();
+          List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
+          List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
 
           for (MOp operation : referencedEntity.getOps()) {
-            Set<OpStatement> referencingOperations = new HashSet<>();
+            Set<OpStatement> vars = new HashSet<>();
+            Set<OpStatement> args = new HashSet<>();
 
             for (OpStatement opStmt : operation.getStatements()) {
               // simple assignment, i.e. var = something()
               if (attribute.equals(opStmt.getVar())) {
-                referencingOperations.add(opStmt);
+                vars.add(opStmt);
               }
 
               // ...or it's used as a function parameter, i.e. something(..., var, ...)
               FunctionDeclaration fd = opStmt.getCall();
               for (String param : fd.getParams()) {
                 if (attribute.equals(param)) {
-                  referencingOperations.add(opStmt);
+                  args.add(opStmt);
                 }
               }
             }
 
-            if (referencingOperations.size() > 0) {
-              // all places where the operand is used
-              uses.add(new Pair<>(operation, referencingOperations));
+            if (vars.size() > 0) {
+              usesAsVar.add(new Pair<>(operation, vars));
+            }
+
+            if (args.size() > 0) {
+              usesAsFunctionArgs.add(new Pair<>(operation, vars));
             }
           }
 
+          // know which ops and opstatements use operand
+          // resolve vars
           try (TraversalConnection conn = new TraversalConnection()) {
             CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+
+            for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+              for (OpStatement opstmt : p.getValue1()) {
+                /*
+                 * TODO how would we do this? wouldn't we need to evaluate the calling function to
+                 *  determine the value?
+                 *
+                 * I think the intention was to signal that a variable was set by a specific function
+                 * call. It's basically a Boolean decision can I find an assignment to the variable where
+                 * on the rhs the specified function is called --> YES or NO.
+                 */
+                FunctionDeclaration fd = opstmt.getCall();
+                String fqFunctionName = fd.getName();
+                List<String> functionArguments = fd.getParams();
+
+                String functionName = Utils.extractMethodName(fqFunctionName);
+                String fqNamePart = Utils.extractType(fqFunctionName);
+                if (fqNamePart.equals(functionName)) {
+                  fqNamePart = "";
+                }
+
+                List<String> functionArgumentTypes = new ArrayList<>();
+                for (int i = 0; i < functionArguments.size(); i++) {
+                  functionArgumentTypes.add(
+                      i, referencedEntity.getTypeForVar(functionArguments.get(i)));
+                }
+
+                // 1. find callexpression with opstatment signature
+                Set<Vertex> vertices =
+                    CrymlinQueryWrapper.getCalls(
+                        crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+
+                for (Vertex v : vertices) {
+                  Traversal<Vertex, Vertex> nextTraversalStep =
+                      crymlin
+                          .byID((long) v.id())
+                          .in("RHS")
+                          .where(
+                              has(T.label, LabelP.of(BinaryOperator.class.getSimpleName()))
+                                  .and()
+                                  .has("operatorCode", "="))
+                          .out("LHS")
+                          .out("REFERS_TO")
+                          .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+
+                  List<Vertex> nextVertices = nextTraversalStep.toList();
+                  log.warn("found traversals: {}", nextVertices);
+                }
+                // TODO why am I doing all this work? what are we hoping to get from this opstatement?
+                // 2. see if EOG leads to Expression with BinaryOperator {operatorCode: '='}
+              }
+            }
+
+            Set<Pair<MOp, Set<OpStatement>>> uses = new HashSet<>();
+            uses.addAll(usesAsVar);
+            uses.addAll(usesAsFunctionArgs);
+
+            for (Pair<MOp, Set<OpStatement>> p : uses) {
+              log.warn("Number of uses in {}: {}", p.getValue0(), p.getValue1().size());
+              for (OpStatement os : p.getValue1()) {
+                log.warn("OpStatment: {}", os);
+              }
+            }
 
             for (Pair<MOp, Set<OpStatement>> pair : uses) {
               MOp mop = pair.getValue0();
@@ -936,12 +1024,16 @@ public class ExpressionEvaluator {
             }
 
             Set<Vertex> vertices =
-                CrymlinQueryWrapper.getCppCalls(
+                CrymlinQueryWrapper.getCalls(
                     crymlin,
                     "Botan",
                     "get_cipher_mode",
                     entityName,
                     Arrays.asList("const std::string &", "Botan::Cipher_Dir"));
+
+            for (Vertex v : vertices) {
+              log.warn("Properties of vertex {}: {}", v.id(), v.keys());
+            }
           }
 
           // TODO at this point I know what I need to look for: either assignments or function calls

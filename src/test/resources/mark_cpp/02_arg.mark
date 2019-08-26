@@ -1,0 +1,19 @@
+package mark_cpp
+
+entity Test {
+
+  var foo : int;
+  var bar : int;
+
+  op functions() {
+    bar = call(foo);
+  }
+
+}
+
+rule SomethingAboutFoo {
+  using Test as t
+  ensure
+    t.foo >= 0
+  onfail SomethingAboutFoo_Failed
+}

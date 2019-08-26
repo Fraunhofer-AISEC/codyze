@@ -124,4 +124,47 @@ public class MarkCppTest {
                     .build())
             .get(5, TimeUnit.MINUTES);
   }
+
+  @Test
+  public void _02_arg() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+
+    URL resource = classLoader.getResource("mark_cpp/02_arg.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
+
+    resource = classLoader.getResource("mark_cpp/02_arg.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
+
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
+
+    // Start the analysis
+    TranslationResult result =
+        server
+            .analyze(
+                TranslationManager.builder()
+                    .config(
+                        TranslationConfiguration.builder()
+                            .debugParser(true)
+                            .failOnError(false)
+                            .codeInNodes(true)
+                            .defaultPasses()
+                            .sourceFiles(cppFile)
+                            .build())
+                    .build())
+            .get(5, TimeUnit.MINUTES);
+  }
 }

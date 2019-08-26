@@ -1,0 +1,19 @@
+package mark_cpp
+
+entity Test {
+
+  var foo : int;
+
+  op functions() {
+    foo = call();
+  }
+
+}
+
+
+rule HasBeenCalled {
+  using Test as t
+  ensure
+    t.foo == 1
+  onfail HasBeenCalled_Failed
+}

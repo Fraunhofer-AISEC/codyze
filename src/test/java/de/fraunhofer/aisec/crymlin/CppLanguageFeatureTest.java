@@ -59,7 +59,6 @@ public class CppLanguageFeatureTest {
     server.stop();
   }
 
-
   @Test
   public void functionTest() throws Exception {
     ClassLoader classLoader = CppLanguageFeatureTest.class.getClassLoader();

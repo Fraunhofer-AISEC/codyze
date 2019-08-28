@@ -12,22 +12,11 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.mark.XtextParser;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
-import de.fraunhofer.aisec.markmodel.MRule;
-import de.fraunhofer.aisec.markmodel.Mark;
-import de.fraunhofer.aisec.markmodel.MarkInterpreter;
-import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,8 +28,7 @@ public class MarkCppTest {
 
   @BeforeAll
   public static void startup() throws Exception {
-    URL resource =
-        MarkCppTest.class.getClassLoader().getResource("mark_cpp");
+    URL resource = MarkCppTest.class.getClassLoader().getResource("mark_cpp");
     assertNotNull(resource);
 
     File markFile = new File(resource.getFile());
@@ -64,6 +52,9 @@ public class MarkCppTest {
     assertFalse(markModels.isEmpty());
   }
 
+  @AfterAll
+  public static void teardown() throws Exception {}
+
   @BeforeEach
   public void clearDatabase() {
     // Make sure we start with a clean (and connected) db
@@ -75,11 +66,6 @@ public class MarkCppTest {
       e.printStackTrace();
       assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
     }
-  }
-
-  @AfterAll
-  public static void teardown() throws Exception {
-
   }
 
   @Test

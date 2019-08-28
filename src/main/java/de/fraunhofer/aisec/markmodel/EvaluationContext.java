@@ -10,7 +10,7 @@ public class EvaluationContext {
   public EvaluationContext(@NonNull Object context, @NonNull Type type) {
     this.context = context;
 
-    assert(type.clazz.equals(context.getClass()));
+    assert (type.clazz.equals(context.getClass()));
     this.contextType = type;
   }
 

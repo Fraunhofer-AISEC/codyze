@@ -33,12 +33,14 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.swing.text.html.Option;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
@@ -361,11 +363,21 @@ public class ExpressionEvaluator {
         // arguments: String, String, int
         // example:
         // _split("ASD/EFG/JKL", "/", 1) returns "EFG
+        final List<Class> paramTypes = Arrays.asList(String.class, String.class, Integer.class);
         List<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
 
-        for (Optional arg : argOptionals) {
+        if (paramTypes.size() != argOptionals.size()) {
+          return Optional.<String>empty();
+        }
+
+        for (int i = 0; i < paramTypes.size(); i++) {
+          Optional arg = argOptionals.get(i);
+
           if (arg.isEmpty()) {
-            return Optional.empty();
+            return Optional.<String>empty();
+          }
+          if (!arg.get().getClass().equals(paramTypes.get(i))) {
+            return Optional.<String>empty();
           }
         }
 

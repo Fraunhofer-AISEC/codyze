@@ -7,13 +7,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
+import de.fraunhofer.aisec.markmodel.EvaluationContext;
+//import de.fraunhofer.aisec.markmodel.EvaluationContext.Type;
+import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkInterpreter;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
+import groovy.util.Eval;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,16 +77,14 @@ public class RuleEnsureSemanticsTest {
 
     Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
 
-    MarkInterpreter mi = new MarkInterpreter(mark);
-    Method evaluateExpression =
-        mi.getClass().getDeclaredMethod("evaluateTopLevelExpr", Expression.class);
-    evaluateExpression.setAccessible(true);
-
     Map<String, Optional<Boolean>> ensureExprResults = new TreeMap<>();
-    for (MRule rule : mark.getRules()) {
-      Expression ensureExpr = rule.getStatement().getEnsure().getExp();
-      Optional<Boolean> result = (Optional<Boolean>) evaluateExpression.invoke(mi, ensureExpr);
-      ensureExprResults.put(rule.getName(), result);
+    for (MRule r : mark.getRules()) {
+      EvaluationContext ec = new EvaluationContext(r, EvaluationContext.Type.RULE);
+      ExpressionEvaluator ee = new ExpressionEvaluator(ec);
+
+      Expression ensureExpr = r.getStatement().getEnsure().getExp();
+      Optional<Boolean> result = (Optional<Boolean>) ee.evaluate(ensureExpr);
+      ensureExprResults.put(r.getName(), result);
     }
 
     ensureExprResults

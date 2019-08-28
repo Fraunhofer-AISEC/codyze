@@ -32,7 +32,7 @@ public class EvaluationContext {
     return null;
   }
 
-  enum Type {
+  public enum Type {
     ENTITY(MEntity.class),
     RULE(MRule.class);
 

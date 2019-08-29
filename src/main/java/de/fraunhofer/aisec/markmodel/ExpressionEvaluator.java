@@ -1277,11 +1277,14 @@ public class ExpressionEvaluator {
                         Arrays.stream(tVertex.label().split(Neo4JVertex.LabelDelimiter))
                             .anyMatch("BinaryOperator"::equals);
 
-                    if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode").value())) {
+                    if (isBinaryOperatorVertex
+                        && "=".equals(tVertex.property("operatorCode").value())) {
                       // this is an assignment that may set the value of our operand
                       Vertex lhs = tVertex.vertices(Direction.OUT, "LHS").next();
 
-                      if (lhs.vertices(Direction.OUT, "REFERS_TO").next().equals(variableDeclarationVertex)) {
+                      if (lhs.vertices(Direction.OUT, "REFERS_TO")
+                          .next()
+                          .equals(variableDeclarationVertex)) {
                         Vertex rhs = tVertex.vertices(Direction.OUT, "RHS").next();
 
                         boolean isRhsLiteral =

@@ -1,8 +1,11 @@
 package de.fraunhofer.aisec.markmodel;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.in;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.is;
 
+import com.steelbridgelabs.oss.neo4j.structure.Neo4JVertex;
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -43,6 +46,7 @@ import java.util.regex.Pattern;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.eclipse.emf.common.util.EList;
@@ -504,7 +508,7 @@ public class ExpressionEvaluator {
       return evaluateLiteral((Literal) expr);
     } else if (expr instanceof Operand) {
       log.debug("evaluating Operand expression: " + MarkInterpreter.exprToString(expr));
-      return Optional.of(evaluateOperand((Operand) expr));
+      return evaluateOperand((Operand) expr);
     } else if (expr instanceof FunctionCallExpression) {
       log.debug("evaluating FunctionCallExpression: " + MarkInterpreter.exprToString(expr));
       return evaluateFunctionCallExpr((FunctionCallExpression) expr);
@@ -1091,23 +1095,215 @@ public class ExpressionEvaluator {
                   //                          .repeat(out("EOG").simplePath())
                   //                          .until(hasId(v.id()))
                   //                          .path();
-                  dumpVertices(crymlin.byID((long) v.id()).emit().repeat(in("EOG")).toList());
-                  //                  dumpPaths();
 
-                  Traversal<Vertex, Path> pathTraversal =
-                      crymlin.byID((long) v.id()).emit().repeat(in("EOG")).path();
-                  log.warn("Path {}", pathTraversal.next());
+                  log.warn("Starting vertex: {}", v.id());
+                  log.warn(
+                      "Previous + 0 EOG vertex: {}",
+                      crymlin.byID((long) v.id()).in("EOG").toList());
+                  log.warn(
+                      "Previous + 1 EOG vertex: {}",
+                      crymlin.byID((long) v.id()).in("EOG").in("EOG").toList());
+                  log.warn(
+                      "Previous + 2 EOG vertex: {}",
+                      crymlin.byID((long) v.id()).in("EOG").in("EOG").in("EOG").toList());
+                  log.warn(
+                      "Previous + 3 EOG vertex: {}",
+                      crymlin.byID((long) v.id()).in("EOG").in("EOG").in("EOG").in("EOG").toList());
+                  log.warn(
+                      "Previous + 4 EOG vertex: {}",
+                      crymlin
+                          .byID((long) v.id())
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .toList());
+                  log.warn(
+                      "Previous + 5 EOG vertex: {}",
+                      crymlin
+                          .byID((long) v.id())
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .toList());
+                  log.warn(
+                      "Previous + 6 EOG vertex: {}",
+                      crymlin
+                          .byID((long) v.id())
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .toList());
+                  log.warn(
+                      "Previous + 7 EOG vertex: {}",
+                      crymlin
+                          .byID((long) v.id())
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .toList());
+                  log.warn(
+                      "Previous + 8 EOG vertex: {}",
+                      crymlin
+                          .byID((long) v.id())
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .toList());
+                  log.warn(
+                      "Previous + 9 EOG vertex: {}",
+                      crymlin
+                          .byID((long) v.id())
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .in("EOG")
+                          .toList());
 
-                  Path path =
+                  CrymlinTraversal<Vertex, Vertex> pathTraversal =
                       crymlin
                           .byID((long) v.id())
                           .emit()
-                          .repeat(in("EOG").simplePath())
+                          .repeat(in("EOG"))
+                          .until(hasLabel("FunctionDeclaration"));
+                  CrymlinTraversal<Vertex, Vertex> ptClone =
+                      (CrymlinTraversal<Vertex, Vertex>) pathTraversal.clone();
+                  while (pathTraversal.hasNext()) {
+                    log.warn("traversed vertex : {}", pathTraversal.next());
+                  }
+
+                  dumpPaths(ptClone.path().toList());
+
+                  CrymlinTraversal<Vertex, Path> ptc1 =
+                      crymlin
+                          .byID((long) v.id())
+                          .repeat(in("EOG"))
+                          .until(hasLabel("FunctionDeclaration"))
+                          .emit()
+                          .path();
+                  dumpPaths(ptc1.toList());
+
+                  CrymlinTraversal<Vertex, Path> ptc2 =
+                      crymlin
+                          .byID((long) v.id())
+                          .repeat(in("EOG"))
+                          .until(hasLabel("FunctionDeclaration"))
+                          .path();
+                  dumpPaths(ptc2.toList());
+
+                  CrymlinTraversal<Vertex, Path> ptc3 =
+                      crymlin
+                          .byID((long) v.id())
+                          .emit()
+                          .repeat(in("EOG").unfold())
+                          .until(hasLabel("FunctionDeclaration"))
+                          .path();
+                  dumpPaths(ptc3.toList());
+
+                  log.warn("Workaround?");
+
+                  CrymlinTraversal<Vertex, Vertex> ptw =
+                      crymlin
+                          .byID((long) v.id())
+                          .emit()
+                          .repeat(in("EOG"))
+                          .until(hasLabel("FunctionDeclaration"));
+                  CrymlinTraversal<Vertex, Path> ptw_cp =
+                      ((CrymlinTraversal<Vertex, Vertex>) ptw.clone()).path();
+
+                  dumpVertices(ptw.toList());
+                  dumpPaths(ptw_cp.toList());
+
+                  log.warn("All in one?");
+                  dumpPaths(
+                      crymlin
+                          .byID((long) v.id())
+                          .emit()
+                          .repeat(in("EOG"))
+                          .until(hasLabel("FunctionDeclaration"))
                           .path()
-                          .next();
-                  log.warn("Path {}", path);
+                          .toList());
+
+                  //                  Path path =
+                  //                      crymlin
+                  //                          .byID((long) v.id())
+                  //                          .emit()
+                  //                          .repeat(in("EOG").simplePath())
+                  //                          .path()
+                  //                          .next();
+                  //                  log.warn("Path {}", path);
                   //                  List<Path> eogPaths = eogPathTraversal.toList();
                   //                  dumpPaths(eogPaths);
+
+                  // TODO this is real code
+                  log.warn("Vertex for function call: {}", v);
+                  log.warn("Vertex of variable declaration: {}", variableDeclarationVertex);
+
+                  // traverse in reverse along EOG edges from v until variableDeclarationVertex -->
+                  // one of them must have more information on the value of the operand
+                  CrymlinTraversal<Vertex, Vertex> traversal =
+                      crymlin
+                          .byID((long) v.id())
+                          .repeat(in("EOG"))
+                          .until(is(variableDeclarationVertex))
+                          .emit();
+                  for (Vertex tVertex : traversal.toList()) {
+                    boolean isBinaryOperatorVertex =
+                        Arrays.stream(tVertex.label().split(Neo4JVertex.LabelDelimiter))
+                            .anyMatch("BinaryOperator"::equals);
+
+                    if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode").value())) {
+                      // this is an assignment that may set the value of our operand
+                      Vertex lhs = tVertex.vertices(Direction.OUT, "LHS").next();
+
+                      if (lhs.vertices(Direction.OUT, "REFERS_TO").next().equals(variableDeclarationVertex)) {
+                        Vertex rhs = tVertex.vertices(Direction.OUT, "RHS").next();
+
+                        boolean isRhsLiteral =
+                            Arrays.stream(rhs.label().split(Neo4JVertex.LabelDelimiter))
+                                .anyMatch("Literal"::equals);
+
+                        if (isRhsLiteral) {
+                          Object literalValue = rhs.property("value").value();
+
+                          if (literalValue.getClass().equals(Long.class)) {
+                            return Optional.of(((Long) literalValue).intValue());
+                          }
+                          log.error("operands with literal of type: {}", literalValue.getClass());
+                        }
+
+                        // TODO properly resolve rhs expression
+
+                        log.warn("Value of operand set in assignment expression");
+                        break;
+                      }
+                    }
+                  }
                 }
               }
             }

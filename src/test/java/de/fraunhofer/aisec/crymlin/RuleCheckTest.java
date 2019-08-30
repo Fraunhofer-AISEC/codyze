@@ -17,7 +17,10 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -67,21 +70,24 @@ public class RuleCheckTest {
             .build();
     server.start();
 
-    // Start the analysis
-    result =
-        server
-            .analyze(
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
+    TranslationManager translationManager = TranslationManager.builder()
+            .config(
+                    TranslationConfiguration.builder()
                             .debugParser(true)
                             .failOnError(false)
                             .codeInNodes(true)
                             .defaultPasses()
                             .sourceFiles(cppFile)
                             .build())
-                    .build())
-            .get(5, TimeUnit.MINUTES);
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
   }
 
   @AfterAll

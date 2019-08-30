@@ -14,7 +14,10 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.junit.jupiter.api.Test;
 
 class OrderTestComplex {
@@ -54,22 +57,25 @@ class OrderTestComplex {
             .build();
     server.start();
 
-    // Start the analysis
-    TranslationResult result =
-        server
-            .analyze(
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
+    TranslationManager translationManager = TranslationManager.builder()
+            .config(
+                    TranslationConfiguration.builder()
                             .debugParser(true)
                             .failOnError(false)
                             .codeInNodes(true)
-                            // no further passes needed for this simple test
                             .defaultPasses()
                             .sourceFiles(cppFile)
                             .build())
-                    .build())
-            .get(20, TimeUnit.MINUTES);
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    TranslationResult result;
+    try {
+      result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
 
     AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
     assertNotNull(ctx);

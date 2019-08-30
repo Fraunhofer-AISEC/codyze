@@ -21,7 +21,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -70,7 +73,15 @@ public class AnalysisServerBotanTest {
     server.start();
 
     // Start the analysis (BOTAN Symmetric Example by Oliver)
-    result = server.analyze(newAnalysisRun(cppFile)).get(5, TimeUnit.MINUTES);
+    TranslationManager translationManager = newAnalysisRun(cppFile);
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
   }
 
   @AfterAll

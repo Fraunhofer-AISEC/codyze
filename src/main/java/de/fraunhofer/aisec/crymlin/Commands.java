@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -55,7 +56,7 @@ public class Commands {
     }
     Database.getInstance().purgeDatabase();
 
-    TranslationManager analyzer =
+    TranslationManager translationManager =
         TranslationManager.builder()
             .config(
                 TranslationConfiguration.builder()
@@ -68,9 +69,14 @@ public class Commands {
             .build();
 
     AnalysisServer server = AnalysisServer.getInstance();
-    if (server != null) {
-      try {
-        TranslationResult translationResult = server.analyze(analyzer).get(10, TimeUnit.MINUTES);
+    if (server == null) {
+      log.error("Analysis server not available");
+      return;
+    }
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+
+    try {
+        TranslationResult translationResult = analyze.get(10, TimeUnit.MINUTES);
         jythonInterpreter.setResult(translationResult);
       } catch (InterruptedException e) {
         log.error("Interrupted", e);
@@ -78,9 +84,10 @@ public class Commands {
       } catch (ExecutionException e) {
         log.error("Exception", e);
       } catch (TimeoutException e) {
+        analyze.cancel(true);
+        translationManager.cancel(true);
         System.out.println("Analysis interrupted after timeout of 10 minutes.");
       }
-    }
   }
 
   /**

@@ -13,6 +13,6 @@ entity Test {
 rule SomethingAboutFoo {
   using Test as t
   ensure
-    t.foo >= 0
+    t.foo == 42
   onfail SomethingAboutFoo_Failed
 }

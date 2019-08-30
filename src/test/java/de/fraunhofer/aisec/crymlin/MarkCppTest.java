@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.crymlin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,16 +10,21 @@ import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -215,207 +221,66 @@ public class MarkCppTest {
   }
 
   @Test
-  public void _04_arg_prevassign_int() throws Exception {
-    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
-
-    URL resource = classLoader.getResource("mark_cpp/04_arg_prevassign_int.cpp");
-    assertNotNull(resource);
-    File cppFile = new File(resource.getFile());
-    assertNotNull(cppFile);
-
-    resource = classLoader.getResource("mark_cpp/04_arg_prevassign_int.mark");
-    assertNotNull(resource);
-    File markFile = new File(resource.getFile());
-    assertNotNull(markFile);
-
-    // Start an analysis server
-    AnalysisServer server =
-        AnalysisServer.builder()
-            .config(
-                ServerConfiguration.builder()
-                    .launchConsole(false)
-                    .launchLsp(false)
-                    .markFiles(markFile.getAbsolutePath())
-                    .build())
-            .build();
-    server.start();
-
-    // Start the analysis
-    TranslationManager translationManager =
-        TranslationManager.builder()
-            .config(
-                TranslationConfiguration.builder()
-                    .debugParser(true)
-                    .failOnError(false)
-                    .codeInNodes(true)
-                    .defaultPasses()
-                    .sourceFiles(cppFile)
-                    .build())
-            .build();
-    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-    try {
-      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-    } catch (TimeoutException t) {
-      analyze.cancel(true);
-      translationManager.cancel(true);
-      throw t;
-    }
+  public void arg_prevassign_int() throws Exception {
+    runTest("arg_prevassign_int");
   }
 
   @Test
-  public void _05_arg_prevassign_float() throws Exception {
-    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
-
-    URL resource = classLoader.getResource("mark_cpp/05_arg_prevassign_float.cpp");
-    assertNotNull(resource);
-    File cppFile = new File(resource.getFile());
-    assertNotNull(cppFile);
-
-    resource = classLoader.getResource("mark_cpp/05_arg_prevassign_float.mark");
-    assertNotNull(resource);
-    File markFile = new File(resource.getFile());
-    assertNotNull(markFile);
-
-    // Start an analysis server
-    AnalysisServer server =
-        AnalysisServer.builder()
-            .config(
-                ServerConfiguration.builder()
-                    .launchConsole(false)
-                    .launchLsp(false)
-                    .markFiles(markFile.getAbsolutePath())
-                    .build())
-            .build();
-    server.start();
-
-    // Start the analysis
-    TranslationManager translationManager =
-        TranslationManager.builder()
-            .config(
-                TranslationConfiguration.builder()
-                    .debugParser(true)
-                    .failOnError(false)
-                    .codeInNodes(true)
-                    .defaultPasses()
-                    .sourceFiles(cppFile)
-                    .build())
-            .build();
-    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-    try {
-      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-    } catch (TimeoutException t) {
-      analyze.cancel(true);
-      translationManager.cancel(true);
-      throw t;
-    }
+  public void arg_prevassign_float() throws Exception {
+    runTest("arg_prevassign_float");
   }
 
   @Test
-  public void _06_arg_prevassign_bool() throws Exception {
-    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
-
-    URL resource = classLoader.getResource("mark_cpp/06_arg_prevassign_bool.cpp");
-    assertNotNull(resource);
-    File cppFile = new File(resource.getFile());
-    assertNotNull(cppFile);
-
-    resource = classLoader.getResource("mark_cpp/06_arg_prevassign_bool.mark");
-    assertNotNull(resource);
-    File markFile = new File(resource.getFile());
-    assertNotNull(markFile);
-
-    // Start an analysis server
-    AnalysisServer server =
-        AnalysisServer.builder()
-            .config(
-                ServerConfiguration.builder()
-                    .launchConsole(false)
-                    .launchLsp(false)
-                    .markFiles(markFile.getAbsolutePath())
-                    .build())
-            .build();
-    server.start();
-
-    // Start the analysis
-    TranslationManager translationManager =
-        TranslationManager.builder()
-            .config(
-                TranslationConfiguration.builder()
-                    .debugParser(true)
-                    .failOnError(false)
-                    .codeInNodes(true)
-                    .defaultPasses()
-                    .sourceFiles(cppFile)
-                    .build())
-            .build();
-    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-    try {
-      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-    } catch (TimeoutException t) {
-      analyze.cancel(true);
-      translationManager.cancel(true);
-      throw t;
-    }
+  public void arg_prevassign_bool() throws Exception {
+    runTest("arg_prevassign_bool");
   }
 
   @Test
-  public void _07_arg_prevassign_char() throws Exception {
-    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
-
-    URL resource = classLoader.getResource("mark_cpp/07_arg_prevassign_char.cpp");
-    assertNotNull(resource);
-    File cppFile = new File(resource.getFile());
-    assertNotNull(cppFile);
-
-    resource = classLoader.getResource("mark_cpp/07_arg_prevassign_char.mark");
-    assertNotNull(resource);
-    File markFile = new File(resource.getFile());
-    assertNotNull(markFile);
-
-    // Start an analysis server
-    AnalysisServer server =
-        AnalysisServer.builder()
-            .config(
-                ServerConfiguration.builder()
-                    .launchConsole(false)
-                    .launchLsp(false)
-                    .markFiles(markFile.getAbsolutePath())
-                    .build())
-            .build();
-    server.start();
-
-    // Start the analysis
-    TranslationManager translationManager =
-        TranslationManager.builder()
-            .config(
-                TranslationConfiguration.builder()
-                    .debugParser(true)
-                    .failOnError(false)
-                    .codeInNodes(true)
-                    .defaultPasses()
-                    .sourceFiles(cppFile)
-                    .build())
-            .build();
-    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-    try {
-      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-    } catch (TimeoutException t) {
-      analyze.cancel(true);
-      translationManager.cancel(true);
-      throw t;
-    }
+  public void arg_prevassign_char() throws Exception {
+    runTest("arg_prevassign_char");
   }
 
   @Test
-  public void _08_arg_prevassign_string() throws Exception {
-    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+  public void arg_prevassign_string() throws Exception {
+    runTest("arg_prevassign_string");
+  }
 
-    URL resource = classLoader.getResource("mark_cpp/08_arg_prevassign_string.cpp");
+  @Test
+  public void arg_vardecl_int() throws Exception {
+    runTest("arg_vardecl_int");
+  }
+
+  @Test
+  public void arg_vardecl_float() throws Exception {
+    runTest("arg_vardecl_float");
+  }
+
+  @Test
+  public void arg_vardecl_bool() throws Exception {
+    runTest("arg_vardecl_bool");
+  }
+
+  @Test
+  public void arg_vardecl_char() throws Exception {
+    runTest("arg_vardecl_char");
+  }
+
+  @Test
+  public void arg_vardecl_string() throws Exception {
+    runTest("arg_vardecl_string");
+  }
+
+  private void runTest(@NonNull String fileNamePart)
+      throws ExecutionException, InterruptedException, TimeoutException {
+    String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);
+
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+    URL resource = classLoader.getResource("mark_cpp/" + fileNamePart + ".cpp");
     assertNotNull(resource);
     File cppFile = new File(resource.getFile());
     assertNotNull(cppFile);
 
-    resource = classLoader.getResource("mark_cpp/08_arg_prevassign_string.mark");
+    resource = classLoader.getResource("mark_cpp/" + type + ".mark");
     assertNotNull(resource);
     File markFile = new File(resource.getFile());
     assertNotNull(markFile);
@@ -447,6 +312,13 @@ public class MarkCppTest {
     CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
     try {
       TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+
+      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+      assertNotNull(ctx.getFindings());
+      Set<Finding> findings = ctx.getFindings();
+
+      assertEquals(1, findings.size());
+      findings.forEach((f) -> assertTrue(f.getName().endsWith("ensure condition satisfied")));
     } catch (TimeoutException t) {
       analyze.cancel(true);
       translationManager.cancel(true);

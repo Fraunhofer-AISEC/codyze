@@ -13,6 +13,6 @@ entity Test {
 rule SomethingAboutFoo {
   using Test as t
   ensure
-    t.foo >= 1.0
+    t.foo == 4.2
   onfail SomethingAboutFoo_Failed
 }

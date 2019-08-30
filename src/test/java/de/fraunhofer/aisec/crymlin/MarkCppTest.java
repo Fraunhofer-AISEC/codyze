@@ -241,20 +241,25 @@ public class MarkCppTest {
     server.start();
 
     // Start the analysis
-    TranslationResult result =
-        server
-            .analyze(
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
-                            .debugParser(true)
-                            .failOnError(false)
-                            .codeInNodes(true)
-                            .defaultPasses()
-                            .sourceFiles(cppFile)
-                            .build())
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
                     .build())
-            .get(5, TimeUnit.MINUTES);
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
   }
 
   @Test
@@ -284,20 +289,25 @@ public class MarkCppTest {
     server.start();
 
     // Start the analysis
-    TranslationResult result =
-        server
-            .analyze(
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
-                            .debugParser(true)
-                            .failOnError(false)
-                            .codeInNodes(true)
-                            .defaultPasses()
-                            .sourceFiles(cppFile)
-                            .build())
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
                     .build())
-            .get(5, TimeUnit.MINUTES);
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
   }
 
   @Test
@@ -327,20 +337,25 @@ public class MarkCppTest {
     server.start();
 
     // Start the analysis
-    TranslationResult result =
-        server
-            .analyze(
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
-                            .debugParser(true)
-                            .failOnError(false)
-                            .codeInNodes(true)
-                            .defaultPasses()
-                            .sourceFiles(cppFile)
-                            .build())
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
                     .build())
-            .get(5, TimeUnit.MINUTES);
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
   }
 
   @Test
@@ -370,20 +385,25 @@ public class MarkCppTest {
     server.start();
 
     // Start the analysis
-    TranslationResult result =
-        server
-            .analyze(
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
-                            .debugParser(true)
-                            .failOnError(false)
-                            .codeInNodes(true)
-                            .defaultPasses()
-                            .sourceFiles(cppFile)
-                            .build())
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
                     .build())
-            .get(5, TimeUnit.MINUTES);
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
   }
 
   @Test
@@ -413,19 +433,24 @@ public class MarkCppTest {
     server.start();
 
     // Start the analysis
-    TranslationResult result =
-        server
-            .analyze(
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
-                            .debugParser(true)
-                            .failOnError(false)
-                            .codeInNodes(true)
-                            .defaultPasses()
-                            .sourceFiles(cppFile)
-                            .build())
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
                     .build())
-            .get(5, TimeUnit.MINUTES);
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
   }
 }

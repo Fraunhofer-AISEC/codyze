@@ -213,4 +213,219 @@ public class MarkCppTest {
       throw t;
     }
   }
+
+  @Test
+  public void _04_arg_prevassign_int() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+
+    URL resource = classLoader.getResource("mark_cpp/04_arg_prevassign_int.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
+
+    resource = classLoader.getResource("mark_cpp/04_arg_prevassign_int.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
+
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
+
+    // Start the analysis
+    TranslationResult result =
+        server
+            .analyze(
+                TranslationManager.builder()
+                    .config(
+                        TranslationConfiguration.builder()
+                            .debugParser(true)
+                            .failOnError(false)
+                            .codeInNodes(true)
+                            .defaultPasses()
+                            .sourceFiles(cppFile)
+                            .build())
+                    .build())
+            .get(5, TimeUnit.MINUTES);
+  }
+
+  @Test
+  public void _05_arg_prevassign_float() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+
+    URL resource = classLoader.getResource("mark_cpp/05_arg_prevassign_float.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
+
+    resource = classLoader.getResource("mark_cpp/05_arg_prevassign_float.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
+
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
+
+    // Start the analysis
+    TranslationResult result =
+        server
+            .analyze(
+                TranslationManager.builder()
+                    .config(
+                        TranslationConfiguration.builder()
+                            .debugParser(true)
+                            .failOnError(false)
+                            .codeInNodes(true)
+                            .defaultPasses()
+                            .sourceFiles(cppFile)
+                            .build())
+                    .build())
+            .get(5, TimeUnit.MINUTES);
+  }
+
+  @Test
+  public void _06_arg_prevassign_bool() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+
+    URL resource = classLoader.getResource("mark_cpp/06_arg_prevassign_bool.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
+
+    resource = classLoader.getResource("mark_cpp/06_arg_prevassign_bool.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
+
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
+
+    // Start the analysis
+    TranslationResult result =
+        server
+            .analyze(
+                TranslationManager.builder()
+                    .config(
+                        TranslationConfiguration.builder()
+                            .debugParser(true)
+                            .failOnError(false)
+                            .codeInNodes(true)
+                            .defaultPasses()
+                            .sourceFiles(cppFile)
+                            .build())
+                    .build())
+            .get(5, TimeUnit.MINUTES);
+  }
+
+  @Test
+  public void _07_arg_prevassign_char() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+
+    URL resource = classLoader.getResource("mark_cpp/07_arg_prevassign_char.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
+
+    resource = classLoader.getResource("mark_cpp/07_arg_prevassign_char.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
+
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
+
+    // Start the analysis
+    TranslationResult result =
+        server
+            .analyze(
+                TranslationManager.builder()
+                    .config(
+                        TranslationConfiguration.builder()
+                            .debugParser(true)
+                            .failOnError(false)
+                            .codeInNodes(true)
+                            .defaultPasses()
+                            .sourceFiles(cppFile)
+                            .build())
+                    .build())
+            .get(5, TimeUnit.MINUTES);
+  }
+
+  @Test
+  public void _08_arg_prevassign_string() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+
+    URL resource = classLoader.getResource("mark_cpp/08_arg_prevassign_string.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
+
+    resource = classLoader.getResource("mark_cpp/08_arg_prevassign_string.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
+
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
+
+    // Start the analysis
+    TranslationResult result =
+        server
+            .analyze(
+                TranslationManager.builder()
+                    .config(
+                        TranslationConfiguration.builder()
+                            .debugParser(true)
+                            .failOnError(false)
+                            .codeInNodes(true)
+                            .defaultPasses()
+                            .sourceFiles(cppFile)
+                            .build())
+                    .build())
+            .get(5, TimeUnit.MINUTES);
+  }
 }

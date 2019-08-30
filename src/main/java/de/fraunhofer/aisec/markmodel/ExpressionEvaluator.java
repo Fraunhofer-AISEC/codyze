@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -1260,7 +1261,9 @@ public class ExpressionEvaluator {
                   //                  List<Path> eogPaths = eogPathTraversal.toList();
                   //                  dumpPaths(eogPaths);
 
-                  // TODO this is real code
+                  /*
+                   * real code
+                   */
                   log.warn("Vertex for function call: {}", v);
                   log.warn("Vertex of variable declaration: {}", variableDeclarationVertex);
 
@@ -1272,7 +1275,11 @@ public class ExpressionEvaluator {
                           .repeat(in("EOG"))
                           .until(is(variableDeclarationVertex))
                           .emit();
-                  for (Vertex tVertex : traversal.toList()) {
+                  dumpVertices(traversal.clone().toList());
+
+                  while (traversal.hasNext()) {
+                    Vertex tVertex = traversal.next();
+
                     boolean isBinaryOperatorVertex =
                         Arrays.stream(tVertex.label().split(Neo4JVertex.LabelDelimiter))
                             .anyMatch("BinaryOperator"::equals);
@@ -1313,7 +1320,8 @@ public class ExpressionEvaluator {
                             // character and string literals both have value of type String
                             String valueString = (String) literalValue;
 
-                            // FIXME incomplete hack; only works for primitive char type; is that enough?
+                            // FIXME incomplete hack; only works for primitive char type; is that
+                            // enough?
                             if ("char".equals(attributeType)
                                 || "char"
                                     .equals(variableDeclarationVertex.property("type").value())) {
@@ -1335,6 +1343,55 @@ public class ExpressionEvaluator {
                       }
                     }
                   }
+
+                  // we arrived at the declaration of the variable used as an argument
+                  log.warn("Checking declaration for a literal initializer");
+
+                  // check if we have an initializer with a literal
+                  Iterator<Vertex> itInitializerVertex =
+                      variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
+                  while (itInitializerVertex.hasNext()) {
+                    // there should be at most one
+                    Vertex initializerVertex = itInitializerVertex.next();
+
+                    if (Arrays.asList(initializerVertex.label().split(Neo4JVertex.LabelDelimiter))
+                        .contains("Literal")) {
+                      Object literalValue = initializerVertex.property("value").value();
+                      Class literalValueClass = literalValue.getClass();
+
+                      if (literalValueClass.equals(Long.class)
+                          || literalValueClass.equals(Integer.class)) {
+                        return Optional.of(((Number) literalValue).intValue());
+                      }
+
+                      if (literalValueClass.equals(Double.class)
+                          || literalValueClass.equals(Float.class)) {
+                        return Optional.of(((Number) literalValue).floatValue());
+                      }
+
+                      if (literalValueClass.equals(Boolean.class)) {
+                        return Optional.of((Boolean) literalValue);
+                      }
+
+                      if (literalValueClass.equals(String.class)) {
+                        // character and string literals both have value of type String
+                        String valueString = (String) literalValue;
+
+                        // FIXME incomplete hack; only works for primitive char type; is that
+                        // enough?
+                        if ("char".equals(attributeType)
+                            || "char".equals(variableDeclarationVertex.property("type").value())) {
+                          // FIXME this will likely break on an empty string
+                          return Optional.of(valueString.charAt(0));
+                        }
+                        return Optional.of(valueString);
+                      }
+                      log.error(
+                          "Unknown literal type encountered: {} (value: {})",
+                          literalValue.getClass(),
+                          literalValue);
+                    }
+                  }
                 }
               }
             }
@@ -1351,7 +1408,7 @@ public class ExpressionEvaluator {
      * types from Java or C++
      */
 
-    return Optional.of(true);
+    return Optional.empty();
   }
 
   private void dump(

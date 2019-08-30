@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -144,11 +145,19 @@ public class CrymlinQueryWrapper {
                 // currently, we check for perfect match but we may need to be more fuzzy e.g.
                 // ignore
                 // type qualifier (e.g. const) or strip reference types
-                // FIXME string literals in C++ have type const 'char[{some integer}]' instead of
-                // 'std::string'
                 // FIXME match expects fully-qualified type literal; in namespace 'std',
                 // 'std::string' becomes just 'string'
-                if (!paramType.equals(argument.<String>property("type").value())) {
+                // FIXME string literals in C++ have type 'const char[{some integer}]' instead of
+                // 'std::string'
+                if (paramType.equals("std::string")) {
+                  String argValue = argument.<String>property("type").orElse("");
+
+                  if (paramType.equals(argValue)
+                      || Pattern.matches("const char\\s*\\[\\d*\\]", argValue)) {
+                    // it matches C++ string types
+                    return false;
+                  }
+                } else if (!paramType.equals(argument.<String>property("type").value())) {
                   // types don't match -> remove
                   return true;
                 }

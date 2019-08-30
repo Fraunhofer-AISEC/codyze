@@ -1293,11 +1293,39 @@ public class ExpressionEvaluator {
 
                         if (isRhsLiteral) {
                           Object literalValue = rhs.property("value").value();
+                          Class literalValueClass = literalValue.getClass();
 
-                          if (literalValue.getClass().equals(Long.class)) {
-                            return Optional.of(((Long) literalValue).intValue());
+                          if (literalValueClass.equals(Long.class)
+                              || literalValueClass.equals(Integer.class)) {
+                            return Optional.of(((Number) literalValue).intValue());
                           }
-                          log.error("operands with literal of type: {}", literalValue.getClass());
+
+                          if (literalValueClass.equals(Double.class)
+                              || literalValueClass.equals(Float.class)) {
+                            return Optional.of(((Number) literalValue).floatValue());
+                          }
+
+                          if (literalValueClass.equals(Boolean.class)) {
+                            return Optional.of((Boolean) literalValue);
+                          }
+
+                          if (literalValueClass.equals(String.class)) {
+                            // character and string literals both have value of type String
+                            String valueString = (String) literalValue;
+
+                            // FIXME incomplete hack; only works for primitive char type; is that enough?
+                            if ("char".equals(attributeType)
+                                || "char"
+                                    .equals(variableDeclarationVertex.property("type").value())) {
+                              // FIXME this will likely break on an empty string
+                              return Optional.of(valueString.charAt(0));
+                            }
+                            return Optional.of(valueString);
+                          }
+                          log.error(
+                              "Unknown literal type encountered: {} (value: {})",
+                              literalValue.getClass(),
+                              literalValue);
                         }
 
                         // TODO properly resolve rhs expression

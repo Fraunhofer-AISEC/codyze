@@ -144,6 +144,8 @@ public class CrymlinQueryWrapper {
                 // currently, we check for perfect match but we may need to be more fuzzy e.g.
                 // ignore
                 // type qualifier (e.g. const) or strip reference types
+                // FIXME string literals in C++ have type const 'char[{some integer}]' instead of 'std::string'
+                // FIXME match expects fully-qualified type literal; in namespace 'std', 'std::string' becomes just 'string'
                 if (!paramType.equals(argument.<String>property("type").value())) {
                   // types don't match -> remove
                   return true;

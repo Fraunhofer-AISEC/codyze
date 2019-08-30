@@ -17,7 +17,10 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.junit.jupiter.api.Test;
 
 class ForbiddenTest {
@@ -62,31 +65,24 @@ class ForbiddenTest {
     server.start();
 
     // Start the analysis
-    result =
-        server
-            .analyze(
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
+    TranslationManager translationManager = TranslationManager.builder()
+            .config(
+                    TranslationConfiguration.builder()
                             .debugParser(true)
                             .failOnError(false)
                             .codeInNodes(true)
-                            //                            .registerPass(new TypeHierarchyResolver())
-                            .registerPass(
-                                new VariableUsageResolver()) // needed to also resolve more types in
-                            // Java
-                            //                            .registerPass(new CallResolver()) //
-                            // creates CG
-                            //                            .registerPass(new DataFlowPass())
-                            //                            .registerPass(new CallResolver()) //
-                            // creates CG
-                            //                            .registerPass(new DataFlowPass())
-                            //                            .registerPass(new
-                            // EvaluationOrderGraphPass()) // creates CFG
+                            .registerPass(new VariableUsageResolver())
                             .sourceFiles(cppFile)
                             .build())
-                    .build())
-            .get(5, TimeUnit.MINUTES);
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
 
     AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
     assertNotNull(ctx);

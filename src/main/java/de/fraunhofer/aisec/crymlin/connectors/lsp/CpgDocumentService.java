@@ -9,11 +9,14 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -75,26 +78,26 @@ public class CpgDocumentService implements TextDocumentService {
     Database.getInstance().purgeDatabase();
 
     File file = new File(URI.create(uriString));
+    AnalysisServer instance = AnalysisServer.getInstance();
+    if (instance == null) {
+      log.error("Server instance is null.");
+      return;
+    }
+    TranslationManager tm = TranslationManager.builder()
+            .config(TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(file)
+                    .build())
+            .build();
+
+    CompletableFuture<TranslationResult> analyze = instance.analyze(tm);
+
     try {
-      AnalysisServer instance = AnalysisServer.getInstance();
-      if (instance == null) {
-        log.error("Server instance is null.");
-        return;
-      }
-      TranslationResult result =
-          instance
-              .analyze(
-                  TranslationManager.builder()
-                      .config(
-                          TranslationConfiguration.builder()
-                              .debugParser(false)
-                              .failOnError(false)
-                              .codeInNodes(true)
-                              .defaultPasses()
-                              .sourceFiles(file)
-                              .build())
-                      .build())
-              .get(5, TimeUnit.MINUTES);
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+
       AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
 
       if (ctx == null) {
@@ -129,6 +132,8 @@ public class CpgDocumentService implements TextDocumentService {
       log.error("Analysis error: ", e);
       Thread.currentThread().interrupt();
     } catch (ExecutionException | TimeoutException e) {
+      analyze.cancel(true);
+      tm.cancel(true);
       log.error("Analysis error: ", e);
     }
   }

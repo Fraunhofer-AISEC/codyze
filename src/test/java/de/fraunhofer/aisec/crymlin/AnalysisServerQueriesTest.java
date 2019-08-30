@@ -16,7 +16,10 @@ import de.fraunhofer.aisec.crymlin.structures.Method;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,7 +68,15 @@ public class AnalysisServerQueriesTest {
     server.start();
 
     // Start the analysis
-    result = server.analyze(newJavaAnalysisRun(javaFile)).get(5, TimeUnit.MINUTES);
+    TranslationManager translationManager = newJavaAnalysisRun(javaFile);
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      throw t;
+    }
   }
 
   @AfterAll

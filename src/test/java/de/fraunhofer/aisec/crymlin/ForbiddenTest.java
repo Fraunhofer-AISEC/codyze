@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.junit.jupiter.api.Test;
 
 class ForbiddenTest {
@@ -65,15 +64,16 @@ class ForbiddenTest {
     server.start();
 
     // Start the analysis
-    TranslationManager translationManager = TranslationManager.builder()
+    TranslationManager translationManager =
+        TranslationManager.builder()
             .config(
-                    TranslationConfiguration.builder()
-                            .debugParser(true)
-                            .failOnError(false)
-                            .codeInNodes(true)
-                            .registerPass(new VariableUsageResolver())
-                            .sourceFiles(cppFile)
-                            .build())
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .registerPass(new VariableUsageResolver())
+                    .sourceFiles(cppFile)
+                    .build())
             .build();
     CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
     try {

@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -70,15 +69,16 @@ public class RuleCheckTest {
             .build();
     server.start();
 
-    TranslationManager translationManager = TranslationManager.builder()
+    TranslationManager translationManager =
+        TranslationManager.builder()
             .config(
-                    TranslationConfiguration.builder()
-                            .debugParser(true)
-                            .failOnError(false)
-                            .codeInNodes(true)
-                            .defaultPasses()
-                            .sourceFiles(cppFile)
-                            .build())
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
+                    .build())
             .build();
     CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
     try {

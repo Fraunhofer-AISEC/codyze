@@ -9,8 +9,6 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -83,8 +81,10 @@ public class CpgDocumentService implements TextDocumentService {
       log.error("Server instance is null.");
       return;
     }
-    TranslationManager tm = TranslationManager.builder()
-            .config(TranslationConfiguration.builder()
+    TranslationManager tm =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
                     .debugParser(true)
                     .failOnError(false)
                     .codeInNodes(true)

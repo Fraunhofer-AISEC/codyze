@@ -76,18 +76,18 @@ public class Commands {
     CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 
     try {
-        TranslationResult translationResult = analyze.get(10, TimeUnit.MINUTES);
-        jythonInterpreter.setResult(translationResult);
-      } catch (InterruptedException e) {
-        log.error("Interrupted", e);
-        Thread.currentThread().interrupt();
-      } catch (ExecutionException e) {
-        log.error("Exception", e);
-      } catch (TimeoutException e) {
-        analyze.cancel(true);
-        translationManager.cancel(true);
-        System.out.println("Analysis interrupted after timeout of 10 minutes.");
-      }
+      TranslationResult translationResult = analyze.get(10, TimeUnit.MINUTES);
+      jythonInterpreter.setResult(translationResult);
+    } catch (InterruptedException e) {
+      log.error("Interrupted", e);
+      Thread.currentThread().interrupt();
+    } catch (ExecutionException e) {
+      log.error("Exception", e);
+    } catch (TimeoutException e) {
+      analyze.cancel(true);
+      translationManager.cancel(true);
+      System.out.println("Analysis interrupted after timeout of 10 minutes.");
+    }
   }
 
   /**

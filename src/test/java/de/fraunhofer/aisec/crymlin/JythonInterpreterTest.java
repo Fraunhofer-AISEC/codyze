@@ -1,22 +1,19 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import javax.script.ScriptException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.BulkSet;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.Test;
+
+import javax.script.ScriptException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Testing the Gremlin-over-Jython interface of the analysis server. */
 public class JythonInterpreterTest {
@@ -70,7 +67,7 @@ public class JythonInterpreterTest {
 
   @Test
   public void crymlinTest() throws Exception {
-    try (TraversalConnection traversalConnection = new TraversalConnection()) {
+    try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
 
       // Run crymlin queries directly in Java
       CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
@@ -86,7 +83,7 @@ public class JythonInterpreterTest {
 
   @Test
   public void crymlinDslTest() throws Exception {
-    try (TraversalConnection traversalConnection = new TraversalConnection()) {
+    try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
 
       // Run crymlin queries directly in Java
       CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
@@ -105,7 +102,7 @@ public class JythonInterpreterTest {
   @SuppressWarnings("unchecked")
   @Test
   public void gremlinGraphMutationTest() throws Exception {
-    try (TraversalConnection traversalConnection = new TraversalConnection()) {
+    try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
       GraphTraversalSource g = traversalConnection.getGremlinTraversal();
 
       Long size = g.V().count().next();

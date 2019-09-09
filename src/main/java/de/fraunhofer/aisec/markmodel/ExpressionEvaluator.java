@@ -1,9 +1,6 @@
 package de.fraunhofer.aisec.markmodel;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.in;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.is;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JVertex;
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
@@ -15,34 +12,8 @@ import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import de.fraunhofer.aisec.mark.markDsl.AdditionExpression;
-import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
-import de.fraunhofer.aisec.mark.markDsl.CharacterLiteral;
-import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.FloatingPointLiteral;
-import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
-import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration;
-import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
-import de.fraunhofer.aisec.mark.markDsl.Literal;
-import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
-import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
-import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import de.fraunhofer.aisec.mark.markDsl.Operand;
-import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
-import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
-import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import de.fraunhofer.aisec.mark.markDsl.*;
+import java.util.*;
 import java.util.regex.Pattern;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
@@ -967,7 +938,7 @@ public class ExpressionEvaluator {
 
           // know which ops and opstatements use operand
           // resolve vars
-          try (TraversalConnection conn = new TraversalConnection()) {
+          try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
             CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 
             for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {

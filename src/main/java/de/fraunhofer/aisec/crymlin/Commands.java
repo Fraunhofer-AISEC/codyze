@@ -1,14 +1,17 @@
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,8 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * These commands are only used by the Jython console.
@@ -45,16 +46,21 @@ public class Commands {
     List<File> files = new ArrayList<>();
     File f = new File(url);
     if (f.isDirectory()) {
-      files.addAll(Arrays.asList(f.listFiles()));
+      File[] list = f.listFiles();
+      if (list != null) {
+        files.addAll(Arrays.asList(list));
+      } else {
+        log.error("Null file list");
+      }
     } else {
       files.add(f);
     }
 
-    Database.getInstance().connect(); // simply returns if already connected
-    if (!Database.getInstance().isConnected()) {
+    Neo4jDatabase.getInstance().connect(); // simply returns if already connected
+    if (!Neo4jDatabase.getInstance().isConnected()) {
       return;
     }
-    Database.getInstance().purgeDatabase();
+    Neo4jDatabase.getInstance().purgeDatabase();
 
     TranslationManager translationManager =
         TranslationManager.builder()

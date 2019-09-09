@@ -1,21 +1,20 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-
-import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.crymlin.connectors.db.Database;
+import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,9 +23,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class AnalysisServerBotanTest {
 
@@ -51,7 +50,7 @@ public class AnalysisServerBotanTest {
 
     // Make sure we start with a clean (and connected) db
     try {
-      Database db = Database.getInstance();
+      Database db = Neo4jDatabase.getInstance();
       db.connect();
       db.purgeDatabase();
     } catch (Throwable e) {

@@ -1,14 +1,15 @@
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import java.util.Map;
+import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
+import org.python.util.InteractiveConsole;
+
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
-import org.python.util.InteractiveConsole;
+import java.util.Map;
 
 /**
  * Demonstrates how to run Crymlin queries dynamically from Java.
@@ -33,7 +34,7 @@ public class JythonInterpreter implements AutoCloseable {
   /** Connect to the graph database and initialize the internal Jython engine. */
   public void connect() {
 
-    traversalConnection = new TraversalConnection();
+    traversalConnection = new TraversalConnection(TraversalConnection.Type.NEO4J);
 
     // Make Java objects available in python
     this.engine
@@ -68,8 +69,8 @@ public class JythonInterpreter implements AutoCloseable {
   public void spawnInteractiveConsole() {
 
     // Clear database
-    Database.getInstance().connect();
-    Database.getInstance().purgeDatabase();
+    Neo4jDatabase.getInstance().connect();
+    Neo4jDatabase.getInstance().purgeDatabase();
 
     System.out.println(
         "                           _ _       \n"

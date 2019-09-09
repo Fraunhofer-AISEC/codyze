@@ -8,33 +8,8 @@ import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
-import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration;
-import de.fraunhofer.aisec.mark.markDsl.Literal;
-import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
-import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import de.fraunhofer.aisec.mark.markDsl.Operand;
-import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
-import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
-import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
-import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
-import de.fraunhofer.aisec.mark.markDsl.Terminal;
+import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -42,6 +17,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MarkInterpreter {
   private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
@@ -146,7 +126,8 @@ public class MarkInterpreter {
 
     Instant outer_start = Instant.now();
 
-    try (TraversalConnection t = new TraversalConnection()) { // connects to the DB
+    try (TraversalConnection t =
+        new TraversalConnection(TraversalConnection.Type.NEO4J)) { // connects to the DB
       CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
 
       log.info("Precalculating matching nodes");

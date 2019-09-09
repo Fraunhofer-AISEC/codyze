@@ -19,6 +19,7 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+/** Tests for the server component of the Language Server Protocol. */
 class LSPTest {
 
   private static String parentFolder;
@@ -26,7 +27,6 @@ class LSPTest {
 
   @BeforeAll
   static void setup() throws Exception {
-
     ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
     URL resource = classLoader.getResource("unittests/order.mark");
@@ -139,5 +139,11 @@ class LSPTest {
     DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(tdi);
 
     server.getLSP().getTextDocumentService().didOpen(params);
+  }
+
+  @Test
+  void testShutdown() {
+    CompletableFuture<Object> shutdownFuture = server.getLSP().shutdown();
+    assertTrue(shutdownFuture.isDone()); // expect immediate result
   }
 }

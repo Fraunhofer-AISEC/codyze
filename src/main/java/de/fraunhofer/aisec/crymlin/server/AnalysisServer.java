@@ -1,11 +1,12 @@
 package de.fraunhofer.aisec.crymlin.server;
 
-import de.fraunhofer.aisec.cpg.Database;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
+import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -15,17 +16,6 @@ import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkInterpreter;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import javax.script.ScriptException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -33,6 +23,18 @@ import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.script.ScriptException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * This is the main CPG analysis server.
@@ -166,25 +168,53 @@ public class AnalysisServer {
               // Attach analysis context to result
               result.getScratch().put("ctx", ctx);
 
-              Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
+              Benchmark b = new Benchmark(this.getClass(), "Writing to OverflowDBDatabase");
               // Persist the result
-              Database.getInstance()
-                  .connect(); // this does not connect again if we are already connected
-              result.persist(Database.getInstance());
+              OverflowDatabase db = OverflowDatabase.getInstance();
+              db.saveAll(result.getTranslationUnits());
               long duration = b.stop();
-              try (TraversalConnection t = new TraversalConnection()) { // connects to the DB
+              try (TraversalConnection t =
+                  new TraversalConnection(
+                      TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
                 CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-                Long numEdges = crymlinTraversal.E().count().next();
+                Long numEdges = crymlinTraversal.V().outE().count().next();
                 Long numVertices = crymlinTraversal.V().count().next();
                 log.info(
-                    "Nodes in graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
+                    "Nodes in ODB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
                     numVertices,
                     String.format("%.2f", (double) duration / numVertices),
                     numEdges,
                     String.format("%.2f", (double) duration / numEdges));
               }
               log.info(
-                  "Benchmark: Persisted approx {} nodes", Database.getInstance().getNumNodes());
+                  "Benchmark: Persisted approx {} nodes",
+                  Neo4jDatabase.getInstance().getNumNodes());
+              return result;
+            })
+        .thenApply( // Persist to DB
+            result -> {
+              Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
+              // Persist the result
+              Neo4jDatabase.getInstance()
+                  .connect(); // this does not connect again if we are already connected
+              Neo4jDatabase db = Neo4jDatabase.getInstance();
+              db.saveAll(result.getTranslationUnits());
+              long duration = b.stop();
+              try (TraversalConnection t =
+                  new TraversalConnection(TraversalConnection.Type.NEO4J)) { // connects to the DB
+                CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
+                Long numEdges = crymlinTraversal.E().count().next();
+                Long numVertices = crymlinTraversal.V().count().next();
+                log.info(
+                    "Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
+                    numVertices,
+                    String.format("%.2f", (double) duration / numVertices),
+                    numEdges,
+                    String.format("%.2f", (double) duration / numEdges));
+              }
+              log.info(
+                  "Benchmark: Persisted approx {} nodes",
+                  Neo4jDatabase.getInstance().getNumNodes());
               return result;
             })
         .thenApply(
@@ -297,7 +327,7 @@ public class AnalysisServer {
       lsp.shutdown();
       lsp = null;
     }
-    Database.getInstance().close();
+    Neo4jDatabase.getInstance().close();
     config = null;
     markModel = null;
 

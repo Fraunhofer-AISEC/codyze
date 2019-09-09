@@ -7,11 +7,7 @@ import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.eclipse.lsp4j.services.LanguageClientAware;
-import org.eclipse.lsp4j.services.LanguageServer;
-import org.eclipse.lsp4j.services.TextDocumentService;
-import org.eclipse.lsp4j.services.WorkspaceService;
+import org.eclipse.lsp4j.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +24,8 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 
   private CpgWorkspaceService workspaceService = new CpgWorkspaceService();
 
-  private Instant start;
+  private Instant start = Instant.now();
+  private boolean shutdownRequested = false;
 
   @Override
   public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
@@ -49,11 +46,17 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
   @Override
   public CompletableFuture<Object> shutdown() {
     log.info("shutdown after  {} ms.", Duration.between(start, Instant.now()).toMillis());
+    shutdownRequested = true;
     return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public void exit() {} // this is never called?
+  public void exit() {
+    if (shutdownRequested) {
+      System.exit(0);
+    }
+    System.exit(1); // acc. to LSP specification
+  }
 
   @Override
   public TextDocumentService getTextDocumentService() {

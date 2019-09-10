@@ -226,18 +226,8 @@ public class MarkCppTest {
   }
 
   @Test
-  public void arg_prevassign_float() throws Exception {
-    runTest("arg_prevassign_float");
-  }
-
-  @Test
   public void arg_prevassign_bool() throws Exception {
     runTest("arg_prevassign_bool");
-  }
-
-  @Test
-  public void arg_prevassign_char() throws Exception {
-    runTest("arg_prevassign_char");
   }
 
   @Test
@@ -251,18 +241,8 @@ public class MarkCppTest {
   }
 
   @Test
-  public void arg_vardecl_float() throws Exception {
-    runTest("arg_vardecl_float");
-  }
-
-  @Test
   public void arg_vardecl_bool() throws Exception {
     runTest("arg_vardecl_bool");
-  }
-
-  @Test
-  public void arg_vardecl_char() throws Exception {
-    runTest("arg_vardecl_char");
   }
 
   @Test

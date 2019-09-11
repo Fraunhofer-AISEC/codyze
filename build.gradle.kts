@@ -93,7 +93,7 @@ dependencies {
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
     // Code Property Graph
-    api("de.fraunhofer.aisec", "cpg", "1.0-SNAPSHOT") { setChanging(true) }
+    api("de.fraunhofer.aisec", "cpg", "1.1-SNAPSHOT") { setChanging(true) }
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.0.1-SNAPSHOT:repackaged") { setChanging(true) }

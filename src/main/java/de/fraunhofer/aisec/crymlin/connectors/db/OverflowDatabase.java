@@ -36,6 +36,8 @@ public class OverflowDatabase implements Database {
   private static OverflowDatabase INSTANCE;
   private final OdbGraph graph;
 
+  Map<Integer, Long> hashCodeToVertexId = new HashMap<>();
+
   // Scan all classes in package
   Reflections reflections;
 
@@ -98,7 +100,7 @@ public class OverflowDatabase implements Database {
 
   @Override
   public void saveAll(Collection<? extends Node> list) {
-    Benchmark bench = new Benchmark(Neo4jDatabase.class, "save all");
+    Benchmark bench = new Benchmark(OverflowDatabase.class, "save all");
     List<Node> workList = new ArrayList<>(list);
 
     for (int i = 0; i < workList.size(); i++) {
@@ -115,12 +117,51 @@ public class OverflowDatabase implements Database {
     bench.stop();
   }
 
-  private Vertex createNode(Node n) {
-    List<String> labels = getLabels(n.getClass());
-    return graph.addVertex(T.label, String.join("::", labels));
+  public Vertex createNode(Node n) {
+    List<String> labels = getNodeLabel(n.getClass());
+    HashMap<Object, Object> properties = new HashMap<>();
+
+    // Set node label (from its class)
+    properties.put(T.label, String.join("::", labels));
+
+    // Set node properties (from field values which are not relationships)
+    List<Field> fields = getFieldsIncludingSuperclasses(n.getClass());
+    for (Field f : fields) {
+      if (!mapsToRelationship(f)) {
+        try {
+          f.setAccessible(true);
+          Object x = f.get(n);
+          if (x == null) {
+            continue;
+          }
+          properties.putIfAbsent(f.getName(), x.toString());
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    List<Object> props = new ArrayList<>(properties.size() * 2);
+    for (Map.Entry p : properties.entrySet()) {
+      props.add(p.getKey());
+      props.add(p.getValue());
+    }
+
+    // Add types of nodes (names of superclasses) to properties
+    List<String> superclasses = getNodeLabel(n.getClass());
+    for (String superclass : superclasses) {
+      props.add("type");
+      props.add(superclass);
+    }
+
+    // Add hashCode of object so we can easily retrieve a vertex from graph given the node object
+    props.add("hashCode");
+    props.add(n.hashCode());
+
+    return graph.addVertex(props.toArray());
   }
 
-  private void createEdges(Vertex v, Node n) {
+  public void createEdges(Vertex v, Node n) {
     for (Class<?> c = n.getClass(); c != Object.class; c = c.getSuperclass()) {
       for (Field f : getFieldsIncludingSuperclasses(c)) {
         if (mapsToRelationship(f)) {
@@ -140,9 +181,24 @@ public class OverflowDatabase implements Database {
               if (isCollection(x.getClass())) {
                 // Add multiple edges for collections
                 Collection coll = ((Collection) x);
+                //                System.out.println(n);
+                //                System.out.println(f.getName());
+                //                System.out.println(x);
                 for (Object entry : coll) {
+                  //                  System.out.println(entry + " " + entry.hashCode());
                   if (Node.class.isAssignableFrom(entry.getClass())) {
-                    Vertex target = createNode((Node) entry);
+                    Vertex target = null;
+                    if (hashCodeToVertexId.containsKey(entry.hashCode())) {
+                      Iterator<Vertex> vIt =
+                          graph.vertices(hashCodeToVertexId.get(entry.hashCode()));
+                      if (vIt.hasNext()) {
+                        target = vIt.next();
+                      }
+                    }
+                    if (target == null) {
+                      target = createNode((Node) entry);
+                      hashCodeToVertexId.put(entry.hashCode(), (long) target.id());
+                    }
                     v.addEdge(relName, target);
                   } else {
                     System.out.println("Found non-Node class in collection: " + f.getName());
@@ -151,20 +207,21 @@ public class OverflowDatabase implements Database {
 
               } else {
                 // Add single edge for non-collections
-                Vertex target = createNode((Node) x);
-                try {
-                  v.addEdge(relName, target);
-                } catch (RuntimeException e) {
-                  System.out.println(
-                      "Was adding edge "
-                          + relName
-                          + " from "
-                          + n.getClass()
-                          + " to "
-                          + x.getClass());
-                  e.printStackTrace();
-                  throw e;
+                Vertex target = null;
+                if (hashCodeToVertexId.containsKey(x.hashCode())) {
+                  Iterator<Vertex> vIt = graph.vertices(hashCodeToVertexId.get(x.hashCode()));
+                  if (vIt.hasNext()) {
+                    target = vIt.next();
+                  }
                 }
+                if (target == null) {
+                  target = createNode((Node) x);
+                  hashCodeToVertexId.put(x.hashCode(), (long) target.id());
+                }
+
+                assert target.property("hashCode").equals(x.hashCode());
+
+                v.addEdge(relName, target);
               }
             } catch (IllegalAccessException e) {
               e.printStackTrace();
@@ -188,7 +245,7 @@ public class OverflowDatabase implements Database {
     return Collection.class.isAssignableFrom(aClass);
   }
 
-  private List<String> getLabels(Class c) {
+  public static List<String> getNodeLabel(Class c) {
     List<String> labels = new ArrayList<>();
     while (!c.equals(Object.class)) {
       labels.add(c.getSimpleName());
@@ -199,7 +256,9 @@ public class OverflowDatabase implements Database {
 
   @Override
   public void purgeDatabase() {
-    graph.traversal().V().remove();
+    System.out.println(graph.traversal().V().count().next());
+    graph.traversal().V().drop();
+    System.out.println(graph.traversal().V().count().next());
   }
 
   @Override
@@ -229,6 +288,7 @@ public class OverflowDatabase implements Database {
   /** Generate the Node and Edge factories that are required by OverflowDB. */
   private Pair<List<NodeFactory<OdbNode>>, List<EdgeFactory<OdbEdge>>> getFactories() {
     Set<Class<? extends Node>> allClasses = reflections.getSubTypesOf(Node.class);
+    allClasses.add(Node.class);
 
     // Make sure to first call createEdgeFactories, which will collect some IN fields needed for
     // createNodeFactories
@@ -259,7 +319,7 @@ public class OverflowDatabase implements Database {
         /**
          * Handle situation where class A has a field f to class B:
          *
-         * B and all of its subclasses need to accept INCOMING edges labeled "f".
+         * <p>B and all of its subclasses need to accept INCOMING edges labeled "f".
          */
         // TODO still contains collections.
         final Set<String> EMPTY_SET = new HashSet<>();
@@ -272,11 +332,11 @@ public class OverflowDatabase implements Database {
             if (inFields.getOrDefault(subclass, EMPTY_SET).contains(relName)) {
               continue;
             }
-//            System.out.println(
-//                "Remembering IN edge "
-//                    + relName
-//                    + " for "
-//                    + subclass.getSimpleName() + " (seen in "+c.getSimpleName()+")");
+            //            System.out.println(
+            //                "Remembering IN edge "
+            //                    + relName
+            //                    + " for "
+            //                    + subclass.getSimpleName() + " (seen in "+c.getSimpleName()+")");
             if (!inFields.containsKey(subclass)) {
               inFields.put(subclass, new HashSet<>());
             }
@@ -349,7 +409,7 @@ public class OverflowDatabase implements Database {
     return new NodeFactory<>() {
       @Override
       public String forLabel() {
-        return String.join("::", getLabels(c));
+        return String.join("::", getNodeLabel(c));
       }
 
       @Override
@@ -364,6 +424,10 @@ public class OverflowDatabase implements Database {
               if (!mapsToRelationship(f)) {
                 propertyValues.put(f.getName(), propertyValues.get(f.getName()));
               }
+            }
+            List<String> types = getNodeLabel(c);
+            for (String type : types) {
+              propertyValues.put("type", type);
             }
           }
 

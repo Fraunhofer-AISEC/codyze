@@ -4,6 +4,8 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.ShutDownException;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.exception.ConnectionException;
 import org.neo4j.ogm.session.Session;
@@ -12,9 +14,6 @@ import org.neo4j.ogm.transaction.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Neo4jDatabase implements Database {
 

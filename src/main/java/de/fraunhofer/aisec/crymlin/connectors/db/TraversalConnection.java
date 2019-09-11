@@ -6,6 +6,7 @@ import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdPro
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,7 @@ public class TraversalConnection implements AutoCloseable {
 
   private static final Logger log = LoggerFactory.getLogger(TraversalConnection.class);
 
+  private Type type;
   private final Graph tg;
   private final CrymlinTraversalSource crymlinSource;
 
@@ -21,7 +23,8 @@ public class TraversalConnection implements AutoCloseable {
     OVERFLOWDB
   }
 
-  public TraversalConnection(Type type) {
+  public TraversalConnection(@NonNull Type type) {
+    this.type = type;
     if (type.equals(Type.OVERFLOWDB)) {
       this.tg = OverflowDatabase.getInstance().getGraph();
       this.crymlinSource = this.tg.traversal(CrymlinTraversalSource.class);
@@ -48,6 +51,12 @@ public class TraversalConnection implements AutoCloseable {
   }
 
   public void close() {
+    /* Only Neo4J TraversalConnections (tg) will be closed, as they can be resumed from disk.
+     * If we would close the graph for OverflowDB, it would be lost.
+     */
+    if (type.equals(Type.OVERFLOWDB)) {
+      return;
+    }
 
     try {
       if (tg != null) {

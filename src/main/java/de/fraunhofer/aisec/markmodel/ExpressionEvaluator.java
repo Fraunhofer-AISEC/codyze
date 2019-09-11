@@ -938,7 +938,8 @@ public class ExpressionEvaluator {
 
           // know which ops and opstatements use operand
           // resolve vars
-          try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
+          try (TraversalConnection conn =
+              new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
             CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 
             for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {

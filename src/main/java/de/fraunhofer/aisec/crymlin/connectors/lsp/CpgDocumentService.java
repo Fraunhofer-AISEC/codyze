@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.crymlin.connectors.lsp;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
@@ -65,8 +65,8 @@ public class CpgDocumentService implements TextDocumentService {
 
     Instant start = Instant.now();
 
-    Neo4jDatabase.getInstance().connect();
-    Neo4jDatabase.getInstance().purgeDatabase();
+    OverflowDatabase.getInstance().connect();
+    OverflowDatabase.getInstance().purgeDatabase();
 
     File file = new File(URI.create(uriString));
     AnalysisServer instance = AnalysisServer.getInstance();

@@ -1,16 +1,6 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
-
-import de.fraunhofer.aisec.cpg.graph.CallExpression;
-import de.fraunhofer.aisec.cpg.graph.Declaration;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.MemberCallExpression;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -18,6 +8,9 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
 
 /**
  * This class adds new functions to the traversal to START from
@@ -150,9 +143,9 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
    * @return
    */
   public GraphTraversal<Vertex, Vertex> functiondeclarations() {
-    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
-
-    return traversal.has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()));
+    return this.clone().V().has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()));
+//    return this.clone().V().hasLabel(FunctionDeclaration.class.getSimpleName());
+//    return traversal.has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()));
   }
 
   /**

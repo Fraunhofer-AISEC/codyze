@@ -5,14 +5,15 @@ entity Test {
   var foo : std::string;
 
   op functions() {
-    call(foo, ...);
+    call(foo);
   }
 
 }
 
+
 rule HasBeenCalled {
   using Test as t
   ensure
-    _is_instance(t.foo, "std::string")
-  onfail CorrectType
+    _split(t.foo, "/", 0) in ["AES"]
+  onfail HasBeenCalled_Failed
 }

@@ -1,12 +1,12 @@
 #include <iostream>
 
-int call(string s, int a) {
+int call(string s) {
   return 1;
 }
 
 
 int main() {
-  std::string s = "AES/CBC/123";
+  string s = "AES/CBC/123";
 
-  int a = call(s, 1);
+  call(s);
 }

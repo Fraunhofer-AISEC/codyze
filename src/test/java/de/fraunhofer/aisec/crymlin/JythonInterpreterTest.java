@@ -1,26 +1,28 @@
 package de.fraunhofer.aisec.crymlin;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import javax.script.ScriptException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.BulkSet;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.Test;
 
-import javax.script.ScriptException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 /** Testing the Gremlin-over-Jython interface of the analysis server. */
 public class JythonInterpreterTest {
 
   @Test
   public void jythonClosingTest() throws Exception {
+    Benchmark bench = new Benchmark(this.getClass(), "Opening new Jython interpreter");
     JythonInterpreter interp = new JythonInterpreter();
+    bench.stop();
 
     // Expecting an unconnected engine, throwing exceptions.
     assertNotNull(interp.engine);
@@ -28,14 +30,20 @@ public class JythonInterpreterTest {
     assertThrows(ScriptException.class, () -> interp.query("crymlin"));
 
     // Connect engine to DB
+    bench = new Benchmark(this.getClass(), "Connecting to DB");
     interp.connect();
+    bench.stop();
 
     // Expect a connected engine w/o exceptions.
     assertNotNull(interp.engine);
+    bench = new Benchmark(this.getClass(), "Sending 2 queries to graph");
     assertDoesNotThrow(() -> interp.query("graph"));
     assertDoesNotThrow(() -> interp.query("crymlin"));
+    bench.stop();
 
+    bench = new Benchmark(this.getClass(), "Closing");
     interp.close();
+    bench.stop();
 
     // Expecting an empty engine
     assertNotNull(interp.engine);
@@ -67,7 +75,8 @@ public class JythonInterpreterTest {
 
   @Test
   public void crymlinTest() throws Exception {
-    try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
+    try (TraversalConnection traversalConnection =
+        new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 
       // Run crymlin queries directly in Java
       CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
@@ -83,7 +92,8 @@ public class JythonInterpreterTest {
 
   @Test
   public void crymlinDslTest() throws Exception {
-    try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
+    try (TraversalConnection traversalConnection =
+        new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 
       // Run crymlin queries directly in Java
       CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
@@ -97,22 +107,26 @@ public class JythonInterpreterTest {
    * Adding nodes to the graph. Note that <code>addV</code> will add nodes to the in-memory graph so
    * future queries will see them.
    *
+   * <p>Note that we need to use labels which actually exist in our CPG and we must provide them in
+   * Tinkerpop's multi-label syntax (<label 1>::<label 2>).
+   *
    * @throws Exception
    */
   @SuppressWarnings("unchecked")
   @Test
   public void gremlinGraphMutationTest() throws Exception {
-    try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
+    try (TraversalConnection traversalConnection =
+        new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
       GraphTraversalSource g = traversalConnection.getGremlinTraversal();
 
       Long size = g.V().count().next();
       List<Object> t =
           g.addV()
-              .property(T.label, "Test")
+              .property(T.label, "TranslationUnitDeclaration::Declaration::Node")
               .property("some_key", "some_value")
               .store("one")
               .addV()
-              .property(T.label, "AnotherTest")
+              .property(T.label, "Declaration::Node")
               .property("another_key", "another_value")
               .store("one")
               .cap("one")
@@ -128,8 +142,8 @@ public class JythonInterpreterTest {
         }
       }
       assertEquals(2, labels.size());
-      assertEquals("Test", labels.get(0));
-      assertEquals("AnotherTest", labels.get(1));
+      assertEquals("TranslationUnitDeclaration", labels.get(0));
+      assertEquals("Declaration", labels.get(1));
       Long sizeNew = g.V().count().next();
 
       // New graph is expected to be +2 nodes larger.

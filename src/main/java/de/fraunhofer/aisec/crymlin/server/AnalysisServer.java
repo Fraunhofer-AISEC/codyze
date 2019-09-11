@@ -185,38 +185,49 @@ public class AnalysisServer {
                     String.format("%.2f", (double) duration / numVertices),
                     numEdges,
                     String.format("%.2f", (double) duration / numEdges));
+                System.out.println(t.getCrymlinTraversal().V().count().next());
+                System.out.println(String.join(", ", t.getCrymlinTraversal().V().label().toList()));
+                System.out.println(String.join(", ", t.getCrymlinTraversal().functiondeclarations().name().toList()));
               }
               log.info(
                   "Benchmark: Persisted approx {} nodes",
-                  Neo4jDatabase.getInstance().getNumNodes());
+                  OverflowDatabase.getInstance().getNumNodes());
+//              System.out.println(
+//                  new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)
+//                      .getCrymlinTraversal()
+//                      .V()
+//                      .count()
+//                      .next());
               return result;
             })
-        .thenApply( // Persist to DB
-            result -> {
-              Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
-              // Persist the result
-              Neo4jDatabase.getInstance()
-                  .connect(); // this does not connect again if we are already connected
-              Neo4jDatabase db = Neo4jDatabase.getInstance();
-              db.saveAll(result.getTranslationUnits());
-              long duration = b.stop();
-              try (TraversalConnection t =
-                  new TraversalConnection(TraversalConnection.Type.NEO4J)) { // connects to the DB
-                CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-                Long numEdges = crymlinTraversal.E().count().next();
-                Long numVertices = crymlinTraversal.V().count().next();
-                log.info(
-                    "Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
-                    numVertices,
-                    String.format("%.2f", (double) duration / numVertices),
-                    numEdges,
-                    String.format("%.2f", (double) duration / numEdges));
-              }
-              log.info(
-                  "Benchmark: Persisted approx {} nodes",
-                  Neo4jDatabase.getInstance().getNumNodes());
-              return result;
-            })
+        //        .thenApplyAsync( // Persist to DB
+        //            result -> {
+        //              Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
+        //              // Persist the result
+        //              Neo4jDatabase.getInstance()
+        //                  .connect(); // this does not connect again if we are already connected
+        //              Database db = OverflowDatabase.getInstance();
+        //              db.saveAll(result.getTranslationUnits());
+        //              long duration = b.stop();
+        //              try (TraversalConnection t =
+        //                  new TraversalConnection(TraversalConnection.Type.NEO4J)) { // connects
+        // to the DB
+        //                CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
+        //                Long numEdges = crymlinTraversal.E().count().next();
+        //                Long numVertices = crymlinTraversal.V().count().next();
+        //                log.info(
+        //                    "Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({}
+        // ms/edge)",
+        //                    numVertices,
+        //                    String.format("%.2f", (double) duration / numVertices),
+        //                    numEdges,
+        //                    String.format("%.2f", (double) duration / numEdges));
+        //              }
+        //              log.info(
+        //                  "Benchmark: Persisted approx {} nodes",
+        //                  Neo4jDatabase.getInstance().getNumNodes());
+        //              return result;
+        //            })
         .thenApply(
             result -> {
               log.info(

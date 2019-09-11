@@ -3,15 +3,12 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +17,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * These commands are only used by the Jython console.
@@ -56,11 +55,11 @@ public class Commands {
       files.add(f);
     }
 
-    Neo4jDatabase.getInstance().connect(); // simply returns if already connected
-    if (!Neo4jDatabase.getInstance().isConnected()) {
+    OverflowDatabase.getInstance().connect(); // simply returns if already connected
+    if (!OverflowDatabase.getInstance().isConnected()) {
       return;
     }
-    Neo4jDatabase.getInstance().purgeDatabase();
+    OverflowDatabase.getInstance().purgeDatabase();
 
     TranslationManager translationManager =
         TranslationManager.builder()

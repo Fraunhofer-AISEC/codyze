@@ -4,7 +4,7 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
-import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import org.junit.jupiter.api.AfterAll;
@@ -36,7 +36,7 @@ public class CppLanguageFeatureTest {
 
     // Make sure we start with a clean (and connected) db
     try {
-      Database db = Neo4jDatabase.getInstance();
+      Database db = OverflowDatabase.getInstance();
       db.connect();
       db.purgeDatabase();
     } catch (Throwable e) {

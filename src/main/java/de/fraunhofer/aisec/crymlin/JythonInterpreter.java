@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
 import org.python.util.InteractiveConsole;
@@ -34,7 +34,7 @@ public class JythonInterpreter implements AutoCloseable {
   /** Connect to the graph database and initialize the internal Jython engine. */
   public void connect() {
 
-    traversalConnection = new TraversalConnection(TraversalConnection.Type.NEO4J);
+    traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB);
 
     // Make Java objects available in python
     this.engine
@@ -69,8 +69,8 @@ public class JythonInterpreter implements AutoCloseable {
   public void spawnInteractiveConsole() {
 
     // Clear database
-    Neo4jDatabase.getInstance().connect();
-    Neo4jDatabase.getInstance().purgeDatabase();
+    OverflowDatabase.getInstance().connect();
+    OverflowDatabase.getInstance().purgeDatabase();
 
     System.out.println(
         "                           _ _       \n"

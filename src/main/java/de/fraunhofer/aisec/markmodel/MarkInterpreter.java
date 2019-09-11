@@ -127,8 +127,9 @@ public class MarkInterpreter {
     Instant outer_start = Instant.now();
 
     try (TraversalConnection t =
-        new TraversalConnection(TraversalConnection.Type.NEO4J)) { // connects to the DB
+        new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
       CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
+      List<Vertex> functions = crymlinTraversal.functiondeclarations().toList();
 
       log.info("Precalculating matching nodes");
       Instant start = Instant.now();

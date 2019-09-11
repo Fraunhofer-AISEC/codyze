@@ -3,12 +3,11 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 public class PerformanceTest {
 
@@ -27,7 +26,7 @@ public class PerformanceTest {
       node.setName("some node");
       node.setCode("no code");
       if (i > 0) {
-        for (int a = 0; a < EDGE_NUMBER/NODE_NUMBER; a++) {
+        for (int a = 0; a < EDGE_NUMBER / NODE_NUMBER; a++) {
           node.addNextDFG(nodes.get(rand.nextInt(i)));
         }
       }
@@ -41,15 +40,16 @@ public class PerformanceTest {
     System.out.println("Saving nodes and edges to DB");
     long start = System.currentTimeMillis();
 
-    // We do not use saveAll, because it would traverse the whole AST hierarchy and save many more nodes
-    //OverflowDatabase.getInstance().saveAll(nodes);
+    // We do not use saveAll, because it would traverse the whole AST hierarchy and save many more
+    // nodes
+    // OverflowDatabase.getInstance().saveAll(nodes);
 
     for (Node n : nodes) {
       Vertex v = db.createNode(n);
       db.createEdges(v, n);
     }
     long end = System.currentTimeMillis();
-    System.out.println((end-start));
+    System.out.println((end - start));
     Benchmark bench = new Benchmark(PerformanceTest.class, "Counting all nodes");
     long numNodes = g.traversal().V().count().next();
     bench.stop();

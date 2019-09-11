@@ -5,23 +5,27 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import io.shiftleft.overflowdb.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.util.*;
 import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.javatuples.Pair;
 import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.Transient;
+import org.neo4j.ogm.annotation.typeconversion.Convert;
+import org.neo4j.ogm.typeconversion.AttributeConverter;
+import org.neo4j.ogm.typeconversion.CompositeAttributeConverter;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.util.*;
 
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
@@ -30,6 +34,31 @@ import java.util.*;
  * which overflows to disk when memory is full.
  */
 public class OverflowDatabase implements Database {
+  // persistable property types, taken from Neo4j
+  private static final String PRIMITIVES =
+      "char,byte,short,int,long,float,double,boolean,char[],byte[],short[],int[],long[],float[],double[],boolean[]";
+  private static final String AUTOBOXERS =
+      "java.lang.Object"
+          + "java.lang.Character"
+          + "java.lang.Byte"
+          + "java.lang.Short"
+          + "java.lang.Integer"
+          + "java.lang.Long"
+          + "java.lang.Float"
+          + "java.lang.Double"
+          + "java.lang.Boolean"
+          + "java.lang.String"
+          + "java.lang.Object[]"
+          + "java.lang.Character[]"
+          + "java.lang.Byte[]"
+          + "java.lang.Short[]"
+          + "java.lang.Integer[]"
+          + "java.lang.Long[]"
+          + "java.lang.Float[]"
+          + "java.lang.Double[]"
+          + "java.lang.Boolean[]"
+          + "java.lang.String[]";
+
   /** Package containing all CPG classes * */
   private static final String CPG_PACKAGE = "de.fraunhofer.aisec.cpg.graph";
 
@@ -127,19 +156,31 @@ public class OverflowDatabase implements Database {
     // Set node properties (from field values which are not relationships)
     List<Field> fields = getFieldsIncludingSuperclasses(n.getClass());
     for (Field f : fields) {
-      if (!mapsToRelationship(f)) {
+      if (!mapsToRelationship(f) && mapsToProperty(f)) {
         try {
           f.setAccessible(true);
           Object x = f.get(n);
           if (x == null) {
             continue;
           }
-          properties.putIfAbsent(f.getName(), x.toString());
+          if (hasAnnotation(f, Convert.class)) {
+            properties.putAll(convert(f, x));
+          } else if (mapsToProperty(f)) {
+            properties.putIfAbsent(f.getName(), x.toString());
+          } else {
+            System.out.println("Not a property");
+          }
         } catch (IllegalAccessException e) {
           e.printStackTrace();
         }
       }
     }
+
+    System.out.println("Node " + n.getName());
+    for (Map.Entry p : properties.entrySet()) {
+      System.out.println(p.getKey() + " -> " + p.getValue());
+    }
+    System.out.println("---------");
 
     List<Object> props = new ArrayList<>(properties.size() * 2);
     for (Map.Entry p : properties.entrySet()) {
@@ -149,16 +190,39 @@ public class OverflowDatabase implements Database {
 
     // Add types of nodes (names of superclasses) to properties
     List<String> superclasses = getNodeLabel(n.getClass());
-    for (String superclass : superclasses) {
-      props.add("type");
-      props.add(superclass);
-    }
+    props.add("labels");
+    props.add(superclasses);
 
     // Add hashCode of object so we can easily retrieve a vertex from graph given the node object
     props.add("hashCode");
     props.add(n.hashCode());
 
     return graph.addVertex(props.toArray());
+  }
+
+  private Map<Object, Object> convert(Field f, Object content) {
+    try {
+      Object converter =
+          f.getAnnotation(Convert.class)
+              .value()
+              .getDeclaredConstructor(new Class[] {})
+              .newInstance();
+      if (converter instanceof AttributeConverter) {
+        // Single attribute will be provided
+        return Map.of(f.getName(), ((AttributeConverter) converter).toGraphProperty(content));
+      } else if (converter instanceof CompositeAttributeConverter) {
+        // Yields a map of properties
+        return ((CompositeAttributeConverter) converter).toGraphProperties(content);
+      }
+    } catch (NoSuchMethodException e) {
+      System.err.println("A converter needs to have an empty constructor");
+      e.printStackTrace();
+    } catch (Exception e) {
+      System.err.println("Error creating new converter instance");
+      e.printStackTrace();
+    }
+
+    return Collections.emptyMap();
   }
 
   public void createEdges(Vertex v, Node n) {
@@ -219,7 +283,7 @@ public class OverflowDatabase implements Database {
                   hashCodeToVertexId.put(x.hashCode(), (long) target.id());
                 }
 
-                assert target.property("hashCode").equals(x.hashCode());
+                assert target.property("hashCode").value().equals(x.hashCode());
 
                 v.addEdge(relName, target);
               }
@@ -239,6 +303,27 @@ public class OverflowDatabase implements Database {
    */
   private boolean mapsToRelationship(Field f) {
     return hasAnnotation(f, Relationship.class) || Node.class.isAssignableFrom(f.getType());
+  }
+
+  private boolean mapsToProperty(Field f) {
+    // Transient fields are not supposed to be persisted
+    if (Modifier.isTransient(f.getModifiers()) || hasAnnotation(f, Transient.class)) {
+      return false;
+    }
+
+    // constant values are not considered properties
+    if (Modifier.isFinal(f.getModifiers())) {
+      return false;
+    }
+
+    // check if we have a converter for this
+    if (f.getAnnotation(Convert.class) != null) {
+      return true;
+    }
+
+    // check whether this is some kind of primitive datatype that seems likely to be a property
+    String type = f.getType().getTypeName();
+    return PRIMITIVES.contains(type) || AUTOBOXERS.contains(type);
   }
 
   private boolean isCollection(Class<?> aClass) {
@@ -415,21 +500,7 @@ public class OverflowDatabase implements Database {
       @Override
       public OdbNode createNode(NodeRef<OdbNode> ref) {
         return new OdbNode(ref) {
-          private Map<String, Object> propertyValues;
-
-          {
-            // All fields which are no relationships will become properties.
-            propertyValues = new HashMap<>();
-            for (Field f : getFieldsIncludingSuperclasses(c)) {
-              if (!mapsToRelationship(f)) {
-                propertyValues.put(f.getName(), propertyValues.get(f.getName()));
-              }
-            }
-            List<String> types = getNodeLabel(c);
-            for (String type : types) {
-              propertyValues.put("type", type);
-            }
-          }
+          private Map<String, Object> propertyValues = new HashMap<>();
 
           /** All fields annotated with <code></code>@Relationship</code> will become edges. */
           @Override
@@ -447,7 +518,7 @@ public class OverflowDatabase implements Database {
             }
 
             return new NodeLayoutInformation(
-                Sets.newHashSet(), // TODO edge properties currently not supported
+                Sets.newHashSet(), // TODO node properties currently not supported
                 out,
                 in);
           }

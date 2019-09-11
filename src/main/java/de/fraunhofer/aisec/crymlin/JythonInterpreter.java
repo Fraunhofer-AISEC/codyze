@@ -3,13 +3,12 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
-import org.python.util.InteractiveConsole;
-
+import java.util.Map;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import java.util.Map;
+import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
+import org.python.util.InteractiveConsole;
 
 /**
  * Demonstrates how to run Crymlin queries dynamically from Java.

@@ -16,15 +16,6 @@ import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkInterpreter;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -35,6 +26,14 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import javax.script.ScriptException;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the main CPG analysis server.
@@ -187,17 +186,19 @@ public class AnalysisServer {
                     String.format("%.2f", (double) duration / numEdges));
                 System.out.println(t.getCrymlinTraversal().V().count().next());
                 System.out.println(String.join(", ", t.getCrymlinTraversal().V().label().toList()));
-                System.out.println(String.join(", ", t.getCrymlinTraversal().functiondeclarations().name().toList()));
+                System.out.println(
+                    String.join(
+                        ", ", t.getCrymlinTraversal().functiondeclarations().name().toList()));
               }
               log.info(
                   "Benchmark: Persisted approx {} nodes",
                   OverflowDatabase.getInstance().getNumNodes());
-//              System.out.println(
-//                  new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)
-//                      .getCrymlinTraversal()
-//                      .V()
-//                      .count()
-//                      .next());
+              //              System.out.println(
+              //                  new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)
+              //                      .getCrymlinTraversal()
+              //                      .V()
+              //                      .count()
+              //                      .next());
               return result;
             })
         //        .thenApplyAsync( // Persist to DB

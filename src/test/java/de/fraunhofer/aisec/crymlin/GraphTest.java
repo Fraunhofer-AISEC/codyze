@@ -1,5 +1,8 @@
 package de.fraunhofer.aisec.crymlin;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -10,10 +13,6 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -22,9 +21,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /** Tests structure of CPG generated from "real" source files. */
 class GraphTest {
@@ -91,8 +90,18 @@ class GraphTest {
 
   @Test
   void testMethods() throws IOException {
-    Set<Object> functions = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(MethodDeclaration.class.getSimpleName()).values("name").toSet();
-    System.out.println("METHODS:  " + String.join(", ", functions.stream().map(v -> v.toString()).collect(Collectors.toList())));
+    Set<Object> functions =
+        OverflowDatabase.getInstance()
+            .getGraph()
+            .traversal()
+            .V()
+            .hasLabel(MethodDeclaration.class.getSimpleName())
+            .values("name")
+            .toSet();
+    System.out.println(
+        "METHODS:  "
+            + String.join(
+                ", ", functions.stream().map(v -> v.toString()).collect(Collectors.toList())));
     assertTrue(functions.contains("nok1"));
     assertTrue(functions.contains("nok2"));
     assertTrue(functions.contains("nok3"));
@@ -103,7 +112,14 @@ class GraphTest {
 
   @Test
   void testLabelHierarchy() throws IOException {
-    Set<Object> functions = OverflowDatabase.getInstance().getGraph().traversal().V().has("type", FunctionDeclaration.class.getSimpleName()).values("name").toSet();
+    Set<Object> functions =
+        OverflowDatabase.getInstance()
+            .getGraph()
+            .traversal()
+            .V()
+            .has("type", FunctionDeclaration.class.getSimpleName())
+            .values("name")
+            .toSet();
     assertFalse(functions.isEmpty());
   }
 }

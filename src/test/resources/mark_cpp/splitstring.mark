@@ -1,0 +1,18 @@
+package mark_cpp
+
+entity Test {
+
+  var foo : std::string;
+
+  op functions() {
+    call(foo, ...);
+  }
+
+}
+
+rule HasBeenCalled {
+  using Test as t
+  ensure
+    _is_instance(t.foo, "std::string")
+  onfail CorrectType
+}

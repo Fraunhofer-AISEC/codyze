@@ -131,7 +131,6 @@ public class MarkInterpreter {
         cloned.set(i, typeForVar);
       }
     }
-
     return CrymlinQueryWrapper.getCalls(crymlinTraversal, functionName, baseType, cloned);
   }
 
@@ -743,16 +742,5 @@ public class MarkInterpreter {
         }
       }
     }
-  }
-
-  /**
-   * DUMMY FOR DEMO.
-   *
-   * <p>Method fakes that a statement is contained in the a MARK entity
-   *
-   * @return
-   */
-  private boolean containedInModel(Terminal expr) {
-    return true;
   }
 }

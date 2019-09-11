@@ -250,6 +250,11 @@ public class MarkCppTest {
     runTest("arg_vardecl_string");
   }
 
+  @Test
+  public void split_1() throws Exception {
+    runTest("simplesplit_splitstring");
+  }
+
   private void runTest(@NonNull String fileNamePart)
       throws ExecutionException, InterruptedException, TimeoutException {
     String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);

@@ -255,6 +255,11 @@ public class MarkCppTest {
     runTest("simplesplit_splitstring");
   }
 
+  @Test
+  public void is_instance_1() throws Exception {
+    runTest("simple_instancestring");
+  }
+
   private void runTest(@NonNull String fileNamePart)
       throws ExecutionException, InterruptedException, TimeoutException {
     String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);

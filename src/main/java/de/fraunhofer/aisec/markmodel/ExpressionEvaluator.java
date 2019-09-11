@@ -810,12 +810,19 @@ public class ExpressionEvaluator {
       String entityName = ref.getValue0();
       MEntity referencedEntity = ref.getValue1();
 
+      List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
       List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
 
       for (MOp operation : referencedEntity.getOps()) {
+        Set<OpStatement> vars = new HashSet<>();
         Set<OpStatement> args = new HashSet<>();
 
         for (OpStatement opStmt : operation.getStatements()) {
+          // simple assignment, i.e. var = something()
+          if (attribute.equals(opStmt.getVar())) {
+            vars.add(opStmt);
+          }
+
           // ...or it's used as a function parameter, i.e. something(..., var, ...)
           FunctionDeclaration fd = opStmt.getCall();
           for (String param : fd.getParams()) {
@@ -823,6 +830,10 @@ public class ExpressionEvaluator {
               args.add(opStmt);
             }
           }
+        }
+
+        if (vars.size() > 0) {
+          usesAsVar.add(new Pair<>(operation, vars));
         }
 
         if (args.size() > 0) {
@@ -833,7 +844,61 @@ public class ExpressionEvaluator {
       try (TraversalConnection conn = new TraversalConnection()) {
         CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 
-        // return value node is skipped, see flos function
+        for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+          for (OpStatement opstmt : p.getValue1()) {
+
+            FunctionDeclaration fd = opstmt.getCall();
+            String fqFunctionName = fd.getName();
+            List<String> functionArguments = fd.getParams();
+
+            String functionName = Utils.extractMethodName(fqFunctionName);
+            String fqNamePart = Utils.extractType(fqFunctionName);
+            if (fqNamePart.equals(functionName)) {
+              fqNamePart = "";
+            }
+
+            List<String> functionArgumentTypes = new ArrayList<>();
+            for (int i = 0; i < functionArguments.size(); i++) {
+              functionArgumentTypes.add(
+                  i, referencedEntity.getTypeForVar(functionArguments.get(i)));
+            }
+
+            // 1. find callexpression with opstatment signature
+            Set<Vertex> vertices =
+                CrymlinQueryWrapper.getCalls(
+                    crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+
+            for (Vertex v : vertices) {
+              // check if there was an assignment
+              Traversal<Vertex, Vertex> nextTraversalStep =
+                  crymlin
+                      .byID((long) v.id())
+                      .in("RHS")
+                      .where(
+                          has(T.label, LabelP.of(BinaryOperator.class.getSimpleName()))
+                              .and()
+                              .has("operatorCode", "="))
+                      .out("LHS")
+                      .out("REFERS_TO")
+                      .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+
+              List<Vertex> nextVertices = nextTraversalStep.toList();
+              log.warn("found RHS traversals: {}", nextVertices);
+              ret.addAll(nextVertices);
+
+              // check if there was a direct initialization (i.e., int i = call(foo);)
+              nextTraversalStep =
+                  crymlin
+                      .byID((long) v.id())
+                      .in("INITIALIZER")
+                      .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+
+              nextVertices = nextTraversalStep.toList();
+              log.warn("found Initializer traversals: {}", nextVertices);
+              ret.addAll(nextVertices);
+            }
+          }
+        }
 
         for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
           for (OpStatement opstmt : p.getValue1()) {
@@ -847,7 +912,7 @@ public class ExpressionEvaluator {
               fqName = fqName.substring(0, fqName.length() - 2);
             }
 
-            List<String> argumentTypes = fd.getParams();
+            List<String> argumentTypes = new ArrayList<>(fd.getParams());
             int argumentIndex = -1;
             for (int i = 0; i < argumentTypes.size(); i++) {
               String argVar = argumentTypes.get(i);
@@ -1021,7 +1086,7 @@ public class ExpressionEvaluator {
                   fqName = fqName.substring(0, fqName.length() - 2);
                 }
 
-                List<String> argumentTypes = fd.getParams();
+                List<String> argumentTypes = new ArrayList<>(fd.getParams());
                 int argumentIndex = -1;
                 for (int i = 0; i < argumentTypes.size(); i++) {
                   String argVar = argumentTypes.get(i);

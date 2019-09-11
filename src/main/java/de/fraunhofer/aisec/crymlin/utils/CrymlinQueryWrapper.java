@@ -101,17 +101,23 @@ public class CrymlinQueryWrapper {
     // reconstruct what type of call we're expecting
     boolean isMethod = fqn.endsWith(type);
 
-    if (isMethod) {
-      // it's a method call on an instances
-      ret.addAll(crymlinTraversal.calls(functionName, type).toList());
-    }
-
-    // it's a function OR a static method call -> name == fqn::functionName
-    ret.addAll(crymlinTraversal.calls(fqn + "::" + functionName).toList());
-
-    // FIXME we're not setting the default (i.e. global) namespace
-    if (fqn.length() == 0) {
+    if (functionName.contains(".")) {
+      // java function
       ret.addAll(crymlinTraversal.calls(functionName).toList());
+    } else {
+
+      if (isMethod) {
+        // it's a method call on an instances
+        ret.addAll(crymlinTraversal.calls(functionName, type).toList());
+      }
+
+      // it's a function OR a static method call -> name == fqn::functionName
+      ret.addAll(crymlinTraversal.calls(fqn + "::" + functionName).toList());
+
+      // FIXME we're not setting the default (i.e. global) namespace
+      if (fqn.length() == 0) {
+        ret.addAll(crymlinTraversal.calls(functionName).toList());
+      }
     }
 
     // now, ret contains possible candidates --> need to filter out calls where params don't match
@@ -140,9 +146,6 @@ public class CrymlinQueryWrapper {
             } else {
               // remove if types don't match
               String paramType = parameterTypes.get((int) argumentIndex);
-              if (paramType == null) {
-                System.out.println("break");
-              }
               if (!(Constants.UNDERSCORE.equals(paramType)
                   || Constants.ELLIPSIS.equals(paramType))) {
                 // it's not a single type wild card -> types must match

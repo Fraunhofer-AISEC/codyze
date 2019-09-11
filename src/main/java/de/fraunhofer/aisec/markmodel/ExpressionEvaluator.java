@@ -796,17 +796,14 @@ public class ExpressionEvaluator {
 
   private List<Vertex> getMatchingVertices(Operand operand) {
     ArrayList<Vertex> ret = new ArrayList<>();
-    log.warn("Operand: {}", operand.getOperand());
-    String operandString = operand.getOperand();
 
     if (context.hasContextType(EvaluationContext.Type.RULE)) {
-      final MRule rule = context.getRule();
 
-      String[] operandParts = operandString.split("\\.");
+      String[] operandParts = operand.getOperand().split("\\.");
       String instance = operandParts[0];
       String attribute = operandParts[1];
 
-      Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
+      Pair<String, MEntity> ref = context.getRule().getEntityReferences().get(instance);
       String entityName = ref.getValue0();
       MEntity referencedEntity = ref.getValue1();
 
@@ -822,13 +819,9 @@ public class ExpressionEvaluator {
           if (attribute.equals(opStmt.getVar())) {
             vars.add(opStmt);
           }
-
           // ...or it's used as a function parameter, i.e. something(..., var, ...)
-          FunctionDeclaration fd = opStmt.getCall();
-          for (String param : fd.getParams()) {
-            if (attribute.equals(param)) {
-              args.add(opStmt);
-            }
+          if (opStmt.getCall().getParams().stream().anyMatch(p -> p.equals(attribute))) {
+            args.add(opStmt);
           }
         }
 
@@ -847,13 +840,12 @@ public class ExpressionEvaluator {
         for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
           for (OpStatement opstmt : p.getValue1()) {
 
-            FunctionDeclaration fd = opstmt.getCall();
-            String fqFunctionName = fd.getName();
-            List<String> functionArguments = fd.getParams();
+            String fqFunctionName = opstmt.getCall().getName();
+            List<String> functionArguments = opstmt.getCall().getParams();
 
             String functionName = Utils.extractMethodName(fqFunctionName);
             String fqNamePart = Utils.extractType(fqFunctionName);
-            if (fqNamePart.equals(functionName)) {
+            if (fqNamePart.equals(functionName)) { // todo@FW: why?
               fqNamePart = "";
             }
 
@@ -863,7 +855,6 @@ public class ExpressionEvaluator {
                   i, referencedEntity.getTypeForVar(functionArguments.get(i)));
             }
 
-            // 1. find callexpression with opstatment signature
             Set<Vertex> vertices =
                 CrymlinQueryWrapper.getCalls(
                     crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
@@ -883,7 +874,7 @@ public class ExpressionEvaluator {
                       .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
 
               List<Vertex> nextVertices = nextTraversalStep.toList();
-              log.warn("found RHS traversals: {}", nextVertices);
+              log.info("found RHS traversals: {}", nextVertices);
               ret.addAll(nextVertices);
 
               // check if there was a direct initialization (i.e., int i = call(foo);)
@@ -894,7 +885,7 @@ public class ExpressionEvaluator {
                       .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
 
               nextVertices = nextTraversalStep.toList();
-              log.warn("found Initializer traversals: {}", nextVertices);
+              log.info("found Initializer traversals: {}", nextVertices);
               ret.addAll(nextVertices);
             }
           }
@@ -902,9 +893,8 @@ public class ExpressionEvaluator {
 
         for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
           for (OpStatement opstmt : p.getValue1()) {
-            FunctionDeclaration fd = opstmt.getCall();
 
-            String fqFunctionName = fd.getName();
+            String fqFunctionName = opstmt.getCall().getName();
             String functionName = Utils.extractMethodName(fqFunctionName);
             String fqName = fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
 
@@ -912,18 +902,16 @@ public class ExpressionEvaluator {
               fqName = fqName.substring(0, fqName.length() - 2);
             }
 
-            List<String> argumentTypes = new ArrayList<>(fd.getParams());
+            List<String> argumentTypes = new ArrayList<>(opstmt.getCall().getParams());
             int argumentIndex = -1;
             for (int i = 0; i < argumentTypes.size(); i++) {
               String argVar = argumentTypes.get(i);
-
               if (attribute.equals(argVar)) {
                 argumentIndex = i;
               }
               if (Constants.UNDERSCORE.equals(argVar) || Constants.ELLIPSIS.equals(argVar)) {
                 continue;
               }
-
               argumentTypes.set(i, referencedEntity.getTypeForVar(argVar));
             }
 

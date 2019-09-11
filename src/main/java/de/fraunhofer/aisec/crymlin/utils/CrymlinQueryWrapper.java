@@ -140,6 +140,9 @@ public class CrymlinQueryWrapper {
             } else {
               // remove if types don't match
               String paramType = parameterTypes.get((int) argumentIndex);
+              if (paramType == null) {
+                System.out.println("break");
+              }
               if (!(Constants.UNDERSCORE.equals(paramType)
                   || Constants.ELLIPSIS.equals(paramType))) {
                 // it's not a single type wild card -> types must match

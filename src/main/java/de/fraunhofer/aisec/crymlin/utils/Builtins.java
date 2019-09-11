@@ -11,8 +11,7 @@ public class Builtins {
     if (index < splitted.length) {
       return splitted[index];
     } else {
-      // TODO throw Error?
-      return "";
+      return null;
     }
   }
 

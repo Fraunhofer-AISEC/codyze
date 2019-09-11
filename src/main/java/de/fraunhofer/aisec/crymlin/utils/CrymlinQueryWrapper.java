@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.crymlin.utils;
 
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import de.fraunhofer.aisec.markmodel.Constants;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ public class CrymlinQueryWrapper {
     for (Vertex v : vertices) {
 
       boolean parameters_match = true;
-      if (!parameter.isEmpty() && parameter.get(0).equals("*")) {
+      if (!parameter.isEmpty() && parameter.get(0).equals(Constants.ELLIPSIS)) {
         // ALL FUNCTIONS WITH THIS BASE TYPE AND NAME MATCH, PARAMETERS ARE IGNORED
       } else {
         boolean[] checkedParameters = new boolean[parameter.size()]; // defaults to false
@@ -48,7 +49,7 @@ public class CrymlinQueryWrapper {
           checkedParameters[argumentIndex] =
               true; // this parameter is now checked. If it does not match we bail out early
 
-          if (parameter.get(argumentIndex).equals("_")) {
+          if (parameter.get(argumentIndex).equals(Constants.UNDERSCORE)) {
             // skip matching
           } else {
             // either the param in the mark file directly matches, or it has to have a
@@ -134,12 +135,13 @@ public class CrymlinQueryWrapper {
             long argumentIndex = argument.<Long>property("argumentIndex").value();
 
             if (argumentIndex >= parameterTypes.size()) {
-              // last given parameter type must be "*" or remove
-              return !"*".equals(parameterTypes.get(parameterTypes.size() - 1));
+              // last given parameter type must be "..." or remove
+              return !Constants.ELLIPSIS.equals(parameterTypes.get(parameterTypes.size() - 1));
             } else {
               // remove if types don't match
               String paramType = parameterTypes.get((int) argumentIndex);
-              if (!("_".equals(paramType) || "*".equals(paramType))) {
+              if (!(Constants.UNDERSCORE.equals(paramType)
+                  || Constants.ELLIPSIS.equals(paramType))) {
                 // it's not a single type wild card -> types must match
                 // TODO improve type matching
                 // currently, we check for perfect match but we may need to be more fuzzy e.g.

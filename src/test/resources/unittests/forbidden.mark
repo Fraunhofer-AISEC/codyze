@@ -1,27 +1,27 @@
 entity Forbidden isa Cipher {
 	var nonce : uint8_t;
-	var nonce_length : std::size_t;
-	var iv : BotanF::InitializationVector;
-	var myValue : BotanF::InitializationVector;
+	var nonce_length : std.size_t;
+	var iv : BotanF.InitializationVector;
+	var myValue : BotanF.InitializationVector;
 
 	op create() {
-        BotanF::get_cipher_mode(_, _);
+        BotanF.get_cipher_mode(_, _);
 	}
 
 	op init() {
-        BotanF::set_key(_);
+        BotanF.set_key(_);
 
-		myValue = BotanF::random_vec(_);
+		myValue = BotanF.random_vec(_);
 
-        forbidden BotanF::set_key(_, _);
+        forbidden BotanF.set_key(_, _);
 	}
 
 	op start() {
-        BotanF::start(iv);
+        BotanF.start(iv);
 
-    	forbidden BotanF::start();
-    	forbidden BotanF::start(_);
-        forbidden BotanF::start(nonce, _);
-        forbidden BotanF::start_msg(*);
+    	forbidden BotanF.start();
+    	forbidden BotanF.start(_);
+        forbidden BotanF.start(nonce, _);
+        forbidden BotanF.start_msg(*);
 	}
 }

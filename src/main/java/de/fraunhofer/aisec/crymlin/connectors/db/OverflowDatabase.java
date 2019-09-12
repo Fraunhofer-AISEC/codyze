@@ -160,7 +160,7 @@ public class OverflowDatabase implements Database {
       final Node n = workList.get(i);
       // Store node
       Vertex v = createNode(n);
-      //printVertex(v);
+      // printVertex(v);
 
       // Store edges of this node
       createEdges(v, n);
@@ -591,8 +591,7 @@ public class OverflowDatabase implements Database {
           protected <V> VertexProperty<V> updateSpecificProperty(
               VertexProperty.Cardinality cardinality, String key, V value) {
             this.propertyValues.put(key, value);
-            // TODO create VertexProperty from propertyValues
-            return null;
+            return new OdbNodeProperty<V>(this, key, value);
           }
 
           @Override

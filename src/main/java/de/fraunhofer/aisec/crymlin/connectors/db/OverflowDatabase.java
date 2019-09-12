@@ -4,14 +4,38 @@ import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import io.shiftleft.overflowdb.*;
+import io.shiftleft.overflowdb.EdgeFactory;
+import io.shiftleft.overflowdb.EdgeLayoutInformation;
+import io.shiftleft.overflowdb.NodeFactory;
+import io.shiftleft.overflowdb.NodeLayoutInformation;
+import io.shiftleft.overflowdb.NodeRef;
+import io.shiftleft.overflowdb.OdbConfig;
+import io.shiftleft.overflowdb.OdbEdge;
+import io.shiftleft.overflowdb.OdbGraph;
+import io.shiftleft.overflowdb.OdbNode;
+import io.shiftleft.overflowdb.OdbNodeProperty;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
-import java.util.*;
-import org.apache.tinkerpop.gremlin.structure.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.javatuples.Pair;
@@ -136,6 +160,7 @@ public class OverflowDatabase implements Database {
       final Node n = workList.get(i);
       // Store node
       Vertex v = createNode(n);
+      //printVertex(v);
 
       // Store edges of this node
       createEdges(v, n);
@@ -144,6 +169,37 @@ public class OverflowDatabase implements Database {
       workList.addAll(children);
     }
     bench.stop();
+  }
+
+  private void printVertex(Vertex v) {
+    try {
+      Field node = NodeRef.class.getDeclaredField("node");
+      node.setAccessible(true);
+      Object n = node.get(v);
+      Field propertyValues = n.getClass().getDeclaredField("propertyValues");
+      propertyValues.setAccessible(true);
+      Map<Object, Object> properties = (Map<Object, Object>) propertyValues.get(n);
+
+      String name = "<unknown>";
+      if (properties.containsKey("name")) {
+        name = properties.get("name").toString();
+      }
+
+      System.out.println("---------");
+      System.out.println("Node \"" + name + "\"");
+      for (Map.Entry p : properties.entrySet()) {
+        String value = p.getValue().toString();
+        if (p.getValue() instanceof String[]) {
+          value = Arrays.stream((String[]) p.getValue()).collect(Collectors.joining(", "));
+        } else if (p.getValue() instanceof Collection) {
+          value = ((Collection) p.getValue()).stream().collect(Collectors.joining(", ")).toString();
+        }
+        System.out.println(p.getKey() + " -> " + value);
+      }
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      System.out.println("Error printing node properties");
+      e.printStackTrace();
+    }
   }
 
   public Vertex createNode(Node n) {
@@ -175,12 +231,6 @@ public class OverflowDatabase implements Database {
         }
       }
     }
-
-    System.out.println("Node " + n.getName());
-    for (Map.Entry p : properties.entrySet()) {
-      System.out.println(p.getKey() + " -> " + p.getValue());
-    }
-    System.out.println("---------");
 
     List<Object> props = new ArrayList<>(properties.size() * 2);
     for (Map.Entry p : properties.entrySet()) {
@@ -517,17 +567,19 @@ public class OverflowDatabase implements Database {
               }
             }
 
-            return new NodeLayoutInformation(
-                Sets.newHashSet(), // TODO node properties currently not supported
-                out,
-                in);
+            Set<String> properties =
+                getFieldsIncludingSuperclasses(c).stream()
+                    .filter(f -> !mapsToRelationship(f))
+                    .filter(f -> mapsToProperty(f))
+                    .map(Field::getName)
+                    .collect(Collectors.toSet());
+
+            return new NodeLayoutInformation(properties, out, in);
           }
 
           @Override
           protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
-            Iterator<VertexProperty<V>> it =
-                IteratorUtils.of(new OdbNodeProperty(this, key, this.propertyValues.get(key)));
-            return it;
+            return IteratorUtils.of(new OdbNodeProperty(this, key, this.propertyValues.get(key)));
           }
 
           @Override

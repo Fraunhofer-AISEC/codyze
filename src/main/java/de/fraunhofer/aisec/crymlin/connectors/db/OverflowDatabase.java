@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -294,48 +296,13 @@ public class OverflowDatabase implements Database {
 
               if (isCollection(x.getClass())) {
                 // Add multiple edges for collections
-                Collection coll = ((Collection) x);
-                //                System.out.println(n);
-                //                System.out.println(f.getName());
-                //                System.out.println(x);
-                for (Object entry : coll) {
-                  //                  System.out.println(entry + " " + entry.hashCode());
-                  if (Node.class.isAssignableFrom(entry.getClass())) {
-                    Vertex target = null;
-                    if (hashCodeToVertexId.containsKey(entry.hashCode())) {
-                      Iterator<Vertex> vIt =
-                          graph.vertices(hashCodeToVertexId.get(entry.hashCode()));
-                      if (vIt.hasNext()) {
-                        target = vIt.next();
-                      }
-                    }
-                    if (target == null) {
-                      target = createNode((Node) entry);
-                      hashCodeToVertexId.put(entry.hashCode(), (long) target.id());
-                    }
-                    v.addEdge(relName, target);
-                  } else {
-                    System.out.println("Found non-Node class in collection: " + f.getName());
-                  }
-                }
-
+                connectAll(v, relName, (Collection) x);
+              } else if (Node[].class.isAssignableFrom(x.getClass())) {
+                connectAll(v, relName, Arrays.asList(x));
               } else {
                 // Add single edge for non-collections
-                Vertex target = null;
-                if (hashCodeToVertexId.containsKey(x.hashCode())) {
-                  Iterator<Vertex> vIt = graph.vertices(hashCodeToVertexId.get(x.hashCode()));
-                  if (vIt.hasNext()) {
-                    target = vIt.next();
-                  }
-                }
-                if (target == null) {
-                  target = createNode((Node) x);
-                  hashCodeToVertexId.put(x.hashCode(), (long) target.id());
-                }
-
+                Vertex target = connect(v, relName, x);
                 assert target.property("hashCode").value().equals(x.hashCode());
-
-                v.addEdge(relName, target);
               }
             } catch (IllegalAccessException e) {
               e.printStackTrace();
@@ -348,11 +315,54 @@ public class OverflowDatabase implements Database {
     }
   }
 
+  private Vertex connect(Vertex sourceVertex, String label, Object targetNode) {
+    Vertex targetVertex = null;
+    if (hashCodeToVertexId.containsKey(targetNode.hashCode())) {
+      Iterator<Vertex> vIt = graph.vertices(hashCodeToVertexId.get(targetNode.hashCode()));
+      if (vIt.hasNext()) {
+        targetVertex = vIt.next();
+      }
+    }
+    if (targetVertex == null) {
+      targetVertex = createNode((Node) targetNode);
+      hashCodeToVertexId.put(targetNode.hashCode(), (long) targetVertex.id());
+    }
+    sourceVertex.addEdge(label, targetVertex);
+
+    return targetVertex;
+  }
+
+  private void connectAll(Vertex sourceVertex, String label, Collection<?> targetNodes) {
+    for (Object entry : targetNodes) {
+      //                  System.out.println(entry + " " + entry.hashCode());
+      if (Node.class.isAssignableFrom(entry.getClass())) {
+        Vertex target = connect(sourceVertex, label, entry);
+        assert target.property("hashCode").value().equals(entry.hashCode());
+      } else {
+        System.out.println("Found non-Node class in collection for label \"" + label + "\"");
+      }
+    }
+  }
+
   /**
    * Reproduced Neo4J-OGM behavior for mapping fields to relationships (or properties otherwise).
    */
   private boolean mapsToRelationship(Field f) {
-    return hasAnnotation(f, Relationship.class) || Node.class.isAssignableFrom(f.getType());
+    return hasAnnotation(f, Relationship.class) || Node.class.isAssignableFrom(getEdgeType(f));
+  }
+
+  private Class<?> getEdgeType(Field f) {
+    if (Collection.class.isAssignableFrom(f.getType())) {
+      // Check whether the elements in this collection are nodes
+      assert f.getGenericType() instanceof ParameterizedType;
+      Type[] elementTypes = ((ParameterizedType) f.getGenericType()).getActualTypeArguments();
+      assert elementTypes.length == 1;
+      return (Class<?>) elementTypes[0];
+    } else if (f.getType().isArray()) {
+      return f.getType().getComponentType();
+    } else {
+      return f.getType();
+    }
   }
 
   private boolean mapsToProperty(Field f) {
@@ -456,11 +466,10 @@ public class OverflowDatabase implements Database {
          *
          * <p>B and all of its subclasses need to accept INCOMING edges labeled "f".
          */
-        // TODO still contains collections.
         final Set<String> EMPTY_SET = new HashSet<>();
         if (getRelationshipDirection(field).equals(Direction.OUT)) {
           List<Class> classesWithIncomingEdge = new ArrayList<>();
-          classesWithIncomingEdge.add(field.getType());
+          classesWithIncomingEdge.add(getEdgeType(field));
           for (int i = 0; i < classesWithIncomingEdge.size(); i++) {
             Class subclass = classesWithIncomingEdge.get(i);
             String relName = getRelationshipLabel(field);

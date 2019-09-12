@@ -1,5 +1,9 @@
 package de.fraunhofer.aisec.crymlin.utils;
 
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
+
+import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
+import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.markmodel.Constants;
 import java.util.ArrayList;
@@ -8,8 +12,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -138,7 +144,7 @@ public class CrymlinQueryWrapper {
           while (referencedArguments.hasNext()) {
             // check each argument against parameter type
             Vertex argument = referencedArguments.next().inVertex();
-            long argumentIndex = argument.<Long>property("argumentIndex").value();
+            long argumentIndex = argument.value("argumentIndex");
 
             if (argumentIndex >= parameterTypes.size()) {
               // last given parameter type must be "..." or remove
@@ -165,7 +171,7 @@ public class CrymlinQueryWrapper {
                     // it matches C++ string types
                     return false;
                   }
-                } else if (!paramType.equals(argument.<String>property("type").value())) {
+                } else if (!paramType.equals(argument.value("type"))) {
                   // types don't match -> remove
                   return true;
                 }
@@ -176,5 +182,18 @@ public class CrymlinQueryWrapper {
         });
 
     return ret;
+  }
+
+  public static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {
+    return crymlin
+        .byID(id)
+        .in("RHS")
+        .where(
+            has(T.label, LabelP.of(BinaryOperator.class.getSimpleName()))
+                .and()
+                .has("operatorCode", "="))
+        .out("LHS")
+        .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()))
+        .toList();
   }
 }

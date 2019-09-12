@@ -1,10 +1,12 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
+import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.Literal;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 /**
@@ -104,6 +106,28 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
       methodTypeParameters = {"A"})
   default CrymlinTraversal<S, Vertex> body() {
     return (CrymlinTraversal<S, Vertex>) out("BODY");
+  }
+
+  @GremlinDsl.AnonymousMethod(
+      returnTypeParameters = {"A", "Vertex"},
+      methodTypeParameters = {"A"})
+  default CrymlinTraversal<S, Vertex> initializerVariable() {
+    return (CrymlinTraversal<S, Vertex>)
+        in("INITIALIZER").has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+  }
+
+  @GremlinDsl.AnonymousMethod(
+      returnTypeParameters = {"A", "Vertex"},
+      methodTypeParameters = {"A"})
+  default CrymlinTraversal<S, Vertex> lhsVariableOfAssignment() {
+    return (CrymlinTraversal<S, Vertex>)
+        in("RHS")
+            .where(
+                has(T.label, LabelP.of(BinaryOperator.class.getSimpleName()))
+                    .and()
+                    .has("operatorCode", "="))
+            .out("LHS")
+            .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
   }
 
   //  /**

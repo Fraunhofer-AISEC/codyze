@@ -47,6 +47,8 @@ public class Utils {
       opName = opName.substring(0, opName.lastIndexOf("::"));
     } else if (opName.contains("->")) {
       opName = opName.substring(0, opName.lastIndexOf("->"));
+    } else {
+      opName = "";
     }
     return opName;
   }

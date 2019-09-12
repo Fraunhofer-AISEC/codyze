@@ -39,8 +39,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
@@ -795,142 +798,129 @@ public class ExpressionEvaluator {
   }
 
   private List<Vertex> getMatchingVertices(Operand operand) {
-    ArrayList<Vertex> ret = new ArrayList<>();
+    final ArrayList<Vertex> ret = new ArrayList<>();
 
-    if (context.hasContextType(EvaluationContext.Type.RULE)) {
+    if (!context.hasContextType(EvaluationContext.Type.RULE)) {
+      log.error("Context is not a rule!");
+      return ret;
+    }
+    if (StringUtils.countMatches(operand.getOperand(), ".") != 1) {
+      log.error("operand contains more than one '.' which is not supported yet");
+      return ret;
+    }
 
-      String[] operandParts = operand.getOperand().split("\\.");
-      String instance = operandParts[0];
-      String attribute = operandParts[1];
+    final String[] operandParts = operand.getOperand().split("\\.");
+    final String instance = operandParts[0];
+    final String attribute = operandParts[1];
 
-      Pair<String, MEntity> ref = context.getRule().getEntityReferences().get(instance);
-      String entityName = ref.getValue0();
-      MEntity referencedEntity = ref.getValue1();
+    Pair<String, MEntity> ref = context.getRule().getEntityReferences().get(instance);
+    String entityName = ref.getValue0();
+    MEntity referencedEntity = ref.getValue1();
 
-      List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
-      List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
+    List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
+    List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
 
-      for (MOp operation : referencedEntity.getOps()) {
-        Set<OpStatement> vars = new HashSet<>();
-        Set<OpStatement> args = new HashSet<>();
+    for (MOp operation : referencedEntity.getOps()) {
+      Set<OpStatement> vars = new HashSet<>();
+      Set<OpStatement> args = new HashSet<>();
 
-        for (OpStatement opStmt : operation.getStatements()) {
-          // simple assignment, i.e. var = something()
-          if (attribute.equals(opStmt.getVar())) {
-            vars.add(opStmt);
-          }
-          // ...or it's used as a function parameter, i.e. something(..., var, ...)
-          if (opStmt.getCall().getParams().stream().anyMatch(p -> p.equals(attribute))) {
-            args.add(opStmt);
-          }
+      for (OpStatement opStmt : operation.getStatements()) {
+        // simple assignment, i.e. var = something()
+        if (attribute.equals(opStmt.getVar())) {
+          vars.add(opStmt);
         }
-
-        if (vars.size() > 0) {
-          usesAsVar.add(new Pair<>(operation, vars));
-        }
-
-        if (args.size() > 0) {
-          usesAsFunctionArgs.add(new Pair<>(operation, args));
+        // ...or it's used as a function parameter, i.e. something(..., var, ...)
+        if (opStmt.getCall().getParams().stream().anyMatch(p -> p.equals(attribute))) {
+          args.add(opStmt);
         }
       }
 
-      try (TraversalConnection conn = new TraversalConnection()) {
-        CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+      if (vars.size() > 0) {
+        usesAsVar.add(new Pair<>(operation, vars));
+      }
 
-        for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
-          for (OpStatement opstmt : p.getValue1()) {
+      if (args.size() > 0) {
+        usesAsFunctionArgs.add(new Pair<>(operation, args));
+      }
+    }
 
-            String fqFunctionName = opstmt.getCall().getName();
-            List<String> functionArguments = opstmt.getCall().getParams();
+    try (TraversalConnection conn = new TraversalConnection()) {
+      CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 
-            String functionName = Utils.extractMethodName(fqFunctionName);
-            String fqNamePart = Utils.extractType(fqFunctionName);
-            if (fqNamePart.equals(functionName)) { // todo@FW: why?
-              fqNamePart = "";
-            }
+      for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+        for (OpStatement opstmt : p.getValue1()) {
 
-            List<String> functionArgumentTypes = new ArrayList<>();
-            for (int i = 0; i < functionArguments.size(); i++) {
-              functionArgumentTypes.add(
-                  i, referencedEntity.getTypeForVar(functionArguments.get(i)));
-            }
+          String fqFunctionName = opstmt.getCall().getName();
 
-            Set<Vertex> vertices =
-                CrymlinQueryWrapper.getCalls(
-                    crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+          String functionName = Utils.extractMethodName(fqFunctionName);
+          String fqNamePart = Utils.extractType(fqFunctionName);
 
-            for (Vertex v : vertices) {
-              // check if there was an assignment
-              Traversal<Vertex, Vertex> nextTraversalStep =
-                  crymlin
-                      .byID((long) v.id())
-                      .in("RHS")
-                      .where(
-                          has(T.label, LabelP.of(BinaryOperator.class.getSimpleName()))
-                              .and()
-                              .has("operatorCode", "="))
-                      .out("LHS")
-                      .out("REFERS_TO")
-                      .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+          List<String> functionArgumentTypes =
+              referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall().getParams());
 
-              List<Vertex> nextVertices = nextTraversalStep.toList();
+          Set<Vertex> vertices =
+              CrymlinQueryWrapper.getCalls(
+                  crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+
+          for (Vertex v : vertices) {
+            // check if there was an assignment
+
+            // todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
+            // step is in the crymlin traversal
+            List<Vertex> nextVertices =
+                CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
+
+            if (nextVertices.size() > 0) {
               log.info("found RHS traversals: {}", nextVertices);
               ret.addAll(nextVertices);
+            }
 
-              // check if there was a direct initialization (i.e., int i = call(foo);)
-              nextTraversalStep =
-                  crymlin
-                      .byID((long) v.id())
-                      .in("INITIALIZER")
-                      .has(T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+            // check if there was a direct initialization (i.e., int i = call(foo);)
+            nextVertices = crymlin.byID((long) v.id()).initializerVariable().toList();
 
-              nextVertices = nextTraversalStep.toList();
+            if (nextVertices.size() > 0) {
               log.info("found Initializer traversals: {}", nextVertices);
               ret.addAll(nextVertices);
             }
           }
         }
+      }
 
-        for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
-          for (OpStatement opstmt : p.getValue1()) {
+      for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
+        for (OpStatement opstmt : p.getValue1()) {
 
-            String fqFunctionName = opstmt.getCall().getName();
-            String functionName = Utils.extractMethodName(fqFunctionName);
-            String fqName = fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
+          String fqFunctionName = opstmt.getCall().getName();
+          String functionName = Utils.extractMethodName(fqFunctionName);
+          String fqName = fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
 
-            if (fqName.endsWith("::")) {
-              fqName = fqName.substring(0, fqName.length() - 2);
-            }
+          if (fqName.endsWith("::")) {
+            fqName = fqName.substring(0, fqName.length() - 2);
+          }
 
-            List<String> argumentTypes = new ArrayList<>(opstmt.getCall().getParams());
-            int argumentIndex = -1;
-            for (int i = 0; i < argumentTypes.size(); i++) {
-              String argVar = argumentTypes.get(i);
-              if (attribute.equals(argVar)) {
-                argumentIndex = i;
-              }
-              if (Constants.UNDERSCORE.equals(argVar) || Constants.ELLIPSIS.equals(argVar)) {
-                continue;
-              }
-              argumentTypes.set(i, referencedEntity.getTypeForVar(argVar));
-            }
+          EList<String> params = opstmt.getCall().getParams();
+          List<String> argumentTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
+          OptionalInt argumentIndexOptional =
+              IntStream.range(0, params.size())
+                  .filter(i -> attribute.equals(params.get(i)))
+                  .findFirst();
+          if (argumentIndexOptional.isEmpty()) {
+            log.error("argument not found in parameters. This should not happen");
+            continue;
+          }
+          int argumentIndex = argumentIndexOptional.getAsInt();
 
-            Set<Vertex> vertices =
-                CrymlinQueryWrapper.getCalls(
-                    crymlin, fqName, functionName, entityName, argumentTypes);
+          Set<Vertex> vertices =
+              CrymlinQueryWrapper.getCalls(
+                  crymlin, fqName, functionName, entityName, argumentTypes);
 
-            for (Vertex v : vertices) {
-              CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal =
-                  crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex", argumentIndex);
+          for (Vertex v : vertices) {
+            List<Vertex> argumentVertices =
+                crymlin.byID((long) v.id()).argument(argumentIndex).toList();
 
-              List<Vertex> argumentVertices = variableDeclarationTraversal.toList();
-
-              if (argumentVertices.size() == 1) {
-                ret.add(argumentVertices.get(0));
-              } else {
-                log.warn(
-                    "Did not find one matching argument node, got {}", argumentVertices.size());
-              }
+            if (argumentVertices.size() == 1) {
+              ret.add(argumentVertices.get(0));
+            } else {
+              log.warn("Did not find one matching argument node, got {}", argumentVertices.size());
             }
           }
         }

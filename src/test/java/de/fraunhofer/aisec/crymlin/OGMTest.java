@@ -3,11 +3,17 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.Test;
 
 public class OGMTest {
@@ -35,6 +41,26 @@ public class OGMTest {
     TranslationManager analyzer = TranslationManager.builder().config(config).build();
 
     TranslationResult result = analyzer.analyze().get();
-    OverflowDatabase.getInstance().saveAll(result.getTranslationUnits());
+    List<TranslationUnitDeclaration> original = result.getTranslationUnits();
+    OverflowDatabase.getInstance().saveAll(original);
+
+    GraphTraversal<Vertex, Vertex> traversal =
+        OverflowDatabase.getInstance()
+            .getGraph()
+            .traversal()
+            .V()
+            .filter(t -> t.get().label().contains("TranslationUnitDeclaration"));
+
+    List<TranslationUnitDeclaration> restored = new ArrayList<>();
+    while (traversal.hasNext()) {
+      Vertex v = traversal.next();
+      Node n = OverflowDatabase.getInstance().vertexToNode(v);
+      assert n instanceof TranslationUnitDeclaration;
+      restored.add((TranslationUnitDeclaration) n);
+    }
+
+    // TODO looks like it got everything already, but the node classes have no appropriate equals
+    //  methods
+    // assert new HashSet<>(original).equals(new HashSet<>(restored));
   }
 }

@@ -16,6 +16,7 @@ import io.shiftleft.overflowdb.OdbNode;
 import io.shiftleft.overflowdb.OdbNodeProperty;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -92,6 +93,8 @@ public class OverflowDatabase implements Database {
   private final OdbGraph graph;
 
   Map<Integer, Long> hashCodeToVertexId = new HashMap<>();
+  Map<Vertex, Node> nodesCache = new HashMap<>();
+  Map<Vertex, Map<Object, Vertex>> visited = new HashMap<>();
 
   // Scan all classes in package
   Reflections reflections;
@@ -150,7 +153,7 @@ public class OverflowDatabase implements Database {
 
   @Override
   public <T extends Node> T find(Class<T> clazz, Long id) {
-    return (T) graph.traversal().V(id).next(); // TODO cast unchecked. Will get Vertex here
+    return (T) vertexToNode(graph.traversal().V(id).next());
   }
 
   @Override
@@ -175,12 +178,7 @@ public class OverflowDatabase implements Database {
 
   private void printVertex(Vertex v) {
     try {
-      Field node = NodeRef.class.getDeclaredField("node");
-      node.setAccessible(true);
-      Object n = node.get(v);
-      Field propertyValues = n.getClass().getDeclaredField("propertyValues");
-      propertyValues.setAccessible(true);
-      Map<Object, Object> properties = (Map<Object, Object>) propertyValues.get(n);
+      Map<Object, Object> properties = getAllProperties(v);
 
       String name = "<unknown>";
       if (properties.containsKey("name")) {
@@ -204,6 +202,80 @@ public class OverflowDatabase implements Database {
     }
   }
 
+  private <K, V> Map<K, V> getAllProperties(Vertex v)
+      throws NoSuchFieldException, IllegalAccessException {
+    Field node = NodeRef.class.getDeclaredField("node");
+    node.setAccessible(true);
+    Object n = node.get(v);
+    Field propertyValues = n.getClass().getDeclaredField("propertyValues");
+    propertyValues.setAccessible(true);
+    return (Map<K, V>) propertyValues.get(n);
+  }
+
+  public Node vertexToNode(Vertex v) {
+    // avoid loops
+    if (nodesCache.containsKey(v)) {
+      return nodesCache.get(v);
+    }
+
+    Class<?> targetClass = (Class<?>) v.property("nodeType").value();
+    if (targetClass == null) {
+      return null;
+    }
+    assert Node.class.isAssignableFrom(targetClass);
+    try {
+      Node node = (Node) targetClass.getDeclaredConstructor().newInstance();
+      nodesCache.put(v, node);
+
+      for (Field f : getFieldsIncludingSuperclasses(targetClass)) {
+        f.setAccessible(true);
+        if (mapsToProperty(f)) {
+          Object value = v.property(f.getName()).value();
+          if (hasAnnotation(f, Convert.class)) {
+            value = convertToNodeProperty(v, f, value);
+          }
+          f.set(node, value);
+        } else if (mapsToRelationship(f)) {
+          Direction direction = getRelationshipDirection(f);
+          List<Node> targets =
+              IteratorUtils.stream(v.vertices(direction, getRelationshipLabel(f)))
+                  .map(this::vertexToNode)
+                  .collect(Collectors.toList());
+          if (isCollection(f.getType())) {
+            // we don't know for sure that the relationships are stored as a list. Might as well
+            // be any other collection. Thus we'll create it using reflection
+            Class<?> collectionType = (Class<?>) v.property(f.getName() + "_type").value();
+            if (collectionType == null) {
+              // this happens if the field was set to null when converting to vertex
+              System.err.println("collection type null!");
+              printVertex(v);
+              continue;
+            }
+            assert Collection.class.isAssignableFrom(collectionType);
+            Collection targetCollection =
+                (Collection) collectionType.getDeclaredConstructor().newInstance();
+            targetCollection.addAll(targets);
+            f.set(node, targetCollection);
+          } else if (f.getType().isArray()) {
+            Object targetArray = Array.newInstance(f.getType(), targets.size());
+            for (int i = 0; i < targets.size(); i++) {
+              Array.set(targetArray, i, targets.get(i));
+            }
+            f.set(node, targetArray);
+          }
+        }
+      }
+      return node;
+    } catch (NoSuchMethodException e) {
+      System.err.println("A converter needs to have an empty constructor");
+      e.printStackTrace();
+    } catch (Exception e) {
+      System.err.println("Error creating new " + targetClass.getName() + " node");
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   public Vertex createNode(Node n) {
     List<String> labels = getNodeLabel(n.getClass());
     HashMap<Object, Object> properties = new HashMap<>();
@@ -222,9 +294,9 @@ public class OverflowDatabase implements Database {
             continue;
           }
           if (hasAnnotation(f, Convert.class)) {
-            properties.putAll(convert(f, x));
+            properties.putAll(convertToVertexProperty(f, x));
           } else if (mapsToProperty(f)) {
-            properties.putIfAbsent(f.getName(), x.toString());
+            properties.put(f.getName(), x);
           } else {
             System.out.println("Not a property");
           }
@@ -234,31 +306,29 @@ public class OverflowDatabase implements Database {
       }
     }
 
+    // Add types of nodes (names of superclasses) to properties
+    List<String> superclasses = getNodeLabel(n.getClass());
+    properties.put("labels", superclasses);
+
+    // Add hashCode of object so we can easily retrieve a vertex from graph given the node object
+    properties.put("hashCode", n.hashCode());
+
+    // Add current class needed for translating it back to a node object
+    properties.put("nodeType", n.getClass());
+
     List<Object> props = new ArrayList<>(properties.size() * 2);
     for (Map.Entry p : properties.entrySet()) {
       props.add(p.getKey());
       props.add(p.getValue());
     }
 
-    // Add types of nodes (names of superclasses) to properties
-    List<String> superclasses = getNodeLabel(n.getClass());
-    props.add("labels");
-    props.add(superclasses);
-
-    // Add hashCode of object so we can easily retrieve a vertex from graph given the node object
-    props.add("hashCode");
-    props.add(n.hashCode());
-
     return graph.addVertex(props.toArray());
   }
 
-  private Map<Object, Object> convert(Field f, Object content) {
+  private Map<Object, Object> convertToVertexProperty(Field f, Object content) {
     try {
       Object converter =
-          f.getAnnotation(Convert.class)
-              .value()
-              .getDeclaredConstructor(new Class[] {})
-              .newInstance();
+          f.getAnnotation(Convert.class).value().getDeclaredConstructor().newInstance();
       if (converter instanceof AttributeConverter) {
         // Single attribute will be provided
         return Map.of(f.getName(), ((AttributeConverter) converter).toGraphProperty(content));
@@ -277,6 +347,28 @@ public class OverflowDatabase implements Database {
     return Collections.emptyMap();
   }
 
+  private Object convertToNodeProperty(Vertex v, Field f, Object content) {
+    try {
+      Object converter =
+          f.getAnnotation(Convert.class).value().getDeclaredConstructor().newInstance();
+      if (converter instanceof AttributeConverter) {
+        // Single attribute will be provided
+        return ((AttributeConverter) converter).toEntityAttribute(content);
+      } else if (converter instanceof CompositeAttributeConverter) {
+        Map<String, ?> properties = getAllProperties(v);
+        return ((CompositeAttributeConverter) converter).toEntityAttribute(properties);
+      }
+    } catch (NoSuchMethodException e) {
+      System.err.println("A converter needs to have an empty constructor");
+      e.printStackTrace();
+    } catch (Exception e) {
+      System.err.println("Error when trying to convert");
+      e.printStackTrace();
+    }
+
+    return null;
+  }
+
   public void createEdges(Vertex v, Node n) {
     for (Class<?> c = n.getClass(); c != Object.class; c = c.getSuperclass()) {
       for (Field f : getFieldsIncludingSuperclasses(c)) {
@@ -285,15 +377,18 @@ public class OverflowDatabase implements Database {
           Direction direction = getRelationshipDirection(f);
           String relName = getRelationshipLabel(f);
 
-          if (direction.equals(Direction.OUT) || direction.equals(Direction.BOTH)) {
-            try {
-              // Create an edge from a field value
-              f.setAccessible(true);
-              Object x = f.get(n);
-              if (x == null) {
-                continue;
-              }
+          try {
+            f.setAccessible(true);
+            Object x = f.get(n);
+            if (x == null) {
+              continue;
+            }
 
+            // provide a type hint for later re-translation into a field
+            v.property(f.getName() + "_type", x.getClass());
+
+            if (direction.equals(Direction.OUT) || direction.equals(Direction.BOTH)) {
+              // Create an edge from a field value
               if (isCollection(x.getClass())) {
                 // Add multiple edges for collections
                 connectAll(v, relName, (Collection) x);
@@ -301,21 +396,26 @@ public class OverflowDatabase implements Database {
                 connectAll(v, relName, Arrays.asList(x));
               } else {
                 // Add single edge for non-collections
-                Vertex target = connect(v, relName, x);
+                Vertex target = connect(v, relName, (Node) x);
                 assert target.property("hashCode").value().equals(x.hashCode());
               }
-            } catch (IllegalAccessException e) {
-              e.printStackTrace();
+            } else {
+              // TODO Handle INCOMING relations, unsure if needed
             }
-          } else {
-            // TODO Handle INCOMING relations
+          } catch (IllegalAccessException e) {
+            e.printStackTrace();
           }
         }
       }
     }
   }
 
-  private Vertex connect(Vertex sourceVertex, String label, Object targetNode) {
+  private Vertex connect(Vertex sourceVertex, String label, Node targetNode) {
+    // avoid loops
+    if (visited.containsKey(sourceVertex) && visited.get(sourceVertex).containsKey(targetNode)) {
+      return visited.get(sourceVertex).get(targetNode);
+    }
+
     Vertex targetVertex = null;
     if (hashCodeToVertexId.containsKey(targetNode.hashCode())) {
       Iterator<Vertex> vIt = graph.vertices(hashCodeToVertexId.get(targetNode.hashCode()));
@@ -329,6 +429,14 @@ public class OverflowDatabase implements Database {
     }
     sourceVertex.addEdge(label, targetVertex);
 
+    Map<Object, Vertex> visitedFromHere = new HashMap<>();
+    visitedFromHere.put(targetNode, targetVertex);
+    if (!visited.containsKey(sourceVertex)) {
+      visited.put(sourceVertex, new HashMap<>());
+    }
+    visited.get(sourceVertex).put(targetNode, targetVertex);
+
+    createEdges(targetVertex, targetNode);
     return targetVertex;
   }
 
@@ -336,7 +444,7 @@ public class OverflowDatabase implements Database {
     for (Object entry : targetNodes) {
       //                  System.out.println(entry + " " + entry.hashCode());
       if (Node.class.isAssignableFrom(entry.getClass())) {
-        Vertex target = connect(sourceVertex, label, entry);
+        Vertex target = connect(sourceVertex, label, (Node) entry);
         assert target.property("hashCode").value().equals(entry.hashCode());
       } else {
         System.out.println("Found non-Node class in collection for label \"" + label + "\"");
@@ -576,12 +684,16 @@ public class OverflowDatabase implements Database {
               }
             }
 
-            Set<String> properties =
-                getFieldsIncludingSuperclasses(c).stream()
-                    .filter(f -> !mapsToRelationship(f))
-                    .filter(f -> mapsToProperty(f))
-                    .map(Field::getName)
-                    .collect(Collectors.toSet());
+            Set<String> properties = new HashSet<>();
+            for (Field f : getFieldsIncludingSuperclasses(c)) {
+              if (mapsToProperty(f)) {
+                properties.add(f.getName());
+                if (isCollection(f.getType())) {
+                  // type hints for exact collection type
+                  properties.add(f.getName() + "_type");
+                }
+              }
+            }
 
             return new NodeLayoutInformation(properties, out, in);
           }

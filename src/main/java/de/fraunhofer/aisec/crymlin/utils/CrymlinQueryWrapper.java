@@ -32,7 +32,7 @@ public class CrymlinQueryWrapper {
     HashSet<Vertex> ret = new HashSet<>();
     // unify base type
     baseType = Utils.unifyType(baseType);
-    List<Vertex> vertices = crymlinTraversal.calls(functionName, baseType).toList();
+    List<Vertex> vertices = crymlinTraversal.calls(baseType + "." + functionName).toList();
 
     for (Vertex v : vertices) {
 

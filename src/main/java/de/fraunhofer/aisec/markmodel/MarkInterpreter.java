@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
@@ -25,8 +26,6 @@ import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
 import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -143,13 +142,22 @@ public class MarkInterpreter {
    */
   public TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
 
-    Instant outer_start = Instant.now();
+    Benchmark bOuter = new Benchmark(this.getClass(), "Mark evaluation");
+
+    Object o = result.getScratch().get(TranslationResult.SOURCEFILESTOFRONTEND);
+    if (o == null) {
+      log.error("Scratch does not contain correct {}", TranslationResult.SOURCEFILESTOFRONTEND);
+    } else {
+      //      HashMap<String, String> sftfe = (HashMap<String, String>) o;
+      //      HashSet<String> parser = new HashSet<>(sftfe.values());
+      //      parser.forEach(System.err::println);
+    }
 
     try (TraversalConnection t = new TraversalConnection()) { // connects to the DB
       CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
 
       log.info("Precalculating matching nodes");
-      Instant start = Instant.now();
+      Benchmark b = new Benchmark(this.getClass(), "Precalculating maching nodes");
       /*
       iterate all entities and precalculate some things:
          - call statements to vertices
@@ -178,32 +186,24 @@ public class MarkInterpreter {
           }
         }
       }
-      log.info(
-          "Done precalculating matching nodes in {} ms.",
-          Duration.between(start, Instant.now()).toMillis());
+      b.stop();
 
       log.info("Evaluate forbidden calls");
-      start = Instant.now();
+      b = new Benchmark(this.getClass(), "Evaluate forbidden calls");
       evaluateForbiddenCalls(ctx);
-      log.info(
-          "Done evaluate forbidden calls in {} ms.",
-          Duration.between(start, Instant.now()).toMillis());
+      b.stop();
 
       log.info("Evaluate order");
-      start = Instant.now();
+      b = new Benchmark(this.getClass(), "Evaluate order");
       evaluateOrder(ctx, crymlinTraversal);
-      log.info(
-          "Done evaluating order in {} ms.", Duration.between(start, Instant.now()).toMillis());
+      b.stop();
 
       log.info("Evaluate rules");
-      start = Instant.now();
+      b = new Benchmark(this.getClass(), "Evaluate rules");
       evaluateRules(ctx);
-      log.info(
-          "Done evaluating rules in {} ms.", Duration.between(start, Instant.now()).toMillis());
+      b.stop();
 
-      log.info(
-          "Done evaluating ALL MARK in {} ms.",
-          Duration.between(outer_start, Instant.now()).toMillis());
+      bOuter.stop();
 
       return result;
     } finally {

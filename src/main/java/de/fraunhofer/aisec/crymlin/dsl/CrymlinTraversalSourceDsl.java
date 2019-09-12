@@ -71,7 +71,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
     return traversal
         .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
-        .has("name", callee_name);
+        .has("fqn", callee_name);
   }
 
   /**
@@ -87,7 +87,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
     return traversal
         .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
-        .has("name", callee_name)
+        .has("fqn", callee_name)
         .where(out("BASE").has("type", base_type));
   }
 

@@ -6,9 +6,9 @@ class forbidden {
 void do_crypt()
         {
 
-        uint8_t nonce;
-        size_t nonce_length;
-        BotanF.InitializationVector iv;
+        int nonce;
+        int nonce_length;
+        int iv;
         BotanF b;
 
 /*
@@ -52,4 +52,19 @@ void do_crypt()
 
 
         }
+}
+
+
+public class BotanF {
+  public void get_cipher_mode(){}
+  public void get_cipher_mode(int o){}
+  public void get_cipher_mode(int o, int o){}
+  public void set_key(int o){}
+  public void set_key(int o){}
+  public void set_key(int o, int o){}
+  public void start(){}
+  public void start(int o){}
+  public void start(int o, BotanF o){}
+  public void start_msg(int o){}
+  public void start_msg(int o, int o, BotanF o){}
 }

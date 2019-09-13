@@ -1087,7 +1087,7 @@ public class ExpressionEvaluator {
                 // looking for one of the arguments
                 Set<Vertex> vertices =
                     CrymlinQueryWrapper.getCalls(
-                        crymlin, packageClass, functionName, entityName, argumentTypes);
+                        crymlin, packageClass, functionName, null, argumentTypes);
 
                 // further investigate each function call
                 for (Vertex v : vertices) {

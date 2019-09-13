@@ -97,7 +97,7 @@ public class CrymlinQueryWrapper {
                 // 'std::string' becomes just 'string'
                 // FIXME string literals in C++ have type 'const char[{some integer}]' instead of
                 // 'std::string'
-                if (paramType.equals("std::string")) {
+                if (paramType.equals("std.::string")) {
                   String argValue = argument.<String>property("type").orElse("");
 
                   if (paramType.equals(argValue)

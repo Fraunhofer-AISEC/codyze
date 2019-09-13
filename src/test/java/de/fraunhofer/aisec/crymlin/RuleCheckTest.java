@@ -15,7 +15,6 @@ import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -98,15 +97,6 @@ public class RuleCheckTest {
     AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
     assertNotNull(ctx);
     assertTrue(ctx.methods.isEmpty());
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void translationunitsTest() throws Exception {
-    List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
-    assertNotNull(tus);
-    assertEquals(1, tus.size());
-    assertTrue(tus.get(0).endsWith("mark_rule_eval.cpp"));
   }
 
   @Test

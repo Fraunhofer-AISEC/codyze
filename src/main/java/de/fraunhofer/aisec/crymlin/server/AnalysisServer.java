@@ -25,7 +25,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import javax.script.ScriptException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -267,25 +266,6 @@ public class AnalysisServer {
    */
   public @NonNull Mark getMarkModel() {
     return this.markModel;
-  }
-
-  /**
-   * Runs a Gremlin query against the currently analyzed program.
-   *
-   * <p>Make sure to call {@code analyze()} before.
-   *
-   * @param crymlin
-   * @return
-   * @throws ScriptException
-   */
-  // todo DTDT remove. Then it is sufficient to initialize Jython only for the console case!
-  @Deprecated
-  public Object query(String crymlin) throws ScriptException {
-    if (interp == null) {
-      interp = new JythonInterpreter();
-      interp.connect();
-    }
-    return interp.query(crymlin);
   }
 
   public void stop() {

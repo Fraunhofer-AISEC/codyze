@@ -429,6 +429,9 @@ public class ExpressionEvaluator {
         }
         String classname = (String) classnameArgument.get();
 
+        // unify separators
+        classname = classname.replaceAll("::", ".");
+
         List<Vertex> verticesForOperand = getMatchingVertices((Operand) args.get(0));
         for (Vertex v : verticesForOperand) {
           String type = v.value("type");

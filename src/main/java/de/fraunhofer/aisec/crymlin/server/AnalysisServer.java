@@ -278,7 +278,7 @@ public class AnalysisServer {
    * @return
    * @throws ScriptException
    */
-  // todo remove. Then it is sufficient to initialize Jython only for the console case!
+  // todo DTDT remove. Then it is sufficient to initialize Jython only for the console case!
   @Deprecated
   public Object query(String crymlin) throws ScriptException {
     if (interp == null) {

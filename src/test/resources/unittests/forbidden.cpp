@@ -6,9 +6,9 @@
 void do_crypt()
 {
 
-    uint8_t nonce;
+    int nonce;
     size_t nonce_length;
-    BotanF::InitializationVector iv;
+    int iv;
     BotanF b;
 
 /*

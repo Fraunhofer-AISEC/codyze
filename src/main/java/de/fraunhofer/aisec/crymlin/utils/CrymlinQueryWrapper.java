@@ -6,12 +6,12 @@ import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.markmodel.Constants;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.validation.constraints.Null;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -24,69 +24,9 @@ public class CrymlinQueryWrapper {
   // do not instantiate
   private CrymlinQueryWrapper() {}
 
-  public static HashSet<Vertex> getCalls(
-      CrymlinTraversalSource crymlinTraversal,
-      String functionName,
-      String baseType,
-      ArrayList<String> parameter) {
-    HashSet<Vertex> ret = new HashSet<>();
-    // unify base type
-    baseType = Utils.unifyType(baseType);
-    List<Vertex> vertices = crymlinTraversal.calls(baseType + "." + functionName).toList();
-
-    for (Vertex v : vertices) {
-
-      boolean parameters_match = true;
-      if (!parameter.isEmpty() && parameter.get(0).equals(Constants.ELLIPSIS)) {
-        // ALL FUNCTIONS WITH THIS BASE TYPE AND NAME MATCH, PARAMETERS ARE IGNORED
-      } else {
-        boolean[] checkedParameters = new boolean[parameter.size()]; // defaults to false
-
-        Iterator<Edge> arguments = v.edges(Direction.OUT, "ARGUMENTS");
-        while (arguments.hasNext()) {
-          Vertex arg = arguments.next().inVertex();
-          int argumentIndex = Integer.parseInt(arg.value("argumentIndex").toString());
-          // argumentIndex starts at 0!
-          if (argumentIndex >= parameter.size()) {
-            // argumentlength mismatch
-            parameters_match = false;
-            break;
-          }
-          checkedParameters[argumentIndex] =
-              true; // this parameter is now checked. If it does not match we bail out early
-
-          if (parameter.get(argumentIndex).equals(Constants.UNDERSCORE)) {
-            // skip matching
-          } else {
-            // either the param in the mark file directly matches, or it has to have a
-            // corresponding var which indicates the type
-            if (!Utils.unifyType(parameter.get(argumentIndex))
-                .equals(Utils.unifyType(arg.value("type").toString()))) {
-              parameters_match = false;
-              break;
-            }
-          }
-        }
-        if (parameters_match) {
-          // now check if all parameters were validated
-          for (int i = 0; i < parameter.size(); i++) {
-            if (!checkedParameters[i]) {
-              parameters_match = false;
-              break;
-            }
-          }
-        }
-      }
-      if (parameters_match) { // if all of them were checked
-        ret.add(v);
-      }
-    }
-    return ret;
-  }
-
   /**
    * @param crymlinTraversal
-   * @param fqn fully qualified name w/o function name itself
+   * @param fqnClassName fully qualified name w/o function name itself
    * @param functionName name of the function
    * @param type type of the object used to call the function (i.e. method); should be name of the
    *     MARK entity
@@ -97,33 +37,27 @@ public class CrymlinQueryWrapper {
    */
   public static Set<Vertex> getCalls(
       @NonNull CrymlinTraversalSource crymlinTraversal,
-      @NonNull String fqn,
+      @NonNull String fqnClassName,
       @NonNull String functionName,
-      @NonNull String type,
+      @Null String type,
       @NonNull List<String> parameterTypes) {
 
     Set<Vertex> ret = new HashSet<>();
 
     // reconstruct what type of call we're expecting
-    boolean isMethod = fqn.endsWith(type);
+    boolean isMethod = type == null || fqnClassName.endsWith(type);
 
-    if (functionName.contains(".")) {
-      // java function
+    if (isMethod) {
+      // it's a method call on an instances
+      ret.addAll(crymlinTraversal.calls(functionName, type).toList());
+    }
+
+    // it's a function OR a static method call -> name == fqnClassName.functionName
+    ret.addAll(crymlinTraversal.calls(fqnClassName + "." + functionName).toList());
+
+    // FIXME we're not setting the default (i.e. global) namespace
+    if (fqnClassName.length() == 0) {
       ret.addAll(crymlinTraversal.calls(functionName).toList());
-    } else {
-
-      if (isMethod) {
-        // it's a method call on an instances
-        ret.addAll(crymlinTraversal.calls(functionName, type).toList());
-      }
-
-      // it's a function OR a static method call -> name == fqn::functionName
-      ret.addAll(crymlinTraversal.calls(fqn + "::" + functionName).toList());
-
-      // FIXME we're not setting the default (i.e. global) namespace
-      if (fqn.length() == 0) {
-        ret.addAll(crymlinTraversal.calls(functionName).toList());
-      }
     }
 
     // now, ret contains possible candidates --> need to filter out calls where params don't match

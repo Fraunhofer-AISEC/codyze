@@ -1,8 +1,8 @@
 entity Order isa Cipher {
-	var nonce : uint8_t;
-	var nonce_length : std::size_t;
-	var iv : Botan::InitializationVector;
-	var myValue : Botan::InitializationVector;
+	var nonce : int;
+	var nonce_length : int;
+	var iv : int;
+	var myValue : int;
 
 	op create() {
         Botan::get_cipher_mode(_, _);

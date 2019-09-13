@@ -33,12 +33,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,23 +114,16 @@ public class MarkInterpreter {
     return exprToString((Expression) arg); // Every Argument is also an Expression
   }
 
-  private HashSet<Vertex> getVerticesForFunctionDeclaration(
+  private Set<Vertex> getVerticesForFunctionDeclaration(
       FunctionDeclaration functionDeclaration,
       MEntity ent,
       CrymlinTraversalSource crymlinTraversal) {
     String functionName = Utils.extractMethodName(functionDeclaration.getName());
     String baseType = Utils.extractType(functionDeclaration.getName());
 
-    EList<String> params = functionDeclaration.getParams();
     // resolve parameters which have a corresponding var part in the entity
-    ArrayList<String> cloned = new ArrayList<>(params);
-    for (int i = 0; i < cloned.size(); i++) {
-      String typeForVar = ent.getTypeForVar(cloned.get(i));
-      if (typeForVar != null) {
-        cloned.set(i, typeForVar);
-      }
-    }
-    return CrymlinQueryWrapper.getCalls(crymlinTraversal, functionName, baseType, cloned);
+    ArrayList<String> args = ent.replaceArgumentVarsWithTypes(functionDeclaration.getParams());
+    return CrymlinQueryWrapper.getCalls(crymlinTraversal, baseType, functionName, null, args);
   }
 
   /**
@@ -169,7 +162,7 @@ public class MarkInterpreter {
           log.debug("Looking for call statements for {}", op.getName());
           int numMatches = 0;
           for (OpStatement a : op.getStatements()) {
-            HashSet<Vertex> temp =
+            Set<Vertex> temp =
                 getVerticesForFunctionDeclaration(a.getCall(), ent, crymlinTraversal);
             log.debug(
                 a.getCall().getName()

@@ -860,7 +860,7 @@ public class ExpressionEvaluator {
 
           Set<Vertex> vertices =
               CrymlinQueryWrapper.getCalls(
-                  crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+                  crymlin, fqNamePart, functionName, null, functionArgumentTypes);
 
           for (Vertex v : vertices) {
             // check if there was an assignment
@@ -1057,11 +1057,11 @@ public class ExpressionEvaluator {
 
                 String fqFunctionName = fd.getName();
                 String functionName = Utils.extractMethodName(fqFunctionName);
-                String fqName =
+                String packageClass =
                     fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
 
-                if (fqName.endsWith("::")) {
-                  fqName = fqName.substring(0, fqName.length() - 2);
+                if (packageClass.endsWith(".")) {
+                  packageClass = packageClass.substring(0, packageClass.length() - 1);
                 }
 
                 List<String> argumentTypes = new ArrayList<>(fd.getParams());
@@ -1084,7 +1084,7 @@ public class ExpressionEvaluator {
                 // looking for one of the arguments
                 Set<Vertex> vertices =
                     CrymlinQueryWrapper.getCalls(
-                        crymlin, fqName, functionName, entityName, argumentTypes);
+                        crymlin, packageClass, functionName, entityName, argumentTypes);
 
                 // further investigate each function call
                 for (Vertex v : vertices) {

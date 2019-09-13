@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class MOp {
   @NonNull private List<OpStatement> statements = new ArrayList<>();
 
   private boolean parsed = false;
-  private HashMap<OpStatement, HashSet<Vertex>> statementToCPGVertex = new HashMap<>();
+  private HashMap<OpStatement, Set<Vertex>> statementToCPGVertex = new HashMap<>();
   private HashMap<Vertex, HashSet<OpStatement>> vertexToStatements = new HashMap<>();
   private HashSet<Vertex> allVertices = new HashSet<>();
 
@@ -41,7 +42,7 @@ public class MOp {
     return this.statements;
   }
 
-  public HashSet<Vertex> getVertices(OpStatement stmt) {
+  public Set<Vertex> getVertices(OpStatement stmt) {
     if (!parsed) {
       log.error("MOp not parsed! Do not call getVertex!");
       assert false;
@@ -65,7 +66,7 @@ public class MOp {
     return allVertices;
   }
 
-  public void addVertex(OpStatement stmt, HashSet<Vertex> verts) {
+  public void addVertex(OpStatement stmt, Set<Vertex> verts) {
     statementToCPGVertex.put(stmt, verts);
     for (Vertex v : verts) {
       HashSet<OpStatement> callStatements =

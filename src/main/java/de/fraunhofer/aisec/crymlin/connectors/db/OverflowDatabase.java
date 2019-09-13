@@ -28,11 +28,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -92,9 +96,9 @@ public class OverflowDatabase implements Database {
   private static OverflowDatabase INSTANCE;
   private final OdbGraph graph;
 
-  Map<Integer, Long> hashCodeToVertexId = new HashMap<>();
-  Map<Vertex, Node> nodesCache = new HashMap<>();
-  Map<Vertex, Map<Object, Vertex>> visited = new HashMap<>();
+  Map<Node, Vertex> nodeToVertex = new IdentityHashMap<>();
+  Map<Vertex, Node> vertexToNode = new IdentityHashMap<>();
+  Map<Vertex, Node> nodesCache = new IdentityHashMap<>();
 
   // Scan all classes in package
   Reflections reflections;
@@ -159,21 +163,23 @@ public class OverflowDatabase implements Database {
   @Override
   public void saveAll(Collection<? extends Node> list) {
     Benchmark bench = new Benchmark(OverflowDatabase.class, "save all");
-    List<Node> workList = new ArrayList<>(list);
-
-    for (int i = 0; i < workList.size(); i++) {
-      final Node n = workList.get(i);
-      // Store node
-      Vertex v = createNode(n);
-      // printVertex(v);
-
-      // Store edges of this node
-      createEdges(v, n);
-
-      Set<Node> children = SubgraphWalker.getAstChildren(n);
-      workList.addAll(children);
+    for (Node node : list) {
+      save(node);
     }
     bench.stop();
+  }
+
+  private void save(Node node) {
+    // Store node
+    Vertex v = createNode(node);
+    // printVertex(v);
+
+    // Store edges of this node
+    createEdges(v, node);
+
+    for (Node child : SubgraphWalker.getAstChildren(node)) {
+      save(child);
+    }
   }
 
   private void printVertex(Vertex v) {
@@ -239,6 +245,7 @@ public class OverflowDatabase implements Database {
           Direction direction = getRelationshipDirection(f);
           List<Node> targets =
               IteratorUtils.stream(v.vertices(direction, getRelationshipLabel(f)))
+                  .filter(distinctByKey(Vertex::id))
                   .map(this::vertexToNode)
                   .collect(Collectors.toList());
           if (isCollection(f.getType())) {
@@ -262,6 +269,11 @@ public class OverflowDatabase implements Database {
               Array.set(targetArray, i, targets.get(i));
             }
             f.set(node, targetArray);
+          } else {
+            // single edge
+            if (targets.size() > 0) {
+              f.set(node, targets.get(0));
+            }
           }
         }
       }
@@ -276,7 +288,16 @@ public class OverflowDatabase implements Database {
     return null;
   }
 
+  public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+    Set<Object> seen = ConcurrentHashMap.newKeySet();
+    return t -> seen.add(keyExtractor.apply(t));
+  }
+
   public Vertex createNode(Node n) {
+    if (nodeToVertex.containsKey(n)) {
+      return nodeToVertex.get(n);
+    }
+
     List<String> labels = getNodeLabel(n.getClass());
     HashMap<Object, Object> properties = new HashMap<>();
 
@@ -322,7 +343,10 @@ public class OverflowDatabase implements Database {
       props.add(p.getValue());
     }
 
-    return graph.addVertex(props.toArray());
+    Vertex result = graph.addVertex(props.toArray());
+    nodeToVertex.put(n, result);
+    vertexToNode.put(result, n);
+    return result;
   }
 
   private Map<Object, Object> convertToVertexProperty(Field f, Object content) {
@@ -387,20 +411,23 @@ public class OverflowDatabase implements Database {
             // provide a type hint for later re-translation into a field
             v.property(f.getName() + "_type", x.getClass());
 
-            if (direction.equals(Direction.OUT) || direction.equals(Direction.BOTH)) {
-              // Create an edge from a field value
-              if (isCollection(x.getClass())) {
-                // Add multiple edges for collections
-                connectAll(v, relName, (Collection) x);
-              } else if (Node[].class.isAssignableFrom(x.getClass())) {
-                connectAll(v, relName, Arrays.asList(x));
-              } else {
-                // Add single edge for non-collections
-                Vertex target = connect(v, relName, (Node) x);
-                assert target.property("hashCode").value().equals(x.hashCode());
-              }
+            // Create an edge from a field value
+            if (isCollection(x.getClass())) {
+              // Add multiple edges for collections
+              connectAll(v, relName, (Collection) x, direction.equals(Direction.IN));
+              //              for (Object child : (Collection) x) {
+              //                createEdges(nodeToVertex.get((Node) child), (Node) child);
+              //              }
+            } else if (Node[].class.isAssignableFrom(x.getClass())) {
+              connectAll(v, relName, Arrays.asList(x), direction.equals(Direction.IN));
+              //              for (Object child : (Node[]) x) {
+              //                createEdges(nodeToVertex.get((Node) child), (Node) child);
+              //              }
             } else {
-              // TODO Handle INCOMING relations, unsure if needed
+              // Add single edge for non-collections
+              Vertex target = connect(v, relName, (Node) x, direction.equals(Direction.IN));
+              assert target.property("hashCode").value().equals(x.hashCode());
+              //              createEdges(target, (Node) x);
             }
           } catch (IllegalAccessException e) {
             e.printStackTrace();
@@ -410,41 +437,32 @@ public class OverflowDatabase implements Database {
     }
   }
 
-  private Vertex connect(Vertex sourceVertex, String label, Node targetNode) {
-    // avoid loops
-    if (visited.containsKey(sourceVertex) && visited.get(sourceVertex).containsKey(targetNode)) {
-      return visited.get(sourceVertex).get(targetNode);
-    }
-
+  private Vertex connect(Vertex sourceVertex, String label, Node targetNode, boolean reverse) {
     Vertex targetVertex = null;
-    if (hashCodeToVertexId.containsKey(targetNode.hashCode())) {
-      Iterator<Vertex> vIt = graph.vertices(hashCodeToVertexId.get(targetNode.hashCode()));
+    if (nodeToVertex.containsKey(targetNode)) {
+      Iterator<Vertex> vIt = graph.vertices(nodeToVertex.get(targetNode));
       if (vIt.hasNext()) {
         targetVertex = vIt.next();
       }
     }
     if (targetVertex == null) {
       targetVertex = createNode((Node) targetNode);
-      hashCodeToVertexId.put(targetNode.hashCode(), (long) targetVertex.id());
     }
-    sourceVertex.addEdge(label, targetVertex);
-
-    Map<Object, Vertex> visitedFromHere = new HashMap<>();
-    visitedFromHere.put(targetNode, targetVertex);
-    if (!visited.containsKey(sourceVertex)) {
-      visited.put(sourceVertex, new HashMap<>());
+    if (reverse) {
+      targetVertex.addEdge(label, sourceVertex);
+    } else {
+      sourceVertex.addEdge(label, targetVertex);
     }
-    visited.get(sourceVertex).put(targetNode, targetVertex);
 
-    createEdges(targetVertex, targetNode);
     return targetVertex;
   }
 
-  private void connectAll(Vertex sourceVertex, String label, Collection<?> targetNodes) {
+  private void connectAll(
+      Vertex sourceVertex, String label, Collection<?> targetNodes, boolean reverse) {
     for (Object entry : targetNodes) {
       //                  System.out.println(entry + " " + entry.hashCode());
       if (Node.class.isAssignableFrom(entry.getClass())) {
-        Vertex target = connect(sourceVertex, label, (Node) entry);
+        Vertex target = connect(sourceVertex, label, (Node) entry, reverse);
         assert target.property("hashCode").value().equals(entry.hashCode());
       } else {
         System.out.println("Found non-Node class in collection for label \"" + label + "\"");
@@ -456,10 +474,10 @@ public class OverflowDatabase implements Database {
    * Reproduced Neo4J-OGM behavior for mapping fields to relationships (or properties otherwise).
    */
   private boolean mapsToRelationship(Field f) {
-    return hasAnnotation(f, Relationship.class) || Node.class.isAssignableFrom(getEdgeType(f));
+    return hasAnnotation(f, Relationship.class) || Node.class.isAssignableFrom(getContainedType(f));
   }
 
-  private Class<?> getEdgeType(Field f) {
+  private Class<?> getContainedType(Field f) {
     if (Collection.class.isAssignableFrom(f.getType())) {
       // Check whether the elements in this collection are nodes
       assert f.getGenericType() instanceof ParameterizedType;
@@ -490,7 +508,8 @@ public class OverflowDatabase implements Database {
     }
 
     // check whether this is some kind of primitive datatype that seems likely to be a property
-    String type = f.getType().getTypeName();
+    String type = getContainedType(f).getTypeName();
+
     return PRIMITIVES.contains(type) || AUTOBOXERS.contains(type);
   }
 
@@ -577,7 +596,7 @@ public class OverflowDatabase implements Database {
         final Set<String> EMPTY_SET = new HashSet<>();
         if (getRelationshipDirection(field).equals(Direction.OUT)) {
           List<Class> classesWithIncomingEdge = new ArrayList<>();
-          classesWithIncomingEdge.add(getEdgeType(field));
+          classesWithIncomingEdge.add(getContainedType(field));
           for (int i = 0; i < classesWithIncomingEdge.size(); i++) {
             Class subclass = classesWithIncomingEdge.get(i);
             String relName = getRelationshipLabel(field);

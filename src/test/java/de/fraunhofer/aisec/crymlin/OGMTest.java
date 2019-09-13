@@ -42,6 +42,9 @@ public class OGMTest {
 
     TranslationResult result = analyzer.analyze().get();
     List<TranslationUnitDeclaration> original = result.getTranslationUnits();
+    //    Neo4jDatabase.getInstance().connect();
+    //    Neo4jDatabase.getInstance().purgeDatabase();
+    //    Neo4jDatabase.getInstance().saveAll(original);
     OverflowDatabase.getInstance().saveAll(original);
 
     GraphTraversal<Vertex, Vertex> traversal =
@@ -59,8 +62,9 @@ public class OGMTest {
       restored.add((TranslationUnitDeclaration) n);
     }
 
-    // TODO looks like it got everything already, but the node classes have no appropriate equals
-    //  methods
-    // assert new HashSet<>(original).equals(new HashSet<>(restored));
+    // TODO looks like it is identical, but somehow it does not pass the "equals test yet
+    //    restored.get(0).equals(original.get(0));
+    //    Neo4jDatabase.getInstance().purgeDatabase();
+    //    Neo4jDatabase.getInstance().saveAll(restored);
   }
 }

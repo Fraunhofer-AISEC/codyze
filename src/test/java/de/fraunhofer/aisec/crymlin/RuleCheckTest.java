@@ -1,8 +1,5 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -12,6 +9,10 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.URL;
 import java.util.List;
@@ -19,9 +20,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class RuleCheckTest {
 
@@ -106,6 +107,9 @@ public class RuleCheckTest {
   @Test
   public void translationunitsTest() throws Exception {
     List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
+    for (String tu : tus) {
+      System.out.println(tu);
+    }
     assertNotNull(tus);
     assertEquals(1, tus.size());
     assertTrue(tus.get(0).endsWith("mark_rule_eval.cpp"));

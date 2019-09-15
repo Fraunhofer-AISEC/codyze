@@ -77,7 +77,7 @@ val versions = mapOf(
         "javaparser" to "3.11.0",
         "commons-lang3" to "3.8.1",
         "jython" to "2.7.1",
-        "tinkerpop" to "3.3.4",
+        "tinkerpop" to "3.4.3",
         "neo4j-gremlin-bolt" to "0.3.1",
         "xml.bind" to "2.3.1"
 )

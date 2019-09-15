@@ -1,16 +1,16 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.hasLabel;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
-
 import de.fraunhofer.aisec.cpg.graph.*;
-import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import static de.fraunhofer.aisec.crymlin.dsl.__.hasLabel;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
 
 /**
  * This class adds new functions to the traversal to START from
@@ -34,7 +34,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   public GraphTraversal<Vertex, Vertex> variableDeclarations() {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal.hasLabel(LabelP.of(VariableDeclaration.class.getSimpleName()));
+    return traversal.has("type", VariableDeclaration.class.getSimpleName());
   }
 
   // FIXME names of functions are '<namespace>::<function name>'
@@ -50,7 +50,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   public GraphTraversal<Vertex, Vertex> calls() {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal.has(T.label, LabelP.of(CallExpression.class.getSimpleName()));
+    return traversal.hasLabel(CallExpression.class.getSimpleName(), OverflowDatabase.getSubclasses(CallExpression.class));
   }
 
   /**
@@ -62,9 +62,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   public GraphTraversal<Vertex, Vertex> calls(String callee_name) {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal
-        .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
-        .has("name", callee_name);
+    return traversal.has("type", CallExpression.class.getSimpleName()).has("name", callee_name);
   }
 
   /**
@@ -79,9 +77,9 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
     return traversal
-        .has(T.label, LabelP.of(CallExpression.class.getSimpleName()))
+        .hasLabel(CallExpression.class.getSimpleName(), OverflowDatabase.getSubclasses(CallExpression.class))
         .has("name", callee_name)
-        .where(out("BASE").has("type", base_type));
+        .where(out("BASE").has("labels", base_type));
   }
 
   /**
@@ -90,9 +88,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
    * @return
    */
   public GraphTraversal<Vertex, Vertex> methods() {
-    GraphTraversalSource traversal = this.clone();
-
-    return traversal.V().has(T.label, LabelP.of(MethodDeclaration.class.getSimpleName()));
+    return this.clone().V().hasLabel(MethodDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(MethodDeclaration.class));
   }
 
   //  @Deprecated
@@ -108,9 +104,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
    * @return
    */
   public GraphTraversal<Vertex, Vertex> translationunits() {
-    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
-
-    return traversal.has(T.label, LabelP.of(TranslationUnitDeclaration.class.getSimpleName()));
+    return this.clone().V().hasLabel(TranslationUnitDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(TranslationUnitDeclaration.class));
   }
 
   /**
@@ -119,9 +113,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
    * @return
    */
   public GraphTraversal<Vertex, Vertex> recorddeclarations() {
-    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
-
-    return traversal.has(T.label, LabelP.of(RecordDeclaration.class.getSimpleName()));
+    return this.clone().V().hasLabel(RecordDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(RecordDeclaration.class));
   }
 
   /**
@@ -132,9 +124,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   public GraphTraversal<Vertex, Vertex> recorddeclaration(String recordname) {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal
-        .has(T.label, LabelP.of(RecordDeclaration.class.getSimpleName()))
-        .has("name", recordname);
+    return this.clone().V().hasLabel(RecordDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(RecordDeclaration.class)).has("name", recordname);
   }
 
   /**
@@ -143,7 +133,15 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
    * @return
    */
   public GraphTraversal<Vertex, Vertex> functiondeclarations() {
-    return this.clone().V().has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()));
+
+    // NOTE We can query for multiple labels like this:
+    // graph.traversal().V().where(hasLabel("VariableDeclaration").or().hasLabel("DeclaredReferenceExpression")).label().toList()
+    //
+    // or, much simpler:
+    //
+    // graph.traversal().V().hasLabel("VariableDeclaration", "DeclaredReferenceExpression").toList()
+
+    return this.clone().V().hasLabel(FunctionDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(FunctionDeclaration.class));
     //    return this.clone().V().hasLabel(FunctionDeclaration.class.getSimpleName());
     //    return traversal.has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()));
   }
@@ -157,7 +155,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
     return traversal
-        .has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()))
+        .hasLabel(FunctionDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(FunctionDeclaration.class))
         .has("name", functionname);
   }
 
@@ -169,7 +167,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   public GraphTraversal<Vertex, Vertex> declarations() {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal.has(T.label, LabelP.of(Declaration.class.getSimpleName()));
+    return traversal.hasLabel(Declaration.class.getSimpleName(), OverflowDatabase.getSubclasses(Declaration.class));
   }
 
   /**
@@ -201,7 +199,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
     return traversal
         .has(T.id, id)
         .repeat(out("EOG"))
-        .until(hasLabel(LabelP.of(MemberCallExpression.class.getSimpleName())))
-        .emit(hasLabel(LabelP.of(MemberCallExpression.class.getSimpleName())));
+        .until(hasLabel(MemberCallExpression.class.getSimpleName(), OverflowDatabase.getSubclasses(MemberCallExpression.class)))
+        .emit(hasLabel(MemberCallExpression.class.getSimpleName(), OverflowDatabase.getSubclasses(MemberCallExpression.class)));
   }
 }

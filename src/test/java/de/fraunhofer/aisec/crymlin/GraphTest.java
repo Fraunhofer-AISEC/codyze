@@ -1,8 +1,5 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -13,6 +10,10 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -21,9 +22,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 /** Tests structure of CPG generated from "real" source files. */
 class GraphTest {
@@ -117,7 +118,7 @@ class GraphTest {
             .getGraph()
             .traversal()
             .V()
-            .has("type", FunctionDeclaration.class.getSimpleName())
+            .hasLabel(FunctionDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(FunctionDeclaration.class))
             .values("name")
             .toSet();
     assertFalse(functions.isEmpty());

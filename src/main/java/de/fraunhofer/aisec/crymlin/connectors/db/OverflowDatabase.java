@@ -4,45 +4,8 @@ import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import io.shiftleft.overflowdb.EdgeFactory;
-import io.shiftleft.overflowdb.EdgeLayoutInformation;
-import io.shiftleft.overflowdb.NodeFactory;
-import io.shiftleft.overflowdb.NodeLayoutInformation;
-import io.shiftleft.overflowdb.NodeRef;
-import io.shiftleft.overflowdb.OdbConfig;
-import io.shiftleft.overflowdb.OdbEdge;
-import io.shiftleft.overflowdb.OdbGraph;
-import io.shiftleft.overflowdb.OdbNode;
-import io.shiftleft.overflowdb.OdbNodeProperty;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import io.shiftleft.overflowdb.*;
+import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.javatuples.Pair;
@@ -58,13 +21,23 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.*;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
  *
  * <p>OverflowDB is Shiftleft's fork of Tinkergraph, which is a more efficient in-memory graph DB
  * which overflows to disk when memory is full.
  */
-public class OverflowDatabase implements Database {
+public class OverflowDatabase<N> implements Database<N> {
   // persistable property types, taken from Neo4j
   private static final String PRIMITIVES =
       "char,byte,short,int,long,float,double,boolean,char[],byte[],short[],int[],long[],float[],double[],boolean[]";
@@ -96,28 +69,24 @@ public class OverflowDatabase implements Database {
   private static OverflowDatabase INSTANCE;
   private final OdbGraph graph;
 
-  Map<Node, Vertex> nodeToVertex = new IdentityHashMap<>();
-  Map<Vertex, Node> vertexToNode = new IdentityHashMap<>();
-  Map<Vertex, Node> nodesCache = new IdentityHashMap<>();
+  Map<N, Vertex> nodeToVertex = new IdentityHashMap<>();
+  Map<Vertex, N> vertexToNode = new IdentityHashMap<>();
+  Map<Vertex, N> nodesCache = new IdentityHashMap<>();
 
   // Scan all classes in package
-  Reflections reflections;
+  private static final Reflections reflections =
+          new Reflections(
+                  new ConfigurationBuilder()
+                          .setScanners(
+                                  new SubTypesScanner(false /* don't exclude Object.class */),
+                                  new ResourcesScanner())
+                          .setUrls(
+                                  ClasspathHelper.forClassLoader(ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()))
+                          .addUrls(ClasspathHelper.forJavaClassPath())
+                          .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
 
   private OverflowDatabase() {
-    List<ClassLoader> classLoadersList = new LinkedList<>();
-    classLoadersList.add(ClasspathHelper.contextClassLoader());
-    classLoadersList.add(ClasspathHelper.staticClassLoader());
-    reflections =
-        new Reflections(
-            new ConfigurationBuilder()
-                .setScanners(
-                    new SubTypesScanner(false /* don't exclude Object.class */),
-                    new ResourcesScanner())
-                .setUrls(
-                    ClasspathHelper.forClassLoader(classLoadersList.toArray(new ClassLoader[0])))
-                .addUrls(ClasspathHelper.forJavaClassPath())
-                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
-
+    // Create factories for nodes and edges of CPG.
     Pair<List<NodeFactory<OdbNode>>, List<EdgeFactory<OdbEdge>>> factories = getFactories();
     List<NodeFactory<OdbNode>> nodeFactories = factories.getValue0();
     List<EdgeFactory<OdbEdge>> edgeFactories = factories.getValue1();
@@ -137,7 +106,7 @@ public class OverflowDatabase implements Database {
             Collections.unmodifiableList(edgeFactories));
   }
 
-  public static OverflowDatabase getInstance() {
+  public static <N> OverflowDatabase<N> getInstance() {
     if (INSTANCE == null || INSTANCE.graph.isClosed()) {
       INSTANCE = new OverflowDatabase();
     }
@@ -156,20 +125,20 @@ public class OverflowDatabase implements Database {
   }
 
   @Override
-  public <T extends Node> T find(Class<T> clazz, Long id) {
+  public <T extends N> T find(Class<T> clazz, Long id) {
     return (T) vertexToNode(graph.traversal().V(id).next());
   }
 
   @Override
-  public void saveAll(Collection<? extends Node> list) {
+  public void saveAll(Collection<? extends N> list) {
     Benchmark bench = new Benchmark(OverflowDatabase.class, "save all");
-    for (Node node : list) {
+    for (N node : list) {
       save(node);
     }
     bench.stop();
   }
 
-  private void save(Node node) {
+  private void save(N node) {
     // Store node
     Vertex v = createNode(node);
     // printVertex(v);
@@ -177,8 +146,13 @@ public class OverflowDatabase implements Database {
     // Store edges of this node
     createEdges(v, node);
 
-    for (Node child : SubgraphWalker.getAstChildren(node)) {
-      save(child);
+    if (!Node.class.isAssignableFrom(node.getClass())) {
+      throw new RuntimeException("Cannot apply SubgraphWalker to " + node.getClass() + ".");
+    }
+
+    // TODO We may want to generify SubgraphWalker and not bind it directly to Node.
+    for (Node child : SubgraphWalker.getAstChildren((Node) node)) {
+      save((N) child);
     }
   }
 
@@ -218,7 +192,7 @@ public class OverflowDatabase implements Database {
     return (Map<K, V>) propertyValues.get(n);
   }
 
-  public Node vertexToNode(Vertex v) {
+  public N vertexToNode(Vertex v) {
     // avoid loops
     if (nodesCache.containsKey(v)) {
       return nodesCache.get(v);
@@ -228,9 +202,9 @@ public class OverflowDatabase implements Database {
     if (targetClass == null) {
       return null;
     }
-    assert Node.class.isAssignableFrom(targetClass);
+
     try {
-      Node node = (Node) targetClass.getDeclaredConstructor().newInstance();
+      N node = (N) targetClass.getDeclaredConstructor().newInstance();
       nodesCache.put(v, node);
 
       for (Field f : getFieldsIncludingSuperclasses(targetClass)) {
@@ -243,7 +217,7 @@ public class OverflowDatabase implements Database {
           f.set(node, value);
         } else if (mapsToRelationship(f)) {
           Direction direction = getRelationshipDirection(f);
-          List<Node> targets =
+          List<N> targets =
               IteratorUtils.stream(v.vertices(direction, getRelationshipLabel(f)))
                   .filter(distinctByKey(Vertex::id))
                   .map(this::vertexToNode)
@@ -293,16 +267,15 @@ public class OverflowDatabase implements Database {
     return t -> seen.add(keyExtractor.apply(t));
   }
 
-  public Vertex createNode(Node n) {
+  public Vertex createNode(N n) {
     if (nodeToVertex.containsKey(n)) {
       return nodeToVertex.get(n);
     }
 
-    List<String> labels = getNodeLabel(n.getClass());
     HashMap<Object, Object> properties = new HashMap<>();
 
     // Set node label (from its class)
-    properties.put(T.label, String.join("::", labels));
+    properties.put(T.label, n.getClass().getSimpleName());
 
     // Set node properties (from field values which are not relationships)
     List<Field> fields = getFieldsIncludingSuperclasses(n.getClass());
@@ -328,7 +301,7 @@ public class OverflowDatabase implements Database {
     }
 
     // Add types of nodes (names of superclasses) to properties
-    List<String> superclasses = getNodeLabel(n.getClass());
+    List<String> superclasses = Arrays.asList(getSuperclasses(n.getClass()));
     properties.put("labels", superclasses);
 
     // Add hashCode of object so we can easily retrieve a vertex from graph given the node object
@@ -393,7 +366,7 @@ public class OverflowDatabase implements Database {
     return null;
   }
 
-  public void createEdges(Vertex v, Node n) {
+  public void createEdges(Vertex v, N n) {
     for (Class<?> c = n.getClass(); c != Object.class; c = c.getSuperclass()) {
       for (Field f : getFieldsIncludingSuperclasses(c)) {
         if (mapsToRelationship(f)) {
@@ -446,7 +419,7 @@ public class OverflowDatabase implements Database {
       }
     }
     if (targetVertex == null) {
-      targetVertex = createNode((Node) targetNode);
+      targetVertex = createNode((N) targetNode);
     }
     if (reverse) {
       targetVertex.addEdge(label, sourceVertex);
@@ -517,20 +490,30 @@ public class OverflowDatabase implements Database {
     return Collection.class.isAssignableFrom(aClass);
   }
 
-  public static List<String> getNodeLabel(Class c) {
+  public static String[] getSubclasses(Class<?> c) {
+    // TODO Cache this
+    Set<String> subclasses = new HashSet<>();
+    subclasses.add(c.getSimpleName());
+    subclasses.addAll(reflections.getSubTypesOf(c).stream().map(Class::getSimpleName).collect(Collectors.toSet()));
+    return subclasses.toArray(new String[0]);
+  }
+
+  public static String[] getSuperclasses(Class c) {
     List<String> labels = new ArrayList<>();
     while (!c.equals(Object.class)) {
       labels.add(c.getSimpleName());
       c = c.getSuperclass();
     }
-    return labels;
+    return labels.toArray(new String[0]);
   }
 
   @Override
   public void purgeDatabase() {
-    System.out.println(graph.traversal().V().count().next());
-    graph.traversal().V().drop();
-    System.out.println(graph.traversal().V().count().next());
+    // The way to fully delete an OverflowDB is to simply close the graph. A new instance will be created at next call to getInstance()
+    graph.close();
+//    System.out.println(graph.traversal().V().count().next());
+//    graph.traversal().V().drop();
+//    System.out.println(graph.traversal().V().count().next());
   }
 
   @Override
@@ -680,7 +663,7 @@ public class OverflowDatabase implements Database {
     return new NodeFactory<>() {
       @Override
       public String forLabel() {
-        return String.join("::", getNodeLabel(c));
+        return c.getSimpleName();
       }
 
       @Override

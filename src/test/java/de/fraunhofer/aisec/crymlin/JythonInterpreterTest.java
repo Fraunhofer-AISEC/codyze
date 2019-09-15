@@ -1,19 +1,20 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import javax.script.ScriptException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.BulkSet;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.Test;
+
+import javax.script.ScriptException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Testing the Gremlin-over-Jython interface of the analysis server. */
 public class JythonInterpreterTest {
@@ -122,12 +123,12 @@ public class JythonInterpreterTest {
       Long size = g.V().count().next();
       List<Object> t =
           g.addV()
-              .property(T.label, "TranslationUnitDeclaration::Declaration::Node")
-              .property("some_key", "some_value")
+              .property(T.label, "TranslationUnitDeclaration")
+              .property("name", "some_value")
               .store("one")
               .addV()
-              .property(T.label, "Declaration::Node")
-              .property("another_key", "another_value")
+              .property(T.label, "Declaration")
+              .property("name", "another_value")
               .store("one")
               .cap("one")
               .toList();

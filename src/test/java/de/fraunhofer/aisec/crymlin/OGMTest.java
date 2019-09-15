@@ -6,15 +6,16 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.jupiter.api.Test;
 
 public class OGMTest {
 
@@ -45,7 +46,7 @@ public class OGMTest {
     //    Neo4jDatabase.getInstance().connect();
     //    Neo4jDatabase.getInstance().purgeDatabase();
     //    Neo4jDatabase.getInstance().saveAll(original);
-    OverflowDatabase.getInstance().saveAll(original);
+    OverflowDatabase.<Node>getInstance().saveAll(original);
 
     GraphTraversal<Vertex, Vertex> traversal =
         OverflowDatabase.getInstance()
@@ -57,8 +58,8 @@ public class OGMTest {
     List<TranslationUnitDeclaration> restored = new ArrayList<>();
     while (traversal.hasNext()) {
       Vertex v = traversal.next();
-      Node n = OverflowDatabase.getInstance().vertexToNode(v);
-      assert n instanceof TranslationUnitDeclaration;
+      Node n = OverflowDatabase.<Node>getInstance().vertexToNode(v);
+      assert n instanceof TranslationUnitDeclaration : "n is not instanceof TranslationUnitDeclaration but " + n.getClass().getName();
       restored.add((TranslationUnitDeclaration) n);
     }
 

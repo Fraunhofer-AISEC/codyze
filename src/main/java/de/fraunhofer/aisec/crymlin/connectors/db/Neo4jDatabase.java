@@ -4,8 +4,6 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.ShutDownException;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.exception.ConnectionException;
 import org.neo4j.ogm.session.Session;
@@ -15,7 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-public class Neo4jDatabase implements Database {
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class Neo4jDatabase<N> implements Database<N> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jDatabase.class);
   private static final int MAX_TRIES = 10;
@@ -111,28 +112,36 @@ public class Neo4jDatabase implements Database {
     return isConnected.get();
   }
 
-  public <T extends Node> T find(Class<T> clazz, Long id) {
+  public <T extends N> T find(Class<T> clazz, Long id) {
     return session.load(clazz, id);
   }
 
-  public void saveAll(Collection<? extends Node> list) {
+  public Session getSession() {
+    return this.session;
+  }
+
+  public void saveAll(Collection<? extends N> list) {
     LOGGER.debug("Session id: {}", session.hashCode());
     Transaction tx = session.beginTransaction();
     boolean hadException = false;
     try {
       Benchmark bench = new Benchmark(Neo4jDatabase.class, "save all");
-      List<Node> worklist = new ArrayList<>(list);
+      List<N> worklist = new ArrayList<>(list);
       numNodes += worklist.size();
       for (int i = 0; i < worklist.size(); i++) {
         if (isCancelled.get()) {
           throw new ShutDownException();
         }
 
-        final Node n = worklist.get(i);
+        final N n = worklist.get(i);
         session.save(n, 1);
         numNodes++;
-        Set<Node> children = SubgraphWalker.getAstChildren(n);
-        worklist.addAll(children);
+
+        if (!Node.class.isAssignableFrom(n.getClass())) {
+          throw new RuntimeException("Cannot apply SubgraphWalker to node of class " + n.getClass().getName());
+        }
+        Set<Node> children = SubgraphWalker.getAstChildren((Node) n);
+        worklist.addAll((Collection<? extends N>) children);
       }
       bench.stop();
     } catch (ShutDownException r) {

@@ -16,6 +16,15 @@ import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkInterpreter;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -26,14 +35,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import javax.script.ScriptException;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This is the main CPG analysis server.
@@ -199,6 +200,21 @@ public class AnalysisServer {
               //                      .V()
               //                      .count()
               //                      .next());
+              return result;
+            })
+        .thenApply(
+            result -> {
+//                // Export from OverflowDB to file
+//                OverflowDatabase.getInstance().connect();
+//                Graph graph = OverflowDatabase.getInstance().getGraph();
+//
+//                // Import from file to Neo4J (for visualization only)
+//                Neo4jGraph neo4jGraph = Neo4jGraph.open("./graph.db");
+//                List<Vertex> nodes = graph.traversal().V().toList();
+//                for (Vertex v : nodes) {
+//                  neo4jGraph.addVertex(v);
+//                }
+
               return result;
             })
         //        .thenApplyAsync( // Persist to DB

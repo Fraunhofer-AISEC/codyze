@@ -209,7 +209,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
       for (Field f : getFieldsIncludingSuperclasses(targetClass)) {
         f.setAccessible(true);
-        if (mapsToProperty(f)) {
+        if (mapsToProperty(f) &&  v.property(f.getName()).isPresent()) {
           Object value = v.property(f.getName()).value();
           if (hasAnnotation(f, Convert.class)) {
             value = convertToNodeProperty(v, f, value);
@@ -682,7 +682,9 @@ public class OverflowDatabase<N> implements Database<N> {
 
             for (String relName : inFields.getOrDefault(c, new HashSet<>())) {
               if (relName != null) {
-                in.add(new EdgeLayoutInformation(relName, new HashSet<>()));
+                in.add(
+                    new EdgeLayoutInformation(
+                        relName, new HashSet<>())); // TODO Fill edge properties?
               }
             }
 
@@ -690,6 +692,7 @@ public class OverflowDatabase<N> implements Database<N> {
             for (Field f : getFieldsIncludingSuperclasses(c)) {
               if (mapsToProperty(f)) {
                 properties.add(f.getName());
+//                System.out.println("Node " + c.getSimpleName() + " has property " + f.getName());
                 if (isCollection(f.getType())) {
                   // type hints for exact collection type
                   properties.add(f.getName() + "_type");
@@ -702,7 +705,15 @@ public class OverflowDatabase<N> implements Database<N> {
 
           @Override
           protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
-            return IteratorUtils.of(new OdbNodeProperty(this, key, this.propertyValues.get(key)));
+            /* We filter out null property values here. GraphMLWriter cannot handle these and will die with NPE.
+               Gremlin assumes that property values are non-null.
+             */
+            Object values = this.propertyValues.get(key);
+            if (values == null ||
+                    (Collection.class.isAssignableFrom(values.getClass()) && ((Collection) values).isEmpty())) {
+              return new ArrayList<VertexProperty<V>>(0).iterator();
+            }
+            return IteratorUtils.<VertexProperty<V>>of(new OdbNodeProperty(this, key, this.propertyValues.get(key)));
           }
 
           @Override

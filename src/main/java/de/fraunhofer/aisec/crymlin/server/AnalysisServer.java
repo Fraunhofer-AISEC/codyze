@@ -17,6 +17,11 @@ import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkInterpreter;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
+import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo;
+import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLReader;
+import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -26,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -177,6 +184,8 @@ public class AnalysisServer {
                   new TraversalConnection(
                       TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
                 CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
+                // TODO remove the next two queries. The are just for debugging/logging and cost
+                // time in production.
                 Long numEdges = crymlinTraversal.V().outE().count().next();
                 Long numVertices = crymlinTraversal.V().count().next();
                 log.info(
@@ -185,39 +194,37 @@ public class AnalysisServer {
                     String.format("%.2f", (double) duration / numVertices),
                     numEdges,
                     String.format("%.2f", (double) duration / numEdges));
-                System.out.println(t.getCrymlinTraversal().V().count().next());
-                System.out.println(String.join(", ", t.getCrymlinTraversal().V().label().toList()));
-                System.out.println(
-                    String.join(
-                        ", ", t.getCrymlinTraversal().functiondeclarations().name().toList()));
               }
               log.info(
                   "Benchmark: Persisted approx {} nodes",
                   OverflowDatabase.getInstance().getNumNodes());
-              //              System.out.println(
-              //                  new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)
-              //                      .getCrymlinTraversal()
-              //                      .V()
-              //                      .count()
-              //                      .next());
               return result;
             })
         .thenApply(
             result -> {
-              //                // Export from OverflowDB to file
-              //                OverflowDatabase.getInstance().connect();
-              //                Graph graph = OverflowDatabase.getInstance().getGraph();
-              //
-              //                // Import from file to Neo4J (for visualization only)
-              //                Neo4jGraph neo4jGraph = Neo4jGraph.open("./graph.db");
-              //                List<Vertex> nodes = graph.traversal().V().toList();
-              //                for (Vertex v : nodes) {
-              //                  neo4jGraph.addVertex(v);
-              //                }
+              // Export from OverflowDB to file
+              OverflowDatabase.getInstance().connect();
+              Graph graph = OverflowDatabase.getInstance().getGraph();
 
+              System.out.println(graph.traversal().V().count());
+              try (FileOutputStream fos = new FileOutputStream("this-is-so-graphic.graphml")) {
+                GraphMLWriter.Builder writer = graph.io(GraphMLIo.build()).writer();
+                writer.create().writeGraph(fos, graph);
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
+
+              // Import from file to Neo4J (for visualization only)
+              try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
+                Neo4jGraph neo4jGraph = Neo4jGraph.open("/var/lib/neo4j/data/databases/graph.db");
+                GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
+                reader.create().readGraph(fis, neo4jGraph);
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
               return result;
             })
-//        .thenApplyAsync(result -> persistToNeo4J(result))
+        //        .thenApplyAsync(result -> persistToNeo4J(result))
         .thenApply(
             result -> {
               log.info(

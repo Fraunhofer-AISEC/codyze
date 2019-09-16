@@ -99,16 +99,6 @@ public class RuleCheckTest {
     assertTrue(ctx.methods.isEmpty());
   }
 
-  @SuppressWarnings("unchecked")
-  @Test
-  public void translationunitsTest() throws Exception {
-    List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
-
-    assertNotNull(tus);
-    assertEquals(1, tus.size());
-    assertTrue(tus.get(0).endsWith("mark_rule_eval.cpp"));
-  }
-
   @Test
   public void ruleCheckTest() throws Exception {
     AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");

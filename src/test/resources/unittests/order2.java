@@ -80,3 +80,11 @@ public class Someclass {
     p6.reset();
   }
 }
+public class Botan2{
+  public void create() {}
+  public void finish() {}
+  public void init() {}
+  public void process() {}
+  public void reset() {}
+  public void start() {}
+}

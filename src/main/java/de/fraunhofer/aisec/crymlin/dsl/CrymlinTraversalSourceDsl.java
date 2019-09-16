@@ -62,7 +62,9 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
   public GraphTraversal<Vertex, Vertex> calls(String callee_name) {
     GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-    return traversal.has("type", CallExpression.class.getSimpleName()).has("name", callee_name);
+    return traversal
+        .hasLabel(CallExpression.class.getSimpleName(), OverflowDatabase.getSubclasses(CallExpression.class))
+        .has("fqn", callee_name);
   }
 
   /**
@@ -78,8 +80,8 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
     return traversal
         .hasLabel(CallExpression.class.getSimpleName(), OverflowDatabase.getSubclasses(CallExpression.class))
-        .has("name", callee_name)
-        .where(out("BASE").has("labels", base_type));
+        .has("fqn", callee_name)
+        .where(out("BASE").has("type", base_type));
   }
 
   /**

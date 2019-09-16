@@ -185,9 +185,6 @@ public class MarkModelLoader {
     if (exp instanceof ComparisonExpression) {
       getRefsFromExp((((ComparisonExpression) exp).getLeft()), entityRefs, functionRefs);
       getRefsFromExp((((ComparisonExpression) exp).getRight()), entityRefs, functionRefs);
-    } else if (exp instanceof AdditionExpression) {
-      getRefsFromExp((((AdditionExpression) exp).getLeft()), entityRefs, functionRefs);
-      getRefsFromExp((((AdditionExpression) exp).getRight()), entityRefs, functionRefs);
     } else if (exp instanceof LiteralListExpression) {
       // only literals
     } else if (exp instanceof LogicalAndExpression) {

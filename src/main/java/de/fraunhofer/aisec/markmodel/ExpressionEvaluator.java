@@ -12,9 +12,35 @@ import de.fraunhofer.aisec.crymlin.utils.Builtins;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
-import de.fraunhofer.aisec.mark.markDsl.*;
-import java.util.*;
+import de.fraunhofer.aisec.mark.markDsl.Argument;
+import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
+import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
+import de.fraunhofer.aisec.mark.markDsl.Expression;
+import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
+import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration;
+import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
+import de.fraunhofer.aisec.mark.markDsl.Literal;
+import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
+import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
+import de.fraunhofer.aisec.mark.markDsl.OpStatement;
+import de.fraunhofer.aisec.mark.markDsl.Operand;
+import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
+import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
@@ -337,7 +363,7 @@ public class ExpressionEvaluator {
       case "_split":
         // arguments: String, String, int
         // example:
-        // _split("ASD/EFG/JKL", "/", 1) returns "EFG
+        // _split("ASD/EFG/JKL", "/", 1) returns "EFG"
         final List<Class> paramTypes = Arrays.asList(String.class, String.class, Integer.class);
         List<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
 
@@ -356,13 +382,16 @@ public class ExpressionEvaluator {
           }
         }
 
-        // todo validate that the arguments have the correct type
         String s = (String) argOptionals.get(0).get();
         String regex = (String) argOptionals.get(1).get();
         int index = (Integer) argOptionals.get(2).get();
         log.debug("args are: " + s + "; " + regex + "; " + index);
-        // returns String
-        return Optional.of(Builtins._split(s, regex, index));
+        String ret = Builtins._split(s, regex, index);
+        if (ret != null) {
+          return Optional.of(ret);
+        } else {
+          return Optional.empty();
+        }
 
       case "_receives_value_from":
         // arguments: var, var
@@ -387,12 +416,30 @@ public class ExpressionEvaluator {
         // arguments: var, String
         // example:
         // _is_instance(cm.rand, java.security.SecureRandom)
-        /* algo:
-        start at the DeclaredReferenceExpression of var
-        check that the type of the node equals the second argument
-         */
-        // returns boolean
-        break;
+        // we need to get the node(s) corresponding to the 1st argument, and the string for the
+        // second argument
+        EList<Argument> args = expr.getArgs();
+        Optional classnameArgument = evaluateExpression((Expression) (args.get(1)));
+        if (classnameArgument.isEmpty() || !(classnameArgument.get() instanceof String)) {
+          log.error("var of is_instance is empty");
+          return Optional.empty();
+        }
+        String classname = (String) classnameArgument.get();
+
+        // unify separators
+        classname = classname.replaceAll("::", ".");
+
+        List<Vertex> verticesForOperand = getMatchingVertices((Operand) args.get(0));
+        for (Vertex v : verticesForOperand) {
+          String type = v.value("type");
+          if (!type.equals(classname)) {
+            log.info("type of cpp ({}) and mark ({}) do not match", type, classname);
+            return Optional.of(false);
+          } else {
+            log.info("type of cpp ({}) and mark ({}) match", type, classname);
+          }
+        }
+        return Optional.of(true);
       case "_length":
         // todo what should this exactly to? check the array length?
 
@@ -431,20 +478,9 @@ public class ExpressionEvaluator {
         log.error("Unable to convert integer literal to Integer: {}\n{}", v, nfe);
       }
       return Optional.empty();
-    } else if (literal instanceof FloatingPointLiteral) {
-      log.debug("Literal is Floating Point: {}", v);
-      return Optional.of(Float.parseFloat(v));
     } else if (literal instanceof BooleanLiteral) {
       log.debug("Literal is Boolean: {}", v);
       return Optional.of(Boolean.parseBoolean(v));
-    } else if (literal instanceof CharacterLiteral) {
-      log.debug("Literal is Character: {}", v);
-      String strippedV = Utils.stripQuotedCharacter(v);
-
-      if (strippedV.length() > 1) {
-        log.warn("Character literal with length greater 1 found: {}", strippedV);
-      }
-      return Optional.of(strippedV.charAt(0));
     } else if (literal instanceof StringLiteral) {
       log.debug("Literal is String: {}", v);
       return Optional.of(Utils.stripQuotedString(v));
@@ -466,9 +502,6 @@ public class ExpressionEvaluator {
     } else if (expr instanceof ComparisonExpression) {
       log.debug("evaluating ComparisonExpression: " + MarkInterpreter.exprToString(expr));
       return evaluateLogicalExpr(expr);
-    } else if (expr instanceof AdditionExpression) {
-      log.debug("evaluating AdditionExpression: " + MarkInterpreter.exprToString(expr));
-      return evaluateAdditionExpr((AdditionExpression) expr);
     } else if (expr instanceof MultiplicationExpression) {
       log.debug("evaluating MultiplicationExpression: " + MarkInterpreter.exprToString(expr));
       return evaluateMultiplicationExpr((MultiplicationExpression) expr);
@@ -499,118 +532,6 @@ public class ExpressionEvaluator {
 
     log.error("unknown expression: " + MarkInterpreter.exprToString(expr));
     assert false; // all expression types must be handled
-    return Optional.empty();
-  }
-
-  private Optional evaluateAdditionExpr(AdditionExpression expr) {
-    log.debug("Evaluating addition expression: {}", MarkInterpreter.exprToString(expr));
-
-    String op = expr.getOp();
-    Expression left = expr.getLeft();
-    Expression right = expr.getRight();
-
-    Optional leftResult = evaluateExpression(left);
-    Optional rightResult = evaluateExpression(right);
-
-    if (leftResult.isEmpty() || rightResult.isEmpty()) {
-      log.error("Unable to evaluate at least one subexpression");
-      return Optional.empty();
-    }
-
-    Class leftResultType = leftResult.get().getClass();
-    Class rightResultType = rightResult.get().getClass();
-
-    switch (op) {
-      case "+":
-        if (leftResultType.equals(rightResultType)) {
-          if (leftResultType.equals(Integer.class)) {
-            return Optional.of(((Integer) leftResult.get()) + ((Integer) rightResult.get()));
-          } else if (leftResultType.equals(Float.class)) {
-            return Optional.of(((Float) leftResult.get()) + ((Float) rightResult.get()));
-          }
-
-          // TODO #8
-          log.error(
-              "Addition operator plus ('+') not supported for type: {}",
-              leftResultType.getSimpleName());
-          return Optional.empty();
-        }
-
-        // TODO #8
-        log.error(
-            "Type of left expression does not match type of right expression: {} vs. {}",
-            leftResultType.getSimpleName(),
-            rightResultType.getSimpleName());
-
-        return Optional.empty();
-      case "-":
-        if (leftResultType.equals(rightResultType)) {
-          if (leftResultType.equals(Integer.class)) {
-            return Optional.of(((Integer) leftResult.get()) - ((Integer) rightResult.get()));
-          } else if (leftResultType.equals(Float.class)) {
-            return Optional.of(((Float) leftResult.get()) - ((Float) rightResult.get()));
-          }
-
-          // TODO #8
-          log.error(
-              "Addition operator minus ('-') not supported for type: {}",
-              leftResultType.getSimpleName());
-          return Optional.empty();
-        }
-
-        // TODO #8
-        log.error(
-            "Type of left expression does not match type of right expression: {} vs. {}",
-            leftResultType.getSimpleName(),
-            rightResultType.getSimpleName());
-
-        return Optional.empty();
-      case "|":
-        if (leftResultType.equals(rightResultType)) {
-          if (leftResultType.equals(Integer.class)) {
-            return Optional.of(((Integer) leftResult.get()) | ((Integer) rightResult.get()));
-          }
-
-          // TODO #8
-          log.error(
-              "Addition operator bitwise or ('|') not supported for type: {}",
-              leftResultType.getSimpleName());
-          return Optional.empty();
-        }
-
-        // TODO #8
-        log.error(
-            "Type of left expression does not match type of right expression: {} vs. {}",
-            leftResultType.getSimpleName(),
-            rightResultType.getSimpleName());
-
-        return Optional.empty();
-      case "^":
-        if (leftResultType.equals(rightResultType)) {
-          if (leftResultType.equals(Integer.class)) {
-            return Optional.of(((Integer) leftResult.get()) ^ ((Integer) rightResult.get()));
-          }
-
-          // TODO #8
-          log.error(
-              "Addition operator bitwise xor ('^') not supported for type: {}",
-              leftResultType.getSimpleName());
-          return Optional.empty();
-        }
-
-        // TODO #8
-        log.error(
-            "Type of left expression does not match type of right expression: {} vs. {}",
-            leftResultType.getSimpleName(),
-            rightResultType.getSimpleName());
-
-        return Optional.empty();
-    }
-
-    log.error(
-        "Trying to evaluate unknown addition expression: {}", MarkInterpreter.exprToString(expr));
-
-    assert false; // not an addition expression
     return Optional.empty();
   }
 
@@ -702,7 +623,7 @@ public class ExpressionEvaluator {
         if (leftResultType.equals(rightResultType)) {
           if (leftResultType.equals(Integer.class)) {
             if (((Integer) rightResult.get()) >= 0) {
-              Optional.of(((Integer) leftResult.get()) << ((Integer) rightResult.get()));
+              return Optional.of(((Integer) leftResult.get()) << ((Integer) rightResult.get()));
             }
 
             // TODO #8
@@ -729,7 +650,8 @@ public class ExpressionEvaluator {
         if (leftResultType.equals(rightResultType)) {
           if (leftResultType.equals(Integer.class)) {
             if (((Integer) rightResult.get()) >= 0) {
-              Optional.of(((Integer) leftResult.get()) >> ((Integer) rightResult.get()));
+              // todo commentDT: return this?
+              return Optional.of(((Integer) leftResult.get()) >> ((Integer) rightResult.get()));
             }
 
             // TODO #8
@@ -875,6 +797,138 @@ public class ExpressionEvaluator {
     return Optional.empty();
   }
 
+  private List<Vertex> getMatchingVertices(Operand operand) {
+    final ArrayList<Vertex> ret = new ArrayList<>();
+
+    if (!context.hasContextType(EvaluationContext.Type.RULE)) {
+      log.error("Context is not a rule!");
+      return ret;
+    }
+    if (StringUtils.countMatches(operand.getOperand(), ".") != 1) {
+      log.error("operand contains more than one '.' which is not supported yet");
+      return ret;
+    }
+
+    final String[] operandParts = operand.getOperand().split("\\.");
+    final String instance = operandParts[0];
+    final String attribute = operandParts[1];
+
+    Pair<String, MEntity> ref = context.getRule().getEntityReferences().get(instance);
+    String entityName = ref.getValue0();
+    MEntity referencedEntity = ref.getValue1();
+
+    List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
+    List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
+
+    for (MOp operation : referencedEntity.getOps()) {
+      Set<OpStatement> vars = new HashSet<>();
+      Set<OpStatement> args = new HashSet<>();
+
+      for (OpStatement opStmt : operation.getStatements()) {
+        // simple assignment, i.e. var = something()
+        if (attribute.equals(opStmt.getVar())) {
+          vars.add(opStmt);
+        }
+        // ...or it's used as a function parameter, i.e. something(..., var, ...)
+        if (opStmt.getCall().getParams().stream().anyMatch(p -> p.equals(attribute))) {
+          args.add(opStmt);
+        }
+      }
+
+      if (vars.size() > 0) {
+        usesAsVar.add(new Pair<>(operation, vars));
+      }
+
+      if (args.size() > 0) {
+        usesAsFunctionArgs.add(new Pair<>(operation, args));
+      }
+    }
+
+    try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+      CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+
+      for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+        for (OpStatement opstmt : p.getValue1()) {
+
+          String fqFunctionName = opstmt.getCall().getName();
+
+          String functionName = Utils.extractMethodName(fqFunctionName);
+          String fqNamePart = Utils.extractType(fqFunctionName);
+
+          List<String> functionArgumentTypes =
+              referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall().getParams());
+
+          Set<Vertex> vertices =
+              CrymlinQueryWrapper.getCalls(
+                  crymlin, fqNamePart, functionName, null, functionArgumentTypes);
+
+          for (Vertex v : vertices) {
+            // check if there was an assignment
+
+            // todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
+            // step is in the crymlin traversal
+            List<Vertex> nextVertices =
+                CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
+
+            if (nextVertices.size() > 0) {
+              log.info("found RHS traversals: {}", nextVertices);
+              ret.addAll(nextVertices);
+            }
+
+            // check if there was a direct initialization (i.e., int i = call(foo);)
+            nextVertices = crymlin.byID((long) v.id()).initializerVariable().toList();
+
+            if (nextVertices.size() > 0) {
+              log.info("found Initializer traversals: {}", nextVertices);
+              ret.addAll(nextVertices);
+            }
+          }
+        }
+      }
+
+      for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
+        for (OpStatement opstmt : p.getValue1()) {
+
+          String fqFunctionName = opstmt.getCall().getName();
+          String functionName = Utils.extractMethodName(fqFunctionName);
+          String fqName = fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
+
+          if (fqName.endsWith("::")) {
+            fqName = fqName.substring(0, fqName.length() - 2);
+          }
+
+          EList<String> params = opstmt.getCall().getParams();
+          List<String> argumentTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
+          OptionalInt argumentIndexOptional =
+              IntStream.range(0, params.size())
+                  .filter(i -> attribute.equals(params.get(i)))
+                  .findFirst();
+          if (argumentIndexOptional.isEmpty()) {
+            log.error("argument not found in parameters. This should not happen");
+            continue;
+          }
+          int argumentIndex = argumentIndexOptional.getAsInt();
+
+          Set<Vertex> vertices =
+              CrymlinQueryWrapper.getCalls(
+                  crymlin, fqName, functionName, entityName, argumentTypes);
+
+          for (Vertex v : vertices) {
+            List<Vertex> argumentVertices =
+                crymlin.byID((long) v.id()).argument(argumentIndex).toList();
+
+            if (argumentVertices.size() == 1) {
+              ret.add(argumentVertices.get(0));
+            } else {
+              log.warn("Did not find one matching argument node, got {}", argumentVertices.size());
+            }
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
   private Optional evaluateOperand(Operand operand) {
     log.warn("Operand: {}", operand.getOperand());
 
@@ -893,7 +947,9 @@ public class ExpressionEvaluator {
       if (operandString.contains(".")) {
         String[] operandParts = operandString.split("\\.");
 
-        if (operandParts.length == 2) {
+        if (operandParts.length
+            == 2) { // todo add error-case, if operand is e.g. without separator, and a case if we
+          // have fqn for the entity
           String instance = operandParts[0];
           String attribute = operandParts[1];
 
@@ -931,6 +987,7 @@ public class ExpressionEvaluator {
 
             if (args.size() > 0) {
               usesAsFunctionArgs.add(new Pair<>(operation, args));
+              // todo: argumentindizes vorberechnen!
             }
           }
 
@@ -1001,14 +1058,14 @@ public class ExpressionEvaluator {
 
                 String fqFunctionName = fd.getName();
                 String functionName = Utils.extractMethodName(fqFunctionName);
-                String fqName =
+                String packageClass =
                     fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
 
-                if (fqName.endsWith("::")) {
-                  fqName = fqName.substring(0, fqName.length() - 2);
+                if (packageClass.endsWith(".")) {
+                  packageClass = packageClass.substring(0, packageClass.length() - 1);
                 }
 
-                List<String> argumentTypes = fd.getParams();
+                List<String> argumentTypes = new ArrayList<>(fd.getParams());
                 int argumentIndex = -1;
                 for (int i = 0; i < argumentTypes.size(); i++) {
                   String argVar = argumentTypes.get(i);
@@ -1017,7 +1074,7 @@ public class ExpressionEvaluator {
                     argumentIndex = i;
                   }
 
-                  if ("_".equals(argumentTypes) || "*".equals(argumentTypes)) {
+                  if (Constants.UNDERSCORE.equals(argVar) || Constants.ELLIPSIS.equals(argVar)) {
                     continue;
                   }
 
@@ -1028,18 +1085,18 @@ public class ExpressionEvaluator {
                 // looking for one of the arguments
                 Set<Vertex> vertices =
                     CrymlinQueryWrapper.getCalls(
-                        crymlin, fqName, functionName, entityName, argumentTypes);
+                        crymlin, packageClass, functionName, null, argumentTypes);
 
                 // further investigate each function call
                 for (Vertex v : vertices) {
-                  // vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
-                  // argument we're using in the function call
                   CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal =
                       crymlin
                           .byID((long) v.id())
                           .out("ARGUMENTS")
                           .has("argumentIndex", argumentIndex)
                           .out("REFERS_TO");
+                  // vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
+                  // argument we're using in the function call
 
                   // TODO potential NullPointerException
                   Vertex variableDeclarationVertex = variableDeclarationTraversal.toList().get(0);
@@ -1253,8 +1310,8 @@ public class ExpressionEvaluator {
                     Vertex tVertex = traversal.next();
 
                     boolean isBinaryOperatorVertex =
-                        Arrays.stream(tVertex.label().split(Neo4JVertex.LabelDelimiter))
-                            .anyMatch("BinaryOperator"::equals);
+                        Arrays.asList(tVertex.label().split(Neo4JVertex.LabelDelimiter))
+                            .contains("BinaryOperator");
 
                     if (isBinaryOperatorVertex
                         && "=".equals(tVertex.property("operatorCode").value())) {
@@ -1267,8 +1324,8 @@ public class ExpressionEvaluator {
                         Vertex rhs = tVertex.vertices(Direction.OUT, "RHS").next();
 
                         boolean isRhsLiteral =
-                            Arrays.stream(rhs.label().split(Neo4JVertex.LabelDelimiter))
-                                .anyMatch("Literal"::equals);
+                            Arrays.asList(rhs.label().split(Neo4JVertex.LabelDelimiter))
+                                .contains("Literal");
 
                         if (isRhsLiteral) {
                           Object literalValue = rhs.property("value").value();

@@ -14,7 +14,6 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import java.io.File;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -88,11 +87,6 @@ class ForbiddenTest {
     assertNotNull(ctx);
     assertTrue(ctx.methods.isEmpty());
 
-    List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
-    assertNotNull(tus);
-    assertEquals(1, tus.size());
-    assertTrue(Paths.get(tus.get(0)).endsWith(sourceFilename));
-
     List<String> findings = new ArrayList<>();
     ctx.getFindings().forEach(x -> findings.add(x.toString()));
 
@@ -101,13 +95,13 @@ class ForbiddenTest {
 
     assertTrue(
         findings.contains(
-            "line 42: Violation against forbidden call(s) BotanF::set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
+            "line 42: Violation against forbidden call(s) BotanF.set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
     assertTrue(
         findings.contains(
-            "line 37: Violation against forbidden call(s) BotanF::start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
+            "line 37: Violation against forbidden call(s) BotanF.start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
     assertTrue(
         findings.contains(
-            "line 36: Violation against forbidden call(s) BotanF::start() in Entity Forbidden. Call was b.start();"));
+            "line 36: Violation against forbidden call(s) BotanF.start() in Entity Forbidden. Call was b.start();"));
 
     // Stop the analysis server
     server.stop();

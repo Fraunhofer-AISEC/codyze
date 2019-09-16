@@ -24,7 +24,6 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -325,25 +324,6 @@ public class AnalysisServer {
    */
   public @NonNull Mark getMarkModel() {
     return this.markModel;
-  }
-
-  /**
-   * Runs a Gremlin query against the currently analyzed program.
-   *
-   * <p>Make sure to call {@code analyze()} before.
-   *
-   * @param crymlin
-   * @return
-   * @throws ScriptException
-   */
-  // todo remove. Then it is sufficient to initialize Jython only for the console case!
-  @Deprecated
-  public Object query(String crymlin) throws ScriptException {
-    if (interp == null) {
-      interp = new JythonInterpreter();
-      interp.connect();
-    }
-    return interp.query(crymlin);
   }
 
   public void stop() {

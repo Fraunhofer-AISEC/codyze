@@ -4,21 +4,21 @@
 // DOES NOT MAKE REAL SENSE
 char[] cipher;
 SymmetricKey key;
-InitializationVector iv;
+int iv;
 Cipher_Dir direction;
 char[] buf;
 
 void nok1() {
 Botan p = new Botan(1);
 p.set_key(key); // not allowed as start
-p.start(iv.bits_of());
+p.start(iv);
 p.finish(buf);
 p.foo(); // not in the entity and therefore ignored
 p.set_key(key);
 }
 void nok2 () {
 Botan p2 = new Botan(2);
-p2.start(iv.bits_of());
+p2.start(iv);
 // missing p2.finish(buf);
 }
 void nok3 () {

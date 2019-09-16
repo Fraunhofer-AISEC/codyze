@@ -38,6 +38,8 @@ public class Utils {
       opName = opName.substring(opName.lastIndexOf("::") + 2);
     } else if (opName.contains("->")) {
       opName = opName.substring(opName.lastIndexOf("->") + 2);
+    } else if (opName.contains(".")) {
+      opName = opName.substring(opName.lastIndexOf(".") + 1);
     }
     return opName;
   }
@@ -47,6 +49,10 @@ public class Utils {
       opName = opName.substring(0, opName.lastIndexOf("::"));
     } else if (opName.contains("->")) {
       opName = opName.substring(0, opName.lastIndexOf("->"));
+    } else if (opName.contains(".")) {
+      opName = opName.substring(0, opName.lastIndexOf("."));
+    } else {
+      opName = "";
     }
     return opName;
   }

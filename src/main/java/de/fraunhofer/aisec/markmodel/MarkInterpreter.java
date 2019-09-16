@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
@@ -10,15 +11,19 @@ import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,24 +99,16 @@ public class MarkInterpreter {
     return exprToString((Expression) arg); // Every Argument is also an Expression
   }
 
-  private HashSet<Vertex> getVerticesForFunctionDeclaration(
+  private Set<Vertex> getVerticesForFunctionDeclaration(
       FunctionDeclaration functionDeclaration,
       MEntity ent,
       CrymlinTraversalSource crymlinTraversal) {
     String functionName = Utils.extractMethodName(functionDeclaration.getName());
     String baseType = Utils.extractType(functionDeclaration.getName());
 
-    EList<String> params = functionDeclaration.getParams();
     // resolve parameters which have a corresponding var part in the entity
-    ArrayList<String> cloned = new ArrayList<>(params);
-    for (int i = 0; i < cloned.size(); i++) {
-      String typeForVar = ent.getTypeForVar(cloned.get(i));
-      if (typeForVar != null) {
-        cloned.set(i, typeForVar);
-      }
-    }
-
-    return CrymlinQueryWrapper.getCalls(crymlinTraversal, functionName, baseType, cloned);
+    ArrayList<String> args = ent.replaceArgumentVarsWithTypes(functionDeclaration.getParams());
+    return CrymlinQueryWrapper.getCalls(crymlinTraversal, baseType, functionName, null, args);
   }
 
   /**
@@ -123,7 +120,16 @@ public class MarkInterpreter {
    */
   public TranslationResult evaluate(TranslationResult result, AnalysisContext ctx) {
 
-    Instant outer_start = Instant.now();
+    Benchmark bOuter = new Benchmark(this.getClass(), "Mark evaluation");
+
+    Object o = result.getScratch().get(TranslationResult.SOURCEFILESTOFRONTEND);
+    if (o == null) {
+      log.error("Scratch does not contain correct {}", TranslationResult.SOURCEFILESTOFRONTEND);
+    } else {
+      //      HashMap<String, String> sftfe = (HashMap<String, String>) o;
+      //      HashSet<String> parser = new HashSet<>(sftfe.values());
+      //      parser.forEach(System.err::println);
+    }
 
     try (TraversalConnection t =
         new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
@@ -131,7 +137,7 @@ public class MarkInterpreter {
       List<Vertex> functions = crymlinTraversal.functiondeclarations().toList();
 
       log.info("Precalculating matching nodes");
-      Instant start = Instant.now();
+      Benchmark b = new Benchmark(this.getClass(), "Precalculating maching nodes");
       /*
       iterate all entities and precalculate some things:
          - call statements to vertices
@@ -143,7 +149,7 @@ public class MarkInterpreter {
           log.debug("Looking for call statements for {}", op.getName());
           int numMatches = 0;
           for (OpStatement a : op.getStatements()) {
-            HashSet<Vertex> temp =
+            Set<Vertex> temp =
                 getVerticesForFunctionDeclaration(a.getCall(), ent, crymlinTraversal);
             log.debug(
                 a.getCall().getName()
@@ -160,32 +166,24 @@ public class MarkInterpreter {
           }
         }
       }
-      log.info(
-          "Done precalculating matching nodes in {} ms.",
-          Duration.between(start, Instant.now()).toMillis());
+      b.stop();
 
       log.info("Evaluate forbidden calls");
-      start = Instant.now();
+      b = new Benchmark(this.getClass(), "Evaluate forbidden calls");
       evaluateForbiddenCalls(ctx);
-      log.info(
-          "Done evaluate forbidden calls in {} ms.",
-          Duration.between(start, Instant.now()).toMillis());
+      b.stop();
 
       log.info("Evaluate order");
-      start = Instant.now();
+      b = new Benchmark(this.getClass(), "Evaluate order");
       evaluateOrder(ctx, crymlinTraversal);
-      log.info(
-          "Done evaluating order in {} ms.", Duration.between(start, Instant.now()).toMillis());
+      b.stop();
 
       log.info("Evaluate rules");
-      start = Instant.now();
+      b = new Benchmark(this.getClass(), "Evaluate rules");
       evaluateRules(ctx);
-      log.info(
-          "Done evaluating rules in {} ms.", Duration.between(start, Instant.now()).toMillis());
+      b.stop();
 
-      log.info(
-          "Done evaluating ALL MARK in {} ms.",
-          Duration.between(outer_start, Instant.now()).toMillis());
+      bOuter.stop();
 
       return result;
     } finally {
@@ -724,16 +722,5 @@ public class MarkInterpreter {
         }
       }
     }
-  }
-
-  /**
-   * DUMMY FOR DEMO.
-   *
-   * <p>Method fakes that a statement is contained in the a MARK entity
-   *
-   * @return
-   */
-  private boolean containedInModel(Terminal expr) {
-    return true;
   }
 }

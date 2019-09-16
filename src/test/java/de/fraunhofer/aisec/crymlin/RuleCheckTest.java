@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -53,9 +52,6 @@ public class RuleCheckTest {
       e.printStackTrace();
       assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
     }
-
-    System.out.println(markPoC1.getAbsolutePath());
-    System.out.println(cppFile.getAbsolutePath());
 
     // Start an analysis server
     server =
@@ -107,9 +103,7 @@ public class RuleCheckTest {
   @Test
   public void translationunitsTest() throws Exception {
     List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
-    for (String tu : tus) {
-      System.out.println(tu);
-    }
+
     assertNotNull(tus);
     assertEquals(1, tus.size());
     assertTrue(tus.get(0).endsWith("mark_rule_eval.cpp"));

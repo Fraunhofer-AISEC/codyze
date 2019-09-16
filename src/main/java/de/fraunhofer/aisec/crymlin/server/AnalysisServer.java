@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
+import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -203,47 +204,20 @@ public class AnalysisServer {
             })
         .thenApply(
             result -> {
-//                // Export from OverflowDB to file
-//                OverflowDatabase.getInstance().connect();
-//                Graph graph = OverflowDatabase.getInstance().getGraph();
-//
-//                // Import from file to Neo4J (for visualization only)
-//                Neo4jGraph neo4jGraph = Neo4jGraph.open("./graph.db");
-//                List<Vertex> nodes = graph.traversal().V().toList();
-//                for (Vertex v : nodes) {
-//                  neo4jGraph.addVertex(v);
-//                }
+              //                // Export from OverflowDB to file
+              //                OverflowDatabase.getInstance().connect();
+              //                Graph graph = OverflowDatabase.getInstance().getGraph();
+              //
+              //                // Import from file to Neo4J (for visualization only)
+              //                Neo4jGraph neo4jGraph = Neo4jGraph.open("./graph.db");
+              //                List<Vertex> nodes = graph.traversal().V().toList();
+              //                for (Vertex v : nodes) {
+              //                  neo4jGraph.addVertex(v);
+              //                }
 
               return result;
             })
-        //        .thenApplyAsync( // Persist to DB
-        //            result -> {
-        //              Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
-        //              // Persist the result
-        //              Neo4jDatabase.getInstance()
-        //                  .connect(); // this does not connect again if we are already connected
-        //              Database db = OverflowDatabase.getInstance();
-        //              db.saveAll(result.getTranslationUnits());
-        //              long duration = b.stop();
-        //              try (TraversalConnection t =
-        //                  new TraversalConnection(TraversalConnection.Type.NEO4J)) { // connects
-        // to the DB
-        //                CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-        //                Long numEdges = crymlinTraversal.E().count().next();
-        //                Long numVertices = crymlinTraversal.V().count().next();
-        //                log.info(
-        //                    "Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({}
-        // ms/edge)",
-        //                    numVertices,
-        //                    String.format("%.2f", (double) duration / numVertices),
-        //                    numEdges,
-        //                    String.format("%.2f", (double) duration / numEdges));
-        //              }
-        //              log.info(
-        //                  "Benchmark: Persisted approx {} nodes",
-        //                  Neo4jDatabase.getInstance().getNumNodes());
-        //              return result;
-        //            })
+//        .thenApplyAsync(result -> persistToNeo4J(result))
         .thenApply(
             result -> {
               log.info(
@@ -363,5 +337,29 @@ public class AnalysisServer {
     public AnalysisServer build() {
       return new AnalysisServer(this.config);
     }
+  }
+
+  private TranslationResult persistToNeo4J(TranslationResult result) {
+    Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
+    // Persist the result
+    Neo4jDatabase.getInstance()
+        .connect(); // this does not connect again if we are already connected
+    Database db = OverflowDatabase.getInstance();
+    db.saveAll(result.getTranslationUnits());
+    long duration = b.stop();
+    // connect to DB
+    try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
+      CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
+      Long numEdges = crymlinTraversal.E().count().next();
+      Long numVertices = crymlinTraversal.V().count().next();
+      log.info(
+          "Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
+          numVertices,
+          String.format("%.2f", (double) duration / numVertices),
+          numEdges,
+          String.format("%.2f", (double) duration / numEdges));
+    }
+    log.info("Benchmark: Persisted approx {} nodes", Neo4jDatabase.getInstance().getNumNodes());
+    return result;
   }
 }

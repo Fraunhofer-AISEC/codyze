@@ -224,18 +224,8 @@ public class MarkCppTest {
   }
 
   @Test
-  public void arg_prevassign_float() throws Exception {
-    runTest("arg_prevassign_float");
-  }
-
-  @Test
   public void arg_prevassign_bool() throws Exception {
     runTest("arg_prevassign_bool");
-  }
-
-  @Test
-  public void arg_prevassign_char() throws Exception {
-    runTest("arg_prevassign_char");
   }
 
   @Test
@@ -249,23 +239,23 @@ public class MarkCppTest {
   }
 
   @Test
-  public void arg_vardecl_float() throws Exception {
-    runTest("arg_vardecl_float");
-  }
-
-  @Test
   public void arg_vardecl_bool() throws Exception {
     runTest("arg_vardecl_bool");
   }
 
   @Test
-  public void arg_vardecl_char() throws Exception {
-    runTest("arg_vardecl_char");
+  public void arg_vardecl_string() throws Exception {
+    runTest("arg_vardecl_string");
   }
 
   @Test
-  public void arg_vardecl_string() throws Exception {
-    runTest("arg_vardecl_string");
+  public void split_1() throws Exception {
+    runTest("simplesplit_splitstring");
+  }
+
+  @Test
+  public void is_instance_1() throws Exception {
+    runTest("simple_instancestring");
   }
 
   private void runTest(@NonNull String fileNamePart)

@@ -1,6 +1,8 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
@@ -96,14 +98,6 @@ public class AnalysisServerBotanTest {
     // We expect no methods (as there is no class)
     assertNotNull(ctx);
     assertTrue(ctx.methods.isEmpty());
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void translationunitsTest() throws Exception {
-    List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
-    assertNotNull(tus);
-    assertFalse(tus.isEmpty());
   }
 
   @Test

@@ -10,9 +10,10 @@ entity Test {
 
 }
 
-rule SomethingAboutFoo {
+
+rule HasBeenCalled {
   using Test as t
   ensure
-    t.foo == "42"
-  onfail SomethingAboutFoo_Failed
+    _split(t.foo, "/", 0) in ["AES"]
+  onfail HasBeenCalled_Failed
 }

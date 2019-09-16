@@ -134,4 +134,17 @@ public class MEntity {
       return parsedVars.get(name);
     }
   }
+
+  public ArrayList<String> replaceArgumentVarsWithTypes(List<String> functionArguments) {
+    ArrayList<String> functionArgumentTypes = new ArrayList<>();
+    for (int i = 0; i < functionArguments.size(); i++) {
+      String typeForVar = getTypeForVar(functionArguments.get(i));
+      if (typeForVar != null) {
+        functionArgumentTypes.add(i, typeForVar);
+      } else {
+        functionArgumentTypes.add(functionArguments.get(i));
+      }
+    }
+    return functionArgumentTypes;
+  }
 }

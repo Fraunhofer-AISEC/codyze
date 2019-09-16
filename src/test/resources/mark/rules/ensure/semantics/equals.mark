@@ -14,13 +14,6 @@ rule Equals_2_true {
     onfail B
 }
 
-rule Equals_3_fail {
-    using A as a
-    ensure
-        1 == 1.1
-    onfail B
-}
-
 rule Equals_4_fail {
     using A as a
     ensure

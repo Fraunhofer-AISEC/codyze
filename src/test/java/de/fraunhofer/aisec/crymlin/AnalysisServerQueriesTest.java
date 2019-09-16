@@ -16,11 +16,9 @@ import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.structures.Method;
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -97,31 +95,6 @@ public class AnalysisServerQueriesTest {
     assertFalse(ctx.methods.isEmpty());
     Method meth = ctx.methods.entrySet().stream().findFirst().get().getValue();
     assertFalse(meth.getStatements().isEmpty());
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void recorddeclarationsTest() throws Exception {
-    List<Vertex> classes = (List<Vertex>) server.query("crymlin.recorddeclarations().toList()");
-    assertNotNull(classes);
-    assertFalse(classes.isEmpty());
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void recorddeclarationTest() throws Exception {
-    List<Vertex> classes =
-        (List<Vertex>) server.query("crymlin.recorddeclaration(\"good.Bouncycastle\").toList()");
-    assertNotNull(classes);
-    assertFalse(classes.isEmpty());
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void translationunitsTest() throws Exception {
-    List<String> tus = (List<String>) server.query("crymlin.translationunits().name().toList()");
-    assertNotNull(tus);
-    assertFalse(tus.isEmpty());
   }
 
   /**

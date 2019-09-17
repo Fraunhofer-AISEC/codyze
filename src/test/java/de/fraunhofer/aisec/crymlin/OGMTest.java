@@ -49,12 +49,17 @@ public class OGMTest {
   }
   @Test
   void allVerticesToNodes() throws Exception {
+    // Get all vertices from graph ...
     Graph graph = OverflowDatabase.getInstance().getGraph();
     Iterator<Vertex> vIt = graph.vertices();
       while (vIt.hasNext()) {
         Vertex v = vIt.next();
+
+        // ... and convert back to node
         Node n = OverflowDatabase.<Node>getInstance().vertexToNode(v);
         System.out.println(n.toString());
+        assertNotNull(n);
+        assertNotNull(n.getId());  // TODO still fails
       }
   }
 

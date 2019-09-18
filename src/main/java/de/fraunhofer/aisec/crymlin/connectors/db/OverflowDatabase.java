@@ -4,17 +4,44 @@ import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import io.shiftleft.overflowdb.*;
+import io.shiftleft.overflowdb.EdgeFactory;
+import io.shiftleft.overflowdb.EdgeLayoutInformation;
+import io.shiftleft.overflowdb.NodeFactory;
+import io.shiftleft.overflowdb.NodeLayoutInformation;
+import io.shiftleft.overflowdb.NodeRef;
+import io.shiftleft.overflowdb.OdbConfig;
+import io.shiftleft.overflowdb.OdbEdge;
+import io.shiftleft.overflowdb.OdbGraph;
+import io.shiftleft.overflowdb.OdbNode;
+import io.shiftleft.overflowdb.OdbNodeProperty;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.apache.tinkerpop.gremlin.structure.*;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.javatuples.Pair;
@@ -71,6 +98,8 @@ public class OverflowDatabase<N> implements Database<N> {
   Map<N, Vertex> nodeToVertex = new IdentityHashMap<>();
   Map<Vertex, N> vertexToNode = new IdentityHashMap<>();
   Map<Vertex, N> nodesCache = new IdentityHashMap<>();
+  Set<N> saved = new HashSet<>();
+  Map<String, Set<Object>> edgeTargets = new HashMap<>();
 
   // Scan all classes in package
   private static final Reflections reflections =
@@ -144,12 +173,18 @@ public class OverflowDatabase<N> implements Database<N> {
    * @param node
    */
   private void save(N node) {
+    if (saved.contains(node)) {
+      // Has been seen before. Skip
+      return;
+    }
+
     // Store node
     Vertex v = createVertex(node);
     // printVertex(v);
 
-    // Store edges of this node
+    // Store edges of this node and mark it as saved
     createEdges(v, node);
+    saved.add(node);
 
     if (!Node.class.isAssignableFrom(node.getClass())) {
       throw new RuntimeException("Cannot apply SubgraphWalker to " + node.getClass() + ".");
@@ -426,50 +461,50 @@ public class OverflowDatabase<N> implements Database<N> {
   }
 
   public void createEdges(Vertex v, N n) {
-    for (Class<?> c = n.getClass(); c != Object.class; c = c.getSuperclass()) {
-      for (Field f : getFieldsIncludingSuperclasses(c)) {
-        if (mapsToRelationship(f)) {
+    for (Field f : getFieldsIncludingSuperclasses(n.getClass())) {
+      if (mapsToRelationship(f)) {
 
-          Direction direction = getRelationshipDirection(f);
-          String relName = getRelationshipLabel(f);
+        Direction direction = getRelationshipDirection(f);
+        String relName = getRelationshipLabel(f);
 
-          try {
-            f.setAccessible(true);
-            Object x = f.get(n);
-            if (x == null) {
-              continue;
-            }
-
-            // provide a type hint for later re-translation into a field
-            v.property(f.getName() + "_type", x.getClass());
-
-            // Create an edge from a field value
-            if (isCollection(x.getClass())) {
-              // Add multiple edges for collections
-              connectAll(v, relName, (Collection) x, direction.equals(Direction.IN));
-              //              for (Object child : (Collection) x) {
-              //                createEdges(nodeToVertex.get((Node) child), (Node) child);
-              //              }
-            } else if (Node[].class.isAssignableFrom(x.getClass())) {
-              connectAll(v, relName, Arrays.asList(x), direction.equals(Direction.IN));
-              //              for (Object child : (Node[]) x) {
-              //                createEdges(nodeToVertex.get((Node) child), (Node) child);
-              //              }
-            } else {
-              // Add single edge for non-collections
-              Vertex target = connect(v, relName, (Node) x, direction.equals(Direction.IN));
-              assert target.property("hashCode").value().equals(x.hashCode());
-              //              createEdges(target, (Node) x);
-            }
-          } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        try {
+          f.setAccessible(true);
+          Object x = f.get(n);
+          if (x == null) {
+            continue;
           }
+
+          // provide a type hint for later re-translation into a field
+          v.property(f.getName() + "_type", x.getClass());
+
+          // Create an edge from a field value
+          if (isCollection(x.getClass())) {
+            // Add multiple edges for collections
+            connectAll(v, relName, (Collection) x, direction.equals(Direction.IN));
+            //              for (Object child : (Collection) x) {
+            //                createEdges(nodeToVertex.get((Node) child), (Node) child);
+            //              }
+          } else if (Node[].class.isAssignableFrom(x.getClass())) {
+            connectAll(v, relName, Arrays.asList(x), direction.equals(Direction.IN));
+            //              for (Object child : (Node[]) x) {
+            //                createEdges(nodeToVertex.get((Node) child), (Node) child);
+            //              }
+          } else {
+            // Add single edge for non-collections
+            Vertex target = connect(v, relName, (Node) x, direction.equals(Direction.IN));
+            assert target.property("hashCode").value().equals(x.hashCode());
+            //              createEdges(target, (Node) x);
+          }
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
         }
       }
     }
   }
 
   private Vertex connect(Vertex sourceVertex, String label, Node targetNode, boolean reverse) {
+    edgeTargets.putIfAbsent(label, new HashSet<>());
+
     Vertex targetVertex = null;
     if (nodeToVertex.containsKey(targetNode)) {
       Iterator<Vertex> vIt = graph.vertices(nodeToVertex.get(targetNode));
@@ -480,10 +515,17 @@ public class OverflowDatabase<N> implements Database<N> {
     if (targetVertex == null) {
       targetVertex = createVertex((N) targetNode);
     }
+
     if (reverse) {
-      targetVertex.addEdge(label, sourceVertex);
+      if (edgeTargets.get(label).add(sourceVertex.id())) {
+        // only add edge if it has not been added before
+        targetVertex.addEdge(label, sourceVertex);
+      }
     } else {
-      sourceVertex.addEdge(label, targetVertex);
+      if (edgeTargets.get(label).add(targetVertex.id())) {
+        // only add edge if it has not been added before
+        sourceVertex.addEdge(label, targetVertex);
+      }
     }
 
     return targetVertex;

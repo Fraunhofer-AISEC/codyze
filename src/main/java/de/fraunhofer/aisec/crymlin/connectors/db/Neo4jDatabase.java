@@ -19,7 +19,7 @@ public class Neo4jDatabase<N> implements Database<N> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jDatabase.class);
   private static final int MAX_TRIES = 10;
-  private static final Neo4jDatabase INSTANCE = new Neo4jDatabase();
+  private static Neo4jDatabase INSTANCE = null;
 
   private static AtomicBoolean isCancelled = new AtomicBoolean(false);
   private static AtomicBoolean isConnected = new AtomicBoolean(false);
@@ -40,7 +40,10 @@ public class Neo4jDatabase<N> implements Database<N> {
 
   private Neo4jDatabase() {}
 
-  public static Neo4jDatabase getInstance() {
+  public static <N> Neo4jDatabase<N> getInstance() {
+    if (INSTANCE == null) {
+      INSTANCE = new Neo4jDatabase<N>();
+    }
     return INSTANCE;
   }
 

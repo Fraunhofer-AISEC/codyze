@@ -123,15 +123,12 @@ public class OGMTest {
                 MethodDeclaration.class.getSimpleName(),
                 OverflowDatabase.getSubclasses(MethodDeclaration.class));
     long mdCount = traversal.count().next();
-    assertEquals(13, mdCount, "Expected exactly 13 MethodDeclarations");
+    assertEquals(15, mdCount, "Expected exactly 15 MethodDeclarations");
   }
 
   @Test
   void countEogEdges() throws Exception {
     // Get all EOG edges
-
-    // TODO Julian->Samuel: EOG edges are duplicated. We see 13 edges between MethoDeclaration "ok"
-    // and Literal "2" here.
 
     GraphTraversal<Vertex, Edge> traversal =
         OverflowDatabase.getInstance()

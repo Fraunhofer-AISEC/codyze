@@ -280,7 +280,10 @@ public class OverflowDatabase<N> implements Database<N> {
           f.set(node, value);
         } else if (mapsToProperty(f) && v.property(f.getName()).isPresent()) {
           /* Handle "normal" properties */
-          Object value = v.property(f.getName()).value();
+          // If available, take the "_original" version, which might be present because of an
+          // int->long conversion
+          Object value =
+              v.property(f.getName() + "_original").orElse(v.property(f.getName()).value());
           f.set(node, value);
         } else if (mapsToRelationship(f)) {
           /* Handle properties which should be treated as relationships */
@@ -375,6 +378,15 @@ public class OverflowDatabase<N> implements Database<N> {
       }
     }
 
+    for (Object key : new HashSet<>(properties.keySet())) {
+      Object value = properties.get(key);
+      if (value instanceof Integer) {
+        // mimic neo4j-ogm behaviour: ints are stored as longs
+        properties.put(key, Long.valueOf((Integer) value));
+        properties.put(key.toString() + "_original", value);
+      }
+    }
+
     // Add types of nodes (names of superclasses) to properties
     List<String> superclasses = Arrays.asList(getSuperclasses(n.getClass()));
     properties.put("labels", superclasses);
@@ -442,11 +454,17 @@ public class OverflowDatabase<N> implements Database<N> {
     try {
       Object converter =
           f.getAnnotation(Convert.class).value().getDeclaredConstructor().newInstance();
+      Map<String, Object> properties = new HashMap<>(getAllProperties(v));
+      // check whether any property value has been altered. If so, restore its original version
+      for (String key : properties.keySet()) {
+        if (properties.containsKey(key + "_original")) {
+          properties.put(key, properties.get(key + "_original"));
+        }
+      }
       if (converter instanceof AttributeConverter) {
         // Single attribute will be provided
-        return ((AttributeConverter) converter).toEntityAttribute(v.property(f.getName()).value());
+        return ((AttributeConverter) converter).toEntityAttribute(properties.get(f.getName()));
       } else if (converter instanceof CompositeAttributeConverter) {
-        Map<String, ?> properties = getAllProperties(v);
         return ((CompositeAttributeConverter) converter).toEntityAttribute(properties);
       }
     } catch (NoSuchMethodException e) {
@@ -742,7 +760,7 @@ public class OverflowDatabase<N> implements Database<N> {
                   .get();
       relName = rel.value().trim().isEmpty() ? f.getName() : rel.value();
     }
-    return relName;
+    return relName.toUpperCase();
   }
 
   /**

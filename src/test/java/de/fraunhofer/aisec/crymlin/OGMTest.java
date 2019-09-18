@@ -8,6 +8,8 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
+import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -22,8 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OGMTest {
 
@@ -43,9 +44,18 @@ public class OGMTest {
                     .failOnError(true)
                     .build();
 
-    TranslationManager analyzer = TranslationManager.builder().config(config).build();
+    TranslationManager tm = TranslationManager.builder().config(config).build();
+    // Start an analysis server
+    AnalysisServer server = AnalysisServer.builder()
+            .config(
+                    ServerConfiguration.builder()
+                            .launchConsole(false)
+                            .launchLsp(false)
+                            .build())
+            .build();
+    server.start();
 
-    result = analyzer.analyze().get();
+    result = server.analyze(tm).get();
   }
   @Test
   void allVerticesToNodes() throws Exception {
@@ -53,13 +63,22 @@ public class OGMTest {
     Graph graph = OverflowDatabase.getInstance().getGraph();
     Iterator<Vertex> vIt = graph.vertices();
       while (vIt.hasNext()) {
-        Vertex v = vIt.next();
-
         // ... and convert back to node
+        Vertex v = vIt.next();
         Node n = OverflowDatabase.<Node>getInstance().vertexToNode(v);
-        System.out.println(n.toString());
         assertNotNull(n);
-        assertNotNull(n.getId());  // TODO still fails
+
+        // Vertices will always have an auto-generated ID ...
+        assertNotNull(v.id());
+
+        // ... but this is different from "id" property of the underlying Node object. This will always be null (if not set explicitly)
+        assertNull(n.getId());
+
+        if (v.label().equals("RecordDeclaration")) {
+          // We expect properties that were created by a Converter to be converted back into property object (TODO still fails)
+          assertTrue(n.getRegion().getStartLine() > -1);
+        }
+        System.out.println(n.toString());
       }
   }
 

@@ -209,7 +209,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
       for (Field f : getFieldsIncludingSuperclasses(targetClass)) {
         f.setAccessible(true);
-        if (mapsToProperty(f) &&  v.property(f.getName()).isPresent()) {
+        if (mapsToProperty(f) &&  v.property(f.getName()).isPresent()) {  // TODO startLine/endLine/... will not mapToProperty, but should by handled by converter.
           Object value = v.property(f.getName()).value();
           if (hasAnnotation(f, Convert.class)) {
             value = convertToNodeProperty(v, f, value);

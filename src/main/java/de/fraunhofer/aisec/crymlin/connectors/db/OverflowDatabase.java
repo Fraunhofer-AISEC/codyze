@@ -138,9 +138,14 @@ public class OverflowDatabase<N> implements Database<N> {
     bench.stop();
   }
 
+  /**
+   * Saves a single Node in OverflowDB.
+   *
+   * @param node
+   */
   private void save(N node) {
     // Store node
-    Vertex v = createNode(node);
+    Vertex v = createVertex(node);
     // printVertex(v);
 
     // Store edges of this node
@@ -156,6 +161,11 @@ public class OverflowDatabase<N> implements Database<N> {
     }
   }
 
+  /**
+   * Dumps a human-readable representation of a Vertex to stdout.
+   *
+   * @param v
+   */
   private void printVertex(Vertex v) {
     try {
       Map<Object, Object> properties = getAllProperties(v);
@@ -182,6 +192,18 @@ public class OverflowDatabase<N> implements Database<N> {
     }
   }
 
+  /**
+   * Returns a map of all properties of a Vertex.
+   *
+   * Note that the map will not contain the id() and label() of the Vertex. If it contains properties with key "id" or "label", their values might or might not equal the results of id() and label(). Always use the latter functions to get IDs and labels.
+   *
+   * @param v
+   * @param <K>
+   * @param <V>
+   * @return
+   * @throws NoSuchFieldException
+   * @throws IllegalAccessException
+   */
   private <K, V> Map<K, V> getAllProperties(Vertex v)
       throws NoSuchFieldException, IllegalAccessException {
     Field node = NodeRef.class.getDeclaredField("node");
@@ -192,6 +214,12 @@ public class OverflowDatabase<N> implements Database<N> {
     return (Map<K, V>) propertyValues.get(n);
   }
 
+  /**
+   * Constructs a native Node object from a given Vertex or returns a cached Node object.
+   *
+   * @param v
+   * @return Null, if the Vertex could not be converted into a native object.
+   */
   public N vertexToNode(Vertex v) {
     // avoid loops
     if (nodesCache.containsKey(v)) {
@@ -209,13 +237,16 @@ public class OverflowDatabase<N> implements Database<N> {
 
       for (Field f : getFieldsIncludingSuperclasses(targetClass)) {
         f.setAccessible(true);
-        if (mapsToProperty(f) &&  v.property(f.getName()).isPresent()) {  // TODO startLine/endLine/... will not mapToProperty, but should by handled by converter.
+        if (hasAnnotation(f, Convert.class)) {
+          /* Need to first handle attributes which need a special treatment (annotated with AttributeConverter or CompositeConverter) */
+          Object value = convertToNodeProperty(v, f);
+          f.set(node, value);
+        } else if  (mapsToProperty(f) &&  v.property(f.getName()).isPresent()) {
+          /* Handle "normal" properties */
           Object value = v.property(f.getName()).value();
-          if (hasAnnotation(f, Convert.class)) {
-            value = convertToNodeProperty(v, f, value);
-          }
           f.set(node, value);
         } else if (mapsToRelationship(f)) {
+          /* Handle properties which should be treated as relationships */
           Direction direction = getRelationshipDirection(f);
           List<N> targets =
               IteratorUtils.stream(v.vertices(direction, getRelationshipLabel(f)))
@@ -223,8 +254,7 @@ public class OverflowDatabase<N> implements Database<N> {
                   .map(this::vertexToNode)
                   .collect(Collectors.toList());
           if (isCollection(f.getType())) {
-            // we don't know for sure that the relationships are stored as a list. Might as well
-            // be any other collection. Thus we'll create it using reflection
+            /* we don't know for sure that the relationships are stored as a list. Might as well be any other collection. Thus we'll create it using reflection */
             Class<?> collectionType = (Class<?>) v.property(f.getName() + "_type").value();
             if (collectionType == null) {
               // this happens if the field was set to null when converting to vertex
@@ -267,8 +297,14 @@ public class OverflowDatabase<N> implements Database<N> {
     return t -> seen.add(keyExtractor.apply(t));
   }
 
-  public Vertex createNode(N n) {
-    if (nodeToVertex.containsKey(n)) {
+  /**
+   * Creates a new Vertex from a given native Node or returns a Vertex from cache.
+   *
+   * @param n
+   * @return
+   */
+  public Vertex createVertex(N n) {
+    if (nodeToVertex.containsKey(n)) {  // TODO We should not hold references to Vertex, as this will prevent large sets of Vertices from overflowing to disk. Rather hold NodeRefs.
       return nodeToVertex.get(n);
     }
 
@@ -288,7 +324,7 @@ public class OverflowDatabase<N> implements Database<N> {
             continue;
           }
           if (hasAnnotation(f, Convert.class)) {
-            properties.putAll(convertToVertexProperty(f, x));
+            properties.putAll(convertToVertexProperties(f, x));
           } else if (mapsToProperty(f)) {
             properties.put(f.getName(), x);
           } else {
@@ -316,13 +352,21 @@ public class OverflowDatabase<N> implements Database<N> {
       props.add(p.getValue());
     }
 
+    /* Create a new vertex. Note that this will auto-generate a new id() for the vertex and thus this method should only be called once per Node. */
     Vertex result = graph.addVertex(props.toArray());
     nodeToVertex.put(n, result);
     vertexToNode.put(result, n);
     return result;
   }
 
-  private Map<Object, Object> convertToVertexProperty(Field f, Object content) {
+  /**
+   * Applies AttributeConverter or CompositeAttributeConverter to flatten a complex field into a map of properties.
+   *
+   * @param f
+   * @param content
+   * @return
+   */
+  private Map<Object, Object> convertToVertexProperties(Field f, Object content) {
     try {
       Object converter =
           f.getAnnotation(Convert.class).value().getDeclaredConstructor().newInstance();
@@ -344,13 +388,22 @@ public class OverflowDatabase<N> implements Database<N> {
     return Collections.emptyMap();
   }
 
-  private Object convertToNodeProperty(Vertex v, Field f, Object content) {
+  /**
+   * Converts a subset of a vertices' <code>v</code> properties into a value for a complex field <code>f</code>.
+   *
+   * Inverse of <code>convertToVertexProperties</code>.
+   *
+   * @param v
+   * @param f
+   * @return
+   */
+  private Object convertToNodeProperty(Vertex v, Field f) {
     try {
       Object converter =
           f.getAnnotation(Convert.class).value().getDeclaredConstructor().newInstance();
       if (converter instanceof AttributeConverter) {
         // Single attribute will be provided
-        return ((AttributeConverter) converter).toEntityAttribute(content);
+        return ((AttributeConverter) converter).toEntityAttribute(v.property(f.getName()).value());
       } else if (converter instanceof CompositeAttributeConverter) {
         Map<String, ?> properties = getAllProperties(v);
         return ((CompositeAttributeConverter) converter).toEntityAttribute(properties);
@@ -419,7 +472,7 @@ public class OverflowDatabase<N> implements Database<N> {
       }
     }
     if (targetVertex == null) {
-      targetVertex = createNode((N) targetNode);
+      targetVertex = createVertex((N) targetNode);
     }
     if (reverse) {
       targetVertex.addEdge(label, sourceVertex);

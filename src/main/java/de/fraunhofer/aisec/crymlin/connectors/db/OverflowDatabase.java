@@ -5,6 +5,15 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import io.shiftleft.overflowdb.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.*;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -20,16 +29,6 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.*;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
@@ -75,15 +74,16 @@ public class OverflowDatabase<N> implements Database<N> {
 
   // Scan all classes in package
   private static final Reflections reflections =
-          new Reflections(
-                  new ConfigurationBuilder()
-                          .setScanners(
-                                  new SubTypesScanner(false /* don't exclude Object.class */),
-                                  new ResourcesScanner())
-                          .setUrls(
-                                  ClasspathHelper.forClassLoader(ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()))
-                          .addUrls(ClasspathHelper.forJavaClassPath())
-                          .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
+      new Reflections(
+          new ConfigurationBuilder()
+              .setScanners(
+                  new SubTypesScanner(false /* don't exclude Object.class */),
+                  new ResourcesScanner())
+              .setUrls(
+                  ClasspathHelper.forClassLoader(
+                      ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()))
+              .addUrls(ClasspathHelper.forJavaClassPath())
+              .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
 
   private OverflowDatabase() {
     // Create factories for nodes and edges of CPG.
@@ -195,7 +195,9 @@ public class OverflowDatabase<N> implements Database<N> {
   /**
    * Returns a map of all properties of a Vertex.
    *
-   * Note that the map will not contain the id() and label() of the Vertex. If it contains properties with key "id" or "label", their values might or might not equal the results of id() and label(). Always use the latter functions to get IDs and labels.
+   * <p>Note that the map will not contain the id() and label() of the Vertex. If it contains
+   * properties with key "id" or "label", their values might or might not equal the results of id()
+   * and label(). Always use the latter functions to get IDs and labels.
    *
    * @param v
    * @param <K>
@@ -241,7 +243,7 @@ public class OverflowDatabase<N> implements Database<N> {
           /* Need to first handle attributes which need a special treatment (annotated with AttributeConverter or CompositeConverter) */
           Object value = convertToNodeProperty(v, f);
           f.set(node, value);
-        } else if  (mapsToProperty(f) &&  v.property(f.getName()).isPresent()) {
+        } else if (mapsToProperty(f) && v.property(f.getName()).isPresent()) {
           /* Handle "normal" properties */
           Object value = v.property(f.getName()).value();
           f.set(node, value);
@@ -304,7 +306,9 @@ public class OverflowDatabase<N> implements Database<N> {
    * @return
    */
   public Vertex createVertex(N n) {
-    if (nodeToVertex.containsKey(n)) {  // TODO We should not hold references to Vertex, as this will prevent large sets of Vertices from overflowing to disk. Rather hold NodeRefs.
+    if (nodeToVertex.containsKey(
+        n)) { // TODO We should not hold references to Vertex, as this will prevent large sets of
+      // Vertices from overflowing to disk. Rather hold NodeRefs.
       return nodeToVertex.get(n);
     }
 
@@ -360,7 +364,8 @@ public class OverflowDatabase<N> implements Database<N> {
   }
 
   /**
-   * Applies AttributeConverter or CompositeAttributeConverter to flatten a complex field into a map of properties.
+   * Applies AttributeConverter or CompositeAttributeConverter to flatten a complex field into a map
+   * of properties.
    *
    * @param f
    * @param content
@@ -389,9 +394,10 @@ public class OverflowDatabase<N> implements Database<N> {
   }
 
   /**
-   * Converts a subset of a vertices' <code>v</code> properties into a value for a complex field <code>f</code>.
+   * Converts a subset of a vertices' <code>v</code> properties into a value for a complex field
+   * <code>f</code>.
    *
-   * Inverse of <code>convertToVertexProperties</code>.
+   * <p>Inverse of <code>convertToVertexProperties</code>.
    *
    * @param v
    * @param f
@@ -547,7 +553,10 @@ public class OverflowDatabase<N> implements Database<N> {
     // TODO Cache this
     Set<String> subclasses = new HashSet<>();
     subclasses.add(c.getSimpleName());
-    subclasses.addAll(reflections.getSubTypesOf(c).stream().map(Class::getSimpleName).collect(Collectors.toSet()));
+    subclasses.addAll(
+        reflections.getSubTypesOf(c).stream()
+            .map(Class::getSimpleName)
+            .collect(Collectors.toSet()));
     return subclasses.toArray(new String[0]);
   }
 
@@ -562,11 +571,12 @@ public class OverflowDatabase<N> implements Database<N> {
 
   @Override
   public void purgeDatabase() {
-    // The way to fully delete an OverflowDB is to simply close the graph. A new instance will be created at next call to getInstance()
+    // The way to fully delete an OverflowDB is to simply close the graph. A new instance will be
+    // created at next call to getInstance()
     graph.close();
-//    System.out.println(graph.traversal().V().count().next());
-//    graph.traversal().V().drop();
-//    System.out.println(graph.traversal().V().count().next());
+    //    System.out.println(graph.traversal().V().count().next());
+    //    graph.traversal().V().drop();
+    //    System.out.println(graph.traversal().V().count().next());
   }
 
   @Override
@@ -745,7 +755,8 @@ public class OverflowDatabase<N> implements Database<N> {
             for (Field f : getFieldsIncludingSuperclasses(c)) {
               if (mapsToProperty(f)) {
                 properties.add(f.getName());
-//                System.out.println("Node " + c.getSimpleName() + " has property " + f.getName());
+                //                System.out.println("Node " + c.getSimpleName() + " has property "
+                // + f.getName());
                 if (isCollection(f.getType())) {
                   // type hints for exact collection type
                   properties.add(f.getName() + "_type");
@@ -759,14 +770,16 @@ public class OverflowDatabase<N> implements Database<N> {
           @Override
           protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
             /* We filter out null property values here. GraphMLWriter cannot handle these and will die with NPE.
-               Gremlin assumes that property values are non-null.
-             */
+              Gremlin assumes that property values are non-null.
+            */
             Object values = this.propertyValues.get(key);
-            if (values == null ||
-                    (Collection.class.isAssignableFrom(values.getClass()) && ((Collection) values).isEmpty())) {
+            if (values == null
+                || (Collection.class.isAssignableFrom(values.getClass())
+                    && ((Collection) values).isEmpty())) {
               return new ArrayList<VertexProperty<V>>(0).iterator();
             }
-            return IteratorUtils.<VertexProperty<V>>of(new OdbNodeProperty(this, key, this.propertyValues.get(key)));
+            return IteratorUtils.<VertexProperty<V>>of(
+                new OdbNodeProperty(this, key, this.propertyValues.get(key)));
           }
 
           @Override

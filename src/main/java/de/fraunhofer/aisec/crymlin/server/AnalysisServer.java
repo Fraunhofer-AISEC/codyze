@@ -2,10 +2,10 @@ package de.fraunhofer.aisec.crymlin.server;
 
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -169,61 +169,12 @@ public class AnalysisServer {
     // Run all passes and persist the result
     return analyzer
         .analyze() // Run analysis
-        .thenApply( // Persist to DB
+        .thenApply(
             result -> {
               // Attach analysis context to result
               result.getScratch().put("ctx", ctx);
-
-              Benchmark b = new Benchmark(this.getClass(), "Writing to OverflowDBDatabase");
-              // Persist the result
-              OverflowDatabase db = OverflowDatabase.getInstance();
-              db.saveAll(result.getTranslationUnits());
-              long duration = b.stop();
-              try (TraversalConnection t =
-                  new TraversalConnection(
-                      TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
-                CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-                // TODO remove the next two queries. The are just for debugging/logging and cost
-                // time in production.
-                Long numEdges = crymlinTraversal.V().outE().count().next();
-                Long numVertices = crymlinTraversal.V().count().next();
-                log.info(
-                    "Nodes in ODB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
-                    numVertices,
-                    String.format("%.2f", (double) duration / numVertices),
-                    numEdges,
-                    String.format("%.2f", (double) duration / numEdges));
-              }
-              log.info(
-                  "Benchmark: Persisted approx {} nodes",
-                  OverflowDatabase.getInstance().getNumNodes());
-              return result;
+              return persistToODB(result);
             })
-        .thenApply(
-            result -> {
-              // Export from OverflowDB to file
-              OverflowDatabase.getInstance().connect();
-              Graph graph = OverflowDatabase.getInstance().getGraph();
-
-              System.out.println(graph.traversal().V().count());
-              try (FileOutputStream fos = new FileOutputStream("this-is-so-graphic.graphml")) {
-                GraphMLWriter.Builder writer = graph.io(GraphMLIo.build()).writer();
-                writer.create().writeGraph(fos, graph);
-              } catch (IOException e) {
-                e.printStackTrace();
-              }
-
-              // Import from file to Neo4J (for visualization only)
-              try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
-                Neo4jGraph neo4jGraph = Neo4jGraph.open("/var/lib/neo4j/data/databases/graph.db");
-                GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
-                reader.create().readGraph(fis, neo4jGraph);
-              } catch (IOException e) {
-                e.printStackTrace();
-              }
-              return result;
-            })
-        //        .thenApplyAsync(result -> persistToNeo4J(result))
         .thenApply(
             result -> {
               log.info(
@@ -350,7 +301,8 @@ public class AnalysisServer {
     // Persist the result
     Neo4jDatabase.getInstance()
         .connect(); // this does not connect again if we are already connected
-    Database db = OverflowDatabase.getInstance();
+    Neo4jDatabase.getInstance().purgeDatabase();
+    Neo4jDatabase<Node> db = Neo4jDatabase.getInstance();
     db.saveAll(result.getTranslationUnits());
     long duration = b.stop();
     // connect to DB
@@ -366,6 +318,54 @@ public class AnalysisServer {
           String.format("%.2f", (double) duration / numEdges));
     }
     log.info("Benchmark: Persisted approx {} nodes", Neo4jDatabase.getInstance().getNumNodes());
+    return result;
+  }
+
+  private TranslationResult persistToODB(TranslationResult result) {
+    Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
+    // Persist the result
+    OverflowDatabase.getInstance().purgeDatabase();
+    OverflowDatabase<Node> db = OverflowDatabase.getInstance();
+    db.saveAll(result.getTranslationUnits());
+    long duration = b.stop();
+    // connect to DB
+    try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
+      CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
+      Long numEdges = crymlinTraversal.E().count().next();
+      Long numVertices = crymlinTraversal.V().count().next();
+      log.info(
+          "Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
+          numVertices,
+          String.format("%.2f", (double) duration / numVertices),
+          numEdges,
+          String.format("%.2f", (double) duration / numEdges));
+    }
+    log.info("Benchmark: Persisted approx {} nodes", Neo4jDatabase.getInstance().getNumNodes());
+    return result;
+  }
+
+  private TranslationResult exportToNeo4j(TranslationResult result) {
+    // Export from OverflowDB to file
+    OverflowDatabase.getInstance().connect();
+    Graph graph = OverflowDatabase.getInstance().getGraph();
+
+    System.out.println("Exporting " + graph.traversal().V().count() + " nodes to GraphML");
+    try (FileOutputStream fos = new FileOutputStream("this-is-so-graphic.graphml")) {
+      GraphMLWriter.Builder writer = graph.io(GraphMLIo.build()).writer();
+      writer.create().writeGraph(fos, graph);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    // Import from file to Neo4J (for visualization only)
+    System.out.println("Importing into Neo4j");
+    try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
+      Neo4jGraph neo4jGraph = Neo4jGraph.open("/var/lib/neo4j/data/databases/graph.db");
+      GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
+      reader.create().readGraph(fis, neo4jGraph);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
     return result;
   }
 }

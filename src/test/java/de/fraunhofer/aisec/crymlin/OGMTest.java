@@ -1,29 +1,27 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OGMTest {
 
@@ -79,6 +77,32 @@ public class OGMTest {
       }
       System.out.println(n.toString());
     }
+  }
+
+  @Test
+  void twoEogEdgesForIfs() {
+    List<Edge> eogs =
+        OverflowDatabase.getInstance()
+            .getGraph()
+            .traversal()
+            .V()
+            .hasLabel(
+                IfStatement.class.getSimpleName(),
+                OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
+            .has("code", "if (3 < 4) {\n" + "      p3.start(iv);\n" + "    }")
+            .outE("EOG")
+            .toList();
+
+    assertEquals("IfStatement", (String) eogs.get(0).outVertex().label());
+
+    System.out.println(eogs.get(0).outVertex().property("code").value());
+    System.out.println(eogs.get(0).inVertex().property("code").value());
+
+    // IF has two EOG edges (to TRUE and to FALSE branch)
+    assertEquals(2, eogs.size());
+
+    System.out.println(eogs.get(1).outVertex().property("code").value());
+    System.out.println(eogs.get(1).inVertex().property("code").value());
   }
 
   @Test

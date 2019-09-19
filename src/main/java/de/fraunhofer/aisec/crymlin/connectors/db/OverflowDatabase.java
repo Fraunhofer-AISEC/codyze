@@ -633,9 +633,6 @@ public class OverflowDatabase<N> implements Database<N> {
     // The way to fully delete an OverflowDB is to simply close the graph. A new instance will be
     // created at next call to getInstance()
     graph.close();
-    //    System.out.println(graph.traversal().V().count().next());
-    //    graph.traversal().V().drop();
-    //    System.out.println(graph.traversal().V().count().next());
   }
 
   @Override
@@ -708,11 +705,6 @@ public class OverflowDatabase<N> implements Database<N> {
             if (inFields.getOrDefault(subclass, EMPTY_SET).contains(relName)) {
               continue;
             }
-            //            System.out.println(
-            //                "Remembering IN edge "
-            //                    + relName
-            //                    + " for "
-            //                    + subclass.getSimpleName() + " (seen in "+c.getSimpleName()+")");
             if (!inFields.containsKey(subclass)) {
               inFields.put(subclass, new HashSet<>());
             }
@@ -827,8 +819,6 @@ public class OverflowDatabase<N> implements Database<N> {
             for (Field f : getFieldsIncludingSuperclasses(c)) {
               if (mapsToProperty(f)) {
                 properties.add(f.getName());
-                //                System.out.println("Node " + c.getSimpleName() + " has property "
-                // + f.getName());
                 if (isCollection(f.getType())) {
                   // type hints for exact collection type
                   properties.add(f.getName() + "_type");

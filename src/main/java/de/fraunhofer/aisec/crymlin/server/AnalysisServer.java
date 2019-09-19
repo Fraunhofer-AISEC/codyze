@@ -9,6 +9,7 @@ import de.fraunhofer.aisec.crymlin.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
+import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection.Type;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
@@ -175,6 +176,7 @@ public class AnalysisServer {
               result.getScratch().put("ctx", ctx);
               return persistToODB(result);
             })
+        //        .thenApply(this::exportToNeo4j)
         .thenApply(
             result -> {
               log.info(
@@ -329,9 +331,9 @@ public class AnalysisServer {
     db.saveAll(result.getTranslationUnits());
     long duration = b.stop();
     // connect to DB
-    try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
+    try (TraversalConnection t = new TraversalConnection(Type.OVERFLOWDB)) {
       CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-      Long numEdges = crymlinTraversal.E().count().next();
+      Long numEdges = crymlinTraversal.V().outE().count().next();
       Long numVertices = crymlinTraversal.V().count().next();
       log.info(
           "Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
@@ -340,7 +342,7 @@ public class AnalysisServer {
           numEdges,
           String.format("%.2f", (double) duration / numEdges));
     }
-    log.info("Benchmark: Persisted approx {} nodes", Neo4jDatabase.getInstance().getNumNodes());
+    log.info("Benchmark: Persisted approx {} nodes", db.getNumNodes());
     return result;
   }
 

@@ -6,6 +6,15 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import io.shiftleft.overflowdb.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.*;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -21,16 +30,6 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.*;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
@@ -724,17 +723,18 @@ public class OverflowDatabase<N> implements Database<N> {
     return fields;
   }
 
-    /**
-     * Reproduces Neo4j-OGM's behavior of creating edge labels.
-     *
-     * Values set by the <code>@Relationship</code> annotation take precedence and determine the edge label.
-     * If no annotation is given or if the annotation does not contain a value, the label is created from the field name in uppercase underscore notation.
-     *
-     * A field name of <code>myField</code> thus becomes a label <code>MY_FIELD</code>.
-     *
-     * @param f
-     * @return
-     */
+  /**
+   * Reproduces Neo4j-OGM's behavior of creating edge labels.
+   *
+   * <p>Values set by the <code>@Relationship</code> annotation take precedence and determine the
+   * edge label. If no annotation is given or if the annotation does not contain a value, the label
+   * is created from the field name in uppercase underscore notation.
+   *
+   * <p>A field name of <code>myField</code> thus becomes a label <code>MY_FIELD</code>.
+   *
+   * @param f
+   * @return
+   */
   private String getRelationshipLabel(Field f) {
     String relName = f.getName();
     if (hasAnnotation(f, Relationship.class)) {

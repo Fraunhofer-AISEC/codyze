@@ -2,7 +2,6 @@ package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.util.Collection;
 import java.util.UUID;

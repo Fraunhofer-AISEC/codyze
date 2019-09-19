@@ -73,7 +73,8 @@ public class OverflowDatabase<N> implements Database<N> {
   Map<Vertex, N> vertexToNode = new IdentityHashMap<>();
   Map<Vertex, N> nodesCache = new IdentityHashMap<>();
   Set<N> saved = new HashSet<>();
-  Map<String, Set<Object>> edgeTargets = new HashMap<>();
+  // maps from vertex ID to edge targets (map label to IDs of target vertices)
+  Map<Object, Map<String, Set<Object>>> edgesCache = new HashMap<>();
 
   // Scan all classes in package
   private static final Reflections reflections =
@@ -495,8 +496,6 @@ public class OverflowDatabase<N> implements Database<N> {
   }
 
   private Vertex connect(Vertex sourceVertex, String label, Node targetNode, boolean reverse) {
-    edgeTargets.putIfAbsent(label, new HashSet<>());
-
     Vertex targetVertex = null;
     if (nodeToVertex.containsKey(targetNode)) {
       Iterator<Vertex> vIt = graph.vertices(nodeToVertex.get(targetNode));
@@ -508,16 +507,17 @@ public class OverflowDatabase<N> implements Database<N> {
       targetVertex = createVertex((N) targetNode);
     }
 
-    if (reverse) {
-      if (edgeTargets.get(label).add(sourceVertex.id())) {
-        // only add edge if it has not been added before
-        targetVertex.addEdge(label, sourceVertex);
-      }
-    } else {
-      if (edgeTargets.get(label).add(targetVertex.id())) {
-        // only add edge if it has not been added before
-        sourceVertex.addEdge(label, targetVertex);
-      }
+    // determine the actual source and target for this edge (depending on the edge direction)
+    Vertex actualSource = reverse ? targetVertex : sourceVertex;
+    Vertex actualTarget = reverse ? sourceVertex : targetVertex;
+
+    // prepare the edge cache
+    edgesCache.putIfAbsent(actualSource.id(), new HashMap<>());
+    edgesCache.get(actualSource.id()).putIfAbsent(label, new HashSet<>());
+
+    // only add edge if this exact one has not been added before
+    if (edgesCache.get(actualSource.id()).get(label).add(actualTarget)) {
+      actualSource.addEdge(label, actualTarget);
     }
 
     return targetVertex;

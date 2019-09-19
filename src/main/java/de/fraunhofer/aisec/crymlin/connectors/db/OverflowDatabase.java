@@ -204,33 +204,29 @@ public class OverflowDatabase<N> implements Database<N> {
    * @param v
    */
   private void printVertex(Vertex v) {
-    try {
-      Map<Object, Object> properties = getAllProperties(v);
+    Map<Object, Object> properties = getAllProperties(v);
 
-      String name = "<unknown>";
-      if (properties.containsKey("name")) {
-        name = properties.get("name").toString();
-      }
+    String name = "<unknown>";
+    if (properties.containsKey("name")) {
+      name = properties.get("name").toString();
+    }
 
-      System.out.println("---------");
-      System.out.println("Node \"" + name + "\"");
-      for (Map.Entry p : properties.entrySet()) {
-        String value = p.getValue().toString();
-        if (p.getValue() instanceof String[]) {
-          value = Arrays.stream((String[]) p.getValue()).collect(Collectors.joining(", "));
-        } else if (p.getValue() instanceof Collection) {
-          value = ((Collection) p.getValue()).stream().collect(Collectors.joining(", ")).toString();
-        }
-        System.out.println(p.getKey() + " -> " + value);
+    System.out.println("---------");
+    System.out.println("Node \"" + name + "\"");
+    for (Map.Entry p : properties.entrySet()) {
+      String value = p.getValue().toString();
+      if (p.getValue() instanceof String[]) {
+        value = Arrays.stream((String[]) p.getValue()).collect(Collectors.joining(", "));
+      } else if (p.getValue() instanceof Collection) {
+        value = ((Collection) p.getValue()).stream().collect(Collectors.joining(", ")).toString();
       }
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      System.out.println("Error printing node properties");
-      e.printStackTrace();
+      System.out.println(p.getKey() + " -> " + value);
     }
   }
 
   /**
-   * Returns a map of all properties of a Vertex.
+   * Returns a map of all properties of a Vertex. This is a copy of the actual map stored in the
+   * vertex and can thus be safely modified.
    *
    * <p>Note that the map will not contain the id() and label() of the Vertex. If it contains
    * properties with key "id" or "label", their values might or might not equal the results of id()
@@ -240,17 +236,21 @@ public class OverflowDatabase<N> implements Database<N> {
    * @param <K>
    * @param <V>
    * @return
-   * @throws NoSuchFieldException
-   * @throws IllegalAccessException
    */
-  private <K, V> Map<K, V> getAllProperties(Vertex v)
-      throws NoSuchFieldException, IllegalAccessException {
-    Field node = NodeRef.class.getDeclaredField("node");
-    node.setAccessible(true);
-    Object n = node.get(v);
-    Field propertyValues = n.getClass().getDeclaredField("propertyValues");
-    propertyValues.setAccessible(true);
-    return (Map<K, V>) propertyValues.get(n);
+  private <K, V> Map<K, V> getAllProperties(Vertex v) {
+    try {
+      Field node = NodeRef.class.getDeclaredField("node");
+      node.setAccessible(true);
+      Object n = node.get(v);
+      Field propertyValues = n.getClass().getDeclaredField("propertyValues");
+      propertyValues.setAccessible(true);
+      return new HashMap<>((Map<K, V>) propertyValues.get(n));
+    } catch (NoSuchFieldException e) {
+      System.err.println("Vertex has no field called propertyValues!");
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    return Collections.emptyMap();
   }
 
   /**
@@ -265,8 +265,12 @@ public class OverflowDatabase<N> implements Database<N> {
       return nodesCache.get(v);
     }
 
-    Class<?> targetClass = (Class<?>) v.property("nodeType").value();
-    if (targetClass == null) {
+    Class<?> targetClass;
+    String nodeType = (String) v.property("nodeType").value();
+    try {
+      targetClass = Class.forName((String) nodeType);
+    } catch (ClassNotFoundException e) {
+      System.err.println("Class not found (node type): " + nodeType);
       return null;
     }
 
@@ -282,10 +286,7 @@ public class OverflowDatabase<N> implements Database<N> {
           f.set(node, value);
         } else if (mapsToProperty(f) && v.property(f.getName()).isPresent()) {
           /* Handle "normal" properties */
-          // If available, take the "_original" version, which might be present because of an
-          // int->long conversion
-          Object value =
-              v.property(f.getName() + "_original").orElse(v.property(f.getName()).value());
+          Object value = restoreProblematicProperty(v, f.getName());
           f.set(node, value);
         } else if (mapsToRelationship(f)) {
           /* Handle properties which should be treated as relationships */
@@ -297,11 +298,13 @@ public class OverflowDatabase<N> implements Database<N> {
                   .collect(Collectors.toList());
           if (isCollection(f.getType())) {
             /* we don't know for sure that the relationships are stored as a list. Might as well be any other collection. Thus we'll create it using reflection */
-            Class<?> collectionType = (Class<?>) v.property(f.getName() + "_type").value();
-            if (collectionType == null) {
-              // this happens if the field was set to null when converting to vertex
-              System.err.println("collection type null!");
-              printVertex(v);
+            Class<?> collectionType;
+            String className = "";
+            try {
+              className = (String) v.property(f.getName() + "_type").value();
+              collectionType = Class.forName(className);
+            } catch (ClassNotFoundException e) {
+              System.err.println("Class not found: " + className);
               continue;
             }
             assert Collection.class.isAssignableFrom(collectionType);
@@ -378,14 +381,7 @@ public class OverflowDatabase<N> implements Database<N> {
       }
     }
 
-    for (Object key : new HashSet<>(properties.keySet())) {
-      Object value = properties.get(key);
-      if (value instanceof Integer) {
-        // mimic neo4j-ogm behaviour: ints are stored as longs
-        properties.put(key, Long.valueOf((Integer) value));
-        properties.put(key.toString() + "_original", value);
-      }
-    }
+    convertProblematicProperties(properties);
 
     // Add types of nodes (names of superclasses) to properties
     List<String> superclasses = Arrays.asList(getSuperclasses(n.getClass()));
@@ -395,7 +391,7 @@ public class OverflowDatabase<N> implements Database<N> {
     properties.put("hashCode", n.hashCode());
 
     // Add current class needed for translating it back to a node object
-    properties.put("nodeType", n.getClass());
+    properties.put("nodeType", n.getClass().getName());
 
     List<Object> props = new ArrayList<>(properties.size() * 2);
     for (Map.Entry p : properties.entrySet()) {
@@ -408,6 +404,71 @@ public class OverflowDatabase<N> implements Database<N> {
     nodeToVertex.put(n, result);
     vertexToNode.put(result, n);
     return result;
+  }
+
+  /**
+   * OverflowDB has problems when trying to persist things like String arrays. To ensure that
+   * overflowing to disk works as intended, this method ensures that such properties are converted
+   * to a persistable format.
+   *
+   * @param properties
+   */
+  private void convertProblematicProperties(HashMap<Object, Object> properties) {
+    for (Object key : new HashSet<>(properties.keySet())) {
+      Object value = properties.get(key);
+      if (value instanceof Integer) {
+        // mimic neo4j-ogm behaviour: ints are stored as longs
+        properties.put(key, Long.valueOf((Integer) value));
+        properties.put(key.toString() + "_original", value);
+      } else if (value instanceof String[]) {
+        properties.put(key, String.join(", ", (String[]) value));
+        properties.put(key + "_converted-from", "String[]");
+      }
+    }
+  }
+
+  /**
+   * Inverse of <code>convertProblematicProperties</code> in the sense that a single property value
+   * is retrieved from a <code>Vertex</code> and converted back into its intended format (if
+   * applicable). See <code>restoreProblematicProperties</code> for conversion of all node
+   * properties.
+   *
+   * @param v
+   * @param key
+   * @return
+   */
+  private Object restoreProblematicProperty(Vertex v, String key) {
+    // Check whether this value has been converted before being persisted (e.g. String[])
+    if (v.property(key + "_converted-from").isPresent()) {
+      String type = (String) v.property(key + "_converted-from").value();
+      switch (type) {
+        case "String[]":
+          return ((String) v.property(key).value()).split(", ");
+        default:
+          System.err.println("Unknown converter type: " + type);
+          return null;
+      }
+    } else {
+      // If available, take the "_original" version, which might be present because of an
+      // int->long conversion
+      return v.property(key + "_original").orElse(v.property(key).value());
+    }
+  }
+
+  /**
+   * Applies <code>restoreProblematicProperty</code> on all properties of a given <code>Vertex
+   * </code>
+   *
+   * @param v
+   * @return
+   */
+  private Map<String, Object> restoreProblematicProperties(Vertex v) {
+    Map<String, Object> properties = getAllProperties(v);
+    for (String key : properties.keySet()) {
+      Object value = restoreProblematicProperty(v, key);
+      properties.put(key, value);
+    }
+    return properties;
   }
 
   /**
@@ -454,13 +515,8 @@ public class OverflowDatabase<N> implements Database<N> {
     try {
       Object converter =
           f.getAnnotation(Convert.class).value().getDeclaredConstructor().newInstance();
-      Map<String, Object> properties = new HashMap<>(getAllProperties(v));
       // check whether any property value has been altered. If so, restore its original version
-      for (String key : properties.keySet()) {
-        if (properties.containsKey(key + "_original")) {
-          properties.put(key, properties.get(key + "_original"));
-        }
-      }
+      Map<String, Object> properties = restoreProblematicProperties(v);
       if (converter instanceof AttributeConverter) {
         // Single attribute will be provided
         return ((AttributeConverter) converter).toEntityAttribute(properties.get(f.getName()));
@@ -493,7 +549,7 @@ public class OverflowDatabase<N> implements Database<N> {
           }
 
           // provide a type hint for later re-translation into a field
-          v.property(f.getName() + "_type", x.getClass());
+          v.property(f.getName() + "_type", x.getClass().getName());
 
           // Create an edge from a field value
           if (isCollection(x.getClass())) {
@@ -835,9 +891,11 @@ public class OverflowDatabase<N> implements Database<N> {
               Gremlin assumes that property values are non-null.
             */
             Object values = this.propertyValues.get(key);
-            if (values == null
-                || (Collection.class.isAssignableFrom(values.getClass())
-                    && ((Collection) values).isEmpty())) {
+            if (values == null) {
+              // the following empty collection filter breaks vertexToNode, but might be needed
+              // for GraphMLWriter. Leaving this in for future reference
+              //                || (Collection.class.isAssignableFrom(values.getClass())
+              //                    && ((Collection) values).isEmpty())) {
               return new ArrayList<VertexProperty<V>>(0).iterator();
             }
             return IteratorUtils.<VertexProperty<V>>of(

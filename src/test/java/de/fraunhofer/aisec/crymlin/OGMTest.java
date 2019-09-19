@@ -225,4 +225,33 @@ public class OGMTest {
     //    Neo4jDatabase.getInstance().purgeDatabase();
     //    Neo4jDatabase.getInstance().saveAll(restored);
   }
+
+  static class OverflowTest {
+
+    @Test
+    void overflowTest() throws Exception {
+      URL resource = OGMTest.class.getClassLoader().getResource("unittests/qrc_bitcoin.cpp");
+      assertNotNull(resource);
+      File sourceFile = new File(resource.getFile());
+
+      TranslationConfiguration config =
+          TranslationConfiguration.builder()
+              .sourceFiles(sourceFile)
+              .defaultPasses()
+              .debugParser(true)
+              .failOnError(true)
+              .build();
+
+      TranslationManager tm = TranslationManager.builder().config(config).build();
+      // Start an analysis server
+      AnalysisServer server =
+          AnalysisServer.builder()
+              .config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).build())
+              .build();
+      server.start();
+
+      result = server.analyze(tm).get();
+      OverflowDatabase.getInstance().saveAll(result.getTranslationUnits());
+    }
+  }
 }

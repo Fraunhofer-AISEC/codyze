@@ -7,7 +7,9 @@ import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -79,9 +81,10 @@ public class OGMTest {
     }
   }
 
+  /** Test proper edges around an <code>IfStatement</code> */
   @Test
-  void twoEogEdgesForIfs() {
-    List<Edge> eogs =
+  void testIfGraph() {
+    Vertex ifStmt =
         OverflowDatabase.getInstance()
             .getGraph()
             .traversal()
@@ -90,19 +93,46 @@ public class OGMTest {
                 IfStatement.class.getSimpleName(),
                 OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
             .has("code", "if (3 < 4) {\n" + "      p3.start(iv);\n" + "    }")
-            .outE("EOG")
-            .toList();
+            .next();
 
-    assertEquals("IfStatement", (String) eogs.get(0).outVertex().label());
+    ArrayList<Edge> eogEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "EOG"));
+    assertEquals(1, eogEdges.size());
 
-    System.out.println(eogs.get(0).outVertex().property("code").value());
-    System.out.println(eogs.get(0).inVertex().property("code").value());
+    ArrayList<Edge> conditionEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "CONDITION"));
+    assertEquals(1, conditionEdges.size());
 
-    // IF has two EOG edges (to TRUE and to FALSE branch)
-    assertEquals(2, eogs.size());
+    // Make sure edge names are converted from camelCase to CAMEL_CASE to stay compliant with Neo4j
+    // OGM!
+    ArrayList<Edge> wrongThenEdges =
+        Lists.newArrayList(ifStmt.edges(Direction.OUT, "THENSTATEMENT"));
+    assertEquals(0, wrongThenEdges.size());
 
-    System.out.println(eogs.get(1).outVertex().property("code").value());
-    System.out.println(eogs.get(1).inVertex().property("code").value());
+    ArrayList<Edge> thenEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "THEN_STATEMENT"));
+    assertEquals(1, thenEdges.size());
+
+    ArrayList<Edge> elseEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "ELSE_STATEMENT"));
+    assertEquals(0, elseEdges.size());
+
+    Vertex conditionExpr =
+        OverflowDatabase.getInstance()
+            .getGraph()
+            .traversal()
+            .V()
+            .hasLabel(
+                IfStatement.class.getSimpleName(),
+                OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
+            .has("code", "if (3 < 4) {\n" + "      p3.start(iv);\n" + "    }")
+            .outE("CONDITION")
+            .inV()
+            .next();
+    ArrayList<Edge> rhsEdges = Lists.newArrayList(conditionExpr.edges(Direction.OUT, "RHS"));
+    assertEquals(1, rhsEdges.size());
+
+    ArrayList<Edge> lhsEdges = Lists.newArrayList(conditionExpr.edges(Direction.OUT, "LHS"));
+    assertEquals(1, lhsEdges.size());
+
+    ArrayList<Edge> oegEdges = Lists.newArrayList(conditionExpr.edges(Direction.OUT, "EOG"));
+    assertEquals(1, eogEdges.size());
   }
 
   @Test

@@ -1,47 +1,12 @@
 package de.fraunhofer.aisec.crymlin.connectors.db;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import io.shiftleft.overflowdb.EdgeFactory;
-import io.shiftleft.overflowdb.EdgeLayoutInformation;
-import io.shiftleft.overflowdb.NodeFactory;
-import io.shiftleft.overflowdb.NodeLayoutInformation;
-import io.shiftleft.overflowdb.NodeRef;
-import io.shiftleft.overflowdb.OdbConfig;
-import io.shiftleft.overflowdb.OdbEdge;
-import io.shiftleft.overflowdb.OdbGraph;
-import io.shiftleft.overflowdb.OdbNode;
-import io.shiftleft.overflowdb.OdbNodeProperty;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import io.shiftleft.overflowdb.*;
+import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.javatuples.Pair;
@@ -56,6 +21,16 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.*;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
@@ -749,6 +724,17 @@ public class OverflowDatabase<N> implements Database<N> {
     return fields;
   }
 
+    /**
+     * Reproduces Neo4j-OGM's behavior of creating edge labels.
+     *
+     * Values set by the <code>@Relationship</code> annotation take precedence and determine the edge label.
+     * If no annotation is given or if the annotation does not contain a value, the label is created from the field name in uppercase underscore notation.
+     *
+     * A field name of <code>myField</code> thus becomes a label <code>MY_FIELD</code>.
+     *
+     * @param f
+     * @return
+     */
   private String getRelationshipLabel(Field f) {
     String relName = f.getName();
     if (hasAnnotation(f, Relationship.class)) {
@@ -758,9 +744,10 @@ public class OverflowDatabase<N> implements Database<N> {
                   .filter(a -> a.annotationType().equals(Relationship.class))
                   .findFirst()
                   .get();
-      relName = rel.value().trim().isEmpty() ? f.getName() : rel.value();
+      return rel.value().trim().isEmpty() ? f.getName() : rel.value();
     }
-    return relName.toUpperCase();
+
+    return CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.UPPER_UNDERSCORE).convert(relName);
   }
 
   /**

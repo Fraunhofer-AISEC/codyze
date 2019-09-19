@@ -55,7 +55,7 @@ void do_crypt()
 }
 
 
-/*public class BotanF {
+public class BotanF {
   public void get_cipher_mode(){}
   public void get_cipher_mode(int o){}
   public void get_cipher_mode(int o, int o){}
@@ -67,4 +67,4 @@ void do_crypt()
   public void start(int o, BotanF o){}
   public void start_msg(int o){}
   public void start_msg(int o, int o, BotanF o){}
-}*/
+}

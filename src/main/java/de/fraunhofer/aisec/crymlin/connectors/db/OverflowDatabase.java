@@ -6,6 +6,15 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import io.shiftleft.overflowdb.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.*;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -28,16 +37,6 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.*;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
@@ -81,7 +80,7 @@ public class OverflowDatabase<N> implements Database<N> {
   private final CacheManager cacheManager;
   private final Cache<Field, Boolean> mapsToRelationship;
   private final Cache<Field, Boolean> mapsToProperty;
-  private final Cache<Vertex, N> nodesCache;
+  private final Cache<Long, N> nodesCache; // Key is actually v.id() (Long)
   private final Cache<String, NodeLayoutInformation> layoutinformation;
 
   private Map<N, Vertex> nodeToVertex = new IdentityHashMap<>(); // No cache.
@@ -157,11 +156,11 @@ public class OverflowDatabase<N> implements Database<N> {
                     Field.class, Boolean.class, resourcePools)
                 .build());
     nodesCache =
-        (Cache<Vertex, N>)
+        (Cache<Long, N>)
             cacheManager.createCache(
                 "nodesCache",
                 CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                        Vertex.class, Object.class, resourcePools)
+                        Long.class, Object.class, resourcePools)
                     .build());
     layoutinformation =
         cacheManager.createCache(
@@ -320,8 +319,8 @@ public class OverflowDatabase<N> implements Database<N> {
    */
   public N vertexToNode(Vertex v) {
     // avoid loops
-    if (nodesCache.containsKey(v)) {
-      return nodesCache.get(v);
+    if (nodesCache.containsKey((Long) v.id())) {
+      return nodesCache.get((Long) v.id());
     }
 
     Class<?> targetClass;
@@ -335,7 +334,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
     try {
       N node = (N) targetClass.getDeclaredConstructor().newInstance();
-      nodesCache.put(v, node);
+      nodesCache.put((Long) v.id(), node);
 
       for (Field f : getFieldsIncludingSuperclasses(targetClass)) {
         f.setAccessible(true);

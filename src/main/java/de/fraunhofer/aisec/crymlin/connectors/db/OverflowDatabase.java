@@ -5,46 +5,18 @@ import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import io.shiftleft.overflowdb.EdgeFactory;
-import io.shiftleft.overflowdb.EdgeLayoutInformation;
-import io.shiftleft.overflowdb.NodeFactory;
-import io.shiftleft.overflowdb.NodeLayoutInformation;
-import io.shiftleft.overflowdb.NodeRef;
-import io.shiftleft.overflowdb.OdbConfig;
-import io.shiftleft.overflowdb.OdbEdge;
-import io.shiftleft.overflowdb.OdbGraph;
-import io.shiftleft.overflowdb.OdbNode;
-import io.shiftleft.overflowdb.OdbNodeProperty;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import io.shiftleft.overflowdb.*;
+import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.ehcache.config.ResourcePools;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.config.units.MemoryUnit;
+import org.ehcache.impl.config.persistence.CacheManagerPersistenceConfiguration;
 import org.javatuples.Pair;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.Transient;
@@ -58,11 +30,21 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.*;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
  *
  * <p>OverflowDB is Shiftleft's fork of Tinkergraph, which is a more efficient in-memory graph DB
- * which overflows to disk when memory is full.
+ * overflowing to disk when heap is full.
  */
 public class OverflowDatabase<N> implements Database<N> {
   // persistable property types, taken from Neo4j
@@ -95,13 +77,20 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private static OverflowDatabase INSTANCE;
   private final OdbGraph graph;
+  private final Cache<Class, List> fieldsIncludingSuperclasses;
+  private final Cache<Class, Pair> inAndOutFields;
+  private final CacheManager cacheManager;
+  private final Cache<Field, Boolean> mapsToRelationship;
+  private final Cache<Field, Boolean> mapsToProperty;
+  private final Cache<Vertex, N> nodesCache;
+  private final Cache<String, NodeLayoutInformation> layoutinformation;
 
-  Map<N, Vertex> nodeToVertex = new IdentityHashMap<>();
-  Map<Vertex, N> vertexToNode = new IdentityHashMap<>();
-  Map<Vertex, N> nodesCache = new IdentityHashMap<>();
-  Set<N> saved = new HashSet<>();
+  private Map<N, Vertex> nodeToVertex = new IdentityHashMap<>(); // No cache.
+  private Map<Vertex, N> vertexToNode = new IdentityHashMap<>(); // No cache.
+  private Set<N> saved = new HashSet<>();
+
   // maps from vertex ID to edge targets (map label to IDs of target vertices)
-  Map<Object, Map<String, Set<Object>>> edgesCache = new HashMap<>();
+  private Map<Object, Map<String, Set<Object>>> edgesCache = new HashMap<>();
 
   // Scan all classes in package
   private static final Reflections reflections =
@@ -117,24 +106,85 @@ public class OverflowDatabase<N> implements Database<N> {
               .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
 
   private OverflowDatabase() {
+    // Initialize EhCache to cache some heavyweight reflection
+    try {
+      // Delete overflow cache file. Otherwise, OverflowDB will try to initialize the DB from it.
+      Files.deleteIfExists(new File("graph-cache-overflow.bin").toPath());
+
+      // Make sure there a directory for EhCache disk overflow (not used at the moment).
+      File f = new File("cache");
+      if (!f.exists()) {
+        Files.createDirectory(f.toPath());
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    /* Reserve 1 GB of heap for all following caches.
+     Thus, we will use up to 80% of heap for OverflowDB + 1 GB of heap for caches.
+
+     In case we run into OOM exceptions, we might want to add an "offheap" cache that overflows to disk. So far, even with ~3 mio nodes, we stay well below the limit.
+    */
+    ResourcePools resourcePools =
+        ResourcePoolsBuilder.newResourcePoolsBuilder().heap(1, MemoryUnit.GB).build();
+    cacheManager =
+        CacheManagerBuilder.newCacheManagerBuilder()
+            .with(new CacheManagerPersistenceConfiguration(new File("cache")))
+            .build(true);
+    fieldsIncludingSuperclasses =
+        cacheManager.createCache(
+            "fieldsIncludingSuperclasses",
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                    Class.class, List.class, resourcePools)
+                .build());
+    inAndOutFields =
+        cacheManager.createCache(
+            "inAndOutFields",
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                    Class.class, Pair.class, resourcePools)
+                .build());
+    mapsToRelationship =
+        cacheManager.createCache(
+            "mapsToRelationship",
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                    Field.class, Boolean.class, resourcePools)
+                .build());
+    mapsToProperty =
+        cacheManager.createCache(
+            "mapsToProperty",
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                    Field.class, Boolean.class, resourcePools)
+                .build());
+    nodesCache =
+        (Cache<Vertex, N>)
+            cacheManager.createCache(
+                "nodesCache",
+                CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                        Vertex.class, Object.class, resourcePools)
+                    .build());
+    layoutinformation =
+        cacheManager.createCache(
+            "layoutinformation",
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                    String.class, NodeLayoutInformation.class, resourcePools)
+                .build());
+
     // Create factories for nodes and edges of CPG.
     Pair<List<NodeFactory<OdbNode>>, List<EdgeFactory<OdbEdge>>> factories = getFactories();
     List<NodeFactory<OdbNode>> nodeFactories = factories.getValue0();
     List<EdgeFactory<OdbEdge>> edgeFactories = factories.getValue1();
 
-    // Delete overflow cache file. Otherwise, OverflowDB will try to initialize the DB from it.
-    try {
-      Files.deleteIfExists(new File("graph-cache-overflow.bin").toPath());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    // Create OverflowDatabase
     graph =
         OdbGraph.open(
             OdbConfig.withDefaults()
                 .withStorageLocation("graph-cache-overflow.bin") // Overflow file
-                .withHeapPercentageThreshold(90), // Threshold for mem-to-disk overflow
+                .withHeapPercentageThreshold(80), // Threshold for mem-to-disk overflow
             Collections.unmodifiableList(nodeFactories),
             Collections.unmodifiableList(edgeFactories));
+
+    // This is how to create indices. Unused at the moment.
+    // graph.createIndex("EOG", Vertex.class);
   }
 
   public static <N> OverflowDatabase<N> getInstance() {
@@ -167,6 +217,14 @@ public class OverflowDatabase<N> implements Database<N> {
       save(node);
     }
     bench.stop();
+
+    // Clear some caches. They are only needed during saving.
+    inAndOutFields.clear();
+    mapsToProperty.clear();
+    mapsToRelationship.clear();
+    nodesCache.clear();
+
+    // Note: Do NOT clear "layoutinformation". They will be needed for queries.
   }
 
   /**
@@ -578,8 +636,9 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private Vertex connect(Vertex sourceVertex, String label, Node targetNode, boolean reverse) {
     Vertex targetVertex = null;
-    if (nodeToVertex.containsKey(targetNode)) {
-      Iterator<Vertex> vIt = graph.vertices(nodeToVertex.get(targetNode));
+    Vertex targetId = nodeToVertex.get(targetNode);
+    if (targetId != null) {
+      Iterator<Vertex> vIt = graph.vertices(targetId);
       if (vIt.hasNext()) {
         targetVertex = vIt.next();
       }
@@ -595,7 +654,8 @@ public class OverflowDatabase<N> implements Database<N> {
     // prepare the edge cache
     edgesCache.putIfAbsent(actualSource.id(), new HashMap<>());
     edgesCache.get(actualSource.id()).putIfAbsent(label, new HashSet<>());
-
+    // TODO Performance: We can do some minor optimizations here, avoiding repeated get() of the
+    // same key from hashmap
     // only add edge if this exact one has not been added before
     if (edgesCache.get(actualSource.id()).get(label).add(actualTarget)) {
       actualSource.addEdge(label, actualTarget);
@@ -621,7 +681,15 @@ public class OverflowDatabase<N> implements Database<N> {
    * Reproduced Neo4J-OGM behavior for mapping fields to relationships (or properties otherwise).
    */
   private boolean mapsToRelationship(Field f) {
-    return hasAnnotation(f, Relationship.class) || Node.class.isAssignableFrom(getContainedType(f));
+    // Using cache. This method is called from several places and does heavyweight reflection
+    if (mapsToRelationship.containsKey(f)) {
+      return mapsToRelationship.get(f);
+    }
+
+    boolean result =
+        hasAnnotation(f, Relationship.class) || Node.class.isAssignableFrom(getContainedType(f));
+    mapsToRelationship.putIfAbsent(f, result);
+    return result;
   }
 
   private Class<?> getContainedType(Field f) {
@@ -639,25 +707,35 @@ public class OverflowDatabase<N> implements Database<N> {
   }
 
   private boolean mapsToProperty(Field f) {
+    // Check cache first to reduce heavy reflection
+    if (mapsToProperty.containsKey(f)) {
+      return mapsToProperty.get(f);
+    }
+
     // Transient fields are not supposed to be persisted
     if (Modifier.isTransient(f.getModifiers()) || hasAnnotation(f, Transient.class)) {
+      mapsToProperty.putIfAbsent(f, false);
       return false;
     }
 
     // constant values are not considered properties
     if (Modifier.isFinal(f.getModifiers())) {
+      mapsToProperty.putIfAbsent(f, false);
       return false;
     }
 
     // check if we have a converter for this
     if (f.getAnnotation(Convert.class) != null) {
+      mapsToProperty.putIfAbsent(f, true);
       return true;
     }
 
     // check whether this is some kind of primitive datatype that seems likely to be a property
     String type = getContainedType(f).getTypeName();
 
-    return PRIMITIVES.contains(type) || AUTOBOXERS.contains(type);
+    boolean result = PRIMITIVES.contains(type) || AUTOBOXERS.contains(type);
+    mapsToProperty.putIfAbsent(f, result);
+    return result;
   }
 
   private boolean isCollection(Class<?> aClass) {
@@ -693,8 +771,12 @@ public class OverflowDatabase<N> implements Database<N> {
 
   @Override
   public void close() {
+    // Close cache
+    this.cacheManager.close();
+
+    // Close graph
     try {
-      graph.close();
+      this.graph.close();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -789,10 +871,16 @@ public class OverflowDatabase<N> implements Database<N> {
   }
 
   private List<Field> getFieldsIncludingSuperclasses(Class c) {
+    // Try cache first. There only few (<50) different inputs c, but many calls to this method.
+    if (fieldsIncludingSuperclasses.containsKey(c)) {
+      return fieldsIncludingSuperclasses.get(c);
+    }
+
     List<Field> fields = new ArrayList<>();
     for (; !c.equals(Object.class); c = c.getSuperclass()) {
       fields.addAll(Arrays.asList(c.getDeclaredFields()));
     }
+    fieldsIncludingSuperclasses.putIfAbsent(c, fields);
     return fields;
   }
 
@@ -854,9 +942,21 @@ public class OverflowDatabase<N> implements Database<N> {
         return new OdbNode(ref) {
           private Map<String, Object> propertyValues = new HashMap<>();
 
-          /** All fields annotated with <code></code>@Relationship</code> will become edges. */
+          /**
+           * All fields annotated with <code></code>@Relationship</code> will become edges.
+           *
+           * <p>Note that this method MUST be fast, as it will also be called during queries
+           * iterating over edges.
+           */
           @Override
           protected NodeLayoutInformation layoutInformation() {
+            if (layoutinformation.containsKey(c.getSimpleName())) {
+              return layoutinformation.get(c.getSimpleName());
+            }
+            if (((long) ref.id()) % 100 == 0) {
+              System.out.println("Cache miss for layoutinformation for " + c.getSimpleName());
+            }
+
             Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>> inAndOut =
                 getInAndOutFields(c);
 
@@ -882,7 +982,9 @@ public class OverflowDatabase<N> implements Database<N> {
               }
             }
 
-            return new NodeLayoutInformation(properties, out, in);
+            NodeLayoutInformation result = new NodeLayoutInformation(properties, out, in);
+            layoutinformation.putIfAbsent(c.getSimpleName(), result);
+            return result;
           }
 
           @Override
@@ -935,6 +1037,9 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>> getInAndOutFields(
       Class c) {
+    if (inAndOutFields.containsKey(c)) {
+      return inAndOutFields.get(c);
+    }
     List<EdgeLayoutInformation> inFields = new ArrayList<>();
     List<EdgeLayoutInformation> outFields = new ArrayList<>();
 
@@ -946,13 +1051,15 @@ public class OverflowDatabase<N> implements Database<N> {
           inFields.add(new EdgeLayoutInformation(relName, new HashSet<>()));
         } else if (dir.equals(Direction.OUT) || dir.equals(Direction.BOTH)) {
           outFields.add(new EdgeLayoutInformation(relName, new HashSet<>()));
-
           // Note that each target of an OUT field must also be registered as an IN field
         }
       }
     }
 
-    return new Pair<>(inFields, outFields);
+    Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>> result =
+        new Pair<>(inFields, outFields);
+    inAndOutFields.putIfAbsent(c, result);
+    return result;
   }
 
   private boolean hasAnnotation(Field f, Class annotationClass) {

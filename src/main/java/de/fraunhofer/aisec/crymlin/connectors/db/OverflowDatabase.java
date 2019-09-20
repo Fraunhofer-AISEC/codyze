@@ -16,7 +16,6 @@ import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.units.MemoryUnit;
-import org.ehcache.impl.config.persistence.CacheManagerPersistenceConfiguration;
 import org.javatuples.Pair;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.Transient;
@@ -107,11 +106,13 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private OverflowDatabase() {
     // Initialize EhCache to cache some heavyweight reflection
+    String tmpCacheDir = "." + File.separator;
     try {
       // Delete overflow cache file. Otherwise, OverflowDB will try to initialize the DB from it.
       Files.deleteIfExists(new File("graph-cache-overflow.bin").toPath());
 
       // Make sure there a directory for EhCache disk overflow (not used at the moment).
+      tmpCacheDir = Files.createTempDirectory("cache").toFile().getAbsolutePath();
       File f = new File("cache");
       if (!f.exists()) {
         Files.createDirectory(f.toPath());
@@ -129,7 +130,7 @@ public class OverflowDatabase<N> implements Database<N> {
         ResourcePoolsBuilder.newResourcePoolsBuilder().heap(1, MemoryUnit.GB).build();
     cacheManager =
         CacheManagerBuilder.newCacheManagerBuilder()
-            .with(new CacheManagerPersistenceConfiguration(new File("cache")))
+            .with(CacheManagerBuilder.persistence(tmpCacheDir))
             .build(true);
     fieldsIncludingSuperclasses =
         cacheManager.createCache(

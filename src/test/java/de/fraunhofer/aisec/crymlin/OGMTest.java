@@ -14,6 +14,7 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -226,16 +227,12 @@ public class OGMTest {
           : "n is not instanceof TranslationUnitDeclaration but " + n.getClass().getName();
       restored.add((TranslationUnitDeclaration) n);
     }
-
-    // TODO looks like it is identical, but somehow it does not pass the "equals test yet
-    //    restored.get(0).equals(original.get(0));
-    //    Neo4jDatabase.getInstance().purgeDatabase();
-    //    Neo4jDatabase.getInstance().saveAll(restored);
   }
 
   static class OverflowTest {
 
     @Test
+    @Disabled // Requires a few minutes. Should be run manually.
     void overflowTest() throws Exception {
       URL resource = OGMTest.class.getClassLoader().getResource("unittests/qrc_bitcoin.cpp");
       assertNotNull(resource);

@@ -100,10 +100,7 @@ public class OverflowDatabase<N> implements Database<N> {
               .setScanners(
                   new SubTypesScanner(false /* don't exclude Object.class */),
                   new ResourcesScanner())
-              .setUrls(
-                  ClasspathHelper.forClassLoader(
-                      ClasspathHelper.contextClassLoader(), ClasspathHelper.staticClassLoader()))
-              .addUrls(ClasspathHelper.forJavaClassPath())
+              .setUrls(ClasspathHelper.forPackage(CPG_PACKAGE))
               .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
 
   private OverflowDatabase() {

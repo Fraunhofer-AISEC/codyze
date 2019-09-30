@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 public class AnalysisServer {
 
   private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
+  private static final boolean EXPORT_TO_NEO4J = false;
 
   private static AnalysisServer instance;
 
@@ -177,8 +178,13 @@ public class AnalysisServer {
               return persistToODB(result);
             })
         .thenApplyAsync(
-            // Optional, just for debugging: re-import into Neo4J
-            this::exportToNeo4j)
+            result -> {
+              if (EXPORT_TO_NEO4J) {
+                // Optional, just for debugging: re-import into Neo4J
+                exportToNeo4j(result);
+              }
+              return result;
+            })
         .thenApply(
             result -> {
               log.info(

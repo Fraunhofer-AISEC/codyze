@@ -1,7 +1,6 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import java.util.Map;
 import javax.script.ScriptContext;
@@ -66,10 +65,6 @@ public class JythonInterpreter implements AutoCloseable {
    * gremlin/crymlin queries.
    */
   public void spawnInteractiveConsole() {
-
-    // Clear database
-    OverflowDatabase.getInstance().connect();
-    OverflowDatabase.getInstance().purgeDatabase();
 
     System.out.println(
         "                           _ _       \n"

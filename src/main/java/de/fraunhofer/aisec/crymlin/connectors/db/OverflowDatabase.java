@@ -82,10 +82,13 @@ public class OverflowDatabase<N> implements Database<N> {
   private final Cache<Field, Boolean> mapsToProperty;
   private final Cache<Long, N> nodesCache; // Key is actually v.id() (Long)
   private final Cache<String, NodeLayoutInformation> layoutinformation;
+  private final OdbConfig odbConfig;
 
   private Map<N, Vertex> nodeToVertex = new IdentityHashMap<>(); // No cache.
   private Map<Vertex, N> vertexToNode = new IdentityHashMap<>(); // No cache.
   private Set<N> saved = new HashSet<>();
+
+  private String tmpCacheDir;
 
   // maps from vertex ID to edge targets (map label to IDs of target vertices)
   private Map<Object, Map<String, Set<Object>>> edgesCache = new HashMap<>();
@@ -105,7 +108,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private OverflowDatabase() {
     // Initialize EhCache to cache some heavyweight reflection
-    String tmpCacheDir = "." + File.separator;
+    tmpCacheDir = "." + File.separator;
     try {
       // Delete overflow cache file. Otherwise, OverflowDB will try to initialize the DB from it.
       Files.deleteIfExists(new File("graph-cache-overflow.bin").toPath());
@@ -175,11 +178,13 @@ public class OverflowDatabase<N> implements Database<N> {
     List<EdgeFactory<OdbEdge>> edgeFactories = factories.getValue1();
 
     // Create OverflowDatabase
+    odbConfig =
+        OdbConfig.withDefaults()
+            .withStorageLocation("graph-cache-overflow.bin") // Overflow file
+            .withHeapPercentageThreshold(80); // Threshold for mem-to-disk overflow
     graph =
         OdbGraph.open(
-            OdbConfig.withDefaults()
-                .withStorageLocation("graph-cache-overflow.bin") // Overflow file
-                .withHeapPercentageThreshold(80), // Threshold for mem-to-disk overflow
+            odbConfig,
             Collections.unmodifiableList(nodeFactories),
             Collections.unmodifiableList(edgeFactories));
 
@@ -766,11 +771,14 @@ public class OverflowDatabase<N> implements Database<N> {
   public void purgeDatabase() {
     // The way to fully delete an OverflowDB is to simply close the graph. A new instance will be
     // created at next call to getInstance()
-    graph.close();
+    close();
   }
 
   @Override
   public void close() {
+    // do not save database on close
+    this.odbConfig.withStorageLocation(null);
+
     // Close cache
     this.cacheManager.close();
 
@@ -779,6 +787,16 @@ public class OverflowDatabase<N> implements Database<N> {
       this.graph.close();
     } catch (Exception e) {
       e.printStackTrace();
+    }
+
+    // delete tmp folder
+    if (tmpCacheDir != null) {
+      try {
+        File f = new File(tmpCacheDir);
+        f.delete();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 

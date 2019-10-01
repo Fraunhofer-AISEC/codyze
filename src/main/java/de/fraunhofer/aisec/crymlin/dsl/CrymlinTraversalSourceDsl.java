@@ -141,8 +141,6 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
    * @return
    */
   public GraphTraversal<Vertex, Vertex> recorddeclaration(String recordname) {
-    GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
-
     return this.clone()
         .V()
         .hasLabel(

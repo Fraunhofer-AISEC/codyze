@@ -37,6 +37,8 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
@@ -45,6 +47,8 @@ import org.reflections.util.FilterBuilder;
  * overflowing to disk when heap is full.
  */
 public class OverflowDatabase<N> implements Database<N> {
+
+  private static final Logger log = LoggerFactory.getLogger(OverflowDatabase.class);
   // persistable property types, taken from Neo4j
   private static final String PRIMITIVES =
       "char,byte,short,int,long,float,double,boolean,char[],byte[],short[],int[],long[],float[],double[],boolean[]";
@@ -117,7 +121,7 @@ public class OverflowDatabase<N> implements Database<N> {
         Files.createDirectory(f.toPath());
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      log.error("IO", e);
     }
 
     /* Reserve 1 GB of heap for all following caches.
@@ -271,16 +275,16 @@ public class OverflowDatabase<N> implements Database<N> {
       name = properties.get("name").toString();
     }
 
-    System.out.println("---------");
-    System.out.println("Node \"" + name + "\"");
+    log.info("---------");
+    log.info("Node \"{}", name);
     for (Map.Entry p : properties.entrySet()) {
       String value = p.getValue().toString();
       if (p.getValue() instanceof String[]) {
-        value = Arrays.stream((String[]) p.getValue()).collect(Collectors.joining(", "));
+        value = String.join(", ", (String[]) p.getValue());
       } else if (p.getValue() instanceof Collection) {
         value = ((Collection) p.getValue()).stream().collect(Collectors.joining(", ")).toString();
       }
-      System.out.println(p.getKey() + " -> " + value);
+      log.info("{} -> {}", p.getKey(), value);
     }
   }
 
@@ -306,9 +310,9 @@ public class OverflowDatabase<N> implements Database<N> {
       propertyValues.setAccessible(true);
       return new HashMap<>((Map<K, V>) propertyValues.get(n));
     } catch (NoSuchFieldException e) {
-      System.err.println("Vertex has no field called propertyValues!");
+      log.error("Vertex has no field called propertyValues!");
     } catch (IllegalAccessException e) {
-      e.printStackTrace();
+      log.error("IllegalAccess ", e);
     }
     return Collections.emptyMap();
   }
@@ -330,7 +334,7 @@ public class OverflowDatabase<N> implements Database<N> {
     try {
       targetClass = Class.forName((String) nodeType);
     } catch (ClassNotFoundException e) {
-      System.err.println("Class not found (node type): " + nodeType);
+      log.error("Class not found (node type): {}", nodeType);
       return null;
     }
 
@@ -364,7 +368,7 @@ public class OverflowDatabase<N> implements Database<N> {
               className = (String) v.property(f.getName() + "_type").value();
               collectionType = Class.forName(className);
             } catch (ClassNotFoundException e) {
-              System.err.println("Class not found: " + className);
+              log.error("Class not found: {}", className);
               continue;
             }
             assert Collection.class.isAssignableFrom(collectionType);
@@ -380,7 +384,7 @@ public class OverflowDatabase<N> implements Database<N> {
             f.set(node, targetArray);
           } else {
             // single edge
-            if (targets.size() > 0) {
+            if (!targets.isEmpty()) {
               f.set(node, targets.get(0));
             }
           }
@@ -388,11 +392,9 @@ public class OverflowDatabase<N> implements Database<N> {
       }
       return node;
     } catch (NoSuchMethodException e) {
-      System.err.println("A converter needs to have an empty constructor");
-      e.printStackTrace();
+      log.error("A converter needs to have an empty constructor", e);
     } catch (Exception e) {
-      System.err.println("Error creating new " + targetClass.getName() + " node");
-      e.printStackTrace();
+      log.error("Error creating new {} node", targetClass.getName(), e);
     }
     return null;
   }
@@ -433,10 +435,10 @@ public class OverflowDatabase<N> implements Database<N> {
           } else if (mapsToProperty(f)) {
             properties.put(f.getName(), x);
           } else {
-            System.out.println("Not a property");
+            log.info("Not a property");
           }
         } catch (IllegalAccessException e) {
-          e.printStackTrace();
+          log.error("IllegalAccessException", e);
         }
       }
     }
@@ -505,7 +507,7 @@ public class OverflowDatabase<N> implements Database<N> {
         case "String[]":
           return ((String) v.property(key).value()).split(", ");
         default:
-          System.err.println("Unknown converter type: " + type);
+          log.error("Unknown converter type: {}", type);
           return null;
       }
     } else {
@@ -551,11 +553,9 @@ public class OverflowDatabase<N> implements Database<N> {
         return ((CompositeAttributeConverter) converter).toGraphProperties(content);
       }
     } catch (NoSuchMethodException e) {
-      System.err.println("A converter needs to have an empty constructor");
-      e.printStackTrace();
+      log.error("A converter needs to have an empty constructor", e);
     } catch (Exception e) {
-      System.err.println("Error creating new converter instance");
-      e.printStackTrace();
+      log.error("Error creating new converter instance", e);
     }
 
     return Collections.emptyMap();
@@ -584,11 +584,9 @@ public class OverflowDatabase<N> implements Database<N> {
         return ((CompositeAttributeConverter) converter).toEntityAttribute(properties);
       }
     } catch (NoSuchMethodException e) {
-      System.err.println("A converter needs to have an empty constructor");
-      e.printStackTrace();
+      log.error("A converter needs to have an empty constructor", e);
     } catch (Exception e) {
-      System.err.println("Error when trying to convert");
-      e.printStackTrace();
+      log.error("Error when trying to convert", e);
     }
 
     return null;
@@ -630,7 +628,7 @@ public class OverflowDatabase<N> implements Database<N> {
             //              createEdges(target, (Node) x);
           }
         } catch (IllegalAccessException e) {
-          e.printStackTrace();
+          log.error("IllegalAccessException", e);
         }
       }
     }
@@ -669,12 +667,12 @@ public class OverflowDatabase<N> implements Database<N> {
   private void connectAll(
       Vertex sourceVertex, String label, Collection<?> targetNodes, boolean reverse) {
     for (Object entry : targetNodes) {
-      //                  System.out.println(entry + " " + entry.hashCode());
+      //                  log.info(entry + " " + entry.hashCode());
       if (Node.class.isAssignableFrom(entry.getClass())) {
         Vertex target = connect(sourceVertex, label, (Node) entry, reverse);
         assert target.property("hashCode").value().equals(entry.hashCode());
       } else {
-        System.out.println("Found non-Node class in collection for label \"" + label + "\"");
+        log.info("Found non-Node class in collection for label \"{}\"", label);
       }
     }
   }
@@ -774,7 +772,7 @@ public class OverflowDatabase<N> implements Database<N> {
   @Override
   public void close() {
     // do not save database on close
-    this.odbConfig.withStorageLocation(null);
+    // this.odbConfig.withStorageLocation(null);
 
     // Close cache
     this.cacheManager.close();
@@ -783,16 +781,16 @@ public class OverflowDatabase<N> implements Database<N> {
     try {
       this.graph.close();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("Closing graph", e);
     }
 
     // delete tmp folder
     if (tmpCacheDir != null) {
       try {
         File f = new File(tmpCacheDir);
-        f.delete();
+        Files.delete(f.toPath());
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("Failed to delete", e);
       }
     }
   }
@@ -919,8 +917,8 @@ public class OverflowDatabase<N> implements Database<N> {
               Arrays.stream(f.getAnnotations())
                   .filter(a -> a.annotationType().equals(Relationship.class))
                   .findFirst()
-                  .get();
-      return rel.value().trim().isEmpty() ? f.getName() : rel.value();
+                  .orElse(null);
+      return (rel == null || rel.value().trim().isEmpty()) ? f.getName() : rel.value();
     }
 
     return CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.UPPER_UNDERSCORE).convert(relName);
@@ -969,7 +967,7 @@ public class OverflowDatabase<N> implements Database<N> {
               return layoutinformation.get(c.getSimpleName());
             }
             if (((long) ref.id()) % 100 == 0) {
-              System.out.println("Cache miss for layoutinformation for " + c.getSimpleName());
+              log.info("Cache miss for layoutinformation for {}", c.getSimpleName());
             }
 
             Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>> inAndOut =
@@ -1028,7 +1026,7 @@ public class OverflowDatabase<N> implements Database<N> {
           protected <V> VertexProperty<V> updateSpecificProperty(
               VertexProperty.Cardinality cardinality, String key, V value) {
             this.propertyValues.put(key, value);
-            return new OdbNodeProperty<V>(this, key, value);
+            return new OdbNodeProperty<>(this, key, value);
           }
 
           @Override
@@ -1094,7 +1092,11 @@ public class OverflowDatabase<N> implements Database<N> {
               Arrays.stream(f.getAnnotations())
                   .filter(a -> a.annotationType().equals(Relationship.class))
                   .findFirst()
-                  .get();
+                  .orElse(null);
+      if (rel == null) {
+        log.error("Relation direction is null");
+        return Direction.BOTH;
+      }
       switch (rel.direction()) {
         case Relationship.INCOMING:
           direction = Direction.IN;

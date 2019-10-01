@@ -152,11 +152,10 @@ public class MarkInterpreter {
             Set<Vertex> temp =
                 getVerticesForFunctionDeclaration(a.getCall(), ent, crymlinTraversal);
             log.debug(
-                a.getCall().getName()
-                    + "("
-                    + String.join(", ", a.getCall().getParams())
-                    + "): "
-                    + temp.size());
+                "{}({}):{}",
+                a.getCall().getName(),
+                String.join(", ", a.getCall().getParams()),
+                temp.size());
             numMatches += temp.size();
             op.addVertex(a, temp);
           }
@@ -453,9 +452,7 @@ public class MarkInterpreter {
                   String stateOfNext = getStateSnapshot(outVertices.get(i), baseToFSMNodes);
                   if (seenStates.contains(stateOfNext)) {
                     log.warn(
-                        "node/FSM state already visited: "
-                            + stateOfNext
-                            + ". Do not split into this.");
+                        "node/FSM state already visited: {}. Do not split into this.", stateOfNext);
                     // todo log.debug
                     outVertices.remove(i);
                   } else {
@@ -569,21 +566,6 @@ public class MarkInterpreter {
     return v.id() + " " + String.join(",", fsmStates);
   }
 
-  private void printWorklist(
-      HashSet<Vertex> currentWorklist, HashMap<Long, HashSet<String>> nodeIDtoEOGPathSet) {
-    for (Vertex s : currentWorklist) {
-      HashSet<String> eogPathSet = nodeIDtoEOGPathSet.get((Long) s.id());
-      System.out.print("WL: " + eogPathSet + " ");
-      System.out.print(s.id() + " ");
-      try {
-
-        System.out.println(s.value("code").toString().split("\\n")[0]);
-      } catch (Exception e) {
-        System.out.println("<< no code");
-      }
-    }
-  }
-
   private void evaluateForbiddenCalls(AnalysisContext ctx) {
     /*
      * For a call to be forbidden, it needs to:
@@ -651,7 +633,7 @@ public class MarkInterpreter {
 
       if (rule.getStatement() != null && rule.getStatement().getEnsure() != null) {
         RuleStatement s = rule.getStatement();
-        log.info("checking rule " + rule.getName());
+        log.info("checking rule {}", rule.getName());
 
         if (s.getEnsure() != null && s.getEnsure().getExp() instanceof OrderExpression) {
           continue;
@@ -665,10 +647,9 @@ public class MarkInterpreter {
 
           if (condResult.isEmpty()) {
             log.warn(
-                "The rule '"
-                    + rule.getName()
-                    + "' will not be checked because it's guarding condition cannot be evaluated: "
-                    + exprToString(s.getCond().getExp()));
+                "The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
+                rule.getName(),
+                exprToString(s.getCond().getExp()));
             ctx.getFindings()
                 .add(
                     new Finding(
@@ -677,8 +658,8 @@ public class MarkInterpreter {
                             + ": guarding condition unknown"));
           } else if (!condResult.get()) {
             log.info(
-                "   terminate rule checking due to unsatisfied guarding condition: "
-                    + exprToString(s.getCond().getExp()));
+                "   terminate rule checking due to unsatisfied guarding condition: {}",
+                exprToString(s.getCond().getExp()));
             ctx.getFindings()
                 .add(
                     new Finding(
@@ -693,10 +674,9 @@ public class MarkInterpreter {
 
         if (ensureResult.isEmpty()) {
           log.warn(
-              "Ensure statement of rule '"
-                  + rule.getName()
-                  + "' cannot be evaluated: "
-                  + exprToString(s.getEnsure().getExp()));
+              "Ensure statement of rule '{}' cannot be evaluated: {}",
+              rule.getName(),
+              exprToString(s.getEnsure().getExp()));
           ctx.getFindings()
               .add(
                   new Finding(
@@ -704,7 +684,7 @@ public class MarkInterpreter {
                           + rule.getName()
                           + ": ensure condition unknown"));
         } else if (ensureResult.get()) {
-          log.info("Rule '" + rule.getName() + "' is satisfied.");
+          log.info("Rule '{}' is satisfied.", rule.getName());
           ctx.getFindings()
               .add(
                   new Finding(
@@ -712,7 +692,7 @@ public class MarkInterpreter {
                           + rule.getName()
                           + ": ensure condition satisfied"));
         } else {
-          log.error("Rule '" + rule.getName() + "' is violated.");
+          log.error("Rule '{}' is violated.", rule.getName());
           ctx.getFindings()
               .add(
                   new Finding(

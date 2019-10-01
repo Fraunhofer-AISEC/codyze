@@ -162,10 +162,9 @@ public class ExpressionEvaluator {
     Expression right = expr.getRight();
 
     log.debug(
-        "comparing expression "
-            + MarkInterpreter.exprToString(left)
-            + " with expression "
-            + MarkInterpreter.exprToString(right));
+        "comparing expression {} with expression {}",
+        MarkInterpreter.exprToString(left),
+        MarkInterpreter.exprToString(right));
 
     Optional leftResult = evaluateExpression(left);
     Optional rightResult = evaluateExpression(right);
@@ -177,7 +176,7 @@ public class ExpressionEvaluator {
     Class leftType = leftResult.get().getClass();
     Class rightType = rightResult.get().getClass();
 
-    log.debug("left result= " + leftResult.get() + " right result= " + rightResult.get());
+    log.debug("left result={} right result={}", leftResult.get(), rightResult.get());
 
     // TODO implement remaining operations
     switch (op) {
@@ -331,6 +330,8 @@ public class ExpressionEvaluator {
             rightType.getSimpleName());
 
         return Optional.empty();
+      default:
+        log.error("Unsupported operand {}", op);
     }
 
     assert false;
@@ -456,6 +457,8 @@ public class ExpressionEvaluator {
 
         // returns int
         break;
+      default:
+        log.error("Unsupported function {}", functionName);
     }
 
     return Optional.empty();
@@ -494,31 +497,31 @@ public class ExpressionEvaluator {
     // from lowest to highest operator precedence
 
     if (expr instanceof LogicalOrExpression) {
-      log.debug("evaluating LogicalOrExpression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating LogicalOrExpression: {}", MarkInterpreter.exprToString(expr));
       return evaluateLogicalExpr(expr);
     } else if (expr instanceof LogicalAndExpression) {
-      log.debug("evaluating LogicalAndExpression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating LogicalAndExpression: {}", MarkInterpreter.exprToString(expr));
       return evaluateLogicalExpr(expr);
     } else if (expr instanceof ComparisonExpression) {
-      log.debug("evaluating ComparisonExpression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating ComparisonExpression: {}", MarkInterpreter.exprToString(expr));
       return evaluateLogicalExpr(expr);
     } else if (expr instanceof MultiplicationExpression) {
-      log.debug("evaluating MultiplicationExpression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating MultiplicationExpression: {}", MarkInterpreter.exprToString(expr));
       return evaluateMultiplicationExpr((MultiplicationExpression) expr);
     } else if (expr instanceof UnaryExpression) {
-      log.debug("evaluating UnaryExpression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating UnaryExpression: {}", MarkInterpreter.exprToString(expr));
       return evaluateUnaryExpr((UnaryExpression) expr);
     } else if (expr instanceof Literal) {
-      log.debug("evaluating Literal expression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating Literal expression: {}", MarkInterpreter.exprToString(expr));
       return evaluateLiteral((Literal) expr);
     } else if (expr instanceof Operand) {
-      log.debug("evaluating Operand expression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating Operand expression: {}", MarkInterpreter.exprToString(expr));
       return evaluateOperand((Operand) expr);
     } else if (expr instanceof FunctionCallExpression) {
-      log.debug("evaluating FunctionCallExpression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating FunctionCallExpression: {}", MarkInterpreter.exprToString(expr));
       return evaluateFunctionCallExpr((FunctionCallExpression) expr);
     } else if (expr instanceof LiteralListExpression) {
-      log.debug("evaluating LiteralListExpression: " + MarkInterpreter.exprToString(expr));
+      log.debug("evaluating LiteralListExpression: {}", MarkInterpreter.exprToString(expr));
 
       List literalList = new ArrayList<>();
 
@@ -530,7 +533,7 @@ public class ExpressionEvaluator {
       return Optional.of(literalList);
     }
 
-    log.error("unknown expression: " + MarkInterpreter.exprToString(expr));
+    log.error("unknown expression: {}", MarkInterpreter.exprToString(expr));
     assert false; // all expression types must be handled
     return Optional.empty();
   }
@@ -714,6 +717,9 @@ public class ExpressionEvaluator {
             rightResultType.getSimpleName());
 
         return Optional.empty();
+
+      default:
+        log.error("Unsupported expression {}", op);
     }
 
     // TODO #8
@@ -787,6 +793,9 @@ public class ExpressionEvaluator {
             subExprResultType.getSimpleName());
 
         return Optional.empty();
+
+      default:
+        log.error("Unsupported expresison {}", op);
     }
 
     // TODO #8
@@ -835,11 +844,11 @@ public class ExpressionEvaluator {
         }
       }
 
-      if (vars.size() > 0) {
+      if (!vars.isEmpty()) {
         usesAsVar.add(new Pair<>(operation, vars));
       }
 
-      if (args.size() > 0) {
+      if (!args.isEmpty()) {
         usesAsFunctionArgs.add(new Pair<>(operation, args));
       }
     }
@@ -870,7 +879,7 @@ public class ExpressionEvaluator {
             List<Vertex> nextVertices =
                 CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
 
-            if (nextVertices.size() > 0) {
+            if (!nextVertices.isEmpty()) {
               log.info("found RHS traversals: {}", nextVertices);
               ret.addAll(nextVertices);
             }
@@ -878,7 +887,7 @@ public class ExpressionEvaluator {
             // check if there was a direct initialization (i.e., int i = call(foo);)
             nextVertices = crymlin.byID((long) v.id()).initializerVariable().toList();
 
-            if (nextVertices.size() > 0) {
+            if (!nextVertices.isEmpty()) {
               log.info("found Initializer traversals: {}", nextVertices);
               ret.addAll(nextVertices);
             }
@@ -981,11 +990,11 @@ public class ExpressionEvaluator {
               }
             }
 
-            if (vars.size() > 0) {
+            if (!vars.isEmpty()) {
               usesAsVar.add(new Pair<>(operation, vars));
             }
 
-            if (args.size() > 0) {
+            if (!args.isEmpty()) {
               usesAsFunctionArgs.add(new Pair<>(operation, args));
               // todo: argumentindizes vorberechnen!
             }
@@ -1245,7 +1254,6 @@ public class ExpressionEvaluator {
                           .until(hasLabel("FunctionDeclaration"))
                           .path();
                   dumpPaths(ptc2.toList());
-
                   CrymlinTraversal<Vertex, Path> ptc3 =
                       crymlin
                           .byID((long) v.id())
@@ -1461,7 +1469,7 @@ public class ExpressionEvaluator {
       for (OpStatement stmt : opstmts) {
         Set<Vertex> vertices = mop.getVertices(stmt);
 
-        vertices.forEach((v) -> log.warn("Operand used in OpStatement with vertex: {}", v));
+        vertices.forEach(v -> log.warn("Operand used in OpStatement with vertex: {}", v));
       }
     }
   }

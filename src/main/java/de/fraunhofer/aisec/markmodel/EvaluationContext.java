@@ -1,8 +1,11 @@
 package de.fraunhofer.aisec.markmodel;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EvaluationContext {
+  private static final Logger log = LoggerFactory.getLogger(EvaluationContext.class);
 
   @NonNull private Type contextType;
   @NonNull private Object context;
@@ -10,7 +13,9 @@ public class EvaluationContext {
   public EvaluationContext(@NonNull Object context, @NonNull Type type) {
     this.context = context;
 
-    assert (type.clazz.equals(context.getClass()));
+    if (!type.clazz.equals(context.getClass())) {
+      log.error("Class mismatch {} vs. {}", type.clazz, context.getClass());
+    }
     this.contextType = type;
   }
 

@@ -9,6 +9,10 @@ public class DriverSingleton {
   private static Driver driver;
   private static final Object sync = new Object();
 
+  private DriverSingleton() {
+    /*hide*/
+  }
+
   public static Driver getInstance() {
     synchronized (sync) {
       if (driver == null) {

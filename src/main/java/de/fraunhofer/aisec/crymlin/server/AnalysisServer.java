@@ -370,17 +370,17 @@ public class AnalysisServer {
       OverflowDatabase.getInstance().connect();
       Graph graph = OverflowDatabase.getInstance().getGraph();
 
-      System.out.println("Exporting " + graph.traversal().V().count().next() + " nodes to GraphML");
+      log.info("Exporting {} nodes to GraphML", graph.traversal().V().count().next());
       try (FileOutputStream fos = new FileOutputStream("this-is-so-graphic.graphml")) {
         GraphMLWriter.Builder writer = graph.io(GraphMLIo.build()).writer();
         writer.vertexLabelKey("labels");
         writer.create().writeGraph(fos, graph);
       } catch (IOException e) {
-        e.printStackTrace();
+        log.error("IOException", e);
       }
 
       // Import from file to Neo4J (for visualization only)
-      System.out.println("Importing into Neo4j ...");
+      log.info("Importing into Neo4j ...");
       try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
         File neo4jDB = new File("/var/lib/neo4j/data/databases/graph.db");
         if (neo4jDB.exists()) {
@@ -394,13 +394,12 @@ public class AnalysisServer {
         reader.vertexLabelKey("labels");
         reader.create().readGraph(fis, neo4jGraph);
       } catch (IOException e) {
-        e.printStackTrace();
+        log.error("IOException", e);
       }
     } catch (Throwable t) {
-      t.printStackTrace();
-      ;
+      log.error("Throwable", t);
     }
-    System.out.println("  Done importing");
+    log.info("Done importing");
     return result;
   }
 }

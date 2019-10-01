@@ -51,10 +51,11 @@ repositories {
             artifact("/[organisation].[artifact]_[revision].[ext]")
         }
     }
-
+/*
     maven {
         url = uri("http://repository.netsec.aisec.fraunhofer.de/repository/snapshots/")
     }
+    */
 }
 
 java {

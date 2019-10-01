@@ -62,15 +62,15 @@ public class CrymlinQueryWrapper {
 
     // now, ret contains possible candidates --> need to filter out calls where params don't match
     ret.removeIf(
-        (v) -> {
+        v -> {
           Iterator<Edge> referencedArguments = v.edges(Direction.OUT, "ARGUMENTS");
 
-          if ((parameterTypes.size() == 0) && referencedArguments.hasNext()) {
+          if (parameterTypes.isEmpty() && referencedArguments.hasNext()) {
             // expecting no arguments but got at least one -> remove
             return true;
           }
 
-          if ((parameterTypes.size() != 0) && !referencedArguments.hasNext()) {
+          if (!parameterTypes.isEmpty() && !referencedArguments.hasNext()) {
             // expecting some parameters but got no arguments -> remove
             return true;
           }

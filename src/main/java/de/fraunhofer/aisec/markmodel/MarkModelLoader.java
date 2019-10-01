@@ -117,20 +117,17 @@ public class MarkModelLoader {
               String entityName = rule.getEntityReferences().get(n.getBase()).getValue0();
               if (entity == null) {
                 log.error(
-                    "Entity is not parsed: "
-                        + entityName
-                        + " which is specified in rule "
-                        + rule.getName());
+                    "Entity is not parsed: {} which is specified in rule {}",
+                    entityName,
+                    rule.getName());
               } else {
                 MOp op = entity.getOp(n.getOp());
                 if (op == null) {
                   log.error(
-                      "Entity "
-                          + entity.getName()
-                          + " does not contain op "
-                          + n.getOp()
-                          + " which is specified in rule "
-                          + rule.getName());
+                      "Entity {} does not contain op {} which is specified in rule {}",
+                      entity.getName(),
+                      n.getOp(),
+                      rule.getName());
                 }
               }
             }
@@ -224,7 +221,7 @@ public class MarkModelLoader {
     } else if (exp instanceof UnaryExpression) {
       getRefsFromExp((((UnaryExpression) exp).getExp()), entityRefs, functionRefs);
     } else {
-      log.error("Not implemented yet: {} {}", exp.getClass(), exp.toString());
+      log.error("Not implemented yet: {} {}", exp.getClass(), exp);
     }
   }
 

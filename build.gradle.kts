@@ -51,11 +51,10 @@ repositories {
             artifact("/[organisation].[artifact]_[revision].[ext]")
         }
     }
-/*
+
     maven {
         url = uri("http://repository.***REMOVED***/repository/snapshots/")
     }
-    */
 }
 
 java {

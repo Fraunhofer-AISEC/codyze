@@ -115,6 +115,8 @@ public class OverflowDatabase<N> implements Database<N> {
   private final Cache<Field, Boolean> mapsToProperty;
   private final Cache<Long, N> nodesCache; // Key is actually v.id() (Long)
   private final Cache<String, NodeLayoutInformation> layoutinformation;
+  private final Cache<String, String[]> subClasses;
+  private final Cache<String, String[]> superClasses;
   private final OdbConfig odbConfig;
 
   private Map<N, Vertex> nodeToVertex = new IdentityHashMap<>(); // No cache.
@@ -200,6 +202,18 @@ public class OverflowDatabase<N> implements Database<N> {
             "layoutinformation",
             CacheConfigurationBuilder.newCacheConfigurationBuilder(
                     String.class, NodeLayoutInformation.class, resourcePools)
+                .build());
+    subClasses =
+        cacheManager.createCache(
+            "subClasses",
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                    String.class, String[].class, resourcePools)
+                .build());
+    superClasses =
+        cacheManager.createCache(
+            "superClasses",
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                    String.class, String[].class, resourcePools)
                 .build());
 
     // Create factories for nodes and edges of CPG.
@@ -688,11 +702,10 @@ public class OverflowDatabase<N> implements Database<N> {
 
     // prepare the edge cache
     edgesCache.putIfAbsent(actualSource.id(), new HashMap<>());
-    edgesCache.get(actualSource.id()).putIfAbsent(label, new HashSet<>());
-    // TODO Performance: We can do some minor optimizations here, avoiding repeated get() of the
-    // same key from hashmap
+    Map<String, Set<Object>> currOutgoingEdges = edgesCache.get(actualSource.id());
+    currOutgoingEdges.putIfAbsent(label, new HashSet<>());
     // only add edge if this exact one has not been added before
-    if (edgesCache.get(actualSource.id()).get(label).add(actualTarget)) {
+    if (currOutgoingEdges.get(label).add(actualTarget)) {
       actualSource.addEdge(label, actualTarget);
     }
 
@@ -778,23 +791,37 @@ public class OverflowDatabase<N> implements Database<N> {
   }
 
   public static String[] getSubclasses(Class<?> c) {
-    // TODO Cache this
+    OverflowDatabase<?> instance = OverflowDatabase.getInstance();
+    if (instance.subClasses.containsKey(c.getName())) {
+      return instance.subClasses.get(c.getName());
+    }
+
     Set<String> subclasses = new HashSet<>();
     subclasses.add(c.getSimpleName());
     subclasses.addAll(
         reflections.getSubTypesOf(c).stream()
             .map(Class::getSimpleName)
             .collect(Collectors.toSet()));
-    return subclasses.toArray(new String[0]);
+    String[] result = subclasses.toArray(new String[0]);
+    instance.subClasses.put(c.getName(), result);
+    return result;
   }
 
-  public static String[] getSuperclasses(Class c) {
+  public static String[] getSuperclasses(Class<?> c) {
+    OverflowDatabase<?> instance = OverflowDatabase.getInstance();
+    if (instance.superClasses.containsKey(c.getName())) {
+      return instance.superClasses.get(c.getName());
+    }
+
     List<String> labels = new ArrayList<>();
     while (!c.equals(Object.class)) {
       labels.add(c.getSimpleName());
       c = c.getSuperclass();
     }
-    return labels.toArray(new String[0]);
+
+    String[] result = labels.toArray(new String[0]);
+    instance.superClasses.put(c.getName(), result);
+    return result;
   }
 
   @Override

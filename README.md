@@ -85,3 +85,10 @@ automate with:
 ```
 ./gradlew installDist; and sed -i '$ d' build/install/cpganalysisserver/bin/cpganalysisserver ; and echo 'exec "$JAVACMD" "$@" | tee -a /tmp/cpgoutput' >> build/install/cpganalysisserver/bin/cpganalysisserver
 ```
+
+To silence
+```
+java.lang.reflect.InaccessibleObjectException: Unable to make field protected final java.lang.reflect.Field jdk.internal.reflect.UnsafeFieldAccessorImpl.field accessible: module java.base does not "opens jdk.internal.reflect" to unnamed module @5dbd2d01
+```
+
+add `--add-opens java.base/jdk.internal.reflect=ALL-UNNAMED` to the start-command in `build/install/cpganalysisserver/bin/cpganalysisserver`

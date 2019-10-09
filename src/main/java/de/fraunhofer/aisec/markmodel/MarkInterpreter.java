@@ -451,9 +451,8 @@ public class MarkInterpreter {
 
                   String stateOfNext = getStateSnapshot(outVertices.get(i), baseToFSMNodes);
                   if (seenStates.contains(stateOfNext)) {
-                    log.warn(
+                    log.debug(
                         "node/FSM state already visited: {}. Do not split into this.", stateOfNext);
-                    // todo log.debug
                     outVertices.remove(i);
                   } else {
 

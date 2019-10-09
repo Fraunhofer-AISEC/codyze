@@ -299,7 +299,6 @@ public class OverflowDatabase<N> implements Database<N> {
       throw new RuntimeException("Cannot apply SubgraphWalker to " + node.getClass() + ".");
     }
 
-    // TODO We may want to generify SubgraphWalker and not bind it directly to Node.
     for (Node child : SubgraphWalker.getAstChildren((Node) node)) {
       save((N) child);
     }
@@ -1040,9 +1039,8 @@ public class OverflowDatabase<N> implements Database<N> {
 
             for (String relName : inFields.getOrDefault(c, new HashSet<>())) {
               if (relName != null) {
-                in.add(
-                    new EdgeLayoutInformation(
-                        relName, new HashSet<>())); // TODO Fill edge properties?
+                // edges could have properties here
+                in.add(new EdgeLayoutInformation(relName, new HashSet<>()));
               }
             }
 

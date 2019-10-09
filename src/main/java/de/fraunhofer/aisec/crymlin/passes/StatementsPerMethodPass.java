@@ -16,7 +16,7 @@ import org.python.antlr.base.stmt;
 /**
  * This pass collects all statements in a method's body in the correct order.
  *
- * <p>TODO This is only an experiment for a Pass outside of the CPG project. It is not used at the
+ * <p>This is only an experiment for a Pass outside of the CPG project. It is not used at the
  * moment.
  *
  * @author julian

@@ -66,7 +66,7 @@ class GithubTest {
     }
     Collections.sort(ret);
     // random!
-    // Collections.shuffle(ret);
+    //    Collections.shuffle(ret);
     if (MAX_FILES_TO_SCAN != -1) {
       ret = ret.subList(FILES_OFFSET, FILES_OFFSET + MAX_FILES_TO_SCAN);
     }
@@ -160,7 +160,6 @@ class GithubTest {
 
     } catch (Exception e) {
       analyze.cancel(true);
-      tm.cancel(true);
 
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));

@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 public class AnalysisServer {
 
   private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
-  private static final boolean EXPORT_TO_NEO4J = false;
+  private static final boolean EXPORT_TO_NEO4J = true;
 
   private static AnalysisServer instance;
 
@@ -382,24 +382,26 @@ public class AnalysisServer {
       // Import from file to Neo4J (for visualization only)
       log.info("Importing into Neo4j ...");
       try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
-        File neo4jDB = new File("/var/lib/neo4j/data/databases/graph.db");
+        File neo4jDB =
+            new File("/home/user/projects/bsi/code/cpganalysisserver/.data/databases/graph.db");
         if (neo4jDB.exists()) {
           Files.move(
               neo4jDB.toPath(),
-              new File("/var/lib/neo4j/data/databases/backup" + System.currentTimeMillis() + ".db")
-                  .toPath());
+              new File("/tmp/backup" + System.currentTimeMillis() + ".db").toPath());
         }
-        Neo4jGraph neo4jGraph = Neo4jGraph.open("/var/lib/neo4j/data/databases/graph.db");
+        Neo4jGraph neo4jGraph =
+            Neo4jGraph.open(
+                "/home/user/projects/bsi/code/cpganalysisserver/.data/databases/graph.db");
         GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
         reader.vertexLabelKey("labels");
         reader.create().readGraph(fis, neo4jGraph);
       } catch (IOException e) {
         log.error("IOException", e);
       }
+      log.info("Done importing");
     } catch (Throwable t) {
       log.error("Throwable", t);
     }
-    log.info("Done importing");
     return result;
   }
 }

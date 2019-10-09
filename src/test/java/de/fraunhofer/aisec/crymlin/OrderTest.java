@@ -75,7 +75,6 @@ class OrderTest {
       result = analyze.get(5, TimeUnit.MINUTES);
     } catch (TimeoutException t) {
       analyze.cancel(true);
-      translationManager.cancel(true);
       throw t;
     }
 

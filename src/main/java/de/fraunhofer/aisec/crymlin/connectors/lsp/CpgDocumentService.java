@@ -125,7 +125,6 @@ public class CpgDocumentService implements TextDocumentService {
       Thread.currentThread().interrupt();
     } catch (ExecutionException | TimeoutException e) {
       analyze.cancel(true);
-      tm.cancel(true);
       log.error("Analysis error: ", e);
     }
   }

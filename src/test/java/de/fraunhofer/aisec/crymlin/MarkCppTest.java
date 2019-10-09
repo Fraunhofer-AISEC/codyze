@@ -117,7 +117,6 @@ public class MarkCppTest {
       TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
     } catch (TimeoutException t) {
       analyze.cancel(true);
-      translationManager.cancel(true);
       throw t;
     }
   }
@@ -165,7 +164,6 @@ public class MarkCppTest {
       TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
     } catch (TimeoutException t) {
       analyze.cancel(true);
-      translationManager.cancel(true);
       throw t;
     }
   }
@@ -213,7 +211,6 @@ public class MarkCppTest {
       TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
     } catch (TimeoutException t) {
       analyze.cancel(true);
-      translationManager.cancel(true);
       throw t;
     }
   }
@@ -309,7 +306,6 @@ public class MarkCppTest {
       findings.forEach((f) -> assertTrue(f.getName().endsWith("ensure condition satisfied")));
     } catch (TimeoutException t) {
       analyze.cancel(true);
-      translationManager.cancel(true);
       throw t;
     }
   }

@@ -90,7 +90,6 @@ public class Commands {
       log.error("Exception", e);
     } catch (TimeoutException e) {
       analyze.cancel(true);
-      translationManager.cancel(true);
       System.out.println("Analysis interrupted after timeout of 10 minutes.");
     }
   }

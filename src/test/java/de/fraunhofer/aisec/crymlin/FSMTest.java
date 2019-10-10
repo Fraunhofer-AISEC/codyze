@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.impl.OrderExpressionImpl;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
@@ -162,5 +163,12 @@ class FSMTest {
             + "\t-> END(4)\n"
             + "END (4)\n",
         fsm.toString());
+  }
+
+  @Test
+  void testRegexToFsm() {
+    FSM fsm = new FSM();
+    OrderExpression expr = new OrderExpressionImpl();
+    fsm.sequenceToFSM(expr);
   }
 }

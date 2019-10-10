@@ -4,15 +4,14 @@ import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.python.jline.internal.Log;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.python.jline.internal.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Parses a MarkModel provided by XText in the form of an ECore hierarchy into a simple (ECore-free)

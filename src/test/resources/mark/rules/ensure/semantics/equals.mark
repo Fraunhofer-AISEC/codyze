@@ -1,5 +1,7 @@
 package test.rules.semantics.comparison
 
+entity A {}
+
 rule Equals_1_true {
     using A as a
     ensure

@@ -14,7 +14,7 @@ entity javax.crypto.Cipher isa Cipher {
 	var paramSpec : java.security.spec.AlgorithmParameterSpec;
 	var random : java.security.SecureRandom;
 
-	op create() {
+	op create {
 		/*
 		 * static Cipher getInstance(String transformation)
 		 * static Cipher getInstance(String transformation, Provider provider)
@@ -25,7 +25,7 @@ entity javax.crypto.Cipher isa Cipher {
 		Cipher.getInstance(transformation, providerAsString);
 	}
 	
-	op init() {
+	op init {
 		/**
 		 * void init(int opmode, Certificate certificate)
 		 * void init(int opmode, Certificate certificate, SecureRandom random)
@@ -42,7 +42,7 @@ entity javax.crypto.Cipher isa Cipher {
 		Cipher.init(direction, key, random);
 	}
 	
-	op process() {
+	op process {
 		/*
 		 * byte[] update(byte[] input)
 		 * byte[] update(byte[] input, int inputOffset, int inputLen)
@@ -53,7 +53,7 @@ entity javax.crypto.Cipher isa Cipher {
 		Cipher.update();
 	}
 	
-	op finish() {
+	op finish {
 		/*
 		 * byte[] doFinal()
 		 * byte[] doFinal(byte[] input)

@@ -1,29 +1,31 @@
+package unittests
+
 entity Order isa Cipher {
 	var nonce : int;
 	var nonce_length : int;
 	var iv : int;
 	var myValue : int;
 
-	op create() {
+	op create {
         Botan::get_cipher_mode(_, _);
 	}
 
-	op init() {
+	op init {
         Botan::set_key(_);
 		myValue = Botan::random_vec(_);
         Botan::set_key(_, _);
 	}
 
-	op start() {
+	op start {
         Botan::start(iv);
 
     	Botan::start();
     	Botan::start(_);
         Botan::start(nonce, _);
-        Botan::start_msg(*);
+        Botan::start_msg(...);
 	}
-	op finish() {
-        Botan::finish(_)
+	op finish {
+        Botan::finish(_);
     }
 }
 

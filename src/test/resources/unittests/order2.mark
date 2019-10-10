@@ -1,28 +1,30 @@
+package unittests
+
 entity Order2 {
 
-	op create() {
+	op create {
         Botan2::create();
 	}
-	op init() {
+	op init {
         Botan2::init();
 	}
-	op start() {
+	op start {
     	Botan2::start();
 	}
-	op process() {
+	op process {
         Botan2::process();
     }
-	op finish() {
-        Botan2::finish()
+	op finish {
+        Botan2::finish();
     }
-    op reset() {
-        Botan2::reset()
+    op reset {
+        Botan2::reset();
     }
 }
 
 entity Foo {
-    op close() {
-        Foo::close()
+    op close {
+        Foo::close();
     }
 }
 rule UseOfBotan2_CipherMode {
@@ -32,5 +34,3 @@ rule UseOfBotan2_CipherMode {
 	onfail WrongUseOfBotan_CipherMode
 }
 
-
-foo(a(), b())

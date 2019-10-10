@@ -4,7 +4,7 @@ entity Test {
 
   var foo : int;
 
-  op functions() {
+  op functions {
     call(foo);
   }
 

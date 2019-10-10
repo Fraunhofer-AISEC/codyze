@@ -4,7 +4,7 @@ package botan
 entity Botan::AutoSeededRNG isa RandomSource {
 	var myValue : Botan::InitializationVector;
 	
-	op generate() {
+	op generate {
 		myValue = Botan::AutoSeededRNG::random_vec(_);
 	}
 	

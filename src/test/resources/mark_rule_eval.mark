@@ -21,7 +21,7 @@ entity Botan::Cipher_Mode isa Cipher {
 	var nonce_length : std::size_t;
 	
 	
-	op create() {
+	op create {
 		/*
 		 * method call(s):
 		 * - static std::unique_ptr<Cipher_Mode> create(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
@@ -42,7 +42,7 @@ entity Botan::Cipher_Mode isa Cipher {
 		*/
 	}
 	
-	op init() {
+	op init {
 		/*
 		 * method call(s) inherited from Botan::SymmetricAlgorithm:
 		 * - void set_key(const SymmetricKey& key)
@@ -55,7 +55,7 @@ entity Botan::Cipher_Mode isa Cipher {
 		forbidden Botan::Cipher_Mode::set_key(_, _);
 	}
 	
-	op start() {
+	op start {
 		/* 
 		 * method call(s):
 		 * - template<typename Alloc>
@@ -72,7 +72,7 @@ entity Botan::Cipher_Mode isa Cipher {
 		forbidden Botan::Cipher_Mode::start_msg(nonce, nonce_length);
 	}
 	
-	op process() {
+	op process {
 		/*
 		 * method call(s): 
 		 * - void update(secure_vector<uint8_t>& buffer, size_t offset = 0)
@@ -85,7 +85,7 @@ entity Botan::Cipher_Mode isa Cipher {
 		Botan::Cipher_Mode::update(buffer, _);
 	}
 	
-	op finish() {
+	op finish {
 		/*
 		 * method call(s):
 		 * - virtual void finish(secure_vector<uint8_t>& final_block, size_t offset = 0) = 0;
@@ -94,7 +94,7 @@ entity Botan::Cipher_Mode isa Cipher {
 		Botan::Cipher_Mode::finish(input, _);
 	}
 	
-	op reset() {
+	op reset {
 		/*
 		 * method call(s):
 		 * - virtual void reset() = 0;

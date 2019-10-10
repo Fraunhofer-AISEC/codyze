@@ -3,17 +3,20 @@ package de.fraunhofer.aisec.crymlin;
 import static org.junit.jupiter.api.Assertions.*;
 
 import de.fraunhofer.aisec.mark.XtextParser;
-import de.fraunhofer.aisec.mark.markDsl.MarkModel;
-import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.impl.MarkDslFactoryImpl;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
+import de.fraunhofer.aisec.markmodel.fsm.Node;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class FSMTest {
@@ -162,5 +165,55 @@ class FSMTest {
             + "\t-> END(4)\n"
             + "END (4)\n",
         fsm.toString());
+  }
+
+  @Test
+  @Disabled // Does not pass. Bug in FSM.
+  void testRegexToFsm() {
+    FSM fsm = new FSM();
+
+    // Create a regular expression: AB?(CD)*E+
+    MarkDslFactory f = new MarkDslFactoryImpl();
+    Terminal a = f.createTerminal();
+    a.setEntity("A");
+    Terminal b = f.createTerminal();
+    b.setEntity("B");
+    Terminal c = f.createTerminal();
+    c.setEntity("C");
+    Terminal d = f.createTerminal();
+    d.setEntity("D");
+    Terminal e = f.createTerminal();
+    e.setEntity("E");
+    RepetitionExpression someB = f.createRepetitionExpression();
+    someB.setOp("?");
+    someB.setExpr(b);
+    SequenceExpression cThenD = f.createSequenceExpression();
+    cThenD.setLeft(c);
+    cThenD.setRight(d);
+    RepetitionExpression anyCThenD = f.createRepetitionExpression();
+    anyCThenD.setOp("*");
+    anyCThenD.setExpr(cThenD);
+    RepetitionExpression someE = f.createRepetitionExpression();
+    someE.setOp("+");
+    someE.setExpr(e);
+    SequenceExpression tail2 = f.createSequenceExpression();
+    tail2.setLeft(anyCThenD);
+    tail2.setRight(someE);
+    SequenceExpression tail1 = f.createSequenceExpression();
+    tail1.setLeft(someB);
+    tail1.setRight(tail2);
+    SequenceExpression aThenTail = f.createSequenceExpression();
+    aThenTail.setLeft(a);
+    aThenTail.setRight(tail1);
+
+    // Transform regex into NFA (FSM)
+    fsm.sequenceToFSM(aThenTail);
+    System.out.println(fsm.toString());
+
+    HashSet<Node> start = fsm.getStart();
+    assertEquals(1, start.size());
+    Node startNode = start.iterator().next();
+    HashSet<Node> expectB = startNode.getSuccessors();
+    System.out.println(expectB);
   }
 }

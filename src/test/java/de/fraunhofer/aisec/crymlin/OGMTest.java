@@ -1,11 +1,18 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.cpg.graph.IfStatement;
+import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
@@ -98,7 +105,13 @@ public class OGMTest {
             .hasLabel(
                 IfStatement.class.getSimpleName(),
                 OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
-            .has("code", "if (3 < 4) {\n" + "      p3.start(iv);\n" + "    }")
+            .has(
+                "code",
+                "if (3 < 4) {"
+                    + System.lineSeparator()
+                    + "      p3.start(iv);"
+                    + System.lineSeparator()
+                    + "    }")
             .next();
 
     ArrayList<Edge> eogEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "EOG"));
@@ -127,7 +140,13 @@ public class OGMTest {
             .hasLabel(
                 IfStatement.class.getSimpleName(),
                 OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
-            .has("code", "if (3 < 4) {\n" + "      p3.start(iv);\n" + "    }")
+            .has(
+                "code",
+                "if (3 < 4) {"
+                    + System.lineSeparator()
+                    + "      p3.start(iv);"
+                    + System.lineSeparator()
+                    + "    }")
             .outE("CONDITION")
             .inV()
             .next();

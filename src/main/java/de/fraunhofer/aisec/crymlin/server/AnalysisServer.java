@@ -84,6 +84,10 @@ public class AnalysisServer {
     return instance;
   }
 
+  public static Builder builder() {
+    return new Builder();
+  }
+
   /** Starts the server in a separate threat, returns as soon as the server is ready to operate. */
   public void start() {
     if (config.launchLsp) {
@@ -283,27 +287,8 @@ public class AnalysisServer {
     log.info("stop.");
   }
 
-  public static Builder builder() {
-    return new Builder();
-  }
-
   public CpgLanguageServer getLSP() {
     return lsp;
-  }
-
-  public static class Builder {
-    private ServerConfiguration config;
-
-    private Builder() {}
-
-    public Builder config(ServerConfiguration config) {
-      this.config = config;
-      return this;
-    }
-
-    public AnalysisServer build() {
-      return new AnalysisServer(this.config);
-    }
   }
 
   private TranslationResult persistToNeo4J(TranslationResult result) {
@@ -382,13 +367,18 @@ public class AnalysisServer {
       // Import from file to Neo4J (for visualization only)
       log.info("Importing into Neo4j ...");
       try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
-        File neo4jDB = new File("./.data/databases/graph.db");
+        File neo4jDB =
+            Path.of(".data", "databases", "graph.db")
+                .toFile(); // new File("./.data/databases/graph.db");
         if (neo4jDB.exists()) {
           Files.move(
               neo4jDB.toPath(),
-              new File("/tmp/backup" + System.currentTimeMillis() + ".db").toPath());
+              Path.of(
+                  System.getProperty("java.io.tmpdir"),
+                  "backup" + System.currentTimeMillis() + ".db"));
         }
-        try (Neo4jGraph neo4jGraph = Neo4jGraph.open("./.data/databases/graph.db")) {
+        try (Neo4jGraph neo4jGraph =
+            Neo4jGraph.open(Path.of(".data", "databases", "graph.db").toString())) {
           GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
           reader.vertexLabelKey("labels");
           reader.create().readGraph(fis, neo4jGraph);
@@ -401,5 +391,20 @@ public class AnalysisServer {
       log.error("Throwable", t);
     }
     return result;
+  }
+
+  public static class Builder {
+    private ServerConfiguration config;
+
+    private Builder() {}
+
+    public Builder config(ServerConfiguration config) {
+      this.config = config;
+      return this;
+    }
+
+    public AnalysisServer build() {
+      return new AnalysisServer(this.config);
+    }
   }
 }

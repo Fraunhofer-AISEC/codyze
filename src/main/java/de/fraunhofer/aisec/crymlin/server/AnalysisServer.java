@@ -18,18 +18,6 @@ import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkInterpreter;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo;
@@ -42,6 +30,19 @@ import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * This is the main CPG analysis server.
@@ -382,19 +383,17 @@ public class AnalysisServer {
       // Import from file to Neo4J (for visualization only)
       log.info("Importing into Neo4j ...");
       try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
-        File neo4jDB =
-            new File("/home/user/projects/bsi/code/cpganalysisserver/.data/databases/graph.db");
+        File neo4jDB = new File("./.data/databases/graph.db");
         if (neo4jDB.exists()) {
           Files.move(
               neo4jDB.toPath(),
               new File("/tmp/backup" + System.currentTimeMillis() + ".db").toPath());
         }
-        Neo4jGraph neo4jGraph =
-            Neo4jGraph.open(
-                "/home/user/projects/bsi/code/cpganalysisserver/.data/databases/graph.db");
-        GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
-        reader.vertexLabelKey("labels");
-        reader.create().readGraph(fis, neo4jGraph);
+        try (Neo4jGraph neo4jGraph = Neo4jGraph.open("./.data/databases/graph.db")) {
+          GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
+          reader.vertexLabelKey("labels");
+          reader.create().readGraph(fis, neo4jGraph);
+        }
       } catch (IOException e) {
         log.error("IOException", e);
       }

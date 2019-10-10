@@ -1,23 +1,18 @@
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.MessageActionItem;
-import org.eclipse.lsp4j.MessageParams;
-import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.eclipse.lsp4j.ShowMessageRequestParams;
-import org.eclipse.lsp4j.TextDocumentItem;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Tests for the server component of the Language Server Protocol. */
 class LSPTest {
@@ -68,7 +63,7 @@ class LSPTest {
               first = false;
               assertEquals(1, publishDiagnosticsParams.getDiagnostics().size());
             } else {
-              assertEquals(3, publishDiagnosticsParams.getDiagnostics().size());
+              assertEquals(5, publishDiagnosticsParams.getDiagnostics().size());
             }
           }
 

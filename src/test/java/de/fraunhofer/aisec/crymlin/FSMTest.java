@@ -1,5 +1,7 @@
 package de.fraunhofer.aisec.crymlin;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
@@ -7,15 +9,12 @@ import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 class FSMTest {
 

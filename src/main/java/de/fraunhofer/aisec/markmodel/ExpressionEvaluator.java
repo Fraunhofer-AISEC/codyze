@@ -1128,181 +1128,8 @@ public class ExpressionEvaluator {
                    *  8.  {no intializer with value e.g. function argument} continue traversing the graph
                    */
 
-                  //                  CrymlinTraversal<Vertex, Path> eogPathTraversal =
-                  //                      crymlin
-                  //                          .byID((long) variableDeclarationVertex.id())
-                  //                          .repeat(out("EOG").simplePath())
-                  //                          .until(hasId(v.id()))
-                  //                          .path();
-
-                  log.warn("Starting vertex: {}", v.id());
-                  log.warn(
-                      "Previous + 0 EOG vertex: {}",
-                      crymlin.byID((long) v.id()).in("EOG").toList());
-                  log.warn(
-                      "Previous + 1 EOG vertex: {}",
-                      crymlin.byID((long) v.id()).in("EOG").in("EOG").toList());
-                  log.warn(
-                      "Previous + 2 EOG vertex: {}",
-                      crymlin.byID((long) v.id()).in("EOG").in("EOG").in("EOG").toList());
-                  log.warn(
-                      "Previous + 3 EOG vertex: {}",
-                      crymlin.byID((long) v.id()).in("EOG").in("EOG").in("EOG").in("EOG").toList());
-                  log.warn(
-                      "Previous + 4 EOG vertex: {}",
-                      crymlin
-                          .byID((long) v.id())
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .toList());
-                  log.warn(
-                      "Previous + 5 EOG vertex: {}",
-                      crymlin
-                          .byID((long) v.id())
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .toList());
-                  log.warn(
-                      "Previous + 6 EOG vertex: {}",
-                      crymlin
-                          .byID((long) v.id())
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .toList());
-                  log.warn(
-                      "Previous + 7 EOG vertex: {}",
-                      crymlin
-                          .byID((long) v.id())
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .toList());
-                  log.warn(
-                      "Previous + 8 EOG vertex: {}",
-                      crymlin
-                          .byID((long) v.id())
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .toList());
-                  log.warn(
-                      "Previous + 9 EOG vertex: {}",
-                      crymlin
-                          .byID((long) v.id())
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .in("EOG")
-                          .toList());
-
-                  CrymlinTraversal<Vertex, Vertex> pathTraversal =
-                      crymlin
-                          .byID((long) v.id())
-                          .emit()
-                          .repeat(in("EOG"))
-                          .until(hasLabel("FunctionDeclaration"));
-                  CrymlinTraversal<Vertex, Vertex> ptClone =
-                      (CrymlinTraversal<Vertex, Vertex>) pathTraversal.clone();
-                  while (pathTraversal.hasNext()) {
-                    log.warn("traversed vertex : {}", pathTraversal.next());
-                  }
-
-                  dumpPaths(ptClone.path().toList());
-
-                  CrymlinTraversal<Vertex, Path> ptc1 =
-                      crymlin
-                          .byID((long) v.id())
-                          .repeat(in("EOG"))
-                          .until(hasLabel("FunctionDeclaration"))
-                          .emit()
-                          .path();
-                  dumpPaths(ptc1.toList());
-
-                  CrymlinTraversal<Vertex, Path> ptc2 =
-                      crymlin
-                          .byID((long) v.id())
-                          .repeat(in("EOG"))
-                          .until(hasLabel("FunctionDeclaration"))
-                          .path();
-                  dumpPaths(ptc2.toList());
-                  CrymlinTraversal<Vertex, Path> ptc3 =
-                      crymlin
-                          .byID((long) v.id())
-                          .emit()
-                          .repeat(in("EOG").unfold())
-                          .until(hasLabel("FunctionDeclaration"))
-                          .path();
-                  dumpPaths(ptc3.toList());
-
-                  log.warn("Workaround?");
-
-                  CrymlinTraversal<Vertex, Vertex> ptw =
-                      crymlin
-                          .byID((long) v.id())
-                          .emit()
-                          .repeat(in("EOG"))
-                          .until(hasLabel("FunctionDeclaration"));
-                  CrymlinTraversal<Vertex, Path> ptw_cp =
-                      ((CrymlinTraversal<Vertex, Vertex>) ptw.clone()).path();
-
-                  dumpVertices(ptw.toList());
-                  dumpPaths(ptw_cp.toList());
-
-                  log.warn("All in one?");
-                  dumpPaths(
-                      crymlin
-                          .byID((long) v.id())
-                          .emit()
-                          .repeat(in("EOG"))
-                          .until(hasLabel("FunctionDeclaration"))
-                          .path()
-                          .toList());
-
-                  //                  Path path =
-                  //                      crymlin
-                  //                          .byID((long) v.id())
-                  //                          .emit()
-                  //                          .repeat(in("EOG").simplePath())
-                  //                          .path()
-                  //                          .next();
-                  //                  log.warn("Path {}", path);
-                  //                  List<Path> eogPaths = eogPathTraversal.toList();
-                  //                  dumpPaths(eogPaths);
-
-                  /*
-                   * real code
-                   */
-                  log.warn("Vertex for function call: {}", v);
-                  log.warn("Vertex of variable declaration: {}", variableDeclarationVertex);
+                  log.debug("Vertex for function call: {}", v);
+                  log.debug("Vertex of variable declaration: {}", variableDeclarationVertex);
 
                   // traverse in reverse along EOG edges from v until variableDeclarationVertex -->
                   // one of them must have more information on the value of the operand
@@ -1475,21 +1302,21 @@ public class ExpressionEvaluator {
   }
 
   private void dumpVertices(Collection<Vertex> vertices) {
-    log.warn("Dumping vertices: {}", vertices.size());
+    log.debug("Dumping vertices: {}", vertices.size());
 
     int i = 0;
     for (Vertex v : vertices) {
-      log.warn("Vertex {}: {}", i++, v);
+      log.debug("Vertex {}: {}", i++, v);
     }
   }
 
   private void dumpPaths(Collection<Path> paths) {
-    log.warn("Number of paths: {}", paths.size());
+    log.debug("Number of paths: {}", paths.size());
 
     for (Path p : paths) {
-      log.warn("Path of length: {}", p.size());
+      log.debug("Path of length: {}", p.size());
       for (Object o : p) {
-        log.warn("Path step: {}", o);
+        log.debug("Path step: {}", o);
       }
     }
   }

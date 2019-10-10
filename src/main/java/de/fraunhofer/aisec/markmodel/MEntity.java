@@ -1,13 +1,10 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.*;
 
 public class MEntity {
 
@@ -100,7 +97,7 @@ public class MEntity {
       }
     }
     for (MOp op : getOps()) {
-      sb.append("\top " + op.getName() + "() {\n");
+      sb.append("\top " + op.getName() + " {\n");
       for (OpStatement callStatement : op.getStatements()) {
         sb.append(
             "\t\t"

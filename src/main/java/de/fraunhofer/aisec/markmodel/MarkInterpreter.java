@@ -11,21 +11,15 @@ import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MarkInterpreter {
   private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
@@ -179,7 +173,7 @@ public class MarkInterpreter {
 
       log.info("Evaluate rules");
       b = new Benchmark(this.getClass(), "Evaluate rules");
-      evaluateRules(ctx);
+      evaluateNonOrderRules(ctx);
       b.stop();
 
       bOuter.stop();
@@ -190,6 +184,13 @@ public class MarkInterpreter {
       // reset stuff attached to this model
       this.markModel.reset();
     }
+  }
+
+  private List<MRule> getOrderRules() {
+    // if getFSM() is null, there is no order-statement for this rule.
+    return this.markModel.getRules().stream()
+        .filter(r -> r.getFSM() != null)
+        .collect(Collectors.toList());
   }
 
   private void evaluateOrder(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal) {
@@ -214,13 +215,7 @@ public class MarkInterpreter {
       return;
     }
 
-    for (MRule rule : this.markModel.getRules()) {
-
-      // if this is null, there is no order-statement for this rule
-      if (rule.getFSM() == null) {
-        continue;
-      }
-
+    for (MRule rule : getOrderRules()) {
       // rule.getFSM().pushToDB(); //debug only
       log.info("\tEvaluating rule {}", rule.getName());
 
@@ -242,6 +237,7 @@ public class MarkInterpreter {
         continue;
       }
 
+      // TODO JS -> DT: Does it make sense to iterate over *all* functions?
       for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations().toList()) {
         log.info("Evaluating function {}", (Object) functionDeclaration.value("name"));
 
@@ -304,6 +300,7 @@ public class MarkInterpreter {
             for (String eogPath : eogPathSet) {
 
               // ... no direct access to the labels TreeSet of Neo4JVertex
+              // TODO JS: This might need to be adapted to non-multilabels with OverflowDB.
               if (vertex.label().contains("MemberCallExpression")
                   // is the vertex part of any op of any mentioned entity? If not, ignore
                   && verticesToOp.get(vertex) != null) {
@@ -625,80 +622,87 @@ public class MarkInterpreter {
     }
   }
 
-  private void evaluateRules(AnalysisContext ctx) {
-    for (MRule rule : markModel.getRules()) {
+  /**
+   * Returns all rules from Mark model, which do not contain an "order" statement.
+   *
+   * @return
+   */
+  private List<MRule> getNonOrderRules() {
+    return markModel.getRules().stream()
+        .filter(
+            r ->
+                r != null
+                    && (r.getStatement() != null && r.getStatement().getEnsure() != null)
+                    && !(r.getStatement().getEnsure() != null
+                        && r.getStatement().getEnsure().getExp() instanceof OrderExpression))
+        .collect(Collectors.toList());
+  }
+
+  private void evaluateNonOrderRules(AnalysisContext ctx) {
+
+    for (MRule rule : getNonOrderRules()) {
       EvaluationContext ec = new EvaluationContext(rule, EvaluationContext.Type.RULE);
       ExpressionEvaluator ee = new ExpressionEvaluator(ec);
 
-      if (rule.getStatement() != null && rule.getStatement().getEnsure() != null) {
-        RuleStatement s = rule.getStatement();
-        log.info("checking rule {}", rule.getName());
+      RuleStatement s = rule.getStatement();
+      log.info("checking rule {}", rule.getName());
 
-        if (s.getEnsure() != null && s.getEnsure().getExp() instanceof OrderExpression) {
-          continue;
-          // todo maybe comment in again, if the order-statements are generally caught by
-          // this function. for now, order is done separately.
-        }
-
-        if (s.getCond() != null) {
-
-          Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
-
-          if (condResult.isEmpty()) {
-            log.warn(
-                "The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
-                rule.getName(),
-                exprToString(s.getCond().getExp()));
-            ctx.getFindings()
-                .add(
-                    new Finding(
-                        "MarkRuleEvaluationFinding: Rule "
-                            + rule.getName()
-                            + ": guarding condition unknown"));
-          } else if (!condResult.get()) {
-            log.info(
-                "   terminate rule checking due to unsatisfied guarding condition: {}",
-                exprToString(s.getCond().getExp()));
-            ctx.getFindings()
-                .add(
-                    new Finding(
-                        "MarkRuleEvaluationFinding: Rule "
-                            + rule.getName()
-                            + ": guarding condition unsatisfied"));
-          }
-        }
-
-        log.debug("checking 'ensure'-statement");
-        Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
-
-        if (ensureResult.isEmpty()) {
+      if (s.getCond() != null) {
+        Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
+        if (condResult.isEmpty()) {
           log.warn(
-              "Ensure statement of rule '{}' cannot be evaluated: {}",
+              "The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
               rule.getName(),
-              exprToString(s.getEnsure().getExp()));
+              exprToString(s.getCond().getExp()));
           ctx.getFindings()
               .add(
                   new Finding(
                       "MarkRuleEvaluationFinding: Rule "
                           + rule.getName()
-                          + ": ensure condition unknown"));
-        } else if (ensureResult.get()) {
-          log.info("Rule '{}' is satisfied.", rule.getName());
+                          + ": guarding condition unknown"));
+        } else if (!condResult.get()) {
+          log.info(
+              "   terminate rule checking due to unsatisfied guarding condition: {}",
+              exprToString(s.getCond().getExp()));
           ctx.getFindings()
               .add(
                   new Finding(
                       "MarkRuleEvaluationFinding: Rule "
                           + rule.getName()
-                          + ": ensure condition satisfied"));
-        } else {
-          log.error("Rule '{}' is violated.", rule.getName());
-          ctx.getFindings()
-              .add(
-                  new Finding(
-                      "MarkRuleEvaluationFinding: Rule "
-                          + rule.getName()
-                          + ": ensure condition violated"));
+                          + ": guarding condition unsatisfied"));
         }
+      }
+
+      log.debug("checking 'ensure'-statement");
+      Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
+
+      if (ensureResult.isEmpty()) {
+        log.warn(
+            "Ensure statement of rule '{}' cannot be evaluated: {}",
+            rule.getName(),
+            exprToString(s.getEnsure().getExp()));
+        ctx.getFindings()
+            .add(
+                new Finding(
+                    "MarkRuleEvaluationFinding: Rule "
+                        + rule.getName()
+                        + ": ensure condition unknown"));
+      } else if (ensureResult.get()) {
+        log.info("Rule '{}' is satisfied.", rule.getName());
+        ctx.getFindings()
+            .add(
+                new Finding(
+                    "MarkRuleEvaluationFinding: Rule "
+                        + rule.getName()
+                        + ": ensure condition satisfied"));
+      } else {
+        log.error("Rule '{}' is violated.", rule.getName());
+        ctx.getFindings()
+            .add(
+                new Finding(
+                    "MarkRuleEvaluationFinding: Rule "
+                        + rule.getName()
+                        + ": ensure condition violated"));
       }
     }
   }

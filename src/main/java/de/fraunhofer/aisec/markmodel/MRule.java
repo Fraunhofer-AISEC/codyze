@@ -1,15 +1,16 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.crymlin.utils.Pair;
-import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.HashMap;
 import java.util.stream.Collectors;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class MRule {
 
-  private String name;
+  @NonNull private String name;
   private RuleStatement statement;
   private FSM fsm = null;
   private String errorMessage;
@@ -24,12 +25,16 @@ public class MRule {
    */
   private HashMap<String, Pair<String, MEntity>> entityReferences;
 
-  @Nullable
+  public MRule(@NonNull String name) {
+    this.name = name;
+  }
+
+  @NonNull
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
+  public void setName(@NonNull String name) {
     this.name = name;
   }
 

@@ -14,10 +14,10 @@
     p1.finish();
     p1.reset();
   }
-
   void ok2() {
     Botan2 p2 = new Botan2(1);
-    p2.create();
+    Botan2 pX = p2;  // Alias before seed
+    p2.create();   // Seed
     p2.init();
     p2.start();
     p2.process();

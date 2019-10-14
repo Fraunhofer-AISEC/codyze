@@ -11,14 +11,17 @@ import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import java.util.*;
-import java.util.stream.Collectors;
+import de.fraunhofer.aisec.markmodel.wpds.IdealAnalysis;
+import de.fraunhofer.aisec.markmodel.wpds.TypeStateAnalysis;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MarkInterpreter {
   private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
@@ -170,6 +173,11 @@ public class MarkInterpreter {
       evaluateOrder(ctx, crymlinTraversal);
       b.stop();
 
+      log.info("Evaluate typestate");
+      b = new Benchmark(this.getClass(), "Evaluate typestates");
+      evaluateTypestate(ctx, crymlinTraversal);
+      b.stop();
+
       log.info("Evaluate rules");
       b = new Benchmark(this.getClass(), "Evaluate rules");
       evaluateNonOrderRules(ctx);
@@ -183,6 +191,16 @@ public class MarkInterpreter {
       // reset stuff attached to this model
       this.markModel.reset();
     }
+  }
+
+  private void evaluateTypestate(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal) {
+    IdealAnalysis ideal = new IdealAnalysis();
+    TypeStateAnalysis ts = new TypeStateAnalysis();
+      List<MRule> rules = getOrderRules();
+      for (MRule r: rules) {
+        ts.analyze(ctx, crymlinTraversal, r);
+        ideal.analyze(ctx, crymlinTraversal, r);
+      }
   }
 
   private List<MRule> getOrderRules() {
@@ -422,7 +440,7 @@ public class MarkInterpreter {
                   .edges(Direction.OUT, "EOG")
                   .forEachRemaining(edge -> outVertices.add(edge.inVertex()));
 
-              // if more than one vertex follows the current one, we need to branch the eogPath
+              // if more than one vertex follows the curreant one, we need to branch the eogPath
               if (outVertices.size() > 1) { // split
                 HashSet<String> oldBases = new HashSet<>();
                 HashMap<String, HashSet<Node>> newBases = new HashMap<>();

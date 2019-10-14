@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class FSMTest {
@@ -168,7 +167,6 @@ class FSMTest {
   }
 
   @Test
-  @Disabled // Does not pass. Bug in FSM.
   void testRegexToFsm() {
     FSM fsm = new FSM();
 

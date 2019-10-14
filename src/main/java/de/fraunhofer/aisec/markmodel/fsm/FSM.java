@@ -1,9 +1,11 @@
 package de.fraunhofer.aisec.markmodel.fsm;
 
+import de.fraunhofer.aisec.mark.markDsl.AlternativeExpression;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
 import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
+import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -124,16 +126,16 @@ public class FSM {
     Node start = new Node(null, "BEGIN");
     start.setStart(true);
 
-    HashSet<Node> currentNodes = new HashSet<>();
-    currentNodes.add(start);
+    HashSet<Node> endNodes = new HashSet<>();
+    endNodes.add(start);
     // System.out.println(MarkInterpreter.exprToString(seq));
-    addExpr(seq, currentNodes);
+    expressionToNodes(seq, endNodes, null);
 
     // not strictly needed, we could simply set end=true for all the returned nodes
     Node end = new Node(null, "END");
     end.setEnd(true);
     end.setFake(true);
-    currentNodes.forEach(x -> x.addSuccessor(end));
+    endNodes.forEach(x -> x.addSuccessor(end));
 
     // we could remove BEGIN here, and set begin=true for its successors
     for (Node n : start.getSuccessors()) {
@@ -142,58 +144,100 @@ public class FSM {
     startNodes = start.getSuccessors();
   }
 
-  private HashSet<Node> addExpr(final Expression expr, final HashSet<Node> currentNodes) {
+  private void expressionToNodes(
+      final Expression expr, final HashSet<Node> endNodes, final Head head) {
     if (expr instanceof Terminal) {
       Terminal inner = (Terminal) expr;
       Node n = new Node(inner.getEntity(), inner.getOp());
-      currentNodes.forEach(x -> x.addSuccessor(n));
-      currentNodes.clear();
-      currentNodes.add(n);
-      return currentNodes;
+      endNodes.forEach(x -> x.addSuccessor(n));
+      endNodes.clear();
+      endNodes.add(n);
+      if (head != null && head.addNextNode) {
+        head.add(n);
+        head.addNextNode = false;
+      }
+      return;
     } else if (expr instanceof SequenceExpression) {
       SequenceExpression inner = (SequenceExpression) expr;
-      addExpr(inner.getLeft(), currentNodes);
-      return addExpr(inner.getRight(), currentNodes);
+      expressionToNodes(inner.getLeft(), endNodes, head);
+      expressionToNodes(inner.getRight(), endNodes, head);
+      return;
     } else if (expr instanceof RepetitionExpression) {
       RepetitionExpression inner = (RepetitionExpression) expr;
       switch (inner.getOp()) {
         case "?":
           {
-            HashSet<Node> remember = new HashSet<>(currentNodes);
-            addExpr(inner.getExpr(), currentNodes);
-            currentNodes.addAll(remember);
-            return currentNodes;
+            HashSet<Node> remember = new HashSet<>(endNodes);
+            expressionToNodes(inner.getExpr(), endNodes, head);
+            endNodes.addAll(remember);
+            return;
           }
         case "+":
           {
-            HashSet<Node> remember = new HashSet<>(currentNodes);
-            addExpr(inner.getExpr(), currentNodes);
-            for (Node n : remember) {
-              currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
+            Head innerHead = new Head();
+            innerHead.addNextNode = true;
+            expressionToNodes(inner.getExpr(), endNodes, innerHead);
+            for (Node j : innerHead.get()) {
+              // connect to innerHead
+              endNodes.forEach(x -> x.addSuccessor(j));
+              if (head != null && head.addNextNode) {
+                head.add(j);
+              }
             }
-            return currentNodes;
+            return;
           }
         case "*":
           {
-            HashSet<Node> remember = new HashSet<>(currentNodes);
-            addExpr(inner.getExpr(), currentNodes);
-            for (Node n : remember) {
-              currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
+            HashSet<Node> remember = new HashSet<>(endNodes);
+            Head innerHead = new Head();
+            innerHead.addNextNode = true;
+            expressionToNodes(inner.getExpr(), endNodes, innerHead);
+            for (Node j : innerHead.get()) {
+              // connect to innerHead
+              endNodes.forEach(x -> x.addSuccessor(j));
+              if (head != null && head.addNextNode) {
+                head.add(j);
+              }
             }
-            currentNodes.addAll(remember);
-            return currentNodes;
+
+            endNodes.addAll(remember);
+            return;
           }
         default:
           log.error("UNKNOWN OP: {}", inner.getOp());
-          return addExpr(inner.getExpr(), currentNodes);
+          return;
       }
+    } else if (expr instanceof AlternativeExpressionImpl) {
+      AlternativeExpression inner = (AlternativeExpression) expr;
+      HashSet<Node> remember = new HashSet<>(endNodes);
+      expressionToNodes(inner.getLeft(), endNodes, head);
+      if (head != null) {
+        head.addNextNode = true;
+      }
+
+      expressionToNodes(inner.getRight(), remember, head);
+      endNodes.addAll(remember);
+      return;
     }
 
     log.error("ERROR, unknown Expression: {}", expr.getClass());
-    return null;
+    return;
   }
 
   public HashSet<Node> getStart() {
     return startNodes;
+  }
+
+  private static class Head {
+    private ArrayList<Node> nodes = new ArrayList<>();
+    private Boolean addNextNode = null;
+
+    void add(Node n) {
+      nodes.add(n);
+    }
+
+    ArrayList<Node> get() {
+      return nodes;
+    }
   }
 }

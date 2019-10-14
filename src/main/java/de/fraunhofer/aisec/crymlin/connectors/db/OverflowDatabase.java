@@ -108,11 +108,11 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private static OverflowDatabase INSTANCE;
   private final OdbGraph graph;
-  private final Cache<Class, List> fieldsIncludingSuperclasses;
-  private final Cache<Class, Pair> inAndOutFields;
+  private final Cache<String, List> fieldsIncludingSuperclasses;
+  private final Cache<String, Pair> inAndOutFields;
   private final CacheManager cacheManager;
-  private final Cache<Field, Boolean> mapsToRelationship;
-  private final Cache<Field, Boolean> mapsToProperty;
+  private final Cache<String, Boolean> mapsToRelationship;
+  private final Cache<String, Boolean> mapsToProperty;
   private final Cache<Long, N> nodesCache; // Key is actually v.id() (Long)
   private final Cache<String, NodeLayoutInformation> layoutinformation;
   private final Cache<String, String[]> subClasses;
@@ -170,25 +170,25 @@ public class OverflowDatabase<N> implements Database<N> {
         cacheManager.createCache(
             "fieldsIncludingSuperclasses",
             CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                    Class.class, List.class, resourcePools)
+                    String.class, List.class, resourcePools)
                 .build());
     inAndOutFields =
         cacheManager.createCache(
             "inAndOutFields",
             CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                    Class.class, Pair.class, resourcePools)
+                    String.class, Pair.class, resourcePools)
                 .build());
     mapsToRelationship =
         cacheManager.createCache(
             "mapsToRelationship",
             CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                    Field.class, Boolean.class, resourcePools)
+                    String.class, Boolean.class, resourcePools)
                 .build());
     mapsToProperty =
         cacheManager.createCache(
             "mapsToProperty",
             CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                    Field.class, Boolean.class, resourcePools)
+                    String.class, Boolean.class, resourcePools)
                 .build());
     nodesCache =
         (Cache<Long, N>)
@@ -729,13 +729,14 @@ public class OverflowDatabase<N> implements Database<N> {
    */
   private boolean mapsToRelationship(Field f) {
     // Using cache. This method is called from several places and does heavyweight reflection
-    if (mapsToRelationship.containsKey(f)) {
-      return mapsToRelationship.get(f);
+    String key = f.getDeclaringClass().getName() + "." + f.getName();
+    if (mapsToRelationship.containsKey(key)) {
+      return mapsToRelationship.get(key);
     }
 
     boolean result =
         hasAnnotation(f, Relationship.class) || Node.class.isAssignableFrom(getContainedType(f));
-    mapsToRelationship.putIfAbsent(f, result);
+    mapsToRelationship.putIfAbsent(key, result);
     return result;
   }
 
@@ -755,25 +756,26 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private boolean mapsToProperty(Field f) {
     // Check cache first to reduce heavy reflection
-    if (mapsToProperty.containsKey(f)) {
-      return mapsToProperty.get(f);
+    String key = f.getDeclaringClass().getName() + "." + f.getName();
+    if (mapsToProperty.containsKey(key)) {
+      return mapsToProperty.get(key);
     }
 
     // Transient fields are not supposed to be persisted
     if (Modifier.isTransient(f.getModifiers()) || hasAnnotation(f, Transient.class)) {
-      mapsToProperty.putIfAbsent(f, false);
+      mapsToProperty.putIfAbsent(key, false);
       return false;
     }
 
     // constant values are not considered properties
     if (Modifier.isFinal(f.getModifiers())) {
-      mapsToProperty.putIfAbsent(f, false);
+      mapsToProperty.putIfAbsent(key, false);
       return false;
     }
 
     // check if we have a converter for this
     if (f.getAnnotation(Convert.class) != null) {
-      mapsToProperty.putIfAbsent(f, true);
+      mapsToProperty.putIfAbsent(key, true);
       return true;
     }
 
@@ -781,7 +783,7 @@ public class OverflowDatabase<N> implements Database<N> {
     String type = getContainedType(f).getTypeName();
 
     boolean result = PRIMITIVES.contains(type) || AUTOBOXERS.contains(type);
-    mapsToProperty.putIfAbsent(f, result);
+    mapsToProperty.putIfAbsent(key, result);
     return result;
   }
 
@@ -946,15 +948,15 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private List<Field> getFieldsIncludingSuperclasses(Class c) {
     // Try cache first. There only few (<50) different inputs c, but many calls to this method.
-    if (fieldsIncludingSuperclasses.containsKey(c)) {
-      return fieldsIncludingSuperclasses.get(c);
+    if (fieldsIncludingSuperclasses.containsKey(c.getName())) {
+      return fieldsIncludingSuperclasses.get(c.getName());
     }
 
     List<Field> fields = new ArrayList<>();
     for (; !c.equals(Object.class); c = c.getSuperclass()) {
       fields.addAll(Arrays.asList(c.getDeclaredFields()));
     }
-    fieldsIncludingSuperclasses.putIfAbsent(c, fields);
+    fieldsIncludingSuperclasses.putIfAbsent(c.getName(), fields);
     return fields;
   }
 
@@ -1124,8 +1126,8 @@ public class OverflowDatabase<N> implements Database<N> {
 
   private Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>> getInAndOutFields(
       Class c) {
-    if (inAndOutFields.containsKey(c)) {
-      return inAndOutFields.get(c);
+    if (inAndOutFields.containsKey(c.getName())) {
+      return inAndOutFields.get(c.getName());
     }
     List<EdgeLayoutInformation> inFields = new ArrayList<>();
     List<EdgeLayoutInformation> outFields = new ArrayList<>();
@@ -1145,7 +1147,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
     Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>> result =
         new Pair<>(inFields, outFields);
-    inAndOutFields.putIfAbsent(c, result);
+    inAndOutFields.putIfAbsent(c.getName(), result);
     return result;
   }
 

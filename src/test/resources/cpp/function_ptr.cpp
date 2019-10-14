@@ -3,13 +3,13 @@
 class A {
   public:
     void fun() {
-      std::cout << "Hello" << std:endl;
+      std::cout << "Hello" << std::endl;
     }
-}
+};
 
 int main() {
   A a;
 
-  void (* f_ptr) () = &a.fun;
-  (*f_ptr)();
+  void (A::* f_ptr) () = &A::fun;
+  (a.*f_ptr)();
 }

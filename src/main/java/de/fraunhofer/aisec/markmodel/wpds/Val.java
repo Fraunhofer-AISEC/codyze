@@ -17,6 +17,14 @@ public class Val {
     return variable + " in (" + currentScope + ")";
   }
 
+  public String getVariable() {
+    return variable;
+  }
+
+  public String getCurrentScope() {
+    return currentScope;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;

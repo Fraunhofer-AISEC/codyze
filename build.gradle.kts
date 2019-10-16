@@ -197,9 +197,7 @@ spotless {
                     include("src/main/generated/**")
                 }
         )
-
-        //googleJavaFormat().aosp()
-        googleJavaFormat()
+        eclipseFormatFile(rootProject.file("formatter-settings.xml"))
     }
 }
 

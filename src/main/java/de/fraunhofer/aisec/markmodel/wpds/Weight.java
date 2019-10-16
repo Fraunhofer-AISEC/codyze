@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A "weight domain" for a weighted pushdown system.
@@ -68,7 +69,8 @@ public class Weight extends Semiring {
     Set<NFATransition> resultSet = new HashSet<>();
     for (NFATransition my : this.value) {
       for (NFATransition theirs : otherW.value) {
-        if (my.getSource().equals(theirs.getTarget())) {
+        // Transitive hull. Avoid endless loops by skipping cyclic transitions.
+        if (!theirs.isCycle() && !my.isCycle() && my.getTarget().equals(theirs.getSource())) {
           resultSet.add(new NFATransition(my.getSource(), theirs.getTarget(), my.getLabel()));
         }
       }
@@ -102,15 +104,41 @@ public class Weight extends Semiring {
       return nfa.getCurrentConfiguration();
     }
 
-    // TODO Write this shorter
-    String result = "";
-    for (NFATransition t : this.value) {
-      result = result + t.toString() + ", ";
-    }
-    return result;
+    // Concatenate transitions' toString(), joined by comma
+    return String.join(", ", this.value.stream().map(t -> t.toString()).collect(Collectors.toList()));
   }
 
   public String toString() {
     return value().toString();
   }
+
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    for (NFATransition v : this.value) {
+      result = prime * result + v.hashCode();
+    }
+    if (this.fixedElement != null) {
+      result = prime * result + this.fixedElement.hashCode();
+    }
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (!(obj instanceof Weight)) return false;
+    Weight other = (Weight) obj;
+    if (this.fixedElement!=null && other.fixedElement==null) return false;
+    if (this.fixedElement==null && other.fixedElement!=null) return false;
+    if (this.fixedElement!=null && !this.fixedElement.equals(other.fixedElement)) return false;
+
+    if (!this.value.equals(other.value)) return false;
+
+    return true;
+  }
+
 }

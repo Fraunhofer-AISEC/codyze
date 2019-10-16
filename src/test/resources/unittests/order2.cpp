@@ -16,6 +16,7 @@
   }
   void ok2() {
     Botan2 p2 = new Botan2(1);
+    p2.create();
     Botan2 pX = p2;  // Alias before seed
     pX.init();
     pX.start();

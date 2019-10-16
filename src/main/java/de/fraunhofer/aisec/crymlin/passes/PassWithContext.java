@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin.passes;
 
 import de.fraunhofer.aisec.cpg.passes.Pass;
@@ -11,5 +12,5 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  */
 public interface PassWithContext extends Pass {
 
-  public void setContext(@NonNull AnalysisContext ctx);
+	public void setContext(@NonNull AnalysisContext ctx);
 }

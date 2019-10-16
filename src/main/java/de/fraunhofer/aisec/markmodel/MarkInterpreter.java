@@ -558,7 +558,7 @@ public class MarkInterpreter {
 			if (s.getCond() != null) {
 				Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
 				if (condResult.isEmpty()) {
-					log.warn("The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}", rule.getName(),
+					log.warn("The rule '{}'' will not be checked because its guarding condition cannot be evaluated: {}", rule.getName(),
 						exprToString(s.getCond().getExp()));
 					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unknown"));
 				}

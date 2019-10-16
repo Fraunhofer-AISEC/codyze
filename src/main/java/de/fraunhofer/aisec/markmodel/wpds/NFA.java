@@ -17,8 +17,10 @@ public class NFA {
   private static final Logger log = LoggerFactory.getLogger(NFA.class);
   private HashSet<Node> startNodes = null;
 
+  final private Node START = new Node("START", "START");
+
   /* Set of transitions between states */
-  private Set<NFATransition> transitions = new HashSet<>();
+  private Set<NFATransition<Node>> transitions = new HashSet<>();
 
   /* The set of states with tokens. */
   private Set<Node> currentConfiguration = new HashSet<>();
@@ -41,7 +43,7 @@ public class NFA {
    *
    * @return
    */
-  public Set<NFATransition> getTransitions() {
+  public Set<NFATransition<Node>> getTransitions() {
     return Set.copyOf(this.transitions);
   }
 
@@ -90,7 +92,6 @@ public class NFA {
     populateTransitions();
 
     // Create transitions from artificial START state into start nodes
-    Node START = new Node("START", "START");
     for (Node startNode : startNodes) {
       NFATransition initialTransition = new NFATransition(START, startNode, startNode.getOp());
       this.transitions.add(initialTransition);
@@ -193,25 +194,15 @@ public class NFA {
   }
 
   /**
-    Moves forward all tokens for which a transition from a state with given label exists.
-
-   Events are names of "MOp"s.
+   * Returns the (aritifial) START state.
+   *
+   * @return
    */
-  public void handleEvent(String e) {
-    for (Node c : currentConfiguration) {
-      List<NFATransition> possibleTransitions = transitions.stream().filter(tran -> tran.getSource().equals(c) && tran.getLabel().equals(e)).collect(Collectors.toList());
-      for (NFATransition tran : possibleTransitions) {
-        // Move token from previous state to new state
-        currentConfiguration.remove(tran.getSource());
-        currentConfiguration.add(tran.getTarget());
-      }
-    }
+  public Node getStart() {
+    return this.START;
   }
 
-  public HashSet<Node> getStart() {
-    return startNodes;
-  }
-
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     for (NFATransition t : transitions) {
@@ -221,8 +212,17 @@ public class NFA {
     return sb.toString();
   }
 
-  public String getCurrentConfiguration() {
-    return currentConfiguration.toString();
+  public Set<Node> getCurrentConfiguration() {
+    return currentConfiguration;
+  }
+
+  /**
+   * Returns all transitions leading from the START state to the first <i>real/i> states.
+   *
+   * @return
+   */
+  public Set<NFATransition> getInitialTransitions() {
+    return getTransitions().stream().filter(tr -> tr.getSource().equals(START)).collect(Collectors.toSet());
   }
 
 }

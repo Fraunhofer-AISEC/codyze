@@ -62,6 +62,18 @@ public class ExpressionEvaluator {
 		this.context = ec;
 	}
 
+	/**
+	 * Checks a source file against a MARK expression.
+	 *
+	 * This method may return three results:
+	 *
+	 * - empty: The expression could not be evaluated.
+	 * - false: Expression was evaluated but does not match the source file.
+	 * - true: Expression was evaluated and matches the source file.
+	 *
+	 * @param expr The MARK expression to evaluate.
+	 * @return
+	 */
 	public Optional<Boolean> evaluate(Expression expr) {
 		if (expr instanceof OrderExpression) {
 			return evaluateOrderExpression((OrderExpression) expr);
@@ -448,6 +460,12 @@ public class ExpressionEvaluator {
 		return Optional.empty();
 	}
 
+	/**
+	 * Evaluates a non-order MARK expression.
+	 *
+	 * @param expr
+	 * @return
+	 */ // TODO JS->FW: Should return a generic Optional<SomeType>. Currently it is very difficult to understand what the Optional is supposed to contain.
 	private Optional evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
 
@@ -484,6 +502,7 @@ public class ExpressionEvaluator {
 			return evaluateFunctionCallExpr((FunctionCallExpression) expr);
 		}
 		else if (expr instanceof LiteralListExpression) {
+			// TODO JS->FW: What is the semantics of LiteralListExpression? Seems like the Optional<List> result is not used anywhere.
 			log.debug("evaluating LiteralListExpression: {}", MarkInterpreter.exprToString(expr));
 
 			List literalList = new ArrayList<>();
@@ -724,6 +743,12 @@ public class ExpressionEvaluator {
 		return Optional.empty();
 	}
 
+	/**
+	 * TODO JS->FW: Write a comment here, describing what vertices this method returns for given operand. Maybe give an example.
+	 *
+	 * @param operand
+	 * @return
+	 */
 	private List<Vertex> getMatchingVertices(Operand operand) {
 		final ArrayList<Vertex> ret = new ArrayList<>();
 
@@ -732,14 +757,17 @@ public class ExpressionEvaluator {
 			return ret;
 		}
 		if (StringUtils.countMatches(operand.getOperand(), ".") != 1) {
+			// TODO JS->FW: Add comment explaining what the "." is for.
 			log.error("operand contains more than one '.' which is not supported yet");
 			return ret;
 		}
 
+		// Split operand "myInstance.attribute" into "myInstance" and "attribute".
 		final String[] operandParts = operand.getOperand().split("\\.");
 		final String instance = operandParts[0];
 		final String attribute = operandParts[1];
 
+		// Get the MARK entity corresponding to the operator's instance.
 		Pair<String, MEntity> ref = context.getRule().getEntityReferences().get(instance);
 		String entityName = ref.getValue0();
 		MEntity referencedEntity = ref.getValue1();
@@ -747,16 +775,18 @@ public class ExpressionEvaluator {
 		List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
 		List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
 
+		// Collect *variables* assigned in Ops of this entity and *arguments* used in Ops.
 		for (MOp operation : referencedEntity.getOps()) {
 			Set<OpStatement> vars = new HashSet<>();
 			Set<OpStatement> args = new HashSet<>();
 
+			// Iterate over all statements of that op
 			for (OpStatement opStmt : operation.getStatements()) {
-				// simple assignment, i.e. var = something()
+				// simple assignment, i.e. "var = something()"
 				if (attribute.equals(opStmt.getVar())) {
 					vars.add(opStmt);
 				}
-				// ...or it's used as a function parameter, i.e. something(..., var, ...)
+				// Function parameter, i.e. "something(..., var, ...)"
 				if (opStmt.getCall().getParams().stream().anyMatch(p -> p.equals(attribute))) {
 					args.add(opStmt);
 				}
@@ -771,6 +801,7 @@ public class ExpressionEvaluator {
 			}
 		}
 
+		// TODO JS->FW: (less important) ExpressionEvaluator should not decide on its own which type of DB to use but rather receive a connection when instantiated.
 		try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 
@@ -789,8 +820,7 @@ public class ExpressionEvaluator {
 					for (Vertex v : vertices) {
 						// check if there was an assignment
 
-						// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
-						// step is in the crymlin traversal
+						// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the step is in the crymlin traversal
 						List<Vertex> nextVertices = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
 
 						if (!nextVertices.isEmpty()) {

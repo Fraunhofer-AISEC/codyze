@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,96 +24,76 @@ import org.junit.jupiter.api.Test;
 
 class ForbiddenTest {
 
-  private static AnalysisServer server;
-  private static TranslationResult result;
+	private static AnalysisServer server;
+	private static TranslationResult result;
 
-  private void performTest(String sourceFilename) throws Exception {
+	private void performTest(String sourceFilename) throws Exception {
 
-    ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
+		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
-    URL resource = classLoader.getResource(sourceFilename);
-    assertNotNull(resource);
-    File cppFile = new File(resource.getFile());
-    assertNotNull(cppFile);
+		URL resource = classLoader.getResource(sourceFilename);
+		assertNotNull(resource);
+		File cppFile = new File(resource.getFile());
+		assertNotNull(cppFile);
 
-    resource = classLoader.getResource("unittests/forbidden.mark");
-    assertNotNull(resource);
-    File markPoC1 = new File(resource.getFile());
-    assertNotNull(markPoC1);
+		resource = classLoader.getResource("unittests/forbidden.mark");
+		assertNotNull(resource);
+		File markPoC1 = new File(resource.getFile());
+		assertNotNull(markPoC1);
 
-    // Make sure we start with a clean (and connected) db
-    try {
-      Database db = OverflowDatabase.getInstance();
-      db.connect();
-      db.purgeDatabase();
-    } catch (Throwable e) {
-      e.printStackTrace();
-      assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-    }
+		// Make sure we start with a clean (and connected) db
+		try {
+			Database db = OverflowDatabase.getInstance();
+			db.connect();
+			db.purgeDatabase();
+		}
+		catch (Throwable e) {
+			e.printStackTrace();
+			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
+		}
 
-    // Start an analysis server
-    server =
-        AnalysisServer.builder()
-            .config(
-                ServerConfiguration.builder()
-                    .launchConsole(false)
-                    .launchLsp(false)
-                    .markFiles(markPoC1.getAbsolutePath())
-                    .build())
-            .build();
-    server.start();
+		// Start an analysis server
+		server = AnalysisServer.builder().config(
+			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build()).build();
+		server.start();
 
-    // Start the analysis
-    TranslationManager translationManager =
-        TranslationManager.builder()
-            .config(
-                TranslationConfiguration.builder()
-                    .debugParser(true)
-                    .failOnError(false)
-                    .codeInNodes(true)
-                    .registerPass(new VariableUsageResolver())
-                    .sourceFiles(cppFile)
-                    .build())
-            .build();
-    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-    try {
-      result = analyze.get(5, TimeUnit.MINUTES);
-    } catch (TimeoutException t) {
-      analyze.cancel(true);
-      throw t;
-    }
+		// Start the analysis
+		TranslationManager translationManager = TranslationManager.builder().config(
+			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).registerPass(new VariableUsageResolver()).sourceFiles(
+				cppFile).build()).build();
+		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		try {
+			result = analyze.get(5, TimeUnit.MINUTES);
+		}
+		catch (TimeoutException t) {
+			analyze.cancel(true);
+			throw t;
+		}
 
-    AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-    assertNotNull(ctx);
-    assertTrue(ctx.methods.isEmpty());
+		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+		assertNotNull(ctx);
+		assertTrue(ctx.methods.isEmpty());
 
-    List<String> findings = new ArrayList<>();
-    ctx.getFindings().forEach(x -> findings.add(x.toString()));
+		List<String> findings = new ArrayList<>();
+		ctx.getFindings().forEach(x -> findings.add(x.toString()));
 
-    assertEquals(
-        5, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
+		assertEquals(5, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
 
-    assertTrue(
-        findings.contains(
-            "line 42: Violation against forbidden call(s) BotanF.set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
-    assertTrue(
-        findings.contains(
-            "line 37: Violation against forbidden call(s) BotanF.start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
-    assertTrue(
-        findings.contains(
-            "line 36: Violation against forbidden call(s) BotanF.start() in Entity Forbidden. Call was b.start();"));
+		assertTrue(findings.contains("line 42: Violation against forbidden call(s) BotanF.set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
+		assertTrue(findings.contains("line 37: Violation against forbidden call(s) BotanF.start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
+		assertTrue(findings.contains("line 36: Violation against forbidden call(s) BotanF.start() in Entity Forbidden. Call was b.start();"));
 
-    // Stop the analysis server
-    server.stop();
-  }
+		// Stop the analysis server
+		server.stop();
+	}
 
-  @Test
-  void testJava() throws Exception {
-    performTest("unittests/forbidden.java");
-  }
+	@Test
+	void testJava() throws Exception {
+		performTest("unittests/forbidden.java");
+	}
 
-  @Test
-  void testCpp() throws Exception {
-    performTest("unittests/forbidden.cpp");
-  }
+	@Test
+	void testCpp() throws Exception {
+		performTest("unittests/forbidden.cpp");
+	}
 }

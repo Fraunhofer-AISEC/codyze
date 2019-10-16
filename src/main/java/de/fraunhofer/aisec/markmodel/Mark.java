@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.markmodel;
 
 import java.util.ArrayList;
@@ -8,33 +9,35 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class Mark {
 
-  @NonNull private HashMap<String, MEntity> entityByName = new HashMap<>();
+	@NonNull
+	private HashMap<String, MEntity> entityByName = new HashMap<>();
 
-  @NonNull private List<MRule> rules = new ArrayList<>();
+	@NonNull
+	private List<MRule> rules = new ArrayList<>();
 
-  public void addEntities(String name, MEntity ent) {
-    this.entityByName.put(name, ent);
-  }
+	public void addEntities(String name, MEntity ent) {
+		this.entityByName.put(name, ent);
+	}
 
-  public Collection<MEntity> getEntities() {
-    return this.entityByName.values();
-  }
+	public Collection<MEntity> getEntities() {
+		return this.entityByName.values();
+	}
 
-  public MEntity getEntity(@NonNull String name) {
-    return entityByName.get(name);
-  }
+	public MEntity getEntity(@NonNull String name) {
+		return entityByName.get(name);
+	}
 
-  @NonNull
-  public List<MRule> getRules() {
-    return this.rules;
-  }
+	@NonNull
+	public List<MRule> getRules() {
+		return this.rules;
+	}
 
-  public void reset() {
-    // nothing to do for the rules
-    for (MEntity entity : getEntities()) {
-      for (MOp op : entity.getOps()) {
-        op.reset();
-      }
-    }
-  }
+	public void reset() {
+		// nothing to do for the rules
+		for (MEntity entity : getEntities()) {
+			for (MOp op : entity.getOps()) {
+				op.reset();
+			}
+		}
+	}
 }

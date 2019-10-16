@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin.utils;
 
 import java.util.ArrayList;
@@ -21,48 +22,47 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 @Plugin(name = "TestAppender", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
 public class TestAppender extends AbstractAppender {
 
-  private final ArrayList<LogEvent> events = new ArrayList<>();
+	private final ArrayList<LogEvent> events = new ArrayList<>();
 
-  public TestAppender(String name, Filter filter) {
-    super(name, filter, null);
-  }
+	public TestAppender(String name, Filter filter) {
+		super(name, filter, null);
+	}
 
-  @PluginFactory
-  public static TestAppender createAppender(
-      @PluginAttribute("name") String name, @PluginElement("Filter") Filter filter) {
-    return new TestAppender(name, filter);
-  }
+	@PluginFactory
+	public static TestAppender createAppender(@PluginAttribute("name") String name, @PluginElement("Filter") Filter filter) {
+		return new TestAppender(name, filter);
+	}
 
-  @Override
-  public void append(LogEvent event) {
-    synchronized (events) {
-      events.add(event.toImmutable());
-    }
-  }
+	@Override
+	public void append(LogEvent event) {
+		synchronized (events) {
+			events.add(event.toImmutable());
+		}
+	}
 
-  public ArrayList<LogEvent> getLog(Level... levels) {
-    HashSet<Level> levelHashSet = new HashSet<>(Arrays.asList(levels));
-    ArrayList<LogEvent> ret = new ArrayList<>();
-    for (LogEvent e : events) {
-      if (levels.length == 0 || levelHashSet.contains(e.getLevel())) {
-        ret.add(e);
-      }
-    }
-    return ret;
-  }
+	public ArrayList<LogEvent> getLog(Level... levels) {
+		HashSet<Level> levelHashSet = new HashSet<>(Arrays.asList(levels));
+		ArrayList<LogEvent> ret = new ArrayList<>();
+		for (LogEvent e : events) {
+			if (levels.length == 0 || levelHashSet.contains(e.getLevel())) {
+				ret.add(e);
+			}
+		}
+		return ret;
+	}
 
-  public void injectIntoLogger() {
-    LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
+	public void injectIntoLogger() {
+		LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
 
-    Configuration configuration = loggerContext.getConfiguration();
-    LoggerConfig rootLoggerConfig = configuration.getLoggerConfig("");
+		Configuration configuration = loggerContext.getConfiguration();
+		LoggerConfig rootLoggerConfig = configuration.getLoggerConfig("");
 
-    rootLoggerConfig.addAppender(this, Level.ALL, null);
+		rootLoggerConfig.addAppender(this, Level.ALL, null);
 
-    this.start();
-  }
+		this.start();
+	}
 
-  public void reset() {
-    this.events.clear();
-  }
+	public void reset() {
+		this.events.clear();
+	}
 }

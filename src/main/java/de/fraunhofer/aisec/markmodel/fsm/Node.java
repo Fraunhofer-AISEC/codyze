@@ -42,8 +42,7 @@ public class Node {
 	public String getName() {
 		if (base == null) {
 			return op;
-		}
-		else {
+		} else {
 			return base + "." + op;
 		}
 	}

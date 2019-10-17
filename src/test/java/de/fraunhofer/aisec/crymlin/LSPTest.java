@@ -54,8 +54,7 @@ class LSPTest {
 					// a generic message to mark the whole file
 					first = false;
 					assertEquals(1, publishDiagnosticsParams.getDiagnostics().size());
-				}
-				else {
+				} else {
 					assertEquals(5, publishDiagnosticsParams.getDiagnostics().size());
 				}
 			}
@@ -101,8 +100,7 @@ class LSPTest {
 					// a generic message to mark the whole file
 					first = false;
 					assertEquals(1, publishDiagnosticsParams.getDiagnostics().size());
-				}
-				else {
+				} else {
 					assertEquals(6, publishDiagnosticsParams.getDiagnostics().size());
 				}
 			}

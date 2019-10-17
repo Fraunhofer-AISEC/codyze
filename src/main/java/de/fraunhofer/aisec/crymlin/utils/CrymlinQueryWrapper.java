@@ -19,6 +19,7 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class CrymlinQueryWrapper {
 
@@ -35,7 +36,8 @@ public class CrymlinQueryWrapper {
 	 *        qualifiers, pointer, reference)
 	 * @return
 	 */
-	public static Set<Vertex> getCalls(@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull String fqnClassName, @NonNull String functionName, @Null String type,
+	public static Set<Vertex> getCalls(@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull String fqnClassName, @NonNull String functionName,
+			@Nullable String type,
 			@NonNull List<String> parameterTypes) {
 
 		Set<Vertex> ret = new HashSet<>();
@@ -78,8 +80,7 @@ public class CrymlinQueryWrapper {
 				if (argumentIndex >= parameterTypes.size()) {
 					// last given parameter type must be "..." or remove
 					return !Constants.ELLIPSIS.equals(parameterTypes.get(parameterTypes.size() - 1));
-				}
-				else {
+				} else {
 					// remove if types don't match
 					String paramType = parameterTypes.get((int) argumentIndex);
 					if (!(Constants.UNDERSCORE.equals(paramType) || Constants.ELLIPSIS.equals(paramType))) {
@@ -99,8 +100,7 @@ public class CrymlinQueryWrapper {
 								// it matches C++ string types
 								return false;
 							}
-						}
-						else if (!paramType.equals(argument.value("type"))) {
+						} else if (!paramType.equals(argument.value("type"))) {
 							// types don't match -> remove
 							return true;
 						}

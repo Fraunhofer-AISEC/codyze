@@ -49,12 +49,10 @@ public class Commands {
 			File[] list = f.listFiles();
 			if (list != null) {
 				files.addAll(Arrays.asList(list));
-			}
-			else {
+			} else {
 				log.error("Null file list");
 			}
-		}
-		else {
+		} else {
 			files.add(f);
 		}
 

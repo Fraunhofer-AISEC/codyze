@@ -57,8 +57,7 @@ public class Main {
 
 		if (markFolderName != null) {
 			log.info("Loading MARK files from {}", markFolderName);
-		}
-		else {
+		} else {
 			log.info("Do not load any MARK files.");
 		}
 

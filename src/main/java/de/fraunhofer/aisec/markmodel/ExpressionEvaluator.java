@@ -67,9 +67,8 @@ public class ExpressionEvaluator {
 	 *
 	 * This method may return three results:
 	 *
-	 * - empty: The expression could not be evaluated.
-	 * - false: Expression was evaluated but does not match the source file.
-	 * - true: Expression was evaluated and matches the source file.
+	 * - empty: The expression could not be evaluated. - false: Expression was evaluated but does not match the source file. - true: Expression was evaluated and matches
+	 * the source file.
 	 *
 	 * @param expr The MARK expression to evaluate.
 	 * @return
@@ -106,8 +105,7 @@ public class ExpressionEvaluator {
 
 		if (expr instanceof ComparisonExpression) {
 			return evaluateComparisonExpr((ComparisonExpression) expr);
-		}
-		else if (expr instanceof LogicalAndExpression) {
+		} else if (expr instanceof LogicalAndExpression) {
 			LogicalAndExpression lae = (LogicalAndExpression) expr;
 
 			Expression left = lae.getLeft();
@@ -129,8 +127,7 @@ public class ExpressionEvaluator {
 			log.error("At least one subexpression is not of type Boolean: {} vs. {}", MarkInterpreter.exprToString(left), MarkInterpreter.exprToString(right));
 
 			return Optional.empty();
-		}
-		else if (expr instanceof LogicalOrExpression) {
+		} else if (expr instanceof LogicalOrExpression) {
 			LogicalOrExpression loe = (LogicalOrExpression) expr;
 
 			Expression left = loe.getLeft();
@@ -203,8 +200,7 @@ public class ExpressionEvaluator {
 				if (leftType.equals(rightType)) {
 					if (leftType.equals(Integer.class)) {
 						return Optional.of(((Integer) leftResult.get()) < ((Integer) rightResult.get()));
-					}
-					else if (leftType.equals(Float.class)) {
+					} else if (leftType.equals(Float.class)) {
 						return Optional.of(((Float) leftResult.get()) < ((Float) rightResult.get()));
 					}
 
@@ -221,8 +217,7 @@ public class ExpressionEvaluator {
 				if (leftType.equals(rightType)) {
 					if (leftType.equals(Integer.class)) {
 						return Optional.of(((Integer) leftResult.get()) <= ((Integer) rightResult.get()));
-					}
-					else if (leftType.equals(Float.class)) {
+					} else if (leftType.equals(Float.class)) {
 						return Optional.of(((Float) leftResult.get()) <= ((Float) rightResult.get()));
 					}
 
@@ -239,8 +234,7 @@ public class ExpressionEvaluator {
 				if (leftType.equals(rightType)) {
 					if (leftType.equals(Integer.class)) {
 						return Optional.of(((Integer) leftResult.get()) > ((Integer) rightResult.get()));
-					}
-					else if (leftType.equals(Float.class)) {
+					} else if (leftType.equals(Float.class)) {
 						return Optional.of(((Float) leftResult.get()) > ((Float) rightResult.get()));
 					}
 
@@ -257,8 +251,7 @@ public class ExpressionEvaluator {
 				if (leftType.equals(rightType)) {
 					if (leftType.equals(Integer.class)) {
 						return Optional.of(((Integer) leftResult.get()) >= ((Integer) rightResult.get()));
-					}
-					else if (leftType.equals(Float.class)) {
+					} else if (leftType.equals(Float.class)) {
 						return Optional.of(((Float) leftResult.get()) >= ((Float) rightResult.get()));
 					}
 
@@ -361,8 +354,7 @@ public class ExpressionEvaluator {
 				String ret = Builtins._split(s, regex, index);
 				if (ret != null) {
 					return Optional.of(ret);
-				}
-				else {
+				} else {
 					return Optional.empty();
 				}
 
@@ -401,8 +393,7 @@ public class ExpressionEvaluator {
 					if (!type.equals(classname)) {
 						log.info("type of cpp ({}) and mark ({}) do not match", type, classname);
 						return Optional.of(false);
-					}
-					else {
+					} else {
 						log.info("type of cpp ({}) and mark ({}) match", type, classname);
 					}
 				}
@@ -446,12 +437,10 @@ public class ExpressionEvaluator {
 				log.error("Unable to convert integer literal to Integer: {}\n{}", v, nfe);
 			}
 			return Optional.empty();
-		}
-		else if (literal instanceof BooleanLiteral) {
+		} else if (literal instanceof BooleanLiteral) {
 			log.debug("Literal is Boolean: {}", v);
 			return Optional.of(Boolean.parseBoolean(v));
-		}
-		else if (literal instanceof StringLiteral) {
+		} else if (literal instanceof StringLiteral) {
 			log.debug("Literal is String: {}", v);
 			return Optional.of(Utils.stripQuotedString(v));
 		}
@@ -472,36 +461,28 @@ public class ExpressionEvaluator {
 		if (expr instanceof LogicalOrExpression) {
 			log.debug("evaluating LogicalOrExpression: {}", MarkInterpreter.exprToString(expr));
 			return evaluateLogicalExpr(expr);
-		}
-		else if (expr instanceof LogicalAndExpression) {
+		} else if (expr instanceof LogicalAndExpression) {
 			log.debug("evaluating LogicalAndExpression: {}", MarkInterpreter.exprToString(expr));
 			return evaluateLogicalExpr(expr);
-		}
-		else if (expr instanceof ComparisonExpression) {
+		} else if (expr instanceof ComparisonExpression) {
 			log.debug("evaluating ComparisonExpression: {}", MarkInterpreter.exprToString(expr));
 			return evaluateLogicalExpr(expr);
-		}
-		else if (expr instanceof MultiplicationExpression) {
+		} else if (expr instanceof MultiplicationExpression) {
 			log.debug("evaluating MultiplicationExpression: {}", MarkInterpreter.exprToString(expr));
 			return evaluateMultiplicationExpr((MultiplicationExpression) expr);
-		}
-		else if (expr instanceof UnaryExpression) {
+		} else if (expr instanceof UnaryExpression) {
 			log.debug("evaluating UnaryExpression: {}", MarkInterpreter.exprToString(expr));
 			return evaluateUnaryExpr((UnaryExpression) expr);
-		}
-		else if (expr instanceof Literal) {
+		} else if (expr instanceof Literal) {
 			log.debug("evaluating Literal expression: {}", MarkInterpreter.exprToString(expr));
 			return evaluateLiteral((Literal) expr);
-		}
-		else if (expr instanceof Operand) {
+		} else if (expr instanceof Operand) {
 			log.debug("evaluating Operand expression: {}", MarkInterpreter.exprToString(expr));
 			return evaluateOperand((Operand) expr);
-		}
-		else if (expr instanceof FunctionCallExpression) {
+		} else if (expr instanceof FunctionCallExpression) {
 			log.debug("evaluating FunctionCallExpression: {}", MarkInterpreter.exprToString(expr));
 			return evaluateFunctionCallExpr((FunctionCallExpression) expr);
-		}
-		else if (expr instanceof LiteralListExpression) {
+		} else if (expr instanceof LiteralListExpression) {
 			// TODO JS->FW: What is the semantics of LiteralListExpression? Seems like the Optional<List> result is not used anywhere.
 			log.debug("evaluating LiteralListExpression: {}", MarkInterpreter.exprToString(expr));
 
@@ -544,8 +525,7 @@ public class ExpressionEvaluator {
 					// TODO check if an overflow occurs
 					if (leftResultType.equals(Integer.class)) {
 						return Optional.of(((Integer) leftResult.get()) * ((Integer) rightResult.get()));
-					}
-					else if (leftResultType.equals(Float.class)) {
+					} else if (leftResultType.equals(Float.class)) {
 						return Optional.of(((Float) leftResult.get()) * ((Float) rightResult.get()));
 					}
 
@@ -562,8 +542,7 @@ public class ExpressionEvaluator {
 				if (leftResultType.equals(rightResultType)) {
 					if (leftResultType.equals(Integer.class)) {
 						return Optional.of(((Integer) leftResult.get()) / ((Integer) rightResult.get()));
-					}
-					else if (leftResultType.equals(Float.class)) {
+					} else if (leftResultType.equals(Float.class)) {
 						return Optional.of(((Float) leftResult.get()) / ((Float) rightResult.get()));
 					}
 
@@ -704,8 +683,7 @@ public class ExpressionEvaluator {
 			case "-":
 				if (subExprResultType.equals(Integer.class)) {
 					return Optional.of(-((Integer) subExprResult.get()));
-				}
-				else if (subExprResultType.equals(Float.class)) {
+				} else if (subExprResultType.equals(Float.class)) {
 					return Optional.of(-((Float) subExprResult.get()));
 				}
 
@@ -866,8 +844,7 @@ public class ExpressionEvaluator {
 
 						if (argumentVertices.size() == 1) {
 							ret.add(argumentVertices.get(0));
-						}
-						else {
+						} else {
 							log.warn("Did not find one matching argument node, got {}", argumentVertices.size());
 						}
 					}

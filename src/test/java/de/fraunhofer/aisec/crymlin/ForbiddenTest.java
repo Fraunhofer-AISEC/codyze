@@ -79,9 +79,9 @@ class ForbiddenTest {
 
 		assertEquals(5, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
 
-		assertTrue(findings.contains("line 42: Violation against forbidden call(s) BotanF.set_key(_,_) in Entity Forbidden. Call was b.set_key(nonce, iv);"));
-		assertTrue(findings.contains("line 37: Violation against forbidden call(s) BotanF.start(nonce,_) in Entity Forbidden. Call was b.start(nonce, b);"));
-		assertTrue(findings.contains("line 36: Violation against forbidden call(s) BotanF.start() in Entity Forbidden. Call was b.start();"));
+		assertTrue(findings.contains("line 42: Violation against forbidden call(s) BotanF.set_key(_,_) in entity Forbidden. Call was b.set_key(nonce, iv);"));
+		assertTrue(findings.contains("line 37: Violation against forbidden call(s) BotanF.start(nonce,_) in entity Forbidden. Call was b.start(nonce, b);"));
+		assertTrue(findings.contains("line 36: Violation against forbidden call(s) BotanF.start() in entity Forbidden. Call was b.start();"));
 
 		// Stop the analysis server
 		server.stop();

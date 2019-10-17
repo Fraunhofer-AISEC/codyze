@@ -257,8 +257,7 @@ public class OverflowDatabase<N> implements Database<N> {
 			String value = p.getValue().toString();
 			if (p.getValue() instanceof String[]) {
 				value = String.join(", ", (String[]) p.getValue());
-			}
-			else if (p.getValue() instanceof Collection) {
+			} else if (p.getValue() instanceof Collection) {
 				value = ((Collection) p.getValue()).stream().collect(Collectors.joining(", ")).toString();
 			}
 			log.info("{} -> {}", p.getKey(), value);
@@ -327,13 +326,11 @@ public class OverflowDatabase<N> implements Database<N> {
 					/* Need to first handle attributes which need a special treatment (annotated with AttributeConverter or CompositeConverter) */
 					Object value = convertToNodeProperty(v, f);
 					f.set(node, value);
-				}
-				else if (mapsToProperty(f) && v.property(f.getName()).isPresent()) {
+				} else if (mapsToProperty(f) && v.property(f.getName()).isPresent()) {
 					/* Handle "normal" properties */
 					Object value = restoreProblematicProperty(v, f.getName());
 					f.set(node, value);
-				}
-				else if (mapsToRelationship(f)) {
+				} else if (mapsToRelationship(f)) {
 					/* Handle properties which should be treated as relationships */
 					Direction direction = getRelationshipDirection(f);
 					List<N> targets = IteratorUtils.stream(v.vertices(direction, getRelationshipLabel(f))).filter(distinctByKey(Vertex::id)).map(
@@ -357,15 +354,13 @@ public class OverflowDatabase<N> implements Database<N> {
 						Collection targetCollection = (Collection) collectionType.getDeclaredConstructor().newInstance();
 						targetCollection.addAll(targets);
 						f.set(node, targetCollection);
-					}
-					else if (f.getType().isArray()) {
+					} else if (f.getType().isArray()) {
 						Object targetArray = Array.newInstance(f.getType(), targets.size());
 						for (int i = 0; i < targets.size(); i++) {
 							Array.set(targetArray, i, targets.get(i));
 						}
 						f.set(node, targetArray);
-					}
-					else {
+					} else {
 						// single edge
 						if (!targets.isEmpty()) {
 							f.set(node, targets.get(0));
@@ -417,11 +412,9 @@ public class OverflowDatabase<N> implements Database<N> {
 					}
 					if (hasAnnotation(f, Convert.class)) {
 						properties.putAll(convertToVertexProperties(f, x));
-					}
-					else if (mapsToProperty(f)) {
+					} else if (mapsToProperty(f)) {
 						properties.put(f.getName(), x);
-					}
-					else {
+					} else {
 						log.info("Not a property");
 					}
 				}
@@ -469,13 +462,11 @@ public class OverflowDatabase<N> implements Database<N> {
 				// mimic neo4j-ogm behaviour: ints are stored as longs
 				properties.put(key, Long.valueOf((Integer) value));
 				properties.put(key.toString() + "_original", value);
-			}
-			else if (value instanceof Character) {
+			} else if (value instanceof Character) {
 				// related: https://github.com/ShiftLeftSecurity/overflowdb/issues/42
 				// properties.put(key, value.toString());
 				// properties.put(key + "_converted-from", "Character");
-			}
-			else if (value instanceof String[]) {
+			} else if (value instanceof String[]) {
 				properties.put(key, String.join(", ", (String[]) value));
 				properties.put(key + "_converted-from", "String[]");
 			}
@@ -503,8 +494,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					log.error("Unknown converter type: {}", type);
 					return null;
 			}
-		}
-		else {
+		} else {
 			// If available, take the "_original" version, which might be present because of an
 			// int->long conversion
 			return v.property(key + "_original").orElse(v.property(key).value());
@@ -540,8 +530,7 @@ public class OverflowDatabase<N> implements Database<N> {
 			if (converter instanceof AttributeConverter) {
 				// Single attribute will be provided
 				return Map.of(f.getName(), ((AttributeConverter) converter).toGraphProperty(content));
-			}
-			else if (converter instanceof CompositeAttributeConverter) {
+			} else if (converter instanceof CompositeAttributeConverter) {
 				// Yields a map of properties
 				return ((CompositeAttributeConverter) converter).toGraphProperties(content);
 			}
@@ -574,8 +563,7 @@ public class OverflowDatabase<N> implements Database<N> {
 			if (converter instanceof AttributeConverter) {
 				// Single attribute will be provided
 				return ((AttributeConverter) converter).toEntityAttribute(properties.get(f.getName()));
-			}
-			else if (converter instanceof CompositeAttributeConverter) {
+			} else if (converter instanceof CompositeAttributeConverter) {
 				return ((CompositeAttributeConverter) converter).toEntityAttribute(properties);
 			}
 		}
@@ -613,14 +601,12 @@ public class OverflowDatabase<N> implements Database<N> {
 						//              for (Object child : (Collection) x) {
 						//                createEdges(nodeToVertex.get((Node) child), (Node) child);
 						//              }
-					}
-					else if (Node[].class.isAssignableFrom(x.getClass())) {
+					} else if (Node[].class.isAssignableFrom(x.getClass())) {
 						connectAll(v, relName, Arrays.asList(x), direction.equals(Direction.IN));
 						//              for (Object child : (Node[]) x) {
 						//                createEdges(nodeToVertex.get((Node) child), (Node) child);
 						//              }
-					}
-					else {
+					} else {
 						// Add single edge for non-collections
 						Vertex target = connect(v, relName, (Node) x, direction.equals(Direction.IN));
 						assert target.property("hashCode").value().equals(x.hashCode());
@@ -669,8 +655,7 @@ public class OverflowDatabase<N> implements Database<N> {
 			if (Node.class.isAssignableFrom(entry.getClass())) {
 				Vertex target = connect(sourceVertex, label, (Node) entry, reverse);
 				assert target.property("hashCode").value().equals(entry.hashCode());
-			}
-			else {
+			} else {
 				log.info("Found non-Node class in collection for label \"{}\"", label);
 			}
 		}
@@ -698,11 +683,9 @@ public class OverflowDatabase<N> implements Database<N> {
 			Type[] elementTypes = ((ParameterizedType) f.getGenericType()).getActualTypeArguments();
 			assert elementTypes.length == 1;
 			return (Class<?>) elementTypes[0];
-		}
-		else if (f.getType().isArray()) {
+		} else if (f.getType().isArray()) {
 			return f.getType().getComponentType();
-		}
-		else {
+		} else {
 			return f.getType();
 		}
 	}
@@ -996,11 +979,9 @@ public class OverflowDatabase<N> implements Database<N> {
 								if (isCollection(f.getType())) {
 									// type hints for exact collection type
 									properties.add(f.getName() + "_type");
-								}
-								else if (Character.class.isAssignableFrom(f.getType()) || String[].class.isAssignableFrom(f.getType())) {
+								} else if (Character.class.isAssignableFrom(f.getType()) || String[].class.isAssignableFrom(f.getType())) {
 									properties.add(f.getName() + "_converted-from");
-								}
-								else if (Integer.class.isAssignableFrom(f.getType())) {
+								} else if (Integer.class.isAssignableFrom(f.getType())) {
 									properties.add(f.getName() + "_original");
 								}
 							}
@@ -1077,8 +1058,7 @@ public class OverflowDatabase<N> implements Database<N> {
 				Direction dir = getRelationshipDirection(f);
 				if (dir.equals(Direction.IN)) {
 					inFields.add(new EdgeLayoutInformation(relName, new HashSet<>()));
-				}
-				else if (dir.equals(Direction.OUT) || dir.equals(Direction.BOTH)) {
+				} else if (dir.equals(Direction.OUT) || dir.equals(Direction.BOTH)) {
 					outFields.add(new EdgeLayoutInformation(relName, new HashSet<>()));
 					// Note that each target of an OUT field must also be registered as an IN field
 				}

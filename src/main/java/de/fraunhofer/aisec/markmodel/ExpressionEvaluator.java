@@ -67,8 +67,9 @@ public class ExpressionEvaluator {
 	 *
 	 * This method may return three results:
 	 *
-	 * - empty: The expression could not be evaluated. - false: Expression was evaluated but does not match the source file. - true: Expression was evaluated and matches
-	 * the source file.
+	 * - empty: The expression could not be evaluated.
+	 * - false: Expression was evaluated but does not match the source file.
+	 * - true: Expression was evaluated and matches the source file.
 	 *
 	 * @param expr The MARK expression to evaluate.
 	 * @return
@@ -81,7 +82,7 @@ public class ExpressionEvaluator {
 		Optional result = evaluateExpression(expr);
 
 		if (result.isEmpty()) {
-			log.error("Expression could not be evaluated: {}", MarkInterpreter.exprToString(expr));
+			log.error("Expression could not be evaluated: {}", ExpressionHelper.exprToString(expr));
 			return Optional.empty();
 		}
 
@@ -101,7 +102,7 @@ public class ExpressionEvaluator {
 	}
 
 	private Optional<Boolean> evaluateLogicalExpr(Expression expr) {
-		log.debug("Evaluating logical expression: {}", MarkInterpreter.exprToString(expr));
+		log.debug("Evaluating logical expression: {}", ExpressionHelper.exprToString(expr));
 
 		if (expr instanceof ComparisonExpression) {
 			return evaluateComparisonExpr((ComparisonExpression) expr);
@@ -124,7 +125,7 @@ public class ExpressionEvaluator {
 			}
 
 			// TODO #8
-			log.error("At least one subexpression is not of type Boolean: {} vs. {}", MarkInterpreter.exprToString(left), MarkInterpreter.exprToString(right));
+			log.error("At least one subexpression is not of type Boolean: {} vs. {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
 
 			return Optional.empty();
 		} else if (expr instanceof LogicalOrExpression) {
@@ -146,12 +147,12 @@ public class ExpressionEvaluator {
 			}
 
 			// TODO #8
-			log.error("At least one subexpression is not of type Boolean: {} vs. {}", MarkInterpreter.exprToString(left), MarkInterpreter.exprToString(right));
+			log.error("At least one subexpression is not of type Boolean: {} vs. {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
 
 			return Optional.empty();
 		}
 
-		log.error("Trying to evaluate unknown logical expression: {}", MarkInterpreter.exprToString(expr));
+		log.error("Trying to evaluate unknown logical expression: {}", ExpressionHelper.exprToString(expr));
 
 		assert false; // not a logical expression
 		return Optional.empty();
@@ -162,7 +163,7 @@ public class ExpressionEvaluator {
 		Expression left = expr.getLeft();
 		Expression right = expr.getRight();
 
-		log.debug("comparing expression {} with expression {}", MarkInterpreter.exprToString(left), MarkInterpreter.exprToString(right));
+		log.debug("comparing expression {} with expression {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
 
 		Optional leftResult = evaluateExpression(left);
 		Optional rightResult = evaluateExpression(right);
@@ -459,32 +460,32 @@ public class ExpressionEvaluator {
 		// from lowest to highest operator precedence
 
 		if (expr instanceof LogicalOrExpression) {
-			log.debug("evaluating LogicalOrExpression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating LogicalOrExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateLogicalExpr(expr);
 		} else if (expr instanceof LogicalAndExpression) {
-			log.debug("evaluating LogicalAndExpression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating LogicalAndExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateLogicalExpr(expr);
 		} else if (expr instanceof ComparisonExpression) {
-			log.debug("evaluating ComparisonExpression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating ComparisonExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateLogicalExpr(expr);
 		} else if (expr instanceof MultiplicationExpression) {
-			log.debug("evaluating MultiplicationExpression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating MultiplicationExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateMultiplicationExpr((MultiplicationExpression) expr);
 		} else if (expr instanceof UnaryExpression) {
-			log.debug("evaluating UnaryExpression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating UnaryExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateUnaryExpr((UnaryExpression) expr);
 		} else if (expr instanceof Literal) {
-			log.debug("evaluating Literal expression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating Literal expression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateLiteral((Literal) expr);
 		} else if (expr instanceof Operand) {
-			log.debug("evaluating Operand expression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating Operand expression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateOperand((Operand) expr);
 		} else if (expr instanceof FunctionCallExpression) {
-			log.debug("evaluating FunctionCallExpression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating FunctionCallExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateFunctionCallExpr((FunctionCallExpression) expr);
 		} else if (expr instanceof LiteralListExpression) {
 			// TODO JS->FW: What is the semantics of LiteralListExpression? Seems like the Optional<List> result is not used anywhere.
-			log.debug("evaluating LiteralListExpression: {}", MarkInterpreter.exprToString(expr));
+			log.debug("evaluating LiteralListExpression: {}", ExpressionHelper.exprToString(expr));
 
 			List literalList = new ArrayList<>();
 
@@ -496,13 +497,13 @@ public class ExpressionEvaluator {
 			return Optional.of(literalList);
 		}
 
-		log.error("unknown expression: {}", MarkInterpreter.exprToString(expr));
+		log.error("unknown expression: {}", ExpressionHelper.exprToString(expr));
 		assert false; // all expression types must be handled
 		return Optional.empty();
 	}
 
 	private Optional evaluateMultiplicationExpr(MultiplicationExpression expr) {
-		log.debug("Evaluating multiplication expression: {}", MarkInterpreter.exprToString(expr));
+		log.debug("Evaluating multiplication expression: {}", ExpressionHelper.exprToString(expr));
 
 		String op = expr.getOp();
 		Expression left = expr.getLeft();
@@ -649,14 +650,14 @@ public class ExpressionEvaluator {
 		}
 
 		// TODO #8
-		log.error("Trying to evaluate unknown multiplication expression: {}", MarkInterpreter.exprToString(expr));
+		log.error("Trying to evaluate unknown multiplication expression: {}", ExpressionHelper.exprToString(expr));
 
 		assert false; // not an addition expression
 		return Optional.empty();
 	}
 
 	private Optional evaluateUnaryExpr(UnaryExpression expr) {
-		log.debug("Evaluating unary expression: {}", MarkInterpreter.exprToString(expr));
+		log.debug("Evaluating unary expression: {}", ExpressionHelper.exprToString(expr));
 
 		String op = expr.getOp();
 		Expression subExpr = expr.getExp();
@@ -715,7 +716,7 @@ public class ExpressionEvaluator {
 		}
 
 		// TODO #8
-		log.error("Trying to evaluate unknown unary expression: {}", MarkInterpreter.exprToString(expr));
+		log.error("Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
 
 		assert false; // not an addition expression
 		return Optional.empty();
@@ -919,6 +920,7 @@ public class ExpressionEvaluator {
 
 					// know which ops and opstatements use operand
 					// resolve vars
+					// TODO JS->FW: Do not decide within this class what kind of DB is used.
 					try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 						CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 

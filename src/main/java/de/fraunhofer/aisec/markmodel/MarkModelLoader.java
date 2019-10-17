@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.jline.internal.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ public class MarkModelLoader {
 	private static final Logger log = LoggerFactory.getLogger(MarkModelLoader.class);
 
 	@NonNull
-	public Mark load(HashMap<String, MarkModel> markModels, String onlyfromthisfile) {
+	public Mark load(HashMap<String, MarkModel> markModels, @Nullable String onlyfromthisfile) {
 		Mark m = new Mark();
 
 		for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
@@ -42,7 +43,10 @@ public class MarkModelLoader {
 			for (EntityDeclaration decl : markModel.getDecl()) {
 				MEntity entity = parseEntity(decl);
 				entity.setPackageName(packagename);
-				m.addEntities(entity.getName(), entity);
+				String name = entity.getName();
+				if (name != null) {
+					m.addEntities(name, entity);
+				}
 			}
 		}
 		for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
@@ -217,9 +221,10 @@ public class MarkModelLoader {
 			MEntity ref = mark.getEntity(entity.getE().getName());
 			if (ref == null) {
 				log.error("Entity {} not loaded. Referenced in rule {} in file {}", entity.getE().getName(), rule.getName(), containedInThisFile);
+			} else {
+				Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
+				entityReferences.put(entity.getN(), e);
 			}
-			Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
-			entityReferences.put(entity.getN(), e);
 		});
 
 		mRule.setEntityReferences(entityReferences);

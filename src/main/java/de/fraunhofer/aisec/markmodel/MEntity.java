@@ -14,7 +14,7 @@ public class MEntity {
 	private final List<MVar> vars = new ArrayList<>();
 	private String name;
 	private String superName = null;
-	private String packageName = null;
+	@Nullable private String packageName = null;
 	private HashMap<String, String> parsedVars = null;
 
 	@Override
@@ -64,7 +64,7 @@ public class MEntity {
 		return packageName;
 	}
 
-	public void setPackageName(String name) {
+	public void setPackageName(@Nullable String name) {
 		this.packageName = name;
 	}
 
@@ -73,6 +73,7 @@ public class MEntity {
 		return this.ops;
 	}
 
+	@Nullable
 	public MOp getOp(@NonNull String op) {
 		return ops.stream().filter(x -> op.equals(x.getName())).findAny().orElse(null);
 	}
@@ -118,6 +119,7 @@ public class MEntity {
 		}
 	}
 
+	@Nullable
 	public String getTypeForVar(String name) {
 		if (parsedVars == null) { // do a real search
 			Optional<MVar> first = this.vars.stream().filter(v -> v.getName().equals(name)).findFirst();

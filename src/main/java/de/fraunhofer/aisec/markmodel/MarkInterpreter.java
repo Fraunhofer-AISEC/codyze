@@ -36,54 +36,6 @@ public class MarkInterpreter {
 		this.markModel = markModel;
 	}
 
-	public static String exprToString(Expression expr) {
-		if (expr == null) {
-			return " null ";
-		}
-
-		if (expr instanceof LogicalOrExpression) {
-			return exprToString(((LogicalOrExpression) expr).getLeft()) + " || " + exprToString(((LogicalOrExpression) expr).getRight());
-		} else if (expr instanceof LogicalAndExpression) {
-			return exprToString(((LogicalAndExpression) expr).getLeft()) + " && " + exprToString(((LogicalAndExpression) expr).getRight());
-		} else if (expr instanceof ComparisonExpression) {
-			ComparisonExpression compExpr = (ComparisonExpression) expr;
-			return exprToString(compExpr.getLeft()) + " " + compExpr.getOp() + " " + exprToString(compExpr.getRight());
-		} else if (expr instanceof FunctionCallExpression) {
-			FunctionCallExpression fExpr = (FunctionCallExpression) expr;
-			String name = fExpr.getName();
-			return name + "(" + fExpr.getArgs().stream().map(MarkInterpreter::argToString).collect(Collectors.joining(", ")) + ")";
-		} else if (expr instanceof LiteralListExpression) {
-			return "[ " + ((LiteralListExpression) expr).getValues().stream().map(Literal::getValue).collect(Collectors.joining(", ")) + " ]";
-		} else if (expr instanceof RepetitionExpression) {
-			RepetitionExpression inner = (RepetitionExpression) expr;
-			// todo @FW do we want this optimization () can be omitted if inner is no sequence
-			if (inner.getExpr() instanceof SequenceExpression) {
-				return "(" + exprToString(inner.getExpr()) + ")" + inner.getOp();
-			} else {
-				return exprToString(inner.getExpr()) + inner.getOp();
-			}
-		} else if (expr instanceof Operand) {
-			return ((Operand) expr).getOperand();
-		} else if (expr instanceof Literal) {
-			return ((Literal) expr).getValue();
-		} else if (expr instanceof SequenceExpression) {
-			SequenceExpression seq = ((SequenceExpression) expr);
-			return exprToString(seq.getLeft()) + seq.getOp() + " " + exprToString(seq.getRight());
-		} else if (expr instanceof Terminal) {
-			Terminal inner = (Terminal) expr;
-			return inner.getEntity() + "." + inner.getOp() + "()";
-		} else if (expr instanceof OrderExpression) {
-			OrderExpression order = (OrderExpression) expr;
-			SequenceExpression seq = (SequenceExpression) order.getExp();
-			return "order " + exprToString(seq);
-		}
-		return "UNKNOWN EXPRESSION TYPE: " + expr.getClass();
-	}
-
-	public static String argToString(Argument arg) {
-		return exprToString((Expression) arg); // Every Argument is also an Expression
-	}
-
 	private Set<Vertex> getVerticesForFunctionDeclaration(FunctionDeclaration functionDeclaration, MEntity ent, CrymlinTraversalSource crymlinTraversal) {
 		String functionName = Utils.extractMethodName(functionDeclaration.getName());
 		String baseType = Utils.extractType(functionDeclaration.getName());
@@ -118,14 +70,9 @@ public class MarkInterpreter {
 			evaluateForbiddenCalls(ctx);
 			b.stop();
 
-			log.info("Evaluate order");
-			b = new Benchmark(this.getClass(), "Evaluate order");
-			evaluateOrder(ctx, crymlinTraversal);
-			b.stop();
-
 			log.info("Evaluate rules");
 			b = new Benchmark(this.getClass(), "Evaluate rules");
-			evaluateNonOrderRules(ctx);
+			evaluateMarkRules(ctx, crymlinTraversal);
 			b.stop();
 
 			bOuter.stop();
@@ -140,19 +87,19 @@ public class MarkInterpreter {
 
 	/**
 	 * Iterate over all MOps in all MEntities, find all call statements in CPG and assign them to their respective MOp.
-	 * <p>
-	 * After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
+	 *
+	 * <p>After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().</p>
 	 *
 	 * @param crymlinTraversal
 	 * @param markModel
 	 */
 	private void assignCallsToOps(@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull Mark markModel) {
-		Benchmark b = new Benchmark(this.getClass(), "Precalculating maching nodes");
+		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		/*
 		 * iterate all entities and precalculate some things: - call statements to vertices
 		 */
 		for (MEntity ent : markModel.getEntities()) {
-			log.info("Precalculating call statments for entity {}", ent.getName());
+			log.info("Precalculating call statements for entity {}", ent.getName());
 			ent.parseVars();
 			for (MOp op : ent.getOps()) {
 				log.debug("Looking for call statements for {}", op.getName());
@@ -172,35 +119,15 @@ public class MarkInterpreter {
 		b.stop();
 	}
 
-	private List<MRule> getOrderRules() {
-		// if getFSM() is null, there is no order-statement for this rule.
-		return this.markModel.getRules().stream().filter(r -> r.getFSM() != null).collect(Collectors.toList());
-	}
-
-	private void evaluateOrder(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal) {
-		/*
-		 * We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere Any function calls to functions which are not specified in an
-		 * entity are _ignored_
-		 */
-
-		// precalculate, if we have any order to evaluate
-		boolean hasVertices = false;
-		outer: for (MEntity ent : this.markModel.getEntities()) {
-			for (MOp op : ent.getOps()) {
-				if (!op.getAllVertices().isEmpty()) {
-					hasVertices = true;
-					break outer;
-				}
-			}
-		}
-		if (!hasVertices) {
-			log.info("no nodes match for TU and MARK-model. Skipping evaluation.");
-			return;
-		}
-
-		for (MRule rule : getOrderRules()) {
+	private void evaluateOrderRule(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal, MRule rule) {
+//		for (MRule rule : getOrderRules()) {
 			// rule.getFSM().pushToDB(); //debug only
 			log.info("\tEvaluating rule {}", rule.getName());
+
+			if (rule.getFSM() == null) {
+				log.error("Rules with OrderExpression are expected to have a non-null FSM");
+				return;
+			}
 
 			// Cache which Vertex belongs to which Op/Entity
 			// a vertex can _only_ belong to one entity/op!
@@ -217,7 +144,7 @@ public class MarkInterpreter {
 
 			if (verticesToOp.isEmpty()) {
 				log.info("no nodes match this rule. Skipping rule.");
-				continue;
+				return;
 			}
 
 			for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations().toList()) {
@@ -455,7 +382,7 @@ public class MarkInterpreter {
 					log.info("Finding: {}", f);
 				}
 			}
-		}
+//		}
 	}
 
 	private boolean isDisallowedBase(HashMap<String, HashSet<String>> disallowedBases, String eogpath, String base) {
@@ -528,19 +455,28 @@ public class MarkInterpreter {
 	}
 
 	/**
-	 * Returns all rules from Mark model, which do not contain an "order" statement.
+	 * Evaluates all MARK rules in the current model.
 	 *
-	 * @return
+	 * Results will be appended to the list of Findings in AnalysisContext.
+	 *
+	 * @param ctx
+	 * @param crymlinTraversalSource
 	 */
-	private List<MRule> getNonOrderRules() {
-		return markModel.getRules().stream().filter(r -> r != null
-				&& (r.getStatement() != null && r.getStatement().getEnsure() != null)
-				&& !(r.getStatement().getEnsure() != null && r.getStatement().getEnsure().getExp() instanceof OrderExpression)).collect(Collectors.toList());
+	private void evaluateMarkRules(@NonNull AnalysisContext ctx, CrymlinTraversalSource crymlinTraversalSource) {
+		for (MRule rule : this.markModel.getRules()) {
+			evaluateMarkRule(ctx, crymlinTraversalSource, rule);
+		}
 	}
 
-	private void evaluateNonOrderRules(@NonNull AnalysisContext ctx) {
+	/**
+	 * Evaluates a single MARK rule.
+	 *
+	 * @param ctx
+	 * @param crymlinTraversalSource
+	 * @param rule
+	 */
+	private void evaluateMarkRule(@NonNull AnalysisContext ctx, CrymlinTraversalSource crymlinTraversalSource, MRule rule) {
 
-		for (MRule rule : getNonOrderRules()) {
 			EvaluationContext ec = new EvaluationContext(rule, EvaluationContext.Type.RULE);
 			ExpressionEvaluator ee = new ExpressionEvaluator(ec);
 
@@ -552,29 +488,64 @@ public class MarkInterpreter {
 				Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
 				if (condResult.isEmpty()) {
 					log.warn("The rule '{}'' will not be checked because its guarding condition cannot be evaluated: {}", rule.getName(),
-						exprToString(s.getCond().getExp()));
+						ExpressionHelper.exprToString(s.getCond().getExp()));
 					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unknown"));
 				} else if (!condResult.get()) {
-					log.info("   terminate rule checking due to unsatisfied guarding condition: {}", exprToString(s.getCond().getExp()));
+					log.info("   terminate rule checking due to unsatisfied guarding condition: {}", ExpressionHelper.exprToString(s.getCond().getExp()));
 					// TODO JS->FW: Is it correct that even a non-applicable rule is reported as a Finding?
 					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unsatisfied"));
 				}
 			}
 
+			// TODO JS->FW: Potential bug: Could it be that the evaluation of the ensure part is independent of the "when" part?
 			log.debug("  checking 'ensure'-part");
-			Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
+			Expression ensureExpression = s.getEnsure().getExp();
+			if (ensureExpression instanceof OrderExpression) {
+				/*
+				 * We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere Any function calls to functions which are not specified in an
+				 * entity are _ignored_
+				 */
+				if (!doesTranslationUnitContainRelevantCalls(this.markModel.getRules())) {
+					// return early to save time.
+					return;
+				}
 
-			if (ensureResult.isEmpty()) {
-				log.warn("Ensure statement of rule '{}' cannot be evaluated: {}", rule.getName(), exprToString(s.getEnsure().getExp()));
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition unknown"));
-			} else if (ensureResult.get()) {
-				log.info("Rule '{}' is satisfied.", rule.getName());
-				// TODO JS->FW: Is it correct that even a satisfied rule is reported as a Finding?
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition satisfied"));
+				// Evaluate "order" expressions
+				evaluateOrderRule(ctx, crymlinTraversalSource, rule);
 			} else {
-				log.error("Rule '{}' is violated.", rule.getName());
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition violated"));
+				// Evaluate all other expressions
+				Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
+
+				if (ensureResult.isEmpty()) {
+					log.warn("Ensure statement of rule '{}' cannot be evaluated: {}", rule.getName(), ExpressionHelper.exprToString(s.getEnsure().getExp()));
+					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition unknown"));
+				} else if (ensureResult.get()) {
+					log.info("Rule '{}' is satisfied.", rule.getName());
+					// TODO JS->FW: Is it correct that even a satisfied rule is reported as a Finding?
+					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition satisfied"));
+				} else {
+					log.error("Rule '{}' is violated.", rule.getName());
+					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition violated"));
+				}
+			}
+	}
+
+	/**
+	 * Returns true if the current TranslationUnit contains any calls referenced from any of the given Mark rules.
+	 *
+	 * @return true, if the TU contains matching vertices, false otherwise.
+	 * @param rules
+	 */
+	private boolean doesTranslationUnitContainRelevantCalls(@NonNull List<MRule> rules) {
+		boolean hasVertices = false;
+		outer: for (MEntity ent : this.markModel.getEntities()) {
+			for (MOp op : ent.getOps()) {
+				if (!op.getAllVertices().isEmpty()) {
+					return true;
+				}
 			}
 		}
+		log.info("no nodes match for TU and MARK-model. Skipping evaluation.");
+		return false;
 	}
 }

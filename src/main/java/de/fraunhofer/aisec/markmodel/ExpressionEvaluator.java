@@ -48,6 +48,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,25 +76,20 @@ public class ExpressionEvaluator {
 	 * @return
 	 */
 	public Optional<Boolean> evaluate(Expression expr) {
+		log.debug("Evaluating top level expression: {}", ExpressionHelper.exprToString(expr));
+
 		if (expr instanceof OrderExpression) {
 			return evaluateOrderExpression((OrderExpression) expr);
+		} else {
+			Optional result = evaluateExpression(expr);
+
+			if (!result.get().getClass().equals(Boolean.class)) {
+				log.error("Expression result is not Boolean");
+				return Optional.empty();
+			}
+
+			return result;
 		}
-
-		Optional result = evaluateExpression(expr);
-
-		if (result.isEmpty()) {
-			log.error("Expression could not be evaluated: {}", ExpressionHelper.exprToString(expr));
-			return Optional.empty();
-		}
-
-		log.debug("Top level expression was evaluated: {}", result.get());
-
-		if (!result.get().getClass().equals(Boolean.class)) {
-			log.error("Expression result is not Boolean");
-			return Optional.empty();
-		}
-
-		return result;
 	}
 
 	private Optional<Boolean> evaluateOrderExpression(OrderExpression orderExpression) {
@@ -308,11 +304,20 @@ public class ExpressionEvaluator {
 		return Optional.empty();
 	}
 
-	private List<Optional> evaluateArgs(EList<Argument> argList, int n) {
+	/**
+	 * Returns evaluated argument values of a Builtin-call.
+	 *
+	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(), 42)".
+	 *
+	 * This method evaluates the Expressions of all arguments and return them as a list.
+	 *
+	 * @param argList
+	 * @return
+	 */
+	private List<Optional> evaluateArgs(@NonNull EList<Argument> argList) {
 		List<Optional> result = new ArrayList<>();
-		for (int i = 0; i < n; i++) {
-			Expression arg = (Expression) argList.get(i);
-			result.add(evaluateExpression(arg));
+		for (Argument arg : argList) {
+			result.add(evaluateExpression((Expression) arg));
 		}
 		return result;
 	}
@@ -331,7 +336,7 @@ public class ExpressionEvaluator {
 				// example:
 				// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
 				final List<Class> paramTypes = Arrays.asList(String.class, String.class, Integer.class);
-				List<Optional> argOptionals = evaluateArgs(expr.getArgs(), 3);
+				List<Optional> argOptionals = evaluateArgs(expr.getArgs());
 
 				if (paramTypes.size() != argOptionals.size()) {
 					return Optional.<String> empty();
@@ -455,7 +460,7 @@ public class ExpressionEvaluator {
 	 *
 	 * @param expr
 	 * @return
-	 */ // TODO JS->FW: Should return a generic Optional<SomeType>. Currently it is very difficult to understand what the Optional is supposed to contain.
+	 */ // TODO JS->FW: Should return a  Optional<Boolean>. Evaluation of Expressions which do not return a boolean should be pushed down into separate evaluation functions.
 	private Optional evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
 

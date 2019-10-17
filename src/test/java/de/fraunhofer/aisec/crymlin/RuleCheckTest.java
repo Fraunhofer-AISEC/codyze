@@ -101,20 +101,16 @@ public class RuleCheckTest {
 				if (f.getName().contains("guarding condition unsatisfied")) {
 					guardingUnsatisfied++;
 
-				}
-				else if (f.getName().contains("guarding condition unknown")) {
+				} else if (f.getName().contains("guarding condition unknown")) {
 					guardingUnknown++;
 
-				}
-				else if (f.getName().contains("ensure condition unknown")) {
+				} else if (f.getName().contains("ensure condition unknown")) {
 					unknown++;
 
-				}
-				else if (f.getName().contains("ensure condition violated")) {
+				} else if (f.getName().contains("ensure condition violated")) {
 					violated++;
 
-				}
-				else if (f.getName().contains("ensure condition satisfied")) {
+				} else if (f.getName().contains("ensure condition satisfied")) {
 					satisfied++;
 				}
 			}

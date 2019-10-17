@@ -37,11 +37,9 @@ public class Utils {
 	public static String extractMethodName(String opName) {
 		if (opName.contains("::")) {
 			opName = opName.substring(opName.lastIndexOf("::") + 2);
-		}
-		else if (opName.contains("->")) {
+		} else if (opName.contains("->")) {
 			opName = opName.substring(opName.lastIndexOf("->") + 2);
-		}
-		else if (opName.contains(".")) {
+		} else if (opName.contains(".")) {
 			opName = opName.substring(opName.lastIndexOf('.') + 1);
 		}
 		return opName;
@@ -50,14 +48,11 @@ public class Utils {
 	public static String extractType(String opName) {
 		if (opName.contains("::")) {
 			opName = opName.substring(0, opName.lastIndexOf("::"));
-		}
-		else if (opName.contains("->")) {
+		} else if (opName.contains("->")) {
 			opName = opName.substring(0, opName.lastIndexOf("->"));
-		}
-		else if (opName.contains(".")) {
+		} else if (opName.contains(".")) {
 			opName = opName.substring(0, opName.lastIndexOf('.'));
-		}
-		else {
+		} else {
 			opName = "";
 		}
 		return opName;

@@ -146,14 +146,12 @@ public class FSM {
 				head.addNextNode = false;
 			}
 			return;
-		}
-		else if (expr instanceof SequenceExpression) {
+		} else if (expr instanceof SequenceExpression) {
 			SequenceExpression inner = (SequenceExpression) expr;
 			expressionToNodes(inner.getLeft(), endNodes, head);
 			expressionToNodes(inner.getRight(), endNodes, head);
 			return;
-		}
-		else if (expr instanceof RepetitionExpression) {
+		} else if (expr instanceof RepetitionExpression) {
 			RepetitionExpression inner = (RepetitionExpression) expr;
 			switch (inner.getOp()) {
 				case "?": {
@@ -195,8 +193,7 @@ public class FSM {
 					log.error("UNKNOWN OP: {}", inner.getOp());
 					return;
 			}
-		}
-		else if (expr instanceof AlternativeExpressionImpl) {
+		} else if (expr instanceof AlternativeExpressionImpl) {
 			AlternativeExpression inner = (AlternativeExpression) expr;
 			HashSet<Node> remember = new HashSet<>(endNodes);
 			expressionToNodes(inner.getLeft(), endNodes, head);

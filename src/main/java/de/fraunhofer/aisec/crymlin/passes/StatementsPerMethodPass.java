@@ -39,8 +39,7 @@ public class StatementsPerMethodPass implements PassWithContext {
 					for (Declaration child : ((TranslationUnitDeclaration) d).getDeclarations()) {
 						handleDeclaration(child);
 					}
-				}
-				else {
+				} else {
 					handleDeclaration(d);
 				}
 			}
@@ -73,8 +72,7 @@ public class StatementsPerMethodPass implements PassWithContext {
 		if (stmt instanceof CompoundStatement) {
 			// Recursively handle compound statements
 			handleCompoundStatement(methodSignature, (CompoundStatement) stmt);
-		}
-		else {
+		} else {
 			// Add statement to method's statements
 			m.getStatements().add(stmt);
 		}

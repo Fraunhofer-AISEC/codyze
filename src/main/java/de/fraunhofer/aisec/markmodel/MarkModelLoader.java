@@ -103,8 +103,7 @@ public class MarkModelLoader {
 							String entityName = rule.getEntityReferences().get(n.getBase()).getValue0();
 							if (entity == null) {
 								log.error("Entity is not parsed: {} which is specified in rule {}", entityName, rule.getName());
-							}
-							else {
+							} else {
 								MOp op = entity.getOp(n.getOp());
 								if (op == null) {
 									log.error("Entity {} does not contain op {} which is specified in rule {}", entity.getName(), n.getOp(), rule.getName());
@@ -160,60 +159,45 @@ public class MarkModelLoader {
 		if (exp instanceof ComparisonExpression) {
 			getRefsFromExp((((ComparisonExpression) exp).getLeft()), entityRefs, functionRefs);
 			getRefsFromExp((((ComparisonExpression) exp).getRight()), entityRefs, functionRefs);
-		}
-		else if (exp instanceof LiteralListExpression) {
+		} else if (exp instanceof LiteralListExpression) {
 			// only literals
-		}
-		else if (exp instanceof LogicalAndExpression) {
+		} else if (exp instanceof LogicalAndExpression) {
 			getRefsFromExp((((LogicalAndExpression) exp).getLeft()), entityRefs, functionRefs);
 			getRefsFromExp((((LogicalAndExpression) exp).getRight()), entityRefs, functionRefs);
-		}
-		else if (exp instanceof AlternativeExpression) {
+		} else if (exp instanceof AlternativeExpression) {
 			getRefsFromExp((((AlternativeExpression) exp).getLeft()), entityRefs, functionRefs);
 			getRefsFromExp((((AlternativeExpression) exp).getRight()), entityRefs, functionRefs);
-		}
-		else if (exp instanceof Terminal) {
+		} else if (exp instanceof Terminal) {
 			entityRefs.add(((Terminal) exp).getEntity() + "." + ((Terminal) exp).getOp());
-		}
-		else if (exp instanceof SequenceExpression) {
+		} else if (exp instanceof SequenceExpression) {
 			getRefsFromExp((((SequenceExpression) exp).getLeft()), entityRefs, functionRefs);
 			getRefsFromExp((((SequenceExpression) exp).getRight()), entityRefs, functionRefs);
-		}
-		else if (exp instanceof RepetitionExpression) {
+		} else if (exp instanceof RepetitionExpression) {
 			getRefsFromExp((((RepetitionExpression) exp).getExpr()), entityRefs, functionRefs);
-		}
-		else if (exp instanceof OrderExpression) { // collects also ExclusionExpression
+		} else if (exp instanceof OrderExpression) { // collects also ExclusionExpression
 			getRefsFromExp(((OrderExpression) exp).getExp(), entityRefs, functionRefs);
-		}
-		else if (exp instanceof MultiplicationExpression) {
+		} else if (exp instanceof MultiplicationExpression) {
 			getRefsFromExp((((MultiplicationExpression) exp).getLeft()), entityRefs, functionRefs);
 			getRefsFromExp((((MultiplicationExpression) exp).getRight()), entityRefs, functionRefs);
-		}
-		else if (exp instanceof LogicalOrExpression) {
+		} else if (exp instanceof LogicalOrExpression) {
 			getRefsFromExp((((LogicalOrExpression) exp).getLeft()), entityRefs, functionRefs);
 			getRefsFromExp((((LogicalOrExpression) exp).getRight()), entityRefs, functionRefs);
-		}
-		else if (exp instanceof FunctionCallExpression) {
+		} else if (exp instanceof FunctionCallExpression) {
 			functionRefs.add(((FunctionCallExpression) exp).getName());
 			for (Argument s : ((FunctionCallExpression) exp).getArgs()) {
 				if (s instanceof Expression) {
 					getRefsFromExp((Expression) s, entityRefs, functionRefs);
-				}
-				else {
+				} else {
 					log.error("Argument is not an Expression, but a {}", s.getClass());
 				}
 			}
-		}
-		else if (exp instanceof Literal) {
+		} else if (exp instanceof Literal) {
 			// only literal
-		}
-		else if (exp instanceof Operand) {
+		} else if (exp instanceof Operand) {
 			entityRefs.add(((Operand) exp).getOperand());
-		}
-		else if (exp instanceof UnaryExpression) {
+		} else if (exp instanceof UnaryExpression) {
 			getRefsFromExp((((UnaryExpression) exp).getExp()), entityRefs, functionRefs);
-		}
-		else {
+		} else {
 			log.error("Not implemented yet: {} {}", exp.getClass(), exp);
 		}
 	}
@@ -267,12 +251,10 @@ public class MarkModelLoader {
 			if (c instanceof OpDeclaration) {
 				OpDeclaration op = (OpDeclaration) c;
 				parseOp(op, me);
-			}
-			else if (c instanceof VariableDeclaration) {
+			} else if (c instanceof VariableDeclaration) {
 				VariableDeclaration op = (VariableDeclaration) c;
 				parseVar(op, me);
-			}
-			else {
+			} else {
 				Log.warn("Entity not yet implemented: Handling of Mark {}", c.getClass().getName());
 			}
 		}

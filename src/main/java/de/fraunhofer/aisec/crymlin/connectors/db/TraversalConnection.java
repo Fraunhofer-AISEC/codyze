@@ -29,8 +29,7 @@ public class TraversalConnection implements AutoCloseable {
 			this.tg = OverflowDatabase.getInstance().getGraph();
 			this.crymlinSource = this.tg.traversal(CrymlinTraversalSource.class);
 
-		}
-		else {
+		} else {
 			Neo4JElementIdProvider<?> vertexIdProvider = new Neo4JNativeElementIdProvider();
 			Neo4JElementIdProvider<?> edgeIdProvider = new Neo4JNativeElementIdProvider();
 

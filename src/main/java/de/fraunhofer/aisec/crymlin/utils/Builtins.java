@@ -12,8 +12,7 @@ public class Builtins {
 		String[] splitted = s.split(regex);
 		if (index < splitted.length) {
 			return splitted[index];
-		}
-		else {
+		} else {
 			return null;
 		}
 	}

@@ -93,11 +93,9 @@ public class AnalysisServer {
 	public void start() {
 		if (config.launchLsp) {
 			launchLspServer();
-		}
-		else if (config.launchConsole) {
+		} else if (config.launchConsole) {
 			launchConsole();
-		}
-		else {
+		} else {
 			// only load rules
 			loadMarkRulesFromConfig();
 		}
@@ -189,8 +187,7 @@ public class AnalysisServer {
 			File markModelLocation = new File(config.markModelFiles);
 			if (!markModelLocation.exists() || !markModelLocation.canRead()) {
 				log.warn("Cannot read MARK model from {}", markModelLocation.getAbsolutePath());
-			}
-			else {
+			} else {
 				loadMarkRules(markModelLocation);
 			}
 		}
@@ -224,8 +221,7 @@ public class AnalysisServer {
 			catch (IOException e) {
 				log.error("Failed to load MARK file", e);
 			}
-		}
-		else {
+		} else {
 			parser.addMarkFile(markFile);
 		}
 

@@ -101,8 +101,7 @@ public class Neo4jDatabase<N> implements Database<N> {
 
 			if (tries < MAX_TRIES) {
 				return connect(uri, username, password);
-			}
-			else {
+			} else {
 				return false;
 			}
 		}

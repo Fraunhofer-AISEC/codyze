@@ -92,8 +92,7 @@ public class MEntity {
 		for (MVar var : getVars()) {
 			if (var.getType() != null) {
 				sb.append("\tvar " + var.getName() + " : " + var.getType() + ";\n");
-			}
-			else {
+			} else {
 				sb.append("\tvar " + var.getName() + ";\n");
 			}
 		}
@@ -123,8 +122,7 @@ public class MEntity {
 		if (parsedVars == null) { // do a real search
 			Optional<MVar> first = this.vars.stream().filter(v -> v.getName().equals(name)).findFirst();
 			return first.map(MVar::getType).orElse(null);
-		}
-		else { // we prepared this already
+		} else { // we prepared this already
 			return parsedVars.get(name);
 		}
 	}
@@ -135,8 +133,7 @@ public class MEntity {
 			String typeForVar = getTypeForVar(functionArguments.get(i));
 			if (typeForVar != null) {
 				functionArgumentTypes.add(i, typeForVar);
-			}
-			else {
+			} else {
 				functionArgumentTypes.add(functionArguments.get(i));
 			}
 		}

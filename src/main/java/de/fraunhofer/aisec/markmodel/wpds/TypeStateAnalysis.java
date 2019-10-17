@@ -9,16 +9,21 @@ import de.fraunhofer.aisec.cpg.graph.DeclarationStatement;
 import de.fraunhofer.aisec.cpg.graph.MemberCallExpression;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
+import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.MarkInterpreter;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,44 +47,95 @@ import java.util.stream.Collectors;
  * and Theoretical Computer Science. FSTTCS 2007. Lecture Notes in Computer Science, vol 4855. Springer, Berlin, Heidelberg
  */
 public class TypeStateAnalysis {
+  private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
 
-  public void analyze(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal, MRule rule) {
-    System.out.println("Analysing " + ctx + " and " + crymlinTraversal);
-
-    // For debugging only:
-    for (Map.Entry<String, Pair<String, MEntity>> entry : rule.getEntityReferences().entrySet()) {
-      MEntity ent = entry.getValue().getValue1();
-      for (MOp op : ent.getOps()) {
-        HashSet<Vertex> opVertices = op.getAllVertices();
-        if (!opVertices.isEmpty()) {
-          System.out.println("Found sth for rule " + rule.toString() + " " + opVertices.size() + " " + opVertices.iterator().next().toString());
-          for (Vertex v : opVertices) {
-            System.out.println("  " + v.property("code").value());
-          }
-        }
-      }
-    }
+  public void analyze(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal, MRule rule) throws IllegalTransitionException {
+    log.info("Typestate analysis starting for " + ctx + " and " + crymlinTraversal);
 
     HashMap<MOp, Vertex> verticeMap = getVerticesOfRule(rule);
 
     for (Map.Entry<MOp, Vertex> vertices : verticeMap.entrySet()) {
-      System.out.println("Vertix " + vertices.getValue().property("code").value() + " for " + vertices.getKey().getName());
+      System.out.println("Vertex " + vertices.getValue().property("code").value() + " for " + vertices.getKey().getName());
     }
 
-    // Creating FSM (not needed at the moment)
+    // Create FSM from MARK expression
     OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
 
     // Creating a WPDS from CPG, starting at seeds. Note that this will neglect alias which have been defined before the seed.
     HashSet<Node> seedExpression = null; // TODO Seeds must be vertices with calls which MAY be followed by a typestate violation
-    try {
-      CpgWpds wpds = createWpds(seedExpression, verticeMap, crymlinTraversal, inner.getExp());
-    } catch (IllegalTransitionException e) {
-      e.printStackTrace();
+
+    /* Create typestate NFA, representing the regular expression of a MARK typestate rule. */
+    NFA tsNFA = NFA.of(inner.getExp());
+    log.info("Initial typestate NFA: {}", tsNFA.toString());
+
+    // Create a weighted pushdown system
+    CpgWpds wpds = createWpds(seedExpression, verticeMap, crymlinTraversal, tsNFA);
+
+    // Create a weighted automaton (= a weighted NFA) that describes the initial configurations
+    // TODO Initial configuration is still hardcoded. Should be first Op(s) of order expression.
+    String stmt = "Botan2 p2 = new Botan2(1);";
+    String variable = "p2";
+    String method = "ok2";
+    WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(stmt, variable, method, tsNFA);
+
+    // For debugging only: Print WPDS rules
+    for (Rule r : wpds.getAllRules()) {
+      System.out.println(r.toString());
     }
 
+    // For debugging only: Print the non-saturated NFA
+    log.info("Non saturated NFA", wnfa.toString());
+    System.out.println(wnfa.toDotString());
+
+    // Saturate the NFA from the WPDS, using the post-* algorithm.
+    wpds.poststar(wnfa);
+
+    // For debugging only: Print the post-*-saturated NFA
+    System.out.println(wnfa.toString());
+    System.out.println(wnfa.toDotString());
+
+
+    // Evaluate saturated WNFA for any MARK violations
+    Set<Finding> findings = getFindingsFromWpds(wnfa);
+    ctx.getFindings().addAll(findings);
 
   }
 
+  /**
+   * Evaluates a saturated WNFA.
+   *
+   * This method receives a post-*-saturated WNFA and creates Findings if any violations of the given MARK rule are found.
+   *
+   *     1) Transitions in WNFA with *empty weights* or weights into an ERROR type state indicate an error. Type state requirements are violated at this point.
+   *     2) If there is a path through the automaton leading to the END state, the type state specification is completely covered by this path
+   *     3) If all transitions have proper type state weights but none of them leads to END, the type state is correct but incomplete.
+   *
+   * @param wnfa
+   * @return
+   */
+  @NonNull
+  private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa) {
+    Set<Finding> findings = new HashSet<>();
+
+    Collection<Transition<Stmt, Val>> finalTrans = wnfa.getTransitions();
+    for (Transition<Stmt, Val> finalT : finalTrans) {
+      System.out.println(finalT.toString() + "  ::  " + wnfa.getWeightFor(finalT));
+      if (wnfa.getWeightFor(finalT).value().equals("")) {
+        System.out.println("  Invalid transition: " + finalT);
+      }
+    }
+
+    // TODO Do something useful here.
+    String name = "";
+    long startLine = 0;
+    long endLine = 0;
+    long startColumn = 0;
+    long endColumn = 0;
+    Finding f = new Finding(name, startLine, endLine, startColumn, endColumn);
+
+    findings.add(f);
+    return findings;
+  }
 
   /**
    * Creates a weighted pushdown system (WPDS), linked to a typestate NFA.
@@ -89,24 +145,15 @@ public class TypeStateAnalysis {
    * @param seedExpressions
    * @param verticeMap
    * @param crymlinTraversal
+   * @param nfa
    * @return
    * @throws IllegalTransitionException
    */
-  private CpgWpds createWpds(@Nullable HashSet<Node> seedExpressions, HashMap<MOp, Vertex> verticeMap, CrymlinTraversalSource crymlinTraversal, OrderExpression orderExpr) throws IllegalTransitionException {
-    System.out.println("-----  Creating WPDS ----------");
+  private CpgWpds createWpds(@Nullable HashSet<Node> seedExpressions, HashMap<MOp, Vertex> verticeMap, CrymlinTraversalSource crymlinTraversal, NFA nfa) {
+    log.debug("-----  Creating WPDS ----------");
 
     /* Create empty WPDS */
     CpgWpds wpds = new CpgWpds();
-
-    /* Create typestate NFA.
-    *  The typestate NFA is a non-deterministic finite automaton representing the regular expression of
-    * a MARK typestate rule. */
-    NFA nfa = NFA.of(orderExpr);
-    System.out.println("Initial typestate NFA: ");
-    System.out.println(nfa.toString());
-
-    /* Create weight domain, linkeded to the NFA */
-    Weight w = new Weight(nfa);
 
     // TODO WPDS should be "seeded" for a relevant statements. Currently we transform whole functions into a WPDS
 
@@ -132,14 +179,12 @@ public class TypeStateAnalysis {
 
       while (!worklist.isEmpty()) {
         Vertex v = worklist.pop();
-        System.out.println("Current v: " + v.property("code").value());
 
         // We consider only "Statements" in the EOG
         if (v.edges(Direction.IN, "STATEMENTS").hasNext()) {
 
           /* "MemberCallExpressions" result in a normal rule. TODO Later they should also result in push/pop rule pair for interprocedural analysis */
           if (v.label().equals(MemberCallExpression.class.getSimpleName())) {
-            System.out.println("Found method call " + v.property("code").value());
             Stmt currentStmt = new Stmt(v.property("code").value().toString());
 
             // TODO Base should refer to the set of a current aliases, not only object instance used in this current MemberCall
@@ -151,19 +196,19 @@ public class TypeStateAnalysis {
             Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
             Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(baseVal, previousStmt, baseVal, currentStmt, weight);
             wpds.addRule(normalRule);
-            System.out.println("Adding normal rule " + normalRule.toString());
+            log.debug("Adding normal rule " + normalRule.toString());
             previousStmt = currentStmt;
 
             /* "DeclarationStatements" result in a normal rule, assigning rhs to lhs. */
            } else if (v.label().equals(DeclarationStatement.class.getSimpleName())) {
-            System.out.println("Found variable declaration " + v.property("code").value());
+            log.debug("Found variable declaration " + v.property("code").value());
 
             Vertex decl = v.edges(Direction.OUT, "DECLARATIONS").next().inVertex();
             Val declVal = new Val((String) decl.property("name").value(), currentFunctionName);
 
             Vertex rhsVar = decl.edges(Direction.OUT, "INITIALIZER").next().inVertex(); // TODO Do not simply assume that the target of an INITIALIZER edge is a variable
             if (rhsVar.property("name").isPresent()) {
-              System.out.println("  Has name on right hand side " + rhsVar.property("name").value());
+              log.debug("  Has name on right hand side " + rhsVar.property("name").value());
               Val rhsVal = new Val((String) rhsVar.property("name").value(), currentFunctionName);
               Stmt currentStmt = new Stmt(v.property("code").value().toString());
               // We add all transitions of the typestate NFA that may be triggered by the current op
@@ -175,27 +220,26 @@ public class TypeStateAnalysis {
               Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
               Rule<Stmt, Val, Weight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt, weight);
-              System.out.println("Adding normal rule " + normalRuleCopy.toString());
+              log.debug("Adding normal rule " + normalRuleCopy.toString());
               wpds.addRule(normalRuleCopy);
 
               Rule<Stmt, Val, Weight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, weight);
-              System.out.println("Adding normal rule " + normalRuleSelf.toString());
+              log.debug("Adding normal rule " + normalRuleSelf.toString());
               wpds.addRule(normalRuleSelf);
 
               previousStmt = currentStmt;
             } else {
-              System.out.println("  Has no name on right hand side");
-              // TODO handle new instantiations here
+              log.debug("  Has no name on right hand side");
+              // handle new instantiations of objects
               Stmt currentStmt = new Stmt(v.property("code").value().toString());
               rhsVar = v.edges(Direction.OUT, "EOG").next().inVertex(); // TODO Do not simply assume that the target of an EOG edge is a variable
               Val rhsVal = new Val((String) rhsVar.property("name").value(), currentFunctionName);
 
               Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt, new Weight(nfa.getInitialTransitions()));
-              System.out.println("Adding normal rule " + normalRule.toString());
+              log.debug("Adding normal rule " + normalRule.toString());
               wpds.addRule(normalRule);
               previousStmt = currentStmt;
             }
-
           }
         }
         // Add successors to work list
@@ -205,30 +249,6 @@ public class TypeStateAnalysis {
           worklist.add(successors.next().inVertex());
         }
       }
-
-      // Create a weighted automaton (= a weighted NFA) that describes the initial configurations
-      // TODO Initial configuration is still hardcoded
-      String stmt = "Botan2 p2 = new Botan2(1);";
-      String variable = "p2";
-      String method = "ok2";
-      WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(stmt, variable, method, nfa);
-
-      // For debugging only:
-      for (Rule r : wpds.getAllRules()) {
-        System.out.println(r.toString());
-      }
-
-      // Print the non-saturated NFA
-      System.out.println("Non saturated NFA");
-      System.out.println(wnfa.toString());
-      System.out.println(wnfa.toDotString());
-
-      // Saturate the NFA from the WPDS, using the post-* algorithm.
-      wpds.poststar(wnfa);
-
-      // Print the post-*-saturated NFA
-      System.out.println(wnfa.toString());
-      System.out.println(wnfa.toDotString());
 
       /* Typestate analysis is finished. The results are as follows:
 

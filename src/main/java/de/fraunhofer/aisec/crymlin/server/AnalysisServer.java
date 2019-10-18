@@ -14,6 +14,8 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection.Type;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
+import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
+import de.fraunhofer.aisec.crymlin.builtin.SplitBuiltin;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
@@ -73,6 +75,9 @@ public class AnalysisServer {
 	private AnalysisServer(ServerConfiguration config) {
 		this.config = config;
 		AnalysisServer.instance = this;
+
+		// Register built-in functions
+		BuiltinRegistry.getInstance().register(new SplitBuiltin());
 	}
 
 	/**

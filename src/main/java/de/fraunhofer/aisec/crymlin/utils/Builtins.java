@@ -1,12 +1,15 @@
 
 package de.fraunhofer.aisec.crymlin.utils;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 public class Builtins {
 
 	// do not instantiate
 	private Builtins() {
 	}
 
+	@Nullable
 	public static String _split(String s, String regex, int index) {
 		// TODO #8
 		String[] splitted = s.split(regex);

@@ -43,10 +43,7 @@ public class MarkModelLoader {
 			for (EntityDeclaration decl : markModel.getDecl()) {
 				MEntity entity = parseEntity(decl);
 				entity.setPackageName(packagename);
-				String name = entity.getName();
-				if (name != null) {
-					m.addEntities(name, entity);
-				}
+				m.addEntities(entity.getName(), entity);
 			}
 		}
 		for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
@@ -221,10 +218,10 @@ public class MarkModelLoader {
 			MEntity ref = mark.getEntity(entity.getE().getName());
 			if (ref == null) {
 				log.error("Entity {} not loaded. Referenced in rule {} in file {}", entity.getE().getName(), rule.getName(), containedInThisFile);
-			} else {
-				Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
-				entityReferences.put(entity.getN(), e);
 			}
+			Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
+			entityReferences.put(entity.getN(), e);
+
 		});
 
 		mRule.setEntityReferences(entityReferences);

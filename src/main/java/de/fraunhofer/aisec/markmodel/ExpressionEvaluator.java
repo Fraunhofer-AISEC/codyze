@@ -6,13 +6,12 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JVertex;
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.crymlin.builtin.Builtin;
+import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.crymlin.utils.Builtins;
-import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.utils.Pair;
-import de.fraunhofer.aisec.crymlin.utils.Utils;
+import de.fraunhofer.aisec.crymlin.utils.*;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
 import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
 import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
@@ -68,9 +67,8 @@ public class ExpressionEvaluator {
 	 *
 	 * This method may return three results:
 	 *
-	 * - empty: The expression could not be evaluated.
-	 * - false: Expression was evaluated but does not match the source file.
-	 * - true: Expression was evaluated and matches the source file.
+	 * - empty: The expression could not be evaluated. - false: Expression was evaluated but does not match the source file. - true: Expression was evaluated and matches
+	 * the source file.
 	 *
 	 * @param expr The MARK expression to evaluate.
 	 * @return
@@ -82,6 +80,11 @@ public class ExpressionEvaluator {
 			return evaluateOrderExpression((OrderExpression) expr);
 		} else {
 			Optional result = evaluateExpression(expr);
+
+			if (result.isEmpty()) {
+				log.error("Expression could not be evaluated: {}", ExpressionHelper.exprToString(expr));
+				return Optional.empty();
+			}
 
 			if (!result.get().getClass().equals(Boolean.class)) {
 				log.error("Expression result is not Boolean");
@@ -307,7 +310,8 @@ public class ExpressionEvaluator {
 	/**
 	 * Returns evaluated argument values of a Builtin-call.
 	 *
-	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(), 42)".
+	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(),
+	 * 42)".
 	 *
 	 * This method evaluates the Expressions of all arguments and return them as a list.
 	 *
@@ -322,11 +326,28 @@ public class ExpressionEvaluator {
 		return result;
 	}
 
+	/**
+	 * Evaluate built-in functions.
+	 *
+	 * @param expr
+	 * @return
+	 */
 	private Optional evaluateFunctionCallExpr(FunctionCallExpression expr) {
 		String functionName = expr.getName();
 		if (!functionName.startsWith("_")) {
 			log.error("Invalid function {}", functionName);
 		}
+
+		// Parse arguments
+		List<Optional> arguments = evaluateArgs(expr.getArgs());
+
+		// Call built-in function (if available)
+		for (Builtin b : BuiltinRegistry.getInstance().getRegisteredBuiltins()) {
+			if (b.getName().equals(functionName)) {
+				return b.execute(arguments);
+			}
+		}
+
 		/*
 		 * currently we allow: boolean = _is_instance(var, String) int = _length(var) boolean = _receives_value_from(var, var) String = _split(String, String, int)
 		 */
@@ -884,8 +905,18 @@ public class ExpressionEvaluator {
 					String attribute = operandParts[1];
 
 					Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
+					if (ref == null || ref.getValue0() == null) {
+						log.warn("Mark rule contains unresolved instance variable {}. Rule will fail: {}", instance, rule.getName());
+						return Optional.empty();
+					}
+
 					String entityName = ref.getValue0();
 					MEntity referencedEntity = ref.getValue1();
+
+					if (referencedEntity == null) {
+						log.warn("Mark rule contains reference to unresolved entity {}. Rule will fail: {}", entityName, rule.getName());
+						return Optional.empty();
+					}
 
 					String attributeType = referencedEntity.getTypeForVar(attribute);
 

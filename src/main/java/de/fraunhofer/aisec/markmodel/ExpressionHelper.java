@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.mark.markDsl.*;

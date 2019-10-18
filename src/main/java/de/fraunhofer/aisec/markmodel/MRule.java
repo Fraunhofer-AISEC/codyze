@@ -58,7 +58,8 @@ public class MRule {
 		if (statement.getCond() != null) {
 			sb.append("\n\twhen ").append(ExpressionHelper.exprToString(statement.getCond().getExp()));
 		}
-		sb.append("\n\tensure\n\t\t").append(ExpressionHelper.exprToString(statement.getEnsure().getExp())).append("\n\tonfail ").append(statement.getMsg()).append("\n}");
+		sb.append("\n\tensure\n\t\t").append(ExpressionHelper.exprToString(statement.getEnsure().getExp())).append("\n\tonfail ").append(statement.getMsg()).append(
+			"\n}");
 		return sb.toString();
 	}
 

@@ -14,7 +14,8 @@ public class MEntity {
 	private final List<MVar> vars = new ArrayList<>();
 	private String name;
 	private String superName = null;
-	@Nullable private String packageName = null;
+	@Nullable
+	private String packageName = null;
 	private HashMap<String, String> parsedVars = null;
 
 	@Override

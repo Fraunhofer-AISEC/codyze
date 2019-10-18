@@ -35,7 +35,7 @@ public class IsInstanceBuiltin implements Builtin {
 	}
 
 	@Override
-	public @NonNull Optional execute(EList<Argument> args, @Nullable EvaluationContext evalCtx) {
+	public @NonNull Optional execute(List<Argument> args, @Nullable EvaluationContext evalCtx) {
 		if (evalCtx == null) {
 			return Optional.empty();
 		}

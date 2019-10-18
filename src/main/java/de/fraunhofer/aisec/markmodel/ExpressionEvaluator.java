@@ -317,7 +317,7 @@ public class ExpressionEvaluator {
 	 * @param argList
 	 * @return
 	 */
-	public List<Optional> evaluateArgs(@NonNull EList<Argument> argList) {
+	public List<Optional> evaluateArgs(@NonNull List<Argument> argList) {
 		List<Optional> result = new ArrayList<>();
 		for (Argument arg : argList) {
 			result.add(evaluateExpression((Expression) arg));

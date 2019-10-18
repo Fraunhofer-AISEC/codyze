@@ -33,7 +33,7 @@ public class SplitBuiltin implements Builtin {
 
 	@Override
 	@NonNull // TODO Should return Optional<Literal>. This must be changed consistently across all evaluation functions, however.
-	public Optional execute(EList<Argument> arguments, @Nullable EvaluationContext evalCtx) {
+	public Optional execute(List<Argument> arguments, @Nullable EvaluationContext evalCtx) {
 		if (evalCtx == null) {
 			return Optional.empty();
 		}

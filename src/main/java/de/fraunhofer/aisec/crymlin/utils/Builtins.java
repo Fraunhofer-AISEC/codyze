@@ -9,19 +9,7 @@ public class Builtins {
 	private Builtins() {
 	}
 
-	@Nullable
-	public static String _split(String s, String regex, int index) {
-		// TODO #8
-		String[] splitted = s.split(regex);
-		if (index < splitted.length) {
-			return splitted[index];
-		} else {
-			return null;
-		}
-	}
-
 	public static boolean _receives_value_from() {
-		// TODO implement
 		return true;
 	}
 }

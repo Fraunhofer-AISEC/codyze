@@ -7,6 +7,8 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
+import de.fraunhofer.aisec.crymlin.builtin.IsInstanceBuiltin;
+import de.fraunhofer.aisec.crymlin.builtin.ReceivesValueFromBuiltin;
 import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -78,6 +80,8 @@ public class AnalysisServer {
 
 		// Register built-in functions
 		BuiltinRegistry.getInstance().register(new SplitBuiltin());
+		BuiltinRegistry.getInstance().register(new IsInstanceBuiltin());
+		BuiltinRegistry.getInstance().register(new ReceivesValueFromBuiltin());
 	}
 
 	/**

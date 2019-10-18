@@ -1,7 +1,9 @@
-
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
@@ -31,224 +33,303 @@ import org.junit.jupiter.api.Test;
 
 public class MarkCppTest {
 
-	private static HashMap<String, MarkModel> markModels;
+  private static HashMap<String, MarkModel> markModels;
 
-	@BeforeAll
-	public static void startup() throws Exception {
-		URL resource = MarkCppTest.class.getClassLoader().getResource("mark_cpp");
-		assertNotNull(resource);
+  @BeforeAll
+  public static void startup() throws Exception {
+    URL resource = MarkCppTest.class.getClassLoader().getResource("mark_cpp");
+    assertNotNull(resource);
 
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
 
-		File[] directoryContent = markFile.listFiles((current, name) -> name.endsWith(".mark"));
+    File[] directoryContent = markFile.listFiles((current, name) -> name.endsWith(".mark"));
 
-		if (directoryContent == null) {
-			directoryContent = new File[] { markFile };
-		}
+    if (directoryContent == null) {
+      directoryContent = new File[] {markFile};
+    }
 
-		assertNotNull(directoryContent);
-		assertTrue(directoryContent.length > 0);
+    assertNotNull(directoryContent);
+    assertTrue(directoryContent.length > 0);
 
-		XtextParser parser = new XtextParser();
-		for (File mf : directoryContent) {
-			parser.addMarkFile(mf);
-		}
+    XtextParser parser = new XtextParser();
+    for (File mf : directoryContent) {
+      parser.addMarkFile(mf);
+    }
 
-		markModels = parser.parse();
-		assertFalse(markModels.isEmpty());
-	}
+    markModels = parser.parse();
+    assertFalse(markModels.isEmpty());
+  }
 
-	@AfterAll
-	public static void teardown() throws Exception {
-	}
+  @AfterAll
+  public static void teardown() throws Exception {}
 
-	@BeforeEach
-	public void clearDatabase() {
-		// Make sure we start with a clean (and connected) db
-		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
-			db.purgeDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
-	}
+  @BeforeEach
+  public void clearDatabase() {
+    // Make sure we start with a clean (and connected) db
+    try {
+      Database db = OverflowDatabase.getInstance();
+      db.connect();
+      db.purgeDatabase();
+    } catch (Throwable e) {
+      e.printStackTrace();
+      assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
+    }
+  }
 
-	@Test
-	public void _01_assign() throws Exception {
-		ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+  @Test
+  public void _01_assign() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
 
-		URL resource = classLoader.getResource("mark_cpp/01_assign.cpp");
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
+    URL resource = classLoader.getResource("mark_cpp/01_assign.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
 
-		resource = classLoader.getResource("mark_cpp/01_assign.mark");
-		assertNotNull(resource);
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
+    resource = classLoader.getResource("mark_cpp/01_assign.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
 
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build()).build();
-		server.start();
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
 
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-	}
+    // Start the analysis
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
+                    .build())
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      throw t;
+    }
+  }
 
-	@Test
-	public void _02_arg() throws Exception {
-		ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+  @Test
+  public void _02_arg() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
 
-		URL resource = classLoader.getResource("mark_cpp/02_arg.cpp");
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
+    URL resource = classLoader.getResource("mark_cpp/02_arg.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
 
-		resource = classLoader.getResource("mark_cpp/02_arg.mark");
-		assertNotNull(resource);
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
+    resource = classLoader.getResource("mark_cpp/02_arg.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
 
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build()).build();
-		server.start();
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
 
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-	}
+    // Start the analysis
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
+                    .build())
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      throw t;
+    }
+  }
 
-	@Test
-	public void _03_arg_as_param() throws Exception {
-		ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+  @Test
+  public void _03_arg_as_param() throws Exception {
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
 
-		URL resource = classLoader.getResource("mark_cpp/03_arg_as_param.cpp");
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
+    URL resource = classLoader.getResource("mark_cpp/03_arg_as_param.cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
 
-		resource = classLoader.getResource("mark_cpp/03_arg_as_param.mark");
-		assertNotNull(resource);
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
+    resource = classLoader.getResource("mark_cpp/03_arg_as_param.mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
 
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build()).build();
-		server.start();
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
 
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-	}
+    // Start the analysis
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
+                    .build())
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      throw t;
+    }
+  }
 
-	@Test
-	public void arg_prevassign_int() throws Exception {
-		runTest("arg_prevassign_int");
-	}
+  @Test
+  public void arg_prevassign_int() throws Exception {
+    runTest("arg_prevassign_int");
+  }
 
-	@Test
-	public void arg_prevassign_bool() throws Exception {
-		runTest("arg_prevassign_bool");
-	}
+  @Test
+  public void arg_prevassign_bool() throws Exception {
+    runTest("arg_prevassign_bool");
+  }
 
-	@Test
-	public void arg_prevassign_string() throws Exception {
-		runTest("arg_prevassign_string");
-	}
+  @Test
+  public void arg_prevassign_string() throws Exception {
+    runTest("arg_prevassign_string");
+  }
 
-	@Test
-	public void arg_vardecl_int() throws Exception {
-		runTest("arg_vardecl_int");
-	}
+  @Test
+  public void arg_vardecl_int() throws Exception {
+    runTest("arg_vardecl_int");
+  }
 
-	@Test
-	public void arg_vardecl_bool() throws Exception {
-		runTest("arg_vardecl_bool");
-	}
+  @Test
+  public void arg_vardecl_bool() throws Exception {
+    runTest("arg_vardecl_bool");
+  }
 
-	@Test
-	public void arg_vardecl_string() throws Exception {
-		runTest("arg_vardecl_string");
-	}
+  @Test
+  public void arg_vardecl_string() throws Exception {
+    runTest("arg_vardecl_string");
+  }
 
-	@Test
-	public void split_1() throws Exception {
-		runTest("simplesplit_splitstring");
-	}
+  @Test
+  public void split_1() throws Exception {
+    runTest("simplesplit_splitstring");
+  }
 
-	@Test
-	public void is_instance_1() throws Exception {
-		runTest("simple_instancestring");
-	}
+  @Test
+  public void is_instance_1() throws Exception {
+    runTest("simple_instancestring");
+  }
 
-	private void runTest(@NonNull String fileNamePart) throws ExecutionException, InterruptedException, TimeoutException {
-		String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);
+  @Test
+  public void arg_prevassignop_int() throws Exception {
+    runTest("arg_prevassignop_int");
+  }
 
-		ClassLoader classLoader = MarkCppTest.class.getClassLoader();
-		URL resource = classLoader.getResource("mark_cpp/" + fileNamePart + ".cpp");
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
+  @Test
+  public void arg_assignconstructor_int() throws Exception {
+    runTest("arg_assignconstructor_int");
+  }
 
-		resource = classLoader.getResource("mark_cpp/" + type + ".mark");
-		assertNotNull(resource);
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
+  @Test
+  public void arg_assignparenthesisexpr_int() throws Exception {
+    runTest("arg_assignparenthesisexpr_int");
+  }
 
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build()).build();
-		server.start();
+  @Test
+  public void arg_uniforminitializer_int() throws Exception {
+    runTest("arg_uniforminitializer_int");
+  }
 
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+  private void runTest(@NonNull String fileNamePart)
+      throws ExecutionException, InterruptedException, TimeoutException {
+    String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);
 
-			AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-			assertNotNull(ctx.getFindings());
-			Set<Finding> findings = ctx.getFindings();
+    ClassLoader classLoader = MarkCppTest.class.getClassLoader();
+    URL resource = classLoader.getResource("mark_cpp/" + fileNamePart + ".cpp");
+    assertNotNull(resource);
+    File cppFile = new File(resource.getFile());
+    assertNotNull(cppFile);
 
-			assertEquals(1, findings.size());
-			findings.forEach((f) -> assertTrue(f.getName().endsWith("ensure condition satisfied")));
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-	}
+    resource = classLoader.getResource("mark_cpp/" + type + ".mark");
+    assertNotNull(resource);
+    File markFile = new File(resource.getFile());
+    assertNotNull(markFile);
+
+    // Start an analysis server
+    AnalysisServer server =
+        AnalysisServer.builder()
+            .config(
+                ServerConfiguration.builder()
+                    .launchConsole(false)
+                    .launchLsp(false)
+                    .markFiles(markFile.getAbsolutePath())
+                    .build())
+            .build();
+    server.start();
+
+    // Start the analysis
+    TranslationManager translationManager =
+        TranslationManager.builder()
+            .config(
+                TranslationConfiguration.builder()
+                    .debugParser(true)
+                    .failOnError(false)
+                    .codeInNodes(true)
+                    .defaultPasses()
+                    .sourceFiles(cppFile)
+                    .build())
+            .build();
+    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+    try {
+      TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+
+      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+      assertNotNull(ctx.getFindings());
+      Set<Finding> findings = ctx.getFindings();
+
+      assertEquals(1, findings.size());
+      findings.forEach((f) -> assertTrue(f.getName().endsWith("ensure condition satisfied")));
+    } catch (TimeoutException t) {
+      analyze.cancel(true);
+      throw t;
+    }
+  }
 }

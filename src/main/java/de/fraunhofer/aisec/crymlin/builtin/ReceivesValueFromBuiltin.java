@@ -5,8 +5,8 @@ import de.fraunhofer.aisec.mark.markDsl.Argument;
 import de.fraunhofer.aisec.markmodel.EvaluationContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.emf.common.util.EList;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ReceivesValueFromBuiltin implements Builtin {
@@ -16,7 +16,7 @@ public class ReceivesValueFromBuiltin implements Builtin {
 	}
 
 	@Override
-	public @NonNull Optional execute(EList<Argument> arguments, @Nullable EvaluationContext evalCtx) {
+	public @NonNull Optional execute(List<Argument> arguments, @Nullable EvaluationContext evalCtx) {
 		// TODO implement
 
 		// TODO FW: needs to be discussed, I am not clear what this should achieve

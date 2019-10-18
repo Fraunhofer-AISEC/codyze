@@ -80,9 +80,9 @@ public class CrymlinQueryWrapper {
 				if (argumentIndex >= parameterTypes.size()) {
 					// last given parameter type must be "..." or remove
 					return !Constants.ELLIPSIS.equals(parameterTypes.get(parameterTypes.size() - 1));
-				} else {
-					// remove if types don't match
-					String paramType = parameterTypes.get((int) argumentIndex);
+				} else { // remove if types don't match
+					// Use "unified" types for Java and C/C++
+					String paramType = Utils.unifyType(parameterTypes.get((int) argumentIndex));
 					if (!(Constants.UNDERSCORE.equals(paramType) || Constants.ELLIPSIS.equals(paramType))) {
 						// it's not a single type wild card -> types must match
 						// TODO improve type matching

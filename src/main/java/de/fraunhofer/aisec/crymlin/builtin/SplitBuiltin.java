@@ -1,8 +1,13 @@
 
 package de.fraunhofer.aisec.crymlin.builtin;
 
+import de.fraunhofer.aisec.mark.markDsl.Argument;
+import de.fraunhofer.aisec.markmodel.EvaluationContext;
 import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.emf.common.util.EList;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +33,13 @@ public class SplitBuiltin implements Builtin {
 
 	@Override
 	@NonNull // TODO Should return Optional<Literal>. This must be changed consistently across all evaluation functions, however.
-	public Optional execute(List<Optional> argOptionals) {
+	public Optional execute(EList<Argument> arguments, @Nullable EvaluationContext evalCtx) {
+		if (evalCtx == null) {
+			return Optional.empty();
+		}
+
+		List<Optional> argOptionals = new ExpressionEvaluator(evalCtx).evaluateArgs(arguments);
+
 		// arguments: String, String, int
 		// example:
 		// _split("ASD/EFG/JKL", "/", 1) returns "EFG"

@@ -29,6 +29,7 @@ import de.fraunhofer.aisec.mark.markDsl.Operand;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import java.util.OptionalInt;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
@@ -49,6 +51,7 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,9 +67,9 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Checks a source file against a MARK expression.
-	 *
+	 * <p>
 	 * This method may return three results:
-	 *
+	 * <p>
 	 * - empty: The expression could not be evaluated. - false: Expression was evaluated but does not match the source file. - true: Expression was evaluated and matches
 	 * the source file.
 	 *
@@ -76,23 +79,19 @@ public class ExpressionEvaluator {
 	public Optional<Boolean> evaluate(Expression expr) {
 		log.debug("Evaluating top level expression: {}", ExpressionHelper.exprToString(expr));
 
-		if (expr instanceof OrderExpression) {
-			return evaluateOrderExpression((OrderExpression) expr);
-		} else {
-			Optional result = evaluateExpression(expr);
+		Optional result = evaluateExpression(expr);
 
-			if (result.isEmpty()) {
-				log.error("Expression could not be evaluated: {}", ExpressionHelper.exprToString(expr));
-				return Optional.empty();
-			}
-
-			if (!result.get().getClass().equals(Boolean.class)) {
-				log.error("Expression result is not Boolean");
-				return Optional.empty();
-			}
-
-			return result;
+		if (result.isEmpty()) {
+			log.error("Expression could not be evaluated: {}", ExpressionHelper.exprToString(expr));
+			return Optional.empty();
 		}
+
+		if (!result.get().getClass().equals(Boolean.class)) {
+			log.error("Expression result is not Boolean");
+			return Optional.empty();
+		}
+
+		return result;
 	}
 
 	private Optional<Boolean> evaluateOrderExpression(OrderExpression orderExpression) {
@@ -309,16 +308,16 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Returns evaluated argument values of a Builtin-call.
-	 *
+	 * <p>
 	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(),
 	 * 42)".
-	 *
+	 * <p>
 	 * This method evaluates the Expressions of all arguments and return them as a list.
 	 *
 	 * @param argList
 	 * @return
 	 */
-	private List<Optional> evaluateArgs(@NonNull EList<Argument> argList) {
+	public List<Optional> evaluateArgs(@NonNull EList<Argument> argList) {
 		List<Optional> result = new ArrayList<>();
 		for (Argument arg : argList) {
 			result.add(evaluateExpression((Expression) arg));
@@ -332,117 +331,17 @@ public class ExpressionEvaluator {
 	 * @param expr
 	 * @return
 	 */
-	private Optional evaluateFunctionCallExpr(FunctionCallExpression expr) {
+	private Optional evaluateBuiltin(FunctionCallExpression expr) {
 		String functionName = expr.getName();
-		if (!functionName.startsWith("_")) {
-			log.error("Invalid function {}", functionName);
-		}
-
-		// Parse arguments
-		List<Optional> arguments = evaluateArgs(expr.getArgs());
 
 		// Call built-in function (if available)
 		for (Builtin b : BuiltinRegistry.getInstance().getRegisteredBuiltins()) {
 			if (b.getName().equals(functionName)) {
-				return b.execute(arguments);
+				return b.execute(expr.getArgs(), this.context);
 			}
 		}
 
-		/*
-		 * currently we allow: boolean = _is_instance(var, String) int = _length(var) boolean = _receives_value_from(var, var) String = _split(String, String, int)
-		 */
-		switch (functionName) {
-			case "_split":
-				// arguments: String, String, int
-				// example:
-				// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
-				final List<Class> paramTypes = Arrays.asList(String.class, String.class, Integer.class);
-				List<Optional> argOptionals = evaluateArgs(expr.getArgs());
-
-				if (paramTypes.size() != argOptionals.size()) {
-					return Optional.<String> empty();
-				}
-
-				for (int i = 0; i < paramTypes.size(); i++) {
-					Optional arg = argOptionals.get(i);
-
-					if (arg.isEmpty()) {
-						return Optional.<String> empty();
-					}
-					if (!arg.get().getClass().equals(paramTypes.get(i))) {
-						return Optional.<String> empty();
-					}
-				}
-
-				String s = (String) argOptionals.get(0).get();
-				String regex = (String) argOptionals.get(1).get();
-				int index = (Integer) argOptionals.get(2).get();
-				log.debug("args are: " + s + "; " + regex + "; " + index);
-				String ret = Builtins._split(s, regex, index);
-				if (ret != null) {
-					return Optional.of(ret);
-				} else {
-					return Optional.empty();
-				}
-
-			case "_receives_value_from":
-				// arguments: var, var
-				// example:
-
-				// todo needs to be discussed, I am not clear what this should achieve
-				// the example is:
-				/*
-				 * rule UseRandomIV { using Botan::Cipher_Mode as cm, Botan::AutoSeededRNG as rng when _split(cm.algorithm, "/", 1) == "CBC" && cm.direction ==
-				 * Botan::Cipher_Dir::ENCRYPTION ensure _receives_value_from(cm.iv, rng.myValue) onfail NoRandomIV }
-				 */
-				return Optional.of(Builtins._receives_value_from());
-
-			case "_is_instance":
-				// arguments: var, String
-				// example:
-				// _is_instance(cm.rand, java.security.SecureRandom)
-				// we need to get the node(s) corresponding to the 1st argument, and the string for the
-				// second argument
-				EList<Argument> args = expr.getArgs();
-				Optional classnameArgument = evaluateExpression((Expression) (args.get(1)));
-				if (classnameArgument.isEmpty() || !(classnameArgument.get() instanceof String)) {
-					log.error("var of is_instance is empty");
-					return Optional.empty();
-				}
-				String classname = (String) classnameArgument.get();
-
-				// unify separators
-				classname = classname.replaceAll("::", ".");
-
-				List<Vertex> verticesForOperand = getMatchingVertices((Operand) args.get(0));
-				for (Vertex v : verticesForOperand) {
-					String type = v.value("type");
-					if (!type.equals(classname)) {
-						log.info("type of cpp ({}) and mark ({}) do not match", type, classname);
-						return Optional.of(false);
-					} else {
-						log.info("type of cpp ({}) and mark ({}) match", type, classname);
-					}
-				}
-				return Optional.of(true);
-			case "_length":
-				// todo what should this exactly to? check the array length?
-
-				// arguments: var
-				// example:
-				// _length(cm.rand)
-
-				/*
-				 * algo: start at the DeclaredReferenceExpression go to VariableDeclaration via REFERS_TO edge go to <<?>> via INITIALIZER edge check array initialization
-				 * length
-				 */
-
-				// returns int
-				break;
-			default:
-				log.error("Unsupported function {}", functionName);
-		}
-
+		log.error("Unsupported function {}", functionName);
 		return Optional.empty();
 	}
 
@@ -482,10 +381,12 @@ public class ExpressionEvaluator {
 	 * @param expr
 	 * @return
 	 */ // TODO JS->FW: Should return a  Optional<Boolean>. Evaluation of Expressions which do not return a boolean should be pushed down into separate evaluation functions.
-	private Optional evaluateExpression(Expression expr) {
+	public Optional evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
 
-		if (expr instanceof LogicalOrExpression) {
+		if (expr instanceof OrderExpression) {
+			return evaluateOrderExpression((OrderExpression) expr);
+		} else if (expr instanceof LogicalOrExpression) {
 			log.debug("evaluating LogicalOrExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateLogicalExpr(expr);
 		} else if (expr instanceof LogicalAndExpression) {
@@ -508,7 +409,7 @@ public class ExpressionEvaluator {
 			return evaluateOperand((Operand) expr);
 		} else if (expr instanceof FunctionCallExpression) {
 			log.debug("evaluating FunctionCallExpression: {}", ExpressionHelper.exprToString(expr));
-			return evaluateFunctionCallExpr((FunctionCallExpression) expr);
+			return evaluateBuiltin((FunctionCallExpression) expr);
 		} else if (expr instanceof LiteralListExpression) {
 			// TODO JS->FW: What is the semantics of LiteralListExpression? Seems like the Optional<List> result is not used anywhere.
 			log.debug("evaluating LiteralListExpression: {}", ExpressionHelper.exprToString(expr));
@@ -754,7 +655,7 @@ public class ExpressionEvaluator {
 	 * @param operand
 	 * @return
 	 */
-	private List<Vertex> getMatchingVertices(Operand operand) {
+	public static List<Vertex> getMatchingVertices(Operand operand, EvaluationContext context) {
 		final ArrayList<Vertex> ret = new ArrayList<>();
 
 		if (!context.hasContextType(EvaluationContext.Type.RULE)) {
@@ -985,14 +886,15 @@ public class ExpressionEvaluator {
 								// 1. find callexpression with opstatment signature
 								Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
 
+								List<Vertex> nextVertices = new ArrayList<>();
 								for (Vertex v : vertices) {
 									Traversal<Vertex, Vertex> nextTraversalStep = crymlin.byID((long) v.id()).in("RHS").where(
 										has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").out("REFERS_TO").has(
 											T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
 
-									List<Vertex> nextVertices = nextTraversalStep.toList();
-									log.warn("found traversals: {}", nextVertices);
+									nextVertices.addAll(nextTraversalStep.toList());
 								}
+								log.warn("found traversals: {}", nextVertices);
 								// TODO why am I doing all this work? what are we hoping to get from this
 								// opstatement?
 								// 2. see if EOG leads to Expression with BinaryOperator {operatorCode: '='}
@@ -1030,6 +932,14 @@ public class ExpressionEvaluator {
 								// vertices in CPG where we call a function from a MARK OpStatement and we're
 								// looking for one of the arguments
 								Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, packageClass, functionName, null, argumentTypes);
+
+								/*
+								 * TODO JS->FW: The following code is okay, but it should be moved in to a separate method. The problem is that we are trying to be too
+								 * smart here and resolve an Operand "as far as we can". For "Immediates", (i.e. String/integer/boolean/float constants), the result of
+								 * this method is the actual value, in other cases it is a Vertex representing the variable. This makes this method hard to use, .e.g from
+								 * IsInstanceBuiltin, because we do not know what to expect. It should rather always return a Vertex. The constant resolution should be
+								 * done elsewhere.
+								 */
 
 								// further investigate each function call
 								for (Vertex v : vertices) {

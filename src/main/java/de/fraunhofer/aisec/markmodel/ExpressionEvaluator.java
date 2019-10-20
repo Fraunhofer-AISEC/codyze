@@ -794,287 +794,280 @@ public class ExpressionEvaluator {
 		// 2. link MARK definitions to graph components in CPG
 		// 3. resolve information to perform evaluation (e.g. retrieve assigned values)
 
-		if (context.hasContextType(EvaluationContext.Type.RULE)) {
-			final MRule rule = context.getRule();
+		if (!context.hasContextType(EvaluationContext.Type.RULE)) {
+			log.error("Unexpected: MarkExpression Evaluation outside of a rule: {}", operandString);
+			return Optional.empty();
+		}
 
-			if (operandString.contains(".")) {
-				String[] operandParts = operandString.split("\\.");
+		final MRule rule = context.getRule();
 
-				if (operandParts.length == 2) { // todo add error-case, if operand is e.g. without separator, and a case if we
-					// have fqn for the entity
-					String instance = operandParts[0];
-					String attribute = operandParts[1];
+		// Split the operand (e.g., "cm.cipher") into instance ("cm") and attribute ("cipher")
+		String[] operandParts = operandString.split("\\.");
+		if (operandParts.length != 2) { // todo add error-case, if operand is e.g. without separator, and a case if we have fqn for the entity
+			return Optional.empty();
+		}
+		String instance = operandParts[0];
+		String attribute = operandParts[1];
 
-					Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
-					if (ref == null || ref.getValue0() == null) {
-						log.warn("Mark rule contains unresolved instance variable {}. Rule will fail: {}", instance, rule.getName());
-						return Optional.empty();
+		// Find out the "type" (i.e. the Mark entity) of instance
+		Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
+		if (ref == null || ref.getValue0() == null) {
+			log.warn("Mark rule contains unresolved instance variable {}. Rule will fail: {}", instance, rule.getName());
+			return Optional.empty();
+		}
+		String entityName = ref.getValue0();
+		MEntity referencedEntity = ref.getValue1();
+		if (referencedEntity == null) {
+			log.warn("Mark rule contains reference to unresolved entity {}. Rule will fail: {}", entityName, rule.getName());
+			return Optional.empty();
+		}
+
+		// Find out the uses of the Mark attribute in all Mark ops.
+		List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
+		List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
+		for (MOp operation : referencedEntity.getOps()) {
+			Set<OpStatement> vars = new HashSet<>();
+			Set<OpStatement> args = new HashSet<>();
+
+			for (OpStatement opStmt : operation.getStatements()) {
+				// simple assignment, i.e. var = something()
+				if (attribute.equals(opStmt.getVar())) {
+					vars.add(opStmt);
+				}
+
+				// ...or it's used as a function parameter, i.e. something(..., var, ...)
+				FunctionDeclaration fd = opStmt.getCall();
+				for (String param : fd.getParams()) {
+					if (attribute.equals(param)) {
+						args.add(opStmt);
+					}
+				}
+			}
+			if (!vars.isEmpty()) {
+				usesAsVar.add(new Pair<>(operation, vars));
+			}
+			if (!args.isEmpty()) {
+				usesAsFunctionArgs.add(new Pair<>(operation, args));
+				// todo: argumentindizes vorberechnen!
+			}
+		}
+		dump(usesAsVar, usesAsFunctionArgs);
+
+		// know which ops and opstatements use operand
+		// resolve vars
+		// TODO JS->FW: Do not decide within this class what kind of DB is used.
+		try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+
+			for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+				for (OpStatement opstmt : p.getValue1()) {
+					/*
+					 * TODO how would we do this? wouldn't we need to evaluate the calling function to determine the value? I think the intention was to signal that a
+					 * variable was set by a specific function call. It's basically a Boolean decision can I find an assignment to the variable where on the rhs the
+					 * specified function is called --> YES or NO.
+					 */
+					FunctionDeclaration fd = opstmt.getCall();
+					String fqFunctionName = fd.getName();
+					List<String> functionArguments = fd.getParams();
+
+					String functionName = Utils.extractMethodName(fqFunctionName);
+					String fqNamePart = Utils.extractType(fqFunctionName);
+					if (fqNamePart.equals(functionName)) {
+						fqNamePart = "";
 					}
 
-					String entityName = ref.getValue0();
-					MEntity referencedEntity = ref.getValue1();
-
-					if (referencedEntity == null) {
-						log.warn("Mark rule contains reference to unresolved entity {}. Rule will fail: {}", entityName, rule.getName());
-						return Optional.empty();
+					List<String> functionArgumentTypes = new ArrayList<>();
+					for (int i = 0; i < functionArguments.size(); i++) {
+						functionArgumentTypes.add(i, referencedEntity.getTypeForVar(functionArguments.get(i)));
 					}
 
+					// 1. find callexpression with opstatment signature
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+
+					List<Vertex> nextVertices = new ArrayList<>();
+					for (Vertex v : vertices) {
+						Traversal<Vertex, Vertex> nextTraversalStep = crymlin.byID((long) v.id()).in("RHS").where(
+							has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").out("REFERS_TO").has(
+								T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+
+						nextVertices.addAll(nextTraversalStep.toList());
+					}
+					log.warn("found traversals: {}", nextVertices);
+					// TODO why am I doing all this work? what are we hoping to get from this
+					// opstatement?
+					// 2. see if EOG leads to Expression with BinaryOperator {operatorCode: '='}
+				}
+			}
+
+			for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
+				for (OpStatement opstmt : p.getValue1()) {
+					FunctionDeclaration fd = opstmt.getCall();
+
+					String fqFunctionName = fd.getName();
+					String functionName = Utils.extractMethodName(fqFunctionName);
+					String packageClass = fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
+
+					if (packageClass.endsWith(".")) {
+						packageClass = packageClass.substring(0, packageClass.length() - 1);
+					}
+
+					List<String> argumentTypes = new ArrayList<>(fd.getParams());
+					int argumentIndex = -1;
+					for (int i = 0; i < argumentTypes.size(); i++) {
+						String argVar = argumentTypes.get(i);
+
+						if (attribute.equals(argVar)) {
+							argumentIndex = i;
+						}
+
+						if (Constants.UNDERSCORE.equals(argVar) || Constants.ELLIPSIS.equals(argVar)) {
+							continue;
+						}
+
+						argumentTypes.set(i, referencedEntity.getTypeForVar(argVar));
+					}
+
+					// vertices in CPG where we call a function from a MARK OpStatement and we're
+					// looking for one of the arguments
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, packageClass, functionName, null, argumentTypes);
+
+					/*
+					 * TODO JS->FW: The following code is okay, but it should be moved in to a separate method. The problem is that we are trying to be too smart here and
+					 * resolve an Operand "as far as we can". For "Immediates", (i.e. String/integer/boolean/float constants), the result of this method is the actual
+					 * value, in other cases it is a Vertex representing the variable. This makes this method hard to use, .e.g from IsInstanceBuiltin, because we do not
+					 * know what to expect. It should rather always return a Vertex. The constant resolution should be done elsewhere.
+					 */
 					String attributeType = referencedEntity.getTypeForVar(attribute);
 
-					List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
-					List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
+					// further investigate each function call
+					for (Vertex v : vertices) {
+						CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal = crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex",
+							argumentIndex).out("REFERS_TO");
+						// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
+						// argument we're using in the function call
 
-					for (MOp operation : referencedEntity.getOps()) {
-						Set<OpStatement> vars = new HashSet<>();
-						Set<OpStatement> args = new HashSet<>();
+						// TODO potential NullPointerException
+						Vertex variableDeclarationVertex = variableDeclarationTraversal.toList().get(0);
 
-						for (OpStatement opStmt : operation.getStatements()) {
-							// simple assignment, i.e. var = something()
-							if (attribute.equals(opStmt.getVar())) {
-								vars.add(opStmt);
-							}
+						// FIXME and now this code doesn't work as expected, especially path()
 
-							// ...or it's used as a function parameter, i.e. something(..., var, ...)
-							FunctionDeclaration fd = opStmt.getCall();
-							for (String param : fd.getParams()) {
-								if (attribute.equals(param)) {
-									args.add(opStmt);
-								}
-							}
-						}
+						/*
+						 * TODO general idea 1. from CPG vertex representing the function argument ('crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex",
+						 * argumentIndex)') create all paths to vertex with variable declaration ('variableDeclarationVertex') in theory 'crymlin.byID((long)
+						 * v.id()).repeat(in("EOG").simplePath()) .until(hasId(variableDeclarationVertex.id())).path()' 2. traverse this path from 'v' --->
+						 * 'variableDeclarationVertex' 3. for each assignment, i.e. BinaryOperator{operatorCode: "="} 4. check if -{"LHS"}-> v -{"REFERS_TO"}->
+						 * variableDeclarationVertex 5. then determine value RHS 6. done 7. {no interjacent assignment} determine value of variableDeclarationVertex (e.g.
+						 * from its initializer) 8. {no intializer with value e.g. function argument} continue traversing the graph
+						 */
 
-						if (!vars.isEmpty()) {
-							usesAsVar.add(new Pair<>(operation, vars));
-						}
+						log.debug("Vertex for function call: {}", v);
+						log.debug("Vertex of variable declaration: {}", variableDeclarationVertex);
 
-						if (!args.isEmpty()) {
-							usesAsFunctionArgs.add(new Pair<>(operation, args));
-							// todo: argumentindizes vorberechnen!
-						}
-					}
+						// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
+						// one of them must have more information on the value of the operand
+						CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) v.id()).repeat(in("EOG")).until(
+							is(variableDeclarationVertex)).emit();
+						dumpVertices(traversal.clone().toList());
 
-					dump(usesAsVar, usesAsFunctionArgs);
+						while (traversal.hasNext()) {
+							Vertex tVertex = traversal.next();
 
-					// know which ops and opstatements use operand
-					// resolve vars
-					// TODO JS->FW: Do not decide within this class what kind of DB is used.
-					try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
-						CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+							boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("BinaryOperator");
 
-						for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
-							for (OpStatement opstmt : p.getValue1()) {
-								/*
-								 * TODO how would we do this? wouldn't we need to evaluate the calling function to determine the value? I think the intention was to
-								 * signal that a variable was set by a specific function call. It's basically a Boolean decision can I find an assignment to the variable
-								 * where on the rhs the specified function is called --> YES or NO.
-								 */
-								FunctionDeclaration fd = opstmt.getCall();
-								String fqFunctionName = fd.getName();
-								List<String> functionArguments = fd.getParams();
+							if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode").value())) {
+								// this is an assignment that may set the value of our operand
+								Vertex lhs = tVertex.vertices(Direction.OUT, "LHS").next();
 
-								String functionName = Utils.extractMethodName(fqFunctionName);
-								String fqNamePart = Utils.extractType(fqFunctionName);
-								if (fqNamePart.equals(functionName)) {
-									fqNamePart = "";
-								}
+								if (lhs.vertices(Direction.OUT, "REFERS_TO").next().equals(variableDeclarationVertex)) {
+									Vertex rhs = tVertex.vertices(Direction.OUT, "RHS").next();
 
-								List<String> functionArgumentTypes = new ArrayList<>();
-								for (int i = 0; i < functionArguments.size(); i++) {
-									functionArgumentTypes.add(i, referencedEntity.getTypeForVar(functionArguments.get(i)));
-								}
+									boolean isRhsLiteral = Arrays.asList(rhs.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal");
 
-								// 1. find callexpression with opstatment signature
-								Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+									if (isRhsLiteral) {
+										Object literalValue = rhs.property("value").value();
+										Class literalValueClass = literalValue.getClass();
 
-								List<Vertex> nextVertices = new ArrayList<>();
-								for (Vertex v : vertices) {
-									Traversal<Vertex, Vertex> nextTraversalStep = crymlin.byID((long) v.id()).in("RHS").where(
-										has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").out("REFERS_TO").has(
-											T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
-
-									nextVertices.addAll(nextTraversalStep.toList());
-								}
-								log.warn("found traversals: {}", nextVertices);
-								// TODO why am I doing all this work? what are we hoping to get from this
-								// opstatement?
-								// 2. see if EOG leads to Expression with BinaryOperator {operatorCode: '='}
-							}
-						}
-
-						for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
-							for (OpStatement opstmt : p.getValue1()) {
-								FunctionDeclaration fd = opstmt.getCall();
-
-								String fqFunctionName = fd.getName();
-								String functionName = Utils.extractMethodName(fqFunctionName);
-								String packageClass = fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
-
-								if (packageClass.endsWith(".")) {
-									packageClass = packageClass.substring(0, packageClass.length() - 1);
-								}
-
-								List<String> argumentTypes = new ArrayList<>(fd.getParams());
-								int argumentIndex = -1;
-								for (int i = 0; i < argumentTypes.size(); i++) {
-									String argVar = argumentTypes.get(i);
-
-									if (attribute.equals(argVar)) {
-										argumentIndex = i;
-									}
-
-									if (Constants.UNDERSCORE.equals(argVar) || Constants.ELLIPSIS.equals(argVar)) {
-										continue;
-									}
-
-									argumentTypes.set(i, referencedEntity.getTypeForVar(argVar));
-								}
-
-								// vertices in CPG where we call a function from a MARK OpStatement and we're
-								// looking for one of the arguments
-								Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, packageClass, functionName, null, argumentTypes);
-
-								/*
-								 * TODO JS->FW: The following code is okay, but it should be moved in to a separate method. The problem is that we are trying to be too
-								 * smart here and resolve an Operand "as far as we can". For "Immediates", (i.e. String/integer/boolean/float constants), the result of
-								 * this method is the actual value, in other cases it is a Vertex representing the variable. This makes this method hard to use, .e.g from
-								 * IsInstanceBuiltin, because we do not know what to expect. It should rather always return a Vertex. The constant resolution should be
-								 * done elsewhere.
-								 */
-
-								// further investigate each function call
-								for (Vertex v : vertices) {
-									CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal = crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex",
-										argumentIndex).out("REFERS_TO");
-									// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
-									// argument we're using in the function call
-
-									// TODO potential NullPointerException
-									Vertex variableDeclarationVertex = variableDeclarationTraversal.toList().get(0);
-
-									// FIXME and now this code doesn't work as expected, especially path()
-
-									/*
-									 * TODO general idea 1. from CPG vertex representing the function argument ('crymlin.byID((long)
-									 * v.id()).out("ARGUMENTS").has("argumentIndex", argumentIndex)') create all paths to vertex with variable declaration
-									 * ('variableDeclarationVertex') in theory 'crymlin.byID((long) v.id()).repeat(in("EOG").simplePath())
-									 * .until(hasId(variableDeclarationVertex.id())).path()' 2. traverse this path from 'v' ---> 'variableDeclarationVertex' 3. for each
-									 * assignment, i.e. BinaryOperator{operatorCode: "="} 4. check if -{"LHS"}-> v -{"REFERS_TO"}-> variableDeclarationVertex 5. then
-									 * determine value RHS 6. done 7. {no interjacent assignment} determine value of variableDeclarationVertex (e.g. from its initializer)
-									 * 8. {no intializer with value e.g. function argument} continue traversing the graph
-									 */
-
-									log.debug("Vertex for function call: {}", v);
-									log.debug("Vertex of variable declaration: {}", variableDeclarationVertex);
-
-									// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
-									// one of them must have more information on the value of the operand
-									CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) v.id()).repeat(in("EOG")).until(
-										is(variableDeclarationVertex)).emit();
-									dumpVertices(traversal.clone().toList());
-
-									while (traversal.hasNext()) {
-										Vertex tVertex = traversal.next();
-
-										boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("BinaryOperator");
-
-										if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode").value())) {
-											// this is an assignment that may set the value of our operand
-											Vertex lhs = tVertex.vertices(Direction.OUT, "LHS").next();
-
-											if (lhs.vertices(Direction.OUT, "REFERS_TO").next().equals(variableDeclarationVertex)) {
-												Vertex rhs = tVertex.vertices(Direction.OUT, "RHS").next();
-
-												boolean isRhsLiteral = Arrays.asList(rhs.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal");
-
-												if (isRhsLiteral) {
-													Object literalValue = rhs.property("value").value();
-													Class literalValueClass = literalValue.getClass();
-
-													if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-														return Optional.of(((Number) literalValue).intValue());
-													}
-
-													if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-														return Optional.of(((Number) literalValue).floatValue());
-													}
-
-													if (literalValueClass.equals(Boolean.class)) {
-														return Optional.of((Boolean) literalValue);
-													}
-
-													if (literalValueClass.equals(String.class)) {
-														// character and string literals both have value of type String
-														String valueString = (String) literalValue;
-
-														// FIXME incomplete hack; only works for primitive char type; is that
-														// enough?
-														if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
-															// FIXME this will likely break on an empty string
-															return Optional.of(valueString.charAt(0));
-														}
-														return Optional.of(valueString);
-													}
-													log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
-												}
-
-												// TODO properly resolve rhs expression
-
-												log.warn("Value of operand set in assignment expression");
-												break;
-											}
+										if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
+											return Optional.of(((Number) literalValue).intValue());
 										}
-									}
 
-									// we arrived at the declaration of the variable used as an argument
-									log.warn("Checking declaration for a literal initializer");
-
-									// check if we have an initializer with a literal
-									Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
-									while (itInitializerVertex.hasNext()) {
-										// there should be at most one
-										Vertex initializerVertex = itInitializerVertex.next();
-
-										if (Arrays.asList(initializerVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal")) {
-											Object literalValue = initializerVertex.property("value").value();
-											Class literalValueClass = literalValue.getClass();
-
-											if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-												return Optional.of(((Number) literalValue).intValue());
-											}
-
-											if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-												return Optional.of(((Number) literalValue).floatValue());
-											}
-
-											if (literalValueClass.equals(Boolean.class)) {
-												return Optional.of((Boolean) literalValue);
-											}
-
-											if (literalValueClass.equals(String.class)) {
-												// character and string literals both have value of type String
-												String valueString = (String) literalValue;
-
-												// FIXME incomplete hack; only works for primitive char type; is that
-												// enough?
-												if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
-													// FIXME this will likely break on an empty string
-													return Optional.of(valueString.charAt(0));
-												}
-												return Optional.of(valueString);
-											}
-											log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
+										if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
+											return Optional.of(((Number) literalValue).floatValue());
 										}
+
+										if (literalValueClass.equals(Boolean.class)) {
+											return Optional.of((Boolean) literalValue);
+										}
+
+										if (literalValueClass.equals(String.class)) {
+											// character and string literals both have value of type String
+											String valueString = (String) literalValue;
+
+											// FIXME incomplete hack; only works for primitive char type; is that
+											// enough?
+											if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
+												// FIXME this will likely break on an empty string
+												return Optional.of(valueString.charAt(0));
+											}
+											return Optional.of(valueString);
+										}
+										log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 									}
+
+									// TODO properly resolve rhs expression
+
+									log.warn("Value of operand set in assignment expression");
+									break;
 								}
+							}
+						}
+
+						// we arrived at the declaration of the variable used as an argument
+						log.warn("Checking declaration for a literal initializer");
+
+						// check if we have an initializer with a literal
+						Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
+						while (itInitializerVertex.hasNext()) {
+							// there should be at most one
+							Vertex initializerVertex = itInitializerVertex.next();
+
+							if (Arrays.asList(initializerVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal")) {
+								Object literalValue = initializerVertex.property("value").value();
+								Class literalValueClass = literalValue.getClass();
+
+								if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
+									return Optional.of(((Number) literalValue).intValue());
+								}
+
+								if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
+									return Optional.of(((Number) literalValue).floatValue());
+								}
+
+								if (literalValueClass.equals(Boolean.class)) {
+									return Optional.of((Boolean) literalValue);
+								}
+
+								if (literalValueClass.equals(String.class)) {
+									// character and string literals both have value of type String
+									String valueString = (String) literalValue;
+
+									// FIXME incomplete hack; only works for primitive char type; is that
+									// enough?
+									if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
+										// FIXME this will likely break on an empty string
+										return Optional.of(valueString.charAt(0));
+									}
+									return Optional.of(valueString);
+								}
+								log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 							}
 						}
 					}
-
-					// TODO at this point I know what I need to look for: either assignments or function calls
-
 				}
 			}
 		}
+
+		// TODO at this point I know what I need to look for: either assignments or function calls
 
 		/*
 		 * FIXME need to differentiate between entity reference and actual code references to Botan/BouncyCastle Currently, I just get some text that can be anything --

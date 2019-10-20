@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,199 +37,171 @@ import org.slf4j.LoggerFactory;
 @Disabled
 class GithubTest {
 
-  private static final int FILES_OFFSET = 0;
-  private static final int MAX_FILES_TO_SCAN = -1; // -1: all
-  private static final String baseFolder;
-  private static final Logger log = LoggerFactory.getLogger(GithubTest.class);
-  private static AnalysisServer server;
-  private static TestAppender logCopy;
+	private static final int FILES_OFFSET = 0;
+	private static final int MAX_FILES_TO_SCAN = -1; // -1: all
+	private static final String baseFolder;
+	private static final Logger log = LoggerFactory.getLogger(GithubTest.class);
+	private static AnalysisServer server;
+	private static TestAppender logCopy;
 
-  private static long numTest = 0;
+	private static long numTest = 0;
 
-  static {
-    //    ClassLoader classLoader = GithubTest.class.getClassLoader();
-    //    URL resource = classLoader.getResource("random_github");
-    //    assertNotNull(resource);
-    // baseFolder = resource.getFile();
-    baseFolder = "/home/user/projects/bsi/code/githubcrawler/singlefiles";
-  }
+	static {
+		//    ClassLoader classLoader = GithubTest.class.getClassLoader();
+		//    URL resource = classLoader.getResource("random_github");
+		//    assertNotNull(resource);
+		// baseFolder = resource.getFile();
+		baseFolder = "/home/user/projects/bsi/code/githubcrawler/singlefiles";
+	}
 
-  private static List<String> listFiles() {
-    // File folder = new File("/tmp/random_sources");
+	private static List<String> listFiles() {
+		// File folder = new File("/tmp/random_sources");
 
-    File folder = new File(baseFolder);
-    assertNotNull(folder);
-    File[] files = folder.listFiles();
-    assertNotNull(files);
-    List<String> ret = new ArrayList<>();
-    for (File f : files) {
-      ret.add(f.getAbsolutePath().substring(baseFolder.length() + 1)); // only use the file name
-    }
-    Collections.sort(ret);
-    // random!
-    //    Collections.shuffle(ret);
-    if (MAX_FILES_TO_SCAN != -1) {
-      ret = ret.subList(FILES_OFFSET, FILES_OFFSET + MAX_FILES_TO_SCAN);
-    }
-    return ret;
-  }
+		File folder = new File(baseFolder);
+		assertNotNull(folder);
+		File[] files = folder.listFiles();
+		assertNotNull(files);
+		List<String> ret = new ArrayList<>();
+		for (File f : files) {
+			ret.add(f.getAbsolutePath().substring(baseFolder.length() + 1)); // only use the file name
+		}
+		Collections.sort(ret);
+		// random!
+		//    Collections.shuffle(ret);
+		if (MAX_FILES_TO_SCAN != -1) {
+			ret = ret.subList(FILES_OFFSET, FILES_OFFSET + MAX_FILES_TO_SCAN);
+		}
+		return ret;
+	}
 
-  @BeforeAll
-  static void setup() {
-    OverflowDatabase.getInstance().connect();
-    OverflowDatabase.getInstance().close();
+	@BeforeAll
+	static void setup() {
+		OverflowDatabase.getInstance().connect();
+		OverflowDatabase.getInstance().close();
 
-    ClassLoader classLoader = GithubTest.class.getClassLoader();
-    URL resource = classLoader.getResource("unittests/order2.mark");
-    assertNotNull(resource);
-    File markPoC1 = new File(resource.getFile());
-    assertNotNull(markPoC1);
+		ClassLoader classLoader = GithubTest.class.getClassLoader();
+		URL resource = classLoader.getResource("unittests/order2.mark");
+		assertNotNull(resource);
+		File markPoC1 = new File(resource.getFile());
+		assertNotNull(markPoC1);
 
-    server =
-        AnalysisServer.builder()
-            .config(
-                ServerConfiguration.builder()
-                    .launchConsole(false)
-                    .launchLsp(false)
-                    .markFiles(markPoC1.getAbsolutePath())
-                    .build())
-            .build();
+		server = AnalysisServer.builder().config(
+			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build()).build();
 
-    server.start();
+		server.start();
 
-    logCopy = new TestAppender("logCopy", null);
-    logCopy.injectIntoLogger();
-  }
+		logCopy = new TestAppender("logCopy", null);
+		logCopy.injectIntoLogger();
+	}
 
-  @AfterAll
-  static void shutdown() throws Exception {
-    server.stop();
-  }
+	@AfterAll
+	static void shutdown() throws Exception {
+		server.stop();
+	}
 
-  @ParameterizedTest
-  @MethodSource("listFiles")
-  void performTest(String sourceFileName) throws Exception {
-    Path tempDir = Files.createTempDirectory("githubtest_");
-    File tempFile = new File(tempDir.toString() + File.separator + sourceFileName);
-    Files.copy(
-        new File(baseFolder + File.separator + sourceFileName).toPath(),
-        tempFile.toPath(),
-        StandardCopyOption.REPLACE_EXISTING);
-    logCopy.reset();
+	@ParameterizedTest
+	@MethodSource("listFiles")
+	void performTest(String sourceFileName) throws Exception {
+		Path tempDir = Files.createTempDirectory("githubtest_");
+		File tempFile = new File(tempDir.toString() + File.separator + sourceFileName);
+		Files.copy(new File(baseFolder + File.separator + sourceFileName).toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		logCopy.reset();
 
-    // prepend base folder. we call this function only with the file name to make the tests
-    // nicely readable
-    sourceFileName = tempFile.getAbsolutePath();
+		// prepend base folder. we call this function only with the file name to make the tests
+		// nicely readable
+		sourceFileName = tempFile.getAbsolutePath();
 
-    File cppFile = new File(sourceFileName);
-    assertNotNull(cppFile);
+		File cppFile = new File(sourceFileName);
+		assertNotNull(cppFile);
 
-    log.info("File size: {} kB", cppFile.length() / 1024);
+		log.info("File size: {} kB", cppFile.length() / 1024);
 
-    //    try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.UTF_8)) {
-    //      log.info("Benchmark: {} contains {} lines", sourceFileName, lines.count());
-    //    } catch (Exception e) {
-    //      try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.ISO_8859_1))
-    // {
-    //        log.info("Benchmark: {} contains {} lines", sourceFileName, lines.count());
-    //      }
-    //    }
+		//    try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.UTF_8)) {
+		//      log.info("Benchmark: {} contains {} lines", sourceFileName, lines.count());
+		//    } catch (Exception e) {
+		//      try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.ISO_8859_1))
+		// {
+		//        log.info("Benchmark: {} contains {} lines", sourceFileName, lines.count());
+		//      }
+		//    }
 
-    // Make sure we start with a clean (and connected) db
-    // if this does not work, just throw
-    OverflowDatabase.getInstance().purgeDatabase();
+		// Make sure we start with a clean (and connected) db
+		// if this does not work, just throw
+		OverflowDatabase.getInstance().purgeDatabase();
 
-    TranslationManager tm =
-        TranslationManager.builder()
-            .config(
-                TranslationConfiguration.builder()
-                    .debugParser(true)
-                    .failOnError(false)
-                    .defaultPasses()
-                    .sourceFiles(cppFile)
-                    .build())
-            .build();
+		TranslationManager tm = TranslationManager.builder().config(
+			TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceFiles(cppFile).build()).build();
 
-    boolean hasError = false;
-    CompletableFuture<TranslationResult> analyze = server.analyze(tm);
-    try {
-      TranslationResult result = analyze.get(10, TimeUnit.MINUTES);
+		boolean hasError = false;
+		CompletableFuture<TranslationResult> analyze = server.analyze(tm);
+		try {
+			TranslationResult result = analyze.get(10, TimeUnit.MINUTES);
 
-      assertNotNull(result);
-      //      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-      //      assertNotNull(ctx);
+			assertNotNull(result);
+			//      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+			//      assertNotNull(ctx);
 
-    } catch (Exception e) {
-      analyze.cancel(true);
+		}
+		catch (Exception e) {
+			analyze.cancel(true);
 
-      StringWriter sw = new StringWriter();
-      e.printStackTrace(new PrintWriter(sw));
-      log.error(sw.toString());
-      hasError = true;
-    }
-    tempFile.delete();
-    tempDir.toFile().delete();
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			log.error(sw.toString());
+			hasError = true;
+		}
+		tempFile.delete();
+		tempDir.toFile().delete();
 
-    OverflowDatabase.getInstance().close();
+		OverflowDatabase.getInstance().close();
 
-    PrintWriter writer =
-        new PrintWriter(
-            "/tmp/out/" + System.currentTimeMillis() + "_" + cppFile.getName() + ".out",
-            StandardCharsets.UTF_8);
-    for (LogEvent e : logCopy.getLog()) {
-      writer.println(
-          e.getTimeMillis()
-              + " "
-              + e.getLevel().toString()
-              + " "
-              + e.getLoggerName().substring(e.getLoggerName().lastIndexOf(".") + 1)
-              + " "
-              + e.getMessage().getFormattedMessage());
-    }
-    writer.flush();
-    writer.close();
+		PrintWriter writer = new PrintWriter("/tmp/out/" + System.currentTimeMillis() + "_" + cppFile.getName() + ".out", StandardCharsets.UTF_8);
+		for (LogEvent e : logCopy.getLog()) {
+			writer.println(e.getTimeMillis() + " " + e.getLevel().toString() + " " + e.getLoggerName().substring(e.getLoggerName().lastIndexOf(".") + 1) + " "
+					+ e.getMessage().getFormattedMessage());
+		}
+		writer.flush();
+		writer.close();
 
-    System.gc();
-    System.runFinalization();
+		System.gc();
+		System.runFinalization();
 
-    //    System.out.println("The following Errors/Warnings occured:");
-    //    for(LogEvent e: logCopy.getLog(Level.ERROR, Level.WARN)) {
-    //      System.out.println(e.toString());
-    //    }
-    if (hasError) {
-      fail();
-    }
-    ArrayList<LogEvent> log = logCopy.getLog(Level.ERROR);
-    ArrayList<LogEvent> logFiltered = new ArrayList<>();
-    boolean hasParseError = false;
-    for (LogEvent x : log) {
-      if (x.getMessage()
-              .getFormattedMessage()
-              .contains(
-                  "Parsing of type class org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTProblemStatement is not supported (yet)")
-          || x.getMessage().getFormattedMessage().contains("JavaParser could not parse file")) {
-        hasParseError = true;
-      }
-      logFiltered.add(x);
-    }
+		//    System.out.println("The following Errors/Warnings occured:");
+		//    for(LogEvent e: logCopy.getLog(Level.ERROR, Level.WARN)) {
+		//      System.out.println(e.toString());
+		//    }
+		if (hasError) {
+			fail();
+		}
+		ArrayList<LogEvent> log = logCopy.getLog(Level.ERROR);
+		ArrayList<LogEvent> logFiltered = new ArrayList<>();
+		boolean hasParseError = false;
+		for (LogEvent x : log) {
+			if (x.getMessage().getFormattedMessage().contains(
+				"Parsing of type class org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTProblemStatement is not supported (yet)")
+					|| x.getMessage().getFormattedMessage().contains("JavaParser could not parse file")) {
+				hasParseError = true;
+			}
+			logFiltered.add(x);
+		}
 
-    if (!hasParseError && logFiltered.size() > 0) {
-      fail();
-    }
-  }
+		if (!hasParseError && logFiltered.size() > 0) {
+			fail();
+		}
+	}
 
-  @Test
-  void specificTest() throws Exception {
-    OverflowDatabase.getInstance().purgeDatabase();
+	@Test
+	void specificTest() throws Exception {
+		OverflowDatabase.getInstance().purgeDatabase();
 
-    // performTest("WorldStateMgr.cpp");
+		// performTest("WorldStateMgr.cpp");
 
-    // performTest("redis.c"); // very long persisting
+		// performTest("redis.c"); // very long persisting
 
-    // performTest("rpcwallet.cpp");
-    // performTest("indexed_data.cpp");
-    // performTest("RSHooks.cpp");
+		// performTest("rpcwallet.cpp");
+		// performTest("indexed_data.cpp");
+		// performTest("RSHooks.cpp");
 
-    performTest("bf538f-ezkit.c");
-  }
+		performTest("bf538f-ezkit.c");
+	}
 }

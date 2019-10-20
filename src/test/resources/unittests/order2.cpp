@@ -14,17 +14,17 @@
     p1.finish();
     p1.reset();
   }
+
   void ok2() {
     Botan2 p2 = new Botan2(1);
     p2.create();
-    Botan2 pX = p2;  // Alias before seed
-    pX.init();
-    pX.start();
-    pX.process();
-    pX.process();
-    pX.process();
-    pX.process();
-    pX.finish();
+    p2.init();
+    p2.start();
+    p2.process();
+    p2.process();
+    p2.process();
+    p2.process();
+    p2.finish();
   }
 
   void ok3() {

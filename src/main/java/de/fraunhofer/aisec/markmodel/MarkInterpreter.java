@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.markmodel;
 
 import de.breakpoint.pushdown.IllegalTransitionException;
@@ -13,6 +14,10 @@ import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import de.fraunhofer.aisec.markmodel.wpds.TypeStateAnalysis;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -20,12 +25,13 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+/**
+ * Evaluates MARK rules against the CPG.
+ */
 public class MarkInterpreter {
 	private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
-	@NonNull private final Mark markModel;
+	@NonNull
+	private final Mark markModel;
 
 	public MarkInterpreter(@NonNull Mark markModel) {
 		this.markModel = markModel;
@@ -38,47 +44,36 @@ public class MarkInterpreter {
 
 		if (expr instanceof LogicalOrExpression) {
 			return exprToString(((LogicalOrExpression) expr).getLeft()) + " || " + exprToString(((LogicalOrExpression) expr).getRight());
-		}
-		else if (expr instanceof LogicalAndExpression) {
+		} else if (expr instanceof LogicalAndExpression) {
 			return exprToString(((LogicalAndExpression) expr).getLeft()) + " && " + exprToString(((LogicalAndExpression) expr).getRight());
-		}
-		else if (expr instanceof ComparisonExpression) {
+		} else if (expr instanceof ComparisonExpression) {
 			ComparisonExpression compExpr = (ComparisonExpression) expr;
 			return exprToString(compExpr.getLeft()) + " " + compExpr.getOp() + " " + exprToString(compExpr.getRight());
-		}
-		else if (expr instanceof FunctionCallExpression) {
+		} else if (expr instanceof FunctionCallExpression) {
 			FunctionCallExpression fExpr = (FunctionCallExpression) expr;
 			String name = fExpr.getName();
 			return name + "(" + fExpr.getArgs().stream().map(MarkInterpreter::argToString).collect(Collectors.joining(", ")) + ")";
-		}
-		else if (expr instanceof LiteralListExpression) {
+		} else if (expr instanceof LiteralListExpression) {
 			return "[ " + ((LiteralListExpression) expr).getValues().stream().map(Literal::getValue).collect(Collectors.joining(", ")) + " ]";
-		}
-		else if (expr instanceof RepetitionExpression) {
+		} else if (expr instanceof RepetitionExpression) {
 			RepetitionExpression inner = (RepetitionExpression) expr;
 			// todo @FW do we want this optimization () can be omitted if inner is no sequence
 			if (inner.getExpr() instanceof SequenceExpression) {
 				return "(" + exprToString(inner.getExpr()) + ")" + inner.getOp();
-			}
-			else {
+			} else {
 				return exprToString(inner.getExpr()) + inner.getOp();
 			}
-		}
-		else if (expr instanceof Operand) {
+		} else if (expr instanceof Operand) {
 			return ((Operand) expr).getOperand();
-		}
-		else if (expr instanceof Literal) {
+		} else if (expr instanceof Literal) {
 			return ((Literal) expr).getValue();
-		}
-		else if (expr instanceof SequenceExpression) {
+		} else if (expr instanceof SequenceExpression) {
 			SequenceExpression seq = ((SequenceExpression) expr);
 			return exprToString(seq.getLeft()) + seq.getOp() + " " + exprToString(seq.getRight());
-		}
-		else if (expr instanceof Terminal) {
+		} else if (expr instanceof Terminal) {
 			Terminal inner = (Terminal) expr;
 			return inner.getEntity() + "." + inner.getOp() + "()";
-		}
-		else if (expr instanceof OrderExpression) {
+		} else if (expr instanceof OrderExpression) {
 			OrderExpression order = (OrderExpression) expr;
 			SequenceExpression seq = (SequenceExpression) order.getExp();
 			return "order " + exprToString(seq);
@@ -100,9 +95,10 @@ public class MarkInterpreter {
 	}
 
 	/**
-	 * Evaluates the {@code markModel} against the currently analyzed program.
+	 * Evaluates the {@code markModel} against the currently analyzed program (CPG).
 	 *
-	 * <p>This is the core of the MARK evaluation.s
+	 * <p>
+	 * This is the core of the MARK evaluation.s
 	 *
 	 * @param result
 	 */
@@ -113,8 +109,7 @@ public class MarkInterpreter {
 		Object o = result.getScratch().get(TranslationResult.SOURCEFILESTOFRONTEND);
 		if (o == null) {
 			log.error("Scratch does not contain correct {}", TranslationResult.SOURCEFILESTOFRONTEND);
-		}
-		else {
+		} else {
 			//      HashMap<String, String> sftfe = (HashMap<String, String>) o;
 			//      HashSet<String> parser = new HashSet<>(sftfe.values());
 			//      parser.forEach(System.err::println);
@@ -126,10 +121,9 @@ public class MarkInterpreter {
 
 			log.info("Precalculating matching nodes");
 			Benchmark b = new Benchmark(this.getClass(), "Precalculating maching nodes");
-      /*
-      iterate all entities and precalculate some things:
-         - call statements to vertices
-      */
+			/*
+			 * iterate all entities and precalculate some things: - call statements to vertices
+			 */
 			for (MEntity ent : this.markModel.getEntities()) {
 				log.info("Precalculating call statments for entity {}", ent.getName());
 				ent.parseVars();
@@ -160,10 +154,10 @@ public class MarkInterpreter {
 			evaluateOrder(ctx, crymlinTraversal);
 			b.stop();
 
-			log.info("Evaluate typestate");
-			b = new Benchmark(this.getClass(), "Evaluate typestates");
-			evaluateTypestate(ctx, crymlinTraversal);
-			b.stop();
+//			log.info("Evaluate typestate");
+//			b = new Benchmark(this.getClass(), "Evaluate typestates");
+//			evaluateTypestate(ctx, crymlinTraversal);
+//			b.stop();
 
 			log.info("Evaluate rules");
 			b = new Benchmark(this.getClass(), "Evaluate rules");
@@ -175,10 +169,45 @@ public class MarkInterpreter {
 			return result;
 		}
 		finally {
-
 			// reset stuff attached to this model
 			this.markModel.reset();
 		}
+	}
+
+	/**
+	 * Iterate over all MOps in all MEntities, find all call statements in CPG and assign them to their respective MOp.
+	 *
+	 * <p>
+	 * After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
+	 * </p>
+	 *
+	 * @param crymlinTraversal
+	 * @param markModel
+	 */
+	private void assignCallsToOps(@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull Mark markModel) {
+		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
+		/*
+		 * iterate all entities and precalculate some things: - call statements to vertices
+		 */
+		for (MEntity ent : markModel.getEntities()) {
+			log.info("Precalculating call statements for entity {}", ent.getName());
+			ent.parseVars();
+			for (MOp op : ent.getOps()) {
+				log.debug("Looking for call statements for {}", op.getName());
+				int numMatches = 0;
+				for (OpStatement a : op.getStatements()) {
+					Set<Vertex> temp = getVerticesForFunctionDeclaration(a.getCall(), ent, crymlinTraversal);
+					log.debug("{}({}):{}", a.getCall().getName(), String.join(", ", a.getCall().getParams()), temp.size());
+					numMatches += temp.size();
+					op.addVertex(a, temp);
+				}
+				op.setParsingFinished();
+				if (numMatches > 0) {
+					log.info("Found {} call statements in the cpg for {}", numMatches, op.getName());
+				}
+			}
+		}
+		b.stop();
 	}
 
 	private void evaluateTypestate(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal) {
@@ -186,9 +215,12 @@ public class MarkInterpreter {
 		List<MRule> rules = getOrderRules();
 		for (MRule r : rules) {
 			try {
-			  // Findings will be directly written into ctx.findings.
-			  ts.analyze(ctx, crymlinTraversal, r);
-			} catch (IllegalTransitionException e) { log.error("Unexpected error in typestate WPDS", e); }
+				// Findings will be directly written into ctx.findings.
+				ts.analyze(ctx, crymlinTraversal, r);
+			}
+			catch (IllegalTransitionException e) {
+				log.error("Unexpected error in typestate WPDS", e);
+			}
 		}
 	}
 
@@ -198,15 +230,14 @@ public class MarkInterpreter {
 	}
 
 	private void evaluateOrder(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal) {
-    /*
-    We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
-    Any function calls to functions which are not specified in an entity are _ignored_
-     */
+		/*
+		 * We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere Any function calls to functions which are not specified in an
+		 * entity are _ignored_
+		 */
 
 		// precalculate, if we have any order to evaluate
 		boolean hasVertices = false;
-		outer:
-		for (MEntity ent : this.markModel.getEntities()) {
+		outer: for (MEntity ent : this.markModel.getEntities()) {
 			for (MOp op : ent.getOps()) {
 				if (!op.getAllVertices().isEmpty()) {
 					hasVertices = true;
@@ -245,28 +276,14 @@ public class MarkInterpreter {
 			for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations().toList()) {
 				log.info("Evaluating function {}", (Object) functionDeclaration.value("name"));
 
-        /* todo
-        should we allow this different entities in an order?
-        rule UseOfBotan_CipherMode {
-          using Forbidden as cm, Foo as f
-          ensure
-              order cm.start(), cm.finish(), f.done()
-          onfail WrongUseOfBotan_CipherMode
-        }
-        -> this does currently not work, as we store for each base, where in the FSM it is. BUT in this case, an instance of cm would always have a different base than f.
-
-        is aliasing inside an order rule allowed? I.e. order x.a, x.b, x.c
-        x i1;
-        i1.a();
-        i1.b();
-        x i2 = i1;
-        i2.c();
-        -> do we know if i2 is a copy, or an alias?
-        -> always mark as error?
-        -> currently this will result in:
-            Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
-            Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
-        */
+				/*
+				 * todo should we allow this different entities in an order? rule UseOfBotan_CipherMode { using Forbidden as cm, Foo as f ensure order cm.start(),
+				 * cm.finish(), f.done() onfail WrongUseOfBotan_CipherMode } -> this does currently not work, as we store for each base, where in the FSM it is. BUT in
+				 * this case, an instance of cm would always have a different base than f. is aliasing inside an order rule allowed? I.e. order x.a, x.b, x.c x i1;
+				 * i1.a(); i1.b(); x i2 = i1; i2.c(); -> do we know if i2 is a copy, or an alias? -> always mark as error? -> currently this will result in: Violation
+				 * against Order: i2.c(); (c) is not allowed. Expected one of: x.a Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to
+				 * follow the last call on this base.
+				 */
 
 				HashSet<Vertex> currentWorklist = new HashSet<>();
 				currentWorklist.add(functionDeclaration);
@@ -323,8 +340,7 @@ public class MarkInterpreter {
 										if (it_ref.hasNext()) {
 											ref = it_ref.next().inVertex().id().toString();
 										}
-									}
-									else {
+									} else {
 										log.error("base must not be null for MemberCallExpressions");
 										assert false;
 									}
@@ -356,15 +372,13 @@ public class MarkInterpreter {
 										// we hide base errors for now!
 										// ctx.getFindings().add(f);
 										// log.info("Finding: {}", f.toString());
-									}
-									else {
+									} else {
 										HashSet<Node> nodesInFSM;
 										if (baseToFSMNodes.get(prefixedBase) == null) {
 											// we have not seen this base before. check if this is the start of an
 											// order
 											nodesInFSM = rule.getFSM().getStart(); // start nodes
-										}
-										else {
+										} else {
 											nodesInFSM = baseToFSMNodes.get(prefixedBase); // nodes
 											// calculated in previous step
 										}
@@ -389,13 +403,14 @@ public class MarkInterpreter {
 											// following eog
 											Finding f = new Finding("Violation against Order: " + vertex.value("code") + " (" + (op == null ? "null" : op.getName())
 													+ ") is not allowed. Expected one of: " + nodesInFSM.stream().map(Node::getName).sorted().collect(
-													Collectors.joining(", ")) + " (" + rule.getErrorMessage() + ")", vertex.value("startLine"), vertex.value("endLine"),
-													vertex.value("startColumn"), vertex.value("endColumn"));
+														Collectors.joining(", "))
+													+ " (" + rule.getErrorMessage() + ")",
+												vertex.value("startLine"), vertex.value("endLine"),
+												vertex.value("startColumn"), vertex.value("endColumn"));
 											ctx.getFindings().add(f);
 											log.info("Finding: {}", f);
 											disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
-										}
-										else {
+										} else {
 											String baseLocal = prefixedBase.split("\\.")[1]; // remove eogpath
 											Vertex vertex1 = lastBaseUsage.get(baseLocal);
 											long prevMaxLine = 0;
@@ -441,15 +456,13 @@ public class MarkInterpreter {
 									if (seenStates.contains(stateOfNext)) {
 										log.debug("node/FSM state already visited: {}. Do not split into this.", stateOfNext);
 										outVertices.remove(i);
-									}
-									else {
+									} else {
 
 										// update the eogpath directly in the vertices for the next step
 										nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(i).id(), x -> new HashSet<>()).add(newEOGPath);
 									}
 								}
-							}
-							else if (outVertices.size() == 1) {
+							} else if (outVertices.size() == 1) {
 								// else, if we only have one vertex following this
 								// vertex, simply propagate the current eogpath to the next vertex
 								nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(0).id(), x -> new HashSet<>()).add(eogPath);
@@ -476,8 +489,7 @@ public class MarkInterpreter {
 							// if one of the nodes in this fsm is at an END-node, this is fine.
 							hasEnd = true;
 							break;
-						}
-						else {
+						} else {
 							notEnded.add(n.getName());
 						}
 					}
@@ -491,9 +503,9 @@ public class MarkInterpreter {
 					Vertex vertex = lastBaseUsage.get(entry.getKey());
 					String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
 					Finding f = new Finding(
-							"Violation against Order: Base " + base + " is not correctly terminated. Expected one of [" + entry.getValue().stream().sorted().collect(
-									Collectors.joining(", ")) + "] to follow the correct last call on this base." + " (" + rule.getErrorMessage() + ")",
-							vertex.value("startLine"), vertex.value("endLine"), vertex.value("startColumn"), vertex.value("endColumn"));
+						"Violation against Order: Base " + base + " is not correctly terminated. Expected one of [" + entry.getValue().stream().sorted().collect(
+							Collectors.joining(", ")) + "] to follow the correct last call on this base." + " (" + rule.getErrorMessage() + ")",
+						vertex.value("startLine"), vertex.value("endLine"), vertex.value("startColumn"), vertex.value("endColumn"));
 					ctx.getFindings().add(f);
 					log.info("Finding: {}", f);
 				}
@@ -517,22 +529,21 @@ public class MarkInterpreter {
 		}
 
 		List<String> fsmStates = simplified.entrySet().stream().map(
-				x -> x.getKey() + "(" + x.getValue().stream().map(Node::toString).collect(Collectors.joining(",")) + ")").distinct().sorted().collect(
+			x -> x.getKey() + "(" + x.getValue().stream().map(Node::toString).collect(Collectors.joining(",")) + ")").distinct().sorted().collect(
 				Collectors.toList());
 
 		return v.id() + " " + String.join(",", fsmStates);
 	}
 
-	private void evaluateForbiddenCalls(AnalysisContext ctx) {
-		/*
-		 * For a call to be forbidden, it needs to:
-		 * - matches any forbidden signature (as callstatment in an op)
-		 *    - with * for arbitrary parameters,
-		 *    - _ for ignoring one parameter type, or
-		 *    - a reference to a var in the entity to specify a concrete type (no type hierarchy is analyzed!)
-		 * - _and_ is not allowed by any other non-forbidden matching call statement (in _any_ op)
-		 */
-
+	/**
+	 * For a call to be forbidden, it needs to:
+	 * <p>
+	 * - match any forbidden signature (as callstatment in an op) with * for arbitrary parameters, _ for ignoring one parameter type, or - a reference to a var in the
+	 * entity to specify a concrete type (no type hierarchy is analyzed!) _and_ is not allowed by any other non-forbidden matching call statement (in _any_ op).
+	 * <p>
+	 * After this method, findings have been added to ctx.getFindings().
+	 */
+	private void evaluateForbiddenCalls(@NonNull AnalysisContext ctx) {
 		for (MEntity ent : this.markModel.getEntities()) {
 
 			for (MOp op : ent.getOps()) {
@@ -552,15 +563,18 @@ public class MarkInterpreter {
 							log.info("Vertex |{}| is allowed, since it matches whitelist entry {}", v.value("code"), callString);
 							vertex_allowed = true;
 							break;
-						}
-						else {
+						} else {
 							violating.add(callString);
 						}
 					}
 					if (!vertex_allowed) {
-						Finding f = new Finding(
-								"Violation against forbidden call(s) " + String.join(", ", violating) + " in Entity " + ent.getName() + ". Call was " + v.value(
-										"code").toString(), v.value("startLine"), v.value("endLine"), v.value("startColumn"), v.value("endColumn"));
+						long startLine = v.value("startLine");
+						long endLine = v.value("endLine");
+						long startColumn = v.value("startColumn");
+						long endColumn = v.value("endColumn");
+						String message = "Violation against forbidden call(s) " + String.join(", ", violating) + " in entity " + ent.getName()
+								+ ". Call was " + v.value("code").toString();
+						Finding f = new Finding(message, startLine, endLine, startColumn, endColumn);
 						ctx.getFindings().add(f);
 						log.info("Finding: {}", f);
 					}
@@ -576,8 +590,8 @@ public class MarkInterpreter {
 	 */
 	private List<MRule> getNonOrderRules() {
 		return markModel.getRules().stream().filter(
-				r -> r != null && (r.getStatement() != null && r.getStatement().getEnsure() != null) && !(r.getStatement().getEnsure() != null
-						&& r.getStatement().getEnsure().getExp() instanceof OrderExpression)).collect(Collectors.toList());
+			r -> r != null && (r.getStatement() != null && r.getStatement().getEnsure() != null) && !(r.getStatement().getEnsure() != null
+					&& r.getStatement().getEnsure().getExp() instanceof OrderExpression)).collect(Collectors.toList());
 	}
 
 	private void evaluateNonOrderRules(AnalysisContext ctx) {
@@ -593,10 +607,9 @@ public class MarkInterpreter {
 				Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
 				if (condResult.isEmpty()) {
 					log.warn("The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}", rule.getName(),
-							exprToString(s.getCond().getExp()));
+						exprToString(s.getCond().getExp()));
 					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unknown"));
-				}
-				else if (!condResult.get()) {
+				} else if (!condResult.get()) {
 					log.info("   terminate rule checking due to unsatisfied guarding condition: {}", exprToString(s.getCond().getExp()));
 					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unsatisfied"));
 				}
@@ -608,15 +621,32 @@ public class MarkInterpreter {
 			if (ensureResult.isEmpty()) {
 				log.warn("Ensure statement of rule '{}' cannot be evaluated: {}", rule.getName(), exprToString(s.getEnsure().getExp()));
 				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition unknown"));
-			}
-			else if (ensureResult.get()) {
+			} else if (ensureResult.get()) {
 				log.info("Rule '{}' is satisfied.", rule.getName());
 				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition satisfied"));
-			}
-			else {
+			} else {
 				log.error("Rule '{}' is violated.", rule.getName());
 				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition violated"));
 			}
 		}
+	}
+
+	/**
+	 * Returns true if the current TranslationUnit contains any calls referenced from any of the given Mark rules.
+	 *
+	 * @return true, if the TU contains matching vertices, false otherwise.
+	 * @param rules
+	 */
+	private boolean doesTranslationUnitContainRelevantCalls(@NonNull List<MRule> rules) {
+		boolean hasVertices = false;
+		outer: for (MEntity ent : this.markModel.getEntities()) {
+			for (MOp op : ent.getOps()) {
+				if (!op.getAllVertices().isEmpty()) {
+					return true;
+				}
+			}
+		}
+		log.info("no nodes match for TU and MARK-model. Skipping evaluation.");
+		return false;
 	}
 }

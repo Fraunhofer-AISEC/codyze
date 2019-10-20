@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,113 +23,91 @@ import org.junit.jupiter.api.Test;
 
 class OrderTestComplex {
 
-  private void performTest(String sourceFileName) throws Exception {
-    ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
+	private void performTest(String sourceFileName) throws Exception {
+		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
-    URL resource = classLoader.getResource(sourceFileName);
-    assertNotNull(resource);
-    File cppFile = new File(resource.getFile());
-    assertNotNull(cppFile);
+		URL resource = classLoader.getResource(sourceFileName);
+		assertNotNull(resource);
+		File cppFile = new File(resource.getFile());
+		assertNotNull(cppFile);
 
-    resource = classLoader.getResource("unittests/order2.mark");
-    assertNotNull(resource);
-    File markPoC1 = new File(resource.getFile());
-    assertNotNull(markPoC1);
+		resource = classLoader.getResource("unittests/order2.mark");
+		assertNotNull(resource);
+		File markPoC1 = new File(resource.getFile());
+		assertNotNull(markPoC1);
 
-    // Make sure we start with a clean (and connected) db
-    try {
-      Database db = OverflowDatabase.getInstance();
-      db.connect();
-      db.purgeDatabase();
-    } catch (Throwable e) {
-      e.printStackTrace();
-      assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-    }
+		// Make sure we start with a clean (and connected) db
+		try {
+			Database db = OverflowDatabase.getInstance();
+			db.connect();
+			db.purgeDatabase();
+		}
+		catch (Throwable e) {
+			e.printStackTrace();
+			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
+		}
 
-    // Start an analysis server
-    AnalysisServer server =
-        AnalysisServer.builder()
-            .config(
-                ServerConfiguration.builder()
-                    .launchConsole(false)
-                    .launchLsp(false)
-                    .markFiles(markPoC1.getAbsolutePath())
-                    .build())
-            .build();
-    server.start();
+		// Start an analysis server
+		AnalysisServer server = AnalysisServer.builder().config(
+			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build()).build();
+		server.start();
 
-    TranslationManager translationManager =
-        TranslationManager.builder()
-            .config(
-                TranslationConfiguration.builder()
-                    .debugParser(true)
-                    .failOnError(false)
-                    .codeInNodes(true)
-                    .defaultPasses()
-                    .sourceFiles(cppFile)
-                    .build())
-            .build();
-    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-    TranslationResult result;
-    try {
-      result = analyze.get(5, TimeUnit.MINUTES);
-    } catch (TimeoutException t) {
-      analyze.cancel(true);
-      throw t;
-    }
+		TranslationManager translationManager = TranslationManager.builder().config(
+			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		TranslationResult result;
+		try {
+			result = analyze.get(5, TimeUnit.MINUTES);
+		}
+		catch (TimeoutException t) {
+			analyze.cancel(true);
+			throw t;
+		}
 
-    AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-    assertNotNull(ctx);
-    assertTrue(ctx.methods.isEmpty());
+		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+		assertNotNull(ctx);
+		assertTrue(ctx.methods.isEmpty());
 
-    List<String> findings = new ArrayList<>();
-    assertNotNull(ctx.getFindings());
-    ctx.getFindings().forEach(x -> findings.add(x.toString()));
+		List<String> findings = new ArrayList<>();
+		assertNotNull(ctx.getFindings());
+		ctx.getFindings().forEach(x -> findings.add(x.toString()));
 
-    for (String s : findings) {
-      System.out.println(s);
-    }
+		for (String s : findings) {
+			System.out.println(s);
+		}
 
-    assertEquals(5, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+		assertEquals(5, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
-    assertTrue(
-        findings.contains(
-            "line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
-    // assertTrue(
-    //    findings.contains(
-    //        "line 54: Violation against Order: p5.start(); is not allowed. Base contains errors
-    // already. (WrongUseOfBotan_CipherMode)"));
-    // assertTrue(
-    //    findings.contains(
-    //        "line 55: Violation against Order: p5.process(); is not allowed. Base contains errors
-    // already. (WrongUseOfBotan_CipherMode)"));
-    // assertTrue(
-    //    findings.contains(
-    //        "line 56: Violation against Order: p5.finish(); is not allowed. Base contains errors
-    // already. (WrongUseOfBotan_CipherMode)"));
-    assertTrue(
-        findings.contains(
-            "line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
-    assertTrue(
-        findings.contains(
-            "line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
-    assertTrue(
-        findings.contains(
-            "line 80: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
-    assertTrue(
-        findings.contains(
-            "line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode)"));
+		assertTrue(findings.contains("line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
+		// assertTrue(
+		//    findings.contains(
+		//        "line 54: Violation against Order: p5.start(); is not allowed. Base contains errors
+		// already. (WrongUseOfBotan_CipherMode)"));
+		// assertTrue(
+		//    findings.contains(
+		//        "line 55: Violation against Order: p5.process(); is not allowed. Base contains errors
+		// already. (WrongUseOfBotan_CipherMode)"));
+		// assertTrue(
+		//    findings.contains(
+		//        "line 56: Violation against Order: p5.finish(); is not allowed. Base contains errors
+		// already. (WrongUseOfBotan_CipherMode)"));
+		assertTrue(findings.contains("line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
+		assertTrue(findings.contains(
+			"line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+		assertTrue(findings.contains("line 80: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
+		assertTrue(findings.contains(
+			"line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode)"));
 
-    server.stop();
-  }
+		server.stop();
+	}
 
-  @Test
-  void testJava() throws Exception {
-    performTest("unittests/order2.java");
-  }
+	@Test
+	void testJava() throws Exception {
+		performTest("unittests/order2.java");
+	}
 
-  @Test
-  void testCpp() throws Exception {
-    performTest("unittests/order2.cpp");
-  }
+	@Test
+	void testCpp() throws Exception {
+		performTest("unittests/order2.cpp");
+	}
 }

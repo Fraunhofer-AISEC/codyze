@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,93 +26,79 @@ import org.junit.jupiter.api.Test;
 
 public class AnalysisServerQueriesTest {
 
-  private static AnalysisServer server;
-  private static TranslationResult result;
+	private static AnalysisServer server;
+	private static TranslationResult result;
 
-  @BeforeAll
-  public static void startup() throws Exception {
-    // Make sure we start with a clean (and connected) db
-    try {
-      Database db = OverflowDatabase.getInstance();
-      db.connect();
-      db.purgeDatabase();
-    } catch (Throwable e) {
-      e.printStackTrace();
-      assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-    }
+	@BeforeAll
+	public static void startup() throws Exception {
+		// Make sure we start with a clean (and connected) db
+		try {
+			Database db = OverflowDatabase.getInstance();
+			db.connect();
+			db.purgeDatabase();
+		}
+		catch (Throwable e) {
+			e.printStackTrace();
+			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
+		}
 
-    ClassLoader classLoader = AnalysisServerQueriesTest.class.getClassLoader();
+		ClassLoader classLoader = AnalysisServerQueriesTest.class.getClassLoader();
 
-    URL resource = classLoader.getResource("good/Bouncycastle.java");
-    assertNotNull(resource);
-    File javaFile = new File(resource.getFile());
-    assertNotNull(javaFile);
+		URL resource = classLoader.getResource("good/Bouncycastle.java");
+		assertNotNull(resource);
+		File javaFile = new File(resource.getFile());
+		assertNotNull(javaFile);
 
-    resource = classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark");
-    assertNotNull(resource);
-    File markPoC1 = new File(resource.getFile());
-    assertNotNull(markPoC1);
-    String markModelFiles = markPoC1.getParent();
+		resource = classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark");
+		assertNotNull(resource);
+		File markPoC1 = new File(resource.getFile());
+		assertNotNull(markPoC1);
+		String markModelFiles = markPoC1.getParent();
 
-    // Start an analysis server
-    server =
-        AnalysisServer.builder()
-            .config(
-                ServerConfiguration.builder()
-                    .launchConsole(false)
-                    .launchLsp(false)
-                    .markFiles(markModelFiles)
-                    .build())
-            .build();
-    server.start();
+		// Start an analysis server
+		server = AnalysisServer.builder().config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build()).build();
+		server.start();
 
-    // Start the analysis
-    TranslationManager translationManager = newJavaAnalysisRun(javaFile);
-    CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-    try {
-      result = analyze.get(5, TimeUnit.MINUTES);
-    } catch (TimeoutException t) {
-      analyze.cancel(true);
-      throw t;
-    }
-  }
+		// Start the analysis
+		TranslationManager translationManager = newJavaAnalysisRun(javaFile);
+		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		try {
+			result = analyze.get(5, TimeUnit.MINUTES);
+		}
+		catch (TimeoutException t) {
+			analyze.cancel(true);
+			throw t;
+		}
+	}
 
-  @AfterAll
-  public static void teardown() throws Exception {
-    // Stop the analysis server
-    server.stop();
-  }
+	@AfterAll
+	public static void teardown() throws Exception {
+		// Stop the analysis server
+		server.stop();
+	}
 
-  /** Test analysis context - additional in-memory structures used for analysis. */
-  @Test
-  public void contextTest() {
-    // Get analysis context from scratch
-    AnalysisContext ctx =
-        (AnalysisContext) AnalysisServerQueriesTest.result.getScratch().get("ctx");
+	/** Test analysis context - additional in-memory structures used for analysis. */
+	@Test
+	public void contextTest() {
+		// Get analysis context from scratch
+		AnalysisContext ctx = (AnalysisContext) AnalysisServerQueriesTest.result.getScratch().get("ctx");
 
-    // We expect at least some methods
-    assertNotNull(ctx);
-    assertFalse(ctx.methods.isEmpty());
-    Method meth = ctx.methods.entrySet().stream().findFirst().get().getValue();
-    assertFalse(meth.getStatements().isEmpty());
-  }
+		// We expect at least some methods
+		assertNotNull(ctx);
+		assertFalse(ctx.methods.isEmpty());
+		Method meth = ctx.methods.entrySet().stream().findFirst().get().getValue();
+		assertFalse(meth.getStatements().isEmpty());
+	}
 
-  /**
-   * Helper method for initializing an Analysis Run.
-   *
-   * @param sourceFiles
-   * @return
-   */
-  private static TranslationManager newJavaAnalysisRun(File... sourceFiles) {
-    return TranslationManager.builder()
-        .config(
-            TranslationConfiguration.builder()
-                .debugParser(true)
-                .failOnError(false)
-                .defaultPasses()
-                .registerPass(new StatementsPerMethodPass())
-                .sourceFiles(sourceFiles)
-                .build())
-        .build();
-  }
+	/**
+	 * Helper method for initializing an Analysis Run.
+	 *
+	 * @param sourceFiles
+	 * @return
+	 */
+	private static TranslationManager newJavaAnalysisRun(File... sourceFiles) {
+		return TranslationManager.builder().config(
+			TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().registerPass(new StatementsPerMethodPass()).sourceFiles(
+				sourceFiles).build()).build();
+	}
 }

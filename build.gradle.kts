@@ -194,18 +194,15 @@ tasks {
     }
 }
 
-//spotless {
-//    java {
-//        targetExclude(
-//                fileTree(project.projectDir) {
-//                    include("src/main/generated/**")
-//                }
-//        )
-//
-//        //googleJavaFormat().aosp()
-//        googleJavaFormat()
-//        eclipse()
-//    }
-//}
+spotless {
+    java {
+        targetExclude(
+                fileTree(project.projectDir) {
+                    include("src/main/generated/**")
+                }
+        )
+        eclipseFormatFile(rootProject.file("formatter-settings.xml"))
+    }
+}
 
 

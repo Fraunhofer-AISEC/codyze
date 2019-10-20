@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,84 +23,79 @@ import org.junit.jupiter.api.Test;
 
 public class MarkLoadOutputTest {
 
-  private static Map<String, Mark> allModels = new HashMap<>();
+	private static Map<String, Mark> allModels = new HashMap<>();
 
-  @BeforeAll
-  public static void startup() throws Exception {
+	@BeforeAll
+	public static void startup() throws Exception {
 
-    URL resource =
-        MarkLoadOutputTest.class
-            .getClassLoader()
-            .getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark");
-    assertNotNull(resource);
-    File markPoC1 = new File(resource.getFile());
-    assertNotNull(markPoC1);
-    String markModelFiles = markPoC1.getParent();
+		URL resource = MarkLoadOutputTest.class.getClassLoader().getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark");
+		assertNotNull(resource);
+		File markPoC1 = new File(resource.getFile());
+		assertNotNull(markPoC1);
+		String markModelFiles = markPoC1.getParent();
 
-    String[] directories =
-        (new File(markModelFiles)).list((current, name) -> name.endsWith(".mark"));
+		String[] directories = (new File(markModelFiles)).list((current, name) -> name.endsWith(".mark"));
 
-    assertNotNull(directories);
+		assertNotNull(directories);
 
-    XtextParser parser = new XtextParser();
-    for (String markFile : directories) {
-      String fullName = markModelFiles + File.separator + markFile;
-      parser.addMarkFile(new File(fullName));
-    }
-    HashMap<String, MarkModel> markModels = parser.parse();
-    for (String markFile : directories) {
-      String fullName = markModelFiles + File.separator + markFile;
-      allModels.put(
-          fullName,
-          new MarkModelLoader().load(markModels, fullName)); // only load the model from this file
-    }
-  }
+		XtextParser parser = new XtextParser();
+		for (String markFile : directories) {
+			String fullName = markModelFiles + File.separator + markFile;
+			parser.addMarkFile(new File(fullName));
+		}
+		HashMap<String, MarkModel> markModels = parser.parse();
+		for (String markFile : directories) {
+			String fullName = markModelFiles + File.separator + markFile;
+			allModels.put(fullName, new MarkModelLoader().load(markModels, fullName)); // only load the model from this file
+		}
+	}
 
-  @AfterAll
-  public static void teardown() throws Exception {}
+	@AfterAll
+	public static void teardown() throws Exception {
+	}
 
-  @Test
-  public void markModelLoaderTest() throws Exception {
+	@Test
+	public void markModelLoaderTest() throws Exception {
 
-    for (Map.Entry<String, Mark> entry : allModels.entrySet()) {
+		for (Map.Entry<String, Mark> entry : allModels.entrySet()) {
 
-      Mark markModel = entry.getValue();
+			Mark markModel = entry.getValue();
 
-      StringBuilder reconstructed = new StringBuilder();
-      ArrayList<MEntity> entities = new ArrayList<>(markModel.getEntities());
-      if (!entities.isEmpty()) {
-        // they all have the same packed name in our context
-        reconstructed.append("package ").append(entities.get(0).getPackageName()).append("\n");
-      }
+			StringBuilder reconstructed = new StringBuilder();
+			ArrayList<MEntity> entities = new ArrayList<>(markModel.getEntities());
+			if (!entities.isEmpty()) {
+				// they all have the same packed name in our context
+				reconstructed.append("package ").append(entities.get(0).getPackageName()).append("\n");
+			}
 
-      for (MEntity entity : entities) {
-        reconstructed.append(entity.toString());
-        reconstructed.append("\n");
-      }
+			for (MEntity entity : entities) {
+				reconstructed.append(entity.toString());
+				reconstructed.append("\n");
+			}
 
-      for (MRule rule : markModel.getRules()) {
-        reconstructed.append(rule.toString());
-        reconstructed.append("\n");
-      }
+			for (MRule rule : markModel.getRules()) {
+				reconstructed.append(rule.toString());
+				reconstructed.append("\n");
+			}
 
-      // remove identation and comments
-      StringBuilder sanitizedOriginal = new StringBuilder();
-      String full = new String(Files.readAllBytes(Paths.get(entry.getKey())));
-      full = full.replaceAll("(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)", "");
-      for (String line : full.split("\n")) {
-        if (!line.strip().isEmpty()) {
-          sanitizedOriginal.append(line.strip()).append("\n");
-        }
-      }
+			// remove identation and comments
+			StringBuilder sanitizedOriginal = new StringBuilder();
+			String full = new String(Files.readAllBytes(Paths.get(entry.getKey())));
+			full = full.replaceAll("(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)", "");
+			for (String line : full.split("\n")) {
+				if (!line.strip().isEmpty()) {
+					sanitizedOriginal.append(line.strip()).append("\n");
+				}
+			}
 
-      StringBuilder sanitizedReconstructed = new StringBuilder();
-      for (String line : reconstructed.toString().split("\n")) {
-        if (!line.strip().isEmpty()) {
-          sanitizedReconstructed.append(line.strip()).append("\n");
-        }
-      }
+			StringBuilder sanitizedReconstructed = new StringBuilder();
+			for (String line : reconstructed.toString().split("\n")) {
+				if (!line.strip().isEmpty()) {
+					sanitizedReconstructed.append(line.strip()).append("\n");
+				}
+			}
 
-      assertEquals(sanitizedOriginal.toString(), sanitizedReconstructed.toString());
-    }
-  }
+			assertEquals(sanitizedOriginal.toString(), sanitizedReconstructed.toString());
+		}
+	}
 }

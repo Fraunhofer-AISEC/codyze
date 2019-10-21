@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

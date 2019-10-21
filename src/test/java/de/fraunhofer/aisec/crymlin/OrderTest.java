@@ -82,14 +82,14 @@ class OrderTest {
 
 		assertTrue(
 			findings.contains(
-				"line 44: Violation against Order: p4.start(iv); (start) is not allowed. Expected one of: END (WrongUseOfBotan_CipherMode)"));
+				"line 48: Violation against Order: p4.start(iv); (start) is not allowed. Expected one of: END (WrongUseOfBotan_CipherMode)"));
 		// assertTrue(
 		//    findings.contains(
 		//        "line 45: Violation against Order: p4.finish(buf); is not allowed. Base contains
 		// errors already. (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
-				"line 29: Violation against Order: p3.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
+				"line 31: Violation against Order: p3.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
 				"line 13: Violation against Order: p.set_key(key); (init) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
@@ -107,13 +107,13 @@ class OrderTest {
 		// errors already. (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
-				"line 21: Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+				"line 22: Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
-				"line 55: Violation against Order: p5.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
+				"line 60: Violation against Order: p5.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
-				"line 51: Violation against Order: Base p5 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+				"line 56: Violation against Order: Base p5 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
 
 		// Stop the analysis server
 		server.stop();

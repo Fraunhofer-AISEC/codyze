@@ -7,7 +7,6 @@ import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +17,10 @@ import java.util.Optional;
 /**
  * Method signature: _split(String str, String splitter, int position)
  *
+ * <p>
  * This Builtin behaves like str.split(splitter)[position].
  *
+ * <p>
  * In case of an error or an empty result, this Builtin returns an Optional.empty.
  */
 public class SplitBuiltin implements Builtin {
@@ -72,12 +73,11 @@ public class SplitBuiltin implements Builtin {
 		}
 
 		if (ret != null) {
-			//StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
-			//stringResult.setValue(ret);
+			// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
+			// stringResult.setValue(ret);
 			return Optional.of(ret);
 		} else {
 			return Optional.empty();
 		}
-
 	}
 }

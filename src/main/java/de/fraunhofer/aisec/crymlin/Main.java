@@ -3,11 +3,12 @@ package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
-import java.time.Duration;
-import java.time.Instant;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
+import java.time.Instant;
 
 /** Start point of the standalone analysis server. */
 public class Main {
@@ -65,6 +66,7 @@ public class Main {
 			ServerConfiguration.builder().launchLsp(lsp).launchConsole(!lsp).markFiles(markFolderName).build()).build();
 
 		server.start();
-		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
+		log.info(
+			"Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 	}
 }

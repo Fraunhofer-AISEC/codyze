@@ -2,9 +2,10 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import java.util.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.*;
 
 public class MEntity {
 
@@ -24,7 +25,9 @@ public class MEntity {
 			return false;
 		}
 		MEntity other = (MEntity) obj;
-		return Objects.equals(packageName, other.packageName) && Objects.equals(superName, other.superName) && Objects.equals(name, other.name);
+		return Objects.equals(packageName, other.packageName)
+				&& Objects.equals(superName, other.superName)
+				&& Objects.equals(name, other.name);
 	}
 
 	@Override
@@ -101,9 +104,14 @@ public class MEntity {
 		for (MOp op : getOps()) {
 			sb.append("\top " + op.getName() + " {\n");
 			for (OpStatement callStatement : op.getStatements()) {
-				sb.append("\t\t" + (callStatement.getForbidden() == null ? "" : callStatement.getForbidden() + " ")
-						+ (callStatement.getVar() == null ? "" : callStatement.getVar() + " = ") + callStatement.getCall().getName() + "("
-						+ String.join(", ", callStatement.getCall().getParams()) + ");\n");
+				sb.append(
+					"\t\t"
+							+ (callStatement.getForbidden() == null ? "" : callStatement.getForbidden() + " ")
+							+ (callStatement.getVar() == null ? "" : callStatement.getVar() + " = ")
+							+ callStatement.getCall().getName()
+							+ "("
+							+ String.join(", ", callStatement.getCall().getParams())
+							+ ");\n");
 			}
 			sb.append("\t}\n");
 		}

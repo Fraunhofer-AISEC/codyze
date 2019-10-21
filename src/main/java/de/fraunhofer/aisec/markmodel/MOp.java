@@ -2,15 +2,12 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class MOp {
 

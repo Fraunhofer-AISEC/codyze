@@ -4,11 +4,12 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 public class PerformanceTest {
 
@@ -56,6 +57,13 @@ public class PerformanceTest {
 		bench.stop();
 		long numEdges = g.traversal().V().outE().count().next();
 
-		System.out.println("Creation of " + numNodes + " nodes and " + numEdges + " edges took " + (end - start) + " MilliSeconds");
+		System.out.println(
+			"Creation of "
+					+ numNodes
+					+ " nodes and "
+					+ numEdges
+					+ " edges took "
+					+ (end - start)
+					+ " MilliSeconds");
 	}
 }

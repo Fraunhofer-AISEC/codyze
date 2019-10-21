@@ -5,15 +5,16 @@ import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.jline.internal.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Parses a MarkModel provided by XText in the form of an ECore hierarchy into a simple (ECore-free) {@code Mark} model that the analysis server can work with.
@@ -64,7 +65,9 @@ public class MarkModelLoader {
 
 		// parse all FSMs
 		for (MRule rule : m.getRules()) {
-			if (rule.getStatement() != null && rule.getStatement().getEnsure() != null && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
+			if (rule.getStatement() != null
+					&& rule.getStatement().getEnsure() != null
+					&& rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
 				OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
 				FSM fsm = new FSM();
 				fsm.sequenceToFSM(inner.getExp());
@@ -87,7 +90,9 @@ public class MarkModelLoader {
 		}
 
 		for (MRule rule : m.getRules()) {
-			if (rule.getStatement() != null && rule.getStatement().getEnsure() != null && rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
+			if (rule.getStatement() != null
+					&& rule.getStatement().getEnsure() != null
+					&& rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
 
 				// check that the fsm is valid:
 				// todo remove once the modelloader performs these checks!
@@ -103,11 +108,18 @@ public class MarkModelLoader {
 							MEntity entity = rule.getEntityReferences().get(n.getBase()).getValue1();
 							String entityName = rule.getEntityReferences().get(n.getBase()).getValue0();
 							if (entity == null) {
-								log.error("Entity is not parsed: {} which is specified in rule {}", entityName, rule.getName());
+								log.error(
+									"Entity is not parsed: {} which is specified in rule {}",
+									entityName,
+									rule.getName());
 							} else {
 								MOp op = entity.getOp(n.getOp());
 								if (op == null) {
-									log.error("Entity {} does not contain op {} which is specified in rule {}", entity.getName(), n.getOp(), rule.getName());
+									log.error(
+										"Entity {} does not contain op {} which is specified in rule {}",
+										entity.getName(),
+										n.getOp(),
+										rule.getName());
 								}
 							}
 						}
@@ -124,7 +136,8 @@ public class MarkModelLoader {
 		return m;
 	}
 
-	private void collectEntityReferences(MRule rule, HashSet<String> entityRefs, HashSet<String> functionRefs) {
+	private void collectEntityReferences(
+			MRule rule, HashSet<String> entityRefs, HashSet<String> functionRefs) {
 		if (rule.getStatement() == null) {
 			return;
 		}
@@ -156,7 +169,8 @@ public class MarkModelLoader {
 		//    }
 	}
 
-	private void getRefsFromExp(Expression exp, HashSet<String> entityRefs, HashSet<String> functionRefs) {
+	private void getRefsFromExp(
+			Expression exp, HashSet<String> entityRefs, HashSet<String> functionRefs) {
 		if (exp instanceof ComparisonExpression) {
 			getRefsFromExp((((ComparisonExpression) exp).getLeft()), entityRefs, functionRefs);
 			getRefsFromExp((((ComparisonExpression) exp).getRight()), entityRefs, functionRefs);
@@ -214,15 +228,19 @@ public class MarkModelLoader {
 		mRule.setErrorMessage(rule.getStmt().getMsg());
 
 		HashMap<String, Pair<String, MEntity>> entityReferences = new HashMap<>();
-		rule.getStmt().getEntities().forEach(entity -> {
-			MEntity ref = mark.getEntity(entity.getE().getName());
-			if (ref == null) {
-				log.error("Entity {} not loaded. Referenced in rule {} in file {}", entity.getE().getName(), rule.getName(), containedInThisFile);
-			}
-			Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
-			entityReferences.put(entity.getN(), e);
-
-		});
+		rule.getStmt().getEntities().forEach(
+			entity -> {
+				MEntity ref = mark.getEntity(entity.getE().getName());
+				if (ref == null) {
+					log.error(
+						"Entity {} not loaded. Referenced in rule {} in file {}",
+						entity.getE().getName(),
+						rule.getName(),
+						containedInThisFile);
+				}
+				Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
+				entityReferences.put(entity.getN(), e);
+			});
 
 		mRule.setEntityReferences(entityReferences);
 

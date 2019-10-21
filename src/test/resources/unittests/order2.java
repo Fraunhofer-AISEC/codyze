@@ -1,9 +1,9 @@
 public class Someclass {
-// DOES NOT COMPILE
-// DOES NOT MAKE REAL SENSE
+  // DOES NOT COMPILE
+  // DOES NOT MAKE REAL SENSE
 
-// allowed:
-// cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
+  // allowed:
+  // cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
 
   void ok_minimal() {
     Botan2 p1 = new Botan2(1);
@@ -80,11 +80,17 @@ public class Someclass {
     p6.reset();
   }
 }
-public class Botan2{
+
+public class Botan2 {
   public void create() {}
+
   public void finish() {}
+
   public void init() {}
+
   public void process() {}
+
   public void reset() {}
+
   public void start() {}
 }

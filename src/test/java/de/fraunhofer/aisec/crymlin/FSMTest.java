@@ -1,8 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.MarkDslFactoryImpl;
@@ -11,13 +9,16 @@ import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class FSMTest {
 
@@ -42,14 +43,26 @@ class FSMTest {
 	@Test
 	void parseTest() {
 		assertEquals(5, mark.getRules().size()); // 5 total
-		assertEquals(3, mark.getRules().stream().filter(rule -> rule.getStatement() != null && rule.getStatement().getEnsure() != null
-				&& rule.getStatement().getEnsure().getExp() instanceof OrderExpression).count()); // 3 order
+		assertEquals(
+			3,
+			mark.getRules().stream().filter(
+				rule -> rule.getStatement() != null
+						&& rule.getStatement().getEnsure() != null
+						&& rule.getStatement().getEnsure().getExp() instanceof OrderExpression).count()); // 3 order
 
-		assertEquals(1, mark.getRules().stream().filter(x -> x.getName().equals("BlockCiphers")).count());
-		assertEquals(1, mark.getRules().stream().filter(x -> x.getName().equals("UseOfBotan_CipherMode")).count());
-		assertEquals(1, mark.getRules().stream().filter(x -> x.getName().equals("SimpleUseOfBotan_CipherMode")).count());
-		assertEquals(1, mark.getRules().stream().filter(x -> x.getName().equals("SimpleUseOfBotan2_CipherMode")).count());
-		assertEquals(1, mark.getRules().stream().filter(x -> x.getName().equals("UseRandomIV")).count());
+		assertEquals(
+			1, mark.getRules().stream().filter(x -> x.getName().equals("BlockCiphers")).count());
+		assertEquals(
+			1,
+			mark.getRules().stream().filter(x -> x.getName().equals("UseOfBotan_CipherMode")).count());
+		assertEquals(
+			1,
+			mark.getRules().stream().filter(x -> x.getName().equals("SimpleUseOfBotan_CipherMode")).count());
+		assertEquals(
+			1,
+			mark.getRules().stream().filter(x -> x.getName().equals("SimpleUseOfBotan2_CipherMode")).count());
+		assertEquals(
+			1, mark.getRules().stream().filter(x -> x.getName().equals("UseRandomIV")).count());
 	}
 
 	//  @Test
@@ -88,9 +101,24 @@ class FSMTest {
 	void testUseOfBotan_CipherMode() {
 		FSM fsm = load("UseOfBotan_CipherMode");
 
-		assertEquals("cm.create (0)\n" + "\t-> cm.init(1)\n" + "cm.init (1)\n" + "\t-> cm.start(2)\n" + "cm.start (2)\n" + "\t-> cm.finish(3)\n" + "\t-> cm.process(4)\n"
-				+ "cm.finish (3)\n" + "\t-> END(5)\n" + "\t-> cm.reset(6)\n" + "\t-> cm.start(2)\n" + "cm.process (4)\n" + "\t-> cm.finish(3)\n" + "\t-> cm.process(4)\n"
-				+ "END (5)\n" + "cm.reset (6)\n" + "\t-> END(5)\n",
+		assertEquals(
+			"cm.create (0)\n"
+					+ "\t-> cm.init(1)\n"
+					+ "cm.init (1)\n"
+					+ "\t-> cm.start(2)\n"
+					+ "cm.start (2)\n"
+					+ "\t-> cm.finish(3)\n"
+					+ "\t-> cm.process(4)\n"
+					+ "cm.finish (3)\n"
+					+ "\t-> END(5)\n"
+					+ "\t-> cm.reset(6)\n"
+					+ "\t-> cm.start(2)\n"
+					+ "cm.process (4)\n"
+					+ "\t-> cm.finish(3)\n"
+					+ "\t-> cm.process(4)\n"
+					+ "END (5)\n"
+					+ "cm.reset (6)\n"
+					+ "\t-> END(5)\n",
 			fsm.toString());
 	}
 
@@ -98,8 +126,18 @@ class FSMTest {
 	void testSimpleUseOfBotan_CipherMode() {
 		FSM fsm = load("SimpleUseOfBotan_CipherMode");
 
-		assertEquals("cm.create (0)\n" + "\t-> cm.init(1)\n" + "cm.init (1)\n" + "\t-> cm.finish(2)\n" + "\t-> cm.start(3)\n" + "cm.finish (2)\n" + "\t-> END(4)\n"
-				+ "cm.start (3)\n" + "\t-> cm.finish(2)\n" + "\t-> cm.start(3)\n" + "END (4)\n",
+		assertEquals(
+			"cm.create (0)\n"
+					+ "\t-> cm.init(1)\n"
+					+ "cm.init (1)\n"
+					+ "\t-> cm.finish(2)\n"
+					+ "\t-> cm.start(3)\n"
+					+ "cm.finish (2)\n"
+					+ "\t-> END(4)\n"
+					+ "cm.start (3)\n"
+					+ "\t-> cm.finish(2)\n"
+					+ "\t-> cm.start(3)\n"
+					+ "END (4)\n",
 			fsm.toString());
 	}
 
@@ -107,8 +145,17 @@ class FSMTest {
 	void testSimpleUseOfBotan2_CipherMode() {
 		FSM fsm = load("SimpleUseOfBotan2_CipherMode");
 
-		assertEquals("cm.create (0)\n" + "\t-> cm.init(1)\n" + "cm.init (1)\n" + "\t-> cm.start(2)\n" + "cm.start (2)\n" + "\t-> cm.finish(3)\n" + "\t-> cm.start(2)\n"
-				+ "cm.finish (3)\n" + "\t-> END(4)\n" + "END (4)\n",
+		assertEquals(
+			"cm.create (0)\n"
+					+ "\t-> cm.init(1)\n"
+					+ "cm.init (1)\n"
+					+ "\t-> cm.start(2)\n"
+					+ "cm.start (2)\n"
+					+ "\t-> cm.finish(3)\n"
+					+ "\t-> cm.start(2)\n"
+					+ "cm.finish (3)\n"
+					+ "\t-> END(4)\n"
+					+ "END (4)\n",
 			fsm.toString());
 	}
 

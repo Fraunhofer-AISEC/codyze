@@ -10,6 +10,9 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,8 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * These commands are only used by the Jython console.
@@ -133,19 +134,45 @@ public class Commands {
 
 	/** Prints help to stdout. */
 	public void help() {
-		System.out.println("Use the \"server\" object to control the analysis server.\n" + "\n"
-				+ "   server.load_rules(\"../mark-crymlin-eclipse-plugin/examples/PoC_MS1/Botan_CipherMode.mark\")\n" + "          Load MARK rules.\n" + "\n"
-				+ "   server.list_rules()\n" + "          List active MARK rules.\n" + "\n" + "   server.show_findings()\n"
-				+ "          Show results of MARK evaluation.\n" + "\n" + "   server.analyze(\"src/test/resources/good/Bouncycastle.java\")\n"
-				+ "   server.analyze(\"src/test/resources/symm_block_cipher.cpp\")\n"
-				+ "          Analyze a single source file. Remember to load MARK rules before analyzing.\n" + "\n" + "   server.analyze(\"src/test/resources/good\")\n"
-				+ "          Analyze all source files in a directory. Remember to load MARK rules before analyzing.\n" + "\n" + "\n"
-				+ "You may then start writing crymlin queries using the \"crymlin\" object.\n" + "\n" + "Examples: \n" + "   crymlin.recorddeclarations().toList()\n"
-				+ "          Returns array of vertices representing RecordDeclarations.\n" + "\n" + "   crymlin.recorddeclaration(\"good.Bouncycastle\").next()\n"
-				+ "          Returns vertex representing the RecordDeclarations of \"good.Bouncycastle\".\n" + "\n"
-				+ "   crymlin.recorddeclaration(\"good.Bouncycastle\").sourcecode().next()\n" + "          Returns source code of \"good.Bouncycastle\".\n" + "\n"
-				+ "   crymlin.translationunits().name().toList()\n" + "          Returns array of strings representing the names of TranslationUnits.\n" + "\n"
-				+ "   crymlin.translationunits().next()\n" + "          Returns the first TranslationUnit vertex (or null if none exists).\n" + "\n"
-				+ "   dir(crymlin.translationunits())\n" + "          Good ol' Python dir() to find out what properties/methods are available.\n");
+		System.out.println(
+			"Use the \"server\" object to control the analysis server.\n"
+					+ "\n"
+					+ "   server.load_rules(\"../mark-crymlin-eclipse-plugin/examples/PoC_MS1/Botan_CipherMode.mark\")\n"
+					+ "          Load MARK rules.\n"
+					+ "\n"
+					+ "   server.list_rules()\n"
+					+ "          List active MARK rules.\n"
+					+ "\n"
+					+ "   server.show_findings()\n"
+					+ "          Show results of MARK evaluation.\n"
+					+ "\n"
+					+ "   server.analyze(\"src/test/resources/good/Bouncycastle.java\")\n"
+					+ "   server.analyze(\"src/test/resources/symm_block_cipher.cpp\")\n"
+					+ "          Analyze a single source file. Remember to load MARK rules before analyzing.\n"
+					+ "\n"
+					+ "   server.analyze(\"src/test/resources/good\")\n"
+					+ "          Analyze all source files in a directory. Remember to load MARK rules before analyzing.\n"
+					+ "\n"
+					+ "\n"
+					+ "You may then start writing crymlin queries using the \"crymlin\" object.\n"
+					+ "\n"
+					+ "Examples: \n"
+					+ "   crymlin.recorddeclarations().toList()\n"
+					+ "          Returns array of vertices representing RecordDeclarations.\n"
+					+ "\n"
+					+ "   crymlin.recorddeclaration(\"good.Bouncycastle\").next()\n"
+					+ "          Returns vertex representing the RecordDeclarations of \"good.Bouncycastle\".\n"
+					+ "\n"
+					+ "   crymlin.recorddeclaration(\"good.Bouncycastle\").sourcecode().next()\n"
+					+ "          Returns source code of \"good.Bouncycastle\".\n"
+					+ "\n"
+					+ "   crymlin.translationunits().name().toList()\n"
+					+ "          Returns array of strings representing the names of TranslationUnits.\n"
+					+ "\n"
+					+ "   crymlin.translationunits().next()\n"
+					+ "          Returns the first TranslationUnit vertex (or null if none exists).\n"
+					+ "\n"
+					+ "   dir(crymlin.translationunits())\n"
+					+ "          Good ol' Python dir() to find out what properties/methods are available.\n");
 	}
 }

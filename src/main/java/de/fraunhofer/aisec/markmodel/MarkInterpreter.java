@@ -12,10 +12,6 @@ import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -23,9 +19,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Evaluates MARK rules against the CPG.
- */
+import java.util.*;
+import java.util.stream.Collectors;
+
+/** Evaluates MARK rules against the CPG. */
 public class MarkInterpreter {
 	private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
 
@@ -36,7 +33,10 @@ public class MarkInterpreter {
 		this.markModel = markModel;
 	}
 
-	private Set<Vertex> getVerticesForFunctionDeclaration(FunctionDeclaration functionDeclaration, MEntity ent, CrymlinTraversalSource crymlinTraversal) {
+	private Set<Vertex> getVerticesForFunctionDeclaration(
+			FunctionDeclaration functionDeclaration,
+			MEntity ent,
+			CrymlinTraversalSource crymlinTraversal) {
 		String functionName = Utils.extractMethodName(functionDeclaration.getName());
 		String baseType = Utils.extractType(functionDeclaration.getName());
 
@@ -50,7 +50,6 @@ public class MarkInterpreter {
 	 *
 	 * <p>
 	 * This is the core of the MARK evaluation.
-	 * </p>
 	 *
 	 * @param result
 	 */
@@ -90,12 +89,12 @@ public class MarkInterpreter {
 	 *
 	 * <p>
 	 * After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
-	 * </p>
 	 *
 	 * @param crymlinTraversal
 	 * @param markModel
 	 */
-	private void assignCallsToOps(@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull Mark markModel) {
+	private void assignCallsToOps(
+			@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull Mark markModel) {
 		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		/*
 		 * iterate all entities and precalculate some things: - call statements to vertices
@@ -108,7 +107,11 @@ public class MarkInterpreter {
 				int numMatches = 0;
 				for (OpStatement a : op.getStatements()) {
 					Set<Vertex> temp = getVerticesForFunctionDeclaration(a.getCall(), ent, crymlinTraversal);
-					log.debug("{}({}):{}", a.getCall().getName(), String.join(", ", a.getCall().getParams()), temp.size());
+					log.debug(
+						"{}({}):{}",
+						a.getCall().getName(),
+						String.join(", ", a.getCall().getParams()),
+						temp.size());
 					numMatches += temp.size();
 					op.addVertex(a, temp);
 				}
@@ -121,7 +124,8 @@ public class MarkInterpreter {
 		b.stop();
 	}
 
-	private void evaluateOrderRule(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal, MRule rule) {
+	private void evaluateOrderRule(
+			AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal, MRule rule) {
 		//		for (MRule rule : getOrderRules()) {
 		// rule.getFSM().pushToDB(); //debug only
 		log.info("\tEvaluating rule {}", rule.getName());
@@ -275,11 +279,19 @@ public class MarkInterpreter {
 										// if not, this call is not allowed, and this base must not be used in the
 										// following eog
 										Finding f = new Finding(
-											"Violation against Order: " + vertex.value("code") + " (" + (op == null ? "null" : op.getName())
+											"Violation against Order: "
+													+ vertex.value("code")
+													+ " ("
+													+ (op == null ? "null" : op.getName())
 													+ ") is not allowed. Expected one of: "
-													+ nodesInFSM.stream().map(Node::getName).sorted().collect(Collectors.joining(", ")) + " ("
-													+ rule.getErrorMessage() + ")",
-											vertex.value("startLine"), vertex.value("endLine"), vertex.value("startColumn"), vertex.value("endColumn"));
+													+ nodesInFSM.stream().map(Node::getName).sorted().collect(Collectors.joining(", "))
+													+ " ("
+													+ rule.getErrorMessage()
+													+ ")",
+											vertex.value("startLine"),
+											vertex.value("endLine"),
+											vertex.value("startColumn"),
+											vertex.value("endColumn"));
 										ctx.getFindings().add(f);
 										log.info("Finding: {}", f);
 										disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
@@ -327,7 +339,8 @@ public class MarkInterpreter {
 
 								String stateOfNext = getStateSnapshot(outVertices.get(i), baseToFSMNodes);
 								if (seenStates.contains(stateOfNext)) {
-									log.debug("node/FSM state already visited: {}. Do not split into this.", stateOfNext);
+									log.debug(
+										"node/FSM state already visited: {}. Do not split into this.", stateOfNext);
 									outVertices.remove(i);
 								} else {
 
@@ -350,7 +363,11 @@ public class MarkInterpreter {
 				currentWorklist = nextWorklist;
 			}
 
-			log.info("Done evaluating function {}, rule {}. Visited Nodes: {}", functionDeclaration.value("name"), rule.getName(), visitedNodes);
+			log.info(
+				"Done evaluating function {}, rule {}. Visited Nodes: {}",
+				functionDeclaration.value("name"),
+				rule.getName(),
+				visitedNodes);
 			// now the whole function was evaluated.
 			// Check that the FSM is in its end/beginning state for all bases
 			HashMap<String, HashSet<String>> nonterminatedBases = new HashMap<>();
@@ -368,7 +385,8 @@ public class MarkInterpreter {
 				}
 				if (!hasEnd) {
 					// extract the real base name from eogpath.base
-					HashSet<String> next = nonterminatedBases.computeIfAbsent(entry.getKey().substring(entry.getKey().indexOf('.') + 1), x -> new HashSet<>());
+					HashSet<String> next = nonterminatedBases.computeIfAbsent(
+						entry.getKey().substring(entry.getKey().indexOf('.') + 1), x -> new HashSet<>());
 					next.addAll(notEnded);
 				}
 			}
@@ -376,10 +394,18 @@ public class MarkInterpreter {
 				Vertex vertex = lastBaseUsage.get(entry.getKey());
 				String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
 				Finding f = new Finding(
-					"Violation against Order: Base " + base + " is not correctly terminated. Expected one of ["
-							+ entry.getValue().stream().sorted().collect(Collectors.joining(", ")) + "] to follow the correct last call on this base." + " ("
-							+ rule.getErrorMessage() + ")",
-					vertex.value("startLine"), vertex.value("endLine"), vertex.value("startColumn"), vertex.value("endColumn"));
+					"Violation against Order: Base "
+							+ base
+							+ " is not correctly terminated. Expected one of ["
+							+ entry.getValue().stream().sorted().collect(Collectors.joining(", "))
+							+ "] to follow the correct last call on this base."
+							+ " ("
+							+ rule.getErrorMessage()
+							+ ")",
+					vertex.value("startLine"),
+					vertex.value("endLine"),
+					vertex.value("startColumn"),
+					vertex.value("endColumn"));
 				ctx.getFindings().add(f);
 				log.info("Finding: {}", f);
 			}
@@ -387,7 +413,8 @@ public class MarkInterpreter {
 		//		}
 	}
 
-	private boolean isDisallowedBase(HashMap<String, HashSet<String>> disallowedBases, String eogpath, String base) {
+	private boolean isDisallowedBase(
+			HashMap<String, HashSet<String>> disallowedBases, String eogpath, String base) {
 		HashSet<String> disallowedEOGPaths = disallowedBases.get(base);
 		if (disallowedEOGPaths != null) {
 			return disallowedEOGPaths.stream().anyMatch(eogpath::startsWith);
@@ -403,17 +430,21 @@ public class MarkInterpreter {
 		}
 
 		List<String> fsmStates = simplified.entrySet().stream().map(
-			x -> x.getKey() + "(" + x.getValue().stream().map(Node::toString).collect(Collectors.joining(",")) + ")").distinct().sorted().collect(
-				Collectors.toList());
+			x -> x.getKey()
+					+ "("
+					+ x.getValue().stream().map(Node::toString).collect(Collectors.joining(","))
+					+ ")").distinct().sorted().collect(Collectors.toList());
 
 		return v.id() + " " + String.join(",", fsmStates);
 	}
 
 	/**
 	 * For a call to be forbidden, it needs to:
+	 *
 	 * <p>
 	 * - match any forbidden signature (as callstatment in an op) with * for arbitrary parameters, _ for ignoring one parameter type, or - a reference to a var in the
 	 * entity to specify a concrete type (no type hierarchy is analyzed!) _and_ is not allowed by any other non-forbidden matching call statement (in _any_ op).
+	 *
 	 * <p>
 	 * After this method, findings have been added to ctx.getFindings().
 	 */
@@ -433,7 +464,10 @@ public class MarkInterpreter {
 
 						if (!"forbidden".equals(call.getForbidden())) {
 							// there is at least one CallStatement which explicitly allows this Vertex!
-							log.info("Vertex |{}| is allowed, since it matches whitelist entry {}", v.value("code"), callString);
+							log.info(
+								"Vertex |{}| is allowed, since it matches whitelist entry {}",
+								v.value("code"),
+								callString);
 							vertex_allowed = true;
 							break;
 						} else {
@@ -445,8 +479,12 @@ public class MarkInterpreter {
 						long endLine = v.value("endLine");
 						long startColumn = v.value("startColumn");
 						long endColumn = v.value("endColumn");
-						String message = "Violation against forbidden call(s) " + String.join(", ", violating) + " in entity " + ent.getName()
-								+ ". Call was " + v.value("code").toString();
+						String message = "Violation against forbidden call(s) "
+								+ String.join(", ", violating)
+								+ " in entity "
+								+ ent.getName()
+								+ ". Call was "
+								+ v.value("code").toString();
 						Finding f = new Finding(message, startLine, endLine, startColumn, endColumn);
 						ctx.getFindings().add(f);
 						log.info("Finding: {}", f);
@@ -459,12 +497,14 @@ public class MarkInterpreter {
 	/**
 	 * Evaluates all MARK rules in the current model.
 	 *
+	 * <p>
 	 * Results will be appended to the list of Findings in AnalysisContext.
 	 *
 	 * @param ctx
 	 * @param crymlinTraversalSource
 	 */
-	private void evaluateMarkRules(@NonNull AnalysisContext ctx, CrymlinTraversalSource crymlinTraversalSource) {
+	private void evaluateMarkRules(
+			@NonNull AnalysisContext ctx, CrymlinTraversalSource crymlinTraversalSource) {
 		for (MRule rule : this.markModel.getRules()) {
 			evaluateMarkRule(ctx, crymlinTraversalSource, rule);
 		}
@@ -477,7 +517,8 @@ public class MarkInterpreter {
 	 * @param crymlinTraversalSource
 	 * @param rule
 	 */
-	private void evaluateMarkRule(@NonNull AnalysisContext ctx, CrymlinTraversalSource crymlinTraversalSource, MRule rule) {
+	private void evaluateMarkRule(
+			@NonNull AnalysisContext ctx, CrymlinTraversalSource crymlinTraversalSource, MRule rule) {
 
 		EvaluationContext ec = new EvaluationContext(rule, EvaluationContext.Type.RULE);
 		ExpressionEvaluator ee = new ExpressionEvaluator(ec);
@@ -489,17 +530,30 @@ public class MarkInterpreter {
 		if (s.getCond() != null) {
 			Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
 			if (condResult.isEmpty()) {
-				log.warn("The rule '{}'' will not be checked because its guarding condition cannot be evaluated: {}", rule.getName(),
+				log.warn(
+					"The rule '{}'' will not be checked because its guarding condition cannot be evaluated: {}",
+					rule.getName(),
 					ExpressionHelper.exprToString(s.getCond().getExp()));
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unknown"));
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": guarding condition unknown"));
 			} else if (!condResult.get()) {
-				log.info("   terminate rule checking due to unsatisfied guarding condition: {}", ExpressionHelper.exprToString(s.getCond().getExp()));
+				log.info(
+					"   terminate rule checking due to unsatisfied guarding condition: {}",
+					ExpressionHelper.exprToString(s.getCond().getExp()));
 				// TODO JS->FW: Is it correct that even a non-applicable rule is reported as a Finding?
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unsatisfied"));
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": guarding condition unsatisfied"));
 			}
 		}
 
-		// TODO JS->FW: Potential bug: Could it be that the evaluation of the ensure part is independent of the "when" part?
+		// TODO JS->FW: Potential bug: Could it be that the evaluation of the ensure part is independent
+		// of the "when" part?
 		log.debug("  checking 'ensure'-part");
 		Expression ensureExpression = s.getEnsure().getExp();
 		if (ensureExpression instanceof OrderExpression) {
@@ -519,15 +573,30 @@ public class MarkInterpreter {
 			Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
 
 			if (ensureResult.isEmpty()) {
-				log.warn("Ensure statement of rule '{}' cannot be evaluated: {}", rule.getName(), ExpressionHelper.exprToString(s.getEnsure().getExp()));
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition unknown"));
+				log.warn(
+					"Ensure statement of rule '{}' cannot be evaluated: {}",
+					rule.getName(),
+					ExpressionHelper.exprToString(s.getEnsure().getExp()));
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": ensure condition unknown"));
 			} else if (ensureResult.get()) {
 				log.info("Rule '{}' is satisfied.", rule.getName());
 				// TODO JS->FW: Is it correct that even a satisfied rule is reported as a Finding?
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition satisfied"));
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": ensure condition satisfied"));
 			} else {
 				log.error("Rule '{}' is violated.", rule.getName());
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition violated"));
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": ensure condition violated"));
 			}
 		}
 	}

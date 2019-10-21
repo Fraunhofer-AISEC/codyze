@@ -49,7 +49,7 @@ push_as_is:
   image: docker
   stage: push
   tags:
-    - docker  
+    - docker
   script:
     - docker push $DOCKER_REGISTRY_URL/$PARENT_PROJECT_NAME/$CI_PROJECT_NAME:${CI_COMMIT_SHA:0:8}
   only:

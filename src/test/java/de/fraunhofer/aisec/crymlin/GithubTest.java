@@ -1,8 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -10,6 +8,17 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.utils.TestAppender;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -23,16 +32,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.LogEvent;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @Disabled
 class GithubTest {
@@ -104,7 +106,10 @@ class GithubTest {
 	void performTest(String sourceFileName) throws Exception {
 		Path tempDir = Files.createTempDirectory("githubtest_");
 		File tempFile = new File(tempDir.toString() + File.separator + sourceFileName);
-		Files.copy(new File(baseFolder + File.separator + sourceFileName).toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		Files.copy(
+			new File(baseFolder + File.separator + sourceFileName).toPath(),
+			tempFile.toPath(),
+			StandardCopyOption.REPLACE_EXISTING);
 		logCopy.reset();
 
 		// prepend base folder. we call this function only with the file name to make the tests
@@ -155,10 +160,18 @@ class GithubTest {
 
 		OverflowDatabase.getInstance().close();
 
-		PrintWriter writer = new PrintWriter("/tmp/out/" + System.currentTimeMillis() + "_" + cppFile.getName() + ".out", StandardCharsets.UTF_8);
+		PrintWriter writer = new PrintWriter(
+			"/tmp/out/" + System.currentTimeMillis() + "_" + cppFile.getName() + ".out",
+			StandardCharsets.UTF_8);
 		for (LogEvent e : logCopy.getLog()) {
-			writer.println(e.getTimeMillis() + " " + e.getLevel().toString() + " " + e.getLoggerName().substring(e.getLoggerName().lastIndexOf(".") + 1) + " "
-					+ e.getMessage().getFormattedMessage());
+			writer.println(
+				e.getTimeMillis()
+						+ " "
+						+ e.getLevel().toString()
+						+ " "
+						+ e.getLoggerName().substring(e.getLoggerName().lastIndexOf(".") + 1)
+						+ " "
+						+ e.getMessage().getFormattedMessage());
 		}
 		writer.flush();
 		writer.close();

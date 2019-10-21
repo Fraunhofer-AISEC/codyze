@@ -41,7 +41,8 @@ public class EvaluationContext {
 	}
 
 	public enum Type {
-		ENTITY(MEntity.class), RULE(MRule.class);
+		ENTITY(MEntity.class),
+		RULE(MRule.class);
 
 		private Class clazz;
 

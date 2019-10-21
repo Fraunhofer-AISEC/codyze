@@ -1,28 +1,13 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.graph.IfStatement;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -32,6 +17,15 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for the Object-Graph-Mapper.
@@ -89,9 +83,16 @@ public class OGMTest {
 	/** Test proper edges around an <code>IfStatement</code> */
 	@Test
 	void testIfGraph() {
-		Vertex ifStmt = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(IfStatement.class.getSimpleName(),
+		Vertex ifStmt = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
+			IfStatement.class.getSimpleName(),
 			OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
-				.has("code", "if (3 < 4) {" + System.lineSeparator() + "      p3.start(iv);" + System.lineSeparator() + "    }").next();
+				.has(
+					"code",
+					"if (3 < 4) {"
+							+ System.lineSeparator()
+							+ "      p3.start(iv);"
+							+ System.lineSeparator()
+							+ "    }").next();
 
 		ArrayList<Edge> eogEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "EOG"));
 		assertEquals(1, eogEdges.size());
@@ -110,9 +111,16 @@ public class OGMTest {
 		ArrayList<Edge> elseEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "ELSE_STATEMENT"));
 		assertEquals(0, elseEdges.size());
 
-		Vertex conditionExpr = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(IfStatement.class.getSimpleName(),
+		Vertex conditionExpr = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
+			IfStatement.class.getSimpleName(),
 			OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
-				.has("code", "if (3 < 4) {" + System.lineSeparator() + "      p3.start(iv);" + System.lineSeparator() + "    }").outE("CONDITION").inV().next();
+				.has(
+					"code",
+					"if (3 < 4) {"
+							+ System.lineSeparator()
+							+ "      p3.start(iv);"
+							+ System.lineSeparator()
+							+ "    }").outE("CONDITION").inV().next();
 		ArrayList<Edge> rhsEdges = Lists.newArrayList(conditionExpr.edges(Direction.OUT, "RHS"));
 		assertEquals(1, rhsEdges.size());
 
@@ -126,7 +134,8 @@ public class OGMTest {
 	@Test
 	void countTranslationUnits() throws Exception {
 		// Get all TranslationUnitDeclarations (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(TranslationUnitDeclaration.class.getSimpleName(),
+		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
+			TranslationUnitDeclaration.class.getSimpleName(),
 			OverflowDatabase.getSubclasses(TranslationUnitDeclaration.class));
 		long tuCount = traversal.count().next();
 		assertEquals(1, tuCount, "Expected exactly 1 TranslationUnitDeclarations");
@@ -135,7 +144,8 @@ public class OGMTest {
 	@Test
 	void countRecordDeclarations() throws Exception {
 		// Get all RecordDeclaration (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(RecordDeclaration.class.getSimpleName(),
+		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
+			RecordDeclaration.class.getSimpleName(),
 			OverflowDatabase.getSubclasses(RecordDeclaration.class));
 		long rdCount = traversal.count().next();
 		assertEquals(2, rdCount, "Expected exactly 2 RecordDeclarations");
@@ -144,7 +154,8 @@ public class OGMTest {
 	@Test
 	void countMethodDeclarations() throws Exception {
 		// Get all MethodDeclaration (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(MethodDeclaration.class.getSimpleName(),
+		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
+			MethodDeclaration.class.getSimpleName(),
 			OverflowDatabase.getSubclasses(MethodDeclaration.class));
 		long mdCount = traversal.count().next();
 		assertEquals(15, mdCount, "Expected exactly 15 MethodDeclarations");
@@ -157,7 +168,10 @@ public class OGMTest {
 		GraphTraversal<Vertex, Edge> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(MethodDeclaration.class.getSimpleName()).has("name",
 			"ok").outE("EOG");
 		long mdCount = traversal.count().next();
-		assertEquals(1, mdCount, "Expected exactly 1 EOG edge from MethodDeclaration of method \"ok\" to first literal");
+		assertEquals(
+			1,
+			mdCount,
+			"Expected exactly 1 EOG edge from MethodDeclaration of method \"ok\" to first literal");
 	}
 
 	@Test

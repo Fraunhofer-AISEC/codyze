@@ -13,19 +13,19 @@ spec:
         version: latest
     spec:
       containers:
-      - name: engine
-        image: registry.***REMOVED***/cpg/cpganalysisserver:$TAG
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 9000
-      - name: neo4j
-        image: neo4j
-        ports:
-          - containerPort: 7687
-          - containerPort: 7474
-        env:
-        - name: NEO4J_AUTH
-          value: neo4j/password
+        - name: engine
+          image: registry.***REMOVED***/cpg/cpganalysisserver:$TAG
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9000
+        - name: neo4j
+          image: neo4j
+          ports:
+            - containerPort: 7687
+            - containerPort: 7474
+          env:
+            - name: NEO4J_AUTH
+              value: neo4j/password
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -33,13 +33,13 @@ metadata:
   name: $CI_ENVIRONMENT_SLUG
 spec:
   rules:
-  - host: $CI_ENVIRONMENT_HOST
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: $CI_ENVIRONMENT_SLUG
-          servicePort: 9000
+    - host: $CI_ENVIRONMENT_HOST
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: $CI_ENVIRONMENT_SLUG
+              servicePort: 9000
 ---
 apiVersion: v1
 kind: Service
@@ -47,9 +47,9 @@ metadata:
   name: $CI_ENVIRONMENT_SLUG
 spec:
   ports:
-  - port: 9000
-    targetPort: 9000
-    protocol: TCP
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
   selector:
     app: $CI_ENVIRONMENT_SLUG
     tier: all-in-one

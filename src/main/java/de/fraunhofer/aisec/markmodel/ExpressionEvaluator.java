@@ -1,8 +1,6 @@
 
 package de.fraunhofer.aisec.markmodel;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
-
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JVertex;
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
@@ -11,37 +9,10 @@ import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.crymlin.utils.*;
-import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
-import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
-import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration;
-import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
-import de.fraunhofer.aisec.mark.markDsl.Literal;
-import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
-import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
-import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import de.fraunhofer.aisec.mark.markDsl.Operand;
-import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
-import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
-import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
-
+import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
+import de.fraunhofer.aisec.crymlin.utils.Pair;
+import de.fraunhofer.aisec.crymlin.utils.Utils;
+import de.fraunhofer.aisec.mark.markDsl.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
@@ -51,9 +22,14 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 public class ExpressionEvaluator {
 
@@ -67,8 +43,10 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Checks a source file against a MARK expression.
+	 *
 	 * <p>
 	 * This method may return three results:
+	 *
 	 * <p>
 	 * - empty: The expression could not be evaluated. - false: Expression was evaluated but does not match the source file. - true: Expression was evaluated and matches
 	 * the source file.
@@ -118,12 +96,17 @@ public class ExpressionEvaluator {
 				return Optional.empty();
 			}
 
-			if (leftResult.get().getClass().equals(Boolean.class) && rightResult.get().getClass().equals(Boolean.class)) {
-				return Optional.of(Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
+			if (leftResult.get().getClass().equals(Boolean.class)
+					&& rightResult.get().getClass().equals(Boolean.class)) {
+				return Optional.of(
+					Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
 			}
 
 			// TODO #8
-			log.error("At least one subexpression is not of type Boolean: {} vs. {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
+			log.error(
+				"At least one subexpression is not of type Boolean: {} vs. {}",
+				ExpressionHelper.exprToString(left),
+				ExpressionHelper.exprToString(right));
 
 			return Optional.empty();
 		} else if (expr instanceof LogicalOrExpression) {
@@ -140,17 +123,23 @@ public class ExpressionEvaluator {
 				return Optional.empty();
 			}
 
-			if (leftResult.get().getClass().equals(Boolean.class) && rightResult.get().getClass().equals(Boolean.class)) {
-				return Optional.of(Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
+			if (leftResult.get().getClass().equals(Boolean.class)
+					&& rightResult.get().getClass().equals(Boolean.class)) {
+				return Optional.of(
+					Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
 			}
 
 			// TODO #8
-			log.error("At least one subexpression is not of type Boolean: {} vs. {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
+			log.error(
+				"At least one subexpression is not of type Boolean: {} vs. {}",
+				ExpressionHelper.exprToString(left),
+				ExpressionHelper.exprToString(right));
 
 			return Optional.empty();
 		}
 
-		log.error("Trying to evaluate unknown logical expression: {}", ExpressionHelper.exprToString(expr));
+		log.error(
+			"Trying to evaluate unknown logical expression: {}", ExpressionHelper.exprToString(expr));
 
 		assert false; // not a logical expression
 		return Optional.empty();
@@ -161,7 +150,10 @@ public class ExpressionEvaluator {
 		Expression left = expr.getLeft();
 		Expression right = expr.getRight();
 
-		log.debug("comparing expression {} with expression {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
+		log.debug(
+			"comparing expression {} with expression {}",
+			ExpressionHelper.exprToString(left),
+			ExpressionHelper.exprToString(right));
 
 		Optional leftResult = evaluateExpression(left);
 		Optional rightResult = evaluateExpression(right);
@@ -183,7 +175,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case "!=":
@@ -192,7 +187,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case "<":
@@ -209,7 +207,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case "<=":
@@ -220,13 +221,17 @@ public class ExpressionEvaluator {
 						return Optional.of(((Float) leftResult.get()) <= ((Float) rightResult.get()));
 					}
 
-					log.error("Comparison operator less-than-or-equal ('<=') not supported for type: {}", leftType);
+					log.error(
+						"Comparison operator less-than-or-equal ('<=') not supported for type: {}", leftType);
 
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case ">":
@@ -243,7 +248,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case ">=":
@@ -254,13 +262,18 @@ public class ExpressionEvaluator {
 						return Optional.of(((Float) leftResult.get()) >= ((Float) rightResult.get()));
 					}
 
-					log.error("Comparison operator greater-than-or-equal ('>=') not supported for type: {}", leftType);
+					log.error(
+						"Comparison operator greater-than-or-equal ('>=') not supported for type: {}",
+						leftType);
 
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case "in":
@@ -269,7 +282,10 @@ public class ExpressionEvaluator {
 
 					boolean evalValue = false;
 					for (Object o : l) {
-						log.debug("Comparing left expression with element of right expression: {} vs. {}", leftResult.get(), o);
+						log.debug(
+							"Comparing left expression with element of right expression: {} vs. {}",
+							leftResult.get(),
+							o);
 
 						if (o != null && leftType.equals(o.getClass())) {
 							evalValue |= leftResult.get().equals(o);
@@ -286,7 +302,9 @@ public class ExpressionEvaluator {
 			case "like":
 				if (leftType.equals(rightType)) {
 					if (leftType.equals(String.class)) {
-						return Optional.of(Pattern.matches(Pattern.quote((String) rightResult.get()), (String) leftResult.get()));
+						return Optional.of(
+							Pattern.matches(
+								Pattern.quote((String) rightResult.get()), (String) leftResult.get()));
 					}
 
 					log.error("Comparison operator like ('like') not supported for type: {}", leftType);
@@ -295,7 +313,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			default:
@@ -308,9 +329,11 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Returns evaluated argument values of a Builtin-call.
+	 *
 	 * <p>
 	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(),
 	 * 42)".
+	 *
 	 * <p>
 	 * This method evaluates the Expressions of all arguments and return them as a list.
 	 *
@@ -380,7 +403,9 @@ public class ExpressionEvaluator {
 	 *
 	 * @param expr
 	 * @return
-	 */ // TODO JS->FW: Should return a  Optional<Boolean>. Evaluation of Expressions which do not return a boolean should be pushed down into separate evaluation functions.
+	 */
+	// TODO JS->FW: Should return a  Optional<Boolean>. Evaluation of Expressions which do not return
+	// a boolean should be pushed down into separate evaluation functions.
 	public Optional evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
 
@@ -411,7 +436,8 @@ public class ExpressionEvaluator {
 			log.debug("evaluating FunctionCallExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateBuiltin((FunctionCallExpression) expr);
 		} else if (expr instanceof LiteralListExpression) {
-			// TODO JS->FW: What is the semantics of LiteralListExpression? Seems like the Optional<List> result is not used anywhere.
+			// TODO JS->FW: What is the semantics of LiteralListExpression? Seems like the Optional<List>
+			// result is not used anywhere.
 			log.debug("evaluating LiteralListExpression: {}", ExpressionHelper.exprToString(expr));
 
 			List literalList = new ArrayList<>();
@@ -458,12 +484,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Multiplication operator multiplication ('*') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator multiplication ('*') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "/":
@@ -475,12 +506,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Multiplication operator division ('/') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator division ('/') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "%":
@@ -490,12 +526,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Multiplication operator remainder ('%') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator remainder ('%') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "<<":
@@ -506,17 +547,23 @@ public class ExpressionEvaluator {
 						}
 
 						// TODO #8
-						log.error("Left shift operator supports only non-negative integers as its right operand");
+						log.error(
+							"Left shift operator supports only non-negative integers as its right operand");
 						return Optional.empty();
 					}
 
 					// TODO #8
-					log.error("Multiplication operator left shift ('<<') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator left shift ('<<') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case ">>":
@@ -528,17 +575,23 @@ public class ExpressionEvaluator {
 						}
 
 						// TODO #8
-						log.error("Right shift operator supports only non-negative integers as its right operand");
+						log.error(
+							"Right shift operator supports only non-negative integers as its right operand");
 						return Optional.empty();
 					}
 
 					// TODO #8
-					log.error("Multiplication operator right shift ('>>') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator right shift ('>>') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "&":
@@ -548,12 +601,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Addition operator bitwise and ('&') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Addition operator bitwise and ('&') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "&^":
@@ -563,12 +621,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Addition operator bitwise or ('|') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Addition operator bitwise or ('|') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 
@@ -577,7 +640,9 @@ public class ExpressionEvaluator {
 		}
 
 		// TODO #8
-		log.error("Trying to evaluate unknown multiplication expression: {}", ExpressionHelper.exprToString(expr));
+		log.error(
+			"Trying to evaluate unknown multiplication expression: {}",
+			ExpressionHelper.exprToString(expr));
 
 		assert false; // not an addition expression
 		return Optional.empty();
@@ -605,7 +670,9 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Unary operator plus sign ('+') not supported for type: {}", subExprResultType.getSimpleName());
+				log.error(
+					"Unary operator plus sign ('+') not supported for type: {}",
+					subExprResultType.getSimpleName());
 
 				return Optional.empty();
 			case "-":
@@ -616,7 +683,9 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Unary operator minus sign ('-') not supported for type: {}", subExprResultType.getSimpleName());
+				log.error(
+					"Unary operator minus sign ('-') not supported for type: {}",
+					subExprResultType.getSimpleName());
 
 				return Optional.empty();
 			case "!":
@@ -625,7 +694,9 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Unary operator logical not ('!') not supported for type: {}", subExprResultType.getSimpleName());
+				log.error(
+					"Unary operator logical not ('!') not supported for type: {}",
+					subExprResultType.getSimpleName());
 
 				return Optional.empty();
 			case "^":
@@ -634,7 +705,9 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Unary operator bitwise complement ('~') not supported for type: {}", subExprResultType.getSimpleName());
+				log.error(
+					"Unary operator bitwise complement ('~') not supported for type: {}",
+					subExprResultType.getSimpleName());
 
 				return Optional.empty();
 
@@ -643,7 +716,8 @@ public class ExpressionEvaluator {
 		}
 
 		// TODO #8
-		log.error("Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
+		log.error(
+			"Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
 
 		assert false; // not an addition expression
 		return Optional.empty();
@@ -707,7 +781,8 @@ public class ExpressionEvaluator {
 			}
 		}
 
-		// TODO JS->FW: (less important) ExpressionEvaluator should not decide on its own which type of DB to use but rather receive a connection when instantiated.
+		// TODO JS->FW: (less important) ExpressionEvaluator should not decide on its own which type of
+		// DB to use but rather receive a connection when instantiated.
 		try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 
@@ -721,12 +796,14 @@ public class ExpressionEvaluator {
 
 					List<String> functionArgumentTypes = referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall().getParams());
 
-					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqNamePart, functionName, null, functionArgumentTypes);
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
+						crymlin, fqNamePart, functionName, null, functionArgumentTypes);
 
 					for (Vertex v : vertices) {
 						// check if there was an assignment
 
-						// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the step is in the crymlin traversal
+						// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
+						// step is in the crymlin traversal
 						List<Vertex> nextVertices = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
 
 						if (!nextVertices.isEmpty()) {
@@ -765,7 +842,8 @@ public class ExpressionEvaluator {
 					}
 					int argumentIndex = argumentIndexOptional.getAsInt();
 
-					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqName, functionName, entityName, argumentTypes);
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
+						crymlin, fqName, functionName, entityName, argumentTypes);
 
 					for (Vertex v : vertices) {
 						List<Vertex> argumentVertices = crymlin.byID((long) v.id()).argument(argumentIndex).toList();
@@ -1077,7 +1155,9 @@ public class ExpressionEvaluator {
 		return Optional.empty();
 	}
 
-	private void dump(List<Pair<MOp, Set<OpStatement>>> usesAsVar, List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArg) {
+	private void dump(
+			List<Pair<MOp, Set<OpStatement>>> usesAsVar,
+			List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArg) {
 		Set<Pair<MOp, Set<OpStatement>>> uses = new HashSet<>();
 		uses.addAll(usesAsVar);
 		uses.addAll(usesAsFunctionArg);

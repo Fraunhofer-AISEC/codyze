@@ -5,8 +5,6 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.ShutDownException;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.exception.ConnectionException;
 import org.neo4j.ogm.session.Session;
@@ -15,6 +13,9 @@ import org.neo4j.ogm.transaction.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Neo4jDatabase<N> implements Database<N> {
 
@@ -139,7 +140,8 @@ public class Neo4jDatabase<N> implements Database<N> {
 				numNodes++;
 
 				if (!Node.class.isAssignableFrom(n.getClass())) {
-					throw new RuntimeException("Cannot apply SubgraphWalker to node of class " + n.getClass().getName());
+					throw new RuntimeException(
+						"Cannot apply SubgraphWalker to node of class " + n.getClass().getName());
 				}
 				Set<Node> children = SubgraphWalker.getAstChildren((Node) n);
 				worklist.addAll((Collection<? extends N>) children);

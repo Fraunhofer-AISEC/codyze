@@ -1,9 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -13,6 +10,8 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -20,7 +19,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class ForbiddenTest {
 
@@ -77,11 +78,18 @@ class ForbiddenTest {
 		List<String> findings = new ArrayList<>();
 		ctx.getFindings().forEach(x -> findings.add(x.toString()));
 
-		assertEquals(5, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
+		assertEquals(
+			5, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());
 
-		assertTrue(findings.contains("line 42: Violation against forbidden call(s) BotanF.set_key(_,_) in entity Forbidden. Call was b.set_key(nonce, iv);"));
-		assertTrue(findings.contains("line 37: Violation against forbidden call(s) BotanF.start(nonce,_) in entity Forbidden. Call was b.start(nonce, b);"));
-		assertTrue(findings.contains("line 36: Violation against forbidden call(s) BotanF.start() in entity Forbidden. Call was b.start();"));
+		assertTrue(
+			findings.contains(
+				"line 42: Violation against forbidden call(s) BotanF.set_key(_,_) in entity Forbidden. Call was b.set_key(nonce, iv);"));
+		assertTrue(
+			findings.contains(
+				"line 37: Violation against forbidden call(s) BotanF.start(nonce,_) in entity Forbidden. Call was b.start(nonce, b);"));
+		assertTrue(
+			findings.contains(
+				"line 36: Violation against forbidden call(s) BotanF.start() in entity Forbidden. Call was b.start();"));
 
 		// Stop the analysis server
 		server.stop();

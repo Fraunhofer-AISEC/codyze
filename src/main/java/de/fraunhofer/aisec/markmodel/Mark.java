@@ -1,11 +1,12 @@
 
 package de.fraunhofer.aisec.markmodel;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class Mark {
 

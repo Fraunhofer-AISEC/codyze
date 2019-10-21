@@ -9,13 +9,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * All built-in functions must implement this interface.
- */
+/** All built-in functions must implement this interface. */
 public interface Builtin {
 
 	/**
 	 * Unique name of this Builtin.
+	 *
 	 * <p>
 	 * By convention, Builtin names should start with underscore (_) to distinguish them from native MARK grammer. This is however not enforced. Developers of new
 	 * Builtins are responsible for making sure the name is unique.
@@ -34,5 +33,7 @@ public interface Builtin {
 	 * @return
 	 */
 	@NonNull
-	public Optional execute(List<Argument> arguments, @Nullable EvaluationContext evalCtx); // TODO argument list should not be <Optional>
+	public Optional execute(
+			List<Argument> arguments,
+			@Nullable EvaluationContext evalCtx); // TODO argument list should not be <Optional>
 }

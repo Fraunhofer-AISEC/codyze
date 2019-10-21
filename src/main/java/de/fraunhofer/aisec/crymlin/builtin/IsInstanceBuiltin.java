@@ -11,8 +11,6 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.ast.arguments;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +19,10 @@ import java.util.Optional;
 
 /**
  * Method signature: _is_instance(var instance, String classname)
+ *
  * <p>
  * This Builtin behaves like "var instanceof classname".
+ *
  * <p>
  * In case of an error or an empty result, this Builtin returns an Optional.empty.
  */

@@ -310,6 +310,9 @@ public class AnalysisServer {
 			log.info("Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)", numVertices, String.format("%.2f", (double) duration / numVertices),
 				numEdges, String.format("%.2f", (double) duration / numEdges));
 		}
+		catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 		log.info("Benchmark: Persisted approx {} nodes", db.getNumNodes());
 		return result;
 	}

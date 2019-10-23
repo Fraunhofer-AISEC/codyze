@@ -154,10 +154,10 @@ public class MarkInterpreter {
 			evaluateOrder(ctx, crymlinTraversal);
 			b.stop();
 
-//			log.info("Evaluate typestate");
-//			b = new Benchmark(this.getClass(), "Evaluate typestates");
-//			evaluateTypestate(ctx, crymlinTraversal);
-//			b.stop();
+			log.info("Evaluate typestate");
+			b = new Benchmark(this.getClass(), "Evaluate typestates");
+			evaluateTypestate(ctx, crymlinTraversal);
+			b.stop();
 
 			log.info("Evaluate rules");
 			b = new Benchmark(this.getClass(), "Evaluate rules");

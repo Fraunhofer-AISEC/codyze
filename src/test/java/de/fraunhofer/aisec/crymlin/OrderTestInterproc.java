@@ -93,12 +93,12 @@ class OrderTestInterproc {
 
 	@Test
 	@Disabled // TODO order3.java does not yet exist
-	void testJava() throws Exception {
+	void testJavaInterproc() throws Exception {
 		performTest("unittests/order3.java");
 	}
 
 	@Test
-	void testCpp() throws Exception {
+	void testCppInterproc() throws Exception {
 		performTest("unittests/order3.cpp");
 	}
 }

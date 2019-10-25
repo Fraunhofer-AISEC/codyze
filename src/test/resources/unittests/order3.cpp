@@ -20,7 +20,7 @@
     p2.init(test);
 
     // Continue in other function + alias to p4
-    //ok3(p2);
+    ok3(p2);
     p2.start();
     p3.start();
     p2.process();

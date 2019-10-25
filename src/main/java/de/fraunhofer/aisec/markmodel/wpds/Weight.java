@@ -114,6 +114,11 @@ public class Weight extends Semiring {
 	}
 
 	public String toString() {
+		// Returns current state of FSM
+		if (this.fixedElement != null) {
+			return this.fixedElement.toString();
+		}
+
 		return String.join(", ", this.value.stream().map(t -> t.toString()).collect(Collectors.toList()));
 	}
 

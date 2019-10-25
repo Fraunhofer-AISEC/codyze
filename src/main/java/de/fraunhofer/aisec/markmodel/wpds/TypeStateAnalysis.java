@@ -25,6 +25,7 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.neo4j.cypher.internal.v3_4.expressions.FunctionInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +104,7 @@ public class TypeStateAnalysis {
 		System.out.println(wnfa.toDotString());
 
 		// Evaluate saturated WNFA for any MARK violations
-		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA);
+		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule);
 		ctx.getFindings().addAll(findings);
 
 	}
@@ -119,10 +120,11 @@ public class TypeStateAnalysis {
 	 *
 	 * @param wnfa
 	 * @param tsNFA
+	 * @param rule
 	 * @return
 	 */
 	@NonNull
-	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA) {
+	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule) {
 		Set<Finding> findings = new HashSet<>();
 
 		System.out.println("--------------------------");
@@ -142,7 +144,7 @@ public class TypeStateAnalysis {
 					System.out.println(" Reached " + typestate + " by " + t.getLabel().toString());
 				}
 			} else {
-				String name = "Invalid typestate " + t.getStart() + " at statement: " + t.getLabel();
+				String name = "Invalid typestate of variable " + t.getStart() + " at statement: " + t.getLabel() + " . Violates order of " + rule.getName();
 
 				// TODO get line/column start/end once we are not working with strings anymore, but with Vertices.
 				long startLine = 0;
@@ -246,6 +248,17 @@ public class TypeStateAnalysis {
 									wpds.addRule(pushRule);
 								}
 
+								// Create PopRule mapping parameters to arguments. This reflects the behavior of side-effects on method arguments.
+								for (FunctionDeclaration fi : mce.getInvokes()) {
+									List<ParamVariableDeclaration> calleeParams = fi.getParameters();
+									List<Expression> callerArgs = mce.getArguments();
+									for (int i=0;i<Math.min(calleeParams.size(), callerArgs.size());i++) {
+										// TODO Apply for all return statements in callee.
+										PopRule<Stmt, Val, Weight> popRule = new PopRule<>(new Val(calleeParams.get(i).getName(), fi.getName()), new Stmt("ReTuRn."), new Val(callerArgs.get(i).getName(), currentFunctionName), Weight.one()); // TODO Do not hardcode
+										wpds.addRule(popRule);
+									}
+								}
+
 								Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
 										tran -> tran.getTarget().getOp().equals(mce.getName())).collect(Collectors.toSet());
 								Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
@@ -334,13 +347,6 @@ public class TypeStateAnalysis {
 										currentStmt, returnedVal, weight);
 								wpds.addRule(popRule);
 							}
-
-							// Also return all parameters to caller (as side effect) TODO still includes locals, but that should not be a problem.
-							for (Val valInScope : valsInScope) {
-								PopRule<Stmt, Val, Weight> popRule = new PopRule<>(valInScope, currentStmt,
-										new Val("p2", "ok2"), Weight.one()); // TODO Do not hardcode
-								wpds.addRule(popRule);
-							}
 						}
 
 						// Create normal rule. Flow remains where it is.  // TODO should be outside of dummy, but should avoid cyclic rules
@@ -359,8 +365,7 @@ public class TypeStateAnalysis {
 
 				// Add successors to work list
 				Iterator<Edge> successors = v.edges(Direction.OUT, "EOG");
-				// TODO For the moment we ignore branches and follow only the first successor
-				if (successors.hasNext()) {
+				while (successors.hasNext()) {
 					worklist.add(successors.next().inVertex());
 				}
 			}

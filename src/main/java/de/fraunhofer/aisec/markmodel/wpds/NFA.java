@@ -204,6 +204,7 @@ public class NFA {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		for (NFATransition t : transitions) {
+			sb.append("\t");
 			sb.append(t.toString());
 			sb.append("\n");
 		}

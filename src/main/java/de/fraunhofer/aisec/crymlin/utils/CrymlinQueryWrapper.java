@@ -125,7 +125,7 @@ public class CrymlinQueryWrapper {
 	 * @return
 	 */
 	public static boolean isCallExpression(Vertex v) {
-		if (v.label().equals(MemberCallExpression.class.getSimpleName())) {
+		if (v.label().equals(CallExpression.class.getSimpleName())) {
 			return true;
 		}
 

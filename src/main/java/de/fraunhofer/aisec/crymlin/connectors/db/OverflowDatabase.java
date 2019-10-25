@@ -334,7 +334,7 @@ public class OverflowDatabase<N> implements Database<N> {
 				f.setAccessible(true);
 				if (hasAnnotation(f, Id.class)) {
 					/* Retain the original vertex ID via this dedicated ID field */
-					f.set(f, v.id());
+					f.set(node, v.id());
 				} else if (hasAnnotation(f, Convert.class)) {
 					/* Need to first handle attributes which need a special treatment (annotated with AttributeConverter or CompositeConverter) */
 					Object value = convertToNodeProperty(v, f);

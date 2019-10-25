@@ -47,6 +47,26 @@ public class NFA {
 		return Set.copyOf(this.transitions);
 	}
 
+	public boolean handleEvent(String event) {
+		boolean didTransition = false;
+		Iterator<Node> it = currentConfiguration.iterator();
+		while (it.hasNext()) {
+			Node c = it.next();
+			List<Node> possibleTargets = this.transitions.stream()
+					.filter(t -> t.getSource().equals(c))
+					.filter(t -> t.getLabel().equals(event))
+					.map(t -> t.getTarget())
+					.collect(Collectors.toList());
+			if (!possibleTargets.isEmpty()) {
+				it.remove();
+				currentConfiguration.addAll(possibleTargets);
+				didTransition = true;
+			}
+		}
+
+		return didTransition;
+	}
+
 	/**
 	 * Order-Statement to FSM
 	 *

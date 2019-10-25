@@ -16,7 +16,9 @@ import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
-import de.fraunhofer.aisec.markmodel.*;
+import de.fraunhofer.aisec.markmodel.MEntity;
+import de.fraunhofer.aisec.markmodel.MOp;
+import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -101,7 +103,7 @@ public class TypeStateAnalysis {
 		System.out.println(wnfa.toDotString());
 
 		// Evaluate saturated WNFA for any MARK violations
-		Set<Finding> findings = getFindingsFromWpds(wnfa);
+		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA);
 		ctx.getFindings().addAll(findings);
 
 	}
@@ -116,30 +118,43 @@ public class TypeStateAnalysis {
 	 * state weights but none of them leads to END, the type state is correct but incomplete.
 	 *
 	 * @param wnfa
+	 * @param tsNFA
 	 * @return
 	 */
 	@NonNull
-	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa) {
+	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA) {
 		Set<Finding> findings = new HashSet<>();
 
-		Collection<Transition<Stmt, Val>> finalTrans = wnfa.getTransitions();
-		for (Transition<Stmt, Val> finalT : finalTrans) {
-			Weight weight = wnfa.getWeightFor(finalT);
-			System.out.println(finalT.toString() + "  ::  " + weight);
-			if (wnfa.getWeightFor(finalT).value().equals("") && finalT.getTarget().getCurrentScope().equals("ACCEPT")) {
-				System.out.println("  Invalid transition: " + finalT);
+		System.out.println("--------------------------");
 
-				// TODO Do something useful here. Needs to be replaced by a simulation of wnfa. If we can reach "finish" state, we have a valid typestate
-				String name = "";
+		// TODO reachableTypestates and didMove are currently not used.
+		Set<Node> reachableTypestates = new HashSet<>();
+		Val state = wnfa.getInitialState();
+		Collection<Transition<Stmt, Val>> ts = wnfa.getTransitionsOutOf(state);
+		for (Transition<Stmt, Val> t : ts) {
+			Weight w = wnfa.getWeightFor(t);
+			if (w.value() instanceof Set && !((Set) w.value()).isEmpty()) {
+				Set<NFATransition> transitions = (Set<NFATransition>) w.value();
+				for (NFATransition<Node> tran : transitions) {
+					boolean didMove = tsNFA.handleEvent(tran.getLabel());
+					Node typestate = tran.getTarget();
+					reachableTypestates.add(typestate);
+					System.out.println(" Reached " + typestate + " by " + t.getLabel().toString());
+				}
+			} else {
+				String name = "Invalid typestate " + t.getStart() + " at statement: " + t.getLabel();
+
+				// TODO get line/column start/end once we are not working with strings anymore, but with Vertices.
 				long startLine = 0;
 				long endLine = 0;
 				long startColumn = 0;
 				long endColumn = 0;
 				Finding f = new Finding(name, startLine, endLine, startColumn, endColumn);
-
 				findings.add(f);
 			}
 		}
+		System.out.println("--------------------------");
+
 
 		return findings;
 	}

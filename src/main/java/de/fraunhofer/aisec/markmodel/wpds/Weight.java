@@ -110,11 +110,11 @@ public class Weight extends Semiring {
 		}
 
 		// Concatenate transitions' toString(), joined by comma
-		return String.join(", ", this.value.stream().map(t -> t.toString()).collect(Collectors.toList()));
+		return value;
 	}
 
 	public String toString() {
-		return value().toString();
+		return String.join(", ", this.value.stream().map(t -> t.toString()).collect(Collectors.toList()));
 	}
 
 	@Override

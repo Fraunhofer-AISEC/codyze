@@ -1,11 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -17,6 +12,10 @@ import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,9 +24,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class AnalysisServerBotanTest {
 
@@ -62,7 +61,8 @@ public class AnalysisServerBotanTest {
 		}
 
 		// Start an analysis server
-		server = AnalysisServer.builder().config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build()).build();
+		server = AnalysisServer.builder().config(
+			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build()).build();
 		server.start();
 
 		// Start the analysis (BOTAN Symmetric Example by Oliver)

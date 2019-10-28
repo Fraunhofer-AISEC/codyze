@@ -37,8 +37,12 @@ public class Finding {
 			endColumn = -1;
 		}
 		// adjust off-by-one
-		this.range = new Range(new Position((int) startLine - 1, (int) startColumn - 1), new Position((int) endLine - 1, (int) endColumn - 1));
-		this.humanRange = new Range(new Position((int) startLine, (int) startColumn), new Position((int) endLine, (int) endColumn));
+		this.range = new Range(
+			new Position((int) startLine - 1, (int) startColumn - 1),
+			new Position((int) endLine - 1, (int) endColumn - 1));
+		this.humanRange = new Range(
+			new Position((int) startLine, (int) startColumn),
+			new Position((int) endLine, (int) endColumn));
 	}
 
 	public String getName() {

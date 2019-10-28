@@ -25,9 +25,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Evaluates MARK rules against the CPG.
- */
+import java.util.*;
+import java.util.stream.Collectors;
+
+/** Evaluates MARK rules against the CPG. */
 public class MarkInterpreter {
 	private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
 	@NonNull
@@ -98,7 +99,7 @@ public class MarkInterpreter {
 	 * Evaluates the {@code markModel} against the currently analyzed program (CPG).
 	 *
 	 * <p>
-	 * This is the core of the MARK evaluation.s
+	 * This is the core of the MARK evaluation.
 	 *
 	 * @param result
 	 */
@@ -179,12 +180,12 @@ public class MarkInterpreter {
 	 *
 	 * <p>
 	 * After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
-	 * </p>
 	 *
 	 * @param crymlinTraversal
 	 * @param markModel
 	 */
-	private void assignCallsToOps(@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull Mark markModel) {
+	private void assignCallsToOps(
+			@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull Mark markModel) {
 		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		/*
 		 * iterate all entities and precalculate some things: - call statements to vertices
@@ -197,7 +198,11 @@ public class MarkInterpreter {
 				int numMatches = 0;
 				for (OpStatement a : op.getStatements()) {
 					Set<Vertex> temp = getVerticesForFunctionDeclaration(a.getCall(), ent, crymlinTraversal);
-					log.debug("{}({}):{}", a.getCall().getName(), String.join(", ", a.getCall().getParams()), temp.size());
+					log.debug(
+						"{}({}):{}",
+						a.getCall().getName(),
+						String.join(", ", a.getCall().getParams()),
+						temp.size());
 					numMatches += temp.size();
 					op.addVertex(a, temp);
 				}
@@ -515,7 +520,8 @@ public class MarkInterpreter {
 		}
 	}
 
-	private boolean isDisallowedBase(HashMap<String, HashSet<String>> disallowedBases, String eogpath, String base) {
+	private boolean isDisallowedBase(
+			HashMap<String, HashSet<String>> disallowedBases, String eogpath, String base) {
 		HashSet<String> disallowedEOGPaths = disallowedBases.get(base);
 		if (disallowedEOGPaths != null) {
 			return disallowedEOGPaths.stream().anyMatch(eogpath::startsWith);
@@ -531,17 +537,21 @@ public class MarkInterpreter {
 		}
 
 		List<String> fsmStates = simplified.entrySet().stream().map(
-			x -> x.getKey() + "(" + x.getValue().stream().map(Node::toString).collect(Collectors.joining(",")) + ")").distinct().sorted().collect(
-				Collectors.toList());
+			x -> x.getKey()
+					+ "("
+					+ x.getValue().stream().map(Node::toString).collect(Collectors.joining(","))
+					+ ")").distinct().sorted().collect(Collectors.toList());
 
 		return v.id() + " " + String.join(",", fsmStates);
 	}
 
 	/**
 	 * For a call to be forbidden, it needs to:
+	 *
 	 * <p>
 	 * - match any forbidden signature (as callstatment in an op) with * for arbitrary parameters, _ for ignoring one parameter type, or - a reference to a var in the
 	 * entity to specify a concrete type (no type hierarchy is analyzed!) _and_ is not allowed by any other non-forbidden matching call statement (in _any_ op).
+	 *
 	 * <p>
 	 * After this method, findings have been added to ctx.getFindings().
 	 */
@@ -562,7 +572,10 @@ public class MarkInterpreter {
 
 						if (!"forbidden".equals(call.getForbidden())) {
 							// there is at least one CallStatement which explicitly allows this Vertex!
-							log.info("Vertex |{}| is allowed, since it matches whitelist entry {}", v.value("code"), callString);
+							log.info(
+								"Vertex |{}| is allowed, since it matches whitelist entry {}",
+								v.value("code"),
+								callString);
 							vertex_allowed = true;
 							break;
 						} else {
@@ -574,8 +587,12 @@ public class MarkInterpreter {
 						long endLine = v.value("endLine");
 						long startColumn = v.value("startColumn");
 						long endColumn = v.value("endColumn");
-						String message = "Violation against forbidden call(s) " + String.join(", ", violating) + " in entity " + ent.getName()
-								+ ". Call was " + v.value("code").toString();
+						String message = "Violation against forbidden call(s) "
+								+ String.join(", ", violating)
+								+ " in entity "
+								+ ent.getName()
+								+ ". Call was "
+								+ v.value("code").toString();
 						Finding f = new Finding(message, startLine, endLine, startColumn, endColumn);
 						ctx.getFindings().add(f);
 						log.info("Finding: {}", f);
@@ -588,7 +605,6 @@ public class MarkInterpreter {
 	/**
 	 * Returns all rules from Mark model, which do not contain an "order" statement.
 	 *
-	 * @return
 	 */
 	private List<MRule> getNonOrderRules() {
 		return markModel.getRules().stream().filter(
@@ -617,7 +633,6 @@ public class MarkInterpreter {
 				}
 			}
 
-			log.debug("checking 'ensure'-statement");
 			Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
 
 			if (ensureResult.isEmpty()) {
@@ -628,7 +643,11 @@ public class MarkInterpreter {
 				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition satisfied"));
 			} else {
 				log.error("Rule '{}' is violated.", rule.getName());
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition violated"));
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": ensure condition violated"));
 			}
 		}
 	}

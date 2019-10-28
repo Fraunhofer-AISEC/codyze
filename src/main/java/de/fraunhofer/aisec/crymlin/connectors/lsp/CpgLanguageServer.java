@@ -1,9 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.ServerCapabilities;
@@ -11,6 +8,10 @@ import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Implementation of a {@link LanguageServer} according to the Language Server Protocol (LSP). It synchronizes with the IDE and translates source code into our graph upon

@@ -20,7 +20,8 @@ public class TraversalConnection implements AutoCloseable {
 	private final CrymlinTraversalSource crymlinSource;
 
 	public enum Type {
-		NEO4J, OVERFLOWDB
+		NEO4J,
+		OVERFLOWDB
 	}
 
 	public TraversalConnection(@NonNull Type type) {

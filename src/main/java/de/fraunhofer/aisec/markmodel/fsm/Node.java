@@ -1,7 +1,6 @@
 
 package de.fraunhofer.aisec.markmodel.fsm;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;

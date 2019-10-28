@@ -1,8 +1,6 @@
 
 package de.fraunhofer.aisec.markmodel;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
-
 import com.steelbridgelabs.oss.neo4j.structure.Neo4JVertex;
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
@@ -11,37 +9,10 @@ import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.crymlin.utils.*;
-import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
-import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
-import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration;
-import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
-import de.fraunhofer.aisec.mark.markDsl.Literal;
-import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
-import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
-import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import de.fraunhofer.aisec.mark.markDsl.Operand;
-import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
-import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
-import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
-
+import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
+import de.fraunhofer.aisec.crymlin.utils.Pair;
+import de.fraunhofer.aisec.crymlin.utils.Utils;
+import de.fraunhofer.aisec.mark.markDsl.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
@@ -51,9 +22,14 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 public class ExpressionEvaluator {
 
@@ -67,8 +43,10 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Checks a source file against a MARK expression.
+	 *
 	 * <p>
 	 * This method may return three results:
+	 *
 	 * <p>
 	 * - empty: The expression could not be evaluated. - false: Expression was evaluated but does not match the source file. - true: Expression was evaluated and matches
 	 * the source file.
@@ -118,12 +96,17 @@ public class ExpressionEvaluator {
 				return Optional.empty();
 			}
 
-			if (leftResult.get().getClass().equals(Boolean.class) && rightResult.get().getClass().equals(Boolean.class)) {
-				return Optional.of(Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
+			if (leftResult.get().getClass().equals(Boolean.class)
+					&& rightResult.get().getClass().equals(Boolean.class)) {
+				return Optional.of(
+					Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
 			}
 
 			// TODO #8
-			log.error("At least one subexpression is not of type Boolean: {} vs. {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
+			log.error(
+				"At least one subexpression is not of type Boolean: {} vs. {}",
+				ExpressionHelper.exprToString(left),
+				ExpressionHelper.exprToString(right));
 
 			return Optional.empty();
 		} else if (expr instanceof LogicalOrExpression) {
@@ -140,17 +123,23 @@ public class ExpressionEvaluator {
 				return Optional.empty();
 			}
 
-			if (leftResult.get().getClass().equals(Boolean.class) && rightResult.get().getClass().equals(Boolean.class)) {
-				return Optional.of(Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
+			if (leftResult.get().getClass().equals(Boolean.class)
+					&& rightResult.get().getClass().equals(Boolean.class)) {
+				return Optional.of(
+					Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()));
 			}
 
 			// TODO #8
-			log.error("At least one subexpression is not of type Boolean: {} vs. {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
+			log.error(
+				"At least one subexpression is not of type Boolean: {} vs. {}",
+				ExpressionHelper.exprToString(left),
+				ExpressionHelper.exprToString(right));
 
 			return Optional.empty();
 		}
 
-		log.error("Trying to evaluate unknown logical expression: {}", ExpressionHelper.exprToString(expr));
+		log.error(
+			"Trying to evaluate unknown logical expression: {}", ExpressionHelper.exprToString(expr));
 
 		assert false; // not a logical expression
 		return Optional.empty();
@@ -161,7 +150,10 @@ public class ExpressionEvaluator {
 		Expression left = expr.getLeft();
 		Expression right = expr.getRight();
 
-		log.debug("comparing expression {} with expression {}", ExpressionHelper.exprToString(left), ExpressionHelper.exprToString(right));
+		log.debug(
+			"comparing expression {} with expression {}",
+			ExpressionHelper.exprToString(left),
+			ExpressionHelper.exprToString(right));
 
 		Optional leftResult = evaluateExpression(left);
 		Optional rightResult = evaluateExpression(right);
@@ -183,7 +175,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case "!=":
@@ -192,7 +187,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case "<":
@@ -209,7 +207,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case "<=":
@@ -220,13 +221,17 @@ public class ExpressionEvaluator {
 						return Optional.of(((Float) leftResult.get()) <= ((Float) rightResult.get()));
 					}
 
-					log.error("Comparison operator less-than-or-equal ('<=') not supported for type: {}", leftType);
+					log.error(
+						"Comparison operator less-than-or-equal ('<=') not supported for type: {}", leftType);
 
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case ">":
@@ -243,7 +248,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case ">=":
@@ -254,13 +262,18 @@ public class ExpressionEvaluator {
 						return Optional.of(((Float) leftResult.get()) >= ((Float) rightResult.get()));
 					}
 
-					log.error("Comparison operator greater-than-or-equal ('>=') not supported for type: {}", leftType);
+					log.error(
+						"Comparison operator greater-than-or-equal ('>=') not supported for type: {}",
+						leftType);
 
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			case "in":
@@ -269,7 +282,10 @@ public class ExpressionEvaluator {
 
 					boolean evalValue = false;
 					for (Object o : l) {
-						log.debug("Comparing left expression with element of right expression: {} vs. {}", leftResult.get(), o);
+						log.debug(
+							"Comparing left expression with element of right expression: {} vs. {}",
+							leftResult.get(),
+							o);
 
 						if (o != null && leftType.equals(o.getClass())) {
 							evalValue |= leftResult.get().equals(o);
@@ -286,7 +302,9 @@ public class ExpressionEvaluator {
 			case "like":
 				if (leftType.equals(rightType)) {
 					if (leftType.equals(String.class)) {
-						return Optional.of(Pattern.matches(Pattern.quote((String) rightResult.get()), (String) leftResult.get()));
+						return Optional.of(
+							Pattern.matches(
+								Pattern.quote((String) rightResult.get()), (String) leftResult.get()));
 					}
 
 					log.error("Comparison operator like ('like') not supported for type: {}", leftType);
@@ -295,7 +313,10 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftType.getSimpleName(), rightType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftType.getSimpleName(),
+					rightType.getSimpleName());
 
 				return Optional.empty();
 			default:
@@ -308,9 +329,11 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Returns evaluated argument values of a Builtin-call.
+	 *
 	 * <p>
 	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(),
 	 * 42)".
+	 *
 	 * <p>
 	 * This method evaluates the Expressions of all arguments and return them as a list.
 	 *
@@ -380,7 +403,9 @@ public class ExpressionEvaluator {
 	 *
 	 * @param expr
 	 * @return
-	 */ // TODO JS->FW: Should return a  Optional<Boolean>. Evaluation of Expressions which do not return a boolean should be pushed down into separate evaluation functions.
+	 */
+	// TODO JS->FW: Should return a  Optional<Boolean>. Evaluation of Expressions which do not return
+	// a boolean should be pushed down into separate evaluation functions.
 	public Optional evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
 
@@ -411,7 +436,8 @@ public class ExpressionEvaluator {
 			log.debug("evaluating FunctionCallExpression: {}", ExpressionHelper.exprToString(expr));
 			return evaluateBuiltin((FunctionCallExpression) expr);
 		} else if (expr instanceof LiteralListExpression) {
-			// TODO JS->FW: What is the semantics of LiteralListExpression? Seems like the Optional<List> result is not used anywhere.
+			// TODO JS->FW: What is the semantics of LiteralListExpression? Seems like the Optional<List>
+			// result is not used anywhere.
 			log.debug("evaluating LiteralListExpression: {}", ExpressionHelper.exprToString(expr));
 
 			List literalList = new ArrayList<>();
@@ -458,12 +484,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Multiplication operator multiplication ('*') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator multiplication ('*') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "/":
@@ -475,12 +506,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Multiplication operator division ('/') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator division ('/') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "%":
@@ -490,12 +526,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Multiplication operator remainder ('%') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator remainder ('%') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "<<":
@@ -506,17 +547,23 @@ public class ExpressionEvaluator {
 						}
 
 						// TODO #8
-						log.error("Left shift operator supports only non-negative integers as its right operand");
+						log.error(
+							"Left shift operator supports only non-negative integers as its right operand");
 						return Optional.empty();
 					}
 
 					// TODO #8
-					log.error("Multiplication operator left shift ('<<') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator left shift ('<<') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case ">>":
@@ -528,17 +575,23 @@ public class ExpressionEvaluator {
 						}
 
 						// TODO #8
-						log.error("Right shift operator supports only non-negative integers as its right operand");
+						log.error(
+							"Right shift operator supports only non-negative integers as its right operand");
 						return Optional.empty();
 					}
 
 					// TODO #8
-					log.error("Multiplication operator right shift ('>>') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Multiplication operator right shift ('>>') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "&":
@@ -548,12 +601,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Addition operator bitwise and ('&') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Addition operator bitwise and ('&') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 			case "&^":
@@ -563,12 +621,17 @@ public class ExpressionEvaluator {
 					}
 
 					// TODO #8
-					log.error("Addition operator bitwise or ('|') not supported for type: {}", leftResultType.getSimpleName());
+					log.error(
+						"Addition operator bitwise or ('|') not supported for type: {}",
+						leftResultType.getSimpleName());
 					return Optional.empty();
 				}
 
 				// TODO #8
-				log.error("Type of left expression does not match type of right expression: {} vs. {}", leftResultType.getSimpleName(), rightResultType.getSimpleName());
+				log.error(
+					"Type of left expression does not match type of right expression: {} vs. {}",
+					leftResultType.getSimpleName(),
+					rightResultType.getSimpleName());
 
 				return Optional.empty();
 
@@ -577,7 +640,9 @@ public class ExpressionEvaluator {
 		}
 
 		// TODO #8
-		log.error("Trying to evaluate unknown multiplication expression: {}", ExpressionHelper.exprToString(expr));
+		log.error(
+			"Trying to evaluate unknown multiplication expression: {}",
+			ExpressionHelper.exprToString(expr));
 
 		assert false; // not an addition expression
 		return Optional.empty();
@@ -605,7 +670,9 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Unary operator plus sign ('+') not supported for type: {}", subExprResultType.getSimpleName());
+				log.error(
+					"Unary operator plus sign ('+') not supported for type: {}",
+					subExprResultType.getSimpleName());
 
 				return Optional.empty();
 			case "-":
@@ -616,7 +683,9 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Unary operator minus sign ('-') not supported for type: {}", subExprResultType.getSimpleName());
+				log.error(
+					"Unary operator minus sign ('-') not supported for type: {}",
+					subExprResultType.getSimpleName());
 
 				return Optional.empty();
 			case "!":
@@ -625,7 +694,9 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Unary operator logical not ('!') not supported for type: {}", subExprResultType.getSimpleName());
+				log.error(
+					"Unary operator logical not ('!') not supported for type: {}",
+					subExprResultType.getSimpleName());
 
 				return Optional.empty();
 			case "^":
@@ -634,7 +705,9 @@ public class ExpressionEvaluator {
 				}
 
 				// TODO #8
-				log.error("Unary operator bitwise complement ('~') not supported for type: {}", subExprResultType.getSimpleName());
+				log.error(
+					"Unary operator bitwise complement ('~') not supported for type: {}",
+					subExprResultType.getSimpleName());
 
 				return Optional.empty();
 
@@ -643,7 +716,8 @@ public class ExpressionEvaluator {
 		}
 
 		// TODO #8
-		log.error("Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
+		log.error(
+			"Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
 
 		assert false; // not an addition expression
 		return Optional.empty();
@@ -707,7 +781,8 @@ public class ExpressionEvaluator {
 			}
 		}
 
-		// TODO JS->FW: (less important) ExpressionEvaluator should not decide on its own which type of DB to use but rather receive a connection when instantiated.
+		// TODO JS->FW: (less important) ExpressionEvaluator should not decide on its own which type of
+		// DB to use but rather receive a connection when instantiated.
 		try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 
@@ -721,12 +796,14 @@ public class ExpressionEvaluator {
 
 					List<String> functionArgumentTypes = referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall().getParams());
 
-					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqNamePart, functionName, null, functionArgumentTypes);
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
+						crymlin, fqNamePart, functionName, null, functionArgumentTypes);
 
 					for (Vertex v : vertices) {
 						// check if there was an assignment
 
-						// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the step is in the crymlin traversal
+						// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
+						// step is in the crymlin traversal
 						List<Vertex> nextVertices = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
 
 						if (!nextVertices.isEmpty()) {
@@ -765,7 +842,8 @@ public class ExpressionEvaluator {
 					}
 					int argumentIndex = argumentIndexOptional.getAsInt();
 
-					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqName, functionName, entityName, argumentTypes);
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
+						crymlin, fqName, functionName, entityName, argumentTypes);
 
 					for (Vertex v : vertices) {
 						List<Vertex> argumentVertices = crymlin.byID((long) v.id()).argument(argumentIndex).toList();
@@ -794,287 +872,280 @@ public class ExpressionEvaluator {
 		// 2. link MARK definitions to graph components in CPG
 		// 3. resolve information to perform evaluation (e.g. retrieve assigned values)
 
-		if (context.hasContextType(EvaluationContext.Type.RULE)) {
-			final MRule rule = context.getRule();
+		if (!context.hasContextType(EvaluationContext.Type.RULE)) {
+			log.error("Unexpected: MarkExpression Evaluation outside of a rule: {}", operandString);
+			return Optional.empty();
+		}
 
-			if (operandString.contains(".")) {
-				String[] operandParts = operandString.split("\\.");
+		final MRule rule = context.getRule();
 
-				if (operandParts.length == 2) { // todo add error-case, if operand is e.g. without separator, and a case if we
-					// have fqn for the entity
-					String instance = operandParts[0];
-					String attribute = operandParts[1];
+		// Split the operand (e.g., "cm.cipher") into instance ("cm") and attribute ("cipher")
+		String[] operandParts = operandString.split("\\.");
+		if (operandParts.length != 2) { // todo add error-case, if operand is e.g. without separator, and a case if we have fqn for the entity
+			return Optional.empty();
+		}
+		String instance = operandParts[0];
+		String attribute = operandParts[1];
 
-					Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
-					if (ref == null || ref.getValue0() == null) {
-						log.warn("Mark rule contains unresolved instance variable {}. Rule will fail: {}", instance, rule.getName());
-						return Optional.empty();
+		// Find out the "type" (i.e. the Mark entity) of instance
+		Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
+		if (ref == null || ref.getValue0() == null) {
+			log.warn("Mark rule contains unresolved instance variable {}. Rule will fail: {}", instance, rule.getName());
+			return Optional.empty();
+		}
+		String entityName = ref.getValue0();
+		MEntity referencedEntity = ref.getValue1();
+		if (referencedEntity == null) {
+			log.warn("Mark rule contains reference to unresolved entity {}. Rule will fail: {}", entityName, rule.getName());
+			return Optional.empty();
+		}
+
+		// Find out the uses of the Mark attribute in all Mark ops.
+		List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
+		List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
+		for (MOp operation : referencedEntity.getOps()) {
+			Set<OpStatement> vars = new HashSet<>();
+			Set<OpStatement> args = new HashSet<>();
+
+			for (OpStatement opStmt : operation.getStatements()) {
+				// simple assignment, i.e. var = something()
+				if (attribute.equals(opStmt.getVar())) {
+					vars.add(opStmt);
+				}
+
+				// ...or it's used as a function parameter, i.e. something(..., var, ...)
+				FunctionDeclaration fd = opStmt.getCall();
+				for (String param : fd.getParams()) {
+					if (attribute.equals(param)) {
+						args.add(opStmt);
+					}
+				}
+			}
+			if (!vars.isEmpty()) {
+				usesAsVar.add(new Pair<>(operation, vars));
+			}
+			if (!args.isEmpty()) {
+				usesAsFunctionArgs.add(new Pair<>(operation, args));
+				// todo: argumentindizes vorberechnen!
+			}
+		}
+		dump(usesAsVar, usesAsFunctionArgs);
+
+		// know which ops and opstatements use operand
+		// resolve vars
+		// TODO JS->FW: Do not decide within this class what kind of DB is used.
+		try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+
+			for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+				for (OpStatement opstmt : p.getValue1()) {
+					/*
+					 * TODO how would we do this? wouldn't we need to evaluate the calling function to determine the value? I think the intention was to signal that a
+					 * variable was set by a specific function call. It's basically a Boolean decision can I find an assignment to the variable where on the rhs the
+					 * specified function is called --> YES or NO.
+					 */
+					FunctionDeclaration fd = opstmt.getCall();
+					String fqFunctionName = fd.getName();
+					List<String> functionArguments = fd.getParams();
+
+					String functionName = Utils.extractMethodName(fqFunctionName);
+					String fqNamePart = Utils.extractType(fqFunctionName);
+					if (fqNamePart.equals(functionName)) {
+						fqNamePart = "";
 					}
 
-					String entityName = ref.getValue0();
-					MEntity referencedEntity = ref.getValue1();
-
-					if (referencedEntity == null) {
-						log.warn("Mark rule contains reference to unresolved entity {}. Rule will fail: {}", entityName, rule.getName());
-						return Optional.empty();
+					List<String> functionArgumentTypes = new ArrayList<>();
+					for (int i = 0; i < functionArguments.size(); i++) {
+						functionArgumentTypes.add(i, referencedEntity.getTypeForVar(functionArguments.get(i)));
 					}
 
+					// 1. find callexpression with opstatment signature
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+
+					List<Vertex> nextVertices = new ArrayList<>();
+					for (Vertex v : vertices) {
+						Traversal<Vertex, Vertex> nextTraversalStep = crymlin.byID((long) v.id()).in("RHS").where(
+							has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").out("REFERS_TO").has(
+								T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+
+						nextVertices.addAll(nextTraversalStep.toList());
+					}
+					log.warn("found traversals: {}", nextVertices);
+					// TODO why am I doing all this work? what are we hoping to get from this
+					// opstatement?
+					// 2. see if EOG leads to Expression with BinaryOperator {operatorCode: '='}
+				}
+			}
+
+			for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
+				for (OpStatement opstmt : p.getValue1()) {
+					FunctionDeclaration fd = opstmt.getCall();
+
+					String fqFunctionName = fd.getName();
+					String functionName = Utils.extractMethodName(fqFunctionName);
+					String packageClass = fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
+
+					if (packageClass.endsWith(".")) {
+						packageClass = packageClass.substring(0, packageClass.length() - 1);
+					}
+
+					List<String> argumentTypes = new ArrayList<>(fd.getParams());
+					int argumentIndex = -1;
+					for (int i = 0; i < argumentTypes.size(); i++) {
+						String argVar = argumentTypes.get(i);
+
+						if (attribute.equals(argVar)) {
+							argumentIndex = i;
+						}
+
+						if (Constants.UNDERSCORE.equals(argVar) || Constants.ELLIPSIS.equals(argVar)) {
+							continue;
+						}
+
+						argumentTypes.set(i, referencedEntity.getTypeForVar(argVar));
+					}
+
+					// vertices in CPG where we call a function from a MARK OpStatement and we're
+					// looking for one of the arguments
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, packageClass, functionName, null, argumentTypes);
+
+					/*
+					 * TODO JS->FW: The following code is okay, but it should be moved in to a separate method. The problem is that we are trying to be too smart here and
+					 * resolve an Operand "as far as we can". For "Immediates", (i.e. String/integer/boolean/float constants), the result of this method is the actual
+					 * value, in other cases it is a Vertex representing the variable. This makes this method hard to use, .e.g from IsInstanceBuiltin, because we do not
+					 * know what to expect. It should rather always return a Vertex. The constant resolution should be done elsewhere.
+					 */
 					String attributeType = referencedEntity.getTypeForVar(attribute);
 
-					List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
-					List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
+					// further investigate each function call
+					for (Vertex v : vertices) {
+						CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal = crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex",
+							argumentIndex).out("REFERS_TO");
+						// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
+						// argument we're using in the function call
 
-					for (MOp operation : referencedEntity.getOps()) {
-						Set<OpStatement> vars = new HashSet<>();
-						Set<OpStatement> args = new HashSet<>();
+						// TODO potential NullPointerException
+						Vertex variableDeclarationVertex = variableDeclarationTraversal.toList().get(0);
 
-						for (OpStatement opStmt : operation.getStatements()) {
-							// simple assignment, i.e. var = something()
-							if (attribute.equals(opStmt.getVar())) {
-								vars.add(opStmt);
-							}
+						// FIXME and now this code doesn't work as expected, especially path()
 
-							// ...or it's used as a function parameter, i.e. something(..., var, ...)
-							FunctionDeclaration fd = opStmt.getCall();
-							for (String param : fd.getParams()) {
-								if (attribute.equals(param)) {
-									args.add(opStmt);
-								}
-							}
-						}
+						/*
+						 * TODO general idea 1. from CPG vertex representing the function argument ('crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex",
+						 * argumentIndex)') create all paths to vertex with variable declaration ('variableDeclarationVertex') in theory 'crymlin.byID((long)
+						 * v.id()).repeat(in("EOG").simplePath()) .until(hasId(variableDeclarationVertex.id())).path()' 2. traverse this path from 'v' --->
+						 * 'variableDeclarationVertex' 3. for each assignment, i.e. BinaryOperator{operatorCode: "="} 4. check if -{"LHS"}-> v -{"REFERS_TO"}->
+						 * variableDeclarationVertex 5. then determine value RHS 6. done 7. {no interjacent assignment} determine value of variableDeclarationVertex (e.g.
+						 * from its initializer) 8. {no intializer with value e.g. function argument} continue traversing the graph
+						 */
 
-						if (!vars.isEmpty()) {
-							usesAsVar.add(new Pair<>(operation, vars));
-						}
+						log.debug("Vertex for function call: {}", v);
+						log.debug("Vertex of variable declaration: {}", variableDeclarationVertex);
 
-						if (!args.isEmpty()) {
-							usesAsFunctionArgs.add(new Pair<>(operation, args));
-							// todo: argumentindizes vorberechnen!
-						}
-					}
+						// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
+						// one of them must have more information on the value of the operand
+						CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) v.id()).repeat(in("EOG")).until(
+							is(variableDeclarationVertex)).emit();
+						dumpVertices(traversal.clone().toList());
 
-					dump(usesAsVar, usesAsFunctionArgs);
+						while (traversal.hasNext()) {
+							Vertex tVertex = traversal.next();
 
-					// know which ops and opstatements use operand
-					// resolve vars
-					// TODO JS->FW: Do not decide within this class what kind of DB is used.
-					try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
-						CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+							boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("BinaryOperator");
 
-						for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
-							for (OpStatement opstmt : p.getValue1()) {
-								/*
-								 * TODO how would we do this? wouldn't we need to evaluate the calling function to determine the value? I think the intention was to
-								 * signal that a variable was set by a specific function call. It's basically a Boolean decision can I find an assignment to the variable
-								 * where on the rhs the specified function is called --> YES or NO.
-								 */
-								FunctionDeclaration fd = opstmt.getCall();
-								String fqFunctionName = fd.getName();
-								List<String> functionArguments = fd.getParams();
+							if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode").value())) {
+								// this is an assignment that may set the value of our operand
+								Vertex lhs = tVertex.vertices(Direction.OUT, "LHS").next();
 
-								String functionName = Utils.extractMethodName(fqFunctionName);
-								String fqNamePart = Utils.extractType(fqFunctionName);
-								if (fqNamePart.equals(functionName)) {
-									fqNamePart = "";
-								}
+								if (lhs.vertices(Direction.OUT, "REFERS_TO").next().equals(variableDeclarationVertex)) {
+									Vertex rhs = tVertex.vertices(Direction.OUT, "RHS").next();
 
-								List<String> functionArgumentTypes = new ArrayList<>();
-								for (int i = 0; i < functionArguments.size(); i++) {
-									functionArgumentTypes.add(i, referencedEntity.getTypeForVar(functionArguments.get(i)));
-								}
+									boolean isRhsLiteral = Arrays.asList(rhs.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal");
 
-								// 1. find callexpression with opstatment signature
-								Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqNamePart, functionName, entityName, functionArgumentTypes);
+									if (isRhsLiteral) {
+										Object literalValue = rhs.property("value").value();
+										Class literalValueClass = literalValue.getClass();
 
-								List<Vertex> nextVertices = new ArrayList<>();
-								for (Vertex v : vertices) {
-									Traversal<Vertex, Vertex> nextTraversalStep = crymlin.byID((long) v.id()).in("RHS").where(
-										has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").out("REFERS_TO").has(
-											T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
-
-									nextVertices.addAll(nextTraversalStep.toList());
-								}
-								log.warn("found traversals: {}", nextVertices);
-								// TODO why am I doing all this work? what are we hoping to get from this
-								// opstatement?
-								// 2. see if EOG leads to Expression with BinaryOperator {operatorCode: '='}
-							}
-						}
-
-						for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
-							for (OpStatement opstmt : p.getValue1()) {
-								FunctionDeclaration fd = opstmt.getCall();
-
-								String fqFunctionName = fd.getName();
-								String functionName = Utils.extractMethodName(fqFunctionName);
-								String packageClass = fqFunctionName.substring(0, fqFunctionName.lastIndexOf(functionName));
-
-								if (packageClass.endsWith(".")) {
-									packageClass = packageClass.substring(0, packageClass.length() - 1);
-								}
-
-								List<String> argumentTypes = new ArrayList<>(fd.getParams());
-								int argumentIndex = -1;
-								for (int i = 0; i < argumentTypes.size(); i++) {
-									String argVar = argumentTypes.get(i);
-
-									if (attribute.equals(argVar)) {
-										argumentIndex = i;
-									}
-
-									if (Constants.UNDERSCORE.equals(argVar) || Constants.ELLIPSIS.equals(argVar)) {
-										continue;
-									}
-
-									argumentTypes.set(i, referencedEntity.getTypeForVar(argVar));
-								}
-
-								// vertices in CPG where we call a function from a MARK OpStatement and we're
-								// looking for one of the arguments
-								Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, packageClass, functionName, null, argumentTypes);
-
-								/*
-								 * TODO JS->FW: The following code is okay, but it should be moved in to a separate method. The problem is that we are trying to be too
-								 * smart here and resolve an Operand "as far as we can". For "Immediates", (i.e. String/integer/boolean/float constants), the result of
-								 * this method is the actual value, in other cases it is a Vertex representing the variable. This makes this method hard to use, .e.g from
-								 * IsInstanceBuiltin, because we do not know what to expect. It should rather always return a Vertex. The constant resolution should be
-								 * done elsewhere.
-								 */
-
-								// further investigate each function call
-								for (Vertex v : vertices) {
-									CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal = crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex",
-										argumentIndex).out("REFERS_TO");
-									// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
-									// argument we're using in the function call
-
-									// TODO potential NullPointerException
-									Vertex variableDeclarationVertex = variableDeclarationTraversal.toList().get(0);
-
-									// FIXME and now this code doesn't work as expected, especially path()
-
-									/*
-									 * TODO general idea 1. from CPG vertex representing the function argument ('crymlin.byID((long)
-									 * v.id()).out("ARGUMENTS").has("argumentIndex", argumentIndex)') create all paths to vertex with variable declaration
-									 * ('variableDeclarationVertex') in theory 'crymlin.byID((long) v.id()).repeat(in("EOG").simplePath())
-									 * .until(hasId(variableDeclarationVertex.id())).path()' 2. traverse this path from 'v' ---> 'variableDeclarationVertex' 3. for each
-									 * assignment, i.e. BinaryOperator{operatorCode: "="} 4. check if -{"LHS"}-> v -{"REFERS_TO"}-> variableDeclarationVertex 5. then
-									 * determine value RHS 6. done 7. {no interjacent assignment} determine value of variableDeclarationVertex (e.g. from its initializer)
-									 * 8. {no intializer with value e.g. function argument} continue traversing the graph
-									 */
-
-									log.debug("Vertex for function call: {}", v);
-									log.debug("Vertex of variable declaration: {}", variableDeclarationVertex);
-
-									// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
-									// one of them must have more information on the value of the operand
-									CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) v.id()).repeat(in("EOG")).until(
-										is(variableDeclarationVertex)).emit();
-									dumpVertices(traversal.clone().toList());
-
-									while (traversal.hasNext()) {
-										Vertex tVertex = traversal.next();
-
-										boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("BinaryOperator");
-
-										if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode").value())) {
-											// this is an assignment that may set the value of our operand
-											Vertex lhs = tVertex.vertices(Direction.OUT, "LHS").next();
-
-											if (lhs.vertices(Direction.OUT, "REFERS_TO").next().equals(variableDeclarationVertex)) {
-												Vertex rhs = tVertex.vertices(Direction.OUT, "RHS").next();
-
-												boolean isRhsLiteral = Arrays.asList(rhs.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal");
-
-												if (isRhsLiteral) {
-													Object literalValue = rhs.property("value").value();
-													Class literalValueClass = literalValue.getClass();
-
-													if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-														return Optional.of(((Number) literalValue).intValue());
-													}
-
-													if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-														return Optional.of(((Number) literalValue).floatValue());
-													}
-
-													if (literalValueClass.equals(Boolean.class)) {
-														return Optional.of((Boolean) literalValue);
-													}
-
-													if (literalValueClass.equals(String.class)) {
-														// character and string literals both have value of type String
-														String valueString = (String) literalValue;
-
-														// FIXME incomplete hack; only works for primitive char type; is that
-														// enough?
-														if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
-															// FIXME this will likely break on an empty string
-															return Optional.of(valueString.charAt(0));
-														}
-														return Optional.of(valueString);
-													}
-													log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
-												}
-
-												// TODO properly resolve rhs expression
-
-												log.warn("Value of operand set in assignment expression");
-												break;
-											}
+										if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
+											return Optional.of(((Number) literalValue).intValue());
 										}
-									}
 
-									// we arrived at the declaration of the variable used as an argument
-									log.warn("Checking declaration for a literal initializer");
-
-									// check if we have an initializer with a literal
-									Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
-									while (itInitializerVertex.hasNext()) {
-										// there should be at most one
-										Vertex initializerVertex = itInitializerVertex.next();
-
-										if (Arrays.asList(initializerVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal")) {
-											Object literalValue = initializerVertex.property("value").value();
-											Class literalValueClass = literalValue.getClass();
-
-											if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-												return Optional.of(((Number) literalValue).intValue());
-											}
-
-											if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-												return Optional.of(((Number) literalValue).floatValue());
-											}
-
-											if (literalValueClass.equals(Boolean.class)) {
-												return Optional.of((Boolean) literalValue);
-											}
-
-											if (literalValueClass.equals(String.class)) {
-												// character and string literals both have value of type String
-												String valueString = (String) literalValue;
-
-												// FIXME incomplete hack; only works for primitive char type; is that
-												// enough?
-												if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
-													// FIXME this will likely break on an empty string
-													return Optional.of(valueString.charAt(0));
-												}
-												return Optional.of(valueString);
-											}
-											log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
+										if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
+											return Optional.of(((Number) literalValue).floatValue());
 										}
+
+										if (literalValueClass.equals(Boolean.class)) {
+											return Optional.of((Boolean) literalValue);
+										}
+
+										if (literalValueClass.equals(String.class)) {
+											// character and string literals both have value of type String
+											String valueString = (String) literalValue;
+
+											// FIXME incomplete hack; only works for primitive char type; is that
+											// enough?
+											if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
+												// FIXME this will likely break on an empty string
+												return Optional.of(valueString.charAt(0));
+											}
+											return Optional.of(valueString);
+										}
+										log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 									}
+
+									// TODO properly resolve rhs expression
+
+									log.warn("Value of operand set in assignment expression");
+									break;
 								}
+							}
+						}
+
+						// we arrived at the declaration of the variable used as an argument
+						log.warn("Checking declaration for a literal initializer");
+
+						// check if we have an initializer with a literal
+						Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
+						while (itInitializerVertex.hasNext()) {
+							// there should be at most one
+							Vertex initializerVertex = itInitializerVertex.next();
+
+							if (Arrays.asList(initializerVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal")) {
+								Object literalValue = initializerVertex.property("value").value();
+								Class literalValueClass = literalValue.getClass();
+
+								if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
+									return Optional.of(((Number) literalValue).intValue());
+								}
+
+								if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
+									return Optional.of(((Number) literalValue).floatValue());
+								}
+
+								if (literalValueClass.equals(Boolean.class)) {
+									return Optional.of((Boolean) literalValue);
+								}
+
+								if (literalValueClass.equals(String.class)) {
+									// character and string literals both have value of type String
+									String valueString = (String) literalValue;
+
+									// FIXME incomplete hack; only works for primitive char type; is that
+									// enough?
+									if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
+										// FIXME this will likely break on an empty string
+										return Optional.of(valueString.charAt(0));
+									}
+									return Optional.of(valueString);
+								}
+								log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 							}
 						}
 					}
-
-					// TODO at this point I know what I need to look for: either assignments or function calls
-
 				}
 			}
 		}
+
+		// TODO at this point I know what I need to look for: either assignments or function calls
 
 		/*
 		 * FIXME need to differentiate between entity reference and actual code references to Botan/BouncyCastle Currently, I just get some text that can be anything --
@@ -1084,7 +1155,9 @@ public class ExpressionEvaluator {
 		return Optional.empty();
 	}
 
-	private void dump(List<Pair<MOp, Set<OpStatement>>> usesAsVar, List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArg) {
+	private void dump(
+			List<Pair<MOp, Set<OpStatement>>> usesAsVar,
+			List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArg) {
 		Set<Pair<MOp, Set<OpStatement>>> uses = new HashSet<>();
 		uses.addAll(usesAsVar);
 		uses.addAll(usesAsFunctionArg);

@@ -1,22 +1,15 @@
 
 package de.fraunhofer.aisec.markmodel.fsm;
 
-import de.fraunhofer.aisec.mark.markDsl.AlternativeExpression;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
-import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
-import de.fraunhofer.aisec.mark.markDsl.Terminal;
+import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.TreeMap;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class FSM {
 
@@ -134,7 +127,8 @@ public class FSM {
 		startNodes = start.getSuccessors();
 	}
 
-	private void expressionToNodes(final Expression expr, final HashSet<Node> endNodes, final Head head) {
+	private void expressionToNodes(
+			final Expression expr, final HashSet<Node> endNodes, final Head head) {
 		if (expr instanceof Terminal) {
 			Terminal inner = (Terminal) expr;
 			Node n = new Node(inner.getEntity(), inner.getOp());

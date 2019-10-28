@@ -4,9 +4,10 @@ package de.fraunhofer.aisec.markmodel;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.HashMap;
 import java.util.stream.Collectors;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class MRule {
 

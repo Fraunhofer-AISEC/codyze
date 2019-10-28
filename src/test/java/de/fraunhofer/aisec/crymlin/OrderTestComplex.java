@@ -1,9 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -12,6 +9,8 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -19,7 +18,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class OrderTestComplex {
 
@@ -78,7 +79,9 @@ class OrderTestComplex {
 
 		assertEquals(5, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
-		assertTrue(findings.contains("line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
+		assertTrue(
+			findings.contains(
+				"line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
 		// assertTrue(
 		//    findings.contains(
 		//        "line 54: Violation against Order: p5.start(); is not allowed. Base contains errors
@@ -91,12 +94,18 @@ class OrderTestComplex {
 		//    findings.contains(
 		//        "line 56: Violation against Order: p5.finish(); is not allowed. Base contains errors
 		// already. (WrongUseOfBotan_CipherMode)"));
-		assertTrue(findings.contains("line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
-		assertTrue(findings.contains(
-			"line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
-		assertTrue(findings.contains("line 80: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
-		assertTrue(findings.contains(
-			"line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode)"));
+		assertTrue(
+			findings.contains(
+				"line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
+		assertTrue(
+			findings.contains(
+				"line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+		assertTrue(
+			findings.contains(
+				"line 80: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
+		assertTrue(
+			findings.contains(
+				"line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode)"));
 
 		server.stop();
 	}

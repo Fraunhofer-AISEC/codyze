@@ -5,9 +5,7 @@ import de.fraunhofer.aisec.mark.markDsl.*;
 
 import java.util.stream.Collectors;
 
-/**
- * Static helper methods for evaluating MARK expressions.
- */
+/** Static helper methods for evaluating MARK expressions. */
 public class ExpressionHelper {
 
 	public static String exprToString(Expression expr) {
@@ -16,18 +14,31 @@ public class ExpressionHelper {
 		}
 
 		if (expr instanceof LogicalOrExpression) {
-			return exprToString(((LogicalOrExpression) expr).getLeft()) + " || " + exprToString(((LogicalOrExpression) expr).getRight());
+			return exprToString(((LogicalOrExpression) expr).getLeft())
+					+ " || "
+					+ exprToString(((LogicalOrExpression) expr).getRight());
 		} else if (expr instanceof LogicalAndExpression) {
-			return exprToString(((LogicalAndExpression) expr).getLeft()) + " && " + exprToString(((LogicalAndExpression) expr).getRight());
+			return exprToString(((LogicalAndExpression) expr).getLeft())
+					+ " && "
+					+ exprToString(((LogicalAndExpression) expr).getRight());
 		} else if (expr instanceof ComparisonExpression) {
 			ComparisonExpression compExpr = (ComparisonExpression) expr;
-			return exprToString(compExpr.getLeft()) + " " + compExpr.getOp() + " " + exprToString(compExpr.getRight());
+			return exprToString(compExpr.getLeft())
+					+ " "
+					+ compExpr.getOp()
+					+ " "
+					+ exprToString(compExpr.getRight());
 		} else if (expr instanceof FunctionCallExpression) {
 			FunctionCallExpression fExpr = (FunctionCallExpression) expr;
 			String name = fExpr.getName();
-			return name + "(" + fExpr.getArgs().stream().map(ExpressionHelper::argToString).collect(Collectors.joining(", ")) + ")";
+			return name
+					+ "("
+					+ fExpr.getArgs().stream().map(ExpressionHelper::argToString).collect(Collectors.joining(", "))
+					+ ")";
 		} else if (expr instanceof LiteralListExpression) {
-			return "[ " + ((LiteralListExpression) expr).getValues().stream().map(Literal::getValue).collect(Collectors.joining(", ")) + " ]";
+			return "[ "
+					+ ((LiteralListExpression) expr).getValues().stream().map(Literal::getValue).collect(Collectors.joining(", "))
+					+ " ]";
 		} else if (expr instanceof RepetitionExpression) {
 			RepetitionExpression inner = (RepetitionExpression) expr;
 			// todo @FW do we want this optimization () can be omitted if inner is no sequence

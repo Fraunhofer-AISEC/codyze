@@ -5,7 +5,6 @@
 
 void do_crypt()
 {
-
     int nonce;
     size_t nonce_length;
     int iv;

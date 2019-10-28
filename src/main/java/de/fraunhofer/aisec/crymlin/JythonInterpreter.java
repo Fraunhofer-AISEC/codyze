@@ -3,12 +3,13 @@ package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import java.util.Map;
+import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
+import org.python.util.InteractiveConsole;
+
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
-import org.python.util.InteractiveConsole;
+import java.util.Map;
 
 /**
  * Demonstrates how to run Crymlin queries dynamically from Java.
@@ -62,9 +63,16 @@ public class JythonInterpreter implements AutoCloseable {
 	 */
 	public void spawnInteractiveConsole() {
 
-		System.out.println("                           _ _       \n" + "                          | (_)      \n" + "  ___ _ __ _   _ _ __ ___ | |_ _ __  \n"
-				+ " / __| '__| | | | '_ ` _ \\| | | '_ \\ \n" + "| (__| |  | |_| | | | | | | | | | | |\n" + " \\___|_|   \\__, |_| |_| |_|_|_|_| |_|\n"
-				+ "            __/ |                    \n" + "           |___/                     \n" + "\n");
+		System.out.println(
+			"                           _ _       \n"
+					+ "                          | (_)      \n"
+					+ "  ___ _ __ _   _ _ __ ___ | |_ _ __  \n"
+					+ " / __| '__| | | | '_ ` _ \\| | | '_ \\ \n"
+					+ "| (__| |  | |_| | | | | | | | | | | |\n"
+					+ " \\___|_|   \\__, |_| |_| |_|_|_|_| |_|\n"
+					+ "            __/ |                    \n"
+					+ "           |___/                     \n"
+					+ "\n");
 		// Print help
 		Commands commands = new Commands(this);
 		commands.help();

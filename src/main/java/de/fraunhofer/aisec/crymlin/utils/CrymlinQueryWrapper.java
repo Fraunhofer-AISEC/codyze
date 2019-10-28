@@ -7,7 +7,6 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.crymlin.dsl.__;
 import de.fraunhofer.aisec.markmodel.Constants;
 
 import java.util.*;
@@ -20,6 +19,14 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
 public class CrymlinQueryWrapper {
 
@@ -36,7 +43,10 @@ public class CrymlinQueryWrapper {
 	 *        qualifiers, pointer, reference)
 	 * @return
 	 */
-	public static Set<Vertex> getCalls(@NonNull CrymlinTraversalSource crymlinTraversal, @NonNull String fqnClassName, @NonNull String functionName,
+	public static Set<Vertex> getCalls(
+			@NonNull CrymlinTraversalSource crymlinTraversal,
+			@NonNull String fqnClassName,
+			@NonNull String functionName,
 			@Nullable String type,
 			@NonNull List<String> parameterTypes) {
 
@@ -59,63 +69,67 @@ public class CrymlinQueryWrapper {
 		}
 
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
-		ret.removeIf(v -> {
-			Iterator<Edge> referencedArguments = v.edges(Direction.OUT, "ARGUMENTS");
+		ret.removeIf(
+			v -> {
+				Iterator<Edge> referencedArguments = v.edges(Direction.OUT, "ARGUMENTS");
 
-			if (parameterTypes.isEmpty() && referencedArguments.hasNext()) {
-				// expecting no arguments but got at least one -> remove
-				return true;
-			}
+				if (parameterTypes.isEmpty() && referencedArguments.hasNext()) {
+					// expecting no arguments but got at least one -> remove
+					return true;
+				}
 
-			if (!parameterTypes.isEmpty() && !referencedArguments.hasNext()) {
-				// expecting some parameters but got no arguments -> remove
-				return true;
-			}
+				if (!parameterTypes.isEmpty() && !referencedArguments.hasNext()) {
+					// expecting some parameters but got no arguments -> remove
+					return true;
+				}
 
-			while (referencedArguments.hasNext()) {
-				// check each argument against parameter type
-				Vertex argument = referencedArguments.next().inVertex();
-				long argumentIndex = argument.value("argumentIndex");
+				while (referencedArguments.hasNext()) {
+					// check each argument against parameter type
+					Vertex argument = referencedArguments.next().inVertex();
+					long argumentIndex = argument.value("argumentIndex");
 
-				if (argumentIndex >= parameterTypes.size()) {
-					// last given parameter type must be "..." or remove
-					return !Constants.ELLIPSIS.equals(parameterTypes.get(parameterTypes.size() - 1));
-				} else { // remove if types don't match
-					// Use "unified" types for Java and C/C++
-					String paramType = Utils.unifyType(parameterTypes.get((int) argumentIndex));
-					if (!(Constants.UNDERSCORE.equals(paramType) || Constants.ELLIPSIS.equals(paramType))) {
-						// it's not a single type wild card -> types must match
-						// TODO improve type matching
-						// currently, we check for perfect match but we may need to be more fuzzy e.g.
-						// ignore
-						// type qualifier (e.g. const) or strip reference types
-						// FIXME match expects fully-qualified type literal; in namespace 'std',
-						// 'std::string' becomes just 'string'
-						// FIXME string literals in C++ have type 'const char[{some integer}]' instead of
-						// 'std::string'
-						if (paramType.equals("std.string")) {
-							String argValue = argument.<String> property("type").orElse("");
+					if (argumentIndex >= parameterTypes.size()) {
+						// last given parameter type must be "..." or remove
+						return !Constants.ELLIPSIS.equals(parameterTypes.get(parameterTypes.size() - 1));
+					} else { // remove if types don't match
+						// Use "unified" types for Java and C/C++
+						String paramType = Utils.unifyType(parameterTypes.get((int) argumentIndex));
+						if (!(Constants.UNDERSCORE.equals(paramType)
+								|| Constants.ELLIPSIS.equals(paramType))) {
+							// it's not a single type wild card -> types must match
+							// TODO improve type matching
+							// currently, we check for perfect match but we may need to be more fuzzy e.g.
+							// ignore
+							// type qualifier (e.g. const) or strip reference types
+							// FIXME match expects fully-qualified type literal; in namespace 'std',
+							// 'std::string' becomes just 'string'
+							// FIXME string literals in C++ have type 'const char[{some integer}]' instead of
+							// 'std::string'
+							if (paramType.equals("std.string")) {
+								String argValue = argument.<String> property("type").orElse("");
 
-							if (paramType.equals(argValue) || Pattern.matches("const char\\s*\\[\\d*\\]", argValue)) {
-								// it matches C++ string types
-								return false;
+								if (paramType.equals(argValue)
+										|| Pattern.matches("const char\\s*\\[\\d*\\]", argValue)) {
+									// it matches C++ string types
+									return false;
+								}
+							} else if (!paramType.equals(argument.value("type"))) {
+								// types don't match -> remove
+								return true;
 							}
-						} else if (!paramType.equals(argument.value("type"))) {
-							// types don't match -> remove
-							return true;
 						}
 					}
 				}
-			}
-			return false;
-		});
+				return false;
+			});
 
 		return ret;
 	}
 
 	public static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {
-		return crymlin.byID(id).in("RHS").where(has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").has(T.label,
-			LabelP.of(VariableDeclaration.class.getSimpleName())).toList();
+		return crymlin.byID(id).in("RHS").where(
+			has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").has(T.label,
+				LabelP.of(VariableDeclaration.class.getSimpleName())).toList();
 	}
 
 	/**

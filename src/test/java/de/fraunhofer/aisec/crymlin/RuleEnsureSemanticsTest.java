@@ -1,29 +1,20 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
-import de.fraunhofer.aisec.markmodel.EvaluationContext;
-import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
-import de.fraunhofer.aisec.markmodel.MRule;
-import de.fraunhofer.aisec.markmodel.Mark;
-import de.fraunhofer.aisec.markmodel.MarkModelLoader;
-import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
+import de.fraunhofer.aisec.markmodel.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RuleEnsureSemanticsTest {
 
@@ -78,14 +69,15 @@ public class RuleEnsureSemanticsTest {
 			ensureExprResults.put(r.getName(), result);
 		}
 
-		ensureExprResults.entrySet().forEach(entry -> {
-			if (entry.getKey().endsWith("true")) {
-				assertTrue(entry.getValue().get());
-			} else if (entry.getKey().endsWith("false")) {
-				assertFalse(entry.getValue().get());
-			} else {
-				assertTrue(entry.getValue().isEmpty());
-			}
-		});
+		ensureExprResults.entrySet().forEach(
+			entry -> {
+				if (entry.getKey().endsWith("true")) {
+					assertTrue(entry.getValue().get());
+				} else if (entry.getKey().endsWith("false")) {
+					assertFalse(entry.getValue().get());
+				} else {
+					assertTrue(entry.getValue().isEmpty());
+				}
+			});
 	}
 }

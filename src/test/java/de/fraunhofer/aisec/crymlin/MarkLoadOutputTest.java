@@ -1,15 +1,16 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
@@ -17,9 +18,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class MarkLoadOutputTest {
 
@@ -46,7 +47,9 @@ public class MarkLoadOutputTest {
 		HashMap<String, MarkModel> markModels = parser.parse();
 		for (String markFile : directories) {
 			String fullName = markModelFiles + File.separator + markFile;
-			allModels.put(fullName, new MarkModelLoader().load(markModels, fullName)); // only load the model from this file
+			allModels.put(
+				fullName,
+				new MarkModelLoader().load(markModels, fullName)); // only load the model from this file
 		}
 	}
 

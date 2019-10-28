@@ -1,7 +1,7 @@
 // copied from symm_block_cipher, added with a few forbidden calls
-
 // DOES NOT COMPILE
 // DOES NOT MAKE REAL SENSE
+
 char[] cipher;
 SymmetricKey key;
 int iv;
@@ -16,11 +16,13 @@ p.finish(buf);
 p.foo(); // not in the entity and therefore ignored
 p.set_key(key);
 }
+
 void nok2 () {
 Botan p2 = new Botan(2);
 p2.start(iv);
 // missing p2.finish(buf);
 }
+
 void nok3 () {
 Botan p3 = new Botan(2);
 if (3 < 4) {
@@ -29,12 +31,14 @@ if (3 < 4) {
 p3.finish(buf);
 // potentially wrong path which only calls p3.finish without p3.start
 }
+
 void ok() {
 // ok:
 Botan p4 = new Botan(2);
 p4.start(iv);
 p4.finish(buf);
 }
+
 void nok4 () {
 Botan p4 = new Botan(2);
 if (true) {
@@ -44,6 +48,7 @@ if (true) {
 p4.start(iv); // not ok, p4 is already finished
 p4.finish(buf);
 }
+
 void nok5() {
 // nok:
 {

@@ -19,6 +19,9 @@ import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.junit.jupiter.api.*;
+
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
@@ -27,14 +30,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class MarkCppTest {
-
 	private static HashMap<String, MarkModel> markModels;
 	private final static boolean INCLUDE_KNOWN_NONWORKING_TESTS = false;
 
@@ -218,27 +218,27 @@ public class MarkCppTest {
 		runTest("simple_instancestring");
 	}
 
+	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_prevassignop_int() throws Exception {
-		assumeTrue(INCLUDE_KNOWN_NONWORKING_TESTS);
 		runTest("arg_prevassignop_int");
 	}
 
+	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_assignconstructor_int() throws Exception {
-		assumeTrue(INCLUDE_KNOWN_NONWORKING_TESTS);
 		runTest("arg_assignconstructor_int");
 	}
 
+	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_assignparenthesisexpr_int() throws Exception {
-		assumeTrue(INCLUDE_KNOWN_NONWORKING_TESTS);
 		runTest("arg_assignparenthesisexpr_int");
 	}
 
+	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_uniforminitializer_int() throws Exception {
-		assumeTrue(INCLUDE_KNOWN_NONWORKING_TESTS);
 		runTest("arg_uniforminitializer_int");
 	}
 

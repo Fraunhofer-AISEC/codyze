@@ -7,8 +7,10 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.JythonInterpreter;
+import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.builtin.IsInstanceBuiltin;
 import de.fraunhofer.aisec.crymlin.builtin.ReceivesValueFromBuiltin;
+import de.fraunhofer.aisec.crymlin.builtin.SplitBuiltin;
 import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -16,8 +18,6 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection.Type;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
-import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
-import de.fraunhofer.aisec.crymlin.builtin.SplitBuiltin;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
@@ -171,22 +171,28 @@ public class AnalysisServer {
 
 		// Run all passes and persist the result
 		return analyzer.analyze() // Run analysis
-				.thenApply(result -> {
-					// Attach analysis context to result
-					result.getScratch().put("ctx", ctx);
-					return persistToODB(result);
-				}).thenApplyAsync(result -> {
-					if (EXPORT_TO_NEO4J) {
-						// Optional, just for debugging: re-import into Neo4J
-						exportToNeo4j(result);
-					}
-					return result;
-				}).thenApply(result -> {
-					log.info("Evaluating mark: {} entities, {} rules", this.markModel.getEntities().size(), this.markModel.getRules().size());
-					// Evaluate all MARK rules
-					MarkInterpreter mi = new MarkInterpreter(this.markModel);
-					return mi.evaluate(result, ctx);
-				});
+				.thenApply(
+					result -> {
+						// Attach analysis context to result
+						result.getScratch().put("ctx", ctx);
+						return persistToODB(result);
+					}).thenApplyAsync(
+						result -> {
+							if (EXPORT_TO_NEO4J) {
+								// Optional, just for debugging: re-import into Neo4J
+								exportToNeo4j(result);
+							}
+							return result;
+						}).thenApply(
+							result -> {
+								log.info(
+									"Evaluating mark: {} entities, {} rules",
+									this.markModel.getEntities().size(),
+									this.markModel.getRules().size());
+								// Evaluate all MARK rules
+								MarkInterpreter mi = new MarkInterpreter(this.markModel);
+								return mi.evaluate(result, ctx);
+							});
 	}
 
 	public void loadMarkRulesFromConfig() {
@@ -241,9 +247,14 @@ public class AnalysisServer {
 		start = Instant.now();
 		log.info("Transforming MARK Xtext to internal format");
 		this.markModel = new MarkModelLoader().load(markModels);
-		log.info("Done Transforming MARK Xtext to internal format in {} ms", Duration.between(start, Instant.now()).toMillis());
+		log.info(
+			"Done Transforming MARK Xtext to internal format in {} ms",
+			Duration.between(start, Instant.now()).toMillis());
 
-		log.info("Loaded {} entities and {} rules.", this.markModel.getEntities().size(), this.markModel.getRules().size());
+		log.info(
+			"Loaded {} entities and {} rules.",
+			this.markModel.getEntities().size(),
+			this.markModel.getRules().size());
 	}
 
 	/**
@@ -288,8 +299,12 @@ public class AnalysisServer {
 			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
 			Long numEdges = crymlinTraversal.E().count().next();
 			Long numVertices = crymlinTraversal.V().count().next();
-			log.info("Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)", numVertices, String.format("%.2f", (double) duration / numVertices),
-				numEdges, String.format("%.2f", (double) duration / numEdges));
+			log.info(
+				"Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
+				numVertices,
+				String.format("%.2f", (double) duration / numVertices),
+				numEdges,
+				String.format("%.2f", (double) duration / numEdges));
 		}
 		log.info("Benchmark: Persisted approx {} nodes", Neo4jDatabase.getInstance().getNumNodes());
 		return result;
@@ -307,8 +322,12 @@ public class AnalysisServer {
 			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
 			Long numEdges = crymlinTraversal.V().outE().count().next();
 			Long numVertices = crymlinTraversal.V().count().next();
-			log.info("Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)", numVertices, String.format("%.2f", (double) duration / numVertices),
-				numEdges, String.format("%.2f", (double) duration / numEdges));
+			log.info(
+				"Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
+				numVertices,
+				String.format("%.2f", (double) duration / numVertices),
+				numEdges,
+				String.format("%.2f", (double) duration / numEdges));
 		}
 		catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -348,7 +367,11 @@ public class AnalysisServer {
 			try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
 				File neo4jDB = Path.of(".data", "databases", "graph.db").toFile(); // new File("./.data/databases/graph.db");
 				if (neo4jDB.exists()) {
-					Files.move(neo4jDB.toPath(), Path.of(System.getProperty("java.io.tmpdir"), "backup" + System.currentTimeMillis() + ".db"));
+					Files.move(
+						neo4jDB.toPath(),
+						Path.of(
+							System.getProperty("java.io.tmpdir"),
+							"backup" + System.currentTimeMillis() + ".db"));
 				}
 				try (Neo4jGraph neo4jGraph = Neo4jGraph.open(Path.of(".data", "databases", "graph.db").toString())) {
 					GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();

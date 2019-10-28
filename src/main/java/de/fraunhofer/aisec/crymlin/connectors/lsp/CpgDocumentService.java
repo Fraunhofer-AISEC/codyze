@@ -9,6 +9,12 @@ import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.services.TextDocumentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.net.URI;
 import java.time.Duration;
@@ -19,11 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.eclipse.lsp4j.services.TextDocumentService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of a {@link TextDocumentService}, which handles certain notifications from a Language Client, such as opening or changing files.
@@ -38,7 +39,8 @@ public class CpgDocumentService implements TextDocumentService {
 
 	private void analyze(String uriString, String text) {
 		String sanitizedText = text.replaceAll("[\\n ]", "");
-		if (lastScan.get(uriString) != null && lastScan.get(uriString).getValue0().equals(sanitizedText)) {
+		if (lastScan.get(uriString) != null
+				&& lastScan.get(uriString).getValue0().equals(sanitizedText)) {
 			log.info("Same file already scanned, ignoring");
 			client.publishDiagnostics(lastScan.get(uriString).getValue1());
 			return;
@@ -50,7 +52,10 @@ public class CpgDocumentService implements TextDocumentService {
 			diagnostic.setSeverity(DiagnosticSeverity.Information);
 			diagnostic.setMessage("File is being scanned");
 			String[] split = text.split("\n");
-			diagnostic.setRange(new Range(new Position(0, 0), new Position(split.length - 1, split[split.length - 1].length())));
+			diagnostic.setRange(
+				new Range(
+					new Position(0, 0),
+					new Position(split.length - 1, split[split.length - 1].length())));
 			allDiags.add(diagnostic);
 			PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
 			diagnostics.setDiagnostics(allDiags);
@@ -83,8 +88,11 @@ public class CpgDocumentService implements TextDocumentService {
 				log.error("ctx is null. Did the analysis run without errors?");
 				return;
 			}
-			log.info("Analysis for {} done. Returning {} findings. Took {} ms\n-------------------------------------------------------------------", uriString,
-				ctx.getFindings().size(), Duration.between(start, Instant.now()).toMillis());
+			log.info(
+				"Analysis for {} done. Returning {} findings. Took {} ms\n-------------------------------------------------------------------",
+				uriString,
+				ctx.getFindings().size(),
+				Duration.between(start, Instant.now()).toMillis());
 
 			ArrayList<Diagnostic> allDiags = new ArrayList<>();
 			for (Finding f : ctx.getFindings()) {

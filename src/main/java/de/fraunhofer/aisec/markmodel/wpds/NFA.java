@@ -52,10 +52,8 @@ public class NFA {
 		Iterator<Node> it = currentConfiguration.iterator();
 		while (it.hasNext()) {
 			Node currentConfig = it.next();
-			List<Node> possibleTargets = this.transitions.stream()
-					.filter(t -> t.getSource().equals(currentConfig) && t.getLabel().equals(event))
-					.map(t -> t.getTarget())
-					.collect(Collectors.toList());
+			List<Node> possibleTargets = this.transitions.stream().filter(t -> t.getSource().equals(currentConfig) && t.getLabel().equals(event)).map(
+				t -> t.getTarget()).collect(Collectors.toList());
 			if (!possibleTargets.isEmpty()) {
 				it.remove();
 				currentConfiguration.addAll(possibleTargets);

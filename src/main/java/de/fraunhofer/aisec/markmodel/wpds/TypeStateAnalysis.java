@@ -174,7 +174,7 @@ public class TypeStateAnalysis {
 			}
 		}
 
-		System.out.println("Final config: " + String.join(", " + tsNFA.getCurrentConfiguration().stream().map(n->n.getName()).collect(Collectors.toList())));
+		System.out.println("Final config: " + String.join(", " + tsNFA.getCurrentConfiguration().stream().map(n -> n.getName()).collect(Collectors.toList())));
 
 		System.out.println("--------------------------");
 
@@ -251,7 +251,7 @@ public class TypeStateAnalysis {
 								 * "return site" is the statement to which flow returns after the function call.
 								 */
 								Set<PushRule<Stmt, Val, Weight>> pushRules = createPushRules(mce, crymlinTraversal, currentFunctionName, nfa, previousStmt, currentStmt,
-										v);
+									v);
 								for (PushRule<Stmt, Val, Weight> pushRule : pushRules) {
 									System.out.println("  Adding push rule: " + pushRule.toString());
 									wpds.addRule(pushRule);
@@ -293,10 +293,10 @@ public class TypeStateAnalysis {
 
 						if (rhs.isPresent()) {
 							Vertex rhsVar = rhs.get();
-//							if (isCallExpression(rhsVar)) {
-//								// TODO Handle as push/pop rule
-//							} else
-								if (rhsVar.property("name").isPresent()) {
+							//							if (isCallExpression(rhsVar)) {
+							//								// TODO Handle as push/pop rule
+							//							} else
+							if (rhsVar.property("name").isPresent()) {
 								log.debug("  Has name on right hand side " + rhsVar.property("name").value());
 								Val rhsVal = new Val((String) rhsVar.property("name").value(), currentFunctionName);
 								// We add all transitions of the typestate NFA that may be triggered by the current op
@@ -323,7 +323,7 @@ public class TypeStateAnalysis {
 								// Normal copy of all values in scope
 								for (Val valInScope : valsInScope) {
 									Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt,
-											Weight.one());
+										Weight.one());
 									if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
 										Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
 										if (!normalRule.getS1().equals(forbiddenVal)) {
@@ -340,65 +340,64 @@ public class TypeStateAnalysis {
 								//Weight w = new Weight(nfa.getInitialTransitions());
 								//NFATransition startCycle = new NFATransition(nfa.getStart(), nfa.getStart(), nfa.getStart().getName());
 								Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt, declVal, currentStmt,
-										Weight.one());
+									Weight.one());
 								System.out.println("Adding normal rule " + normalRule.toString());
 								wpds.addRule(normalRule);
 
 							}
 						}
-						} else if (v.label().equals(ReturnStatement.class.getSimpleName())) {
-							/* Return statements result in pop rules */
-							// TODO Proper handling of variables in scope
-							ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(v);
-							if (returnV != null && !returnV.isDummy()) {
-								returnV.getReturnValue().toString();
-								Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
+					} else if (v.label().equals(ReturnStatement.class.getSimpleName())) {
+						/* Return statements result in pop rules */
+						// TODO Proper handling of variables in scope
+						ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(v);
+						if (returnV != null && !returnV.isDummy()) {
+							returnV.getReturnValue().toString();
+							Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
 
-								for (Val returnedVal : returnedVals) {
-									Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
-											tran -> tran.getTarget().getOp().equals(returnedVal.getVariable())).collect(Collectors.toSet());
-									Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
+							for (Val returnedVal : returnedVals) {
+								Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
+									tran -> tran.getTarget().getOp().equals(returnedVal.getVariable())).collect(Collectors.toSet());
+								Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
-									// Pop Rule for actually returned value
-									PopRule<Stmt, Val, Weight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue().getName().toString(), currentFunctionName),
-											currentStmt, returnedVal, weight);
-									wpds.addRule(returnPopRule);
-									System.out.println("Created pop rule " + returnPopRule.toString());
-								}
-
-								// Pop Rules for side effects on parameters
-								Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionDeclaration, v, odb, crymlinTraversal);
-								for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
-									PopRule<Stmt, Val, Weight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(), Weight.one());
-									wpds.addRule(popRule);
-									System.out.println("Created pop rule " + popRule.toString());
-								}
-
+								// Pop Rule for actually returned value
+								PopRule<Stmt, Val, Weight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue().getName().toString(), currentFunctionName),
+									currentStmt, returnedVal, weight);
+								wpds.addRule(returnPopRule);
+								System.out.println("Created pop rule " + returnPopRule.toString());
 							}
 
-							// Create normal rule. Flow remains where it is.  // TODO should be outside of dummy, but should avoid cyclic rules
-							for (Val valInScope : valsInScope) {
-								Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream()
-										.filter(tran -> tran.getTarget().getOp().equals(currentStmt))
-										.collect(Collectors.toSet());
-								Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, Weight.one());
-								boolean skipIt = false;
-								if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
-									Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
-									if (!normalRule.getS1().equals(forbiddenVal)) {
-										skipIt = true;
-									}
-								}
-								if (!skipIt) {
-									System.out.println("Adding normal rule " + normalRule.toString());
-									wpds.addRule(normalRule);
-								}
+							// Pop Rules for side effects on parameters
+							Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionDeclaration, v, odb, crymlinTraversal);
+							for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
+								PopRule<Stmt, Val, Weight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(), Weight.one());
+								wpds.addRule(popRule);
+								System.out.println("Created pop rule " + popRule.toString());
 							}
 
 						}
-						previousStmt = currentStmt;
-						//skipTheseArgs.clear();
+
+						// Create normal rule. Flow remains where it is.  // TODO should be outside of dummy, but should avoid cyclic rules
+						for (Val valInScope : valsInScope) {
+							Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
+								tran -> tran.getTarget().getOp().equals(currentStmt)).collect(Collectors.toSet());
+							Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, Weight.one());
+							boolean skipIt = false;
+							if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
+								Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
+								if (!normalRule.getS1().equals(forbiddenVal)) {
+									skipIt = true;
+								}
+							}
+							if (!skipIt) {
+								System.out.println("Adding normal rule " + normalRule.toString());
+								wpds.addRule(normalRule);
+							}
+						}
+
 					}
+					previousStmt = currentStmt;
+					//skipTheseArgs.clear();
+				}
 
 				// Add successors to work list
 				Iterator<Edge> successors = v.edges(Direction.OUT, "EOG");
@@ -421,7 +420,7 @@ public class TypeStateAnalysis {
 			final Set<Val> valsInScope) {
 		Set<NormalRule<Stmt, Val, Weight>> result = new HashSet<>();
 		Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
-				tran -> tran.getTarget().getOp().equals(mce.getName())).collect(Collectors.toSet());
+			tran -> tran.getTarget().getOp().equals(mce.getName())).collect(Collectors.toSet());
 		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 		// Create normal rule. Flow remains where it is.
@@ -443,7 +442,8 @@ public class TypeStateAnalysis {
 		return mce.getInvokes().isEmpty();
 	}
 
-	/** Finds the mapping from function parameters to arguments of calls to this method. This is needed for later construction of pop rules.
+	/**
+	 * Finds the mapping from function parameters to arguments of calls to this method. This is needed for later construction of pop rules.
 	 *
 	 * @param functionDeclaration
 	 * @param returnV
@@ -462,11 +462,8 @@ public class TypeStateAnalysis {
 			}
 			String calleeName = calleeFD.getName();
 
-			List<Vertex> calls = crymlinTraversalSource
-					.byID((long) returnV.id())
-					.repeat(__().out("DFG"))
-					.until(__().hasLabel(CallExpression.class.getSimpleName()))
-					.limit(5).toList();
+			List<Vertex> calls = crymlinTraversalSource.byID((long) returnV.id()).repeat(__().out("DFG")).until(
+				__().hasLabel(CallExpression.class.getSimpleName())).limit(5).toList();
 
 			for (Vertex call : calls) {
 				CallExpression ce = (CallExpression) odb.vertexToNode(call);
@@ -474,12 +471,12 @@ public class TypeStateAnalysis {
 					continue;
 				}
 
-				/* Find name of calling function ("caller") TODO This is not an optimal way to find out the calling function, as we need to traverse potentially many EOG edges. */
-				List<Vertex> callers = crymlinTraversalSource
-						.byID((long) call.id())
-						.repeat(__().in("EOG"))
-						.until(__().hasLabel(FunctionDeclaration.class.getSimpleName()))
-						.limit(50).toList();
+				/*
+				 * Find name of calling function ("caller") TODO This is not an optimal way to find out the calling function, as we need to traverse potentially many EOG
+				 * edges.
+				 */
+				List<Vertex> callers = crymlinTraversalSource.byID((long) call.id()).repeat(__().in("EOG")).until(
+					__().hasLabel(FunctionDeclaration.class.getSimpleName())).limit(50).toList();
 
 				for (Vertex callerV : callers) {
 					FunctionDeclaration caller = (FunctionDeclaration) odb.vertexToNode(callerV);
@@ -489,7 +486,7 @@ public class TypeStateAnalysis {
 					}
 					List<Expression> args = ce.getArguments();
 					FunctionDeclaration callee = ce.getInvokes().get(
-							0);  // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
+						0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
 					List<ParamVariableDeclaration> params = callee.getParameters();
 
 					Set<Pair<Val, Val>> pToA = new HashSet<>();
@@ -499,7 +496,8 @@ public class TypeStateAnalysis {
 					result.put(calleeName, pToA);
 				}
 			}
-		} catch (FastNoSuchElementException e) {
+		}
+		catch (FastNoSuchElementException e) {
 			e.printStackTrace();
 			System.out.println("ERROR FNSE");
 		}
@@ -525,18 +523,16 @@ public class TypeStateAnalysis {
 		 * to a VariableDeclaration.
 		 */
 		Set<Val> returnedVals = new HashSet<>();
-		List<Vertex> calls = crymlinTraversalSource
-				.byID((long) v.id())
-				.repeat(__().out("DFG"))
-				.until(__().hasLabel(CallExpression.class.getSimpleName()))
-				.limit(5).toList();
+		List<Vertex> calls = crymlinTraversalSource.byID((long) v.id()).repeat(__().out("DFG")).until(__().hasLabel(CallExpression.class.getSimpleName())).limit(
+			5).toList();
 
 		for (Vertex call : calls) {
 			// We found the call site into our method. Now see if the return value is used.
 			Optional<Vertex> nextDfgAftercall = crymlinTraversalSource.byID((long) call.id()).out("DFG").tryNext();
 			String returnVar = "";
 			if (nextDfgAftercall.isPresent()) {
-				if (nextDfgAftercall.get().label().equals(VariableDeclaration.class.getSimpleName()) || nextDfgAftercall.get().label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
+				if (nextDfgAftercall.get().label().equals(VariableDeclaration.class.getSimpleName())
+						|| nextDfgAftercall.get().label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
 					// return value is used. Remember variable name.
 					returnVar = nextDfgAftercall.get().property("name").value().toString();
 				}
@@ -578,7 +574,7 @@ public class TypeStateAnalysis {
 	private Set<PushRule<Stmt, Val, Weight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
 			NFA nfa, Stmt previousStmt, Stmt currentStmt, Vertex v) {
 		Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
-				tran -> tran.getTarget().getOp().equals(mce.getName())).collect(Collectors.toSet());
+			tran -> tran.getTarget().getOp().equals(mce.getName())).collect(Collectors.toSet());
 		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
@@ -592,7 +588,7 @@ public class TypeStateAnalysis {
 			// Parameters of function
 			if (potentialCallee.getParameters().size() != argVals.size()) {
 				log.warn("Skipping call from {} to {} due different argument/parameter counts.", currentFunctionName,
-						potentialCallee.getSignature());
+					potentialCallee.getSignature());
 				continue;
 			}
 			List<Val> parmVals = parametersToVals(potentialCallee);
@@ -605,12 +601,12 @@ public class TypeStateAnalysis {
 					for (Vertex returnSiteVertex : returnSites) {
 						Stmt returnSite = new Stmt(returnSiteVertex.property("startLine").value() + " : " + returnSiteVertex.property("code").value().toString());
 						PushRule<Stmt, Val, Weight> pushRule = new PushRule<Stmt, Val, Weight>(
-								argVals.get(i),
-								currentStmt,
-								parmVals.get(i),
-								new Stmt(potentialCallee.getRegion().getStartLine() + " : " + potentialCallee.getName()),
-								returnSite,
-								weight);
+							argVals.get(i),
+							currentStmt,
+							parmVals.get(i),
+							new Stmt(potentialCallee.getRegion().getStartLine() + " : " + potentialCallee.getName()),
+							returnSite,
+							weight);
 						pushRules.add(pushRule);
 					}
 				}

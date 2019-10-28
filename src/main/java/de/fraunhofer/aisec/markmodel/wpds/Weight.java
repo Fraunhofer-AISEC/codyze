@@ -75,10 +75,13 @@ public class Weight extends Semiring {
 		for (NFATransition my : this.value) {
 			for (NFATransition theirs : otherW.value) {
 				// Transitive hull. Avoid endless loops by skipping cyclic transitions.
-				if (!theirs.isCycle() && !my.isCycle() && my.getTarget().equals(theirs.getSource())) {
+				if (my.getTarget().equals(theirs.getSource())) {
 					resultSet.add(new NFATransition(my.getSource(), theirs.getTarget(), my.getLabel()));
 				}
 			}
+		}
+		if (resultSet.isEmpty()) {
+			return Weight.zero();
 		}
 		return new Weight(resultSet);
 	}

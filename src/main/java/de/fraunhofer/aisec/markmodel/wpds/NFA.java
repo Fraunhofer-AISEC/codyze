@@ -51,10 +51,9 @@ public class NFA {
 		boolean didTransition = false;
 		Iterator<Node> it = currentConfiguration.iterator();
 		while (it.hasNext()) {
-			Node c = it.next();
+			Node currentConfig = it.next();
 			List<Node> possibleTargets = this.transitions.stream()
-					.filter(t -> t.getSource().equals(c))
-					.filter(t -> t.getLabel().equals(event))
+					.filter(t -> t.getSource().equals(currentConfig) && t.getLabel().equals(event))
 					.map(t -> t.getTarget())
 					.collect(Collectors.toList());
 			if (!possibleTargets.isEmpty()) {

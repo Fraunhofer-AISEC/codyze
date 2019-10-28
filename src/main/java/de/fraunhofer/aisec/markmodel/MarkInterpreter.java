@@ -149,10 +149,10 @@ public class MarkInterpreter {
 			evaluateForbiddenCalls(ctx);
 			b.stop();
 
-			log.info("Evaluate order");
-			b = new Benchmark(this.getClass(), "Evaluate order");
-			evaluateOrder(ctx, crymlinTraversal);
-			b.stop();
+			//			log.info("Evaluate order");
+			//			b = new Benchmark(this.getClass(), "Evaluate order");
+			//			evaluateOrder(ctx, crymlinTraversal);
+			//			b.stop();
 
 			log.info("Evaluate typestate");
 			b = new Benchmark(this.getClass(), "Evaluate typestates");
@@ -211,6 +211,7 @@ public class MarkInterpreter {
 	}
 
 	private void evaluateTypestate(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal) {
+		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "WPDS Typestate Analysis");
 		TypeStateAnalysis ts = new TypeStateAnalysis();
 		List<MRule> rules = getOrderRules();
 		for (MRule r : rules) {
@@ -222,6 +223,7 @@ public class MarkInterpreter {
 				log.error("Unexpected error in typestate WPDS", e);
 			}
 		}
+		tsBench.stop();
 	}
 
 	private List<MRule> getOrderRules() {

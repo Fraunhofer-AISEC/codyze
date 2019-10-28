@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class OrderTestInterproc {
 
-	private void performTest(String sourceFileName) throws Exception {
+	private List<String> performTest(String sourceFileName) throws Exception {
 		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);
@@ -78,27 +78,37 @@ class OrderTestInterproc {
 			System.out.println(s);
 		}
 
-		assertEquals(5, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+		server.stop();
+
+		return findings;
+	}
+
+	@Test
+	void testCppInterprocOk1() throws Exception {
+		List<String> findings = performTest("unittests/orderInterprocOk1.cpp");
+
+		assertEquals(0, findings.size());
+	}
+
+	@Test
+	void testCppInterprocNOk1() throws Exception {
+		List<String> findings = performTest("unittests/orderInterprocNOk1.cpp");
+
+		assertEquals(0, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
 		assertTrue(findings.contains("line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
 		assertTrue(findings.contains("line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
 		assertTrue(findings.contains(
-			"line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+				"line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
 		assertTrue(findings.contains("line 80: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
 		assertTrue(findings.contains(
-			"line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode)"));
+				"line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode)"));
 
-		server.stop();
 	}
 
 	@Test
-	@Disabled // TODO order3.java does not yet exist
-	void testJavaInterproc() throws Exception {
-		performTest("unittests/order3.java");
-	}
+	void testCppInterprocNOk2() throws Exception {
+		List<String> findings = performTest("unittests/orderInterprocNOk2.cpp");
 
-	@Test
-	void testCppInterproc() throws Exception {
-		performTest("unittests/order3.cpp");
 	}
 }

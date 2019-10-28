@@ -201,7 +201,7 @@ spotless {
                     include("src/main/generated/**")
                 }
         )
-        eclipseFormatFile(rootProject.file("formatter-settings.xml"))
+        eclipse().configFile(rootProject.file("formatter-settings.xml"))
     }
 }
 

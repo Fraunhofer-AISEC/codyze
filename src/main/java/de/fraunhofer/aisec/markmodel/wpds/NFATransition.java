@@ -39,7 +39,8 @@ class NFATransition<N> {
 		return source.toString() + " -- [" + label + "] --> " + target;
 	}
 
-	@Override public boolean equals(Object o) {
+	@Override
+	public boolean equals(Object o) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())
@@ -50,7 +51,8 @@ class NFATransition<N> {
 				Objects.equals(label, that.label);
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 		return Objects.hash(source, target, label);
 	}
 }

@@ -131,7 +131,6 @@ dependencies {
 
     // Pushdown Systems
     api("de.breakpoint", "pushdown", "1.0-SNAPSHOT")
-    api("de.fraunhofer.iem", "idealPDS", "2.4-SNAPSHOT")
 
     // Jython (Scripting engine)
     api("org.python", "jython-standalone", versions["jython"])

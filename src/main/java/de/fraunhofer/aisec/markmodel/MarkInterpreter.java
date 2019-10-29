@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
+import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.utils.Pair;
@@ -33,9 +34,11 @@ public class MarkInterpreter {
 	private static final Logger log = LoggerFactory.getLogger(MarkInterpreter.class);
 	@NonNull
 	private final Mark markModel;
+	private final ServerConfiguration config;
 
-	public MarkInterpreter(@NonNull Mark markModel) {
+	public MarkInterpreter(@NonNull Mark markModel, ServerConfiguration config) {
 		this.markModel = markModel;
+		this.config = config;
 	}
 
 	public static String exprToString(Expression expr) {
@@ -150,14 +153,9 @@ public class MarkInterpreter {
 			evaluateForbiddenCalls(ctx);
 			b.stop();
 
-			//			log.info("Evaluate order");
-			//			b = new Benchmark(this.getClass(), "Evaluate order");
-			//			evaluateOrder(ctx, crymlinTraversal);
-			//			b.stop();
-
-			log.info("Evaluate typestate");
-			b = new Benchmark(this.getClass(), "Evaluate typestates");
-			evaluateTypestate(ctx, crymlinTraversal);
+			log.info("Evaluate order");
+			b = new Benchmark(this.getClass(), "Evaluate typestates (order)");
+			evaluateTypestate(ctx, crymlinTraversal, config);
 			b.stop();
 
 			log.info("Evaluate rules");
@@ -215,19 +213,32 @@ public class MarkInterpreter {
 		b.stop();
 	}
 
-	private void evaluateTypestate(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal) {
-		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "WPDS Typestate Analysis");
-		TypeStateAnalysis ts = new TypeStateAnalysis();
-		List<MRule> rules = getOrderRules();
-		for (MRule r : rules) {
-			try {
-				// Findings will be directly written into ctx.findings.
-				ts.analyze(ctx, crymlinTraversal, r);
-			}
-			catch (IllegalTransitionException e) {
-				log.error("Unexpected error in typestate WPDS", e);
-			}
+	private void evaluateTypestate(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal, ServerConfiguration config) {
+		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "Typestate Analysis");
+
+		switch (config.typestateAnalysis) {
+
+			case WPDS:
+				log.info("Evaluating order with WPDS");
+				TypeStateAnalysis ts = new TypeStateAnalysis();
+				List<MRule> rules = getOrderRules();
+				for (MRule r : rules) {
+					try {
+						// Findings will be directly written into ctx.findings.
+						ts.analyze(ctx, crymlinTraversal, r);
+					}
+					catch (IllegalTransitionException e) {
+						log.error("Unexpected error in typestate WPDS", e);
+					}
+				}
+				break;
+
+			case NFA:
+				log.info("Evaluating order with NFA");
+				evaluateOrder(ctx, crymlinTraversal);
+				break;
 		}
+
 		tsBench.stop();
 	}
 

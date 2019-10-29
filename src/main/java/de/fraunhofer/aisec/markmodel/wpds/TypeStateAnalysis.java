@@ -361,8 +361,11 @@ public class TypeStateAnalysis {
 							Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
 
 							for (Val returnedVal : returnedVals) {
-								Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
-									tran -> tran.getTarget().getOp().equals(returnedVal.getVariable())).collect(Collectors.toSet());
+								Set<NFATransition> relevantNFATransitions = nfa.getTransitions()
+										.stream()
+										.filter(
+											tran -> tran.getTarget().getOp().equals(returnedVal.getVariable()))
+										.collect(Collectors.toSet());
 								Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 								// Pop Rule for actually returned value
@@ -384,8 +387,11 @@ public class TypeStateAnalysis {
 
 						// Create normal rule. Flow remains where it is.  // TODO should be outside of dummy, but should avoid cyclic rules
 						for (Val valInScope : valsInScope) {
-							Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
-								tran -> tran.getTarget().getOp().equals(currentStmt)).collect(Collectors.toSet());
+							Set<NFATransition> relevantNFATransitions = nfa.getTransitions()
+									.stream()
+									.filter(
+										tran -> tran.getTarget().getOp().equals(currentStmt))
+									.collect(Collectors.toSet());
 							Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, Weight.one());
 							boolean skipIt = false;
 							if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
@@ -425,8 +431,11 @@ public class TypeStateAnalysis {
 	private Set<NormalRule<Stmt, Val, Weight>> createNormalRules(final NFA nfa, final CallExpression mce, final Stmt previousStmt, final Stmt currentStmt,
 			final Set<Val> valsInScope) {
 		Set<NormalRule<Stmt, Val, Weight>> result = new HashSet<>();
-		Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
-			tran -> tran.getTarget().getOp().equals(mce.getName())).collect(Collectors.toSet());
+		Set<NFATransition> relevantNFATransitions = nfa.getTransitions()
+				.stream()
+				.filter(
+					tran -> tran.getTarget().getOp().equals(mce.getName()))
+				.collect(Collectors.toSet());
 		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 		// Create normal rule. Flow remains where it is.
@@ -468,8 +477,12 @@ public class TypeStateAnalysis {
 			}
 			String calleeName = calleeFD.getName();
 
-			List<Vertex> calls = crymlinTraversalSource.byID((long) returnV.id()).repeat(__().out("DFG")).until(
-				__().hasLabel(CallExpression.class.getSimpleName())).limit(5).toList();
+			List<Vertex> calls = crymlinTraversalSource.byID((long) returnV.id())
+					.repeat(__().out("DFG"))
+					.until(
+						__().hasLabel(CallExpression.class.getSimpleName()))
+					.limit(5)
+					.toList();
 
 			for (Vertex call : calls) {
 				CallExpression ce = (CallExpression) odb.vertexToNode(call);
@@ -481,8 +494,12 @@ public class TypeStateAnalysis {
 				 * Find name of calling function ("caller") TODO This is not an optimal way to find out the calling function, as we need to traverse potentially many EOG
 				 * edges.
 				 */
-				List<Vertex> callers = crymlinTraversalSource.byID((long) call.id()).repeat(__().in("EOG")).until(
-					__().hasLabel(FunctionDeclaration.class.getSimpleName())).limit(50).toList();
+				List<Vertex> callers = crymlinTraversalSource.byID((long) call.id())
+						.repeat(__().in("EOG"))
+						.until(
+							__().hasLabel(FunctionDeclaration.class.getSimpleName()))
+						.limit(50)
+						.toList();
 
 				for (Vertex callerV : callers) {
 					FunctionDeclaration caller = (FunctionDeclaration) odb.vertexToNode(callerV);
@@ -491,8 +508,9 @@ public class TypeStateAnalysis {
 						continue;
 					}
 					List<Expression> args = ce.getArguments();
-					FunctionDeclaration callee = ce.getInvokes().get(
-						0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
+					FunctionDeclaration callee = ce.getInvokes()
+							.get(
+								0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
 					List<ParamVariableDeclaration> params = callee.getParameters();
 
 					Set<Pair<Val, Val>> pToA = new HashSet<>();
@@ -528,8 +546,12 @@ public class TypeStateAnalysis {
 		 * to a VariableDeclaration.
 		 */
 		Set<Val> returnedVals = new HashSet<>();
-		List<Vertex> calls = crymlinTraversalSource.byID((long) v.id()).repeat(__().out("DFG")).until(__().hasLabel(CallExpression.class.getSimpleName())).limit(
-			5).toList();
+		List<Vertex> calls = crymlinTraversalSource.byID((long) v.id())
+				.repeat(__().out("DFG"))
+				.until(__().hasLabel(CallExpression.class.getSimpleName()))
+				.limit(
+					5)
+				.toList();
 
 		for (Vertex call : calls) {
 			// We found the call site into our method. Now see if the return value is used.
@@ -543,9 +565,12 @@ public class TypeStateAnalysis {
 				}
 				// Finally we need to find out in which function the call site actually is
 				String callerFunctionName = null;
-				Vertex callerFunction = crymlinTraversalSource.byID((long) call.id()).repeat(__().out("EOG")).until(__().in("STATEMENTS"))
+				Vertex callerFunction = crymlinTraversalSource.byID((long) call.id())
+						.repeat(__().out("EOG"))
+						.until(__().in("STATEMENTS"))
 						//					.limit(10)
-						.in("STATEMENTS").in("BODY")
+						.in("STATEMENTS")
+						.in("BODY")
 						//					.outV()
 						.next();
 				if (callerFunction != null) {
@@ -578,8 +603,11 @@ public class TypeStateAnalysis {
 	 */
 	private Set<PushRule<Stmt, Val, Weight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
 			NFA nfa, Stmt previousStmt, Stmt currentStmt, Vertex v) {
-		Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
-			tran -> tran.getTarget().getOp().equals(mce.getName())).collect(Collectors.toSet());
+		Set<NFATransition> relevantNFATransitions = nfa.getTransitions()
+				.stream()
+				.filter(
+					tran -> tran.getTarget().getOp().equals(mce.getName()))
+				.collect(Collectors.toSet());
 		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.

@@ -420,8 +420,11 @@ public class MarkInterpreter {
 											// if not, this call is not allowed, and this base must not be used in the
 											// following eog
 											Finding f = new Finding("Violation against Order: " + vertex.value("code") + " (" + (op == null ? "null" : op.getName())
-													+ ") is not allowed. Expected one of: " + nodesInFSM.stream().map(Node::getName).sorted().collect(
-														Collectors.joining(", "))
+													+ ") is not allowed. Expected one of: " + nodesInFSM.stream()
+															.map(Node::getName)
+															.sorted()
+															.collect(
+																Collectors.joining(", "))
 													+ " (" + rule.getErrorMessage() + ")",
 												vertex.value("startLine"), vertex.value("endLine"),
 												vertex.value("startColumn"), vertex.value("endColumn"));
@@ -521,8 +524,12 @@ public class MarkInterpreter {
 					Vertex vertex = lastBaseUsage.get(entry.getKey());
 					String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
 					Finding f = new Finding(
-						"Violation against Order: Base " + base + " is not correctly terminated. Expected one of [" + entry.getValue().stream().sorted().collect(
-							Collectors.joining(", ")) + "] to follow the correct last call on this base." + " (" + rule.getErrorMessage() + ")",
+						"Violation against Order: Base " + base + " is not correctly terminated. Expected one of [" + entry.getValue()
+								.stream()
+								.sorted()
+								.collect(
+									Collectors.joining(", "))
+								+ "] to follow the correct last call on this base." + " (" + rule.getErrorMessage() + ")",
 						vertex.value("startLine"), vertex.value("endLine"), vertex.value("startColumn"), vertex.value("endColumn"));
 					ctx.getFindings().add(f);
 					log.info("Finding: {}", f);
@@ -547,11 +554,16 @@ public class MarkInterpreter {
 			simplified.computeIfAbsent(entry.getKey().split("\\.")[1], x -> new HashSet<>()).addAll(entry.getValue());
 		}
 
-		List<String> fsmStates = simplified.entrySet().stream().map(
-			x -> x.getKey()
-					+ "("
-					+ x.getValue().stream().map(Node::toString).collect(Collectors.joining(","))
-					+ ")").distinct().sorted().collect(Collectors.toList());
+		List<String> fsmStates = simplified.entrySet()
+				.stream()
+				.map(
+					x -> x.getKey()
+							+ "("
+							+ x.getValue().stream().map(Node::toString).collect(Collectors.joining(","))
+							+ ")")
+				.distinct()
+				.sorted()
+				.collect(Collectors.toList());
 
 		return v.id() + " " + String.join(",", fsmStates);
 	}
@@ -618,9 +630,12 @@ public class MarkInterpreter {
 	 *
 	 */
 	private List<MRule> getNonOrderRules() {
-		return markModel.getRules().stream().filter(
-			r -> r != null && (r.getStatement() != null && r.getStatement().getEnsure() != null) && !(r.getStatement().getEnsure() != null
-					&& r.getStatement().getEnsure().getExp() instanceof OrderExpression)).collect(Collectors.toList());
+		return markModel.getRules()
+				.stream()
+				.filter(
+					r -> r != null && (r.getStatement() != null && r.getStatement().getEnsure() != null) && !(r.getStatement().getEnsure() != null
+							&& r.getStatement().getEnsure().getExp() instanceof OrderExpression))
+				.collect(Collectors.toList());
 	}
 
 	private void evaluateNonOrderRules(AnalysisContext ctx) {
@@ -654,11 +669,12 @@ public class MarkInterpreter {
 				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition satisfied"));
 			} else {
 				log.error("Rule '{}' is violated.", rule.getName());
-				ctx.getFindings().add(
-					new Finding(
-						"MarkRuleEvaluationFinding: Rule "
-								+ rule.getName()
-								+ ": ensure condition violated"));
+				ctx.getFindings()
+						.add(
+							new Finding(
+								"MarkRuleEvaluationFinding: Rule "
+										+ rule.getName()
+										+ ": ensure condition violated"));
 			}
 		}
 	}

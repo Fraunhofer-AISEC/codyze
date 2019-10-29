@@ -82,16 +82,21 @@ public class OGMTest {
 	/** Test proper edges around an <code>IfStatement</code> */
 	@Test
 	void testIfGraph() {
-		Vertex ifStmt = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
-			IfStatement.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
+		Vertex ifStmt = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V()
+				.hasLabel(
+					IfStatement.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
 				.has(
 					"code",
 					"if (3 < 4) {"
 							+ System.lineSeparator()
 							+ "      p3.start(iv);"
 							+ System.lineSeparator()
-							+ "    }").next();
+							+ "    }")
+				.next();
 
 		ArrayList<Edge> eogEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "EOG"));
 		assertEquals(1, eogEdges.size());
@@ -110,16 +115,23 @@ public class OGMTest {
 		ArrayList<Edge> elseEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "ELSE_STATEMENT"));
 		assertEquals(0, elseEdges.size());
 
-		Vertex conditionExpr = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
-			IfStatement.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
+		Vertex conditionExpr = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V()
+				.hasLabel(
+					IfStatement.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(IfStatement.class)) // Get If stmt
 				.has(
 					"code",
 					"if (3 < 4) {"
 							+ System.lineSeparator()
 							+ "      p3.start(iv);"
 							+ System.lineSeparator()
-							+ "    }").outE("CONDITION").inV().next();
+							+ "    }")
+				.outE("CONDITION")
+				.inV()
+				.next();
 		ArrayList<Edge> rhsEdges = Lists.newArrayList(conditionExpr.edges(Direction.OUT, "RHS"));
 		assertEquals(1, rhsEdges.size());
 
@@ -133,9 +145,13 @@ public class OGMTest {
 	@Test
 	void countTranslationUnits() throws Exception {
 		// Get all TranslationUnitDeclarations (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
-			TranslationUnitDeclaration.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(TranslationUnitDeclaration.class));
+		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V()
+				.hasLabel(
+					TranslationUnitDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(TranslationUnitDeclaration.class));
 		long tuCount = traversal.count().next();
 		assertEquals(1, tuCount, "Expected exactly 1 TranslationUnitDeclarations");
 	}
@@ -143,9 +159,13 @@ public class OGMTest {
 	@Test
 	void countRecordDeclarations() throws Exception {
 		// Get all RecordDeclaration (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
-			RecordDeclaration.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(RecordDeclaration.class));
+		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V()
+				.hasLabel(
+					RecordDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(RecordDeclaration.class));
 		long rdCount = traversal.count().next();
 		assertEquals(2, rdCount, "Expected exactly 2 RecordDeclarations");
 	}
@@ -153,9 +173,13 @@ public class OGMTest {
 	@Test
 	void countMethodDeclarations() throws Exception {
 		// Get all MethodDeclaration (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
-			MethodDeclaration.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(MethodDeclaration.class));
+		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V()
+				.hasLabel(
+					MethodDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(MethodDeclaration.class));
 		long mdCount = traversal.count().next();
 		assertEquals(15, mdCount, "Expected exactly 15 MethodDeclarations");
 	}
@@ -164,8 +188,14 @@ public class OGMTest {
 	void countEogEdges() throws Exception {
 		// Get all EOG edges
 
-		GraphTraversal<Vertex, Edge> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(MethodDeclaration.class.getSimpleName()).has("name",
-			"ok").outE("EOG");
+		GraphTraversal<Vertex, Edge> traversal = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V()
+				.hasLabel(MethodDeclaration.class.getSimpleName())
+				.has("name",
+					"ok")
+				.outE("EOG");
 		long mdCount = traversal.count().next();
 		assertEquals(
 			1,
@@ -178,8 +208,12 @@ public class OGMTest {
 		List<TranslationUnitDeclaration> original = result.getTranslationUnits();
 		OverflowDatabase.<Node> getInstance().saveAll(original);
 
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance().getGraph().traversal().V().filter(
-			t -> t.get().label().contains("TranslationUnitDeclaration"));
+		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V()
+				.filter(
+					t -> t.get().label().contains("TranslationUnitDeclaration"));
 
 		List<TranslationUnitDeclaration> restored = new ArrayList<>();
 		while (traversal.hasNext()) {

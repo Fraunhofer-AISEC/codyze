@@ -61,8 +61,10 @@ public class AnalysisServerBotanTest {
 		}
 
 		// Start an analysis server
-		server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build()).build();
+		server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build())
+				.build();
 		server.start();
 
 		// Start the analysis (BOTAN Symmetric Example by Oliver)
@@ -126,7 +128,9 @@ public class AnalysisServerBotanTest {
 	 * @return
 	 */
 	private static TranslationManager newAnalysisRun(File... sourceFiles) {
-		return TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceFiles(sourceFiles).build()).build();
+		return TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceFiles(sourceFiles).build())
+				.build();
 	}
 }

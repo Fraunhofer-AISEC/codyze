@@ -87,8 +87,10 @@ class GithubTest {
 		File markPoC1 = new File(resource.getFile());
 		assertNotNull(markPoC1);
 
-		server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build()).build();
+		server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
+				.build();
 
 		server.start();
 
@@ -134,8 +136,10 @@ class GithubTest {
 		// if this does not work, just throw
 		OverflowDatabase.getInstance().purgeDatabase();
 
-		TranslationManager tm = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager tm = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 
 		boolean hasError = false;
 		CompletableFuture<TranslationResult> analyze = server.analyze(tm);
@@ -190,8 +194,10 @@ class GithubTest {
 		ArrayList<LogEvent> logFiltered = new ArrayList<>();
 		boolean hasParseError = false;
 		for (LogEvent x : log) {
-			if (x.getMessage().getFormattedMessage().contains(
-				"Parsing of type class org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTProblemStatement is not supported (yet)")
+			if (x.getMessage()
+					.getFormattedMessage()
+					.contains(
+						"Parsing of type class org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTProblemStatement is not supported (yet)")
 					|| x.getMessage().getFormattedMessage().contains("JavaParser could not parse file")) {
 				hasParseError = true;
 			}

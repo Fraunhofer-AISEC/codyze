@@ -116,8 +116,17 @@ public class JythonInterpreterTest {
 			GraphTraversalSource g = traversalConnection.getGremlinTraversal();
 
 			Long size = g.V().count().next();
-			List<Object> t = g.addV().property(T.label, "TranslationUnitDeclaration").property("name", "some_value").store("one").addV().property(T.label,
-				"Declaration").property("name", "another_value").store("one").cap("one").toList();
+			List<Object> t = g.addV()
+					.property(T.label, "TranslationUnitDeclaration")
+					.property("name", "some_value")
+					.store("one")
+					.addV()
+					.property(T.label,
+						"Declaration")
+					.property("name", "another_value")
+					.store("one")
+					.cap("one")
+					.toList();
 
 			assertNotNull(t);
 

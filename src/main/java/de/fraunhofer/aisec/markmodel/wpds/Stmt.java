@@ -21,12 +21,12 @@ public class Stmt {
 
 	@NonNull
 	public Region getRegion() {
-		return region!=null?region:new Region(-1,-1,-1,-1);
+		return region != null ? region : new Region(-1, -1, -1, -1);
 	}
 
 	@Override
 	public String toString() {
-		return (region!=null?region.getStartLine()+":"+region.getStartColumn()+" ":"") + stmt;
+		return (region != null ? region.getStartLine() + ":" + region.getStartColumn() + " " : "") + stmt;
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class Stmt {
 		Stmt stmt1 = (Stmt) o;
 		boolean samestmt = stmt.equals(stmt1.stmt);
 		boolean sameStart = true;
-		if (region != null && stmt1.region!=null) {
+		if (region != null && stmt1.region != null) {
 			sameStart = Objects.equals(region.getStartLine(), stmt1.region.getStartLine()) && Objects.equals(region.getStartColumn(), stmt1.region.getStartColumn());
 		}
 		return samestmt && sameStart;

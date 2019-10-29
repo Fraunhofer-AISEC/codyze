@@ -190,7 +190,7 @@ public class AnalysisServer {
 									this.markModel.getEntities().size(),
 									this.markModel.getRules().size());
 								// Evaluate all MARK rules
-								MarkInterpreter mi = new MarkInterpreter(this.markModel);
+								MarkInterpreter mi = new MarkInterpreter(this.markModel, this.config);
 								return mi.evaluate(result, ctx);
 							});
 	}

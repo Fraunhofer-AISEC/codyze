@@ -9,23 +9,25 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
-import org.junit.jupiter.api.Disabled;
+import de.fraunhofer.aisec.crymlin.structures.Finding;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class OrderTestInterproc {
 
-	private List<String> performTest(String sourceFileName) throws Exception {
+	private @NonNull Set<Finding> performTest(String sourceFileName) throws Exception {
 		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);
@@ -70,45 +72,45 @@ class OrderTestInterproc {
 		assertNotNull(ctx);
 		assertTrue(ctx.methods.isEmpty());
 
-		List<String> findings = new ArrayList<>();
-		assertNotNull(ctx.getFindings());
-		ctx.getFindings().forEach(x -> findings.add(x.toString()));
-
-		for (String s : findings) {
+		for (Finding s : ctx.getFindings()) {
 			System.out.println(s);
 		}
 
-		server.stop();
-
-		return findings;
+		return ctx.getFindings();
 	}
 
 	@Test
 	void testCppInterprocOk1() throws Exception {
-		List<String> findings = performTest("unittests/orderInterprocOk1.cpp");
+		@NonNull Set<Finding> findings = performTest("unittests/orderInterprocOk1.cpp");
 
-		assertEquals(0, findings.size());
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		assertTrue(findings.isEmpty());
 	}
 
 	@Test
 	void testCppInterprocNOk1() throws Exception {
-		List<String> findings = performTest("unittests/orderInterprocNOk1.cpp");
+		@NonNull Set<Finding> findings = performTest("unittests/orderInterprocNOk1.cpp");
 
-		assertEquals(0, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+		Set<Integer> startLineNumbers = findings.stream()
+				.map(f -> f.getRange().getStart().getLine())
+				.collect(Collectors.toSet());
 
-		assertTrue(findings.contains("line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
-		assertTrue(findings.contains("line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
-		assertTrue(findings.contains(
-			"line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
-		assertTrue(findings.contains("line 80: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode)"));
-		assertTrue(findings.contains(
-			"line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode)"));
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		assertTrue(startLineNumbers.contains(28));
+		assertTrue(startLineNumbers.contains(30));
+		assertTrue(startLineNumbers.contains(32));
 
 	}
 
 	@Test
 	void testCppInterprocNOk2() throws Exception {
-		List<String> findings = performTest("unittests/orderInterprocNOk2.cpp");
+		@NonNull Set<Finding> findings = performTest("unittests/orderInterprocNOk2.cpp");
 
+		Set<Integer> startLineNumbers = findings.stream()
+				.map(f -> f.getRange().getStart().getLine())
+				.collect(Collectors.toSet());
+
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		assertTrue(startLineNumbers.contains(30));
 	}
 }

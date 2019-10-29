@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.crymlin.dsl.__.*;
 import static de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper.isCallExpression;
+import static java.lang.Math.toIntExact;
 
 /**
  * Implementation of a WPDS-based typestate analysis using the code property graph.
@@ -241,10 +242,10 @@ public class TypeStateAnalysis {
 					Stmt currentStmt = new Stmt(
 						v.property("code").value().toString(),
 						new Region(
-							(long) v.property("startLine").value(),
-							(long) v.property("startColumn").value(),
-							(long) v.property("endLine").value(),
-							(long) v.property("startColumn").value()));
+							toIntExact((long) v.property("startLine").value()),
+							toIntExact((long) v.property("startColumn").value()),
+							toIntExact((long) v.property("endLine").value()),
+							toIntExact((long) v.property("startColumn").value())));
 
 					if (isCallExpression(v)) {
 

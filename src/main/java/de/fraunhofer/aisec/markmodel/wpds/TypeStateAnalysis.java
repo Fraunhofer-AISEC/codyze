@@ -606,10 +606,10 @@ public class TypeStateAnalysis {
 						Stmt returnSite = new Stmt(
 							returnSiteVertex.property("code").value().toString(),
 							new Region(
-								(long) returnSiteVertex.property("startLine").value(),
-								(long) returnSiteVertex.property("startColumn").value(),
-								(long) returnSiteVertex.property("endLine").value(),
-								(long) returnSiteVertex.property("endColumn").value()));
+								toIntExact((long) returnSiteVertex.property("startLine").value()),
+								toIntExact((long) returnSiteVertex.property("startColumn").value()),
+								toIntExact((long) returnSiteVertex.property("endLine").value()),
+								toIntExact((long) returnSiteVertex.property("endColumn").value())));
 
 						PushRule<Stmt, Val, Weight> pushRule = new PushRule<Stmt, Val, Weight>(
 							argVals.get(i),

@@ -53,14 +53,19 @@ public class MRule {
 		StringBuilder sb = new StringBuilder();
 		sb.append("rule ").append(getName()).append(" {");
 		if (!statement.getEntities().isEmpty()) {
-			sb.append("\n\tusing ").append(
-				statement.getEntities().stream().map(entity -> entity.getE().getName() + " as " + entity.getN()).collect(Collectors.joining(", \n\t\t")));
+			sb.append("\n\tusing ")
+					.append(
+						statement.getEntities().stream().map(entity -> entity.getE().getName() + " as " + entity.getN()).collect(Collectors.joining(", \n\t\t")));
 		}
 		if (statement.getCond() != null) {
 			sb.append("\n\twhen ").append(ExpressionHelper.exprToString(statement.getCond().getExp()));
 		}
-		sb.append("\n\tensure\n\t\t").append(ExpressionHelper.exprToString(statement.getEnsure().getExp())).append("\n\tonfail ").append(statement.getMsg()).append(
-			"\n}");
+		sb.append("\n\tensure\n\t\t")
+				.append(ExpressionHelper.exprToString(statement.getEnsure().getExp()))
+				.append("\n\tonfail ")
+				.append(statement.getMsg())
+				.append(
+					"\n}");
 		return sb.toString();
 	}
 

@@ -127,9 +127,14 @@ public class CrymlinQueryWrapper {
 	}
 
 	public static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {
-		return crymlin.byID(id).in("RHS").where(
-			has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").has(T.label,
-				LabelP.of(VariableDeclaration.class.getSimpleName())).toList();
+		return crymlin.byID(id)
+				.in("RHS")
+				.where(
+					has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "="))
+				.out("LHS")
+				.has(T.label,
+					LabelP.of(VariableDeclaration.class.getSimpleName()))
+				.toList();
 	}
 
 	/**

@@ -9,6 +9,7 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import de.fraunhofer.aisec.crymlin.server.TYPESTATE_ANALYSIS;
 import de.fraunhofer.aisec.crymlin.structures.Finding;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
@@ -52,12 +53,27 @@ class OrderTestInterproc {
 		}
 
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build()).build();
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder()
+							.launchConsole(false)
+							.launchLsp(false)
+							.typestateAnalysis(TYPESTATE_ANALYSIS.WPDS)
+							.markFiles(markPoC1.getAbsolutePath())
+							.build())
+				.build();
 		server.start();
 
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder()
+							.debugParser(true)
+							.failOnError(false)
+							.codeInNodes(true)
+							.defaultPasses()
+							.sourceFiles(cppFile)
+							.build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		TranslationResult result;
 		try {

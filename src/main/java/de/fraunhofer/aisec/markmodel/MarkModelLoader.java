@@ -228,19 +228,21 @@ public class MarkModelLoader {
 		mRule.setErrorMessage(rule.getStmt().getMsg());
 
 		HashMap<String, Pair<String, MEntity>> entityReferences = new HashMap<>();
-		rule.getStmt().getEntities().forEach(
-			entity -> {
-				MEntity ref = mark.getEntity(entity.getE().getName());
-				if (ref == null) {
-					log.error(
-						"Entity {} not loaded. Referenced in rule {} in file {}",
-						entity.getE().getName(),
-						rule.getName(),
-						containedInThisFile);
-				}
-				Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
-				entityReferences.put(entity.getN(), e);
-			});
+		rule.getStmt()
+				.getEntities()
+				.forEach(
+					entity -> {
+						MEntity ref = mark.getEntity(entity.getE().getName());
+						if (ref == null) {
+							log.error(
+								"Entity {} not loaded. Referenced in rule {} in file {}",
+								entity.getE().getName(),
+								rule.getName(),
+								containedInThisFile);
+						}
+						Pair<String, MEntity> e = new Pair<>(entity.getE().getName(), ref);
+						entityReferences.put(entity.getN(), e);
+					});
 
 		mRule.setEntityReferences(entityReferences);
 

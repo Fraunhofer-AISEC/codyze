@@ -190,7 +190,7 @@ public class AnalysisServer {
 									this.markModel.getEntities().size(),
 									this.markModel.getRules().size());
 								// Evaluate all MARK rules
-								MarkInterpreter mi = new MarkInterpreter(this.markModel);
+								MarkInterpreter mi = new MarkInterpreter(this.markModel, this.config);
 								return mi.evaluate(result, ctx);
 							});
 	}
@@ -329,6 +329,9 @@ public class AnalysisServer {
 				numEdges,
 				String.format("%.2f", (double) duration / numEdges));
 		}
+		catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 		log.info("Benchmark: Persisted approx {} nodes", db.getNumNodes());
 		return result;
 	}
@@ -372,6 +375,7 @@ public class AnalysisServer {
 				}
 				try (Neo4jGraph neo4jGraph = Neo4jGraph.open(Path.of(".data", "databases", "graph.db").toString())) {
 					GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
+					reader.strict(false);
 					reader.vertexLabelKey("labels");
 					reader.create().readGraph(fis, neo4jGraph);
 				}

@@ -13,10 +13,14 @@ public class ServerConfiguration {
 	/** Directory or file with MARK entities/rules. */
 	public final String markModelFiles;
 
-	private ServerConfiguration(boolean launchConsole, boolean launchLsp, String markModelFiles) {
+	/** Which type of typestate analysis do we want? */
+	public final TYPESTATE_ANALYSIS typestateAnalysis;
+
+	private ServerConfiguration(boolean launchConsole, boolean launchLsp, String markModelFiles, TYPESTATE_ANALYSIS typestateAnalysis) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
+		this.typestateAnalysis = typestateAnalysis;
 	}
 
 	public static Builder builder() {
@@ -27,6 +31,7 @@ public class ServerConfiguration {
 		private boolean launchConsole = true;
 		private boolean launchLsp = true;
 		private String markModelFiles = ""; // Path of a file or directory
+		private TYPESTATE_ANALYSIS typestateAnalysis = TYPESTATE_ANALYSIS.NFA;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -43,8 +48,13 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder typestateAnalysis(TYPESTATE_ANALYSIS tsAnalysis) {
+			this.typestateAnalysis = tsAnalysis;
+			return this;
+		}
+
 		public ServerConfiguration build() {
-			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles);
+			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles, typestateAnalysis);
 		}
 	}
 }

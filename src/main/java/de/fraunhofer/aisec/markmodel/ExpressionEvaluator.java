@@ -404,8 +404,7 @@ public class ExpressionEvaluator {
 	 * @param expr
 	 * @return
 	 */
-	// TODO JS->FW: Should return a  Optional<Boolean>. Evaluation of Expressions which do not return
-	// a boolean should be pushed down into separate evaluation functions.
+	// TODO JS->FW: Should return a  Optional<Boolean>. Evaluation of Expressions which do not return a boolean should be pushed down into separate evaluation functions.
 	public Optional evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
 

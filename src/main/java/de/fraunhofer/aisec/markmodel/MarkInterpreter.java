@@ -100,7 +100,6 @@ public class MarkInterpreter {
 	/**
 	 * Evaluates the {@code markModel} against the currently analyzed program (CPG).
 	 *
-	 * <p>
 	 * This is the core of the MARK evaluation.
 	 *
 	 * @param result
@@ -111,7 +110,6 @@ public class MarkInterpreter {
 
 		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
 			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-			List<Vertex> functions = crymlinTraversal.functiondeclarations().toList();
 
 			log.info("Precalculating matching nodes");
 			assignCallsToOps(crymlinTraversal, this.markModel);
@@ -235,18 +233,18 @@ public class MarkInterpreter {
 
 			// Cache which Vertex belongs to which Op/Entity
 			// a vertex can _only_ belong to one entity/op!
-			HashMap<Vertex, MOp> verticesToOp = new HashMap<>();
+			HashMap<Vertex, MOp> callExprVerticesToOp = new HashMap<>();
 			for (Map.Entry<String, Pair<String, MEntity>> entry : rule.getEntityReferences().entrySet()) {
 				MEntity ent = entry.getValue().getValue1();
 				if (ent == null) {
 					continue;
 				}
 				for (MOp op : ent.getOps()) {
-					op.getAllVertices().forEach(v -> verticesToOp.put(v, op));
+					op.getAllVertices().forEach(v -> callExprVerticesToOp.put(v, op));
 				}
 			}
 
-			if (verticesToOp.isEmpty()) {
+			if (callExprVerticesToOp.isEmpty()) {
 				log.info("no nodes match this rule. Skipping rule.");
 				continue;
 			}
@@ -312,9 +310,9 @@ public class MarkInterpreter {
 							// TODO JS: This might need to be adapted to non-multilabels with OverflowDB.
 							if (vertex.label().contains("MemberCallExpression")
 									// is the vertex part of any op of any mentioned entity? If not, ignore
-									&& verticesToOp.get(vertex) != null) {
+									&& callExprVerticesToOp.get(vertex) != null) {
 
-								MOp op = verticesToOp.get(vertex);
+								MOp op = callExprVerticesToOp.get(vertex);
 								// check if the vertex actually belongs to a entity used in this rule
 								if (rule.getEntityReferences().values().stream().anyMatch(x -> x.getValue1().equals(op.getParent()))) {
 
@@ -629,6 +627,7 @@ public class MarkInterpreter {
 			RuleStatement s = rule.getStatement();
 			log.info("checking rule {}", rule.getName());
 
+			/* Evaluate "when" part */
 			if (s.getCond() != null) {
 				Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
 				if (condResult.isEmpty()) {
@@ -641,6 +640,7 @@ public class MarkInterpreter {
 				}
 			}
 
+			/* Evaluate "ensure" part */
 			Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
 
 			if (ensureResult.isEmpty()) {

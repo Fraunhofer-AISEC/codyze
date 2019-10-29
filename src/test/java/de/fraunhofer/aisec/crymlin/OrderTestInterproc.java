@@ -81,7 +81,8 @@ class OrderTestInterproc {
 
 	@Test
 	void testCppInterprocOk1() throws Exception {
-		@NonNull Set<Finding> findings = performTest("unittests/orderInterprocOk1.cpp");
+		@NonNull
+		Set<Finding> findings = performTest("unittests/orderInterprocOk1.cpp");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(findings.isEmpty());
@@ -89,11 +90,10 @@ class OrderTestInterproc {
 
 	@Test
 	void testCppInterprocNOk1() throws Exception {
-		@NonNull Set<Finding> findings = performTest("unittests/orderInterprocNOk1.cpp");
+		@NonNull
+		Set<Finding> findings = performTest("unittests/orderInterprocNOk1.cpp");
 
-		Set<Integer> startLineNumbers = findings.stream()
-				.map(f -> f.getRange().getStart().getLine())
-				.collect(Collectors.toSet());
+		Set<Integer> startLineNumbers = findings.stream().map(f -> f.getRange().getStart().getLine()).collect(Collectors.toSet());
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.contains(28));
@@ -104,11 +104,10 @@ class OrderTestInterproc {
 
 	@Test
 	void testCppInterprocNOk2() throws Exception {
-		@NonNull Set<Finding> findings = performTest("unittests/orderInterprocNOk2.cpp");
+		@NonNull
+		Set<Finding> findings = performTest("unittests/orderInterprocNOk2.cpp");
 
-		Set<Integer> startLineNumbers = findings.stream()
-				.map(f -> f.getRange().getStart().getLine())
-				.collect(Collectors.toSet());
+		Set<Integer> startLineNumbers = findings.stream().map(f -> f.getRange().getStart().getLine()).collect(Collectors.toSet());
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.contains(30));

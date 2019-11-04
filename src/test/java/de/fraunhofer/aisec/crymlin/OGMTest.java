@@ -67,9 +67,8 @@ public class OGMTest {
 			// Vertices will always have an auto-generated ID ...
 			assertNotNull(v.id());
 
-			// ... but this is different from "id" property of the underlying Node object. This will
-			// always be null (if not set explicitly)
-			assertNull(n.getId());
+			// ... which should be the same as the one of the converted Node object
+			assertEquals(v.id(), n.getId());
 
 			if (v.label().equals("RecordDeclaration")) {
 				// We expect properties that were created by a Converter to be converted back into property

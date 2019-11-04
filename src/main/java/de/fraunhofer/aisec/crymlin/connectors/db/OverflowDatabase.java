@@ -465,7 +465,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		return result;
 	}
 
-	private List<Object> linearize(Map<Object, Object> properties) {
+	private List<Object> linearize(Map<?, ?> properties) {
 		List<Object> props = new ArrayList<>(properties.size() * 2);
 		for (Map.Entry p : properties.entrySet()) {
 			props.add(p.getKey());
@@ -608,7 +608,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
 				Direction direction = getRelationshipDirection(f);
 				String relName = getRelationshipLabel(f);
-				Map<Object, Object> edgeProperties = getEdgeProperties(f);
+				Map<String, Object> edgeProperties = getEdgeProperties(f);
 
 				try {
 					f.setAccessible(true);
@@ -647,7 +647,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		}
 	}
 
-	private Vertex connect(Vertex sourceVertex, String label, Map<Object, Object> edgeProperties,
+	private Vertex connect(Vertex sourceVertex, String label, Map<String, Object> edgeProperties,
 			Node targetNode,
 			boolean reverse) {
 		Vertex targetVertex = null;
@@ -679,7 +679,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	}
 
 	private void connectAll(
-			Vertex sourceVertex, String label, Map<Object, Object> edgeTypes, Collection<?> targetNodes,
+			Vertex sourceVertex, String label, Map<String, Object> edgeTypes, Collection<?> targetNodes,
 			boolean reverse) {
 		for (Object entry : targetNodes) {
 			//                  log.info(entry + " " + entry.hashCode());
@@ -847,7 +847,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
 		// Make sure to first call createEdgeFactories, which will collect some IN fields needed for
 		// createNodeFactories
-		Pair<List<EdgeFactory<OdbEdge>>, Map<Class, Set<String>>> edgeFactories = createEdgeFactories(allClasses);
+		Pair<List<EdgeFactory<OdbEdge>>, Map<Class, Set<MutableEdgeLayout>>> edgeFactories = createEdgeFactories(allClasses);
 		List<NodeFactory<OdbNode>> nodeFactories = createNodeFactories(allClasses, edgeFactories.getValue1());
 
 		return new Pair<>(nodeFactories, edgeFactories.getValue0());
@@ -859,9 +859,9 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * @param allClasses Set of classes to create edge factories for.
 	 * @return a Pair of edge factories and a pre-computed map of classes/IN-Fields.
 	 */
-	private Pair<List<EdgeFactory<OdbEdge>>, Map<Class, Set<String>>> createEdgeFactories(
+	private Pair<List<EdgeFactory<OdbEdge>>, Map<Class, Set<MutableEdgeLayout>>> createEdgeFactories(
 			@NonNull Set<Class<? extends Node>> allClasses) {
-		Map<Class, Set<String>> inFields = new HashMap<>();
+		Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts = new HashMap<>();
 		List<EdgeFactory<OdbEdge>> edgeFactories = new ArrayList<>();
 		for (Class c : allClasses) {
 			for (Field field : getFieldsIncludingSuperclasses(c)) {
@@ -873,22 +873,29 @@ public class OverflowDatabase<N> implements Database<N> {
 				 * Handle situation where class A has a field f to class B:
 				 *
 				 * <p>
-				 * B and all of its subclasses need to accept INCOMING edges labeled "f".
+				 * B and all of its subclasses need to accept INCOMING edges labeled "f". Additionally, the INCOMING edges need to accept edge properties that may come
+				 * up.
 				 */
-				final Set<String> EMPTY_SET = new HashSet<>();
 				if (getRelationshipDirection(field).equals(Direction.OUT)) {
 					List<Class> classesWithIncomingEdge = new ArrayList<>();
 					classesWithIncomingEdge.add(getContainedType(field));
 					for (int i = 0; i < classesWithIncomingEdge.size(); i++) {
 						Class subclass = classesWithIncomingEdge.get(i);
 						String relName = getRelationshipLabel(field);
-						if (inFields.getOrDefault(subclass, EMPTY_SET).contains(relName)) {
-							continue;
+						if (!inEdgeLayouts.containsKey(subclass)) {
+							inEdgeLayouts.put(subclass, new HashSet<>());
 						}
-						if (!inFields.containsKey(subclass)) {
-							inFields.put(subclass, new HashSet<>());
+
+						// Make sure that incoming edges accept the union of all possible edge properties
+						Optional<MutableEdgeLayout> currRelLayout = inEdgeLayouts.get(subclass).stream().filter(e -> e.getLabel().equals(relName)).findFirst();
+						Set<String> propertyKeys = getEdgeProperties(field).keySet();
+						if (currRelLayout.isPresent()) {
+							currRelLayout.get().getPropertyKeys().addAll(propertyKeys);
+						} else {
+							MutableEdgeLayout newLayout = new MutableEdgeLayout(relName, propertyKeys);
+							inEdgeLayouts.get(subclass).add(newLayout);
 						}
-						inFields.get(subclass).add(relName);
+
 						classesWithIncomingEdge.addAll(reflections.getSubTypesOf(subclass));
 					}
 				}
@@ -909,7 +916,7 @@ public class OverflowDatabase<N> implements Database<N> {
 				edgeFactories.add(edgeFactory);
 			}
 		}
-		return new Pair<>(edgeFactories, inFields);
+		return new Pair<>(edgeFactories, inEdgeLayouts);
 	}
 
 	private List<Field> getFieldsIncludingSuperclasses(Class c) {
@@ -949,13 +956,13 @@ public class OverflowDatabase<N> implements Database<N> {
 		return CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.UPPER_UNDERSCORE).convert(relName);
 	}
 
-	private Map<Object, Object> getEdgeProperties(Field f) {
+	private Map<String, Object> getEdgeProperties(Field f) {
 		String fieldFqn = f.getDeclaringClass().getName() + "." + f.getName();
 		if (edgeProperties.containsKey(fieldFqn)) {
 			return edgeProperties.get(fieldFqn);
 		}
 
-		Map<Object, Object> properties = Arrays.stream(f.getAnnotations()).filter(a -> a.annotationType().getAnnotation(EdgeProperty.class) != null).collect(
+		Map<String, Object> properties = Arrays.stream(f.getAnnotations()).filter(a -> a.annotationType().getAnnotation(EdgeProperty.class) != null).collect(
 			Collectors.toMap(a -> a.annotationType().getAnnotation(EdgeProperty.class).key(),
 				a -> {
 					try {
@@ -979,19 +986,19 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * labels and properties, according to the field names and/or their annotations.
 	 *
 	 * @param allClasses classes to create node factories for.
-	 * @param inFields Map from class names to IN fields which must be supported by that class. Will be collected by <code>createEdgeFactories</code>
+	 * @param inEdgeLayouts Map from class names to IN edge layouts which must be supported by that class. Will be collected by <code>createEdgeFactories</code>
 	 */
 	private List<NodeFactory<OdbNode>> createNodeFactories(
-			@NonNull Set<Class<? extends Node>> allClasses, @NonNull Map<Class, Set<String>> inFields) {
+			@NonNull Set<Class<? extends Node>> allClasses, @NonNull Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts) {
 		List<NodeFactory<OdbNode>> nodeFactories = new ArrayList<>();
 		for (Class<? extends Node> c : allClasses) {
-			nodeFactories.add(createNodeFactory(c, inFields));
+			nodeFactories.add(createNodeFactory(c, inEdgeLayouts));
 		}
 		return nodeFactories;
 	}
 
 	private NodeFactory<OdbNode> createNodeFactory(
-			@NonNull Class<? extends Node> c, @NonNull Map<Class, Set<String>> inFields) {
+			@NonNull Class<? extends Node> c, @NonNull Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts) {
 		return new NodeFactory<>() {
 			@Override
 			public String forLabel() {
@@ -1022,13 +1029,8 @@ public class OverflowDatabase<N> implements Database<N> {
 
 						List<EdgeLayoutInformation> out = inAndOut.getValue1();
 						List<EdgeLayoutInformation> in = inAndOut.getValue0();
-
-						for (String relName : inFields.getOrDefault(c, new HashSet<>())) {
-							if (relName != null) {
-								// edges could have properties here
-								in.add(new EdgeLayoutInformation(relName, new HashSet<>()));
-							}
-						}
+						in.addAll(inEdgeLayouts.getOrDefault(c, new HashSet<>()).stream().filter(e -> !(e.label == null)).map(MutableEdgeLayout::makeImmutable).collect(
+							Collectors.toList()));
 
 						out = deduplicateEdges(out);
 						in = deduplicateEdges(in);
@@ -1164,5 +1166,42 @@ public class OverflowDatabase<N> implements Database<N> {
 			}
 		}
 		return direction;
+	}
+
+	private static class MutableEdgeLayout {
+		private String label;
+		private Set<String> propertyKeys;
+
+		public String getLabel() {
+			return label;
+		}
+
+		public void setLabel(String label) {
+			this.label = label;
+		}
+
+		public Set<String> getPropertyKeys() {
+			return propertyKeys;
+		}
+
+		public void setPropertyKeys(Set<String> propertyKeys) {
+			this.propertyKeys = propertyKeys;
+		}
+
+		public MutableEdgeLayout(String label, Set<String> propertyKeys) {
+			this.label = label;
+			// make sure that we can mutate the set
+			this.propertyKeys = new HashSet<>(propertyKeys);
+		}
+
+		public EdgeLayoutInformation makeImmutable() {
+			return new EdgeLayoutInformation(label, propertyKeys);
+		}
+
+		@Override
+		public String toString() {
+			return "MutableEdgeLayout{" + "label='" + label + '\'' + ", propertyKeys=" + propertyKeys
+					+ '}';
+		}
 	}
 }

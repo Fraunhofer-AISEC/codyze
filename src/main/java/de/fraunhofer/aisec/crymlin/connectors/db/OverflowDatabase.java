@@ -18,6 +18,7 @@ import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.units.MemoryUnit;
 import org.javatuples.Pair;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.Transient;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
@@ -331,7 +332,10 @@ public class OverflowDatabase<N> implements Database<N> {
 
 			for (Field f : getFieldsIncludingSuperclasses(targetClass)) {
 				f.setAccessible(true);
-				if (hasAnnotation(f, Convert.class)) {
+				if (hasAnnotation(f, Id.class)) {
+					/* Retain the original vertex ID via this dedicated ID field */
+					f.set(node, v.id());
+				} else if (hasAnnotation(f, Convert.class)) {
 					/* Need to first handle attributes which need a special treatment (annotated with AttributeConverter or CompositeConverter) */
 					Object value = convertToNodeProperty(v, f);
 					f.set(node, value);

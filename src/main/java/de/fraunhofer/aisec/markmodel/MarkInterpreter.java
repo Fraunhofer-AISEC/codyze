@@ -288,6 +288,7 @@ public class MarkInterpreter {
 													+ " ("
 													+ rule.getErrorMessage()
 													+ ")",
+											rule.getErrorMessage(),
 											vertex.value("startLine"),
 											vertex.value("endLine"),
 											vertex.value("startColumn"),
@@ -402,6 +403,7 @@ public class MarkInterpreter {
 							+ " ("
 							+ rule.getErrorMessage()
 							+ ")",
+					rule.getErrorMessage(),
 					vertex.value("startLine"),
 					vertex.value("endLine"),
 					vertex.value("startColumn"),
@@ -485,7 +487,7 @@ public class MarkInterpreter {
 								+ ent.getName()
 								+ ". Call was "
 								+ v.value("code").toString();
-						Finding f = new Finding(message, startLine, endLine, startColumn, endColumn);
+						Finding f = new Finding(message, "FORBIDDEN", startLine, endLine, startColumn, endColumn);
 						ctx.getFindings().add(f);
 						log.info("Finding: {}", f);
 					}
@@ -538,7 +540,8 @@ public class MarkInterpreter {
 					new Finding(
 						"MarkRuleEvaluationFinding: Rule "
 								+ rule.getName()
-								+ ": guarding condition unknown"));
+								+ ": guarding condition unknown",
+						rule.getErrorMessage()));
 			} else if (!condResult.get()) {
 				log.info(
 					"   terminate rule checking due to unsatisfied guarding condition: {}",
@@ -548,7 +551,8 @@ public class MarkInterpreter {
 					new Finding(
 						"MarkRuleEvaluationFinding: Rule "
 								+ rule.getName()
-								+ ": guarding condition unsatisfied"));
+								+ ": guarding condition unsatisfied",
+						rule.getErrorMessage()));
 			}
 		}
 
@@ -581,7 +585,8 @@ public class MarkInterpreter {
 					new Finding(
 						"MarkRuleEvaluationFinding: Rule "
 								+ rule.getName()
-								+ ": ensure condition unknown"));
+								+ ": ensure condition unknown",
+						rule.getErrorMessage()));
 			} else if (ensureResult.get()) {
 				log.info("Rule '{}' is satisfied.", rule.getName());
 				// TODO JS->FW: Is it correct that even a satisfied rule is reported as a Finding?
@@ -589,14 +594,16 @@ public class MarkInterpreter {
 					new Finding(
 						"MarkRuleEvaluationFinding: Rule "
 								+ rule.getName()
-								+ ": ensure condition satisfied"));
+								+ ": ensure condition satisfied",
+						rule.getErrorMessage()));
 			} else {
 				log.error("Rule '{}' is violated.", rule.getName());
 				ctx.getFindings().add(
 					new Finding(
 						"MarkRuleEvaluationFinding: Rule "
 								+ rule.getName()
-								+ ": ensure condition violated"));
+								+ ": ensure condition violated",
+						rule.getErrorMessage()));
 			}
 		}
 	}

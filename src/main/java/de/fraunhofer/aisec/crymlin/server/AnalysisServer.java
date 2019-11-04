@@ -18,6 +18,7 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection.Type;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
+import de.fraunhofer.aisec.crymlin.utils.FindingDescription;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
@@ -63,7 +64,7 @@ import java.util.concurrent.ExecutionException;
 public class AnalysisServer {
 
 	private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
-	private static final boolean EXPORT_TO_NEO4J = true;
+	private static final boolean EXPORT_TO_NEO4J = false;
 
 	private static AnalysisServer instance;
 
@@ -215,6 +216,8 @@ public class AnalysisServer {
 	 * @param markFile
 	 */
 	public void loadMarkRules(@NonNull File markFile) {
+		File markDescriptionFile = null;
+
 		log.info("Parsing MARK files");
 		Instant start = Instant.now();
 
@@ -237,8 +240,10 @@ public class AnalysisServer {
 			catch (IOException e) {
 				log.error("Failed to load MARK file", e);
 			}
+			markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + "findingDescription.json");
 		} else {
 			parser.addMarkFile(markFile);
+			markDescriptionFile = new File(markFile.getParent() + File.separator + "findingDescription.json");
 		}
 
 		HashMap<String, MarkModel> markModels = parser.parse();
@@ -255,6 +260,13 @@ public class AnalysisServer {
 			"Loaded {} entities and {} rules.",
 			this.markModel.getEntities().size(),
 			this.markModel.getRules().size());
+
+		if (markDescriptionFile.exists()) {
+
+			FindingDescription.getInstance().init(markDescriptionFile);
+		} else {
+			log.info("MARK description file does not exist");
+		}
 	}
 
 	/**

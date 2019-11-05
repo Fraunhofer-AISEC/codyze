@@ -251,15 +251,15 @@ public class MarkInterpreter {
 			// a vertex can _only_ belong to one entity/op!
 			HashMap<Vertex, MOp> verticesToOp = new HashMap<>();
 			for (Map.Entry<String, Pair<String, MEntity>> entry : rule.getEntityReferences()
-																	  .entrySet()) {
+					.entrySet()) {
 				MEntity ent = entry.getValue()
-								   .getValue1();
+						.getValue1();
 				if (ent == null) {
 					continue;
 				}
 				for (MOp op : ent.getOps()) {
 					op.getAllVertices()
-					  .forEach(v -> verticesToOp.put(v, op));
+							.forEach(v -> verticesToOp.put(v, op));
 				}
 			}
 
@@ -269,7 +269,7 @@ public class MarkInterpreter {
 			}
 
 			for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations()
-															  .toList()) {
+					.toList()) {
 				log.info("Evaluating function {}", (Object) functionDeclaration.value("name"));
 
 				/*
@@ -319,7 +319,7 @@ public class MarkInterpreter {
 							// ... no direct access to the labels TreeSet of Neo4JVertex
 							// TODO JS: This might need to be adapted to non-multilabels with OverflowDB.
 							if (vertex.label()
-									  .contains("MemberCallExpression")
+									.contains("MemberCallExpression")
 									// is the vertex part of any op of any mentioned entity? If not, ignore
 									&& verticesToOp.get(vertex) != null) {
 
@@ -329,21 +329,21 @@ public class MarkInterpreter {
 										.values()
 										.stream()
 										.anyMatch(x -> x.getValue1()
-														.equals(op.getParent()))) {
+												.equals(op.getParent()))) {
 
 									Iterator<Edge> it = vertex.edges(Direction.OUT, "BASE");
 									String base = null;
 									String ref = null;
 									if (it.hasNext()) {
 										Vertex baseVertex = it.next()
-															  .inVertex();
+												.inVertex();
 										base = baseVertex.value("name");
 										Iterator<Edge> it_ref = baseVertex.edges(Direction.OUT, "REFERS_TO");
 										if (it_ref.hasNext()) {
 											ref = it_ref.next()
-														.inVertex()
-														.id()
-														.toString();
+													.inVertex()
+													.id()
+													.toString();
 										}
 									} else {
 										log.error("base must not be null for MemberCallExpressions");
@@ -383,7 +383,7 @@ public class MarkInterpreter {
 											// we have not seen this base before. check if this is the start of an
 											// order
 											nodesInFSM = rule.getFSM()
-															 .getStart(); // start nodes
+													.getStart(); // start nodes
 										} else {
 											nodesInFSM = baseToFSMNodes.get(prefixedBase); // nodes
 											// calculated in previous step
@@ -397,7 +397,7 @@ public class MarkInterpreter {
 											// are there any ops corresponding to the current base and the current
 											// function name?
 											if (op != null && op.getName()
-																.equals(n.getOp())) {
+													.equals(n.getOp())) {
 												// this also has as effect, that if the FSM is in a end-state and a
 												// intermediate state, and we follow the intermediate state, the
 												// end-state is removed again, which is correct!
@@ -409,28 +409,28 @@ public class MarkInterpreter {
 											// if not, this call is not allowed, and this base must not be used in the
 											// following eog
 											Finding f = new Finding(
-													"Violation against Order: "
-															+ vertex.value("code")
-															+ " ("
-															+ (op == null ? "null" : op.getName())
-															+ ") is not allowed. Expected one of: "
-															+ nodesInFSM.stream()
-																		.map(Node::getName)
-																		.sorted()
-																		.collect(Collectors.joining(", "))
-															+ " ("
-															+ rule.getErrorMessage()
-															+ ")",
-													rule.getErrorMessage(),
-													toIntExact(vertex.value("startLine")),
-													toIntExact(vertex.value("endLine")),
-													toIntExact(vertex.value("startColumn")),
-													toIntExact(vertex.value("endColumn")));
+												"Violation against Order: "
+														+ vertex.value("code")
+														+ " ("
+														+ (op == null ? "null" : op.getName())
+														+ ") is not allowed. Expected one of: "
+														+ nodesInFSM.stream()
+																.map(Node::getName)
+																.sorted()
+																.collect(Collectors.joining(", "))
+														+ " ("
+														+ rule.getErrorMessage()
+														+ ")",
+												rule.getErrorMessage(),
+												toIntExact(vertex.value("startLine")),
+												toIntExact(vertex.value("endLine")),
+												toIntExact(vertex.value("startColumn")),
+												toIntExact(vertex.value("endColumn")));
 											ctx.getFindings()
-											   .add(f);
+													.add(f);
 											log.info("Finding: {}", f);
 											disallowedBases.computeIfAbsent(base, x -> new HashSet<>())
-														   .add(eogPath);
+													.add(eogPath);
 										} else {
 											String baseLocal = prefixedBase.split("\\.")[1]; // remove eogpath
 											Vertex vertex1 = lastBaseUsage.get(baseLocal);
@@ -449,7 +449,7 @@ public class MarkInterpreter {
 							}
 							ArrayList<Vertex> outVertices = new ArrayList<>();
 							vertex.edges(Direction.OUT, "EOG")
-								  .forEachRemaining(edge -> outVertices.add(edge.inVertex()));
+									.forEachRemaining(edge -> outVertices.add(edge.inVertex()));
 
 							// if more than one vertex follows the curreant one, we need to branch the eogPath
 							if (outVertices.size() > 1) { // split
@@ -460,11 +460,12 @@ public class MarkInterpreter {
 								// in (1)
 								for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
 									if (entry.getKey()
-											 .startsWith(eogPath)) {
+											.startsWith(eogPath)) {
 										oldBases.add(entry.getKey());
 										// keep the "." before the real base, as we need it later anyway
 										newBases.put(entry.getKey()
-														  .substring(eogPath.length()), entry.getValue());
+												.substring(eogPath.length()),
+											entry.getValue());
 									}
 								}
 								oldBases.forEach(baseToFSMNodes::remove);
@@ -484,16 +485,18 @@ public class MarkInterpreter {
 
 										// update the eogpath directly in the vertices for the next step
 										nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(i)
-																							 .id(), x -> new HashSet<>())
-														  .add(newEOGPath);
+												.id(),
+											x -> new HashSet<>())
+												.add(newEOGPath);
 									}
 								}
 							} else if (outVertices.size() == 1) {
 								// else, if we only have one vertex following this
 								// vertex, simply propagate the current eogpath to the next vertex
 								nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(0)
-																					 .id(), x -> new HashSet<>())
-												  .add(eogPath);
+										.id(),
+									x -> new HashSet<>())
+										.add(eogPath);
 							}
 
 							nextWorklist.addAll(outVertices);
@@ -524,34 +527,35 @@ public class MarkInterpreter {
 					if (!hasEnd) {
 						// extract the real base name from eogpath.base
 						HashSet<String> next = nonterminatedBases.computeIfAbsent(entry.getKey()
-																					   .substring(entry.getKey()
-																									   .indexOf('.') + 1), x -> new HashSet<>());
+								.substring(entry.getKey()
+										.indexOf('.') + 1),
+							x -> new HashSet<>());
 						next.addAll(notEnded);
 					}
 				}
 				for (Map.Entry<String, HashSet<String>> entry : nonterminatedBases.entrySet()) {
 					Vertex vertex = lastBaseUsage.get(entry.getKey());
 					String base = entry.getKey()
-									   .split("\\|")[0]; // remove potential refers_to local
+							.split("\\|")[0]; // remove potential refers_to local
 					Finding f = new Finding(
-							"Violation against Order: Base "
-									+ base
-									+ " is not correctly terminated. Expected one of ["
-									+ entry.getValue()
-										   .stream()
-										   .sorted()
-										   .collect(Collectors.joining(", "))
-									+ "] to follow the correct last call on this base."
-									+ " ("
-									+ rule.getErrorMessage()
-									+ ")",
-							rule.getErrorMessage(),
-							toIntExact(vertex.value("startLine")),
-							toIntExact(vertex.value("endLine")),
-							toIntExact(vertex.value("startColumn")),
-							toIntExact(vertex.value("endColumn")));
+						"Violation against Order: Base "
+								+ base
+								+ " is not correctly terminated. Expected one of ["
+								+ entry.getValue()
+										.stream()
+										.sorted()
+										.collect(Collectors.joining(", "))
+								+ "] to follow the correct last call on this base."
+								+ " ("
+								+ rule.getErrorMessage()
+								+ ")",
+						rule.getErrorMessage(),
+						toIntExact(vertex.value("startLine")),
+						toIntExact(vertex.value("endLine")),
+						toIntExact(vertex.value("startColumn")),
+						toIntExact(vertex.value("endColumn")));
 					ctx.getFindings()
-					   .add(f);
+							.add(f);
 					log.info("Finding: {}", f);
 				}
 			}
@@ -693,7 +697,7 @@ public class MarkInterpreter {
 				} else if (!condResult.get()) {
 					log.info("   terminate rule checking due to unsatisfied guarding condition: {}", exprToString(s.getCond().getExp()));
 					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unsatisfied", rule.getErrorMessage()));
-						ExpressionHelper.exprToString(s.getCond().getExp());
+					ExpressionHelper.exprToString(s.getCond().getExp());
 					// TODO JS->FW: Is it correct that even a non-applicable rule is reported as a Finding?
 					ctx.getFindings()
 							.add(
@@ -711,35 +715,35 @@ public class MarkInterpreter {
 
 			if (ensureResult.isEmpty()) {
 				log.warn(
-						"Ensure statement of rule '{}' cannot be evaluated: {}",
-						rule.getName(),
-						ExpressionHelper.exprToString(s.getEnsure().getExp()));
+					"Ensure statement of rule '{}' cannot be evaluated: {}",
+					rule.getName(),
+					ExpressionHelper.exprToString(s.getEnsure().getExp()));
 				ctx.getFindings()
-				   .add(
-						   new Finding(
-								   "MarkRuleEvaluationFinding: Rule "
-										   + rule.getName()
-										   + ": ensure condition unknown",
-								   rule.getErrorMessage()));
+						.add(
+							new Finding(
+								"MarkRuleEvaluationFinding: Rule "
+										+ rule.getName()
+										+ ": ensure condition unknown",
+								rule.getErrorMessage()));
 			} else if (ensureResult.get()) {
 				log.info("Rule '{}' is satisfied.", rule.getName());
 				// TODO JS->FW: Is it correct that even a satisfied rule is reported as a Finding?
 				ctx.getFindings()
-				   .add(
-						   new Finding(
-								   "MarkRuleEvaluationFinding: Rule "
-										   + rule.getName()
-										   + ": ensure condition satisfied",
-								   rule.getErrorMessage()));
+						.add(
+							new Finding(
+								"MarkRuleEvaluationFinding: Rule "
+										+ rule.getName()
+										+ ": ensure condition satisfied",
+								rule.getErrorMessage()));
 			} else {
 				log.error("Rule '{}' is violated.", rule.getName());
 				ctx.getFindings()
-				   .add(
-						   new Finding(
-								   "MarkRuleEvaluationFinding: Rule "
-										   + rule.getName()
-										   + ": ensure condition violated",
-								   rule.getErrorMessage()));
+						.add(
+							new Finding(
+								"MarkRuleEvaluationFinding: Rule "
+										+ rule.getName()
+										+ ": ensure condition violated",
+								rule.getErrorMessage()));
 			}
 		}
 	}

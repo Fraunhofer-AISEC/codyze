@@ -63,9 +63,17 @@ public class Commands {
 		}
 		OverflowDatabase.getInstance().purgeDatabase();
 
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(
-				files.toArray(new File[0])).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder()
+							.debugParser(true)
+							.failOnError(false)
+							.codeInNodes(true)
+							.defaultPasses()
+							.sourceFiles(
+								files.toArray(new File[0]))
+							.build())
+				.build();
 
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {

@@ -75,6 +75,7 @@ val versions = mapOf(
         "lsp4j" to "0.6.0",
         "jersey" to "2.28",
         "javaparser" to "3.11.0",
+        "json" to "20190722",
         "commons-lang3" to "3.8.1",
         "jython" to "2.7.1",
         "tinkerpop" to "3.4.3",
@@ -83,6 +84,8 @@ val versions = mapOf(
 )
 
 dependencies {
+    api("org.json", "json", versions["json"])
+
     api("org.apache.commons", "commons-lang3", versions["commons-lang3"])
     api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
     api("org.apache.logging.log4j", "log4j-core", versions["log4j"])
@@ -128,6 +131,9 @@ dependencies {
     // Fast in-memory graph DB (alternative to Neo4J)
     api("io.shiftleft", "overflowdb-tinkerpop3", "0.29")
     api("org.reflections", "reflections", "0.9.11")
+
+    // Pushdown Systems
+    api("de.breakpoint", "pushdown", "1.0-SNAPSHOT")
 
     // Jython (Scripting engine)
     api("org.python", "jython-standalone", versions["jython"])
@@ -197,7 +203,7 @@ spotless {
                     include("src/main/generated/**")
                 }
         )
-        eclipseFormatFile(rootProject.file("formatter-settings.xml"))
+        eclipse().configFile(rootProject.file("formatter-settings.xml"))
     }
 }
 

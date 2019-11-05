@@ -18,6 +18,7 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection.Type;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.passes.PassWithContext;
+import de.fraunhofer.aisec.crymlin.utils.FindingDescription;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
@@ -63,7 +64,7 @@ import java.util.concurrent.ExecutionException;
 public class AnalysisServer {
 
 	private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
-	private static final boolean EXPORT_TO_NEO4J = true;
+	private static final boolean EXPORT_TO_NEO4J = false;
 
 	private static AnalysisServer instance;
 
@@ -176,23 +177,25 @@ public class AnalysisServer {
 						// Attach analysis context to result
 						result.getScratch().put("ctx", ctx);
 						return persistToODB(result);
-					}).thenApplyAsync(
-						result -> {
-							if (EXPORT_TO_NEO4J) {
-								// Optional, just for debugging: re-import into Neo4J
-								exportToNeo4j(result);
-							}
-							return result;
-						}).thenApply(
-							result -> {
-								log.info(
-									"Evaluating mark: {} entities, {} rules",
-									this.markModel.getEntities().size(),
-									this.markModel.getRules().size());
-								// Evaluate all MARK rules
-								MarkInterpreter mi = new MarkInterpreter(this.markModel);
-								return mi.evaluate(result, ctx);
-							});
+					})
+				.thenApplyAsync(
+					result -> {
+						if (EXPORT_TO_NEO4J) {
+							// Optional, just for debugging: re-import into Neo4J
+							exportToNeo4j(result);
+						}
+						return result;
+					})
+				.thenApply(
+					result -> {
+						log.info(
+							"Evaluating mark: {} entities, {} rules",
+							this.markModel.getEntities().size(),
+							this.markModel.getRules().size());
+						// Evaluate all MARK rules
+						MarkInterpreter mi = new MarkInterpreter(this.markModel, this.config);
+						return mi.evaluate(result, ctx);
+					});
 	}
 
 	public void loadMarkRulesFromConfig() {
@@ -215,6 +218,8 @@ public class AnalysisServer {
 	 * @param markFile
 	 */
 	public void loadMarkRules(@NonNull File markFile) {
+		File markDescriptionFile = null;
+
 		log.info("Parsing MARK files");
 		Instant start = Instant.now();
 
@@ -237,8 +242,10 @@ public class AnalysisServer {
 			catch (IOException e) {
 				log.error("Failed to load MARK file", e);
 			}
+			markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + "findingDescription.json");
 		} else {
 			parser.addMarkFile(markFile);
+			markDescriptionFile = new File(markFile.getParent() + File.separator + "findingDescription.json");
 		}
 
 		HashMap<String, MarkModel> markModels = parser.parse();
@@ -255,6 +262,13 @@ public class AnalysisServer {
 			"Loaded {} entities and {} rules.",
 			this.markModel.getEntities().size(),
 			this.markModel.getRules().size());
+
+		if (markDescriptionFile.exists()) {
+
+			FindingDescription.getInstance().init(markDescriptionFile);
+		} else {
+			log.info("MARK description file does not exist");
+		}
 	}
 
 	/**
@@ -329,6 +343,9 @@ public class AnalysisServer {
 				numEdges,
 				String.format("%.2f", (double) duration / numEdges));
 		}
+		catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 		log.info("Benchmark: Persisted approx {} nodes", db.getNumNodes());
 		return result;
 	}
@@ -372,6 +389,7 @@ public class AnalysisServer {
 				}
 				try (Neo4jGraph neo4jGraph = Neo4jGraph.open(Path.of(".data", "databases", "graph.db").toString())) {
 					GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
+					reader.strict(false);
 					reader.vertexLabelKey("labels");
 					reader.create().readGraph(fis, neo4jGraph);
 				}

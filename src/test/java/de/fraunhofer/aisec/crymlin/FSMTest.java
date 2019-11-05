@@ -45,10 +45,13 @@ class FSMTest {
 		assertEquals(5, mark.getRules().size()); // 5 total
 		assertEquals(
 			3,
-			mark.getRules().stream().filter(
-				rule -> rule.getStatement() != null
-						&& rule.getStatement().getEnsure() != null
-						&& rule.getStatement().getEnsure().getExp() instanceof OrderExpression).count()); // 3 order
+			mark.getRules()
+					.stream()
+					.filter(
+						rule -> rule.getStatement() != null
+								&& rule.getStatement().getEnsure() != null
+								&& rule.getStatement().getEnsure().getExp() instanceof OrderExpression)
+					.count()); // 3 order
 
 		assertEquals(
 			1, mark.getRules().stream().filter(x -> x.getName().equals("BlockCiphers")).count());

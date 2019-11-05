@@ -975,31 +975,33 @@ public class OverflowDatabase<N> implements Database<N> {
 			return edgeProperties.get(fieldFqn);
 		}
 
-		Map<String, Object> properties = Arrays.stream(f.getAnnotations()).filter(a -> a.annotationType().getAnnotation(EdgeProperty.class) != null).collect(
-			Collectors.toMap(a -> a.annotationType().getAnnotation(EdgeProperty.class).key(),
-				a -> {
-					try {
-						Method valueMethod = a.getClass().getDeclaredMethod("value");
-						Object value = valueMethod.invoke(a);
-						String result;
-						if (value.getClass().isArray()) {
-							String[] strings = new String[Array.getLength(value)];
-							for (int i = 0; i < Array.getLength(value); i++) {
-								strings[i] = Array.get(value, i).toString();
+		Map<String, Object> properties = Arrays.stream(f.getAnnotations())
+				.filter(a -> a.annotationType().getAnnotation(EdgeProperty.class) != null)
+				.collect(
+					Collectors.toMap(a -> a.annotationType().getAnnotation(EdgeProperty.class).key(),
+						a -> {
+							try {
+								Method valueMethod = a.getClass().getDeclaredMethod("value");
+								Object value = valueMethod.invoke(a);
+								String result;
+								if (value.getClass().isArray()) {
+									String[] strings = new String[Array.getLength(value)];
+									for (int i = 0; i < Array.getLength(value); i++) {
+										strings[i] = Array.get(value, i).toString();
+									}
+									result = String.join(", ", strings);
+								} else {
+									result = value.toString();
+								}
+								return result;
 							}
-							result = String.join(", ", strings);
-						} else {
-							result = value.toString();
-						}
-						return result;
-					}
-					catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-						log.error("Edge property annotation {} does not provide a 'value' method of type String",
-							a.getClass().getName());
-						e.printStackTrace();
-						return "UNKNOWN_PROPERTY";
-					}
-				}));
+							catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+								log.error("Edge property annotation {} does not provide a 'value' method of type String",
+									a.getClass().getName());
+								e.printStackTrace();
+								return "UNKNOWN_PROPERTY";
+							}
+						}));
 
 		edgeProperties.put(fieldFqn, properties);
 		return properties;
@@ -1053,8 +1055,12 @@ public class OverflowDatabase<N> implements Database<N> {
 
 						List<EdgeLayoutInformation> out = inAndOut.getValue1();
 						List<EdgeLayoutInformation> in = inAndOut.getValue0();
-						in.addAll(inEdgeLayouts.getOrDefault(c, new HashSet<>()).stream().filter(e -> !(e.label == null)).map(MutableEdgeLayout::makeImmutable).collect(
-							Collectors.toList()));
+						in.addAll(inEdgeLayouts.getOrDefault(c, new HashSet<>())
+								.stream()
+								.filter(e -> !(e.label == null))
+								.map(MutableEdgeLayout::makeImmutable)
+								.collect(
+									Collectors.toList()));
 
 						out = deduplicateEdges(out);
 						in = deduplicateEdges(in);

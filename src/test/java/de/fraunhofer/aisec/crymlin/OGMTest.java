@@ -230,8 +230,14 @@ public class OGMTest {
 	@Test
 	void getContainingFunction() throws Exception {
 		Vertex p2Start = OverflowDatabase.getInstance().getGraph().traversal().V().has("code", "p2.start(iv);").next();
-		Vertex containingFunction = OverflowDatabase.getInstance().getGraph().traversal().V(p2Start.id()).until(__.hasLabel("MethodDeclaration")).repeat(
-			__.inE().has("sub-graph", new P<>(String::contains, "AST")).outV()).next();
+		Vertex containingFunction = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V(p2Start.id())
+				.until(__.hasLabel("MethodDeclaration"))
+				.repeat(
+					__.inE().has("sub-graph", new P<>(String::contains, "AST")).outV())
+				.next();
 		assertEquals("nok2", containingFunction.property("name").value());
 	}
 

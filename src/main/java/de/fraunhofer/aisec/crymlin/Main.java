@@ -62,8 +62,10 @@ public class Main {
 			log.info("Do not load any MARK files.");
 		}
 
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchLsp(lsp).launchConsole(!lsp).markFiles(markFolderName).build()).build();
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchLsp(lsp).launchConsole(!lsp).markFiles(markFolderName).build())
+				.build();
 
 		server.start();
 		log.info(

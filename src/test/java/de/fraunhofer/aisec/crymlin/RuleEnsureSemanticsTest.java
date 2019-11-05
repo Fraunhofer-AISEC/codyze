@@ -69,15 +69,16 @@ public class RuleEnsureSemanticsTest {
 			ensureExprResults.put(r.getName(), result);
 		}
 
-		ensureExprResults.entrySet().forEach(
-			entry -> {
-				if (entry.getKey().endsWith("true")) {
-					assertTrue(entry.getValue().get());
-				} else if (entry.getKey().endsWith("false")) {
-					assertFalse(entry.getValue().get());
-				} else {
-					assertTrue(entry.getValue().isEmpty());
-				}
-			});
+		ensureExprResults.entrySet()
+				.forEach(
+					entry -> {
+						if (entry.getKey().endsWith("true")) {
+							assertTrue(entry.getValue().get());
+						} else if (entry.getKey().endsWith("false")) {
+							assertFalse(entry.getValue().get());
+						} else {
+							assertTrue(entry.getValue().isEmpty());
+						}
+					});
 	}
 }

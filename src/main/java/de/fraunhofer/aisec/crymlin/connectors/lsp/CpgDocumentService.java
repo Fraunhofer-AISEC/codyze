@@ -74,8 +74,10 @@ public class CpgDocumentService implements TextDocumentService {
 			log.error("Server instance is null.");
 			return;
 		}
-		TranslationManager tm = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(file).build()).build();
+		TranslationManager tm = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(file).build())
+				.build();
 
 		CompletableFuture<TranslationResult> analyze = instance.analyze(tm);
 

@@ -1,10 +1,17 @@
 
 package de.fraunhofer.aisec.crymlin.utils;
 
-import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
+
+import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.markmodel.Constants;
+
+import java.util.*;
+import java.util.regex.Pattern;
+
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -120,8 +127,37 @@ public class CrymlinQueryWrapper {
 	}
 
 	public static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {
-		return crymlin.byID(id).in("RHS").where(
-			has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").has(T.label,
-				LabelP.of(VariableDeclaration.class.getSimpleName())).toList();
+		return crymlin.byID(id)
+				.in("RHS")
+				.where(
+					has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "="))
+				.out("LHS")
+				.has(T.label,
+					LabelP.of(VariableDeclaration.class.getSimpleName()))
+				.toList();
+	}
+
+	/**
+	 * Returns true if the given vertex represents a CallExpression or a subclass thereof.
+	 *
+	 * @param v
+	 * @return
+	 */
+	public static boolean isCallExpression(Vertex v) {
+		if (v.label().equals(CallExpression.class.getSimpleName())) {
+			return true;
+		}
+
+		for (String subClass : OverflowDatabase.getSubclasses(CallExpression.class)) {
+			if (v.label().equals(subClass)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static List<Vertex> getNextStatements(CrymlinTraversalSource crymlin, long id) {
+		// TODO Needs testing for branches
+		return crymlin.byID(id).repeat(__().out("EOG").simplePath()).until(__().inE("STATEMENTS")).toList();
 	}
 }

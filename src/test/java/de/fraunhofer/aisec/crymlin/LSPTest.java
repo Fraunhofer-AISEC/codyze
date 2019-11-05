@@ -32,8 +32,10 @@ class LSPTest {
 		parentFolder = markPoC1.getParent() + File.separator;
 
 		// Start an analysis server
-		server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(true).markFiles(parentFolder).build()).build();
+		server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(true).markFiles(parentFolder).build())
+				.build();
 		server.start();
 	}
 

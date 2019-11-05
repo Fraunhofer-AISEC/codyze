@@ -49,13 +49,17 @@ class OrderTest {
 		}
 
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build()).build();
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
+				.build();
 		server.start();
 
 		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		TranslationResult result;
 		try {
@@ -82,17 +86,17 @@ class OrderTest {
 
 		assertTrue(
 			findings.contains(
-				"line 48: Violation against Order: p4.start(iv); (start) is not allowed. Expected one of: END (WrongUseOfBotan_CipherMode)"));
+				"line 48: Violation against Order: p4.start(iv); (start) is not allowed. Expected one of: END (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		// assertTrue(
 		//    findings.contains(
 		//        "line 45: Violation against Order: p4.finish(buf); is not allowed. Base contains
 		// errors already. (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
-				"line 31: Violation against Order: p3.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
+				"line 31: Violation against Order: p3.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
-				"line 13: Violation against Order: p.set_key(key); (init) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
+				"line 13: Violation against Order: p.set_key(key); (init) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		// assertTrue(
 		//    findings.contains(
 		//        "line 14: Violation against Order: p.start(iv.bits_of()); is not allowed. Base
@@ -107,13 +111,13 @@ class OrderTest {
 		// errors already. (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
-				"line 22: Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+				"line 22: Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
-				"line 60: Violation against Order: p5.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode)"));
+				"line 60: Violation against Order: p5.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
-				"line 56: Violation against Order: Base p5 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode)"));
+				"line 56: Violation against Order: Base p5 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 
 		// Stop the analysis server
 		server.stop();

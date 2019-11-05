@@ -5,7 +5,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.cpg.graph.EdgeProperty;
 import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.cpg.graph.SubGraph;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import io.shiftleft.overflowdb.*;
@@ -966,8 +965,19 @@ public class OverflowDatabase<N> implements Database<N> {
 			Collectors.toMap(a -> a.annotationType().getAnnotation(EdgeProperty.class).key(),
 				a -> {
 					try {
-						Method value = a.getClass().getDeclaredMethod("value");
-						return value.invoke(a);
+						Method valueMethod = a.getClass().getDeclaredMethod("value");
+						Object value = valueMethod.invoke(a);
+						String result;
+						if (value.getClass().isArray()) {
+							String[] strings = new String[Array.getLength(value)];
+							for (int i = 0; i < Array.getLength(value); i++) {
+								strings[i] = Array.get(value, i).toString();
+							}
+							result = String.join(", ", strings);
+						} else {
+							result = value.toString();
+						}
+						return result;
 					}
 					catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 						log.error("Edge property annotation {} does not provide a 'value' method of type String",

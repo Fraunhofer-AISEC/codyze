@@ -132,6 +132,9 @@ dependencies {
     api("io.shiftleft", "overflowdb-tinkerpop3", "0.29")
     api("org.reflections", "reflections", "0.9.11")
 
+    // Pushdown Systems
+    api("de.breakpoint", "pushdown", "1.0-SNAPSHOT")
+
     // Jython (Scripting engine)
     api("org.python", "jython-standalone", versions["jython"])
 

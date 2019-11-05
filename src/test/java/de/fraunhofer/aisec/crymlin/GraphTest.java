@@ -57,8 +57,10 @@ class GraphTest {
 		server.start();
 
 		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		try {
 			result = analyze.get(5, TimeUnit.MINUTES);
@@ -96,9 +98,15 @@ class GraphTest {
 
 	@Test
 	void testLabelHierarchy() throws IOException {
-		Set<Object> functions = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(
-			FunctionDeclaration.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(FunctionDeclaration.class)).values("name").toSet();
+		Set<Object> functions = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V()
+				.hasLabel(
+					FunctionDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(FunctionDeclaration.class))
+				.values("name")
+				.toSet();
 		assertFalse(functions.isEmpty());
 	}
 }

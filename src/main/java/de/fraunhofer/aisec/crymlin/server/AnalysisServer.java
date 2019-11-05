@@ -177,23 +177,25 @@ public class AnalysisServer {
 						// Attach analysis context to result
 						result.getScratch().put("ctx", ctx);
 						return persistToODB(result);
-					}).thenApplyAsync(
-						result -> {
-							if (EXPORT_TO_NEO4J) {
-								// Optional, just for debugging: re-import into Neo4J
-								exportToNeo4j(result);
-							}
-							return result;
-						}).thenApply(
-							result -> {
-								log.info(
-									"Evaluating mark: {} entities, {} rules",
-									this.markModel.getEntities().size(),
-									this.markModel.getRules().size());
-								// Evaluate all MARK rules
-								MarkInterpreter mi = new MarkInterpreter(this.markModel, this.config);
-								return mi.evaluate(result, ctx);
-							});
+					})
+				.thenApplyAsync(
+					result -> {
+						if (EXPORT_TO_NEO4J) {
+							// Optional, just for debugging: re-import into Neo4J
+							exportToNeo4j(result);
+						}
+						return result;
+					})
+				.thenApply(
+					result -> {
+						log.info(
+							"Evaluating mark: {} entities, {} rules",
+							this.markModel.getEntities().size(),
+							this.markModel.getRules().size());
+						// Evaluate all MARK rules
+						MarkInterpreter mi = new MarkInterpreter(this.markModel, this.config);
+						return mi.evaluate(result, ctx);
+					});
 	}
 
 	public void loadMarkRulesFromConfig() {

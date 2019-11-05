@@ -963,9 +963,14 @@ public class ExpressionEvaluator {
 
 					List<Vertex> nextVertices = new ArrayList<>();
 					for (Vertex v : vertices) {
-						Traversal<Vertex, Vertex> nextTraversalStep = crymlin.byID((long) v.id()).in("RHS").where(
-							has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").out("REFERS_TO").has(
-								T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
+						Traversal<Vertex, Vertex> nextTraversalStep = crymlin.byID((long) v.id())
+								.in("RHS")
+								.where(
+									has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "="))
+								.out("LHS")
+								.out("REFERS_TO")
+								.has(
+									T.label, LabelP.of(VariableDeclaration.class.getSimpleName()));
 
 						nextVertices.addAll(nextTraversalStep.toList());
 					}
@@ -1018,8 +1023,11 @@ public class ExpressionEvaluator {
 
 					// further investigate each function call
 					for (Vertex v : vertices) {
-						CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal = crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex",
-							argumentIndex).out("REFERS_TO");
+						CrymlinTraversal<Vertex, Vertex> variableDeclarationTraversal = crymlin.byID((long) v.id())
+								.out("ARGUMENTS")
+								.has("argumentIndex",
+									argumentIndex)
+								.out("REFERS_TO");
 						// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
 						// argument we're using in the function call
 
@@ -1042,8 +1050,11 @@ public class ExpressionEvaluator {
 
 						// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
 						// one of them must have more information on the value of the operand
-						CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) v.id()).repeat(in("EOG")).until(
-							is(variableDeclarationVertex)).emit();
+						CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) v.id())
+								.repeat(in("EOG"))
+								.until(
+									is(variableDeclarationVertex))
+								.emit();
 						dumpVertices(traversal.clone().toList());
 
 						while (traversal.hasNext()) {

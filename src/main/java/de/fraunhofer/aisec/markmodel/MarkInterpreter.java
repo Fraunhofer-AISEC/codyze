@@ -254,25 +254,12 @@ public class MarkInterpreter {
 				log.info("Evaluating function {}", (Object) functionDeclaration.value("name"));
 
 				/*
-				 * todo DT: should we allow this different entities in an order?
-				 *
-				 * rule UseOfBotan_CipherMode {
-				 *  using 	Forbidden as cm,
-				 * 			Foo as f
-				 * ensure order cm.start(), cm.finish(), f.done()
-				 * onfail WrongUseOfBotan_CipherMode }
-				 *
-				 *  -> this does currently not work, as we store for each base, where in the FSM it is.
-				 *
-				 * BUT in this case, an instance of cm would always have a different base than f. is aliasing inside an order rule allowed? I.e.
-				 *
-				 * order x.a, x.b, x.c x i1; i1.a(); i1.b(); x i2 = i1; i2.c();
-				 *
-				 * -> do we know if i2 is a copy, or an alias?
-				 * -> always mark as error?
-				 * -> currently this will result in:
-				 * 		Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
-				 * 		Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
+				 * todo DT: should we allow this different entities in an order? rule UseOfBotan_CipherMode { using Forbidden as cm, Foo as f ensure order cm.start(),
+				 * cm.finish(), f.done() onfail WrongUseOfBotan_CipherMode } -> this does currently not work, as we store for each base, where in the FSM it is. BUT in
+				 * this case, an instance of cm would always have a different base than f. is aliasing inside an order rule allowed? I.e. order x.a, x.b, x.c x i1;
+				 * i1.a(); i1.b(); x i2 = i1; i2.c(); -> do we know if i2 is a copy, or an alias? -> always mark as error? -> currently this will result in: Violation
+				 * against Order: i2.c(); (c) is not allowed. Expected one of: x.a Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to
+				 * follow the last call on this base.
 				 */
 
 				HashSet<Vertex> currentWorklist = new HashSet<>();
@@ -541,11 +528,16 @@ public class MarkInterpreter {
 			simplified.computeIfAbsent(entry.getKey().split("\\.")[1], x -> new HashSet<>()).addAll(entry.getValue());
 		}
 
-		List<String> fsmStates = simplified.entrySet().stream().map(
-			x -> x.getKey()
-					+ "("
-					+ x.getValue().stream().map(Node::toString).collect(Collectors.joining(","))
-					+ ")").distinct().sorted().collect(Collectors.toList());
+		List<String> fsmStates = simplified.entrySet()
+				.stream()
+				.map(
+					x -> x.getKey()
+							+ "("
+							+ x.getValue().stream().map(Node::toString).collect(Collectors.joining(","))
+							+ ")")
+				.distinct()
+				.sorted()
+				.collect(Collectors.toList());
 
 		return v.id() + " " + String.join(",", fsmStates);
 	}
@@ -611,9 +603,12 @@ public class MarkInterpreter {
 	 *
 	 */
 	private List<MRule> getNonOrderRules() {
-		return markModel.getRules().stream().filter(
-			r -> r != null && (r.getStatement() != null && r.getStatement().getEnsure() != null) && !(r.getStatement().getEnsure() != null
-					&& r.getStatement().getEnsure().getExp() instanceof OrderExpression)).collect(Collectors.toList());
+		return markModel.getRules()
+				.stream()
+				.filter(
+					r -> r != null && (r.getStatement() != null && r.getStatement().getEnsure() != null) && !(r.getStatement().getEnsure() != null
+							&& r.getStatement().getEnsure().getExp() instanceof OrderExpression))
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -638,23 +633,25 @@ public class MarkInterpreter {
 						"The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
 						rule.getName(),
 						ExpressionHelper.exprToString(s.getCond().getExp()));
-					ctx.getFindings().add(
-						new Finding(
-							"MarkRuleEvaluationFinding: Rule "
-									+ rule.getName()
-									+ ": guarding condition unknown",
-							rule.getErrorMessage()));
+					ctx.getFindings()
+							.add(
+								new Finding(
+									"MarkRuleEvaluationFinding: Rule "
+											+ rule.getName()
+											+ ": guarding condition unknown",
+									rule.getErrorMessage()));
 				} else if (!condResult.get()) {
 					log.info(
 						"   terminate rule checking due to unsatisfied guarding condition: {}",
 						ExpressionHelper.exprToString(s.getCond().getExp()));
 					// TODO JS->FW: Is it correct that even a non-applicable rule is reported as a Finding?
-					ctx.getFindings().add(
-						new Finding(
-							"MarkRuleEvaluationFinding: Rule "
-									+ rule.getName()
-									+ ": guarding condition unsatisfied",
-							rule.getErrorMessage()));
+					ctx.getFindings()
+							.add(
+								new Finding(
+									"MarkRuleEvaluationFinding: Rule "
+											+ rule.getName()
+											+ ": guarding condition unsatisfied",
+									rule.getErrorMessage()));
 
 				}
 			}
@@ -667,29 +664,32 @@ public class MarkInterpreter {
 					"Ensure statement of rule '{}' cannot be evaluated: {}",
 					rule.getName(),
 					ExpressionHelper.exprToString(s.getEnsure().getExp()));
-				ctx.getFindings().add(
-					new Finding(
-						"MarkRuleEvaluationFinding: Rule "
-								+ rule.getName()
-								+ ": ensure condition unknown",
-						rule.getErrorMessage()));
+				ctx.getFindings()
+						.add(
+							new Finding(
+								"MarkRuleEvaluationFinding: Rule "
+										+ rule.getName()
+										+ ": ensure condition unknown",
+								rule.getErrorMessage()));
 			} else if (ensureResult.get()) {
 				log.info("Rule '{}' is satisfied.", rule.getName());
 				// TODO JS->FW: Is it correct that even a satisfied rule is reported as a Finding?
-				ctx.getFindings().add(
-					new Finding(
-						"MarkRuleEvaluationFinding: Rule "
-								+ rule.getName()
-								+ ": ensure condition satisfied",
-						rule.getErrorMessage()));
+				ctx.getFindings()
+						.add(
+							new Finding(
+								"MarkRuleEvaluationFinding: Rule "
+										+ rule.getName()
+										+ ": ensure condition satisfied",
+								rule.getErrorMessage()));
 			} else {
 				log.error("Rule '{}' is violated.", rule.getName());
-				ctx.getFindings().add(
-					new Finding(
-						"MarkRuleEvaluationFinding: Rule "
-								+ rule.getName()
-								+ ": ensure condition violated",
-						rule.getErrorMessage()));
+				ctx.getFindings()
+						.add(
+							new Finding(
+								"MarkRuleEvaluationFinding: Rule "
+										+ rule.getName()
+										+ ": ensure condition violated",
+								rule.getErrorMessage()));
 			}
 		}
 	}

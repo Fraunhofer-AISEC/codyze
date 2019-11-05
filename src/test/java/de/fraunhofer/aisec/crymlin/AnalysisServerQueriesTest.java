@@ -57,8 +57,10 @@ public class AnalysisServerQueriesTest {
 		String markModelFiles = markPoC1.getParent();
 
 		// Start an analysis server
-		server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build()).build();
+		server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build())
+				.build();
 		server.start();
 
 		// Start the analysis
@@ -99,8 +101,16 @@ public class AnalysisServerQueriesTest {
 	 * @return
 	 */
 	private static TranslationManager newJavaAnalysisRun(File... sourceFiles) {
-		return TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().registerPass(new StatementsPerMethodPass()).sourceFiles(
-				sourceFiles).build()).build();
+		return TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder()
+							.debugParser(true)
+							.failOnError(false)
+							.defaultPasses()
+							.registerPass(new StatementsPerMethodPass())
+							.sourceFiles(
+								sourceFiles)
+							.build())
+				.build();
 	}
 }

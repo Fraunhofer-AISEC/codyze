@@ -108,8 +108,10 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
 	default CrymlinTraversal<S, Vertex> lhsVariableOfAssignment() {
 		return (CrymlinTraversal<S, Vertex>) in("RHS").where(
-			has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "=")).out("LHS").has(T.label,
-				LabelP.of(VariableDeclaration.class.getSimpleName()));
+			has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "="))
+				.out("LHS")
+				.has(T.label,
+					LabelP.of(VariableDeclaration.class.getSimpleName()));
 	}
 
 	//  /**

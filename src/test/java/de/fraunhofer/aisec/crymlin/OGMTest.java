@@ -9,7 +9,9 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
 import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
 import org.apache.commons.compress.utils.Lists;
+import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -223,6 +225,20 @@ public class OGMTest {
 			assert n instanceof TranslationUnitDeclaration : "n is not instanceof TranslationUnitDeclaration but " + n.getClass().getName();
 			restored.add((TranslationUnitDeclaration) n);
 		}
+	}
+
+	@Test
+	void getContainingFunction() throws Exception {
+		Vertex p2Start = OverflowDatabase.getInstance().getGraph().traversal().V().has("code", "p2.start(iv);").next();
+		Vertex containingFunction = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal()
+				.V(p2Start.id())
+				.until(__.hasLabel("MethodDeclaration"))
+				.repeat(
+					__.inE().has("sub-graph", new P<>(String::contains, "AST")).outV())
+				.next();
+		assertEquals("nok2", containingFunction.property("name").value());
 	}
 
 	static class OverflowTest {

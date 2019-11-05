@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.crymlin.server.TYPESTATE_ANALYSIS.WPDS;
+import static java.lang.Math.toIntExact;
 
 /** Evaluates MARK rules against the CPG. */
 public class MarkInterpreter {
@@ -397,10 +398,11 @@ public class MarkInterpreter {
 														+ " ("
 														+ rule.getErrorMessage()
 														+ ")",
-												vertex.value("startLine"),
-												vertex.value("endLine"),
-												vertex.value("startColumn"),
-												vertex.value("endColumn"));
+												rule.getErrorMessage(),
+												toIntExact(vertex.value("startLine")),
+												toIntExact(vertex.value("endLine")),
+												toIntExact(vertex.value("startColumn")),
+												toIntExact(vertex.value("endColumn")));
 											ctx.getFindings().add(f);
 											log.info("Finding: {}", f);
 											disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
@@ -511,10 +513,11 @@ public class MarkInterpreter {
 								+ " ("
 								+ rule.getErrorMessage()
 								+ ")",
-						vertex.value("startLine"),
-						vertex.value("endLine"),
-						vertex.value("startColumn"),
-						vertex.value("endColumn"));
+						rule.getErrorMessage(),
+						toIntExact(vertex.value("startLine")),
+						toIntExact(vertex.value("endLine")),
+						toIntExact(vertex.value("startColumn")),
+						toIntExact(vertex.value("endColumn")));
 					ctx.getFindings().add(f);
 					log.info("Finding: {}", f);
 				}
@@ -584,17 +587,17 @@ public class MarkInterpreter {
 						}
 					}
 					if (!vertex_allowed) {
-						long startLine = v.value("startLine");
-						long endLine = v.value("endLine");
-						long startColumn = v.value("startColumn");
-						long endColumn = v.value("endColumn");
+						int startLine = toIntExact(v.value("startLine"));
+						int endLine = toIntExact(v.value("endLine"));
+						int startColumn = toIntExact(v.value("startColumn"));
+						int endColumn = toIntExact(v.value("endColumn"));
 						String message = "Violation against forbidden call(s) "
 								+ String.join(", ", violating)
 								+ " in entity "
 								+ ent.getName()
 								+ ". Call was "
 								+ v.value("code").toString();
-						Finding f = new Finding(message, startLine, endLine, startColumn, endColumn);
+						Finding f = new Finding(message, "FORBIDDEN", startLine, endLine, startColumn, endColumn);
 						ctx.getFindings().add(f);
 						log.info("Finding: {}", f);
 					}
@@ -631,27 +634,27 @@ public class MarkInterpreter {
 			if (s.getCond() != null) {
 				Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
 				if (condResult.isEmpty()) {
-				log.warn(
-					"The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
-					rule.getName(),
-					ExpressionHelper.exprToString(s.getCond().getExp()));
-				ctx.getFindings().add(
-					new Finding(
-						"MarkRuleEvaluationFinding: Rule "
-								+ rule.getName()
-								+ ": guarding condition unknown",
-						rule.getErrorMessage()));
+					log.warn(
+						"The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
+						rule.getName(),
+						ExpressionHelper.exprToString(s.getCond().getExp()));
+					ctx.getFindings().add(
+						new Finding(
+							"MarkRuleEvaluationFinding: Rule "
+									+ rule.getName()
+									+ ": guarding condition unknown",
+							rule.getErrorMessage()));
 				} else if (!condResult.get()) {
-				log.info(
-					"   terminate rule checking due to unsatisfied guarding condition: {}",
-					ExpressionHelper.exprToString(s.getCond().getExp()));
-				// TODO JS->FW: Is it correct that even a non-applicable rule is reported as a Finding?
-				ctx.getFindings().add(
-					new Finding(
-						"MarkRuleEvaluationFinding: Rule "
-								+ rule.getName()
-								+ ": guarding condition unsatisfied",
-						rule.getErrorMessage()));
+					log.info(
+						"   terminate rule checking due to unsatisfied guarding condition: {}",
+						ExpressionHelper.exprToString(s.getCond().getExp()));
+					// TODO JS->FW: Is it correct that even a non-applicable rule is reported as a Finding?
+					ctx.getFindings().add(
+						new Finding(
+							"MarkRuleEvaluationFinding: Rule "
+									+ rule.getName()
+									+ ": guarding condition unsatisfied",
+							rule.getErrorMessage()));
 
 				}
 			}

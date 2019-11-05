@@ -7,8 +7,49 @@ import de.fraunhofer.aisec.cpg.graph.EdgeProperty;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import io.shiftleft.overflowdb.*;
-import org.apache.tinkerpop.gremlin.structure.*;
+import io.shiftleft.overflowdb.EdgeFactory;
+import io.shiftleft.overflowdb.EdgeLayoutInformation;
+import io.shiftleft.overflowdb.NodeFactory;
+import io.shiftleft.overflowdb.NodeLayoutInformation;
+import io.shiftleft.overflowdb.NodeRef;
+import io.shiftleft.overflowdb.OdbConfig;
+import io.shiftleft.overflowdb.OdbEdge;
+import io.shiftleft.overflowdb.OdbGraph;
+import io.shiftleft.overflowdb.OdbNode;
+import io.shiftleft.overflowdb.OdbNodeProperty;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -34,16 +75,6 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.*;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * <code></code>Database</code> implementation for OVerflowDB.
@@ -77,7 +108,9 @@ public class OverflowDatabase<N> implements Database<N> {
 			+ "java.lang.Boolean[]"
 			+ "java.lang.String[]";
 
-	/** Package containing all CPG classes * */
+	/**
+	 * Package containing all CPG classes *
+	 */
 	private static final String CPG_PACKAGE = "de.fraunhofer.aisec.cpg.graph";
 
 	private static OverflowDatabase INSTANCE;
@@ -107,7 +140,9 @@ public class OverflowDatabase<N> implements Database<N> {
 	private static final Reflections reflections = new Reflections(
 		new ConfigurationBuilder().setScanners(
 			new SubTypesScanner(false /* don't exclude Object.class */),
-			new ResourcesScanner()).setUrls(ClasspathHelper.forPackage(CPG_PACKAGE)).filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
+			new ResourcesScanner())
+				.setUrls(ClasspathHelper.forPackage(CPG_PACKAGE))
+				.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
 
 	private OverflowDatabase() {
 		// Initialize EhCache to cache some heavyweight reflection
@@ -230,8 +265,6 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	/**
 	 * Saves a single Node in OverflowDB.
-	 *
-	 * @param node
 	 */
 	private void save(N node) {
 		if (saved.contains(node)) {
@@ -258,8 +291,6 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	/**
 	 * Dumps a human-readable representation of a Vertex to stdout.
-	 *
-	 * @param v
 	 */
 	private void printVertex(Vertex v) {
 		Map<Object, Object> properties = getAllProperties(v);
@@ -288,11 +319,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * <p>
 	 * Note that the map will not contain the id() and label() of the Vertex. If it contains properties with key "id" or "label", their values might or might not equal
 	 * the results of id() and label(). Always use the latter functions to get IDs and labels.
-	 *
-	 * @param v
-	 * @param <K>
-	 * @param <V>
-	 * @return
 	 */
 	private <K, V> Map<K, V> getAllProperties(Vertex v) {
 		try {
@@ -315,7 +341,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	/**
 	 * Constructs a native Node object from a given Vertex or returns a cached Node object.
 	 *
-	 * @param v
 	 * @return Null, if the Vertex could not be converted into a native object.
 	 */
 	@Nullable
@@ -411,9 +436,6 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	/**
 	 * Creates a new Vertex from a given native Node or returns a Vertex from cache.
-	 *
-	 * @param n
-	 * @return
 	 */
 	public Vertex createVertex(N n) {
 		if (nodeToVertex.containsKey(n)) {
@@ -482,8 +504,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	/**
 	 * OverflowDB has problems when trying to persist things like String arrays. To ensure that overflowing to disk works as intended, this method ensures that such
 	 * properties are converted to a persistable format.
-	 *
-	 * @param properties
 	 */
 	private void convertProblematicProperties(HashMap<Object, Object> properties) {
 		for (Object key : new HashSet<>(properties.keySet())) {
@@ -506,10 +526,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	/**
 	 * Inverse of <code>convertProblematicProperties</code> in the sense that a single property value is retrieved from a <code>Vertex</code> and converted back into its
 	 * intended format (if applicable). See <code>restoreProblematicProperties</code> for conversion of all node properties.
-	 *
-	 * @param v
-	 * @param key
-	 * @return
 	 */
 	private Object restoreProblematicProperty(Vertex v, String key) {
 		// Check whether this value has been converted before being persisted (e.g. String[])
@@ -534,9 +550,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	/**
 	 * Applies <code>restoreProblematicProperty</code> on all properties of a given <code>Vertex
 	 * </code>
-	 *
-	 * @param v
-	 * @return
 	 */
 	private Map<String, Object> restoreProblematicProperties(Vertex v) {
 		Map<String, Object> properties = getAllProperties(v);
@@ -549,10 +562,6 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	/**
 	 * Applies AttributeConverter or CompositeAttributeConverter to flatten a complex field into a map of properties.
-	 *
-	 * @param f
-	 * @param content
-	 * @return
 	 */
 	private Map<Object, Object> convertToVertexProperties(Field f, Object content) {
 		try {
@@ -580,10 +589,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	 *
 	 * <p>
 	 * Inverse of <code>convertToVertexProperties</code>.
-	 *
-	 * @param v
-	 * @param f
-	 * @return
 	 */
 	private Object convertToNodeProperty(Vertex v, Field f) {
 		try {
@@ -767,9 +772,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * Returns all classes implementing a given class c.
 	 *
 	 * The result does not include c itself.
-	 *
-	 * @param c
-	 * @return
 	 */
 	public static String[] getSubclasses(Class<?> c) {
 		OverflowDatabase<?> instance = OverflowDatabase.getInstance();
@@ -853,7 +855,9 @@ public class OverflowDatabase<N> implements Database<N> {
 		// Nothing to do here.
 	}
 
-	/** Generate the Node and Edge factories that are required by OverflowDB. */
+	/**
+	 * Generate the Node and Edge factories that are required by OverflowDB.
+	 */
 	private Pair<List<NodeFactory<OdbNode>>, List<EdgeFactory<OdbEdge>>> getFactories() {
 		Set<Class<? extends Node>> allClasses = reflections.getSubTypesOf(Node.class);
 		allClasses.add(Node.class);
@@ -955,9 +959,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	 *
 	 * <p>
 	 * A field name of <code>myField</code> thus becomes a label <code>MY_FIELD</code>.
-	 *
-	 * @param f
-	 * @return
 	 */
 	private String getRelationshipLabel(Field f) {
 		String relName = f.getName();

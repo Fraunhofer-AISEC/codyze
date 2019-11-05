@@ -21,26 +21,10 @@ public class Finding {
 		this(name, identifier, -1, -1, -1, -1);
 	}
 
-	public Finding(String name, String identifier, long startLine, long endLine, long startColumn, long endColumn) {
+	public Finding(String name, String identifier, int startLine, int endLine, int startColumn, int endColumn) {
 		this.name = name;
 		this.identifier = identifier;
-		// lsp can only handle integer-line numbers
-		if (startLine > Integer.MAX_VALUE) {
-			log.error("startLine is larger than Integer.MAX_VALUE. Set to invalid (-1)");
-			startLine = -1;
-		}
-		if (endLine > Integer.MAX_VALUE) {
-			log.error("endLine is larger than Integer.MAX_VALUE. Set to invalid (-1)");
-			endLine = -1;
-		}
-		if (startColumn > Integer.MAX_VALUE) {
-			log.error("startColumn is larger than Integer.MAX_VALUE. Set to invalid (-1)");
-			startColumn = -1;
-		}
-		if (endColumn > Integer.MAX_VALUE) {
-			log.error("endColumn is larger than Integer.MAX_VALUE. Set to invalid (-1)");
-			endColumn = -1;
-		}
+		// Note: lsp can only handle integer-line numbers
 		// adjust off-by-one
 		this.range = new Range(
 			new Position((int) startLine - 1, (int) startColumn - 1),

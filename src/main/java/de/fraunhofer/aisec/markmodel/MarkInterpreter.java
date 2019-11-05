@@ -290,7 +290,6 @@ public class MarkInterpreter {
 				continue;
 			}
 
-			// TODO JS -> DT: Does it make sense to iterate over *all* functions?
 			for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations().toList()) {
 				log.info("Evaluating function {}", (Object) functionDeclaration.value("name"));
 

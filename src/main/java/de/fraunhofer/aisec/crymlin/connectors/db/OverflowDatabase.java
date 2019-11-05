@@ -783,7 +783,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	@Override
 	public void close() {
 		// do not save database on close
-		// this.odbConfig.withStorageLocation(null);
+		this.odbConfig.withStorageLocation(null);
 
 		// Close cache
 		this.cacheManager.close();

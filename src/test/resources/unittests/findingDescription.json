@@ -1,0 +1,6 @@
+{
+  "WrongUseOfBotan_CipherMode": {
+    "detailed": "Detailed error message",
+    "brief": "The order of called Botan methods is wrong."
+  }
+}

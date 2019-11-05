@@ -631,12 +631,28 @@ public class MarkInterpreter {
 			if (s.getCond() != null) {
 				Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
 				if (condResult.isEmpty()) {
-					log.warn("The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}", rule.getName(),
-						exprToString(s.getCond().getExp()));
-					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unknown"));
+				log.warn(
+					"The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
+					rule.getName(),
+					ExpressionHelper.exprToString(s.getCond().getExp()));
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": guarding condition unknown",
+						rule.getErrorMessage()));
 				} else if (!condResult.get()) {
-					log.info("   terminate rule checking due to unsatisfied guarding condition: {}", exprToString(s.getCond().getExp()));
-					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unsatisfied"));
+				log.info(
+					"   terminate rule checking due to unsatisfied guarding condition: {}",
+					ExpressionHelper.exprToString(s.getCond().getExp()));
+				// TODO JS->FW: Is it correct that even a non-applicable rule is reported as a Finding?
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": guarding condition unsatisfied",
+						rule.getErrorMessage()));
+
 				}
 			}
 
@@ -644,18 +660,33 @@ public class MarkInterpreter {
 			Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
 
 			if (ensureResult.isEmpty()) {
-				log.warn("Ensure statement of rule '{}' cannot be evaluated: {}", rule.getName(), exprToString(s.getEnsure().getExp()));
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition unknown"));
+				log.warn(
+					"Ensure statement of rule '{}' cannot be evaluated: {}",
+					rule.getName(),
+					ExpressionHelper.exprToString(s.getEnsure().getExp()));
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": ensure condition unknown",
+						rule.getErrorMessage()));
 			} else if (ensureResult.get()) {
 				log.info("Rule '{}' is satisfied.", rule.getName());
-				ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": ensure condition satisfied"));
+				// TODO JS->FW: Is it correct that even a satisfied rule is reported as a Finding?
+				ctx.getFindings().add(
+					new Finding(
+						"MarkRuleEvaluationFinding: Rule "
+								+ rule.getName()
+								+ ": ensure condition satisfied",
+						rule.getErrorMessage()));
 			} else {
 				log.error("Rule '{}' is violated.", rule.getName());
 				ctx.getFindings().add(
 					new Finding(
 						"MarkRuleEvaluationFinding: Rule "
 								+ rule.getName()
-								+ ": ensure condition violated"));
+								+ ": ensure condition violated",
+						rule.getErrorMessage()));
 			}
 		}
 	}

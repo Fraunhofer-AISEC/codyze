@@ -46,6 +46,8 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	/**
 	 * Returns function and method calls.
 	 *
+	 * This traversal step will return vertices of type CallExpression (or its subclasses).
+	 * 
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
 	public GraphTraversal<Vertex, Vertex> calls() {
@@ -56,7 +58,9 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	}
 
 	/**
-	 * Returns function and method calls with the given name.
+	 * Returns the vertices representing the call site of a function with the given fully qualified name.
+	 *
+	 * This traversal step will return vertices of type CallExpression (or its subclasses).
 	 *
 	 * @param callee_name name of the called function/method
 	 * @return traversal of matched {@code CallExpression} vertices

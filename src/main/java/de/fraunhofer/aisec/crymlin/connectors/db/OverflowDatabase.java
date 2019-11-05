@@ -10,6 +10,7 @@ import io.shiftleft.overflowdb.*;
 import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.ResourcePools;
@@ -311,6 +312,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * @param v
 	 * @return Null, if the Vertex could not be converted into a native object.
 	 */
+	@Nullable
 	public N vertexToNode(Vertex v) {
 		// avoid loops
 		if (nodesCache.containsKey((Long) v.id())) {
@@ -745,6 +747,14 @@ public class OverflowDatabase<N> implements Database<N> {
 		return Collection.class.isAssignableFrom(aClass);
 	}
 
+	/**
+	 * Returns all classes implementing a given class c.
+	 *
+	 * The result does not include c itself.
+	 *
+	 * @param c
+	 * @return
+	 */
 	public static String[] getSubclasses(Class<?> c) {
 		OverflowDatabase<?> instance = OverflowDatabase.getInstance();
 		if (instance.subClasses.containsKey(c.getName())) {

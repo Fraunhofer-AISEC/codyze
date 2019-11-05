@@ -49,12 +49,16 @@ class OrderTestComplex {
 		}
 
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build()).build();
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
+				.build();
 		server.start();
 
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		TranslationResult result;
 		try {

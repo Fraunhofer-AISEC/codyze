@@ -169,7 +169,8 @@ public class OverflowDatabase<N> implements Database<N> {
 		List<EdgeFactory<OdbEdge>> edgeFactories = factories.getValue1();
 
 		// Create OverflowDatabase
-		odbConfig = OdbConfig.withDefaults().withStorageLocation("graph-cache-overflow.bin") // Overflow file
+		odbConfig = OdbConfig.withDefaults()
+				.withStorageLocation("graph-cache-overflow.bin") // Overflow file
 				.withHeapPercentageThreshold(5); // Threshold for mem-to-disk overflow
 		graph = OdbGraph.open(
 			odbConfig,
@@ -346,8 +347,11 @@ public class OverflowDatabase<N> implements Database<N> {
 				} else if (mapsToRelationship(f)) {
 					/* Handle properties which should be treated as relationships */
 					Direction direction = getRelationshipDirection(f);
-					List<N> targets = IteratorUtils.stream(v.vertices(direction, getRelationshipLabel(f))).filter(distinctByKey(Vertex::id)).map(
-						this::vertexToNode).collect(Collectors.toList());
+					List<N> targets = IteratorUtils.stream(v.vertices(direction, getRelationshipLabel(f)))
+							.filter(distinctByKey(Vertex::id))
+							.map(
+								this::vertexToNode)
+							.collect(Collectors.toList());
 					if (isCollection(f.getType())) {
 						/*
 						 * we don't know for sure that the relationships are stored as a list. Might as well be any other collection. Thus we'll create it using

@@ -97,13 +97,17 @@ public class MarkCppTest {
 		assertNotNull(markFile);
 
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build()).build();
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build())
+				.build();
 		server.start();
 
 		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		try {
 			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
@@ -129,13 +133,17 @@ public class MarkCppTest {
 		assertNotNull(markFile);
 
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build()).build();
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build())
+				.build();
 		server.start();
 
 		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		try {
 			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
@@ -161,13 +169,17 @@ public class MarkCppTest {
 		assertNotNull(markFile);
 
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build()).build();
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build())
+				.build();
 		server.start();
 
 		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		try {
 			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
@@ -258,13 +270,17 @@ public class MarkCppTest {
 		assertNotNull(markFile);
 
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build()).build();
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build())
+				.build();
 		server.start();
 
 		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		try {
 			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);

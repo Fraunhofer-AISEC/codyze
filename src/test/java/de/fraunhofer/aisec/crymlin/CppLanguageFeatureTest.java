@@ -47,8 +47,10 @@ public class CppLanguageFeatureTest {
 		}
 
 		// Start an analysis server
-		server = AnalysisServer.builder().config(
-			ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build()).build();
+		server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
+				.build();
 		server.start();
 	}
 
@@ -68,8 +70,10 @@ public class CppLanguageFeatureTest {
 		assertNotNull(cppFile);
 
 		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		try {
 			result = analyze.get(5, TimeUnit.MINUTES);
@@ -90,8 +94,10 @@ public class CppLanguageFeatureTest {
 		assertNotNull(cppFile);
 
 		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder().config(
-			TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build()).build();
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		try {
 			result = analyze.get(5, TimeUnit.MINUTES);

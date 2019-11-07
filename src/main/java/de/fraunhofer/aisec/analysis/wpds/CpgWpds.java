@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.markmodel.wpds;
+package de.fraunhofer.aisec.analysis.wpds;
 
 import de.breakpoint.pushdown.WPDS;
 import de.fraunhofer.aisec.cpg.graph.Region;

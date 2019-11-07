@@ -1,11 +1,13 @@
 
 package de.fraunhofer.aisec.markmodel;
 
-import com.steelbridgelabs.oss.neo4j.structure.Neo4JVertex;
+import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
+import de.fraunhofer.aisec.cpg.graph.Declaration;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -15,9 +17,7 @@ import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
-import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
-import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -1033,123 +1033,11 @@ public class ExpressionEvaluator {
 
 						// TODO potential NullPointerException
 						Vertex variableDeclarationVertex = variableDeclarationTraversal.toList().get(0);
-
+						Declaration variableDeclaration = (Declaration) OverflowDatabase.getInstance()
+								.vertexToNode(variableDeclarationVertex);
+						ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
+						return cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v, attributeType);
 						// FIXME and now this code doesn't work as expected, especially path()
-
-						/*
-						 * TODO general idea 1. from CPG vertex representing the function argument ('crymlin.byID((long) v.id()).out("ARGUMENTS").has("argumentIndex",
-						 * argumentIndex)') create all paths to vertex with variable declaration ('variableDeclarationVertex') in theory 'crymlin.byID((long)
-						 * v.id()).repeat(in("EOG").simplePath()) .until(hasId(variableDeclarationVertex.id())).path()' 2. traverse this path from 'v' --->
-						 * 'variableDeclarationVertex' 3. for each assignment, i.e. BinaryOperator{operatorCode: "="} 4. check if -{"LHS"}-> v -{"REFERS_TO"}->
-						 * variableDeclarationVertex 5. then determine value RHS 6. done 7. {no interjacent assignment} determine value of variableDeclarationVertex (e.g.
-						 * from its initializer) 8. {no intializer with value e.g. function argument} continue traversing the graph
-						 */
-
-						log.debug("Vertex for function call: {}", v);
-						log.debug("Vertex of variable declaration: {}", variableDeclarationVertex);
-
-						// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
-						// one of them must have more information on the value of the operand
-						CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) v.id())
-								.repeat(in("EOG"))
-								.until(
-									is(variableDeclarationVertex))
-								.emit();
-						dumpVertices(traversal.clone().toList());
-
-						while (traversal.hasNext()) {
-							Vertex tVertex = traversal.next();
-
-							boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("BinaryOperator");
-
-							if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode").value())) {
-								// this is an assignment that may set the value of our operand
-								Vertex lhs = tVertex.vertices(Direction.OUT, "LHS").next();
-
-								if (lhs.vertices(Direction.OUT, "REFERS_TO").next().equals(variableDeclarationVertex)) {
-									Vertex rhs = tVertex.vertices(Direction.OUT, "RHS").next();
-
-									boolean isRhsLiteral = Arrays.asList(rhs.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal");
-
-									if (isRhsLiteral) {
-										Object literalValue = rhs.property("value").value();
-										Class literalValueClass = literalValue.getClass();
-
-										if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-											return Optional.of(((Number) literalValue).intValue());
-										}
-
-										if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-											return Optional.of(((Number) literalValue).floatValue());
-										}
-
-										if (literalValueClass.equals(Boolean.class)) {
-											return Optional.of((Boolean) literalValue);
-										}
-
-										if (literalValueClass.equals(String.class)) {
-											// character and string literals both have value of type String
-											String valueString = (String) literalValue;
-
-											// FIXME incomplete hack; only works for primitive char type; is that
-											// enough?
-											if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
-												// FIXME this will likely break on an empty string
-												return Optional.of(valueString.charAt(0));
-											}
-											return Optional.of(valueString);
-										}
-										log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
-									}
-
-									// TODO properly resolve rhs expression
-
-									log.warn("Value of operand set in assignment expression");
-									break;
-								}
-							}
-						}
-
-						// we arrived at the declaration of the variable used as an argument
-						log.warn("Checking declaration for a literal initializer");
-
-						// check if we have an initializer with a literal
-						Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
-						while (itInitializerVertex.hasNext()) {
-							// there should be at most one
-							Vertex initializerVertex = itInitializerVertex.next();
-
-							if (Arrays.asList(initializerVertex.label().split(Neo4JVertex.LabelDelimiter)).contains("Literal")) {
-								Object literalValue = initializerVertex.property("value").value();
-								Class literalValueClass = literalValue.getClass();
-
-								if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-									return Optional.of(((Number) literalValue).intValue());
-								}
-
-								if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-									return Optional.of(((Number) literalValue).floatValue());
-								}
-
-								if (literalValueClass.equals(Boolean.class)) {
-									return Optional.of((Boolean) literalValue);
-								}
-
-								if (literalValueClass.equals(String.class)) {
-									// character and string literals both have value of type String
-									String valueString = (String) literalValue;
-
-									// FIXME incomplete hack; only works for primitive char type; is that
-									// enough?
-									if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type").value())) {
-										// FIXME this will likely break on an empty string
-										return Optional.of(valueString.charAt(0));
-									}
-									return Optional.of(valueString);
-								}
-								log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
-							}
-						}
 					}
 				}
 			}
@@ -1187,26 +1075,6 @@ public class ExpressionEvaluator {
 				Set<Vertex> vertices = mop.getVertices(stmt);
 
 				vertices.forEach(v -> log.warn("Operand used in OpStatement with vertex: {}", v));
-			}
-		}
-	}
-
-	private void dumpVertices(Collection<Vertex> vertices) {
-		log.debug("Dumping vertices: {}", vertices.size());
-
-		int i = 0;
-		for (Vertex v : vertices) {
-			log.debug("Vertex {}: {}", i++, v);
-		}
-	}
-
-	private void dumpPaths(Collection<Path> paths) {
-		log.debug("Number of paths: {}", paths.size());
-
-		for (Path p : paths) {
-			log.debug("Path of length: {}", p.size());
-			for (Object o : p) {
-				log.debug("Path step: {}", o);
 			}
 		}
 	}

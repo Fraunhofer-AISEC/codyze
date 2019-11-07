@@ -1,9 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin.server;
 
-import de.fraunhofer.aisec.markmodel.wpds.TypeStateAnalysis;
-import org.neo4j.ogm.session.event.Event;
-
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {
 

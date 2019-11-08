@@ -74,7 +74,7 @@ public class ExpressionHelper {
 
 	@Nullable
 	public static String asString(Optional opt) {
-		if (opt==null || opt.isEmpty()) {
+		if (opt == null || opt.isEmpty()) {
 			return null;
 		}
 
@@ -91,7 +91,7 @@ public class ExpressionHelper {
 
 	@Nullable
 	public static Number asNumber(Optional opt) {
-		if (opt==null || opt.isEmpty()) {
+		if (opt == null || opt.isEmpty()) {
 			return null;
 		}
 
@@ -108,7 +108,7 @@ public class ExpressionHelper {
 
 	@Nullable
 	public static Boolean asBoolean(Optional opt) {
-		if (opt==null || opt.isEmpty()) {
+		if (opt == null || opt.isEmpty()) {
 			return null;
 		}
 

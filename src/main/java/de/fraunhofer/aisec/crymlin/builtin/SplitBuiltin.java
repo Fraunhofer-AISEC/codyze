@@ -53,7 +53,7 @@ public class SplitBuiltin implements Builtin {
 		String regex = ExpressionHelper.asString(argOptionals.get(1));
 		Number index = ExpressionHelper.asNumber(argOptionals.get(2));
 
-		if (s==null || regex==null || index==null) {
+		if (s == null || regex == null || index == null) {
 			return Optional.empty();
 		}
 

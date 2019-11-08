@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.markmodel.wpds;
+package de.fraunhofer.aisec.analysis.wpds;
 
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;

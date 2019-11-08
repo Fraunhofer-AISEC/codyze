@@ -14,7 +14,7 @@ import de.fraunhofer.aisec.crymlin.utils.Pair;
 import de.fraunhofer.aisec.crymlin.utils.Utils;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import de.fraunhofer.aisec.markmodel.wpds.TypeStateAnalysis;
+import de.fraunhofer.aisec.analysis.wpds.TypeStateAnalysis;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,9 +25,6 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.Math.toIntExact;
 

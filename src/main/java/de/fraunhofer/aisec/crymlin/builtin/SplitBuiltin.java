@@ -1,15 +1,19 @@
 
 package de.fraunhofer.aisec.crymlin.builtin;
 
+import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
 import de.fraunhofer.aisec.markmodel.EvaluationContext;
 import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
+import de.fraunhofer.aisec.markmodel.ExpressionHelper;
+import jnr.constants.Constant;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.text.html.Option;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -44,32 +48,21 @@ public class SplitBuiltin implements Builtin {
 		// arguments: String, String, int
 		// example:
 		// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
-		final List<Class> paramTypes = Arrays.asList(String.class, String.class, Integer.class);
 
-		if (paramTypes.size() != argOptionals.size()) {
+		String s = ExpressionHelper.asString(argOptionals.get(0));
+		String regex = ExpressionHelper.asString(argOptionals.get(1));
+		Number index = ExpressionHelper.asNumber(argOptionals.get(2));
+
+		if (s == null || regex == null || index == null) {
 			return Optional.empty();
 		}
 
-		for (int i = 0; i < paramTypes.size(); i++) {
-			Optional arg = argOptionals.get(i);
-
-			if (arg.isEmpty()) {
-				return Optional.empty();
-			}
-			if (!arg.get().getClass().equals(paramTypes.get(i))) {
-				return Optional.empty();
-			}
-		}
-
-		String s = (String) argOptionals.get(0).get();
-		String regex = (String) argOptionals.get(1).get();
-		int index = (Integer) argOptionals.get(2).get();
 		log.debug("args are: " + s + "; " + regex + "; " + index);
 		// TODO #8
 		String ret = null;
 		String[] splitted = s.split(regex);
-		if (index < splitted.length) {
-			ret = splitted[index];
+		if (index.intValue() < splitted.length) {
+			ret = splitted[index.intValue()];
 		}
 
 		if (ret != null) {

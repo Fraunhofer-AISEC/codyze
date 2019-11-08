@@ -1,8 +1,11 @@
 
 package de.fraunhofer.aisec.markmodel;
 
+import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.mark.markDsl.*;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /** Static helper methods for evaluating MARK expressions. */
@@ -67,5 +70,56 @@ public class ExpressionHelper {
 
 	public static String argToString(Argument arg) {
 		return exprToString((Expression) arg); // Every Argument is also an Expression
+	}
+
+	@Nullable
+	public static String asString(Optional opt) {
+		if (opt == null || opt.isEmpty()) {
+			return null;
+		}
+
+		if (opt.get() instanceof String) {
+			return (String) opt.get();
+		}
+
+		if (opt.get() instanceof ConstantValue && ((ConstantValue) opt.get()).isString()) {
+			return (String) ((ConstantValue) opt.get()).getValue();
+		}
+
+		return null;
+	}
+
+	@Nullable
+	public static Number asNumber(Optional opt) {
+		if (opt == null || opt.isEmpty()) {
+			return null;
+		}
+
+		if (opt.get() instanceof Integer) {
+			return (Integer) opt.get();
+		}
+
+		if (opt.get() instanceof ConstantValue && ((ConstantValue) opt.get()).isNumeric()) {
+			return (Number) ((ConstantValue) opt.get()).getValue();
+		}
+
+		return null;
+	}
+
+	@Nullable
+	public static Boolean asBoolean(Optional opt) {
+		if (opt == null || opt.isEmpty()) {
+			return null;
+		}
+
+		if (opt.get() instanceof Boolean) {
+			return (Boolean) opt.get();
+		}
+
+		if (opt.get() instanceof ConstantValue && ((ConstantValue) opt.get()).isBoolean()) {
+			return (Boolean) ((ConstantValue) opt.get()).getValue();
+		}
+
+		return null;
 	}
 }

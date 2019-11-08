@@ -181,13 +181,13 @@ public class ExpressionEvaluator {
 		// TODO implement remaining operations
 		switch (op) {
 			case "==":
-				if (lNumber!=null && rNumber!=null) {
+				if (lNumber != null && rNumber != null) {
 					return Optional.of(lNumber.equals(rNumber));
 				}
-				if (lString!=null && rString!=null) {
+				if (lString != null && rString != null) {
 					return Optional.of(lString.equals(rString));
 				}
-				if (lBoolean!=null && rBoolean!=null) {
+				if (lBoolean != null && rBoolean != null) {
 					return Optional.of(lBoolean.equals(rBoolean));
 				}
 
@@ -199,13 +199,13 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 			case "!=":
-				if (lNumber!=null && rNumber!=null) {
+				if (lNumber != null && rNumber != null) {
 					return Optional.of(!lNumber.equals(rNumber));
 				}
-				if (lString!=null && rString!=null) {
+				if (lString != null && rString != null) {
 					return Optional.of(!lString.equals(rString));
 				}
-				if (lBoolean!=null && rBoolean!=null) {
+				if (lBoolean != null && rBoolean != null) {
 					return Optional.of(!lBoolean.equals(rBoolean));
 				}
 
@@ -217,7 +217,7 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 			case "<":
-				if (lNumber!=null && rNumber!=null) {
+				if (lNumber != null && rNumber != null) {
 					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
 					return Optional.of(lNumber.floatValue() < rNumber.floatValue());
 				}
@@ -226,9 +226,9 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 
-				// TODO #8
+			// TODO #8
 			case "<=":
-				if (lNumber!=null && rNumber!=null) {
+				if (lNumber != null && rNumber != null) {
 					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
 					return Optional.of(lNumber.floatValue() <= rNumber.floatValue());
 				}
@@ -237,9 +237,9 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 
-				// TODO #8
+			// TODO #8
 			case ">":
-				if (lNumber!=null && rNumber!=null) {
+				if (lNumber != null && rNumber != null) {
 					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
 					return Optional.of(lNumber.floatValue() > rNumber.floatValue());
 				}
@@ -252,7 +252,7 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 			case ">=":
-				if (lNumber!=null && rNumber!=null) {
+				if (lNumber != null && rNumber != null) {
 					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
 					return Optional.of(lNumber.floatValue() >= rNumber.floatValue());
 				}
@@ -260,7 +260,6 @@ public class ExpressionEvaluator {
 				log.error(
 					"Comparison operator greater-than-or-equal ('>=') not supported for type: {}",
 					leftType);
-
 
 				return Optional.empty();
 			case "in":
@@ -275,11 +274,11 @@ public class ExpressionEvaluator {
 							o);
 
 						if (o != null) {
-							if (lString!=null) {
+							if (lString != null) {
 								evalValue |= lString.equals(o);
-							} else if (lNumber!=null) {
+							} else if (lNumber != null) {
 								evalValue |= lNumber.equals(o);
-							} else if (lBoolean!=null) {
+							} else if (lBoolean != null) {
 								evalValue |= lBoolean.equals(o);
 							}
 						}
@@ -303,7 +302,7 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 
-				// TODO #8
+			// TODO #8
 			default:
 				log.error("Unsupported operand {}", op);
 		}

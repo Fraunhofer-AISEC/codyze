@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.analysis.scp;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -17,7 +18,9 @@ public class ConstantValue<T> {
 	@NonNull
 	protected T value;
 
-	private enum Type {NUMERIC, BOOLEAN, STRING}
+	private enum Type {
+		NUMERIC, BOOLEAN, STRING
+	}
 
 	;
 
@@ -38,7 +41,8 @@ public class ConstantValue<T> {
 		}
 	}
 
-	@NonNull public T getValue() {
+	@NonNull
+	public T getValue() {
 		return value;
 	}
 
@@ -54,7 +58,8 @@ public class ConstantValue<T> {
 		return this.type.equals(Type.STRING);
 	}
 
-	@Override public boolean equals(Object o) {
+	@Override
+	public boolean equals(Object o) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())
@@ -64,7 +69,8 @@ public class ConstantValue<T> {
 				value.equals(that.value);
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 		return Objects.hash(type, value);
 	}
 }

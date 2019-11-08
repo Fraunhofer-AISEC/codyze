@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
+import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.Declaration;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
@@ -72,6 +73,7 @@ public class ExpressionEvaluator {
 		return result;
 	}
 
+	@Deprecated // Unused. We should not insert the whole typestate analysis here.
 	private Optional<Boolean> evaluateOrderExpression(OrderExpression orderExpression) {
 		// TODO integrate Dennis' evaluateOrder()-function
 		return Optional.empty();
@@ -162,6 +164,15 @@ public class ExpressionEvaluator {
 			return Optional.empty();
 		}
 
+		String lString = ExpressionHelper.asString(leftResult);
+		String rString = ExpressionHelper.asString(rightResult);
+
+		Number lNumber = ExpressionHelper.asNumber(leftResult);
+		Number rNumber = ExpressionHelper.asNumber(rightResult);
+
+		Boolean lBoolean = ExpressionHelper.asBoolean(leftResult);
+		Boolean rBoolean = ExpressionHelper.asBoolean(rightResult);
+
 		Class leftType = leftResult.get().getClass();
 		Class rightType = rightResult.get().getClass();
 
@@ -170,8 +181,14 @@ public class ExpressionEvaluator {
 		// TODO implement remaining operations
 		switch (op) {
 			case "==":
-				if (leftType.equals(rightType)) {
-					return Optional.of(leftResult.get().equals(rightResult.get()));
+				if (lNumber!=null && rNumber!=null) {
+					return Optional.of(lNumber.equals(rNumber));
+				}
+				if (lString!=null && rString!=null) {
+					return Optional.of(lString.equals(rString));
+				}
+				if (lBoolean!=null && rBoolean!=null) {
+					return Optional.of(lBoolean.equals(rBoolean));
 				}
 
 				// TODO #8
@@ -182,8 +199,14 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 			case "!=":
-				if (leftType.equals(rightType)) {
-					return Optional.of(!leftResult.get().equals(rightResult.get()));
+				if (lNumber!=null && rNumber!=null) {
+					return Optional.of(!lNumber.equals(rNumber));
+				}
+				if (lString!=null && rString!=null) {
+					return Optional.of(!lString.equals(rString));
+				}
+				if (lBoolean!=null && rBoolean!=null) {
+					return Optional.of(!lBoolean.equals(rBoolean));
 				}
 
 				// TODO #8
@@ -194,57 +217,31 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 			case "<":
-				if (leftType.equals(rightType)) {
-					if (leftType.equals(Integer.class)) {
-						return Optional.of(((Integer) leftResult.get()) < ((Integer) rightResult.get()));
-					} else if (leftType.equals(Float.class)) {
-						return Optional.of(((Float) leftResult.get()) < ((Float) rightResult.get()));
-					}
-
-					log.error("Comparison operator less-than ('<') not supported for type: {}", leftType);
-
-					return Optional.empty();
+				if (lNumber!=null && rNumber!=null) {
+					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
+					return Optional.of(lNumber.floatValue() < rNumber.floatValue());
 				}
 
-				// TODO #8
-				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftType.getSimpleName(),
-					rightType.getSimpleName());
+				log.error("Comparison operator less-than ('<') not supported for type: {}", leftType);
 
 				return Optional.empty();
+
+				// TODO #8
 			case "<=":
-				if (leftType.equals(rightType)) {
-					if (leftType.equals(Integer.class)) {
-						return Optional.of(((Integer) leftResult.get()) <= ((Integer) rightResult.get()));
-					} else if (leftType.equals(Float.class)) {
-						return Optional.of(((Float) leftResult.get()) <= ((Float) rightResult.get()));
-					}
-
-					log.error(
-						"Comparison operator less-than-or-equal ('<=') not supported for type: {}", leftType);
-
-					return Optional.empty();
+				if (lNumber!=null && rNumber!=null) {
+					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
+					return Optional.of(lNumber.floatValue() <= rNumber.floatValue());
 				}
 
-				// TODO #8
-				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftType.getSimpleName(),
-					rightType.getSimpleName());
+				log.error("Comparison operator less-than-or-equal ('<=') not supported for type: {}", leftType);
 
 				return Optional.empty();
+
+				// TODO #8
 			case ">":
-				if (leftType.equals(rightType)) {
-					if (leftType.equals(Integer.class)) {
-						return Optional.of(((Integer) leftResult.get()) > ((Integer) rightResult.get()));
-					} else if (leftType.equals(Float.class)) {
-						return Optional.of(((Float) leftResult.get()) > ((Float) rightResult.get()));
-					}
-
-					log.error("Comparison operator greater-than ('>') not supported for type: {}", leftType);
-
-					return Optional.empty();
+				if (lNumber!=null && rNumber!=null) {
+					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
+					return Optional.of(lNumber.floatValue() > rNumber.floatValue());
 				}
 
 				// TODO #8
@@ -255,25 +252,15 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 			case ">=":
-				if (leftType.equals(rightType)) {
-					if (leftType.equals(Integer.class)) {
-						return Optional.of(((Integer) leftResult.get()) >= ((Integer) rightResult.get()));
-					} else if (leftType.equals(Float.class)) {
-						return Optional.of(((Float) leftResult.get()) >= ((Float) rightResult.get()));
-					}
-
-					log.error(
-						"Comparison operator greater-than-or-equal ('>=') not supported for type: {}",
-						leftType);
-
-					return Optional.empty();
+				if (lNumber!=null && rNumber!=null) {
+					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
+					return Optional.of(lNumber.floatValue() >= rNumber.floatValue());
 				}
 
-				// TODO #8
 				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftType.getSimpleName(),
-					rightType.getSimpleName());
+					"Comparison operator greater-than-or-equal ('>=') not supported for type: {}",
+					leftType);
+
 
 				return Optional.empty();
 			case "in":
@@ -287,8 +274,14 @@ public class ExpressionEvaluator {
 							leftResult.get(),
 							o);
 
-						if (o != null && leftType.equals(o.getClass())) {
-							evalValue |= leftResult.get().equals(o);
+						if (o != null) {
+							if (lString!=null) {
+								evalValue |= lString.equals(o);
+							} else if (lNumber!=null) {
+								evalValue |= lNumber.equals(o);
+							} else if (lBoolean!=null) {
+								evalValue |= lBoolean.equals(o);
+							}
 						}
 					}
 
@@ -300,25 +293,17 @@ public class ExpressionEvaluator {
 
 				return Optional.empty();
 			case "like":
-				if (leftType.equals(rightType)) {
-					if (leftType.equals(String.class)) {
-						return Optional.of(
-							Pattern.matches(
-								Pattern.quote((String) rightResult.get()), (String) leftResult.get()));
-					}
-
-					log.error("Comparison operator like ('like') not supported for type: {}", leftType);
-
-					return Optional.empty();
+				if (lString != null) {
+					return Optional.of(
+						Pattern.matches(
+							Pattern.quote((String) rightResult.get()), lString));
 				}
 
-				// TODO #8
-				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftType.getSimpleName(),
-					rightType.getSimpleName());
+				log.error("Comparison operator like ('like') not supported for type: {}", leftType);
 
 				return Optional.empty();
+
+				// TODO #8
 			default:
 				log.error("Unsupported operand {}", op);
 		}
@@ -454,7 +439,7 @@ public class ExpressionEvaluator {
 		return Optional.empty();
 	}
 
-	private Optional evaluateMultiplicationExpr(MultiplicationExpression expr) {
+	private Optional<Number> evaluateMultiplicationExpr(MultiplicationExpression expr) {
 		log.debug("Evaluating multiplication expression: {}", ExpressionHelper.exprToString(expr));
 
 		String op = expr.getOp();
@@ -471,6 +456,17 @@ public class ExpressionEvaluator {
 
 		Class leftResultType = leftResult.get().getClass();
 		Class rightResultType = rightResult.get().getClass();
+
+		// Consider ConstantValue here instead of native Java types.
+		if (leftResultType.equals(ConstantValue.class)) {
+			leftResultType = ((ConstantValue) leftResult.get()).getValue().getClass();
+			leftResult = Optional.of(((ConstantValue) leftResult.get()).getValue());
+		}
+
+		if (rightResultType.equals(ConstantValue.class)) {
+			rightResultType = ((ConstantValue) rightResult.get()).getValue().getClass();
+			rightResult = Optional.of(((ConstantValue) rightResult.get()).getValue());
+		}
 
 		switch (op) {
 			case "*":
@@ -859,8 +855,8 @@ public class ExpressionEvaluator {
 		return ret;
 	}
 
-	private Optional evaluateOperand(Operand operand) {
-		log.warn("Operand: {}", operand.getOperand());
+	private Optional<ConstantValue> evaluateOperand(Operand operand) {
+		log.debug("Operand: {}", operand.getOperand());
 
 		String operandString = operand.getOperand();
 
@@ -1061,9 +1057,9 @@ public class ExpressionEvaluator {
 		uses.addAll(usesAsFunctionArg);
 
 		for (Pair<MOp, Set<OpStatement>> p : uses) {
-			log.warn("Number of uses in {}: {}", p.getValue0(), p.getValue1().size());
+			log.info("Number of uses in {}: {}", p.getValue0(), p.getValue1().size());
 			for (OpStatement os : p.getValue1()) {
-				log.warn("OpStatment: {}", os);
+				log.info("OpStatment: {}", os);
 			}
 		}
 
@@ -1074,7 +1070,7 @@ public class ExpressionEvaluator {
 			for (OpStatement stmt : opstmts) {
 				Set<Vertex> vertices = mop.getVertices(stmt);
 
-				vertices.forEach(v -> log.warn("Operand used in OpStatement with vertex: {}", v));
+				vertices.forEach(v -> log.info("Operand used in OpStatement with vertex: {}", v));
 			}
 		}
 	}

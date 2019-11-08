@@ -189,7 +189,7 @@ public class TypeStateAnalysis {
 	 */
 	private CpgWpds createWpds(@Nullable HashSet<Node> seedExpressions, HashMap<MOp, Vertex> verticeMap, CrymlinTraversalSource crymlinTraversal, NFA nfa) {
 		log.debug("-----  Creating WPDS ----------");
-
+		HashSet<Vertex> alreadySeen = new HashSet<>();
 		/**
 		 * We need OverflowDB to convert vertices back to CPG nodes.
 		 */
@@ -377,10 +377,12 @@ public class TypeStateAnalysis {
 
 							// Pop Rules for side effects on parameters
 							Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionDeclaration, v, odb, crymlinTraversal);
-							for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
-								PopRule<Stmt, Val, Weight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(), Weight.one());
-								wpds.addRule(popRule);
-								log.debug("Created pop rule " + popRule.toString());
+							if (paramToValueMap.containsKey(currentFunctionName)) {
+								for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
+									PopRule<Stmt, Val, Weight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(), Weight.one());
+									wpds.addRule(popRule);
+									log.debug("Created pop rule " + popRule.toString());
+								}
 							}
 
 						}
@@ -414,7 +416,11 @@ public class TypeStateAnalysis {
 				// Add successors to work list
 				Iterator<Edge> successors = v.edges(Direction.OUT, "EOG");
 				while (successors.hasNext()) {
-					worklist.add(successors.next().inVertex());
+					Vertex succ = successors.next().inVertex();
+					if (!alreadySeen.contains(succ)) {
+						worklist.add(succ);
+						alreadySeen.add(succ);
+					}
 				}
 			}
 		}
@@ -466,6 +472,7 @@ public class TypeStateAnalysis {
 	 * @param crymlinTraversalSource
 	 * @return
 	 */
+	@NonNull
 	private Map<String, Set<Pair<Val, Val>>> findParamToValues(Vertex functionDeclaration, Vertex returnV,
 			OverflowDatabase<de.fraunhofer.aisec.cpg.graph.Node> odb, CrymlinTraversalSource crymlinTraversalSource) {
 		Map<String, Set<Pair<Val, Val>>> result = new HashMap<>();

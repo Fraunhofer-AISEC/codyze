@@ -60,7 +60,7 @@ public class ConstantResolver {
 	 * @param variableDeclaration
 	 * @param attributeType
 	 */ // TODO Should be replaced by a more generic function that takes a single DeclaredReferenceExpression as an argument
-	public Optional<Object> resolveConstantValueOfFunctionArgument(@Nullable Declaration variableDeclaration, @NonNull Vertex callExpressionVertex,
+	public Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Declaration variableDeclaration, @NonNull Vertex callExpressionVertex,
 			@Nullable String attributeType) {
 		if (variableDeclaration == null) {
 			return Optional.empty();
@@ -117,29 +117,20 @@ public class ConstantResolver {
 							Class literalValueClass = literalValue.getClass();
 
 							if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-								return Optional.of(((Number) literalValue).intValue());
+								return Optional.of(ConstantValue.of(((Number) literalValue).intValue()));
 							}
 
 							if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-								return Optional.of(((Number) literalValue).floatValue());
+								return Optional.of(ConstantValue.of(((Number) literalValue).floatValue()));
 							}
 
 							if (literalValueClass.equals(Boolean.class)) {
-								return Optional.of((Boolean) literalValue);
+								return Optional.of(ConstantValue.of((Boolean) literalValue));
 							}
 
 							if (literalValueClass.equals(String.class)) {
 								// character and string literals both have value of type String
-								String valueString = (String) literalValue;
-
-								// FIXME incomplete hack; only works for primitive char type; is that
-								// enough?
-								if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type")
-										.value())) {
-									// FIXME this will likely break on an empty string
-									return Optional.of(valueString.charAt(0));
-								}
-								return Optional.of(valueString);
+								return Optional.of(ConstantValue.of((String) literalValue));
 							}
 							log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 						}
@@ -169,29 +160,20 @@ public class ConstantResolver {
 					Class literalValueClass = literalValue.getClass();
 
 					if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-						return Optional.of(((Number) literalValue).intValue());
+						return Optional.of(ConstantValue.of(((Number) literalValue).intValue()));
 					}
 
 					if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-						return Optional.of(((Number) literalValue).floatValue());
+						return Optional.of(ConstantValue.of(((Number) literalValue).floatValue()));
 					}
 
 					if (literalValueClass.equals(Boolean.class)) {
-						return Optional.of((Boolean) literalValue);
+						return Optional.of(ConstantValue.of((Boolean) literalValue));
 					}
 
 					if (literalValueClass.equals(String.class)) {
 						// character and string literals both have value of type String
-						String valueString = (String) literalValue;
-
-						// FIXME incomplete hack; only works for primitive char type; is that
-						// enough?
-						if ("char".equals(attributeType) || "char".equals(variableDeclarationVertex.property("type")
-								.value())) {
-							// FIXME this will likely break on an empty string
-							return Optional.of(valueString.charAt(0));
-						}
-						return Optional.of(valueString);
+						return Optional.of(ConstantValue.of((String) literalValue));
 					}
 					log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 				}

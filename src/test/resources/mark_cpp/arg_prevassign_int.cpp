@@ -6,5 +6,6 @@ int call(int a) {
 int main() {
   int foo = 1;
   foo = 42;
+  foo = 43;
   call(foo);
 }

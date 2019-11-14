@@ -58,10 +58,8 @@ public class ConstantResolver {
 	 * 8. {no intializer with value e.g. function argument} continue traversing the graph
 	 *
 	 * @param variableDeclaration
-	 * @param attributeType
 	 */ // TODO Should be replaced by a more generic function that takes a single DeclaredReferenceExpression as an argument
-	public Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Declaration variableDeclaration, @NonNull Vertex callExpressionVertex,
-			@Nullable String attributeType) {
+	public Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Declaration variableDeclaration, @NonNull Vertex callExpressionVertex) {
 		if (variableDeclaration == null) {
 			return Optional.empty();
 		}
@@ -144,7 +142,7 @@ public class ConstantResolver {
 			}
 
 			// we arrived at the declaration of the variable used as an argument
-			log.warn("Checking declaration for a literal initializer");
+			log.info("Checking declaration for a literal initializer");
 
 			// check if we have an initializer with a literal
 			Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");

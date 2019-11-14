@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.*;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -59,13 +60,13 @@ public class RuleEnsureSemanticsTest {
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
 
-		Map<String, Optional<Boolean>> ensureExprResults = new TreeMap<>();
+		Map<@NonNull String, ResultWithContext> ensureExprResults = new TreeMap<>();
 		for (MRule r : mark.getRules()) {
-			EvaluationContext ec = new EvaluationContext(r, EvaluationContext.Type.RULE);
+			MarkContext ec = new MarkContext(r, MarkContext.Type.RULE);
 			ExpressionEvaluator ee = new ExpressionEvaluator(ec);
 
 			Expression ensureExpr = r.getStatement().getEnsure().getExp();
-			Optional<Boolean> result = (Optional<Boolean>) ee.evaluate(ensureExpr);
+			ResultWithContext result = ee.evaluate(ensureExpr);
 			ensureExprResults.put(r.getName(), result);
 		}
 
@@ -73,11 +74,11 @@ public class RuleEnsureSemanticsTest {
 				.forEach(
 					entry -> {
 						if (entry.getKey().endsWith("true")) {
-							assertTrue(entry.getValue().get());
+							assertTrue((Boolean) entry.getValue().get());
 						} else if (entry.getKey().endsWith("false")) {
-							assertFalse(entry.getValue().get());
+							assertFalse((Boolean) entry.getValue().get());
 						} else {
-							assertTrue(entry.getValue().isEmpty());
+							assertTrue(entry.getValue() == null);
 						}
 					});
 	}

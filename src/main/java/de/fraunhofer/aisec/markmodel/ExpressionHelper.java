@@ -73,53 +73,77 @@ public class ExpressionHelper {
 	}
 
 	@Nullable
-	public static String asString(Optional opt) {
-		if (opt == null || opt.isEmpty()) {
+	public static String asString(ResultWithContext opt) {
+		if (opt == null) {
 			return null;
 		}
 
-		if (opt.get() instanceof String) {
-			return (String) opt.get();
+		return asString(opt.get());
+	}
+
+	@Nullable
+	public static String asString(Object opt) {
+		if (opt == null) {
+			return null;
 		}
 
-		if (opt.get() instanceof ConstantValue && ((ConstantValue) opt.get()).isString()) {
-			return (String) ((ConstantValue) opt.get()).getValue();
+		if (opt instanceof String) {
+			return (String) opt;
+		}
+
+		if (opt instanceof ConstantValue && ((ConstantValue) opt).isString()) {
+			return (String) ((ConstantValue) opt).getValue();
 		}
 
 		return null;
 	}
 
 	@Nullable
-	public static Number asNumber(Optional opt) {
-		if (opt == null || opt.isEmpty()) {
+	public static Number asNumber(ResultWithContext opt) {
+		if (opt == null) {
 			return null;
 		}
+		return asNumber(opt.get());
+	}
 
-		if (opt.get() instanceof Integer) {
-			return (Integer) opt.get();
+	public static Number asNumber(Object opt) {
+		if (opt == null) {
+			return null;
 		}
-
-		if (opt.get() instanceof ConstantValue && ((ConstantValue) opt.get()).isNumeric()) {
-			return (Number) ((ConstantValue) opt.get()).getValue();
+		if (opt instanceof Integer) {
+			return (Integer) opt;
+		}
+		if (opt instanceof ConstantValue && ((ConstantValue) opt).isNumeric()) {
+			return (Number) ((ConstantValue) opt).getValue();
 		}
 
 		return null;
 	}
 
 	@Nullable
-	public static Boolean asBoolean(Optional opt) {
-		if (opt == null || opt.isEmpty()) {
+	public static Boolean asBoolean(ResultWithContext opt) {
+		if (opt == null) {
 			return null;
 		}
 
-		if (opt.get() instanceof Boolean) {
-			return (Boolean) opt.get();
+		return asBoolean(opt.get());
+	}
+
+	@Nullable
+	public static Boolean asBoolean(Object opt) {
+		if (opt == null) {
+			return null;
 		}
 
-		if (opt.get() instanceof ConstantValue && ((ConstantValue) opt.get()).isBoolean()) {
-			return (Boolean) ((ConstantValue) opt.get()).getValue();
+		if (opt instanceof Boolean) {
+			return (Boolean) opt;
+		}
+
+		if (opt instanceof ConstantValue && ((ConstantValue) opt).isBoolean()) {
+			return (Boolean) ((ConstantValue) opt).getValue();
 		}
 
 		return null;
+
 	}
 }

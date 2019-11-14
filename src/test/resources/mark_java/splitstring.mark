@@ -1,0 +1,19 @@
+package mark_cpp
+
+entity Test {
+
+  var foo : java.lang.String;
+
+  op functions() {
+    bla.call(foo);
+  }
+
+}
+
+
+rule HasBeenCalled {
+  using Test as t
+  ensure
+    _split(t.foo, "/", 0) in ["AES"]
+  onfail HasBeenCalled_Failed
+}

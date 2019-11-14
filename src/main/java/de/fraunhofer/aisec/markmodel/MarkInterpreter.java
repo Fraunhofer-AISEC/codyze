@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.markmodel;
 
+import com.google.common.collect.Lists;
 import de.breakpoint.pushdown.IllegalTransitionException;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
@@ -667,100 +668,266 @@ public class MarkInterpreter {
 	private void evaluateNonOrderRules(AnalysisContext ctx) {
 
 		for (MRule rule : getNonOrderRules()) {
-			EvaluationContext ec = new EvaluationContext(rule, EvaluationContext.Type.RULE);
+			MarkContext ec = new MarkContext(rule, MarkContext.Type.RULE);
 			ExpressionEvaluator ee = new ExpressionEvaluator(ec);
 
 			RuleStatement s = rule.getStatement();
 			log.info("checking rule {}", rule.getName());
 
-			/* Evaluate "when" part */
-			if (s.getCond() != null) {
-				Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
-				if (condResult.isEmpty()) {
-					log.warn("The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}", rule.getName(),
-						exprToString(s.getCond().getExp()));
-					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unknown", rule.getErrorMessage()));
-					log.warn(
-						"The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
-						rule.getName(),
-						ExpressionHelper.exprToString(s.getCond().getExp()));
-					ctx.getFindings()
-							.add(
-								new Finding(
-									"MarkRuleEvaluationFinding: Rule "
-											+ rule.getName()
-											+ ": guarding condition unknown",
-									rule.getErrorMessage()));
-				} else if (!condResult.get()) {
-					log.info("   terminate rule checking due to unsatisfied guarding condition: {}", exprToString(s.getCond().getExp()));
-					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unsatisfied", rule.getErrorMessage()));
-					ExpressionHelper.exprToString(s.getCond().getExp());
-					// TODO JS->FW: Is it correct that even a non-applicable rule is reported as a Finding?
-					ctx.getFindings()
-							.add(
-								new Finding(
-									"MarkRuleEvaluationFinding: Rule "
-											+ rule.getName()
-											+ ": guarding condition unsatisfied",
-									rule.getErrorMessage()));
+			// collect all entities, and calculate which instances correspond to the entity
+			List<Pair<String, Vertex>> entities = new ArrayList<>();
+			for (AliasedEntityExpression entity : s.getEntities()) {
+				HashSet<Vertex> bases = new HashSet<>();
+				MEntity referencedEntity = this.markModel.getEntity(entity.getE());
+				if (referencedEntity != null) {
+					for (MOp op : referencedEntity.getOps()) {
+						for (Vertex vertex : op.getAllVertices()) {
+							Iterator<Edge> it = vertex.edges(Direction.OUT, "BASE");
+							String base = null;
+							Vertex ref = null;
+							if (it.hasNext()) {
+								Vertex baseVertex = it.next()
+										.inVertex();
+								base = baseVertex.value("name");
+								Iterator<Edge> it_ref = baseVertex.edges(Direction.OUT, "REFERS_TO");
+								if (it_ref.hasNext()) {
+									ref = it_ref.next()
+											.inVertex();
+									bases.add(ref);
+								}
+							}
 
+							if (ref == null) {
+								log.warn("Did not find a base for " + vertex.value("code"));
+							}
+						}
+					}
+					for (Vertex v : bases) {
+						entities.add(new Pair<>(entity.getN(), v));
+					}
+				} // else: unknown Entity referenced, this rule does not make much sense
+
+			}
+
+			// generate all combinations of instances for each entity
+			List<CPGInstanceContext> instanceContexts = new ArrayList<>();
+			for (List<Pair<String, Vertex>> list : Lists.cartesianProduct(entities)) {
+				CPGInstanceContext instance = new CPGInstanceContext();
+				for (Pair<String, Vertex> p : list) {
+					instance.entityPut(p.getValue0(), p.getValue1());
+				}
+				instanceContexts.add(instance);
+			}
+			ArrayList<ResultWithContext> results = new ArrayList<>();
+
+			for (CPGInstanceContext instanceContext : instanceContexts) {
+				ee.setCPGInstanceContext(instanceContext);
+
+				if (s.getCond() != null) { // do we have a precondition?
+					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, ec);
+					for (ResultWithContext resultCond : resultsCond) {
+						if (!(resultCond.get() instanceof Boolean)) {
+							log.error("Result is of type {}, expected boolean.", resultCond.getClass());
+							continue;
+						}
+						if (resultCond.get().equals(false)) {
+							log.info("Precondition is false, do not evaluate ensure.");
+							continue;
+						}
+
+						results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), s.getEnsure().getExp(), ee, ec));
+					}
+				} else {
+					results.addAll(evaluateExpressionWithContext(null, s.getEnsure().getExp(), ee, ec));
 				}
 			}
 
-			/* Evaluate "ensure" part */
-			Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
+			log.info("Got {} results", results.size());
+			for (ResultWithContext result : results) {
+				if (result != null) {
+					int startLine = -1;
+					int endLine = -1;
+					int startColumn = -1;
+					int endColumn = -1;
+					if (result.getVertex() != null) {
+						startLine = toIntExact((Long) result.getVertex().property("startLine").value());
+						endLine = toIntExact((Long) result.getVertex().property("endLine").value());
+						startColumn = toIntExact((Long) result.getVertex().property("startColumn").value());
+						endColumn = toIntExact((Long) result.getVertex().property("endColumn").value());
+					}
 
-			if (ensureResult.isEmpty()) {
-				log.warn(
-					"Ensure statement of rule '{}' cannot be evaluated: {}",
-					rule.getName(),
-					ExpressionHelper.exprToString(s.getEnsure().getExp()));
-				ctx.getFindings()
-						.add(
-							new Finding(
-								"MarkRuleEvaluationFinding: Rule "
-										+ rule.getName()
-										+ ": ensure condition unknown",
-								rule.getErrorMessage()));
-			} else if (ensureResult.get()) {
-				log.info("Rule '{}' is satisfied.", rule.getName());
-				// TODO JS->FW: Is it correct that even a satisfied rule is reported as a Finding?
-				ctx.getFindings()
-						.add(
-							new Finding(
-								"MarkRuleEvaluationFinding: Rule "
-										+ rule.getName()
-										+ ": ensure condition satisfied",
-								rule.getErrorMessage()));
-			} else {
-				log.error("Rule '{}' is violated.", rule.getName());
-				ctx.getFindings()
-						.add(
-							new Finding(
-								"MarkRuleEvaluationFinding: Rule "
-										+ rule.getName()
-										+ ": ensure condition violated",
-								rule.getErrorMessage()));
+					log.info("{}, argumentvertex in line {}: '{}'", result.get(), startLine, result.getVertex() == null ? "null" : result.getVertex().value("code"));
+
+					if (result.get() instanceof Boolean) {
+						if (result.get().equals(false)) {
+
+							ctx.getFindings()
+									.add(new Finding(
+										"MarkRuleEvaluationFinding: Rule "
+												+ rule.getName()
+												+ " violated",
+										rule.getErrorMessage(),
+										startLine,
+										endLine,
+										startColumn,
+										endColumn));
+						}
+					} else {
+						log.error("Unable to evaluate rule (unknown rule return type)");
+					}
+				} else {
+					log.error("Unable to evaluate rule");
+				}
 			}
 		}
 	}
 
-	/**
-	 * Returns true if the current TranslationUnit contains any calls referenced from any of the given Mark rules.
-	 *
-	 * @return true, if the TU contains matching vertices, false otherwise.
-	 * @param rules
-	 */
-	private boolean doesTranslationUnitContainRelevantCalls(@NonNull List<MRule> rules) {
-		boolean hasVertices = false;
-		outer: for (MEntity ent : this.markModel.getEntities()) {
-			for (MOp op : ent.getOps()) {
-				if (!op.getAllVertices().isEmpty()) {
-					return true;
-				}
+	private List<ResultWithContext> evaluateExpressionWithContext(CPGVariableContext previousVariableContext, Expression expression,
+			ExpressionEvaluator expressionEvaluator, MarkContext markContext) {
+		HashSet<String> newMarkVars = new HashSet<>();
+		Mark.collectVars(expression, newMarkVars);
+		if (previousVariableContext != null) {
+			newMarkVars.removeAll(previousVariableContext.keySet());
+		}
+
+		// get all possible assignments for all markvars
+		List<Pair<String, MarkVariableAssignment>> varAssignments = new ArrayList<>();
+		for (String markVar : newMarkVars) {
+			ArrayList<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(markVar, markContext);
+			ArrayList<MarkVariableAssignment> assignments = CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices);
+			for (MarkVariableAssignment markVariableAssignment : assignments) {
+				varAssignments.add(new Pair<>(markVar, markVariableAssignment));
 			}
 		}
-		log.info("no nodes match for TU and MARK-model. Skipping evaluation.");
-		return false;
+
+		// calculate all combination of all possible assignments of the vars
+		List<CPGVariableContext> variableContexts = new ArrayList<>();
+
+		if (!varAssignments.isEmpty()) {
+			// if we have new variableAssignments in this evaluation run, calculate all possible combinations
+			for (List<Pair<String, MarkVariableAssignment>> list : Lists.cartesianProduct(varAssignments)) {
+				CPGVariableContext variableContext = new CPGVariableContext();
+				if (previousVariableContext != null) {
+					variableContext.fillFrom(previousVariableContext);
+				}
+				for (Pair<String, MarkVariableAssignment> p : list) {
+					variableContext.put(p.getValue0(), p.getValue1());
+				}
+				variableContexts.add(variableContext);
+			}
+		} else {
+			// else, just use the variable context of the previous evaluation run, since the vars did not change
+			variableContexts.add(previousVariableContext);
+		}
+
+		List<ResultWithContext> allresults = new ArrayList<>();
+		if (!variableContexts.isEmpty()) {
+			for (CPGVariableContext variableContext : variableContexts) {
+				expressionEvaluator.setCPGVariableContext(variableContext);
+				ResultWithContext result = expressionEvaluator.evaluate(expression);
+				// result has the variablecontext set if it is not null, also, can be null
+
+				allresults.add(result);
+			}
+		} else {
+			// can this be that we do not have any markvar in a rule?
+			expressionEvaluator.setCPGVariableContext(new CPGVariableContext()); // empty context
+			ResultWithContext result = expressionEvaluator.evaluate(expression);
+
+			allresults.add(result);
+		}
+
+		return allresults;
 	}
+
+	// OLD:
+	//
+	//			/* Evaluate "when" part */
+	//			if (s.getCond() != null) {
+	//				Optional<Boolean> condResult = ee.evaluate(s.getCond().getExp());
+	//				if (condResult.isEmpty()) {
+	//					log.warn("The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}", rule.getName(),
+	//						exprToString(s.getCond().getExp()));
+	//					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unknown", rule.getErrorMessage()));
+	//					log.warn(
+	//						"The rule '{}'' will not be checked because it's guarding condition cannot be evaluated: {}",
+	//						rule.getName(),
+	//						ExpressionHelper.exprToString(s.getCond().getExp()));
+	//					ctx.getFindings()
+	//							.add(
+	//								new Finding(
+	//									"MarkRuleEvaluationFinding: Rule "
+	//											+ rule.getName()
+	//											+ ": guarding condition unknown",
+	//									rule.getErrorMessage()));
+	//				} else if (!condResult.get()) {
+	//					log.info("   terminate rule checking due to unsatisfied guarding condition: {}", exprToString(s.getCond().getExp()));
+	//					ctx.getFindings().add(new Finding("MarkRuleEvaluationFinding: Rule " + rule.getName() + ": guarding condition unsatisfied", rule.getErrorMessage()));
+	//					ExpressionHelper.exprToString(s.getCond().getExp());
+	//					ctx.getFindings()
+	//							.add(
+	//								new Finding(
+	//									"MarkRuleEvaluationFinding: Rule "
+	//											+ rule.getName()
+	//											+ ": guarding condition unsatisfied",
+	//									rule.getErrorMessage()));
+	//
+	//				}
+	//			}
+	//
+	//			/* Evaluate "ensure" part */
+	//			Optional<Boolean> ensureResult = ee.evaluate(s.getEnsure().getExp());
+	//
+	//			if (ensureResult.isEmpty()) {
+	//				log.warn(
+	//					"Ensure statement of rule '{}' cannot be evaluated: {}",
+	//					rule.getName(),
+	//					ExpressionHelper.exprToString(s.getEnsure().getExp()));
+	//				ctx.getFindings()
+	//						.add(
+	//							new Finding(
+	//								"MarkRuleEvaluationFinding: Rule "
+	//										+ rule.getName()
+	//										+ ": ensure condition unknown",
+	//								rule.getErrorMessage()));
+	//			} else if (ensureResult.get()) {
+	//				log.info("Rule '{}' is satisfied.", rule.getName());
+	//				ctx.getFindings()
+	//						.add(
+	//							new Finding(
+	//								"MarkRuleEvaluationFinding: Rule "
+	//										+ rule.getName()
+	//										+ ": ensure condition satisfied",
+	//								rule.getErrorMessage()));
+	//			} else {
+	//				log.error("Rule '{}' is violated.", rule.getName());
+	//				ctx.getFindings()
+	//						.add(
+	//							new Finding(
+	//								"MarkRuleEvaluationFinding: Rule "
+	//										+ rule.getName()
+	//										+ ": ensure condition violated",
+	//								rule.getErrorMessage()));
+	//			}
+	//		}
+	//	}
+	//
+	//	/**
+	//	 * Returns true if the current TranslationUnit contains any calls referenced from any of the given Mark rules.
+	//	 *
+	//	 * @return true, if the TU contains matching vertices, false otherwise.
+	//	 * @param rules
+	//	 */
+	//	private boolean doesTranslationUnitContainRelevantCalls(@NonNull List<MRule> rules) {
+	//		boolean hasVertices = false;
+	//		outer: for (MEntity ent : this.markModel.getEntities()) {
+	//			for (MOp op : ent.getOps()) {
+	//				if (!op.getAllVertices().isEmpty()) {
+	//					return true;
+	//				}
+	//			}
+	//		}
+	//		log.info("no nodes match for TU and MARK-model. Skipping evaluation.");
+	//		return false;
+	//	}
 }

@@ -1,0 +1,20 @@
+package mark_cpp
+
+entity Test {
+
+  var foo : java.lang.String;
+  var bla : java.lang.String;
+
+  op functions {
+    bla = bla.call(foo);
+  }
+
+}
+
+
+rule HasBeenCalled {
+  using Test as t
+  ensure
+    _is_instance(t.foo, "java.lang.String") && _is_instance(t.bla, "java.lang.String")
+  onfail HasBeenCalled_Failed
+}

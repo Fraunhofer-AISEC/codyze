@@ -64,7 +64,7 @@ import java.util.concurrent.ExecutionException;
 public class AnalysisServer {
 
 	private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
-	private static final boolean EXPORT_TO_NEO4J = true;
+	private static final boolean EXPORT_TO_NEO4J = false;
 
 	private static AnalysisServer instance;
 

@@ -5,15 +5,15 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EvaluationContext {
-	private static final Logger log = LoggerFactory.getLogger(EvaluationContext.class);
+public class MarkContext {
+	private static final Logger log = LoggerFactory.getLogger(MarkContext.class);
 
 	@NonNull
 	private Type contextType;
 	@NonNull
 	private Object context;
 
-	public EvaluationContext(@NonNull Object context, @NonNull Type type) {
+	public MarkContext(@NonNull Object context, @NonNull Type type) {
 		this.context = context;
 
 		if (!type.clazz.equals(context.getClass())) {
@@ -22,7 +22,7 @@ public class EvaluationContext {
 		this.contextType = type;
 	}
 
-	public boolean hasContextType(EvaluationContext.Type t) {
+	public boolean hasContextType(MarkContext.Type t) {
 		return (contextType == t);
 	}
 

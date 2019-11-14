@@ -1,20 +1,16 @@
 
 package de.fraunhofer.aisec.crymlin.builtin;
 
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.markmodel.EvaluationContext;
+import de.fraunhofer.aisec.markmodel.MarkContext;
 import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
 import de.fraunhofer.aisec.markmodel.ExpressionHelper;
-import jnr.constants.Constant;
+import de.fraunhofer.aisec.markmodel.ResultWithContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.text.html.Option;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,28 +33,28 @@ public class SplitBuiltin implements Builtin {
 	}
 
 	@Override
-	@NonNull // TODO Should return Optional<Literal>. This must be changed consistently across all evaluation functions, however.
-	public Optional execute(List<Argument> arguments, @Nullable EvaluationContext evalCtx) {
-		if (evalCtx == null) {
-			return Optional.empty();
-		}
+	public ResultWithContext execute(List<Argument> arguments, ExpressionEvaluator expressionEvaluator) {
 
-		List<Optional> argOptionals = new ExpressionEvaluator(evalCtx).evaluateArgs(arguments);
+		ResultWithContext argResult = expressionEvaluator.evaluateArgs(arguments);
 
 		// arguments: String, String, int
 		// example:
 		// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
 
-		String s = ExpressionHelper.asString(argOptionals.get(0));
-		String regex = ExpressionHelper.asString(argOptionals.get(1));
-		Number index = ExpressionHelper.asNumber(argOptionals.get(2));
+		if (argResult == null || !(argResult.get() instanceof List)) {
+			return null;
+		}
+		List argResultList = (List) (argResult.get());
+
+		String s = ExpressionHelper.asString(argResultList.get(0));
+		String regex = ExpressionHelper.asString(argResultList.get(1));
+		Number index = ExpressionHelper.asNumber(argResultList.get(2));
 
 		if (s == null || regex == null || index == null) {
-			return Optional.empty();
+			return null;
 		}
 
 		log.debug("args are: " + s + "; " + regex + "; " + index);
-		// TODO #8
 		String ret = null;
 		String[] splitted = s.split(regex);
 		if (index.intValue() < splitted.length) {
@@ -68,9 +64,9 @@ public class SplitBuiltin implements Builtin {
 		if (ret != null) {
 			// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
 			// stringResult.setValue(ret);
-			return Optional.of(ret);
+			return ResultWithContext.fromExisting(ret, argResult);
 		} else {
-			return Optional.empty();
+			return null;
 		}
 	}
 }

@@ -2,7 +2,9 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.markmodel.EvaluationContext;
+import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
+import de.fraunhofer.aisec.markmodel.MarkContext;
+import de.fraunhofer.aisec.markmodel.ResultWithContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -16,7 +18,7 @@ public class ReceivesValueFromBuiltin implements Builtin {
 	}
 
 	@Override
-	public @NonNull Optional execute(List<Argument> arguments, @Nullable EvaluationContext evalCtx) {
+	public @NonNull ResultWithContext execute(List<Argument> arguments, ExpressionEvaluator expressionEvaluator) {
 		// TODO implement
 
 		// TODO FW: needs to be discussed, I am not clear what this should achieve
@@ -26,6 +28,6 @@ public class ReceivesValueFromBuiltin implements Builtin {
 		 * Botan::Cipher_Dir::ENCRYPTION ensure _receives_value_from(cm.iv, rng.myValue) onfail NoRandomIV }
 		 */
 
-		return Optional.of(Boolean.TRUE);
+		return null;
 	}
 }

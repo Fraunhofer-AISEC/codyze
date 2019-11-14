@@ -4,14 +4,23 @@ package de.fraunhofer.aisec.crymlin.utils;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
+import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
+import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.markmodel.Constants;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
+import de.fraunhofer.aisec.markmodel.MEntity;
+import de.fraunhofer.aisec.markmodel.MOp;
+import de.fraunhofer.aisec.markmodel.MarkContext;
+import de.fraunhofer.aisec.markmodel.MarkVariableAssignment;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -19,16 +28,21 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.emf.common.util.EList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
 public class CrymlinQueryWrapper {
+
+	private static final Logger log = LoggerFactory.getLogger(CrymlinQueryWrapper.class);
 
 	// do not instantiate
 	private CrymlinQueryWrapper() {
@@ -159,5 +173,168 @@ public class CrymlinQueryWrapper {
 	public static List<Vertex> getNextStatements(CrymlinTraversalSource crymlin, long id) {
 		// TODO Needs testing for branches
 		return crymlin.byID(id).repeat(__().out("EOG").simplePath()).until(__().inE("STATEMENTS")).toList();
+	}
+
+	/**
+	 * TODO JS->FW: Write a comment here, describing what vertices this method returns for given operand. Maybe give an example.
+	 *
+	 * @param operand
+	 * @return
+	 */
+	public static ArrayList<Vertex> getMatchingVertices(String operand, MarkContext context) {
+		final ArrayList<Vertex> matchingVertices = new ArrayList<>();
+
+		if (!context.hasContextType(MarkContext.Type.RULE)) {
+			log.error("Context is not a rule!");
+			return matchingVertices;
+		}
+		if (StringUtils.countMatches(operand, ".") != 1) {
+			// "." separates the mark var name and the mark var object (e.g. cm.algorithm)
+			log.error("operand contains more than one '.' which is not supported.");
+			return matchingVertices;
+		}
+
+		// Split operand "myInstance.attribute" into "myInstance" and "attribute".
+		final String[] operandParts = operand.split("\\.");
+		final String instance = operandParts[0];
+		final String attribute = operandParts[1];
+
+		// Get the MARK entity corresponding to the operator's instance.
+		Pair<String, MEntity> ref = context.getRule().getEntityReferences().get(instance);
+		String entityName = ref.getValue0();
+		MEntity referencedEntity = ref.getValue1();
+
+		List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
+		List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
+
+		// Collect *variables* assigned in Ops of this entity and *arguments* used in Ops.
+		for (MOp operation : referencedEntity.getOps()) {
+			Set<OpStatement> vars = new HashSet<>();
+			Set<OpStatement> args = new HashSet<>();
+
+			// Iterate over all statements of that op
+			for (OpStatement opStmt : operation.getStatements()) {
+				// simple assignment, i.e. "var = something()"
+				if (attribute.equals(opStmt.getVar())) {
+					vars.add(opStmt);
+				}
+				// Function parameter, i.e. "something(..., var, ...)"
+				if (opStmt.getCall().getParams().stream().anyMatch(p -> p.equals(attribute))) {
+					args.add(opStmt);
+				}
+			}
+
+			if (!vars.isEmpty()) {
+				usesAsVar.add(new Pair<>(operation, vars));
+			}
+
+			if (!args.isEmpty()) {
+				usesAsFunctionArgs.add(new Pair<>(operation, args));
+			}
+		}
+
+		// TODO JS->FW: (less important) ExpressionEvaluator should not decide on its own which type of
+		// DB to use but rather receive a connection when instantiated.
+		try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
+
+			for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+				for (OpStatement opstmt : p.getValue1()) {
+
+					String fqFunctionName = opstmt.getCall().getName();
+
+					String functionName = Utils.extractMethodName(fqFunctionName);
+					String fqNamePart = Utils.extractType(fqFunctionName);
+
+					List<String> functionArgumentTypes = referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall().getParams());
+
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
+						crymlin, fqNamePart, functionName, null, functionArgumentTypes);
+
+					for (Vertex v : vertices) {
+						// check if there was an assignment
+
+						// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
+						// step is in the crymlin traversal
+						List<Vertex> nextVertices = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
+
+						if (!nextVertices.isEmpty()) {
+							log.info("found RHS traversals: {}", nextVertices);
+							matchingVertices.addAll(nextVertices);
+						}
+
+						// check if there was a direct initialization (i.e., int i = call(foo);)
+						nextVertices = crymlin.byID((long) v.id()).initializerVariable().toList();
+
+						if (!nextVertices.isEmpty()) {
+							log.info("found Initializer traversals: {}", nextVertices);
+							matchingVertices.addAll(nextVertices);
+						}
+					}
+				}
+			}
+
+			for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
+				for (OpStatement opstmt : p.getValue1()) {
+
+					String fqFunctionName = opstmt.getCall().getName();
+					String functionName = Utils.extractMethodName(fqFunctionName);
+					String fqName = Utils.extractType(fqFunctionName);
+					if (fqName.equals(functionName)) {
+						fqName = "";
+					}
+
+					EList<String> params = opstmt.getCall().getParams();
+					List<String> argumentTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
+					OptionalInt argumentIndexOptional = IntStream.range(0, params.size()).filter(i -> attribute.equals(params.get(i))).findFirst();
+					if (argumentIndexOptional.isEmpty()) {
+						log.error("argument not found in parameters. This should not happen");
+						continue;
+					}
+					int argumentIndex = argumentIndexOptional.getAsInt();
+
+					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
+						crymlin, fqName, functionName, entityName, argumentTypes);
+
+					for (Vertex v : vertices) {
+						List<Vertex> argumentVertices = crymlin.byID((long) v.id()).argument(argumentIndex).toList();
+
+						if (argumentVertices.size() == 1) {
+							matchingVertices.add(argumentVertices.get(0));
+						} else {
+							log.warn("Did not find one matching argument node, got {}", argumentVertices.size());
+						}
+					}
+				}
+			}
+		}
+
+		return matchingVertices;
+	}
+
+	public static ArrayList<MarkVariableAssignment> getAssignmentsForVertices(List<Vertex> vertices) {
+		final ArrayList<MarkVariableAssignment> ret = new ArrayList<>();
+		// try to resolve them
+		for (Vertex v : vertices) {
+			Iterator<Edge> refers_to = v.edges(Direction.OUT, "REFERS_TO");
+			if (refers_to.hasNext()) {
+				Edge next = refers_to.next();
+				// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
+				// argument we're using in the function call
+				Vertex variableDeclarationVertex = next.inVertex();
+				Declaration variableDeclaration = (Declaration) OverflowDatabase.getInstance().vertexToNode(variableDeclarationVertex);
+				ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
+				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v);
+				if (constantValue.isPresent()) {
+					MarkVariableAssignment mva = new MarkVariableAssignment();
+					mva.argumentVertex = v;
+					mva.value = constantValue.get().getValue(); // todo? return the constantvalue?
+					ret.add(mva);
+				} else {
+					log.warn("Could not constant resolve node {}", v.id());
+				}
+			}
+		}
+		return ret;
 	}
 }

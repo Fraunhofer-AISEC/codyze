@@ -1,21 +1,15 @@
 
 package de.fraunhofer.aisec.crymlin.builtin;
 
-import de.fraunhofer.aisec.crymlin.utils.Utils;
-import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.Operand;
-import de.fraunhofer.aisec.markmodel.MarkContext;
-import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
-import de.fraunhofer.aisec.markmodel.ResultWithContext;
+import de.fraunhofer.aisec.analysis.utils.Utils;
+import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Method signature: _is_instance(var instance, String classname)
@@ -25,6 +19,10 @@ import java.util.Optional;
  *
  * <p>
  * In case of an error or an empty result, this Builtin returns an Optional.empty.
+ *
+ *
+ * FIxME does is_instance even make sense? we fill markvars by looking for methods with the exact signature as specified in the entity. we could check for that, but isnt
+ * it by default true for all nodes we find?
  */
 public class IsInstanceBuiltin implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(IsInstanceBuiltin.class);
@@ -35,34 +33,20 @@ public class IsInstanceBuiltin implements Builtin {
 	}
 
 	@Override
-	public @NonNull ResultWithContext execute(List<Argument> args, ExpressionEvaluator expressionEvaluator) {
+	public ResultWithContext execute(ResultWithContext arguments, ExpressionEvaluator expressionEvaluator) {
 
-		// we need to get the node(s) corresponding to the 1st argument, and the string for the
-		// second argument
+		List argResultList = (List) (arguments.get());
 
-		ResultWithContext classnameArgument = expressionEvaluator.evaluateExpression((Expression) (args.get(1)));
-		if (classnameArgument == null || !(classnameArgument.get() instanceof String)) {
+		Object classnameArgument = argResultList.get(1);
+		if (!(classnameArgument instanceof String)) {
 			log.error("var of is_instance is empty");
 			return null;
 		}
 		// unify type (Java/C/C++)
-		String classname = Utils.unifyType((String) classnameArgument.get());
+		String classname = Utils.unifyType((String) classnameArgument);
+		Vertex v = arguments.getVertex();
 
-		// FIXME implement
-		return null;
-
-		//		// For operands, we try to find corresponding vertices in the graph and check their type
-		//		List<Vertex> verticesForOperand = ExpressionEvaluator.getMatchingVertices((Operand) args.get(0), evalCtx);
-		//		for (Vertex v : verticesForOperand) {
-		//			String type = v.value("type");
-		//			if (!type.equals(classname)) {
-		//				log.info("type of cpp ({}) and mark ({}) do not match", type, classname);
-		//				return Optional.of(false);
-		//			} else {
-		//				log.info("type of cpp ({}) and mark ({}) match", type, classname);
-		//			}
-		//		}
-		//
-		//		return Optional.of(true);
+		String type = v.value("type");
+		return ResultWithContext.fromExisting(type.equals(classname), arguments);
 	}
 }

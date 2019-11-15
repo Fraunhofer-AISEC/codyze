@@ -11,10 +11,10 @@ import de.breakpoint.pushdown.rules.Rule;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
-import de.fraunhofer.aisec.crymlin.structures.Finding;
-import de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.utils.Pair;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
+import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
@@ -33,7 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.crymlin.dsl.__.*;
-import static de.fraunhofer.aisec.crymlin.utils.CrymlinQueryWrapper.isCallExpression;
+import static de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper.isCallExpression;
 import static java.lang.Math.toIntExact;
 
 /**

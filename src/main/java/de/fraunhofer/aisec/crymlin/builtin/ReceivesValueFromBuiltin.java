@@ -1,15 +1,9 @@
 
 package de.fraunhofer.aisec.crymlin.builtin;
 
-import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
-import de.fraunhofer.aisec.markmodel.MarkContext;
-import de.fraunhofer.aisec.markmodel.ResultWithContext;
+import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.util.List;
-import java.util.Optional;
 
 public class ReceivesValueFromBuiltin implements Builtin {
 	@Override
@@ -18,7 +12,7 @@ public class ReceivesValueFromBuiltin implements Builtin {
 	}
 
 	@Override
-	public @NonNull ResultWithContext execute(List<Argument> arguments, ExpressionEvaluator expressionEvaluator) {
+	public ResultWithContext execute(ResultWithContext arguments, ExpressionEvaluator expressionEvaluator) {
 		// TODO implement
 
 		// TODO FW: needs to be discussed, I am not clear what this should achieve

@@ -6,9 +6,9 @@ import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.crymlin.server.AnalysisContext;
-import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
-import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

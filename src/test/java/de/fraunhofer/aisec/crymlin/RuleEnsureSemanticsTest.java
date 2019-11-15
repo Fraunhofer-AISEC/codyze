@@ -1,6 +1,13 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
+import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
@@ -59,15 +66,18 @@ public class RuleEnsureSemanticsTest {
 		assertTrue(markFilePaths.size() == 1);
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
+		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TYPESTATE_ANALYSIS.NFA).build();
+		AnalysisContext ctx = new AnalysisContext();
 
 		Map<@NonNull String, ResultWithContext> ensureExprResults = new TreeMap<>();
-		for (MRule r : mark.getRules()) {
-			MarkContext ec = new MarkContext(r, MarkContext.Type.RULE);
-			ExpressionEvaluator ee = new ExpressionEvaluator(ec);
+		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
+			for (MRule r : mark.getRules()) {
+				ExpressionEvaluator ee = new ExpressionEvaluator(r, ctx, config, t);
 
-			Expression ensureExpr = r.getStatement().getEnsure().getExp();
-			ResultWithContext result = ee.evaluate(ensureExpr);
-			ensureExprResults.put(r.getName(), result);
+				Expression ensureExpr = r.getStatement().getEnsure().getExp();
+				ResultWithContext result = ee.evaluate(ensureExpr);
+				ensureExprResults.put(r.getName(), result);
+			}
 		}
 
 		ensureExprResults.entrySet()

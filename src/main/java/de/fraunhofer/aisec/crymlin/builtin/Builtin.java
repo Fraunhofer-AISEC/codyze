@@ -1,14 +1,9 @@
 
 package de.fraunhofer.aisec.crymlin.builtin;
 
-import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.markmodel.ExpressionEvaluator;
-import de.fraunhofer.aisec.markmodel.MarkContext;
-import de.fraunhofer.aisec.markmodel.ResultWithContext;
+import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.util.List;
 
 /** All built-in functions must implement this interface. */
 public interface Builtin {
@@ -35,6 +30,6 @@ public interface Builtin {
 	 * @return
 	 */
 	public ResultWithContext execute(
-			List<Argument> arguments,
+			ResultWithContext arguments,
 			ExpressionEvaluator expressionEvaluator);
 }

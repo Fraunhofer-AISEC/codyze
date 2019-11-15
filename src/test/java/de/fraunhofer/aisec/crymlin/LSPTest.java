@@ -1,8 +1,8 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.crymlin.server.AnalysisServer;
-import de.fraunhofer.aisec.crymlin.server.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.junit.jupiter.api.BeforeAll;

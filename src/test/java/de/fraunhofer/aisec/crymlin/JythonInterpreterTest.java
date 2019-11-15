@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.JythonInterpreter;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -27,7 +28,7 @@ public class JythonInterpreterTest {
 		bench.stop();
 
 		// Expecting an unconnected engine, throwing exceptions.
-		assertNotNull(interp.engine);
+		assertNotNull(interp.getEngine());
 		assertThrows(ScriptException.class, () -> interp.query("graph"));
 		assertThrows(ScriptException.class, () -> interp.query("crymlin"));
 
@@ -37,7 +38,7 @@ public class JythonInterpreterTest {
 		bench.stop();
 
 		// Expect a connected engine w/o exceptions.
-		assertNotNull(interp.engine);
+		assertNotNull(interp.getEngine());
 		bench = new Benchmark(this.getClass(), "Sending 2 queries to graph");
 		assertDoesNotThrow(() -> interp.query("graph"));
 		assertDoesNotThrow(() -> interp.query("crymlin"));
@@ -48,7 +49,7 @@ public class JythonInterpreterTest {
 		bench.stop();
 
 		// Expecting an empty engine
-		assertNotNull(interp.engine);
+		assertNotNull(interp.getEngine());
 		assertThrows(ScriptException.class, () -> interp.query("graph"));
 		assertThrows(ScriptException.class, () -> interp.query("crymlin"));
 	}

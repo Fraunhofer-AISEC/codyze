@@ -15,7 +15,6 @@ public class MRule {
 	@NonNull
 	private String name;
 	private RuleStatement statement;
-	private FSM fsm = null;
 	private String errorMessage;
 	/**
 	 * stores Entity-alias to Pair(Name of Entity, EntityReference). The EntityReference can be NULL if the entity is not available/parsed. E.g. for the rule rule
@@ -68,14 +67,6 @@ public class MRule {
 				.append(
 					"\n}");
 		return sb.toString();
-	}
-
-	public void setFSM(FSM fsm) {
-		this.fsm = fsm;
-	}
-
-	public FSM getFSM() {
-		return fsm;
 	}
 
 	public void setErrorMessage(String msg) {

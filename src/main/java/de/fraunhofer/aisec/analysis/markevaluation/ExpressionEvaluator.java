@@ -65,7 +65,7 @@ public class ExpressionEvaluator {
 
 	private ResultWithContext evaluateOrderExpression(OrderExpression orderExpression) {
 		OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
-		return orderEvaluator.evaluate(this.instanceContext, this.resultCtx, this.traversal.getCrymlinTraversal());
+		return orderEvaluator.evaluate(orderExpression, this.instanceContext, this.resultCtx, this.traversal.getCrymlinTraversal());
 	}
 
 	private ResultWithContext evaluateLogicalExpr(Expression expr) {

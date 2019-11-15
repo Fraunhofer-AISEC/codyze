@@ -40,17 +40,8 @@ build:
     # build
     - echo $GRADLE_PROPERTIES > gradle.properties
     - ./gradlew --parallel --refresh-dependencies clean docker
+    - if [[ $CI_COMMIT_REF_NAME == 'master' ]]; then docker push $DOCKER_REGISTRY_URL/$PARENT_PROJECT_NAME/$CI_PROJECT_NAME:${CI_COMMIT_SHA:0:8}; fi
   artifacts:
     when: always
     paths:
       - build/reports
-
-push_as_is:
-  image: docker
-  stage: push
-  tags:
-    - docker
-  script:
-    - docker push $DOCKER_REGISTRY_URL/$PARENT_PROJECT_NAME/$CI_PROJECT_NAME:${CI_COMMIT_SHA:0:8}
-  only:
-    - master

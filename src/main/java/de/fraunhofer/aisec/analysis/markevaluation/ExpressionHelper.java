@@ -2,11 +2,16 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
 import de.fraunhofer.aisec.markmodel.Mark;
+import de.fraunhofer.aisec.markmodel.fsm.FSM;
+import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,6 +191,27 @@ public class ExpressionHelper {
 		} else if (expr instanceof LiteralListExpression) {
 			// does not contain vars
 		}
+	}
+
+	public static void collectInstanceAndOps(OrderExpression expr, HashSet<Pair<String, String>> instance2op) {
+		if (expr instanceof Terminal) {
+			Terminal inner = (Terminal) expr;
+			Pair<String, String> p = new Pair<>(inner.getEntity(), inner.getOp());
+			instance2op.add(p);
+		} else if (expr instanceof SequenceExpression) {
+			SequenceExpression inner = (SequenceExpression) expr;
+			collectInstanceAndOps(inner.getLeft(), instance2op);
+			collectInstanceAndOps(inner.getRight(), instance2op);
+		} else if (expr instanceof RepetitionExpression) {
+			RepetitionExpression inner = (RepetitionExpression) expr;
+			collectInstanceAndOps(inner.getExpr(), instance2op);
+		} else if (expr instanceof AlternativeExpressionImpl) {
+			AlternativeExpression inner = (AlternativeExpression) expr;
+			collectInstanceAndOps(inner.getLeft(), instance2op);
+			collectInstanceAndOps(inner.getRight(), instance2op);
+		}
+		return;
+
 	}
 
 }

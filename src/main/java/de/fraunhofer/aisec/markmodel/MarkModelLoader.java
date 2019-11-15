@@ -63,17 +63,6 @@ public class MarkModelLoader {
 			}
 		}
 
-		// parse all FSMs
-		for (MRule rule : m.getRules()) {
-			if (rule.getStatement() != null
-					&& rule.getStatement().getEnsure() != null
-					&& rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
-				OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
-				FSM fsm = new FSM();
-				fsm.sequenceToFSM(inner.getExp());
-				rule.setFSM(fsm);
-			}
-		}
 		/*
 		 * VALIDATE todo validate MARK files. check e.g.: - Entities - one function call is not part of two ops (of one or two entities) if this would be the case, many
 		 * strange things will happen - Rules - each alias is defined in the using-part of the rule - each entity reference actually has an entity - one order is only
@@ -89,50 +78,6 @@ public class MarkModelLoader {
 			collectEntityReferences(rule, entityRefs, functionRefs);
 		}
 
-		for (MRule rule : m.getRules()) {
-			if (rule.getStatement() != null
-					&& rule.getStatement().getEnsure() != null
-					&& rule.getStatement().getEnsure().getExp() instanceof OrderExpression) {
-
-				// check that the fsm is valid:
-				// todo remove once the modelloader performs these checks!
-				HashSet<Node> worklist = new HashSet<>(rule.getFSM().getStart());
-				HashSet<Node> seen = new HashSet<>();
-				while (!worklist.isEmpty()) {
-					HashSet<Node> nextWorkList = new HashSet<>();
-					seen.addAll(worklist);
-
-					for (Node n : worklist) {
-						// check that the op exists
-						if (!n.isFake()) {
-							MEntity entity = rule.getEntityReferences().get(n.getBase()).getValue1();
-							String entityName = rule.getEntityReferences().get(n.getBase()).getValue0();
-							if (entity == null) {
-								log.error(
-									"Entity is not parsed: {} which is specified in rule {}",
-									entityName,
-									rule.getName());
-							} else {
-								MOp op = entity.getOp(n.getOp());
-								if (op == null) {
-									log.error(
-										"Entity {} does not contain op {} which is specified in rule {}",
-										entity.getName(),
-										n.getOp(),
-										rule.getName());
-								}
-							}
-						}
-						for (Node s : n.getSuccessors()) {
-							if (!seen.contains(s)) {
-								nextWorkList.add(s);
-							}
-						}
-					}
-					worklist = nextWorkList;
-				}
-			}
-		}
 		return m;
 	}
 

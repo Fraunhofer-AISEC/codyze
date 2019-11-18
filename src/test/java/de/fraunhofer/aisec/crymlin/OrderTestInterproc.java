@@ -111,7 +111,7 @@ class OrderTestInterproc {
 		@NonNull
 		Set<Finding> findings = performTest("unittests/orderInterprocNOk1.cpp");
 
-		Set<Integer> startLineNumbers = findings.stream().map(f -> f.getRange().getStart().getLine()).collect(Collectors.toSet());
+		Set<Integer> startLineNumbers = findings.stream().map(f -> f.getFirstRange().getStart().getLine()).collect(Collectors.toSet());
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.contains(28));
@@ -125,7 +125,7 @@ class OrderTestInterproc {
 		@NonNull
 		Set<Finding> findings = performTest("unittests/orderInterprocNOk2.cpp");
 
-		Set<Integer> startLineNumbers = findings.stream().map(f -> f.getRange().getStart().getLine()).collect(Collectors.toSet());
+		Set<Integer> startLineNumbers = findings.stream().map(f -> f.getFirstRange().getStart().getLine()).collect(Collectors.toSet());
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.contains(30));

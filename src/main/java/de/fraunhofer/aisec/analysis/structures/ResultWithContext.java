@@ -5,6 +5,9 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ResultWithContext {
 	private static final Logger log = LoggerFactory.getLogger(ResultWithContext.class);
 
@@ -13,8 +16,8 @@ public class ResultWithContext {
 	private boolean findingAlreadyAdded = false;
 	private Object value;
 
-	// optionally stores a vertex where the value came from
-	private Vertex vertex = null;
+	// optionally stores a vertex "responsible" for this finding
+	private Set<Vertex> vertices = new HashSet<>();
 
 	private ResultWithContext(Object value) {
 		this.value = value;
@@ -27,21 +30,12 @@ public class ResultWithContext {
 	public static ResultWithContext fromExisting(Object other, ResultWithContext... existingResults) {
 		ResultWithContext result = new ResultWithContext(other);
 		if (existingResults != null) {
-			Vertex prev = null;
 			for (ResultWithContext existing : existingResults) {
-				if (prev == null) {
-					prev = existing.getVertex(); // prev can now still be null!
-				} else if (existing.getVertex() != null) {
-					log.warn("Multiple vertices would be set for one result, this is not supported (yet).");
-					break;
-				}
+				result.vertices.addAll(existing.getResponsibleVertices());
 			}
-			result.setVertex(prev);
 		}
 		return result;
 	}
-	//public List<String> explanations = new ArrayList<>();
-	// public int certaintyPercentage = -1;
 
 	public CPGVariableContext getVariableContext() {
 		return this.variableContext;
@@ -67,12 +61,8 @@ public class ResultWithContext {
 		this.value = value;
 	}
 
-	public void setVertex(Vertex vertex) {
-		this.vertex = vertex;
-	}
-
-	public Vertex getVertex() {
-		return this.vertex;
+	public Set<Vertex> getResponsibleVertices() {
+		return this.vertices;
 	}
 
 	public boolean isFindingAlreadyAdded() {
@@ -81,5 +71,9 @@ public class ResultWithContext {
 
 	public void setFindingAlreadyAdded(boolean findingAlreadyAdded) {
 		this.findingAlreadyAdded = findingAlreadyAdded;
+	}
+
+	public void addVertex(Vertex argument) {
+		this.vertices.add(argument);
 	}
 }

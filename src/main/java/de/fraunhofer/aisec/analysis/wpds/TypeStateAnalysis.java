@@ -160,10 +160,11 @@ public class TypeStateAnalysis {
 				} else if (!w.equals(Weight.one()) && t.getLabel().toString().contains(t.getStart().getVariable())) {
 					String name = "Invalid typestate of variable " + t.getStart() + " at statement: " + t.getLabel() + " . Violates order of " + rule.getName();
 
-					int startLine = toIntExact(t.getLabel().getRegion().getStartLine());
-					int endLine = toIntExact(t.getLabel().getRegion().getEndLine());
-					int startColumn = toIntExact(t.getLabel().getRegion().getStartColumn());
-					int endColumn = toIntExact(t.getLabel().getRegion().getEndColumn());
+					// lines are human-readable, i.e., off-by-one
+					int startLine = toIntExact(t.getLabel().getRegion().getStartLine()) - 1;
+					int endLine = toIntExact(t.getLabel().getRegion().getEndLine()) - 1;
+					int startColumn = toIntExact(t.getLabel().getRegion().getStartColumn()) - 1;
+					int endColumn = toIntExact(t.getLabel().getRegion().getEndColumn()) - 1;
 					Finding f = new Finding(name, rule.getErrorMessage(), startLine, endLine, startColumn, endColumn);
 					findings.add(f);
 				}

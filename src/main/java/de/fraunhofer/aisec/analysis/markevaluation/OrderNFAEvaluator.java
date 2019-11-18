@@ -77,7 +77,7 @@ public class OrderNFAEvaluator {
 		HashSet<String> entityReferences = instances.stream().map(Pair::getValue0).collect(Collectors.toCollection(HashSet::new));
 		HashSet<Object> referencedVertices = new HashSet<>();
 		for (String alias : entityReferences) {
-			Vertex v = instanceContext.entityGet(alias);
+			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
 				log.error("alias {} is not referenced in this rule {}", alias, rule.getName());
 				return null;

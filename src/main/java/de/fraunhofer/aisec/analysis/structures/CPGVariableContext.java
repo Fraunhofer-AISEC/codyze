@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Representation of the concrete value that would be assigned to a Mark entity within a specific evaluation context.
+ * Representation of the concrete value that would be assigned to a Mark instance within a specific evaluation context.
  *
  * For instance key: "b.alg" value: (V, "AES/ECB"), where V is the vertex representing the assignment of the value as specified by the Mark op.
  */

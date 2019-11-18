@@ -8,23 +8,33 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * key: Mark instance ("b"), value: the Vertex that usages of program variables corresponding to "b" REFERS_TO.
+ * Wraps Mark instances ("b") and for each Mark instance (one of) the CPG vertices that defines it.
+ *
+ * key: Mark instance ("b")
+ * value: the Vertex that usages of program variables corresponding to "b" REFERS_TO
+ *
  */
 public class CPGInstanceContext {
 	// e.g. for
 	//    using Botan as b, Random as r
 	// maps "b" to its vertex and "r" to its vertex
-	private Map<String, Vertex> entityAssignemnt = new HashMap<>();
+	private Map<String, Vertex> entityAssignment = new HashMap<>();
 
-	public void entityPut(String s, Vertex v) {
-		entityAssignemnt.put(s, v);
+	/**
+	 * Stores a Mark instance (e.g., "b") and the Vertex that defines it.
+	 *
+	 * @param s
+	 * @param v
+	 */
+	public void putMarkInstance(String s, Vertex v) {
+		entityAssignment.put(s, v);
 	}
 
-	public Vertex entityGet(String s) {
-		return entityAssignemnt.get(s);
+	public Vertex getVertex(String s) {
+		return entityAssignment.get(s);
 	}
 
-	public Set<String> entityKeySet() {
-		return entityAssignemnt.keySet();
+	public Set<String> getMarkInstances() {
+		return entityAssignment.keySet();
 	}
 }

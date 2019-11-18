@@ -29,7 +29,6 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.util.Ranges;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -201,7 +200,7 @@ public class Evaluator {
 			for (List<Pair<String, Vertex>> list : Lists.cartesianProduct(entities)) {
 				CPGInstanceContext instance = new CPGInstanceContext();
 				for (Pair<String, Vertex> p : list) {
-					instance.entityPut(p.getValue0(), p.getValue1());
+					instance.putMarkInstance(p.getValue0(), p.getValue1());
 				}
 				instanceContexts.add(instance);
 			}

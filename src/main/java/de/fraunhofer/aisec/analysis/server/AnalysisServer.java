@@ -49,6 +49,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -66,7 +67,7 @@ import java.util.concurrent.ExecutionException;
 public class AnalysisServer {
 
 	private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
-	private static final boolean EXPORT_TO_NEO4J = false;
+	private static final boolean EXPORT_TO_NEO4J = true;
 
 	private static AnalysisServer instance;
 

@@ -2,6 +2,8 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +19,13 @@ public class ResultWithContext {
 	private CPGInstanceContext instanceContext;
 	private CPGVariableContext variableContext;
 	private boolean findingAlreadyAdded = false;
+	@NonNull
 	private Object value;
 
 	// optionally stores a vertex "responsible" for this finding
 	private Set<Vertex> vertices = new HashSet<>();
 
-	private ResultWithContext(Object value) {
+	private ResultWithContext(@NonNull Object value) {
 		this.value = value;
 	}
 
@@ -32,7 +35,7 @@ public class ResultWithContext {
 	 * @param value
 	 * @return
 	 */
-	public static ResultWithContext fromLiteralOrOperand(Object value) {
+	public static ResultWithContext fromLiteralOrOperand(@NonNull Object value) {
 		return new ResultWithContext(value);
 	}
 
@@ -43,7 +46,7 @@ public class ResultWithContext {
 	 * @param existingResults Possibly already existing ResultWithContext objects, e.g. result of left and right part of a binary expression.
 	 * @return
 	 */
-	public static ResultWithContext fromExisting(Object other, ResultWithContext... existingResults) {
+	public static ResultWithContext fromExisting(@NonNull Object other, ResultWithContext... existingResults) {
 		ResultWithContext result = new ResultWithContext(other);
 		if (existingResults != null) {
 			for (ResultWithContext existing : existingResults) {
@@ -69,6 +72,7 @@ public class ResultWithContext {
 		this.variableContext = variableContext;
 	}
 
+	@NonNull
 	public Object get() {
 		return value;
 	}

@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
+import de.breakpoint.pushdown.IllegalTransitionException;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
@@ -37,13 +38,13 @@ public class OrderEvaluator {
 				log.info("Evaluating order with WPDS");
 				TypeStateAnalysis ts = new TypeStateAnalysis();
 				// fixme honor instancecontext!
-				//                try {
-				//                    // Findings will be directly written into ctx.findings.
-				//                    result = ts.analyze(resultCtx, crymlinTraversal, rule);
-				//                }
-				//                catch (IllegalTransitionException e) {
-				//                    log.error("Unexpected error in typestate WPDS", e);
-				//                }
+				try {
+					// NOTE: rule and orderExpression might be redundant as arguments
+					result = ts.analyze(orderExpression, instanceContext, resultCtx, crymlinTraversal, rule);
+				}
+				catch (IllegalTransitionException e) {
+					log.error("Unexpected error in typestate WPDS", e);
+				}
 				break;
 
 			case NFA:

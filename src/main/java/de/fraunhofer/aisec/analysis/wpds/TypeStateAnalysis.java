@@ -8,13 +8,11 @@ import de.breakpoint.pushdown.rules.NormalRule;
 import de.breakpoint.pushdown.rules.PopRule;
 import de.breakpoint.pushdown.rules.PushRule;
 import de.breakpoint.pushdown.rules.Rule;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
@@ -57,13 +55,21 @@ import static java.lang.Math.toIntExact;
 public class TypeStateAnalysis {
 	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
 
-	public void analyze(AnalysisContext ctx, CrymlinTraversalSource crymlinTraversal, MRule rule) throws IllegalTransitionException {
+	public ResultWithContext analyze(OrderExpression orderExpression, CPGInstanceContext instanceContext, AnalysisContext ctx,
+									 CrymlinTraversalSource crymlinTraversal,
+									 MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for " + ctx + " and " + crymlinTraversal);
 
 		HashMap<MOp, Vertex> verticeMap = getVerticesOfRule(rule);
 
 		// Create FSM from MARK expression
-		OrderExpression inner = (OrderExpression) rule.getStatement().getEnsure().getExp();
+		OrderExpression inner = orderExpression;
+
+		for (String markInstance : instanceContext.getMarkInstances()) {
+			Vertex v = instanceContext.getVertex(markInstance);
+			System.out.println("MARK INSTANCE " + markInstance + " has potential Vertex " + v.label() + " :  " + v.property("code").value());
+		}
+
 
 		// Creating a WPDS from CPG, starting at seeds. Note that this will neglect alias which have been defined before the seed.
 		HashSet<Node> seedExpression = null; // TODO Seeds must be vertices with calls which MAY be followed by a typestate violation
@@ -102,6 +108,9 @@ public class TypeStateAnalysis {
 		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule);
 		ctx.getFindings().addAll(findings);
 
+		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(findings.isEmpty());
+		result.setFindingAlreadyAdded(true);
+		return result;
 	}
 
 	/**

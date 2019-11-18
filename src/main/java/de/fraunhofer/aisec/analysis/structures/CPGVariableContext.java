@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Representation of the concrete value that would be assigned to a Mark entity within a specific evaluation context.
+ *
+ * For instance key: "b.alg" value: (V, "AES/ECB"), where V is the vertex representing the assignment of the value as specified by the Mark op.
+ */
 public class CPGVariableContext {
 	// stores e.g. for b.alg which argument-vertex sets alg, and the value of alg
 	// Todo maybe move from strings as keys to sth more usable

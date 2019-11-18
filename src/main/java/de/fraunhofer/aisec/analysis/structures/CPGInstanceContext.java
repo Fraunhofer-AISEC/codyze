@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * key: Mark instance ("b"), value: the Vertex that usages of program variables corresponding to "b" REFERS_TO.
+ */
 public class CPGInstanceContext {
 	// e.g. for
 	//    using Botan as b, Random as r

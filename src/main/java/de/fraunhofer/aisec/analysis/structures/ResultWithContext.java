@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A ResultWithContext is created during evaluation of Mark expressions.
+ */
 public class ResultWithContext {
 	private static final Logger log = LoggerFactory.getLogger(ResultWithContext.class);
 
@@ -23,10 +26,23 @@ public class ResultWithContext {
 		this.value = value;
 	}
 
+	/**
+	 * Creates a new ResultWithContext that represents a leaf in a Mark expression (Literal or Operand).
+	 *
+	 * @param value
+	 * @return
+	 */
 	public static ResultWithContext fromLiteralOrOperand(Object value) {
 		return new ResultWithContext(value);
 	}
 
+	/**
+	 * Creates a new ResultWithContext that does not refer to a Mark Literal or Operand.
+	 *
+	 * @param other New value.
+	 * @param existingResults Possibly already existing ResultWithContext objects, e.g. result of left and right part of a binary expression.
+	 * @return
+	 */
 	public static ResultWithContext fromExisting(Object other, ResultWithContext... existingResults) {
 		ResultWithContext result = new ResultWithContext(other);
 		if (existingResults != null) {

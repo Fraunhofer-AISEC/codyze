@@ -65,10 +65,11 @@ public class ForbiddenEvaluator {
 						}
 					}
 					if (!vertex_allowed) {
-						int startLine = toIntExact(v.value("startLine"));
-						int endLine = toIntExact(v.value("endLine"));
-						int startColumn = toIntExact(v.value("startColumn"));
-						int endColumn = toIntExact(v.value("endColumn"));
+						// lines are human-readable, i.e., off-by-one
+						int startLine = toIntExact(v.value("startLine")) - 1;
+						int endLine = toIntExact(v.value("endLine")) - 1;
+						int startColumn = toIntExact(v.value("startColumn")) - 1;
+						int endColumn = toIntExact(v.value("endColumn")) - 1;
 						String message = "Violation against forbidden call(s) "
 								+ String.join(", ", violating)
 								+ " in entity "

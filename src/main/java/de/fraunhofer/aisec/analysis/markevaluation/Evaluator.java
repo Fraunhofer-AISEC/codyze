@@ -27,6 +27,9 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.util.Ranges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,7 +149,9 @@ public class Evaluator {
 			log.info("checking rule {}", rule.getName());
 
 			// collect all entities, and calculate which instances correspond to the entity
-			List<Pair<String, Vertex>> entities = new ArrayList<>();
+			// Stores one List for each markinstance with corresponding vertices. E.g.:
+			// [[(r, v123), (r, v23)], [(cm, v163), (cm, v33)],
+			List<List<Pair<String, Vertex>>> entities = new ArrayList<>();
 			for (AliasedEntityExpression entity : s.getEntities()) {
 				HashSet<Vertex> bases = new HashSet<>();
 				MEntity referencedEntity = this.markModel.getEntity(entity.getE());
@@ -173,9 +178,11 @@ public class Evaluator {
 							}
 						}
 					}
+					ArrayList<Pair<String, Vertex>> innerList = new ArrayList<>();
 					for (Vertex v : bases) {
-						entities.add(new Pair<>(entity.getN(), v));
+						innerList.add(new Pair<>(entity.getN(), v));
 					}
+					entities.add(innerList);
 				} // else: unknown Entity referenced, this rule does not make much sense
 
 			}
@@ -216,18 +223,21 @@ public class Evaluator {
 			log.info("Got {} results", results.size());
 			for (ResultWithContext result : results) {
 				if (result != null) {
-					int startLine = -1;
-					int endLine = -1;
-					int startColumn = -1;
-					int endColumn = -1;
-					if (result.getVertex() != null) {
-						startLine = toIntExact((Long) result.getVertex().property("startLine").value());
-						endLine = toIntExact((Long) result.getVertex().property("endLine").value());
-						startColumn = toIntExact((Long) result.getVertex().property("startColumn").value());
-						endColumn = toIntExact((Long) result.getVertex().property("endColumn").value());
+					List<Range> ranges = new ArrayList<>();
+					if (result.getResponsibleVertices().isEmpty()) {
+						ranges.add(new Range(new Position(-1, -1),
+							new Position(-1, -1)));
+					} else {
+						for (Vertex v : result.getResponsibleVertices()) {
+							// lines are human-readable, i.e., off-by-one
+							int startLine = toIntExact((Long) v.property("startLine").value()) - 1;
+							int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
+							int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
+							int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
+							ranges.add(new Range(new Position(startLine, startColumn),
+								new Position(endLine, endColumn)));
+						}
 					}
-
-					log.info("{}, argumentvertex in line {}: '{}'", result.get(), startLine, result.getVertex() == null ? "null" : result.getVertex().value("code"));
 
 					if (result.get() instanceof Boolean) {
 						if (result.get().equals(false) && !result.isFindingAlreadyAdded()) {
@@ -237,10 +247,7 @@ public class Evaluator {
 												+ rule.getName()
 												+ " violated",
 										rule.getErrorMessage(),
-										startLine,
-										endLine,
-										startColumn,
-										endColumn));
+										ranges));
 						}
 					} else {
 						log.error("Unable to evaluate rule (unknown rule return type) {}", rule.getName());
@@ -261,13 +268,17 @@ public class Evaluator {
 		}
 
 		// get all possible assignments for all markvars
-		List<Pair<String, CPGVertexWithValue>> varAssignments = new ArrayList<>();
+		// Stores one List for each markvar with corresponding vertices. E.g.:
+		// [[(r.rand, v123), (r.rand, v23)], [(cm.alg, v163), (cm.alg, v33)],
+		List<List<Pair<String, CPGVertexWithValue>>> varAssignments = new ArrayList<>();
 		for (String markVar : newMarkVars) {
-			ArrayList<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(markVar, markRule);
-			ArrayList<CPGVertexWithValue> assignments = CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices);
+			List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(markVar, markRule);
+			List<CPGVertexWithValue> assignments = CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices);
+			List<Pair<String, CPGVertexWithValue>> innerList = new ArrayList<>();
 			for (CPGVertexWithValue vertexWithValue : assignments) {
-				varAssignments.add(new Pair<>(markVar, vertexWithValue));
+				innerList.add(new Pair<>(markVar, vertexWithValue));
 			}
+			varAssignments.add(innerList);
 		}
 
 		// calculate all combination of all possible assignments of the vars

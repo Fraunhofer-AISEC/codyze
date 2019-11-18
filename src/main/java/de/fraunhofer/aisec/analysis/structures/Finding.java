@@ -6,15 +6,17 @@ import org.eclipse.lsp4j.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Finding {
 	private static final Logger log = LoggerFactory.getLogger(Finding.class);
 	private String identifier;
 
 	private String name;
-	private Range range;
-	private Range humanRange;
+	private List<Range> ranges = new ArrayList<>();
 
 	public Finding(String name, String identifier) {
 		this(name, identifier, -1, -1, -1, -1);
@@ -23,22 +25,23 @@ public class Finding {
 	public Finding(String name, String identifier, int startLine, int endLine, int startColumn, int endColumn) {
 		this.name = name;
 		this.identifier = identifier;
-		// Note: lsp can only handle integer-line numbers
-		// adjust off-by-one
-		this.range = new Range(
-			new Position((int) startLine - 1, (int) startColumn - 1),
-			new Position((int) endLine - 1, (int) endColumn - 1));
-		this.humanRange = new Range(
-			new Position((int) startLine, (int) startColumn),
-			new Position((int) endLine, (int) endColumn));
+		this.ranges.add(new Range(
+			new Position(startLine, startColumn),
+			new Position(endLine, endColumn)));
+	}
+
+	public Finding(String name, String identifier, List<Range> ranges) {
+		this.name = name;
+		this.identifier = identifier;
+		this.ranges.addAll(ranges);
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public Range getRange() {
-		return range;
+	public Range getFirstRange() {
+		return ranges.get(0);
 	}
 
 	public String getIdentifier() {
@@ -52,7 +55,13 @@ public class Finding {
 		if (!descriptionBrief.equals(identifier)) {
 			addIfExists = ": " + descriptionBrief;
 		}
-		return "line " + humanRange.getStart().getLine() + ": " + name + addIfExists;
+		String lines;
+		if (ranges.size() == 1) {
+			lines = (getFirstRange().getStart().getLine() + 1) + "";
+		} else {
+			lines = "[" + ranges.stream().map(x -> "" + (x.getStart().getLine() + 1)).collect(Collectors.joining(", ")) + "]";
+		}
+		return "line " + lines + ": " + name + addIfExists;
 	}
 
 	public boolean equals(Object obj) {

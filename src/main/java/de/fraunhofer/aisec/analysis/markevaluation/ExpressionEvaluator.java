@@ -683,7 +683,7 @@ public class ExpressionEvaluator {
 			return null;
 		}
 		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(vertexWithValue.value);
-		result.setVertex(vertexWithValue.argumentVertex);
+		result.addVertex(vertexWithValue.argumentVertex);
 		return result;
 	}
 

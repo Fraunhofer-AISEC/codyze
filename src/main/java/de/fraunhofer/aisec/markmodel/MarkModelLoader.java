@@ -116,6 +116,10 @@ public class MarkModelLoader {
 
 	private void getRefsFromExp(
 			Expression exp, HashSet<String> entityRefs, HashSet<String> functionRefs) {
+		if (exp == null) {
+			log.error("Expression is null, cannot get refs");
+			return;
+		}
 		if (exp instanceof ComparisonExpression) {
 			getRefsFromExp((((ComparisonExpression) exp).getLeft()), entityRefs, functionRefs);
 			getRefsFromExp((((ComparisonExpression) exp).getRight()), entityRefs, functionRefs);

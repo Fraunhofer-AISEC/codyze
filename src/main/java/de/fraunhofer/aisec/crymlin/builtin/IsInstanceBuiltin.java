@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Method signature: _is_instance(var instance, String classname)
@@ -44,9 +45,14 @@ public class IsInstanceBuiltin implements Builtin {
 		}
 		// unify type (Java/C/C++)
 		String classname = Utils.unifyType((String) classnameArgument);
-		Vertex v = arguments.getVertex();
+		Set<Vertex> v = arguments.getResponsibleVertices();
 
-		String type = v.value("type");
-		return ResultWithContext.fromExisting(type.equals(classname), arguments);
+		if (v.size() != 1) {
+			log.error("Cannot evaluate _is_instance with multiple vertices as input");
+			return null;
+		} else {
+			String type = v.iterator().next().value("type");
+			return ResultWithContext.fromExisting(type.equals(classname), arguments);
+		}
 	}
 }

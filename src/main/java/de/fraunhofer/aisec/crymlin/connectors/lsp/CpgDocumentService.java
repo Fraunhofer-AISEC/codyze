@@ -102,7 +102,7 @@ public class CpgDocumentService implements TextDocumentService {
 				diagnostic.setSeverity(DiagnosticSeverity.Error);
 				diagnostic.setCode("test");
 				diagnostic.setMessage(f.getName());
-				diagnostic.setRange(f.getRange());
+				diagnostic.setRange(f.getFirstRange());
 				allDiags.add(diagnostic);
 			}
 

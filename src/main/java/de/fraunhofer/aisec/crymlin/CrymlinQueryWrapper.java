@@ -324,6 +324,7 @@ public class CrymlinQueryWrapper {
 				Declaration variableDeclaration = (Declaration) OverflowDatabase.getInstance().vertexToNode(variableDeclarationVertex);
 				ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
 				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v);
+				// fixme what if we do not know the value, shouldnt we then still return the argumentvertex?
 				if (constantValue.isPresent()) {
 					CPGVertexWithValue mva = new CPGVertexWithValue();
 					mva.argumentVertex = v;

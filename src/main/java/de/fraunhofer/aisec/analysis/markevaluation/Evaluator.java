@@ -232,35 +232,30 @@ public class Evaluator {
 
 			log.info("Got {} results", results.size());
 			for (ResultWithContext result : results) {
-				if (result != null) {
-					List<Range> ranges = new ArrayList<>();
-					if (result.getResponsibleVertices().isEmpty()) {
-						ranges.add(new Range(new Position(-1, -1),
-							new Position(-1, -1)));
-					} else {
-						for (Vertex v : result.getResponsibleVertices()) {
-							// lines are human-readable, i.e., off-by-one
-							int startLine = toIntExact((Long) v.property("startLine").value()) - 1;
-							int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
-							int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
-							int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
-							ranges.add(new Range(new Position(startLine, startColumn),
-								new Position(endLine, endColumn)));
+				if (result.get() instanceof Boolean) {
+					if (result.get().equals(false) && !result.isFindingAlreadyAdded()) {
+						List<Range> ranges = new ArrayList<>();
+						if (result.getResponsibleVertices().isEmpty()) {
+							ranges.add(new Range(new Position(-1, -1),
+								new Position(-1, -1)));
+						} else {
+							for (Vertex v : result.getResponsibleVertices()) {
+								// lines are human-readable, i.e., off-by-one
+								int startLine = toIntExact((Long) v.property("startLine").value()) - 1;
+								int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
+								int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
+								int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
+								ranges.add(new Range(new Position(startLine, startColumn),
+									new Position(endLine, endColumn)));
+							}
 						}
-					}
-
-					if (result.get() instanceof Boolean) {
-						if (result.get().equals(false) && !result.isFindingAlreadyAdded()) {
-							ctx.getFindings()
-									.add(new Finding(
-										"MarkRuleEvaluationFinding: Rule "
-												+ rule.getName()
-												+ " violated",
-										rule.getErrorMessage(),
-										ranges));
-						}
-					} else {
-						log.error("Unable to evaluate rule (unknown rule return type) {}", rule.getName());
+						ctx.getFindings()
+								.add(new Finding(
+									"MarkRuleEvaluationFinding: Rule "
+											+ rule.getName()
+											+ " violated",
+									rule.getErrorMessage(),
+									ranges));
 					}
 				} else {
 					log.error("Unable to evaluate rule {}", rule.getName());

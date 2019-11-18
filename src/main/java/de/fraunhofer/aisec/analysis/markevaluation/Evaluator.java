@@ -27,6 +27,7 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +146,11 @@ public class Evaluator {
 			RuleStatement s = rule.getStatement();
 			log.info("checking rule {}", rule.getName());
 
-			// collect all entities, and calculate which instances correspond to the entity
+			/*
+			 * Evaluation of "using" part: Find entities whose ops are used in the current Mark rule. We collect all entities and calculate which instances (=program
+			 * variables) correspond to the entity. entities is a map with key: name of the Mark Entity (e.g., "b"). value: Vertex to which the program variable
+			 * REFERS_TO.
+			 */
 			List<Pair<String, Vertex>> entities = new ArrayList<>();
 			for (AliasedEntityExpression entity : s.getEntities()) {
 				HashSet<Vertex> bases = new HashSet<>();
@@ -180,7 +185,10 @@ public class Evaluator {
 
 			}
 
-			// generate all combinations of instances for each entity
+			/*
+			 * Generate all combinations of instances for each entity. We take the cartesian product of all _possible_ program variables that correspond to Mark entities.
+			 * A CPGInstanceContext is a specific interpretation of a Mark rule that needs to be evaluated.
+			 */
 			List<CPGInstanceContext> instanceContexts = new ArrayList<>();
 			for (List<Pair<String, Vertex>> list : Lists.cartesianProduct(entities)) {
 				CPGInstanceContext instance = new CPGInstanceContext();
@@ -194,6 +202,7 @@ public class Evaluator {
 			for (CPGInstanceContext instanceContext : instanceContexts) {
 				ee.setCPGInstanceContext(instanceContext);
 
+				/* Evaluate "when" part, if present */
 				if (s.getCond() != null) { // do we have a precondition?
 					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, rule);
 					for (ResultWithContext resultCond : resultsCond) {
@@ -252,7 +261,15 @@ public class Evaluator {
 		}
 	}
 
-	private List<ResultWithContext> evaluateExpressionWithContext(CPGVariableContext previousVariableContext, Expression expression,
+	/**
+	 *
+	 * @param previousVariableContext Context, as set by evaluation of "when" part. Always null, if no "when" part exists.
+	 * @param expression
+	 * @param expressionEvaluator
+	 * @param markRule
+	 * @return
+	 */
+	private List<ResultWithContext> evaluateExpressionWithContext(@Nullable CPGVariableContext previousVariableContext, Expression expression,
 			ExpressionEvaluator expressionEvaluator, MRule markRule) {
 		HashSet<String> newMarkVars = new HashSet<>();
 		ExpressionHelper.collectVars(expression, newMarkVars);

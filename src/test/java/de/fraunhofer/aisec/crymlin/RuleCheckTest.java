@@ -103,21 +103,21 @@ public class RuleCheckTest {
 		int guardingUnsatisfied = 0;
 		int guardingUnknown = 0;
 		for (Finding f : findings) {
-			if (f.getName().contains("MarkRuleEvaluationFinding")) {
+			if (f.getLogMsg().contains("MarkRuleEvaluationFinding")) {
 				markRuleEvaluationFindingCount++;
-				if (f.getName().contains("guarding condition unsatisfied")) {
+				if (f.getLogMsg().contains("guarding condition unsatisfied")) {
 					guardingUnsatisfied++;
 
-				} else if (f.getName().contains("guarding condition unknown")) {
+				} else if (f.getLogMsg().contains("guarding condition unknown")) {
 					guardingUnknown++;
 
-				} else if (f.getName().contains("ensure condition unknown")) {
+				} else if (f.getLogMsg().contains("ensure condition unknown")) {
 					unknown++;
 
-				} else if (f.getName().contains("ensure condition violated")) {
+				} else if (f.getLogMsg().contains("ensure condition violated")) {
 					violated++;
 
-				} else if (f.getName().contains("ensure condition satisfied")) {
+				} else if (f.getLogMsg().contains("ensure condition satisfied")) {
 					satisfied++;
 				}
 			}

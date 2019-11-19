@@ -250,6 +250,7 @@ public class OrderNFAEvaluator {
 														+ rule.getErrorMessage()
 														+ ")",
 												rule.getErrorMessage(),
+												ctx.getCurrentFile(),
 												toIntExact(vertex.value("startLine")) - 1,
 												toIntExact(vertex.value("endLine")) - 1,
 												toIntExact(vertex.value("startColumn")) - 1,
@@ -369,6 +370,7 @@ public class OrderNFAEvaluator {
 							+ rule.getErrorMessage()
 							+ ")",
 					rule.getErrorMessage(),
+					ctx.getCurrentFile(),
 					toIntExact(vertex.value("startLine")) - 1,
 					toIntExact(vertex.value("endLine")) - 1,
 					toIntExact(vertex.value("startColumn")) - 1,

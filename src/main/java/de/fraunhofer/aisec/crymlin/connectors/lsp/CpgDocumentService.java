@@ -98,12 +98,14 @@ public class CpgDocumentService implements TextDocumentService {
 
 			ArrayList<Diagnostic> allDiags = new ArrayList<>();
 			for (Finding f : ctx.getFindings()) {
-				Diagnostic diagnostic = new Diagnostic();
-				diagnostic.setSeverity(DiagnosticSeverity.Error);
-				diagnostic.setCode("test");
-				diagnostic.setMessage(f.getName());
-				diagnostic.setRange(f.getFirstRange());
-				allDiags.add(diagnostic);
+				for (Range r : f.getRanges()) {
+					Diagnostic diagnostic = new Diagnostic();
+					diagnostic.setSeverity(DiagnosticSeverity.Error);
+					diagnostic.setCode(f.getOnfailIdentifier());
+					diagnostic.setMessage(f.getLogMsg());
+					diagnostic.setRange(r);
+					allDiags.add(diagnostic);
+				}
 			}
 
 			PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();

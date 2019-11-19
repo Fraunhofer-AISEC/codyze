@@ -11,6 +11,7 @@ import de.breakpoint.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
@@ -56,8 +57,8 @@ public class TypeStateAnalysis {
 	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
 
 	public ResultWithContext analyze(OrderExpression orderExpression, CPGInstanceContext instanceContext, AnalysisContext ctx,
-									 CrymlinTraversalSource crymlinTraversal,
-									 MRule rule) throws IllegalTransitionException {
+			CrymlinTraversalSource crymlinTraversal,
+			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for " + ctx + " and " + crymlinTraversal);
 
 		HashMap<MOp, Vertex> verticeMap = getVerticesOfRule(rule);
@@ -70,7 +71,6 @@ public class TypeStateAnalysis {
 			System.out.println("MARK INSTANCE " + markInstance + " has potential Vertex " + v.label() + " :  " + v.property("code").value());
 		}
 
-
 		// Creating a WPDS from CPG, starting at seeds. Note that this will neglect alias which have been defined before the seed.
 		HashSet<Node> seedExpression = null; // TODO Seeds must be vertices with calls which MAY be followed by a typestate violation
 
@@ -81,12 +81,28 @@ public class TypeStateAnalysis {
 		// Create a weighted pushdown system
 		CpgWpds wpds = createWpds(seedExpression, verticeMap, crymlinTraversal, tsNFA);
 
-		// Create a weighted automaton (= a weighted NFA) that describes the initial configurations
-		// TODO Initial configuration is still hardcoded. Should be first Op(s) of order expression.
-		Stmt stmt = new Stmt("ok1", new Region(11, 3, 34, 4));
-		String variable = "EPSILON";
-		String method = "ok1";
-		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(stmt, variable, method, tsNFA);
+		/*
+		 * Create a weighted automaton (= a weighted NFA) that describes the initial configurations. We use the whole current function as an initial configuration. The
+		 * "current function" is the function containing the declaration of the program variable (e.g., "x = Botan2()") that corresponds to the current Mark instance
+		 * (e.g., "b").
+		 */
+		Vertex v = instanceContext.getVertex(instanceContext.getMarkInstances()
+				.iterator()
+				.next()); // TODO Iterate over all Mark instance, not only the first one
+		de.fraunhofer.aisec.cpg.graph.Node n = (de.fraunhofer.aisec.cpg.graph.Node) OverflowDatabase.getInstance().vertexToNode(v);
+		Vertex method = crymlinTraversal.byID((long) n.getId())
+				.repeat(__().inE()
+						.has("sub-graph", "AST")
+						.outV())
+				.until(__()
+						.or(
+							__().hasLabel(FunctionDeclaration.class.getSimpleName()),
+							__().hasLabel(MethodDeclaration.class.getSimpleName()))) // FIXME can also be MethoDeclaration
+				.next();
+		FunctionDeclaration m = (FunctionDeclaration) OverflowDatabase.getInstance()
+				.vertexToNode(method);
+		Stmt stmt = new Stmt(m.getName(), m.getRegion());
+		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(stmt, "EPSILON", m.getName(), tsNFA);
 
 		// For debugging only: Print WPDS rules
 		for (Rule r : wpds.getAllRules()) {

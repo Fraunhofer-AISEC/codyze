@@ -67,7 +67,7 @@ public class RuleEnsureSemanticsTest {
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
 		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TYPESTATE_ANALYSIS.NFA).build();
-		AnalysisContext ctx = new AnalysisContext();
+		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)).toURI());
 
 		Map<@NonNull String, ResultWithContext> ensureExprResults = new TreeMap<>();
 		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB

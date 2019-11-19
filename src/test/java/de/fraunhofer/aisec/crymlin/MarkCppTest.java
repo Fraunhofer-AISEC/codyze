@@ -290,7 +290,7 @@ public class MarkCppTest {
 			Set<Finding> findings = ctx.getFindings();
 
 			assertEquals(1, findings.size());
-			findings.forEach((f) -> assertTrue(f.getName().endsWith("ensure condition satisfied")));
+			findings.forEach((f) -> assertTrue(f.getLogMsg().endsWith("ensure condition satisfied")));
 		}
 		catch (TimeoutException t) {
 			analyze.cancel(true);

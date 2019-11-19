@@ -28,6 +28,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,16 +90,7 @@ public class TypeStateAnalysis {
 		Vertex v = instanceContext.getVertex(instanceContext.getMarkInstances()
 				.iterator()
 				.next()); // TODO Iterate over all Mark instance, not only the first one
-		de.fraunhofer.aisec.cpg.graph.Node n = (de.fraunhofer.aisec.cpg.graph.Node) OverflowDatabase.getInstance().vertexToNode(v);
-		Vertex method = crymlinTraversal.byID((long) n.getId())
-				.repeat(__().inE()
-						.has("sub-graph", "AST")
-						.outV())
-				.until(__()
-						.or(
-							__().hasLabel(FunctionDeclaration.class.getSimpleName()),
-							__().hasLabel(MethodDeclaration.class.getSimpleName()))) // FIXME can also be MethoDeclaration
-				.next();
+		Vertex method = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal).get();
 		FunctionDeclaration m = (FunctionDeclaration) OverflowDatabase.getInstance()
 				.vertexToNode(method);
 		Stmt stmt = new Stmt(m.getName(), m.getRegion());
@@ -121,7 +113,7 @@ public class TypeStateAnalysis {
 		log.debug("Saturated WNFA {}", wnfa.toDotString());
 
 		// Evaluate saturated WNFA for any MARK violations
-		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule);
+		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule, ctx.getCurrentFile());
 		ctx.getFindings().addAll(findings);
 
 		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(findings.isEmpty());
@@ -141,10 +133,11 @@ public class TypeStateAnalysis {
 	 * @param wnfa
 	 * @param tsNFA
 	 * @param rule
+	 * @param currentFile
 	 * @return
 	 */
 	@NonNull
-	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule) {
+	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, URI currentFile) {
 		Set<Finding> findings = new HashSet<>();
 
 		System.out.println("--------------------------");
@@ -190,7 +183,7 @@ public class TypeStateAnalysis {
 					int endLine = toIntExact(t.getLabel().getRegion().getEndLine()) - 1;
 					int startColumn = toIntExact(t.getLabel().getRegion().getStartColumn()) - 1;
 					int endColumn = toIntExact(t.getLabel().getRegion().getEndColumn()) - 1;
-					Finding f = new Finding(name, rule.getErrorMessage(), startLine, endLine, startColumn, endColumn);
+					Finding f = new Finding(name, rule.getErrorMessage(), currentFile, startLine, endLine, startColumn, endColumn);
 					findings.add(f);
 				}
 			}

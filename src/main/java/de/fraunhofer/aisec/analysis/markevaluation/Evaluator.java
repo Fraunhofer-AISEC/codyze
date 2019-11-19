@@ -239,7 +239,6 @@ public class Evaluator {
 								new Position(-1, -1)));
 						} else {
 							for (Vertex v : result.getResponsibleVertices()) {
-								// lines are human-readable, i.e., off-by-one
 								int startLine = toIntExact((Long) v.property("startLine").value()) - 1;
 								int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
 								int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
@@ -253,6 +252,7 @@ public class Evaluator {
 									"MarkRuleEvaluationFinding: Rule "
 											+ rule.getName()
 											+ " violated",
+									ctx.getCurrentFile(),
 									rule.getErrorMessage(),
 									ranges));
 					}

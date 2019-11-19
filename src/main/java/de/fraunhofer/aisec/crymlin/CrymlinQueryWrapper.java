@@ -12,6 +12,7 @@ import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import de.fraunhofer.aisec.crymlin.dsl.__;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.markmodel.Constants;
 
@@ -348,5 +349,29 @@ public class CrymlinQueryWrapper {
 		// resolve parameters which have a corresponding var part in the entity
 		ArrayList<String> args = ent.replaceArgumentVarsWithTypes(functionDeclaration.getParams());
 		return CrymlinQueryWrapper.getCalls(crymlinTraversal, baseType, functionName, null, args);
+	}
+
+	/**
+	 * Given a Vertex v, try to find the function or method in which v is contained.
+	 *
+	 * The resulting Vertex will be of type FunctionDeclaration or MethodDeclaration.
+	 *
+	 * If v is not contained in a function, this method returns an empty Optional.
+	 *
+	 * @param v
+	 * @param crymlinTraversal
+	 * @return
+	 */
+	public static Optional<Vertex> getContainingFunction(Vertex v, CrymlinTraversalSource crymlinTraversal) {
+		return crymlinTraversal.byID((long) v.id())
+				.repeat(__.__()
+						.inE()
+						.has("sub-graph", "AST")
+						.outV())
+				.until(__.__()
+						.or(
+							__.__().hasLabel(FunctionDeclaration.class.getSimpleName()),
+							__.__().hasLabel(MethodDeclaration.class.getSimpleName()))) // FIXME can also be MethoDeclaration
+				.tryNext();
 	}
 }

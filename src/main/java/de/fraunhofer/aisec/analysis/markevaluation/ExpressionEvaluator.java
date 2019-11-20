@@ -8,31 +8,54 @@ import de.fraunhofer.aisec.analysis.structures.CPGVariableContext;
 import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
-import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
+import de.fraunhofer.aisec.mark.markDsl.Argument;
+import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
+import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
+import de.fraunhofer.aisec.mark.markDsl.Expression;
+import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
+import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
+import de.fraunhofer.aisec.mark.markDsl.Literal;
+import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
+import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
+import de.fraunhofer.aisec.mark.markDsl.Operand;
+import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
+import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class ExpressionEvaluator {
 
 	private static final Logger log = LoggerFactory.getLogger(ExpressionEvaluator.class);
 
+	// the mark rule this evaluation is called in
 	private final MRule markRule;
+	// configuration for the evaluation. E.g., used for WPDS vs. NFA for order evaluation
 	private final ServerConfiguration config;
-	private final TraversalConnection traversal;
+	// connection into the DB
+	private final CrymlinTraversalSource traversal;
+	// the resulting analysis context
 	private final AnalysisContext resultCtx;
+
+	// the current variable context, e.g. the assignment of t.foo to a node/value, cm.rand to a node/value, etc.
 	private CPGVariableContext variableContext;
+	// the current instance context, e.g. the assignment of t to a node, cm to a node, etc.
 	private CPGInstanceContext instanceContext;
 
-	public ExpressionEvaluator(MRule rule, AnalysisContext resultCtx, ServerConfiguration config, TraversalConnection traversal) {
+	public ExpressionEvaluator(MRule rule, AnalysisContext resultCtx, ServerConfiguration config, CrymlinTraversalSource traversal) {
 		this.markRule = rule;
 		this.resultCtx = resultCtx;
 		this.config = config;
@@ -40,17 +63,13 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Checks a source file against a MARK expression.
+	 * Checks MARK expression against the CPG using the given instance and markvar assignments
 	 *
-	 * <p>
-	 * This method may return three results:
-	 *
-	 * <p>
-	 * - empty: The expression could not be evaluated. - false: Expression was evaluated but does not match the source file. - true: Expression was evaluated and matches
-	 * the source file.
+	 * the value of the result is true/false if the expression is true/false null if the expression could not be evaluated (i.e., an error in the mark rule or the
+	 * evaluation)
 	 *
 	 * @param expr The MARK expression to evaluate.
-	 * @return
+	 * @return one result (value and context)
 	 */
 	public ResultWithContext evaluate(Expression expr) {
 		log.debug("Evaluating top level expression: {}", ExpressionHelper.exprToString(expr));
@@ -64,62 +83,44 @@ public class ExpressionEvaluator {
 	}
 
 	private ResultWithContext evaluateOrderExpression(OrderExpression orderExpression) {
+		log.debug("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
-		return orderEvaluator.evaluate(orderExpression, this.instanceContext, this.resultCtx, this.traversal.getCrymlinTraversal());
+		return orderEvaluator.evaluate(orderExpression, this.instanceContext, this.resultCtx, this.traversal);
 	}
 
 	private ResultWithContext evaluateLogicalExpr(Expression expr) {
 		log.debug("Evaluating logical expression: {}", ExpressionHelper.exprToString(expr));
+
+		Expression left;
+		Expression right;
 
 		if (expr instanceof ComparisonExpression) {
 			return evaluateComparisonExpr((ComparisonExpression) expr);
 		} else if (expr instanceof LogicalAndExpression) {
 			LogicalAndExpression lae = (LogicalAndExpression) expr;
 
-			Expression left = lae.getLeft();
-			Expression right = lae.getRight();
-
-			ResultWithContext leftResult = evaluateExpression(left);
-			ResultWithContext rightResult = evaluateExpression(right);
-
-			if (leftResult == null || rightResult == null) {
-				log.error("At least one subexpression could not be evaluated");
-				return null;
-			}
-
-			if (leftResult.get().getClass().equals(Boolean.class)
-					&& rightResult.get().getClass().equals(Boolean.class)) {
-				return ResultWithContext.fromExisting(
-					Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()),
-					leftResult, rightResult);
-			}
-
-			log.error(
-				"At least one subexpression is not of type Boolean: {} vs. {}",
-				ExpressionHelper.exprToString(left),
-				ExpressionHelper.exprToString(right));
-
-			return null;
+			left = lae.getLeft();
+			right = lae.getRight();
 		} else if (expr instanceof LogicalOrExpression) {
 			LogicalOrExpression loe = (LogicalOrExpression) expr;
 
-			Expression left = loe.getLeft();
-			Expression right = loe.getRight();
+			left = loe.getLeft();
+			right = loe.getRight();
+		} else {
+			log.error("Unknown logical expression {}", expr.getClass().getSimpleName());
+			return null;
+		}
 
-			ResultWithContext leftResult = evaluateExpression(left);
-			ResultWithContext rightResult = evaluateExpression(right);
+		ResultWithContext leftResult = evaluateExpression(left);
+		ResultWithContext rightResult = evaluateExpression(right);
 
-			if (leftResult == null || rightResult == null) {
-				log.error("At least one subexpression could not be evaluated");
-				return null;
-			}
+		if (leftResult == null || rightResult == null) {
+			log.error("At least one subexpression could not be evaluated");
+			return null;
+		}
 
-			if (leftResult.get().getClass().equals(Boolean.class)
-					&& rightResult.get().getClass().equals(Boolean.class)) {
-				return ResultWithContext.fromExisting(
-					Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()),
-					leftResult, rightResult);
-			}
+		if (!leftResult.get().getClass().equals(Boolean.class)
+				|| !rightResult.get().getClass().equals(Boolean.class)) {
 
 			log.error(
 				"At least one subexpression is not of type Boolean: {} vs. {}",
@@ -128,12 +129,16 @@ public class ExpressionEvaluator {
 
 			return null;
 		}
+		if (expr instanceof LogicalAndExpression) {
+			return ResultWithContext.fromExisting(
+				Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()),
+				leftResult, rightResult);
+		} else { //LogicalOrExpression
+			return ResultWithContext.fromExisting(
+				Boolean.logicalOr((Boolean) leftResult.get(), (Boolean) rightResult.get()),
+				leftResult, rightResult);
+		}
 
-		log.error(
-			"Trying to evaluate unknown logical expression: {}", ExpressionHelper.exprToString(expr));
-
-		assert false; // not a logical expression
-		return null;
 	}
 
 	private ResultWithContext evaluateComparisonExpr(ComparisonExpression expr) {
@@ -150,10 +155,10 @@ public class ExpressionEvaluator {
 		ResultWithContext rightResult = evaluateExpression(right);
 
 		if (leftResult == null || rightResult == null) {
+			log.error("At least one subexpression could not be evaluated");
 			return null;
 		}
 
-		// fixme should the following 6 statements not be done only when really needed?
 		String lString = ExpressionHelper.asString(leftResult);
 		String rString = ExpressionHelper.asString(rightResult);
 
@@ -168,7 +173,7 @@ public class ExpressionEvaluator {
 
 		log.debug("left result={} right result={}", leftResult.get(), rightResult.get());
 
-		// TODO implement remaining operations
+		// TODO implement remaining operations -> @FW: which operations are supported?
 		switch (op) {
 			case "==":
 				if (lNumber != null && rNumber != null) {
@@ -296,15 +301,13 @@ public class ExpressionEvaluator {
 	/**
 	 * Returns evaluated argument values of a Builtin-call.
 	 *
-	 * <p>
 	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(),
 	 * 42)".
 	 *
-	 * <p>
-	 * This method evaluates the Expressions of all arguments and return them as a list.
+	 * This method evaluates the Expressions of all arguments and return them as a list contained in the ResultWithContext
 	 *
-	 * @param argList
-	 * @return
+	 * @param argList the list of arguments to evaluate
+	 * @return one result with a list of Objects as results for each argument
 	 */
 	public ResultWithContext evaluateArgs(@NonNull List<Argument> argList) {
 		List<Object> result = new ArrayList<>();
@@ -321,30 +324,29 @@ public class ExpressionEvaluator {
 	/**
 	 * Evaluate built-in functions.
 	 *
-	 * @param expr
-	 * @return
+	 * @param expr the expression for the builtin
+	 * @return the result of the built-in call
 	 */
 	private ResultWithContext evaluateBuiltin(FunctionCallExpression expr) {
 		String functionName = expr.getName();
 
 		// Call built-in function (if available)
-		for (Builtin b : BuiltinRegistry.getInstance().getRegisteredBuiltins()) {
-			if (b.getName().equals(functionName)) {
-				ResultWithContext arguments = evaluateArgs(expr.getArgs());
-				if (arguments == null || !(arguments.get() instanceof List)) {
-					return null;
-				}
-				return b.execute(arguments, this);
-			}
-		}
+		Optional<Builtin> builtin = BuiltinRegistry.getInstance().getRegisteredBuiltins().stream().filter(b -> b.getName().equals(functionName)).findFirst();
 
-		log.error("Unsupported function {}", functionName);
-		return null;
+		if (builtin.isPresent()) {
+			ResultWithContext arguments = evaluateArgs(expr.getArgs());
+			if (arguments == null || !(arguments.get() instanceof List)) {
+				return null;
+			}
+			return builtin.get().execute(arguments, this);
+		} else {
+			log.error("Unsupported function {}", functionName);
+			return null;
+		}
 	}
 
 	private ResultWithContext evaluateLiteral(Literal literal) {
 		String v = literal.getValue();
-		log.debug("Literal with value: {}", v);
 
 		// ordering based on Mark grammar
 		if (literal instanceof IntegerLiteral) {
@@ -373,10 +375,7 @@ public class ExpressionEvaluator {
 	}
 
 	/**
-	 * Evaluates a non-order MARK expression.
-	 *
-	 * @param expr
-	 * @return
+	 * Evaluates one expression and returns the result
 	 */
 	public ResultWithContext evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
@@ -436,8 +435,7 @@ public class ExpressionEvaluator {
 		Class leftResultType = leftResult.get().getClass();
 		Class rightResultType = rightResult.get().getClass();
 
-		// Consider ConstantValue here instead of native Java types.
-		// TODO why is this needed??
+		// Unbox ConstantValues
 		if (leftResultType.equals(ConstantValue.class)) {
 			leftResultType = ((ConstantValue) leftResult.get()).getValue().getClass();
 			leftResult.set(((ConstantValue) leftResult.get()).getValue());
@@ -448,149 +446,95 @@ public class ExpressionEvaluator {
 			rightResult.set(((ConstantValue) rightResult.get()).getValue());
 		}
 
+		if (!leftResultType.equals(rightResultType)) {
+			log.error(
+				"Type of left expression does not match type of right expression: {} vs. {}",
+				leftResultType.getSimpleName(),
+				rightResultType.getSimpleName());
+
+			return null;
+		}
+
 		switch (op) {
 			case "*":
-				if (leftResultType.equals(rightResultType)) {
-					// TODO check if an overflow occurs
-					if (leftResultType.equals(Integer.class)) {
-						return ResultWithContext.fromExisting(((Integer) leftResult.get()) * ((Integer) rightResult.get()), leftResult, rightResult);
-					} else if (leftResultType.equals(Float.class)) {
-						return ResultWithContext.fromExisting(((Float) leftResult.get()) * ((Float) rightResult.get()), leftResult, rightResult);
-					}
-
-					log.error(
-						"Multiplication operator multiplication ('*') not supported for type: {}",
-						leftResultType.getSimpleName());
-					return null;
+				// FIXME check if an overflow occurs (Math.multiplyExact). But what to do if this overflows?
+				if (leftResultType.equals(Integer.class)) {
+					return ResultWithContext.fromExisting((Integer) leftResult.get() * (Integer) rightResult.get(), leftResult, rightResult);
+				} else if (leftResultType.equals(Float.class)) {
+					return ResultWithContext.fromExisting((Float) leftResult.get() * (Float) rightResult.get(), leftResult, rightResult);
 				}
 
 				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftResultType.getSimpleName(),
-					rightResultType.getSimpleName());
-
+					"Multiplication operator multiplication ('*') not supported for type: {}",
+					leftResultType.getSimpleName());
 				return null;
 			case "/":
-				if (leftResultType.equals(rightResultType)) {
-					if (leftResultType.equals(Integer.class)) {
-						return ResultWithContext.fromExisting(((Integer) leftResult.get()) / ((Integer) rightResult.get()), leftResult, rightResult);
-					} else if (leftResultType.equals(Float.class)) {
-						return ResultWithContext.fromExisting(((Float) leftResult.get()) / ((Float) rightResult.get()), leftResult, rightResult);
-					}
-
-					log.error(
-						"Multiplication operator division ('/') not supported for type: {}",
-						leftResultType.getSimpleName());
-					return null;
+				if (leftResultType.equals(Integer.class)) {
+					return ResultWithContext.fromExisting((Integer) leftResult.get() / (Integer) rightResult.get(), leftResult, rightResult);
+				} else if (leftResultType.equals(Float.class)) {
+					return ResultWithContext.fromExisting((Float) leftResult.get() / (Float) rightResult.get(), leftResult, rightResult);
 				}
 
 				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftResultType.getSimpleName(),
-					rightResultType.getSimpleName());
-
+					"Multiplication operator division ('/') not supported for type: {}",
+					leftResultType.getSimpleName());
 				return null;
 			case "%":
-				if (leftResultType.equals(rightResultType)) {
-					if (leftResultType.equals(Integer.class)) {
-						return ResultWithContext.fromExisting(((Integer) leftResult.get()) % ((Integer) rightResult.get()), leftResult, rightResult);
-					}
-
-					log.error(
-						"Multiplication operator remainder ('%') not supported for type: {}",
-						leftResultType.getSimpleName());
-					return null;
+				if (leftResultType.equals(Integer.class)) {
+					return ResultWithContext.fromExisting((Integer) leftResult.get() % (Integer) rightResult.get(), leftResult, rightResult);
 				}
 
 				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftResultType.getSimpleName(),
-					rightResultType.getSimpleName());
-
+					"Multiplication operator remainder ('%') not supported for type: {}",
+					leftResultType.getSimpleName());
 				return null;
 			case "<<":
-				if (leftResultType.equals(rightResultType)) {
-					if (leftResultType.equals(Integer.class)) {
-						if (((Integer) rightResult.get()) >= 0) {
-							return ResultWithContext.fromExisting(((Integer) leftResult.get()) << ((Integer) rightResult.get()), leftResult, rightResult);
-						}
-
-						log.error(
-							"Left shift operator supports only non-negative integers as its right operand");
-						return null;
+				if (leftResultType.equals(Integer.class)) {
+					if (((Integer) rightResult.get()) >= 0) {
+						return ResultWithContext.fromExisting((Integer) leftResult.get() << (Integer) rightResult.get(), leftResult, rightResult);
 					}
 
 					log.error(
-						"Multiplication operator left shift ('<<') not supported for type: {}",
-						leftResultType.getSimpleName());
+						"Left shift operator supports only non-negative integers as its right operand");
 					return null;
 				}
 
 				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftResultType.getSimpleName(),
-					rightResultType.getSimpleName());
-
+					"Multiplication operator left shift ('<<') not supported for type: {}",
+					leftResultType.getSimpleName());
 				return null;
 			case ">>":
-				if (leftResultType.equals(rightResultType)) {
-					if (leftResultType.equals(Integer.class)) {
-						if (((Integer) rightResult.get()) >= 0) {
-							return ResultWithContext.fromExisting(((Integer) leftResult.get()) >> ((Integer) rightResult.get()), leftResult, rightResult);
-						}
-
-						log.error(
-							"Right shift operator supports only non-negative integers as its right operand");
-						return null;
+				if (leftResultType.equals(Integer.class)) {
+					if (((Integer) rightResult.get()) >= 0) {
+						return ResultWithContext.fromExisting((Integer) leftResult.get() >> (Integer) rightResult.get(), leftResult, rightResult);
 					}
 
 					log.error(
-						"Multiplication operator right shift ('>>') not supported for type: {}",
-						leftResultType.getSimpleName());
+						"Right shift operator supports only non-negative integers as its right operand");
 					return null;
 				}
 
 				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftResultType.getSimpleName(),
-					rightResultType.getSimpleName());
-
+					"Multiplication operator right shift ('>>') not supported for type: {}",
+					leftResultType.getSimpleName());
 				return null;
 			case "&":
-				if (leftResultType.equals(rightResultType)) {
-					if (leftResultType.equals(Integer.class)) {
-						return ResultWithContext.fromExisting(((Integer) leftResult.get()) & ((Integer) rightResult.get()), leftResult, rightResult);
-					}
-
-					log.error(
-						"Addition operator bitwise and ('&') not supported for type: {}",
-						leftResultType.getSimpleName());
-					return null;
+				if (leftResultType.equals(Integer.class)) {
+					return ResultWithContext.fromExisting((Integer) leftResult.get() & (Integer) rightResult.get(), leftResult, rightResult);
 				}
 
 				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftResultType.getSimpleName(),
-					rightResultType.getSimpleName());
-
+					"Addition operator bitwise and ('&') not supported for type: {}",
+					leftResultType.getSimpleName());
 				return null;
 			case "&^":
-				if (leftResultType.equals(rightResultType)) {
-					if (leftResultType.equals(Integer.class)) {
-						return ResultWithContext.fromExisting(((Integer) leftResult.get()) & ~((Integer) rightResult.get()), leftResult, rightResult);
-					}
-
-					log.error(
-						"Addition operator bitwise or ('|') not supported for type: {}",
-						leftResultType.getSimpleName());
-					return null;
+				if (leftResultType.equals(Integer.class)) {
+					return ResultWithContext.fromExisting((Integer) leftResult.get() & ~(Integer) rightResult.get(), leftResult, rightResult);
 				}
 
 				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftResultType.getSimpleName(),
-					rightResultType.getSimpleName());
-
+					"Addition operator bitwise or ('|') not supported for type: {}",
+					leftResultType.getSimpleName());
 				return null;
 
 			default:
@@ -605,14 +549,12 @@ public class ExpressionEvaluator {
 		return null;
 	}
 
-	// preserves the vertex of the inner expression
 	private ResultWithContext evaluateUnaryExpr(UnaryExpression expr) {
 		log.debug("Evaluating unary expression: {}", ExpressionHelper.exprToString(expr));
 
 		String op = expr.getOp();
-		Expression subExpr = expr.getExp();
 
-		ResultWithContext subExprResult = evaluateExpression(subExpr);
+		ResultWithContext subExprResult = evaluateExpression(expr.getExp()); // evaluate the subexpression
 
 		if (subExprResult == null) {
 			log.error("Unable to evaluate subexpression");
@@ -620,6 +562,12 @@ public class ExpressionEvaluator {
 		}
 
 		Class subExprResultType = subExprResult.get().getClass();
+
+		// unbox
+		if (subExprResultType.equals(ConstantValue.class)) {
+			subExprResultType = ((ConstantValue) subExprResult.get()).getValue().getClass();
+			subExprResult.set(((ConstantValue) subExprResult.get()).getValue());
+		}
 
 		switch (op) {
 			case "+":
@@ -682,8 +630,8 @@ public class ExpressionEvaluator {
 			log.error("{} does not have a value", operand.getOperand());
 			return null;
 		}
-		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(vertexWithValue.value);
-		result.addVertex(vertexWithValue.argumentVertex);
+		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(vertexWithValue.getValue());
+		result.addVertex(vertexWithValue.getArgumentVertex());
 		return result;
 	}
 

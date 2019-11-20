@@ -190,8 +190,8 @@ class GithubTest {
 		if (hasError) {
 			fail();
 		}
-		ArrayList<LogEvent> log = logCopy.getLog(Level.ERROR);
-		ArrayList<LogEvent> logFiltered = new ArrayList<>();
+		List<LogEvent> log = logCopy.getLog(Level.ERROR);
+		List<LogEvent> logFiltered = new ArrayList<>();
 		boolean hasParseError = false;
 		for (LogEvent x : log) {
 			if (x.getMessage()

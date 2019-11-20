@@ -65,11 +65,10 @@ public class FindingDescription {
 	}
 
 	public void init(File descriptionFile) {
-		try {
-			log.info("Parsing MARK description file from {}", descriptionFile.getAbsolutePath());
-			InputStream inputStream = new FileInputStream(descriptionFile);
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+		log.info("Parsing MARK description file from {}", descriptionFile.getAbsolutePath());
+		try (
+				InputStream inputStream = new FileInputStream(descriptionFile);
+				BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));) {
 
 			StringBuilder sb = new StringBuilder();
 			String readLine;

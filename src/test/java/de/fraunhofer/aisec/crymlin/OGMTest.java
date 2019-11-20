@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -8,7 +9,6 @@ import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
-import org.apache.commons.compress.utils.Lists;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
@@ -222,9 +222,11 @@ public class OGMTest {
 			Vertex v = traversal.next();
 
 			Node n = OverflowDatabase.<Node> getInstance().vertexToNode(v);
-			assert n instanceof TranslationUnitDeclaration : "n is not instanceof TranslationUnitDeclaration but " + n.getClass().getName();
+			assertNotNull(n);
+			assertTrue(n instanceof TranslationUnitDeclaration, "n is not instanceof TranslationUnitDeclaration but " + n.getClass().getName());
 			restored.add((TranslationUnitDeclaration) n);
 		}
+		assertEquals(1, restored.size(), "Expected exactly one TranslationUnit");
 	}
 
 	@Test

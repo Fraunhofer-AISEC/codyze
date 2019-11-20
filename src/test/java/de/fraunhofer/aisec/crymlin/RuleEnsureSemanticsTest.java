@@ -72,7 +72,7 @@ public class RuleEnsureSemanticsTest {
 		Map<@NonNull String, ResultWithContext> ensureExprResults = new TreeMap<>();
 		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
 			for (MRule r : mark.getRules()) {
-				ExpressionEvaluator ee = new ExpressionEvaluator(r, ctx, config, t);
+				ExpressionEvaluator ee = new ExpressionEvaluator(r, ctx, config, t.getCrymlinTraversal());
 
 				Expression ensureExpr = r.getStatement().getEnsure().getExp();
 				ResultWithContext result = ee.evaluate(ensureExpr);

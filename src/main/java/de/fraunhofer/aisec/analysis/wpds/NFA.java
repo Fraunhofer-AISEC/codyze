@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /** A non-deterministic finite automaton. Shameless plug from Dennis' FSM class. */
 public class NFA {
 	private static final Logger log = LoggerFactory.getLogger(NFA.class);
-	private HashSet<Node> startNodes = null;
+	private Set<Node> startNodes = null;
 
 	final private Node START = new Node("START", "START");
 

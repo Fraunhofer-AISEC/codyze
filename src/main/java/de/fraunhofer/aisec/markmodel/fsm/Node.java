@@ -7,6 +7,7 @@ import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 
 import java.util.HashSet;
+import java.util.Set;
 
 @NodeEntity
 public class Node {
@@ -15,7 +16,7 @@ public class Node {
 	private Long id;
 
 	@Relationship(value = "s")
-	private HashSet<Node> successors = new HashSet<>();
+	private Set<Node> successors = new HashSet<>();
 
 	private String base;
 	private String op;
@@ -36,7 +37,7 @@ public class Node {
 		successors.add(s);
 	}
 
-	public void addSuccessor(HashSet<Node> s) {
+	public void addSuccessor(Set<Node> s) {
 		successors.addAll(s);
 	}
 
@@ -80,7 +81,7 @@ public class Node {
 		return isFake;
 	}
 
-	public HashSet<Node> getSuccessors() {
+	public Set<Node> getSuccessors() {
 		return successors;
 	}
 

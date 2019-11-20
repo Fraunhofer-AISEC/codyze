@@ -39,7 +39,7 @@ build:
     - mkdir -p /cache/.gradle
     # build
     - echo $GRADLE_PROPERTIES > gradle.properties
-    - ./gradlew --parallel --refresh-dependencies clean docker
+    - ./gradlew --parallel --refresh-dependencies -Dsonar.host.url=https://sonar.netsec.aisec.fraunhofer.de clean docker sonarqube
     - if [[ $CI_COMMIT_REF_NAME == 'master' ]]; then docker push $DOCKER_REGISTRY_URL/$PARENT_PROJECT_NAME/$CI_PROJECT_NAME:${CI_COMMIT_SHA:0:8}; fi
   artifacts:
     when: always

@@ -138,8 +138,8 @@ public class MEntity {
 		}
 	}
 
-	public ArrayList<String> replaceArgumentVarsWithTypes(List<String> functionArguments) {
-		ArrayList<String> functionArgumentTypes = new ArrayList<>();
+	public List<String> replaceArgumentVarsWithTypes(List<String> functionArguments) {
+		List<String> functionArgumentTypes = new ArrayList<>();
 		for (int i = 0; i < functionArguments.size(); i++) {
 			String typeForVar = getTypeForVar(functionArguments.get(i));
 			if (typeForVar != null) {

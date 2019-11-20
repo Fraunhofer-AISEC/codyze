@@ -3,9 +3,6 @@ package de.fraunhofer.aisec.markmodel.fsm;
 
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
-import org.neo4j.ogm.config.Configuration;
-import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,24 +12,24 @@ public class FSM {
 
 	private static final Logger log = LoggerFactory.getLogger(FSM.class);
 
-	private HashSet<Node> startNodes = null;
+	private Set<Node> startNodes = null;
 
 	public FSM() {
 	}
 
 	public String toString() {
-		HashSet<Node> seen = new HashSet<>();
+		Set<Node> seen = new HashSet<>();
 		ArrayList<Node> current = new ArrayList<>(startNodes);
 		HashMap<Node, Integer> nodeToId = new HashMap<>();
 		StringBuilder sb = new StringBuilder();
-		int node_counter = 0;
+		int nodeCounter = 0;
 		while (!current.isEmpty()) {
 			ArrayList<Node> newWork = new ArrayList<>();
 			for (Node n : current) {
 				if (!seen.contains(n)) {
 					Integer id = nodeToId.get(n);
 					if (id == null) {
-						id = node_counter++;
+						id = nodeCounter++;
 						nodeToId.put(n, id);
 					}
 					sb.append(n).append(" (").append(id).append(")\n");
@@ -44,7 +41,7 @@ public class FSM {
 						Node s = entry.getValue();
 						Integer id_succ = nodeToId.get(s);
 						if (id_succ == null) {
-							id_succ = node_counter++;
+							id_succ = nodeCounter++;
 							nodeToId.put(s, id_succ);
 						}
 						if (!seen.contains(s)) {
@@ -60,27 +57,27 @@ public class FSM {
 		return sb.toString();
 	}
 
-	public static void clearDB() {
-		String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
-		String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
-		String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
-		Configuration configuration = (new Configuration.Builder()).uri(uri).autoIndex("none").credentials(username, password).verifyConnection(true).build();
-		SessionFactory sessionFactory = new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
-		Session session = sessionFactory.openSession();
-		session.purgeDatabase();
-		sessionFactory.close();
-	}
-
-	public void pushToDB() {
-		String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
-		String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
-		String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
-		Configuration configuration = (new Configuration.Builder()).uri(uri).autoIndex("none").credentials(username, password).verifyConnection(true).build();
-		SessionFactory sessionFactory = new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
-		Session session = sessionFactory.openSession();
-		startNodes.forEach(session::save);
-		sessionFactory.close();
-	}
+	//	public static void clearDB() {
+	//		String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
+	//		String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
+	//		String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
+	//		Configuration configuration = (new Configuration.Builder()).uri(uri).autoIndex("none").credentials(username, password).verifyConnection(true).build();
+	//		SessionFactory sessionFactory = new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
+	//		Session session = sessionFactory.openSession();
+	//		session.purgeDatabase();
+	//		sessionFactory.close();
+	//	}
+	//
+	//	public void pushToDB() {
+	//		String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
+	//		String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
+	//		String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
+	//		Configuration configuration = (new Configuration.Builder()).uri(uri).autoIndex("none").credentials(username, password).verifyConnection(true).build();
+	//		SessionFactory sessionFactory = new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
+	//		Session session = sessionFactory.openSession();
+	//		startNodes.forEach(session::save);
+	//		sessionFactory.close();
+	//	}
 
 	/**
 	 * Order-Statement to FSM
@@ -109,7 +106,7 @@ public class FSM {
 		Node start = new Node(null, "BEGIN");
 		start.setStart(true);
 
-		HashSet<Node> endNodes = new HashSet<>();
+		Set<Node> endNodes = new HashSet<>();
 		endNodes.add(start);
 		// System.out.println(MarkInterpreter.exprToString(seq));
 		expressionToNodes(seq, endNodes, null);
@@ -128,7 +125,7 @@ public class FSM {
 	}
 
 	private void expressionToNodes(
-			final Expression expr, final HashSet<Node> endNodes, final Head head) {
+			final Expression expr, final Set<Node> endNodes, final Head head) {
 		if (expr instanceof Terminal) {
 			Terminal inner = (Terminal) expr;
 			Node n = new Node(inner.getEntity(), inner.getOp());
@@ -149,7 +146,7 @@ public class FSM {
 			RepetitionExpression inner = (RepetitionExpression) expr;
 			switch (inner.getOp()) {
 				case "?": {
-					HashSet<Node> remember = new HashSet<>(endNodes);
+					Set<Node> remember = new HashSet<>(endNodes);
 					expressionToNodes(inner.getExpr(), endNodes, head);
 					endNodes.addAll(remember);
 					return;
@@ -168,7 +165,7 @@ public class FSM {
 					return;
 				}
 				case "*": {
-					HashSet<Node> remember = new HashSet<>(endNodes);
+					Set<Node> remember = new HashSet<>(endNodes);
 					Head innerHead = new Head();
 					innerHead.addNextNode = true;
 					expressionToNodes(inner.getExpr(), endNodes, innerHead);
@@ -189,7 +186,7 @@ public class FSM {
 			}
 		} else if (expr instanceof AlternativeExpressionImpl) {
 			AlternativeExpression inner = (AlternativeExpression) expr;
-			HashSet<Node> remember = new HashSet<>(endNodes);
+			Set<Node> remember = new HashSet<>(endNodes);
 			expressionToNodes(inner.getLeft(), endNodes, head);
 			if (head != null) {
 				head.addNextNode = true;
@@ -203,7 +200,7 @@ public class FSM {
 		log.error("ERROR, unknown Expression: {}", expr.getClass());
 	}
 
-	public HashSet<Node> getStart() {
+	public Set<Node> getStart() {
 		return startNodes;
 	}
 

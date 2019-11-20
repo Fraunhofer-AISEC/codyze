@@ -6,11 +6,13 @@ import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.junit.jupiter.api.Disabled;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Disabled
 public class PerformanceTest {
 
 	// These are minimum values. Actual values will be ~5 times higher due to associated nodes

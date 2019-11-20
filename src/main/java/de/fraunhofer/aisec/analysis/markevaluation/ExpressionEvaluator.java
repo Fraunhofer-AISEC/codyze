@@ -135,7 +135,7 @@ public class ExpressionEvaluator {
 				leftResult, rightResult);
 		} else { //LogicalOrExpression
 			return ResultWithContext.fromExisting(
-				Boolean.logicalAnd((Boolean) leftResult.get(), (Boolean) rightResult.get()),
+				Boolean.logicalOr((Boolean) leftResult.get(), (Boolean) rightResult.get()),
 				leftResult, rightResult);
 		}
 
@@ -630,8 +630,8 @@ public class ExpressionEvaluator {
 			log.error("{} does not have a value", operand.getOperand());
 			return null;
 		}
-		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(vertexWithValue.value);
-		result.addVertex(vertexWithValue.argumentVertex);
+		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(vertexWithValue.getValue());
+		result.addVertex(vertexWithValue.getArgumentVertex());
 		return result;
 	}
 

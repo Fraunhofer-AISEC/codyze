@@ -182,7 +182,7 @@ public class AnalysisServer {
 					result -> {
 						if (config.EXPORT_TO_NEO4J) {
 							// Optional, just for debugging: re-import into Neo4J
-							exportToNeo4j(result);
+							exportToNeo4j();
 						}
 						return result;
 					})
@@ -356,9 +356,8 @@ public class AnalysisServer {
 	 * We want to skip the OGM to make that what we see in the database is the actual graph from memory, and not the result of CPG -> OverflowDB-OGM -> OverflowDB ->
 	 * Tinkerpop -> Neo4J-OGM -> Neo4J.
 	 *
-	 * @param result the result to persist
 	 */
-	private void exportToNeo4j(TranslationResult result) {
+	private void exportToNeo4j() {
 		try {
 			// Export from OverflowDB to file
 			OverflowDatabase.getInstance().connect();

@@ -312,13 +312,13 @@ public class CrymlinQueryWrapper {
 		return matchingVertices;
 	}
 
-	public static ArrayList<CPGVertexWithValue> getAssignmentsForVertices(List<Vertex> vertices) {
-		final ArrayList<CPGVertexWithValue> ret = new ArrayList<>();
+	public static List<CPGVertexWithValue> getAssignmentsForVertices(List<Vertex> vertices) {
+		final List<CPGVertexWithValue> ret = new ArrayList<>();
 		// try to resolve them
 		for (Vertex v : vertices) {
-			Iterator<Edge> refers_to = v.edges(Direction.OUT, "REFERS_TO");
-			if (refers_to.hasNext()) {
-				Edge next = refers_to.next();
+			Iterator<Edge> refersTo = v.edges(Direction.OUT, "REFERS_TO");
+			if (refersTo.hasNext()) {
+				Edge next = refersTo.next();
 				// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
 				// argument we're using in the function call
 				Vertex variableDeclarationVertex = next.inVertex();
@@ -327,9 +327,7 @@ public class CrymlinQueryWrapper {
 				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v);
 				// fixme what if we do not know the value, shouldnt we then still return the argumentvertex?
 				if (constantValue.isPresent()) {
-					CPGVertexWithValue mva = new CPGVertexWithValue();
-					mva.argumentVertex = v;
-					mva.value = constantValue.get().getValue(); // todo? return the constantvalue?
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get().getValue()); // todo? return the constantvalue or the inner value?
 					ret.add(mva);
 				} else {
 					log.warn("Could not constant resolve node {}", v.id());
@@ -347,7 +345,7 @@ public class CrymlinQueryWrapper {
 		String baseType = Utils.extractType(functionDeclaration.getName());
 
 		// resolve parameters which have a corresponding var part in the entity
-		ArrayList<String> args = ent.replaceArgumentVarsWithTypes(functionDeclaration.getParams());
+		List<String> args = ent.replaceArgumentVarsWithTypes(functionDeclaration.getParams());
 		return CrymlinQueryWrapper.getCalls(crymlinTraversal, baseType, functionName, null, args);
 	}
 

@@ -33,7 +33,7 @@ import static java.lang.Math.toIntExact;
 
 public class OrderNFAEvaluator {
 
-	private static final Logger log = LoggerFactory.getLogger(OrderEvaluator.class);
+	private static final Logger log = LoggerFactory.getLogger(OrderNFAEvaluator.class);
 	private final MRule rule;
 
 	public OrderNFAEvaluator(MRule rule) {
@@ -167,9 +167,9 @@ public class OrderNFAEvaluator {
 									Vertex baseVertex = it.next()
 											.inVertex();
 									base = baseVertex.value("name");
-									Iterator<Edge> it_ref = baseVertex.edges(Direction.OUT, "REFERS_TO");
-									if (it_ref.hasNext()) {
-										refNode = it_ref.next()
+									Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+									if (refIterator.hasNext()) {
+										refNode = refIterator.next()
 												.inVertex();
 										ref = refNode.id().toString();
 									}
@@ -210,7 +210,7 @@ public class OrderNFAEvaluator {
 										// ctx.getFindings().add(f);
 										// log.info("Finding: {}", f.toString());
 									} else {
-										HashSet<Node> nodesInFSM;
+										Set<Node> nodesInFSM;
 										if (baseToFSMNodes.get(prefixedBase) == null) {
 											// we have not seen this base before. check if this is the start of an order
 											nodesInFSM = fsm.getStart(); // start nodes

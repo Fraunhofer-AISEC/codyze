@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.lang.Math.toIntExact;
 
@@ -41,13 +42,13 @@ public class ForbiddenEvaluator {
 		for (MEntity ent : this.markModel.getEntities()) {
 
 			for (MOp op : ent.getOps()) {
-				for (Map.Entry<Vertex, HashSet<OpStatement>> entry : op.getVertexToCallStatementsMap().entrySet()) {
+				for (Map.Entry<Vertex, Set<OpStatement>> entry : op.getVertexToCallStatementsMap().entrySet()) {
 					if (entry.getValue().stream().noneMatch(call -> "forbidden".equals(call.getForbidden()))) {
 						// only allowed entries
 						continue;
 					}
 					Vertex v = entry.getKey();
-					boolean vertex_allowed = false;
+					boolean vertexAllowed = false;
 					HashSet<String> violating = new HashSet<>();
 					for (OpStatement call : entry.getValue()) {
 						String callString = call.getCall().getName() + "(" + String.join(",", call.getCall().getParams()) + ")";
@@ -58,13 +59,13 @@ public class ForbiddenEvaluator {
 								"Vertex |{}| is allowed, since it matches whitelist entry {}",
 								v.value("code"),
 								callString);
-							vertex_allowed = true;
+							vertexAllowed = true;
 							break;
 						} else {
 							violating.add(callString);
 						}
 					}
-					if (!vertex_allowed) {
+					if (!vertexAllowed) {
 						// lines are human-readable, i.e., off-by-one
 						int startLine = toIntExact(v.value("startLine")) - 1;
 						int endLine = toIntExact(v.value("endLine")) - 1;

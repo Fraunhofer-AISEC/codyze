@@ -84,6 +84,7 @@ import org.slf4j.LoggerFactory;
 public class OverflowDatabase<N> implements Database<N> {
 
 	private static final Logger log = LoggerFactory.getLogger(OverflowDatabase.class);
+	public static final String LabelDelimiter = "::"; // copied from neo4j
 	// persistable property types, taken from Neo4j
 	private static final String PRIMITIVES = "char,byte,short,int,long,float,double,boolean,char[],byte[],short[],int[],long[],float[],double[],boolean[]";
 	private static final String AUTOBOXERS = "java.lang.Object"
@@ -997,8 +998,7 @@ public class OverflowDatabase<N> implements Database<N> {
 							}
 							catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 								log.error("Edge property annotation {} does not provide a 'value' method of type String",
-									a.getClass().getName());
-								e.printStackTrace();
+									a.getClass().getName(), e);
 								return "UNKNOWN_PROPERTY";
 							}
 						}));

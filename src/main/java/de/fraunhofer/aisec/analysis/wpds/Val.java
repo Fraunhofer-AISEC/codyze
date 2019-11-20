@@ -39,13 +39,16 @@ public class Val {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!(obj instanceof Val)) {
 			return false;
+		}
 		Val other = (Val) obj;
-		if (!variable.equals(other.variable))
+		if (!variable.equals(other.variable)) {
 			return false;
-		if (!currentScope.equals(other.currentScope))
+		}
+		if (!currentScope.equals(other.currentScope)) {
 			return false;
+		}
 		return true;
 	}
 }

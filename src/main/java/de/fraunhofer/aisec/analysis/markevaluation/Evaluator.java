@@ -145,7 +145,7 @@ public class Evaluator {
 		for (MRule rule : this.markModel.getRules()) {
 			ExpressionEvaluator ee = new ExpressionEvaluator(rule, ctx, config, t);
 
-			RuleStatement s = rule.getStatement();
+			RuleStatement using = rule.getStatement();
 			log.info("checking rule {}", rule.getName());
 
 			// collect all entities, and calculate which instances correspond to the entity
@@ -157,7 +157,7 @@ public class Evaluator {
 			 * variables) correspond to the entity. entities is a map with key: name of the Mark Entity (e.g., "b"). value: Vertex to which the program variable
 			 * REFERS_TO.
 			 */
-			for (AliasedEntityExpression entity : s.getEntities()) {
+			for (AliasedEntityExpression entity : using.getEntities()) {
 				HashSet<Vertex> bases = new HashSet<>();
 				MEntity referencedEntity = this.markModel.getEntity(entity.getE());
 				if (referencedEntity != null) {
@@ -210,8 +210,8 @@ public class Evaluator {
 				ee.setCPGInstanceContext(instanceContext);
 
 				/* Evaluate "when" part, if present */
-				if (s.getCond() != null) { // do we have a precondition?
-					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, rule);
+				if (using.getCond() != null) { // do we have a precondition?
+					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, using.getCond().getExp(), ee, rule);
 					for (ResultWithContext resultCond : resultsCond) {
 						if (!(resultCond.get() instanceof Boolean)) {
 							log.error("Result is of type {}, expected boolean.", resultCond.getClass());
@@ -222,10 +222,10 @@ public class Evaluator {
 							continue;
 						}
 
-						results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), s.getEnsure().getExp(), ee, rule));
+						results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), using.getEnsure().getExp(), ee, rule));
 					}
 				} else {
-					results.addAll(evaluateExpressionWithContext(null, s.getEnsure().getExp(), ee, rule));
+					results.addAll(evaluateExpressionWithContext(null, using.getEnsure().getExp(), ee, rule));
 				}
 			}
 

@@ -185,7 +185,7 @@ public class CrymlinQueryWrapper {
 	 * @param rule
 	 * @return
 	 */
-	public static ArrayList<Vertex> getMatchingVertices(String operand, MRule rule) {
+	public static ArrayList<Vertex> getMatchingVertices(@NonNull String operand, @NonNull MRule rule) {
 		final ArrayList<Vertex> matchingVertices = new ArrayList<>();
 
 		if (StringUtils.countMatches(operand, ".") != 1) {
@@ -203,6 +203,11 @@ public class CrymlinQueryWrapper {
 		Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
 		String entityName = ref.getValue0();
 		MEntity referencedEntity = ref.getValue1();
+
+		if (referencedEntity == null) {
+			log.warn("Unexpected: rule {} without referenced entity for instance {}", rule.getName(), instance);
+			return matchingVertices;
+		}
 
 		List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
 		List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();

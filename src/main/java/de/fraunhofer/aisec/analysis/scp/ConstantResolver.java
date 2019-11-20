@@ -1,9 +1,9 @@
 
 package de.fraunhofer.aisec.analysis.scp;
 
-import com.steelbridgelabs.oss.neo4j.structure.Neo4JVertex;
 import de.fraunhofer.aisec.cpg.graph.Declaration;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -89,7 +89,7 @@ public class ConstantResolver {
 				Vertex tVertex = traversal.next();
 
 				boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label()
-						.split(Neo4JVertex.LabelDelimiter))
+						.split(OverflowDatabase.LabelDelimiter))
 						.contains("BinaryOperator");
 
 				if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode")
@@ -105,7 +105,7 @@ public class ConstantResolver {
 								.next();
 
 						boolean isRhsLiteral = Arrays.asList(rhs.label()
-								.split(Neo4JVertex.LabelDelimiter))
+								.split(OverflowDatabase.LabelDelimiter))
 								.contains("Literal");
 
 						if (isRhsLiteral) {
@@ -150,7 +150,7 @@ public class ConstantResolver {
 				Vertex initializerVertex = itInitializerVertex.next();
 
 				if (Arrays.asList(initializerVertex.label()
-						.split(Neo4JVertex.LabelDelimiter))
+						.split(OverflowDatabase.LabelDelimiter))
 						.contains("Literal")) {
 					Object literalValue = initializerVertex.property("value")
 							.value();

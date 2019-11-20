@@ -8,6 +8,7 @@ import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MRule {
@@ -24,7 +25,7 @@ public class MRule {
 	 * <p>
 	 * todo maybe we should not allow rules with NULL references here, as they cannot be evaluated anyway
 	 */
-	private HashMap<String, Pair<String, MEntity>> entityReferences;
+	private Map<String, Pair<String, MEntity>> entityReferences;
 
 	public MRule(@NonNull String name) {
 		this.name = name;
@@ -81,7 +82,7 @@ public class MRule {
 		this.entityReferences = entityReferences;
 	}
 
-	public HashMap<String, Pair<String, MEntity>> getEntityReferences() {
+	public Map<String, Pair<String, MEntity>> getEntityReferences() {
 		return entityReferences;
 	}
 }

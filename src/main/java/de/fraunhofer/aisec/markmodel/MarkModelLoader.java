@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Parses a MarkModel provided by XText in the form of an ECore hierarchy into a simple (ECore-free) {@code Mark} model that the analysis server can work with.
@@ -25,7 +26,7 @@ public class MarkModelLoader {
 	private static final Logger log = LoggerFactory.getLogger(MarkModelLoader.class);
 
 	@NonNull
-	public Mark load(HashMap<String, MarkModel> markModels, @Nullable String onlyfromthisfile) {
+	public Mark load(Map<String, MarkModel> markModels, @Nullable String onlyfromthisfile) {
 		Mark m = new Mark();
 
 		for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
@@ -80,8 +81,7 @@ public class MarkModelLoader {
 		return m;
 	}
 
-	private static void collectEntityReferences(
-			MRule rule, HashSet<String> entityRefs, HashSet<String> functionRefs) {
+	private static void collectEntityReferences(MRule rule, Set<String> entityRefs, Set<String> functionRefs) {
 		if (rule.getStatement() == null) {
 			return;
 		}
@@ -114,7 +114,7 @@ public class MarkModelLoader {
 	}
 
 	@NonNull
-	public Mark load(HashMap<String, MarkModel> markModels) {
+	public Mark load(Map<String, MarkModel> markModels) {
 		return load(markModels, null);
 	}
 

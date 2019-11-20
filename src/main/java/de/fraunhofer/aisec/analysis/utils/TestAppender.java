@@ -15,6 +15,7 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 @Plugin(name = "TestAppender", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
 public class TestAppender extends AbstractAppender {
@@ -38,9 +39,9 @@ public class TestAppender extends AbstractAppender {
 		}
 	}
 
-	public ArrayList<LogEvent> getLog(Level... levels) {
+	public List<LogEvent> getLog(Level... levels) {
 		HashSet<Level> levelHashSet = new HashSet<>(Arrays.asList(levels));
-		ArrayList<LogEvent> ret = new ArrayList<>();
+		List<LogEvent> ret = new ArrayList<>();
 		for (LogEvent e : events) {
 			if (levels.length == 0 || levelHashSet.contains(e.getLevel())) {
 				ret.add(e);

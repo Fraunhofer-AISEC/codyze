@@ -27,7 +27,7 @@ public class ConstantValue<T> {
 		this.type = type;
 	}
 
-	public final static <T> ConstantValue of(@NonNull T value) {
+	public static final <T> ConstantValue of(@NonNull T value) {
 		if (value instanceof Number) {
 			return new ConstantValue<>(value, Type.NUMERIC);
 		} else if (value instanceof String) {

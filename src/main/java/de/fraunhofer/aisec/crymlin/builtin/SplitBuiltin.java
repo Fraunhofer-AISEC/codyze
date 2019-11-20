@@ -18,7 +18,7 @@ import java.util.List;
  * In case of an error, this Builtin returns null;
  */
 public class SplitBuiltin implements Builtin {
-	private static final Logger log = LoggerFactory.getLogger(ExpressionEvaluator.class);
+	private static final Logger log = LoggerFactory.getLogger(SplitBuiltin.class);
 
 	@NonNull
 	@Override

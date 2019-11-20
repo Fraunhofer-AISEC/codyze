@@ -166,9 +166,9 @@ public class Evaluator {
 							Vertex ref = null;
 							if (it.hasNext()) {
 								Vertex baseVertex = it.next().inVertex();
-								Iterator<Edge> it_ref = baseVertex.edges(Direction.OUT, "REFERS_TO");
-								if (it_ref.hasNext()) {
-									ref = it_ref.next().inVertex();
+								Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+								if (refIterator.hasNext()) {
+									ref = refIterator.next().inVertex();
 									bases.add(ref);
 								}
 							}

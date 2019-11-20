@@ -19,6 +19,10 @@ public class ExpressionHelper {
 
 	private static final Logger log = LoggerFactory.getLogger(ExpressionHelper.class);
 
+	private ExpressionHelper() {
+		// hide
+	}
+
 	public static String exprToString(Expression expr) {
 		if (expr == null) {
 			return " null ";
@@ -52,7 +56,6 @@ public class ExpressionHelper {
 					+ " ]";
 		} else if (expr instanceof RepetitionExpression) {
 			RepetitionExpression inner = (RepetitionExpression) expr;
-			// todo @FW do we want this optimization () can be omitted if inner is no sequence
 			if (inner.getExpr() instanceof SequenceExpression) {
 				return "(" + exprToString(inner.getExpr()) + ")" + inner.getOp();
 			} else {
@@ -161,7 +164,7 @@ public class ExpressionHelper {
 	 * @param expr the expression to traverse
 	 * @param vars [out] collects all vars in the expression
 	 */
-	public static void collectVars(Expression expr, HashSet<String> vars) {
+	public static void collectVars(Expression expr, Set<String> vars) {
 		if (expr instanceof OrderExpression) {
 			// will not contain vars
 		} else if (expr instanceof LogicalOrExpression) {
@@ -220,7 +223,7 @@ public class ExpressionHelper {
 	}
 
 	public static void getRefsFromExp(
-			Expression exp, HashSet<String> entityRefs, HashSet<String> functionRefs) {
+			Expression exp, Set<String> entityRefs, Set<String> functionRefs) {
 		if (exp == null) {
 			log.error("Expression is null, cannot get refs");
 			return;

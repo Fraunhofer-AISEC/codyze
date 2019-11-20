@@ -30,7 +30,7 @@ public class AnalysisContext {
 	 * Returns a (possibly empty) mutable list of findings, i.e. violations of MARK rules that were found during analysis. Make sure to call {@code analyze()} before as
 	 * otherwise this method will return an empty list.
 	 *
-	 * @return
+	 * @return Set of all findings
 	 */
 	public @NonNull Set<Finding> getFindings() {
 		return this.findings;

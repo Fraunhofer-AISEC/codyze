@@ -21,9 +21,6 @@ public class CPGInstanceContext {
 
 	/**
 	 * Stores a Mark instance (e.g., "b") and the Vertex that defines it.
-	 *
-	 * @param s
-	 * @param v
 	 */
 	public void putMarkInstance(String s, Vertex v) {
 		entityAssignment.put(s, v);

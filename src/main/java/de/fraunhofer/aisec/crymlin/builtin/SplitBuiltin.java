@@ -13,11 +13,9 @@ import java.util.List;
 /**
  * Method signature: _split(String str, String splitter, int position)
  *
- * <p>
  * This Builtin behaves like str.split(splitter)[position].
  *
- * <p>
- * In case of an error or an empty result, this Builtin returns an Optional.empty.
+ * In case of an error, this Builtin returns null;
  */
 public class SplitBuiltin implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(ExpressionEvaluator.class);

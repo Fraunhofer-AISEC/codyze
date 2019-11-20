@@ -67,7 +67,6 @@ import java.util.concurrent.ExecutionException;
 public class AnalysisServer {
 
 	private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
-	private static final boolean EXPORT_TO_NEO4J = true;
 
 	private static AnalysisServer instance;
 
@@ -92,7 +91,7 @@ public class AnalysisServer {
 	/**
 	 * Singleton must be initialized with AnalysisServer.builder().build() first.
 	 *
-	 * @return
+	 * @return the current Analysisserver instance
 	 */
 	@Nullable
 	public static AnalysisServer getInstance() {
@@ -155,10 +154,8 @@ public class AnalysisServer {
 	/**
 	 * Runs an analysis and persists the result.
 	 *
-	 * @param analyzer
-	 * @return
-	 * @throws ExecutionException
-	 * @throws InterruptedException
+	 * @param analyzer the translationmanager to analyze
+	 * @return the Future for this analysis
 	 */
 	public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer) {
 		/*
@@ -183,7 +180,7 @@ public class AnalysisServer {
 					})
 				.thenApplyAsync(
 					result -> {
-						if (EXPORT_TO_NEO4J) {
+						if (config.EXPORT_TO_NEO4J) {
 							// Optional, just for debugging: re-import into Neo4J
 							exportToNeo4j(result);
 						}
@@ -218,10 +215,10 @@ public class AnalysisServer {
 	/**
 	 * Loads all MARK rules from a file or a directory.
 	 *
-	 * @param markFile
+	 * @param markFile load all mark entities/rules from this file
 	 */
 	public void loadMarkRules(@NonNull File markFile) {
-		File markDescriptionFile = null;
+		File markDescriptionFile;
 
 		log.info("Parsing MARK files");
 		Instant start = Instant.now();
@@ -267,7 +264,6 @@ public class AnalysisServer {
 			this.markModel.getRules().size());
 
 		if (markDescriptionFile.exists()) {
-
 			FindingDescription.getInstance().init(markDescriptionFile);
 		} else {
 			log.info("MARK description file does not exist");
@@ -277,7 +273,7 @@ public class AnalysisServer {
 	/**
 	 * Returns a list with the names of the currently loaded MARK rules.
 	 *
-	 * @return
+	 * @return the markmodel for this analysisserver
 	 */
 	public @NonNull Mark getMarkModel() {
 		return this.markModel;
@@ -292,7 +288,6 @@ public class AnalysisServer {
 			lsp.shutdown();
 			lsp = null;
 		}
-		Neo4jDatabase.getInstance().close();
 		config = null;
 		markModel = null;
 
@@ -303,6 +298,7 @@ public class AnalysisServer {
 		return lsp;
 	}
 
+	@Deprecated
 	private TranslationResult persistToNeo4J(TranslationResult result) {
 		Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
 		// Persist the result
@@ -360,10 +356,9 @@ public class AnalysisServer {
 	 * We want to skip the OGM to make that what we see in the database is the actual graph from memory, and not the result of CPG -> OverflowDB-OGM -> OverflowDB ->
 	 * Tinkerpop -> Neo4J-OGM -> Neo4J.
 	 *
-	 * @param result
-	 * @return
+	 * @param result the result to persist
 	 */
-	private TranslationResult exportToNeo4j(TranslationResult result) {
+	private void exportToNeo4j(TranslationResult result) {
 		try {
 			// Export from OverflowDB to file
 			OverflowDatabase.getInstance().connect();
@@ -405,7 +400,6 @@ public class AnalysisServer {
 		catch (Throwable t) {
 			log.error("Throwable", t);
 		}
-		return result;
 	}
 
 	public static class Builder {

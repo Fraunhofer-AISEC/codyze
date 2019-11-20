@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.toIntExact;
@@ -71,11 +73,10 @@ public class OrderNFAEvaluator {
 		}
 
 		// collect all instances used in this order
-		HashSet<Pair<String, String>> instances = new HashSet<>();
-		ExpressionHelper.collectInstanceAndOps(orderExpression.getExp(), instances);
+		Set<String> entityReferences = new HashSet<>();
+		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), entityReferences);
 
-		HashSet<String> entityReferences = instances.stream().map(Pair::getValue0).collect(Collectors.toCollection(HashSet::new));
-		HashSet<Object> referencedVertices = new HashSet<>();
+		Set<Object> referencedVertices = new HashSet<>();
 		for (String alias : entityReferences) {
 			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
@@ -156,8 +157,7 @@ public class OrderNFAEvaluator {
 							if (rule.getEntityReferences()
 									.values()
 									.stream()
-									.anyMatch(x -> x.getValue1()
-											.equals(op.getParent()))) {
+									.anyMatch(x -> Objects.equals(x.getValue1(), op.getParent()))) {
 
 								Iterator<Edge> it = vertex.edges(Direction.OUT, "BASE");
 								String base = null;

@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class MarkJavaTest {
@@ -42,10 +43,11 @@ public class MarkJavaTest {
 		runTest("simplesplit_splitstring");
 	}
 
+	// fixme disabled until is_instance is implemented
 	@Test
+	@Disabled
 	public void is_instance_1() throws Exception {
-		// fixme disabled until is_instance is implemented
-		// runTest("simple_instancestring");
+		runTest("simple_instancestring");
 	}
 
 	private void runTest(@NonNull String fileNamePart)

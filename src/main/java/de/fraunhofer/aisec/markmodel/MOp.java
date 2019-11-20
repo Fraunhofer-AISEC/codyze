@@ -19,9 +19,9 @@ public class MOp {
 	private List<OpStatement> statements = new ArrayList<>();
 
 	private boolean parsed = false;
-	private HashMap<OpStatement, Set<Vertex>> statementToCPGVertex = new HashMap<>();
-	private HashMap<Vertex, HashSet<OpStatement>> vertexToStatements = new HashMap<>();
-	private HashSet<Vertex> allVertices = new HashSet<>();
+	private Map<OpStatement, Set<Vertex>> statementToCPGVertex = new HashMap<>();
+	private Map<Vertex, Set<OpStatement>> vertexToStatements = new HashMap<>();
+	private Set<Vertex> allVertices = new HashSet<>();
 
 	public MOp(MEntity parent) {
 		this.parent = parent;
@@ -49,7 +49,7 @@ public class MOp {
 		return statementToCPGVertex.get(stmt);
 	}
 
-	public HashSet<OpStatement> getCallStatements(Vertex v) {
+	public Set<OpStatement> getCallStatements(Vertex v) {
 		if (!parsed) {
 			log.error("MOp not parsed! Do not call getCallStatements!");
 			assert false;
@@ -57,18 +57,18 @@ public class MOp {
 		return vertexToStatements.get(v);
 	}
 
-	public HashMap<Vertex, HashSet<OpStatement>> getVertexToCallStatementsMap() {
+	public Map<Vertex, Set<OpStatement>> getVertexToCallStatementsMap() {
 		return vertexToStatements;
 	}
 
-	public HashSet<Vertex> getAllVertices() {
+	public Set<Vertex> getAllVertices() {
 		return allVertices;
 	}
 
 	public void addVertex(OpStatement stmt, Set<Vertex> verts) {
 		statementToCPGVertex.put(stmt, verts);
 		for (Vertex v : verts) {
-			HashSet<OpStatement> callStatements = vertexToStatements.computeIfAbsent(v, k -> new HashSet<>());
+			Set<OpStatement> callStatements = vertexToStatements.computeIfAbsent(v, k -> new HashSet<>());
 			callStatements.add(stmt);
 		}
 		allVertices.addAll(verts);

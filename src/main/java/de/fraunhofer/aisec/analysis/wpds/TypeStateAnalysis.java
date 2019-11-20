@@ -90,6 +90,7 @@ public class TypeStateAnalysis {
 		Vertex v = instanceContext.getVertex(instanceContext.getMarkInstances()
 				.iterator()
 				.next()); // TODO Iterate over all Mark instance, not only the first one
+		// fixme Call "Optional#isPresent()" before accessing the value.
 		Vertex method = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal).get();
 		FunctionDeclaration m = (FunctionDeclaration) OverflowDatabase.getInstance()
 				.vertexToNode(method);
@@ -411,6 +412,7 @@ public class TypeStateAnalysis {
 							Set<NFATransition> relevantNFATransitions = nfa.getTransitions()
 									.stream()
 									.filter(
+										// fixme Remove this call to "equals"; comparisons between unrelated types always return false.
 										tran -> tran.getTarget().getOp().equals(currentStmt))
 									.collect(Collectors.toSet());
 							Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, Weight.one());

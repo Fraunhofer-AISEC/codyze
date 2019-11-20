@@ -17,6 +17,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -204,10 +205,10 @@ class FSMTest {
 		fsm.sequenceToFSM(aThenTail);
 		System.out.println(fsm.toString());
 
-		HashSet<Node> start = fsm.getStart();
+		Set<Node> start = fsm.getStart();
 		assertEquals(1, start.size());
 		Node startNode = start.iterator().next();
-		HashSet<Node> expectB = startNode.getSuccessors();
+		Set<Node> expectB = startNode.getSuccessors();
 		System.out.println(expectB);
 	}
 }

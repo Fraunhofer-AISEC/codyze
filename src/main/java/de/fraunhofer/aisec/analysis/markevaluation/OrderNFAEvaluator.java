@@ -25,13 +25,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.toIntExact;
 
 public class OrderNFAEvaluator {
 
-	private static final Logger log = LoggerFactory.getLogger(OrderEvaluator.class);
+	private static final Logger log = LoggerFactory.getLogger(OrderNFAEvaluator.class);
 	private final MRule rule;
 
 	public OrderNFAEvaluator(MRule rule) {
@@ -71,11 +73,10 @@ public class OrderNFAEvaluator {
 		}
 
 		// collect all instances used in this order
-		HashSet<Pair<String, String>> instances = new HashSet<>();
-		ExpressionHelper.collectInstanceAndOps(orderExpression.getExp(), instances);
+		Set<String> entityReferences = new HashSet<>();
+		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), entityReferences);
 
-		HashSet<String> entityReferences = instances.stream().map(Pair::getValue0).collect(Collectors.toCollection(HashSet::new));
-		HashSet<Object> referencedVertices = new HashSet<>();
+		Set<Object> referencedVertices = new HashSet<>();
 		for (String alias : entityReferences) {
 			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
@@ -156,8 +157,7 @@ public class OrderNFAEvaluator {
 							if (rule.getEntityReferences()
 									.values()
 									.stream()
-									.anyMatch(x -> x.getValue1()
-											.equals(op.getParent()))) {
+									.anyMatch(x -> Objects.equals(x.getValue1(), op.getParent()))) {
 
 								Iterator<Edge> it = vertex.edges(Direction.OUT, "BASE");
 								String base = null;
@@ -167,9 +167,9 @@ public class OrderNFAEvaluator {
 									Vertex baseVertex = it.next()
 											.inVertex();
 									base = baseVertex.value("name");
-									Iterator<Edge> it_ref = baseVertex.edges(Direction.OUT, "REFERS_TO");
-									if (it_ref.hasNext()) {
-										refNode = it_ref.next()
+									Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+									if (refIterator.hasNext()) {
+										refNode = refIterator.next()
 												.inVertex();
 										ref = refNode.id().toString();
 									}
@@ -210,7 +210,7 @@ public class OrderNFAEvaluator {
 										// ctx.getFindings().add(f);
 										// log.info("Finding: {}", f.toString());
 									} else {
-										HashSet<Node> nodesInFSM;
+										Set<Node> nodesInFSM;
 										if (baseToFSMNodes.get(prefixedBase) == null) {
 											// we have not seen this base before. check if this is the start of an order
 											nodesInFSM = fsm.getStart(); // start nodes

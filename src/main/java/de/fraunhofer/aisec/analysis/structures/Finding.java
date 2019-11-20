@@ -70,14 +70,12 @@ public class Finding {
 
 	/**
 	 * Returns an unmodifiable list of the associated LSP "ranges" (~regions).
-	 * 
-	 * @return
 	 */
 	public List<Range> getRanges() {
-		return Collections.unmodifiableList(locations
+		return locations
 				.stream()
-				.map(loc -> loc.getRange())
-				.collect(Collectors.toList()));
+				.map(PhysicalLocation::getRange)
+				.collect(Collectors.toUnmodifiableList());
 	}
 
 	public String getOnfailIdentifier() {

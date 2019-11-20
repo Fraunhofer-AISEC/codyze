@@ -22,20 +22,18 @@ public class ConstantValue<T> {
 		NUMERIC, BOOLEAN, STRING
 	}
 
-	;
-
 	private ConstantValue(@NonNull T value, @NonNull Type type) {
 		this.value = value;
 		this.type = type;
 	}
 
-	public final static <T> ConstantValue of(@NonNull T value) {
+	public static final <T> ConstantValue of(@NonNull T value) {
 		if (value instanceof Number) {
-			return new ConstantValue(value, Type.NUMERIC);
+			return new ConstantValue<>(value, Type.NUMERIC);
 		} else if (value instanceof String) {
-			return new ConstantValue(value, Type.STRING);
+			return new ConstantValue<>(value, Type.STRING);
 		} else if (value instanceof Boolean) {
-			return new ConstantValue(value, Type.BOOLEAN);
+			return new ConstantValue<>(value, Type.BOOLEAN);
 		} else {
 			throw new IllegalArgumentException("Constant value must be numeric, boolean, string");
 		}

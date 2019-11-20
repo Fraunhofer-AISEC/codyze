@@ -62,30 +62,30 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * This traversal step will return vertices of type CallExpression (or its subclasses).
 	 *
-	 * @param callee_name name of the called function/method
+	 * @param calleeName name of the called function/method
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
-	public GraphTraversal<Vertex, Vertex> calls(String callee_name) {
+	public GraphTraversal<Vertex, Vertex> calls(String calleeName) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(
 			CallExpression.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(CallExpression.class)).has("fqn", callee_name);
+			OverflowDatabase.getSubclasses(CallExpression.class)).has("fqn", calleeName);
 	}
 
 	/**
 	 * Returns method calls on an instance (object) with the given name and where the instance has the specified type.
 	 *
-	 * @param callee_name name of the called method
-	 * @param base_type type of the instance (object)
+	 * @param calleeName name of the called method
+	 * @param baseType type of the instance (object)
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
-	public GraphTraversal<Vertex, Vertex> calls(String callee_name, String base_type) {
+	public GraphTraversal<Vertex, Vertex> calls(String calleeName, String baseType) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(
 			CallExpression.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(CallExpression.class)).has("fqn", callee_name).where(out("BASE").has("type", base_type));
+			OverflowDatabase.getSubclasses(CallExpression.class)).has("fqn", calleeName).where(out("BASE").has("type", baseType));
 	}
 
 	/**

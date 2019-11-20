@@ -12,10 +12,6 @@ public class Utils {
 
 	/**
 	 * Returns the fully qualified signature of a method within a record declaration (e.g., a Java class).
-	 *
-	 * @param r
-	 * @param m
-	 * @return
 	 */
 	public static String toFullyQualifiedSignature(RecordDeclaration r, MethodDeclaration m) {
 		return r.getName() + "." + m.getSignature();
@@ -24,14 +20,14 @@ public class Utils {
 	/**
 	 * Return a unified type String (i.e. changeing cpp-type-separators to Java-type-separators)
 	 *
-	 * @param name
+	 * @param name input type
 	 * @return a type string which is separated via "."
 	 */
 	public static String unifyType(String name) {
 		if (name == null) {
 			return null;
 		}
-		return name.replaceAll("::", "\\.");
+		return name.replace("::", "\\.");
 	}
 
 	public static String extractMethodName(String opName) {
@@ -59,7 +55,6 @@ public class Utils {
 	}
 
 	public static String stripQuotedString(String s) {
-		// TODO re-check with MARK grammar
 		if (s.startsWith("\"") && s.endsWith("\"")) {
 			s = s.substring(1, s.length() - 1);
 		}

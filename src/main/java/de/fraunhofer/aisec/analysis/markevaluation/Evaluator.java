@@ -205,7 +205,7 @@ public class Evaluator {
 
 				// Evaluate "when" part, if present
 				if (s.getCond() != null) {
-					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, rule);
+					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, rule, crymlinTraversal);
 					for (ResultWithContext resultCond : resultsCond) {
 						if (!(resultCond.get() instanceof Boolean)) {
 							log.error("Result is of type {}, expected boolean.", resultCond.getClass());
@@ -216,10 +216,10 @@ public class Evaluator {
 							continue;
 						}
 
-						results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), s.getEnsure().getExp(), ee, rule));
+						results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), s.getEnsure().getExp(), ee, rule, crymlinTraversal));
 					}
 				} else {
-					results.addAll(evaluateExpressionWithContext(null, s.getEnsure().getExp(), ee, rule));
+					results.addAll(evaluateExpressionWithContext(null, s.getEnsure().getExp(), ee, rule, crymlinTraversal));
 				}
 			}
 
@@ -269,10 +269,12 @@ public class Evaluator {
 	 * @param expression The expression to be evaluated
 	 * @param expressionEvaluator The expressionevaluator
 	 * @param markRule The rule the expression is contained in
+	 * @param crymlin
 	 * @return List of results for this expression. The list contains multiple results, if one or more markvars have more corresponding vertices in the CPG
 	 */
 	private List<ResultWithContext> evaluateExpressionWithContext(@Nullable CPGVariableContext previousVariableContext, Expression expression,
-			ExpressionEvaluator expressionEvaluator, MRule markRule) {
+																  ExpressionEvaluator expressionEvaluator, MRule markRule,
+																  CrymlinTraversalSource crymlin) {
 
 		HashSet<String> newMarkVars = new HashSet<>();
 		ExpressionHelper.collectVars(expression, newMarkVars); // extract all used markvars from the expression
@@ -286,7 +288,7 @@ public class Evaluator {
 		// [[(r.rand, v123), (r.rand, v23)], [(cm.alg, v163), (cm.alg, v33)],
 		List<List<Pair<String, CPGVertexWithValue>>> varAssignments = new ArrayList<>();
 		for (String markVar : newMarkVars) {
-			List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(markVar, markRule);
+			List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(markVar, markRule, crymlin);
 			List<CPGVertexWithValue> assignments = CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices);
 			List<Pair<String, CPGVertexWithValue>> innerList = new ArrayList<>();
 			for (CPGVertexWithValue vertexWithValue : assignments) {

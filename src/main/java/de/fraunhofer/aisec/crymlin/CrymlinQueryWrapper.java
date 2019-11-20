@@ -183,9 +183,10 @@ public class CrymlinQueryWrapper {
 	 *
 	 * @param operand
 	 * @param rule
+	 * @param crymlin
 	 * @return
 	 */
-	public static ArrayList<Vertex> getMatchingVertices(@NonNull String operand, @NonNull MRule rule) {
+	public static ArrayList<Vertex> getMatchingVertices(@NonNull String operand, @NonNull MRule rule, @NonNull CrymlinTraversalSource crymlin) {
 		final ArrayList<Vertex> matchingVertices = new ArrayList<>();
 
 		if (StringUtils.countMatches(operand, ".") != 1) {
@@ -238,81 +239,77 @@ public class CrymlinQueryWrapper {
 			}
 		}
 
-		// TODO JS->FW: (less important) ExpressionEvaluator should not decide on its own which type of
-		// DB to use but rather receive a connection when instantiated.
-		try (TraversalConnection conn = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
-			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 
-			for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
-				for (OpStatement opstmt : p.getValue1()) {
+		for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+			for (OpStatement opstmt : p.getValue1()) {
 
-					String fqFunctionName = opstmt.getCall().getName();
+				String fqFunctionName = opstmt.getCall().getName();
 
-					String functionName = Utils.extractMethodName(fqFunctionName);
-					String fqNamePart = Utils.extractType(fqFunctionName);
+				String functionName = Utils.extractMethodName(fqFunctionName);
+				String fqNamePart = Utils.extractType(fqFunctionName);
 
-					List<String> functionArgumentTypes = referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall().getParams());
+				List<String> functionArgumentTypes = referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall().getParams());
 
-					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
-						crymlin, fqNamePart, functionName, null, functionArgumentTypes);
+				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
+					crymlin, fqNamePart, functionName, null, functionArgumentTypes);
 
-					for (Vertex v : vertices) {
-						// check if there was an assignment
+				for (Vertex v : vertices) {
+					// check if there was an assignment
 
-						// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
-						// step is in the crymlin traversal
-						List<Vertex> nextVertices = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
+					// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
+					// step is in the crymlin traversal
+					List<Vertex> nextVertices = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
 
-						if (!nextVertices.isEmpty()) {
-							log.info("found RHS traversals: {}", nextVertices);
-							matchingVertices.addAll(nextVertices);
-						}
-
-						// check if there was a direct initialization (i.e., int i = call(foo);)
-						nextVertices = crymlin.byID((long) v.id()).initializerVariable().toList();
-
-						if (!nextVertices.isEmpty()) {
-							log.info("found Initializer traversals: {}", nextVertices);
-							matchingVertices.addAll(nextVertices);
-						}
-					}
-				}
-			}
-
-			for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
-				for (OpStatement opstmt : p.getValue1()) {
-
-					String fqFunctionName = opstmt.getCall().getName();
-					String functionName = Utils.extractMethodName(fqFunctionName);
-					String fqName = Utils.extractType(fqFunctionName);
-					if (fqName.equals(functionName)) {
-						fqName = "";
+					if (!nextVertices.isEmpty()) {
+						log.info("found RHS traversals: {}", nextVertices);
+						matchingVertices.addAll(nextVertices);
 					}
 
-					EList<String> params = opstmt.getCall().getParams();
-					List<String> argumentTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
-					OptionalInt argumentIndexOptional = IntStream.range(0, params.size()).filter(i -> attribute.equals(params.get(i))).findFirst();
-					if (argumentIndexOptional.isEmpty()) {
-						log.error("argument not found in parameters. This should not happen");
-						continue;
-					}
-					int argumentIndex = argumentIndexOptional.getAsInt();
+					// check if there was a direct initialization (i.e., int i = call(foo);)
+					nextVertices = crymlin.byID((long) v.id()).initializerVariable().toList();
 
-					Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
-						crymlin, fqName, functionName, entityName, argumentTypes);
-
-					for (Vertex v : vertices) {
-						List<Vertex> argumentVertices = crymlin.byID((long) v.id()).argument(argumentIndex).toList();
-
-						if (argumentVertices.size() == 1) {
-							matchingVertices.add(argumentVertices.get(0));
-						} else {
-							log.warn("Did not find one matching argument node, got {}", argumentVertices.size());
-						}
+					if (!nextVertices.isEmpty()) {
+						log.info("found Initializer traversals: {}", nextVertices);
+						matchingVertices.addAll(nextVertices);
 					}
 				}
 			}
 		}
+
+		for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
+			for (OpStatement opstmt : p.getValue1()) {
+
+				String fqFunctionName = opstmt.getCall().getName();
+				String functionName = Utils.extractMethodName(fqFunctionName);
+				String fqName = Utils.extractType(fqFunctionName);
+				if (fqName.equals(functionName)) {
+					fqName = "";
+				}
+
+				EList<String> params = opstmt.getCall().getParams();
+				List<String> argumentTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
+				OptionalInt argumentIndexOptional = IntStream.range(0, params.size()).filter(i -> attribute.equals(params.get(i))).findFirst();
+				if (argumentIndexOptional.isEmpty()) {
+					log.error("argument not found in parameters. This should not happen");
+					continue;
+				}
+				int argumentIndex = argumentIndexOptional.getAsInt();
+
+				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
+					crymlin, fqName, functionName, entityName, argumentTypes);
+
+				for (Vertex v : vertices) {
+					List<Vertex> argumentVertices = crymlin.byID((long) v.id()).argument(argumentIndex).toList();
+
+					if (argumentVertices.size() == 1) {
+						matchingVertices.add(argumentVertices.get(0));
+					} else {
+						log.warn("Did not find one matching argument node, got {}", argumentVertices.size());
+					}
+				}
+			}
+		}
+
 
 		return matchingVertices;
 	}

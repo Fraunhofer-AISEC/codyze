@@ -1,10 +1,9 @@
 
 package de.fraunhofer.aisec.markmodel;
 
+import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.mark.markDsl.*;
-import de.fraunhofer.aisec.markmodel.fsm.FSM;
-import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.jline.internal.Log;
@@ -81,7 +80,7 @@ public class MarkModelLoader {
 		return m;
 	}
 
-	private void collectEntityReferences(
+	private static void collectEntityReferences(
 			MRule rule, HashSet<String> entityRefs, HashSet<String> functionRefs) {
 		if (rule.getStatement() == null) {
 			return;
@@ -102,7 +101,7 @@ public class MarkModelLoader {
 		//    }
 
 		if (rule.getStatement().getEnsure() != null) {
-			getRefsFromExp(rule.getStatement().getEnsure().getExp(), entityRefs, functionRefs);
+			ExpressionHelper.getRefsFromExp(rule.getStatement().getEnsure().getExp(), entityRefs, functionRefs);
 		}
 		//    System.out.println("eref");
 		//    for(String s: entityRefs) {
@@ -112,58 +111,6 @@ public class MarkModelLoader {
 		//    for(String s: functionRefs) {
 		//      System.out.println("\t" + s);
 		//    }
-	}
-
-	private void getRefsFromExp(
-			Expression exp, HashSet<String> entityRefs, HashSet<String> functionRefs) {
-		if (exp == null) {
-			log.error("Expression is null, cannot get refs");
-			return;
-		}
-		if (exp instanceof ComparisonExpression) {
-			getRefsFromExp((((ComparisonExpression) exp).getLeft()), entityRefs, functionRefs);
-			getRefsFromExp((((ComparisonExpression) exp).getRight()), entityRefs, functionRefs);
-		} else if (exp instanceof LiteralListExpression) {
-			// only literals
-		} else if (exp instanceof LogicalAndExpression) {
-			getRefsFromExp((((LogicalAndExpression) exp).getLeft()), entityRefs, functionRefs);
-			getRefsFromExp((((LogicalAndExpression) exp).getRight()), entityRefs, functionRefs);
-		} else if (exp instanceof AlternativeExpression) {
-			getRefsFromExp((((AlternativeExpression) exp).getLeft()), entityRefs, functionRefs);
-			getRefsFromExp((((AlternativeExpression) exp).getRight()), entityRefs, functionRefs);
-		} else if (exp instanceof Terminal) {
-			entityRefs.add(((Terminal) exp).getEntity() + "." + ((Terminal) exp).getOp());
-		} else if (exp instanceof SequenceExpression) {
-			getRefsFromExp((((SequenceExpression) exp).getLeft()), entityRefs, functionRefs);
-			getRefsFromExp((((SequenceExpression) exp).getRight()), entityRefs, functionRefs);
-		} else if (exp instanceof RepetitionExpression) {
-			getRefsFromExp((((RepetitionExpression) exp).getExpr()), entityRefs, functionRefs);
-		} else if (exp instanceof OrderExpression) { // collects also ExclusionExpression
-			getRefsFromExp(((OrderExpression) exp).getExp(), entityRefs, functionRefs);
-		} else if (exp instanceof MultiplicationExpression) {
-			getRefsFromExp((((MultiplicationExpression) exp).getLeft()), entityRefs, functionRefs);
-			getRefsFromExp((((MultiplicationExpression) exp).getRight()), entityRefs, functionRefs);
-		} else if (exp instanceof LogicalOrExpression) {
-			getRefsFromExp((((LogicalOrExpression) exp).getLeft()), entityRefs, functionRefs);
-			getRefsFromExp((((LogicalOrExpression) exp).getRight()), entityRefs, functionRefs);
-		} else if (exp instanceof FunctionCallExpression) {
-			functionRefs.add(((FunctionCallExpression) exp).getName());
-			for (Argument s : ((FunctionCallExpression) exp).getArgs()) {
-				if (s instanceof Expression) {
-					getRefsFromExp((Expression) s, entityRefs, functionRefs);
-				} else {
-					log.error("Argument is not an Expression, but a {}", s.getClass());
-				}
-			}
-		} else if (exp instanceof Literal) {
-			// only literal
-		} else if (exp instanceof Operand) {
-			entityRefs.add(((Operand) exp).getOperand());
-		} else if (exp instanceof UnaryExpression) {
-			getRefsFromExp((((UnaryExpression) exp).getExp()), entityRefs, functionRefs);
-		} else {
-			log.error("Not implemented yet: {} {}", exp.getClass(), exp);
-		}
 	}
 
 	@NonNull

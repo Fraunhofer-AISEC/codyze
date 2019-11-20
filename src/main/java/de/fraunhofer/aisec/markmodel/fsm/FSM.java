@@ -201,7 +201,6 @@ public class FSM {
 		}
 
 		log.error("ERROR, unknown Expression: {}", expr.getClass());
-		return;
 	}
 
 	public HashSet<Node> getStart() {

@@ -4,18 +4,14 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
-import de.fraunhofer.aisec.markmodel.Mark;
-import de.fraunhofer.aisec.markmodel.fsm.FSM;
-import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /** Static helper methods for evaluating MARK expressions. */
@@ -159,6 +155,12 @@ public class ExpressionHelper {
 
 	}
 
+	/**
+	 * Traverses the whole expression and collects all markvars
+	 *
+	 * @param expr the expression to traverse
+	 * @param vars [out] collects all vars in the expression
+	 */
 	public static void collectVars(Expression expr, HashSet<String> vars) {
 		if (expr instanceof OrderExpression) {
 			// will not contain vars
@@ -193,25 +195,80 @@ public class ExpressionHelper {
 		}
 	}
 
-	public static void collectInstanceAndOps(OrderExpression expr, HashSet<Pair<String, String>> instance2op) {
+	/**
+	 * Collects all markinstances in the expression
+	 *
+	 * @param expr the expression to traverse
+	 * @param instances [out] Set of used markinstances in the expression
+	 */
+	public static void collectMarkInstances(OrderExpression expr, Set<String> instances) {
 		if (expr instanceof Terminal) {
 			Terminal inner = (Terminal) expr;
-			Pair<String, String> p = new Pair<>(inner.getEntity(), inner.getOp());
-			instance2op.add(p);
+			instances.add(inner.getEntity());
 		} else if (expr instanceof SequenceExpression) {
 			SequenceExpression inner = (SequenceExpression) expr;
-			collectInstanceAndOps(inner.getLeft(), instance2op);
-			collectInstanceAndOps(inner.getRight(), instance2op);
+			collectMarkInstances(inner.getLeft(), instances);
+			collectMarkInstances(inner.getRight(), instances);
 		} else if (expr instanceof RepetitionExpression) {
 			RepetitionExpression inner = (RepetitionExpression) expr;
-			collectInstanceAndOps(inner.getExpr(), instance2op);
+			collectMarkInstances(inner.getExpr(), instances);
 		} else if (expr instanceof AlternativeExpressionImpl) {
 			AlternativeExpression inner = (AlternativeExpression) expr;
-			collectInstanceAndOps(inner.getLeft(), instance2op);
-			collectInstanceAndOps(inner.getRight(), instance2op);
+			collectMarkInstances(inner.getLeft(), instances);
+			collectMarkInstances(inner.getRight(), instances);
 		}
-		return;
+	}
 
+	public static void getRefsFromExp(
+			Expression exp, HashSet<String> entityRefs, HashSet<String> functionRefs) {
+		if (exp == null) {
+			log.error("Expression is null, cannot get refs");
+			return;
+		}
+		if (exp instanceof ComparisonExpression) {
+			getRefsFromExp((((ComparisonExpression) exp).getLeft()), entityRefs, functionRefs);
+			getRefsFromExp((((ComparisonExpression) exp).getRight()), entityRefs, functionRefs);
+		} else if (exp instanceof LiteralListExpression) {
+			// only literals
+		} else if (exp instanceof LogicalAndExpression) {
+			getRefsFromExp((((LogicalAndExpression) exp).getLeft()), entityRefs, functionRefs);
+			getRefsFromExp((((LogicalAndExpression) exp).getRight()), entityRefs, functionRefs);
+		} else if (exp instanceof AlternativeExpression) {
+			getRefsFromExp((((AlternativeExpression) exp).getLeft()), entityRefs, functionRefs);
+			getRefsFromExp((((AlternativeExpression) exp).getRight()), entityRefs, functionRefs);
+		} else if (exp instanceof Terminal) {
+			entityRefs.add(((Terminal) exp).getEntity() + "." + ((Terminal) exp).getOp());
+		} else if (exp instanceof SequenceExpression) {
+			getRefsFromExp((((SequenceExpression) exp).getLeft()), entityRefs, functionRefs);
+			getRefsFromExp((((SequenceExpression) exp).getRight()), entityRefs, functionRefs);
+		} else if (exp instanceof RepetitionExpression) {
+			getRefsFromExp((((RepetitionExpression) exp).getExpr()), entityRefs, functionRefs);
+		} else if (exp instanceof OrderExpression) { // collects also ExclusionExpression
+			getRefsFromExp(((OrderExpression) exp).getExp(), entityRefs, functionRefs);
+		} else if (exp instanceof MultiplicationExpression) {
+			getRefsFromExp((((MultiplicationExpression) exp).getLeft()), entityRefs, functionRefs);
+			getRefsFromExp((((MultiplicationExpression) exp).getRight()), entityRefs, functionRefs);
+		} else if (exp instanceof LogicalOrExpression) {
+			getRefsFromExp((((LogicalOrExpression) exp).getLeft()), entityRefs, functionRefs);
+			getRefsFromExp((((LogicalOrExpression) exp).getRight()), entityRefs, functionRefs);
+		} else if (exp instanceof FunctionCallExpression) {
+			functionRefs.add(((FunctionCallExpression) exp).getName());
+			for (Argument s : ((FunctionCallExpression) exp).getArgs()) {
+				if (s instanceof Expression) {
+					getRefsFromExp((Expression) s, entityRefs, functionRefs);
+				} else {
+					log.error("Argument is not an Expression, but a {}", s.getClass());
+				}
+			}
+		} else if (exp instanceof Literal) {
+			// only literal
+		} else if (exp instanceof Operand) {
+			entityRefs.add(((Operand) exp).getOperand());
+		} else if (exp instanceof UnaryExpression) {
+			getRefsFromExp((((UnaryExpression) exp).getExp()), entityRefs, functionRefs);
+		} else {
+			log.error("Not implemented yet: {} {}", exp.getClass(), exp);
+		}
 	}
 
 }

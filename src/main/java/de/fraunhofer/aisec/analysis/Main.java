@@ -24,7 +24,7 @@ public class Main {
 	//    SLF4JBridgeHandler.install();
 	//  }
 
-	public static void main(String... args) throws Exception {
+	public static void main(String... args) {
 		Instant start = Instant.now();
 		log.info("Analysis server starting");
 

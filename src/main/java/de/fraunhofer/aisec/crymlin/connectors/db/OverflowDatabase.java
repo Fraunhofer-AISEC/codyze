@@ -77,9 +77,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <code></code>Database</code> implementation for OVerflowDB.
+ * <code>Database</code> implementation for OVerflowDB.
  *
- * <p>
  * OverflowDB is Shiftleft's fork of Tinkergraph, which is a more efficient in-memory graph DB overflowing to disk when heap is full.
  */
 public class OverflowDatabase<N> implements Database<N> {

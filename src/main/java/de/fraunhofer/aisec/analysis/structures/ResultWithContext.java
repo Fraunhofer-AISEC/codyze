@@ -32,8 +32,8 @@ public class ResultWithContext {
 	/**
 	 * Creates a new ResultWithContext that represents a leaf in a Mark expression (Literal or Operand).
 	 *
-	 * @param value
-	 * @return
+	 * @param value the current value this result represents
+	 * @return this
 	 */
 	public static ResultWithContext fromLiteralOrOperand(@NonNull Object value) {
 		return new ResultWithContext(value);
@@ -44,7 +44,7 @@ public class ResultWithContext {
 	 *
 	 * @param other New value.
 	 * @param existingResults Possibly already existing ResultWithContext objects, e.g. result of left and right part of a binary expression.
-	 * @return
+	 * @return this
 	 */
 	public static ResultWithContext fromExisting(@NonNull Object other, ResultWithContext... existingResults) {
 		ResultWithContext result = new ResultWithContext(other);

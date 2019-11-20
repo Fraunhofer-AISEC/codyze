@@ -63,7 +63,6 @@ public class ConstantResolver {
 		if (variableDeclaration == null) {
 			return Optional.empty();
 		}
-		Vertex v = callExpressionVertex;
 
 		try (TraversalConnection conn = new TraversalConnection(this.dbType)) {
 			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
@@ -73,12 +72,12 @@ public class ConstantResolver {
 			assert vdVertexOpt.isPresent() : "Unexpected: VariableDeclaration not available in graph. ID=" + variableDeclaration.getId();
 
 			Vertex variableDeclarationVertex = vdVertexOpt.get();
-			log.debug("Vertex for function call: {}", v);
+			log.debug("Vertex for function call: {}", callExpressionVertex);
 			log.debug("Vertex of variable declaration: {}", variableDeclarationVertex);
 
 			// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
 			// one of them must have more information on the value of the operand
-			CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) v.id())
+			CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) callExpressionVertex.id())
 					.repeat(in("EOG"))
 					.until(
 						is(variableDeclarationVertex))

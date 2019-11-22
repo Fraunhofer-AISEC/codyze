@@ -318,7 +318,8 @@ public class ExpressionHelper {
 			BigDecimal bd = new BigDecimal(x);
 			DecimalFormat df = new DecimalFormat("#.0#######");
 			return df.format(bd);
-		} catch (NumberFormatException nfe) {
+		}
+		catch (NumberFormatException nfe) {
 			return x;
 		}
 	}
@@ -336,7 +337,7 @@ public class ExpressionHelper {
 	 * @return
 	 */
 	public static String toComparableString(Object x) {
-		if (x==null) {
+		if (x == null) {
 			log.warn("Unexpected: toComparableString received null expression. Continuing best-effort.");
 			return "";
 		}

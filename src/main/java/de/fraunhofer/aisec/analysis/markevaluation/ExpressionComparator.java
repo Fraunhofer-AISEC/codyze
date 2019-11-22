@@ -13,10 +13,7 @@ import java.util.Comparator;
  *
  * Strings and numeric values can be compared, where reasonable.
  *
- * For instance, the following comparisons are valid:
- * "1"   <  2.0
- *  1    < "2.1"
- *  "-1" < "0"
+ * For instance, the following comparisons are valid: "1" < 2.0 1 < "2.1" "-1" < "0"
  *
  * @param <T>
  */

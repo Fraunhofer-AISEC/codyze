@@ -28,7 +28,9 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
+import javassist.expr.Expr;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,24 +73,25 @@ public class ExpressionEvaluator {
 	 * @param expr The MARK expression to evaluate.
 	 * @return one result (value and context)
 	 */
-	public ResultWithContext evaluate(Expression expr) {
+	@NonNull
+	public ResultWithContext evaluate(@NonNull Expression expr) throws ExpressionEvaluationException {
 		log.debug("Evaluating top level expression: {}", ExpressionHelper.exprToString(expr));
 
 		ResultWithContext result = evaluateExpression(expr);
-		if (result != null) {
-			result.setVariableContext(variableContext);
-			result.setInstanceContext(instanceContext);
-		}
+		result.setVariableContext(variableContext);
+		result.setInstanceContext(instanceContext);
 		return result;
 	}
 
-	private ResultWithContext evaluateOrderExpression(OrderExpression orderExpression) {
+	@NonNull
+	private ResultWithContext evaluateOrderExpression(@NonNull OrderExpression orderExpression) {
 		log.debug("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
 		return orderEvaluator.evaluate(orderExpression, this.instanceContext, this.resultCtx, this.traversal);
 	}
 
-	private ResultWithContext evaluateLogicalExpr(Expression expr) {
+	@NonNull
+	private ResultWithContext evaluateLogicalExpr(@NonNull Expression expr) throws ExpressionEvaluationException {
 		log.debug("Evaluating logical expression: {}", ExpressionHelper.exprToString(expr));
 
 		Expression left;
@@ -107,27 +110,19 @@ public class ExpressionEvaluator {
 			left = loe.getLeft();
 			right = loe.getRight();
 		} else {
-			log.error("Unknown logical expression {}", expr.getClass().getSimpleName());
-			return null;
+			throw new ExpressionEvaluationException("Unknown logical expression " + expr.getClass().getSimpleName());
 		}
 
 		ResultWithContext leftResult = evaluateExpression(left);
 		ResultWithContext rightResult = evaluateExpression(right);
 
-		if (leftResult == null || rightResult == null) {
-			log.error("At least one subexpression could not be evaluated");
-			return null;
-		}
-
 		if (!leftResult.get().getClass().equals(Boolean.class)
 				|| !rightResult.get().getClass().equals(Boolean.class)) {
 
-			log.error(
-				"At least one subexpression is not of type Boolean: {} vs. {}",
-				ExpressionHelper.exprToString(left),
-				ExpressionHelper.exprToString(right));
-
-			return null;
+			throw new ExpressionEvaluationException(
+				"At least one subexpression is not of type Boolean: " +
+						ExpressionHelper.exprToString(left) + " vs " +
+						ExpressionHelper.exprToString(right));
 		}
 		if (expr instanceof LogicalAndExpression) {
 			return ResultWithContext.fromExisting(
@@ -141,7 +136,8 @@ public class ExpressionEvaluator {
 
 	}
 
-	private ResultWithContext evaluateComparisonExpr(ComparisonExpression expr) {
+	@NonNull
+	private ResultWithContext evaluateComparisonExpr(@NonNull ComparisonExpression expr) throws ExpressionEvaluationException {
 		String op = expr.getOp();
 		Expression left = expr.getLeft();
 		Expression right = expr.getRight();
@@ -153,11 +149,6 @@ public class ExpressionEvaluator {
 
 		ResultWithContext leftResult = evaluateExpression(left);
 		ResultWithContext rightResult = evaluateExpression(right);
-
-		if (leftResult == null || rightResult == null) {
-			log.error("At least one subexpression could not be evaluated");
-			return null;
-		}
 
 		String lString = ExpressionHelper.asString(leftResult);
 		String rString = ExpressionHelper.asString(rightResult);
@@ -186,12 +177,10 @@ public class ExpressionEvaluator {
 					return ResultWithContext.fromExisting(lBoolean.equals(rBoolean), leftResult, rightResult);
 				}
 
-				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftType.getSimpleName(),
-					rightType.getSimpleName());
-
-				return null;
+				throw new ExpressionEvaluationException(
+					"Type of left expression does not match type of right expression: " +
+							leftType.getSimpleName() + " vs. " +
+							rightType.getSimpleName());
 			case "!=":
 				if (lNumber != null && rNumber != null) {
 					return ResultWithContext.fromExisting(!lNumber.equals(rNumber), leftResult, rightResult);
@@ -203,31 +192,24 @@ public class ExpressionEvaluator {
 					return ResultWithContext.fromExisting(!lBoolean.equals(rBoolean), leftResult, rightResult);
 				}
 
-				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftType.getSimpleName(),
-					rightType.getSimpleName());
-
-				return null;
+				throw new ExpressionEvaluationException(
+					"Type of left expression does not match type of right expression: " +
+							leftType.getSimpleName() + " vs. " +
+							rightType.getSimpleName());
 			case "<":
 				if (lNumber != null && rNumber != null) {
 					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
 					return ResultWithContext.fromExisting(lNumber.floatValue() < rNumber.floatValue(), leftResult, rightResult);
 				}
 
-				log.error("Comparison operator less-than ('<') not supported for type: {}", leftType);
-
-				return null;
-
+				throw new ExpressionEvaluationException("Comparison operator less-than ('<') not supported for type: " + leftType);
 			case "<=":
 				if (lNumber != null && rNumber != null) {
 					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
 					return ResultWithContext.fromExisting(lNumber.floatValue() <= rNumber.floatValue(), leftResult, rightResult);
 				}
 
-				log.error("Comparison operator less-than-or-equal ('<=') not supported for type: {}", leftType);
-
-				return null;
+				throw new ExpressionEvaluationException("Comparison operator less-than-or-equal ('<=') not supported for type: " + leftType);
 
 			case ">":
 				if (lNumber != null && rNumber != null) {
@@ -235,23 +217,19 @@ public class ExpressionEvaluator {
 					return ResultWithContext.fromExisting(lNumber.floatValue() > rNumber.floatValue(), leftResult, rightResult);
 				}
 
-				log.error(
-					"Type of left expression does not match type of right expression: {} vs. {}",
-					leftType.getSimpleName(),
-					rightType.getSimpleName());
-
-				return null;
+				throw new ExpressionEvaluationException(
+					"Type of left expression does not match type of right expression: " +
+							leftType.getSimpleName() + " vs. " +
+							rightType.getSimpleName());
 			case ">=":
 				if (lNumber != null && rNumber != null) {
 					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
 					return ResultWithContext.fromExisting(lNumber.floatValue() >= rNumber.floatValue(), leftResult, rightResult);
 				}
 
-				log.error(
-					"Comparison operator greater-than-or-equal ('>=') not supported for type: {}",
-					leftType);
-
-				return null;
+				throw new ExpressionEvaluationException(
+					"Comparison operator greater-than-or-equal ('>=') not supported for type: " +
+							leftType);
 			case "in":
 				if (rightResult.get() instanceof List) {
 					List l = (List) rightResult.get();
@@ -277,25 +255,20 @@ public class ExpressionEvaluator {
 					return ResultWithContext.fromExisting(evalValue, leftResult, rightResult);
 				}
 
-				log.error("Type of right expression must be List; given: {}", rightType);
-
-				return null;
+				throw new ExpressionEvaluationException("Type of right expression must be List; given: " + rightType);
 			case "like":
 				if (lString != null) {
 					return ResultWithContext.fromExisting(Pattern.matches(Pattern.quote((String) rightResult.get()), lString),
 						leftResult, rightResult);
 				}
 
-				log.error("Comparison operator like ('like') not supported for type: {}", leftType);
-
-				return null;
+				throw new ExpressionEvaluationException("Comparison operator like ('like') not supported for type: " + leftType);
 
 			default:
 				log.error("Unsupported operand {}", op);
 		}
 
-		assert false;
-		return null;
+		throw new ExpressionEvaluationException("Unhandled expression with operand " + op);
 	}
 
 	/**
@@ -309,7 +282,8 @@ public class ExpressionEvaluator {
 	 * @param argList the list of arguments to evaluate
 	 * @return one result with a list of Objects as results for each argument
 	 */
-	public ResultWithContext evaluateArgs(@NonNull List<Argument> argList) {
+	@NonNull
+	public ResultWithContext evaluateArgs(@NonNull List<Argument> argList) throws ExpressionEvaluationException {
 		List<Object> result = new ArrayList<>();
 		List<ResultWithContext> resultWithContexts = new ArrayList<>();
 		for (Argument arg : argList) {
@@ -327,7 +301,8 @@ public class ExpressionEvaluator {
 	 * @param expr the expression for the builtin
 	 * @return the result of the built-in call
 	 */
-	private ResultWithContext evaluateBuiltin(FunctionCallExpression expr) {
+	@NonNull
+	private ResultWithContext evaluateBuiltin(@NonNull FunctionCallExpression expr) throws ExpressionEvaluationException {
 		String functionName = expr.getName();
 
 		// Call built-in function (if available)
@@ -335,17 +310,17 @@ public class ExpressionEvaluator {
 
 		if (builtin.isPresent()) {
 			ResultWithContext arguments = evaluateArgs(expr.getArgs());
-			if (arguments == null || !(arguments.get() instanceof List)) {
-				return null;
+			if (!(arguments.get() instanceof List)) {
+				throw new ExpressionEvaluationException("Unexpected type. Was not list: " + arguments.get().getClass().getSimpleName());
 			}
 			return builtin.get().execute(arguments, this);
-		} else {
-			log.error("Unsupported function {}", functionName);
-			return null;
 		}
+
+		throw new ExpressionEvaluationException("Unsupported function " + functionName);
 	}
 
-	private ResultWithContext evaluateLiteral(Literal literal) {
+	@NonNull
+	private ResultWithContext evaluateLiteral(@NonNull Literal literal) throws ExpressionEvaluationException {
 		String v = literal.getValue();
 
 		// ordering based on Mark grammar
@@ -359,9 +334,8 @@ public class ExpressionEvaluator {
 				return ResultWithContext.fromLiteralOrOperand(Integer.parseInt(v));
 			}
 			catch (NumberFormatException nfe) {
-				log.error("Unable to convert integer literal to Integer: {}\n{}", v, nfe);
+				throw new ExpressionEvaluationException("Unable to convert integer literal " + v + " to Integer", nfe);
 			}
-			return null;
 		} else if (literal instanceof BooleanLiteral) {
 			log.debug("Literal is Boolean: {}", v);
 			return ResultWithContext.fromLiteralOrOperand(Boolean.parseBoolean(v));
@@ -370,14 +344,14 @@ public class ExpressionEvaluator {
 			return ResultWithContext.fromLiteralOrOperand(Utils.stripQuotedString(v));
 		}
 
-		log.error("Unknown literal encountered: {}", v);
-		return null;
+		throw new ExpressionEvaluationException("Unknown literal encountered: " + v);
 	}
 
 	/**
 	 * Evaluates one expression and returns the result
 	 */
-	public ResultWithContext evaluateExpression(Expression expr) {
+	@NonNull
+	public ResultWithContext evaluateExpression(@NonNull Expression expr) throws ExpressionEvaluationException {
 		// from lowest to highest operator precedence
 		log.debug("evaluating {}: {}", expr.getClass().getSimpleName(), ExpressionHelper.exprToString(expr));
 
@@ -404,20 +378,17 @@ public class ExpressionEvaluator {
 			List<Object> literalObjectList = new ArrayList<>();
 			for (Literal l : ((LiteralListExpression) expr).getValues()) {
 				ResultWithContext resultWithContext = evaluateLiteral(l);
-				if (resultWithContext != null) {
-					literalResultList.add(resultWithContext);
-					literalObjectList.add(resultWithContext.get());
-				}
+				literalResultList.add(resultWithContext);
+				literalObjectList.add(resultWithContext.get());
 			}
 			return ResultWithContext.fromExisting(literalObjectList, literalResultList.toArray(new ResultWithContext[0]));
 		}
 
-		log.error("unknown expression: {}", ExpressionHelper.exprToString(expr));
-		assert false; // all expression types must be handled
-		return null;
+		throw new ExpressionEvaluationException("unknown expression: " + ExpressionHelper.exprToString(expr));
 	}
 
-	private ResultWithContext evaluateMultiplicationExpr(MultiplicationExpression expr) {
+	@NonNull
+	private ResultWithContext evaluateMultiplicationExpr(@NonNull MultiplicationExpression expr) throws ExpressionEvaluationException {
 		log.debug("Evaluating multiplication expression: {}", ExpressionHelper.exprToString(expr));
 
 		String op = expr.getOp();
@@ -426,11 +397,6 @@ public class ExpressionEvaluator {
 
 		ResultWithContext leftResult = evaluateExpression(left);
 		ResultWithContext rightResult = evaluateExpression(right);
-
-		if (leftResult == null || rightResult == null) {
-			log.error("Unable to evaluate at least one subexpression");
-			return null;
-		}
 
 		Class leftResultType = leftResult.get().getClass();
 		Class rightResultType = rightResult.get().getClass();
@@ -447,12 +413,11 @@ public class ExpressionEvaluator {
 		}
 
 		if (!leftResultType.equals(rightResultType)) {
-			log.error(
-				"Type of left expression does not match type of right expression: {} vs. {}",
-				leftResultType.getSimpleName(),
-				rightResultType.getSimpleName());
+			throw new ExpressionEvaluationException(
+				"Type of left expression does not match type of right expression: " +
+						leftResultType.getSimpleName() + " vs " +
+						rightResultType.getSimpleName());
 
-			return null;
 		}
 
 		switch (op) {
@@ -464,10 +429,9 @@ public class ExpressionEvaluator {
 					return ResultWithContext.fromExisting((Float) leftResult.get() * (Float) rightResult.get(), leftResult, rightResult);
 				}
 
-				log.error(
-					"Multiplication operator multiplication ('*') not supported for type: {}",
-					leftResultType.getSimpleName());
-				return null;
+				throw new ExpressionEvaluationException(
+					"Multiplication operator multiplication ('*') not supported for type: " +
+							leftResultType.getSimpleName());
 			case "/":
 				if (leftResultType.equals(Integer.class)) {
 					return ResultWithContext.fromExisting((Integer) leftResult.get() / (Integer) rightResult.get(), leftResult, rightResult);
@@ -475,91 +439,75 @@ public class ExpressionEvaluator {
 					return ResultWithContext.fromExisting((Float) leftResult.get() / (Float) rightResult.get(), leftResult, rightResult);
 				}
 
-				log.error(
-					"Multiplication operator division ('/') not supported for type: {}",
-					leftResultType.getSimpleName());
-				return null;
+				throw new ExpressionEvaluationException(
+					"Multiplication operator division ('/') not supported for type: {}" +
+							leftResultType.getSimpleName());
 			case "%":
 				if (leftResultType.equals(Integer.class)) {
 					return ResultWithContext.fromExisting((Integer) leftResult.get() % (Integer) rightResult.get(), leftResult, rightResult);
 				}
 
-				log.error(
-					"Multiplication operator remainder ('%') not supported for type: {}",
-					leftResultType.getSimpleName());
-				return null;
+				throw new ExpressionEvaluationException(
+					"Multiplication operator remainder ('%') not supported for type: " +
+							leftResultType.getSimpleName());
 			case "<<":
 				if (leftResultType.equals(Integer.class)) {
 					if (((Integer) rightResult.get()) >= 0) {
 						return ResultWithContext.fromExisting((Integer) leftResult.get() << (Integer) rightResult.get(), leftResult, rightResult);
 					}
 
-					log.error(
+					throw new ExpressionEvaluationException(
 						"Left shift operator supports only non-negative integers as its right operand");
-					return null;
 				}
 
-				log.error(
-					"Multiplication operator left shift ('<<') not supported for type: {}",
-					leftResultType.getSimpleName());
-				return null;
+				throw new ExpressionEvaluationException(
+					"Multiplication operator left shift ('<<') not supported for type: " +
+							leftResultType.getSimpleName());
 			case ">>":
 				if (leftResultType.equals(Integer.class)) {
 					if (((Integer) rightResult.get()) >= 0) {
 						return ResultWithContext.fromExisting((Integer) leftResult.get() >> (Integer) rightResult.get(), leftResult, rightResult);
 					}
 
-					log.error(
-						"Right shift operator supports only non-negative integers as its right operand");
-					return null;
+					throw new ExpressionEvaluationException("Right shift operator supports only non-negative integers as its right operand");
 				}
 
-				log.error(
-					"Multiplication operator right shift ('>>') not supported for type: {}",
-					leftResultType.getSimpleName());
-				return null;
+				throw new ExpressionEvaluationException(
+					"Multiplication operator right shift ('>>') not supported for type: " +
+							leftResultType.getSimpleName());
 			case "&":
 				if (leftResultType.equals(Integer.class)) {
 					return ResultWithContext.fromExisting((Integer) leftResult.get() & (Integer) rightResult.get(), leftResult, rightResult);
 				}
 
-				log.error(
-					"Addition operator bitwise and ('&') not supported for type: {}",
-					leftResultType.getSimpleName());
-				return null;
+				throw new ExpressionEvaluationException(
+					"Addition operator bitwise and ('&') not supported for type: " +
+							leftResultType.getSimpleName());
 			case "&^":
 				if (leftResultType.equals(Integer.class)) {
 					return ResultWithContext.fromExisting((Integer) leftResult.get() & ~(Integer) rightResult.get(), leftResult, rightResult);
 				}
 
-				log.error(
-					"Addition operator bitwise or ('|') not supported for type: {}",
-					leftResultType.getSimpleName());
-				return null;
+				throw new ExpressionEvaluationException(
+					"Addition operator bitwise or ('|') not supported for type: " +
+							leftResultType.getSimpleName());
 
 			default:
 				log.error("Unsupported expression {}", op);
 		}
 
-		log.error(
-			"Trying to evaluate unknown multiplication expression: {}",
-			ExpressionHelper.exprToString(expr));
-
-		assert false; // not an addition expression
-		return null;
+		throw new ExpressionEvaluationException(
+			"Trying to evaluate unknown multiplication expression: " +
+					ExpressionHelper.exprToString(expr));
 	}
 
-	private ResultWithContext evaluateUnaryExpr(UnaryExpression expr) {
+	@NonNull
+	private ResultWithContext evaluateUnaryExpr(@NonNull UnaryExpression expr) throws ExpressionEvaluationException {
 		log.debug("Evaluating unary expression: {}", ExpressionHelper.exprToString(expr));
 
 		String op = expr.getOp();
 
 		ResultWithContext subExprResult = evaluateExpression(expr.getExp()); // evaluate the subexpression
-
-		if (subExprResult == null) {
-			log.error("Unable to evaluate subexpression");
-			return null;
-		}
 
 		Class subExprResultType = subExprResult.get().getClass();
 
@@ -575,11 +523,10 @@ public class ExpressionEvaluator {
 					return subExprResult;
 				}
 
-				log.error(
-					"Unary operator plus sign ('+') not supported for type: {}",
-					subExprResultType.getSimpleName());
+				throw new ExpressionEvaluationException(
+					"Unary operator plus sign ('+') not supported for type: " +
+							subExprResultType.getSimpleName());
 
-				return null;
 			case "-":
 				if (subExprResultType.equals(Integer.class)) {
 					return ResultWithContext.fromExisting(-((Integer) subExprResult.get()), subExprResult);
@@ -587,59 +534,52 @@ public class ExpressionEvaluator {
 					return ResultWithContext.fromExisting(-((Float) subExprResult.get()), subExprResult);
 				}
 
-				log.error(
-					"Unary operator minus sign ('-') not supported for type: {}",
-					subExprResultType.getSimpleName());
+				throw new ExpressionEvaluationException(
+					"Unary operator minus sign ('-') not supported for type: " +
+							subExprResultType.getSimpleName());
 
-				return null;
 			case "!":
 				if (subExprResultType.equals(Boolean.class)) {
 					return ResultWithContext.fromExisting(!((Boolean) subExprResult.get()), subExprResult);
 				}
 
-				log.error(
-					"Unary operator logical not ('!') not supported for type: {}",
-					subExprResultType.getSimpleName());
+				throw new ExpressionEvaluationException(
+					"Unary operator logical not ('!') not supported for type: " +
+							subExprResultType.getSimpleName());
 
-				return null;
 			case "^":
 				if (subExprResultType.equals(Integer.class)) {
 					return ResultWithContext.fromExisting(~((Integer) subExprResult.get()), subExprResult);
 				}
 
-				log.error(
-					"Unary operator bitwise complement ('~') not supported for type: {}",
-					subExprResultType.getSimpleName());
-
-				return null;
+				throw new ExpressionEvaluationException(
+					"Unary operator bitwise complement ('~') not supported for type: " +
+							subExprResultType.getSimpleName());
 
 			default:
 				log.error("Unsupported expresison {}", op);
 		}
 
-		log.error(
-			"Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
-
-		assert false; // not an addition expression
-		return null;
+		throw new ExpressionEvaluationException(
+			"Trying to evaluate unknown unary expression: " + ExpressionHelper.exprToString(expr));
 	}
 
-	private ResultWithContext evaluateOperand(Operand operand) {
+	@NonNull
+	private ResultWithContext evaluateOperand(@NonNull Operand operand) throws ExpressionEvaluationException {
 		CPGVertexWithValue vertexWithValue = variableContext.get(operand.getOperand());
 		if (vertexWithValue == null) {
-			log.error("{} does not have a value", operand.getOperand());
-			return null;
+			throw new ExpressionEvaluationException("Does not have a value: " + operand.getOperand());
 		}
 		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(vertexWithValue.getValue());
 		result.addVertex(vertexWithValue.getArgumentVertex());
 		return result;
 	}
 
-	public void setCPGVariableContext(CPGVariableContext varContext) {
+	public void setCPGVariableContext(@NonNull CPGVariableContext varContext) {
 		this.variableContext = varContext;
 	}
 
-	public void setCPGInstanceContext(CPGInstanceContext instanceContext) {
+	public void setCPGInstanceContext(@NonNull CPGInstanceContext instanceContext) {
 		this.instanceContext = instanceContext;
 	}
 }

@@ -16,14 +16,14 @@ rule Equals_2_true {
     onfail B
 }
 
-rule Equals_4_fail {
+rule Equals_4_true {
     using A as a
     ensure
         1 == "1"
     onfail B
 }
 
-rule Equals_5_fail {
+rule Equals_5_false {
     using A as a
     ensure
         2147483648 == 1
@@ -48,5 +48,19 @@ rule Equals_8_true {
     using A as a
     ensure
         0x1 == 0x00001
+    onfail B
+}
+
+rule Equals_9_false {
+    using A as a
+    ensure
+        1 == "a"
+    onfail B
+}
+
+rule Equals_10_true {
+    using A as a
+    ensure
+        1 == 1.0
     onfail B
 }

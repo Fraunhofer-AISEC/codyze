@@ -278,4 +278,61 @@ public class ExpressionHelper {
 		}
 	}
 
+	public static String toComparableString(int x) {
+		return String.valueOf(x) + ".0";
+	}
+
+	public static String toComparableString(long x) {
+		return String.valueOf(x) + ".0";
+	}
+
+	public static String toComparableString(float x) {
+		return String.valueOf(x);
+	}
+
+	public static String toComparableString(double x) {
+		return String.valueOf(x);
+	}
+
+	public static String toComparableString(byte x) {
+		return String.valueOf(x) + ".0";
+	}
+
+	public static String toComparableString(char x) {
+		return String.valueOf(x);
+	}
+
+	public static String toComparableString(String x) {
+		if (x.startsWith("\"")) {
+			x = x.substring(1);
+		}
+		if (x.endsWith("\"")) {
+			x = x.substring(0,x.length()-2);
+		}
+		return String.valueOf(x);
+	}
+
+	public static String toComparableString(boolean x) {
+		return String.valueOf(x);
+	}
+
+	public static String toComparableString(Object x) {
+		if (x instanceof Integer) {
+			return toComparableString((int) x);
+		}
+		if (x instanceof Float) {
+			return toComparableString((float) x);
+		}
+		if (x instanceof Long) {
+			return toComparableString((long) x);
+		}
+		if (x instanceof Double) {
+			return toComparableString((double) x);
+		}
+		if (x instanceof String) {
+			return toComparableString((String) x);
+		}
+
+		return x.toString();
+	}
 }

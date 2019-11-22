@@ -10,8 +10,7 @@ import java.util.Set;
 /**
  * Maps a Mark instances ("b") to (one of) the CPG vertices that defines it.
  *
- * key: Mark instance ("b")
- * value: the Vertex that usages of program variables corresponding to "b" REFERS_TO. Typically a VariableDeclaration node.
+ * key: Mark instance ("b") value: the Vertex that usages of program variables corresponding to "b" REFERS_TO. Typically a VariableDeclaration node.
  *
  */
 public class CPGInstanceContext {

@@ -10,8 +10,7 @@ import java.util.Set;
  *
  * For instance:
  *
- * key: "b.alg"
- * value: (V, "AES/ECB")
+ * key: "b.alg" value: (V, "AES/ECB")
  *
  * where V is the vertex representing the assignment of the value as specified by the Mark op.
  */

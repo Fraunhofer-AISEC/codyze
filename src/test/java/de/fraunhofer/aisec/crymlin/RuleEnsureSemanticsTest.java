@@ -80,7 +80,8 @@ public class RuleEnsureSemanticsTest {
 				try {
 					ResultWithContext result = ee.evaluate(ensureExpr);
 					ensureExprResults.put(r.getName(), result);
-				} catch (ExpressionEvaluationException e) {
+				}
+				catch (ExpressionEvaluationException e) {
 					failedRules.add(r.getName());
 				}
 			}

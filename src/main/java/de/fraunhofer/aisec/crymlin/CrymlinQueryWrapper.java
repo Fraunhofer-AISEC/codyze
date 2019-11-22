@@ -239,7 +239,6 @@ public class CrymlinQueryWrapper {
 			}
 		}
 
-
 		for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
 			for (OpStatement opstmt : p.getValue1()) {
 
@@ -309,7 +308,6 @@ public class CrymlinQueryWrapper {
 				}
 			}
 		}
-
 
 		return matchingVertices;
 	}

@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.Null;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -309,7 +311,15 @@ public class ExpressionHelper {
 		if (x.endsWith("\"")) {
 			x = x.substring(0, x.length() - 2);
 		}
-		return String.valueOf(x);
+
+		// Check if it is numeric
+		try {
+			BigDecimal bd = new BigDecimal(x);
+			DecimalFormat df = new DecimalFormat("#.0");
+			return df.format(bd);
+		} catch (NumberFormatException nfe) {
+			return x;
+		}
 	}
 
 	public static String toComparableString(boolean x) {

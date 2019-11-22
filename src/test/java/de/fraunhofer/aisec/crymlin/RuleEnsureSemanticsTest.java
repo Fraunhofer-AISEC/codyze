@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluationException;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
@@ -69,16 +70,26 @@ public class RuleEnsureSemanticsTest {
 		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TYPESTATE_ANALYSIS.NFA).build();
 		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)).toURI());
 
+		Set<String> failedRules = new HashSet<>();
 		Map<@NonNull String, ResultWithContext> ensureExprResults = new TreeMap<>();
 		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
 			for (MRule r : mark.getRules()) {
 				ExpressionEvaluator ee = new ExpressionEvaluator(r, ctx, config, t.getCrymlinTraversal());
 
 				Expression ensureExpr = r.getStatement().getEnsure().getExp();
-				ResultWithContext result = ee.evaluate(ensureExpr);
-				ensureExprResults.put(r.getName(), result);
+				try {
+					ResultWithContext result = ee.evaluate(ensureExpr);
+					ensureExprResults.put(r.getName(), result);
+				} catch (ExpressionEvaluationException e) {
+					failedRules.add(r.getName());
+				}
 			}
 		}
+
+		failedRules
+				.forEach(rule -> {
+					assertTrue(rule.endsWith("fail"));
+				});
 
 		ensureExprResults.entrySet()
 				.forEach(
@@ -88,7 +99,7 @@ public class RuleEnsureSemanticsTest {
 						} else if (entry.getKey().endsWith("false")) {
 							assertFalse((Boolean) entry.getValue().get());
 						} else {
-							assertTrue(entry.getValue() == null);
+							fail("Unexpected: Test rule names should end with 'true' or 'false' " + entry.getKey());
 						}
 					});
 	}

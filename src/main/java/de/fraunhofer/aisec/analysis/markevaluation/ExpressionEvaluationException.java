@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-public class ExpressionEvaluationException extends Exception {
+public class ExpressionEvaluationException extends RuntimeException {
 	public ExpressionEvaluationException(String s) {
 		super(s);
 	}

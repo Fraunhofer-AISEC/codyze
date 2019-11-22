@@ -127,8 +127,10 @@ public class ExpressionHelper {
 		if (opt == null) {
 			return null;
 		}
-		if (opt instanceof Integer) {
-			return (Integer) opt;
+
+		// See if we can convert to numeric
+		if (opt instanceof Number) {
+			return (Number) opt;
 		}
 		if (opt instanceof ConstantValue && ((ConstantValue) opt).isNumeric()) {
 			return (Number) ((ConstantValue) opt).getValue();
@@ -327,6 +329,10 @@ public class ExpressionHelper {
 	}
 
 	public static String toComparableString(Object x) {
+		if (x==null) {
+			log.warn("Unexpected: toComparableString received null expression. Continuing best-effort.");
+			return "";
+		}
 		if (x instanceof Integer) {
 			return toComparableString((int) x);
 		}

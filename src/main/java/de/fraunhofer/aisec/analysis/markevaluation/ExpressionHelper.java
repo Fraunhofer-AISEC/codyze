@@ -318,7 +318,8 @@ public class ExpressionHelper {
 			BigDecimal bd = new BigDecimal(x);
 			DecimalFormat df = new DecimalFormat("#.0#######");
 			return df.format(bd);
-		} catch (NumberFormatException nfe) {
+		}
+		catch (NumberFormatException nfe) {
 			return x;
 		}
 	}
@@ -327,8 +328,16 @@ public class ExpressionHelper {
 		return String.valueOf(x);
 	}
 
+	/**
+	 * Converts a value (Numeric or String) into a "comparable String".
+	 *
+	 * A Comparable String is a String representation that represents all Numerics in a standard format that can be compared using the ExpressionComparator.
+	 *
+	 * @param x
+	 * @return
+	 */
 	public static String toComparableString(Object x) {
-		if (x==null) {
+		if (x == null) {
 			log.warn("Unexpected: toComparableString received null expression. Continuing best-effort.");
 			return "";
 		}

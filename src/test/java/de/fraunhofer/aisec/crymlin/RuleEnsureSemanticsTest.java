@@ -107,4 +107,9 @@ public class RuleEnsureSemanticsTest {
 	public void testLessThan() throws Exception {
 		test("lt.mark");
 	}
+
+	@Test
+	public void testtGreaterThan() throws Exception {
+		test("gt.mark");
+	}
 }

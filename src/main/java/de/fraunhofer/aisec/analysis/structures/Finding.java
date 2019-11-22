@@ -17,12 +17,18 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Representation of a vulnerability found in the source code.
+ * Representation of a vulnerability/non-vulnerability found in the source code.
  *
  */
 public class Finding {
 	private static final Logger log = LoggerFactory.getLogger(Finding.class);
 	private String onFailIdentifier;
+
+	/**
+	 * True, if this Finding indicates a problem/vulnerability.
+	 * False, if this Finding indicates a code snippet that has been checked and verified.
+	 */
+	private boolean isProblem = true;
 
 	private String logMsg;
 	@NonNull
@@ -48,24 +54,28 @@ public class Finding {
 
 	/**
 	 * Constructor.
-	 *
-	 * @param logMsg Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
+	 *  @param logMsg Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
 	 *        finding.
 	 * @param artifactUri Absolute URI of the source file.
 	 * @param onfailIdentifier Identifier of the generic finding, as given by the "onfail" construct of the MARK rule.
 	 * @param ranges List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
-	 *        counting at 0.
+	 * @param isProblem true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
 	 */
-	public Finding(String logMsg, URI artifactUri, String onfailIdentifier, List<Range> ranges) {
+	public Finding(String logMsg, URI artifactUri, String onfailIdentifier, List<Range> ranges, boolean isProblem) {
 		this.logMsg = logMsg;
 		this.onFailIdentifier = onfailIdentifier;
 		for (Range r : ranges) {
 			this.locations.add(new PhysicalLocation(new ArtifactLocation(artifactUri, null), r));
 		}
+		this.isProblem = isProblem;
 	}
 
 	public String getLogMsg() {
 		return logMsg;
+	}
+
+	public boolean isProblem() {
+		return isProblem;
 	}
 
 	/**

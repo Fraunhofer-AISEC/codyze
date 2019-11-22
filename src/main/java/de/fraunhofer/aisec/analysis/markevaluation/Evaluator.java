@@ -252,7 +252,8 @@ public class Evaluator {
 											+ " violated",
 									ctx.getCurrentFile(),
 									rule.getErrorMessage(),
-									ranges));
+									ranges,
+									true));
 					}
 				} else {
 					log.error("Unable to evaluate rule {}", rule.getName());

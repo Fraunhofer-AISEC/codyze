@@ -30,6 +30,7 @@ import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import javassist.expr.Expr;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -340,7 +341,10 @@ public class ExpressionEvaluator {
 	 * Evaluates one expression and returns the result
 	 */
 	@NonNull
-	public ResultWithContext evaluateExpression(@NonNull Expression expr) throws ExpressionEvaluationException {
+	public ResultWithContext evaluateExpression(@Nullable Expression expr) throws ExpressionEvaluationException {
+		if (expr == null) {
+			throw new ExpressionEvaluationException("null expression");
+		}
 		// from lowest to highest operator precedence
 		log.debug("evaluating {}: {}", expr.getClass().getSimpleName(), ExpressionHelper.exprToString(expr));
 

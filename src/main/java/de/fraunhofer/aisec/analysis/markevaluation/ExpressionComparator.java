@@ -8,6 +8,18 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.util.Comparator;
 
+/**
+ * Compares duck typed values in expressions.
+ *
+ * Strings and numeric values can be compared, where reasonable.
+ *
+ * For instance, the following comparisons are valid:
+ * "1"   <  2.0
+ *  1    < "2.1"
+ *  "-1" < "0"
+ *
+ * @param <T>
+ */
 public class ExpressionComparator<T> implements Comparator<T> {
 	private static final Logger log = LoggerFactory.getLogger(ExpressionComparator.class);
 

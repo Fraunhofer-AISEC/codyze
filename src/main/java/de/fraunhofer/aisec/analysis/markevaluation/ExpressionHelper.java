@@ -233,7 +233,6 @@ public class ExpressionHelper {
 	public static void getRefsFromExp(
 			Expression exp, Set<String> entityRefs, Set<String> functionRefs) {
 		if (exp == null) {
-			log.error("Expression is null, cannot get refs");
 			return;
 		}
 		if (exp instanceof ComparisonExpression) {
@@ -317,7 +316,7 @@ public class ExpressionHelper {
 		// Check if it is numeric
 		try {
 			BigDecimal bd = new BigDecimal(x);
-			DecimalFormat df = new DecimalFormat("#.0");
+			DecimalFormat df = new DecimalFormat("#.0#######");
 			return df.format(bd);
 		} catch (NumberFormatException nfe) {
 			return x;

@@ -55,15 +55,8 @@ public class RuleEnsureSemanticsTest {
 		assertFalse(markModels.isEmpty());
 	}
 
-	@AfterAll
-	public static void teardown() throws Exception {
-		// noop
-	}
-
-	@Test
-	public void equalsTest() throws Exception {
-		// TODO convenient checking but pretty ugly and difficult to see, what went wrong
-		List<String> markFilePaths = markModels.keySet().stream().filter(n -> n.endsWith("equals.mark")).collect(Collectors.toList());
+	private void test(String markFileEnding) throws Exception {
+		List<String> markFilePaths = markModels.keySet().stream().filter(n -> n.endsWith(markFileEnding)).collect(Collectors.toList());
 		assertTrue(markFilePaths.size() == 1);
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
@@ -96,12 +89,22 @@ public class RuleEnsureSemanticsTest {
 				.forEach(
 					entry -> {
 						if (entry.getKey().endsWith("true")) {
-							assertTrue((Boolean) entry.getValue().get());
+							assertTrue((Boolean) entry.getValue().get(), entry.getKey());
 						} else if (entry.getKey().endsWith("false")) {
-							assertFalse((Boolean) entry.getValue().get());
+							assertFalse((Boolean) entry.getValue().get(), entry.getKey());
 						} else {
-							fail("Unexpected: Test rule names should end with 'true' or 'false' " + entry.getKey());
+							fail("Unexpected: Rule should have failed, but is " + (Boolean) entry.getValue().get() + ": " + entry.getKey());
 						}
 					});
+	}
+
+	@Test
+	public void testEquals() throws Exception {
+		test("equals.mark");
+	}
+
+	@Test
+	public void testLessThan() throws Exception {
+		test("lt.mark");
 	}
 }

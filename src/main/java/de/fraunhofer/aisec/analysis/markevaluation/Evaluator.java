@@ -273,8 +273,8 @@ public class Evaluator {
 	 * @return List of results for this expression. The list contains multiple results, if one or more markvars have more corresponding vertices in the CPG
 	 */
 	private List<ResultWithContext> evaluateExpressionWithContext(@Nullable CPGVariableContext previousVariableContext, Expression expression,
-																  ExpressionEvaluator expressionEvaluator, MRule markRule,
-																  CrymlinTraversalSource crymlin) {
+			ExpressionEvaluator expressionEvaluator, MRule markRule,
+			CrymlinTraversalSource crymlin) {
 
 		HashSet<String> newMarkVars = new HashSet<>();
 		ExpressionHelper.collectVars(expression, newMarkVars); // extract all used markvars from the expression
@@ -323,17 +323,27 @@ public class Evaluator {
 			for (CPGVariableContext variableContext : variableContexts) {
 				expressionEvaluator.setCPGVariableContext(variableContext);
 				// do the evaluation of the expression for one variableContext (and one instancecontext which was set before)
-				ResultWithContext result = expressionEvaluator.evaluate(expression);
-				// result has the variablecontext already set to variableContext
+				try {
+					ResultWithContext result = expressionEvaluator.evaluate(expression);
+					// result has the variablecontext already set to variableContext
 
-				allresults.add(result);
+					allresults.add(result);
+				}
+				catch (ExpressionEvaluationException e) {
+					log.error(e.getMessage(), e);
+				}
 			}
 		} else {
 			// can this be that we do not have any markvar in a rule?
 			expressionEvaluator.setCPGVariableContext(new CPGVariableContext()); // empty context
-			ResultWithContext result = expressionEvaluator.evaluate(expression);
+			try {
+				ResultWithContext result = expressionEvaluator.evaluate(expression);
 
-			allresults.add(result);
+				allresults.add(result);
+			}
+			catch (ExpressionEvaluationException e) {
+				log.error(e.getMessage(), e);
+			}
 		}
 
 		return allresults;

@@ -6,10 +6,12 @@ import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.constraints.Null;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,7 +25,8 @@ public class ExpressionHelper {
 		// hide
 	}
 
-	public static String exprToString(Expression expr) {
+	@NonNull
+	public static String exprToString(@Null Expression expr) {
 		if (expr == null) {
 			return " null ";
 		}
@@ -117,7 +120,8 @@ public class ExpressionHelper {
 		return asNumber(opt.get());
 	}
 
-	public static Number asNumber(Object opt) {
+	@Nullable
+	public static Number asNumber(@Nullable Object opt) {
 		if (opt == null) {
 			return null;
 		}

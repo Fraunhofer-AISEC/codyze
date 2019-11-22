@@ -78,7 +78,7 @@ public class MRule {
 		return errorMessage;
 	}
 
-	public void setEntityReferences(HashMap<String, Pair<String, MEntity>> entityReferences) {
+	public void setEntityReferences(Map<String, Pair<String, MEntity>> entityReferences) {
 		this.entityReferences = entityReferences;
 	}
 

@@ -186,8 +186,8 @@ public class CrymlinQueryWrapper {
 	 * @param crymlin
 	 * @return
 	 */
-	public static ArrayList<Vertex> getMatchingVertices(@NonNull String operand, @NonNull MRule rule, @NonNull CrymlinTraversalSource crymlin) {
-		final ArrayList<Vertex> matchingVertices = new ArrayList<>();
+	public static List<Vertex> getMatchingVertices(@NonNull String operand, @NonNull MRule rule, @NonNull CrymlinTraversalSource crymlin) {
+		final List<Vertex> matchingVertices = new ArrayList<>();
 
 		if (StringUtils.countMatches(operand, ".") != 1) {
 			// "." separates the mark var name and the mark var object (e.g. cm.algorithm)
@@ -372,4 +372,5 @@ public class CrymlinQueryWrapper {
 							__.__().hasLabel(MethodDeclaration.class.getSimpleName()))) // FIXME can also be MethoDeclaration
 				.tryNext();
 	}
+
 }

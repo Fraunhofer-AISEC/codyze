@@ -69,7 +69,11 @@ public class ConstantResolver {
 			Optional<Vertex> vdVertexOpt = crymlin
 					.byID(variableDeclaration.getId())
 					.tryNext();
-			assert vdVertexOpt.isPresent() : "Unexpected: VariableDeclaration not available in graph. ID=" + variableDeclaration.getId();
+
+			if (vdVertexOpt.isEmpty()) {
+				log.warn("Unexpected: VariableDeclaration not available in graph. ID={}", variableDeclaration.getId());
+				return Optional.empty();
+			}
 
 			Vertex variableDeclarationVertex = vdVertexOpt.get();
 			log.debug("Vertex for function call: {}", callExpressionVertex);

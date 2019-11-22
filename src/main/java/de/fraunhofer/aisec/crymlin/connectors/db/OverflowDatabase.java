@@ -1057,7 +1057,7 @@ public class OverflowDatabase<N> implements Database<N> {
 						List<EdgeLayoutInformation> in = inAndOut.getValue0();
 						in.addAll(inEdgeLayouts.getOrDefault(c, new HashSet<>())
 								.stream()
-								.filter(e -> !(e.label == null))
+								.filter(e -> e.label != null)
 								.map(MutableEdgeLayout::makeImmutable)
 								.collect(
 									Collectors.toList()));

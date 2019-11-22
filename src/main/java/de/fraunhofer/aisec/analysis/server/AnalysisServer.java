@@ -180,7 +180,7 @@ public class AnalysisServer {
 					})
 				.thenApplyAsync(
 					result -> {
-						if (config.EXPORT_TO_NEO4J) {
+						if (ServerConfiguration.EXPORT_TO_NEO4J) {
 							// Optional, just for debugging: re-import into Neo4J
 							exportToNeo4j();
 						}

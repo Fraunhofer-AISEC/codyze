@@ -174,7 +174,7 @@ public class Evaluator {
 							}
 
 							if (ref == null) {
-								log.warn("Did not find a base for " + vertex.value("code"));
+								log.warn("Did not find a base for {}", vertex.value("code").toString());
 							}
 						}
 					}

@@ -30,10 +30,6 @@ public class FindingDescription {
 		return instance;
 	}
 
-	static {
-
-	}
-
 	public String getDescriptionDetailed(String constant) {
 		if (source == null) {
 			return constant;

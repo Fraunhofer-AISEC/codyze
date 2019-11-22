@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.markmodel.fsm;
 
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +14,6 @@ public class FSM {
 	private static final Logger log = LoggerFactory.getLogger(FSM.class);
 
 	private Set<Node> startNodes = null;
-
-	public FSM() {
-	}
 
 	public String toString() {
 		Set<Node> seen = new HashSet<>();
@@ -144,46 +142,43 @@ public class FSM {
 			return;
 		} else if (expr instanceof RepetitionExpression) {
 			RepetitionExpression inner = (RepetitionExpression) expr;
-			switch (inner.getOp()) {
-				case "?": {
-					Set<Node> remember = new HashSet<>(endNodes);
-					expressionToNodes(inner.getExpr(), endNodes, head);
-					endNodes.addAll(remember);
-					return;
-				}
-				case "+": {
-					Head innerHead = new Head();
-					innerHead.addNextNode = true;
-					expressionToNodes(inner.getExpr(), endNodes, innerHead);
-					for (Node j : innerHead.get()) {
-						// connect to innerHead
-						endNodes.forEach(x -> x.addSuccessor(j));
-						if (head != null && head.addNextNode) {
-							head.add(j);
-						}
+			String op = inner.getOp();
+			if ("?".equals(op)) {
+				Set<Node> remember = new HashSet<>(endNodes);
+				expressionToNodes(inner.getExpr(), endNodes, head);
+				endNodes.addAll(remember);
+				return;
+			} else if ("+".equals(op)) {
+				Head innerHead = new Head();
+				innerHead.addNextNode = true;
+				expressionToNodes(inner.getExpr(), endNodes, innerHead);
+				for (Node j : innerHead.get()) {
+					// connect to innerHead
+					endNodes.forEach(x -> x.addSuccessor(j));
+					if (head != null && head.addNextNode) {
+						head.add(j);
 					}
-					return;
 				}
-				case "*": {
-					Set<Node> remember = new HashSet<>(endNodes);
-					Head innerHead = new Head();
-					innerHead.addNextNode = true;
-					expressionToNodes(inner.getExpr(), endNodes, innerHead);
-					for (Node j : innerHead.get()) {
-						// connect to innerHead
-						endNodes.forEach(x -> x.addSuccessor(j));
-						if (head != null && head.addNextNode) {
-							head.add(j);
-						}
+				return;
+			} else if ("*".equals(op)) {
+				Set<Node> remember = new HashSet<>(endNodes);
+				Head innerHead = new Head();
+				innerHead.addNextNode = true;
+				expressionToNodes(inner.getExpr(), endNodes, innerHead);
+				for (Node j : innerHead.get()) {
+					// connect to innerHead
+					endNodes.forEach(x -> x.addSuccessor(j));
+					if (head != null && head.addNextNode) {
+						head.add(j);
 					}
+				}
 
-					endNodes.addAll(remember);
-					return;
-				}
-				default:
-					log.error("UNKNOWN OP: {}", inner.getOp());
-					return;
+				endNodes.addAll(remember);
+				return;
 			}
+			log.error("UNKNOWN OP: {}", inner.getOp());
+			return;
+
 		} else if (expr instanceof AlternativeExpressionImpl) {
 			AlternativeExpression inner = (AlternativeExpression) expr;
 			Set<Node> remember = new HashSet<>(endNodes);

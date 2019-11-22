@@ -55,7 +55,7 @@ public class NFA {
 			List<Node> possibleTargets = this.transitions.stream()
 					.filter(t -> t.getSource().equals(currentConfig) && t.getLabel().equals(event))
 					.map(
-						t -> t.getTarget())
+						NFATransition::getTarget)
 					.collect(Collectors.toList());
 			if (!possibleTargets.isEmpty()) {
 				it.remove();
@@ -177,34 +177,30 @@ public class NFA {
 			return addExpr(inner.getRight(), currentNodes);
 		} else if (expr instanceof RepetitionExpression) {
 			RepetitionExpression inner = (RepetitionExpression) expr;
-			switch (inner.getOp()) {
-				case "?": {
-					HashSet<Node> remember = new HashSet<>(currentNodes);
-					addExpr(inner.getExpr(), currentNodes);
-					currentNodes.addAll(remember);
-					return currentNodes;
+			String op = inner.getOp();
+			if ("?".equals(op)) {
+				HashSet<Node> remember = new HashSet<>(currentNodes);
+				addExpr(inner.getExpr(), currentNodes);
+				currentNodes.addAll(remember);
+				return currentNodes;
+			} else if ("+".equals(op)) {
+				HashSet<Node> remember = new HashSet<>(currentNodes);
+				addExpr(inner.getExpr(), currentNodes);
+				for (Node n : remember) {
+					currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
 				}
-				case "+": {
-					HashSet<Node> remember = new HashSet<>(currentNodes);
-					addExpr(inner.getExpr(), currentNodes);
-					for (Node n : remember) {
-						currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
-					}
-					return currentNodes;
+				return currentNodes;
+			} else if ("*".equals(op)) {
+				HashSet<Node> remember = new HashSet<>(currentNodes);
+				addExpr(inner.getExpr(), currentNodes);
+				for (Node n : remember) {
+					currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
 				}
-				case "*": {
-					HashSet<Node> remember = new HashSet<>(currentNodes);
-					addExpr(inner.getExpr(), currentNodes);
-					for (Node n : remember) {
-						currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
-					}
-					currentNodes.addAll(remember);
-					return currentNodes;
-				}
-				default:
-					log.error("UNKNOWN OP: {}", inner.getOp());
-					return addExpr(inner.getExpr(), currentNodes);
+				currentNodes.addAll(remember);
+				return currentNodes;
 			}
+			log.error("UNKNOWN OP: {}", inner.getOp());
+			return addExpr(inner.getExpr(), currentNodes);
 		}
 
 		log.error("ERROR, unknown Expression: {}", expr.getClass());

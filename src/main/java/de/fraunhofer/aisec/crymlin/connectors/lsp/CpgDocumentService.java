@@ -37,6 +37,24 @@ public class CpgDocumentService implements TextDocumentService {
 
 	private LanguageClient client;
 
+	// mark the whole file with _Information_ to indicate that the file is being scanned
+	private void markWholeFile(String text, String uriString) {
+		ArrayList<Diagnostic> allDiags = new ArrayList<>();
+		Diagnostic diagnostic = new Diagnostic();
+		diagnostic.setSeverity(DiagnosticSeverity.Information);
+		diagnostic.setMessage("File is being scanned");
+		String[] split = text.split("\n");
+		diagnostic.setRange(
+			new Range(
+				new Position(0, 0),
+				new Position(split.length - 1, split[split.length - 1].length())));
+		allDiags.add(diagnostic);
+		PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
+		diagnostics.setDiagnostics(allDiags);
+		diagnostics.setUri(uriString);
+		client.publishDiagnostics(diagnostics);
+	}
+
 	private void analyze(String uriString, String text) {
 		String sanitizedText = text.replaceAll("[\\n ]", "");
 		if (lastScan.get(uriString) != null
@@ -46,22 +64,7 @@ public class CpgDocumentService implements TextDocumentService {
 			return;
 		}
 
-		{ // mark the whole file with _Information_ to indicate that the file is being scanned
-			ArrayList<Diagnostic> allDiags = new ArrayList<>();
-			Diagnostic diagnostic = new Diagnostic();
-			diagnostic.setSeverity(DiagnosticSeverity.Information);
-			diagnostic.setMessage("File is being scanned");
-			String[] split = text.split("\n");
-			diagnostic.setRange(
-				new Range(
-					new Position(0, 0),
-					new Position(split.length - 1, split[split.length - 1].length())));
-			allDiags.add(diagnostic);
-			PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
-			diagnostics.setDiagnostics(allDiags);
-			diagnostics.setUri(uriString);
-			client.publishDiagnostics(diagnostics);
-		}
+		markWholeFile(text, uriString);
 
 		Instant start = Instant.now();
 

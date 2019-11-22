@@ -19,7 +19,7 @@ public class ServerConfiguration {
 	public final TYPESTATE_ANALYSIS typestateAnalysis;
 
 	// should we export the data to neo4j
-	public final boolean EXPORT_TO_NEO4J = false;
+	public static final boolean EXPORT_TO_NEO4J = true;
 
 	private ServerConfiguration(boolean launchConsole, boolean launchLsp, String markModelFiles, TYPESTATE_ANALYSIS typestateAnalysis) {
 		this.launchConsole = launchConsole;

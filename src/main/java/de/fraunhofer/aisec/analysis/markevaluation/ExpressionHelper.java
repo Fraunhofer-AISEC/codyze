@@ -194,7 +194,7 @@ public class ExpressionHelper {
 				if (ex instanceof Expression) {
 					collectVars((Expression) ex, vars);
 				} else {
-					log.error("This should not happen in MARK. Not an expression: " + ex.getClass());
+					log.error("This should not happen in MARK. Not an expression: {}", ex.getClass().getSimpleName());
 				}
 			}
 		} else if (expr instanceof LiteralListExpression) {

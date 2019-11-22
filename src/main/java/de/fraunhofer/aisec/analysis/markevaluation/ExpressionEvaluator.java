@@ -172,99 +172,45 @@ public class ExpressionEvaluator {
 			case "==":
 				try {
 					return ResultWithContext.fromExisting(comp.compare(leftComp, rightComp) == 0, leftResult, rightResult);
-				} catch (ExpressionEvaluationException e) {
+				}
+				catch (ExpressionEvaluationException e) {
 					return ResultWithContext.fromExisting(false, leftResult, rightResult);
 				}
-
-//				if (lNumber != null && rNumber != null) {
-//					return ResultWithContext.fromExisting(lNumber.equals(rNumber), leftResult, rightResult);
-//				}
-//				if (lString != null && rString != null) {
-//					return ResultWithContext.fromExisting(lString.equals(rString), leftResult, rightResult);
-//				}
-//				if (lBoolean != null && rBoolean != null) {
-//					return ResultWithContext.fromExisting(lBoolean.equals(rBoolean), leftResult, rightResult);
-//				}
-//
-//				throw new ExpressionEvaluationException(
-//					"Type of left expression does not match type of right expression: " +
-//							leftType.getSimpleName() + " vs. " +
-//							rightType.getSimpleName());
 			case "!=":
 				try {
-				return ResultWithContext.fromExisting(comp.compare(leftComp, rightComp) != 0, leftResult, rightResult);
-			} catch (ExpressionEvaluationException e) {
-				return ResultWithContext.fromExisting(false, leftResult, rightResult);
-			}
-//				if (lNumber != null && rNumber != null) {
-//					return ResultWithContext.fromExisting(!lNumber.equals(rNumber), leftResult, rightResult);
-//				}
-//				if (lString != null && rString != null) {
-//					return ResultWithContext.fromExisting(!lString.equals(rString), leftResult, rightResult);
-//				}
-//				if (lBoolean != null && rBoolean != null) {
-//					return ResultWithContext.fromExisting(!lBoolean.equals(rBoolean), leftResult, rightResult);
-//				}
-//
-//				throw new ExpressionEvaluationException(
-//					"Type of left expression does not match type of right expression: " +
-//							leftType.getSimpleName() + " vs. " +
-//							rightType.getSimpleName());
+					return ResultWithContext.fromExisting(comp.compare(leftComp, rightComp) != 0, leftResult, rightResult);
+				}
+				catch (ExpressionEvaluationException e) {
+					return ResultWithContext.fromExisting(false, leftResult, rightResult);
+				}
 			case "<":
 				try {
 					return ResultWithContext.fromExisting(comp.compare(leftComp, rightComp) < 0, leftResult, rightResult);
-				} catch (ExpressionEvaluationException e) {
+				}
+				catch (ExpressionEvaluationException e) {
 					return ResultWithContext.fromExisting(false, leftResult, rightResult);
 				}
-//				if (lNumber != null && rNumber != null) {
-//					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
-//					return ResultWithContext.fromExisting(lNumber.floatValue() < rNumber.floatValue(), leftResult, rightResult);
-//				}
-//
-//				throw new ExpressionEvaluationException("Comparison operator less-than ('<') not supported for type: " + leftType);
 			case "<=":
 				try {
 					return ResultWithContext.fromExisting(comp.compare(leftComp, rightComp) <= 0, leftResult, rightResult);
-				} catch (ExpressionEvaluationException e) {
+				}
+				catch (ExpressionEvaluationException e) {
 					return ResultWithContext.fromExisting(false, leftResult, rightResult);
 				}
-//				if (lNumber != null && rNumber != null) {
-//					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
-//					return ResultWithContext.fromExisting(lNumber.floatValue() <= rNumber.floatValue(), leftResult, rightResult);
-//				}
-//
-//				throw new ExpressionEvaluationException("Comparison operator less-than-or-equal ('<=') not supported for type: " + leftType);
-
 			case ">":
 				try {
 					return ResultWithContext.fromExisting(comp.compare(leftComp, rightComp) > 0, leftResult, rightResult);
-				} catch (ExpressionEvaluationException e) {
+				}
+				catch (ExpressionEvaluationException e) {
 					return ResultWithContext.fromExisting(false, leftResult, rightResult);
 				}
-
-//				if (lNumber != null && rNumber != null) {
-//					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
-//					return ResultWithContext.fromExisting(lNumber.floatValue() > rNumber.floatValue(), leftResult, rightResult);
-//				}
-//
-//				throw new ExpressionEvaluationException(
-//					"Type of left expression does not match type of right expression: " +
-//							leftType.getSimpleName() + " vs. " +
-//							rightType.getSimpleName());
 			case ">=":
 				try {
 					return ResultWithContext.fromExisting(comp.compare(leftComp, rightComp) >= 0, leftResult, rightResult);
-				} catch (ExpressionEvaluationException e) {
+				}
+				catch (ExpressionEvaluationException e) {
 					return ResultWithContext.fromExisting(false, leftResult, rightResult);
 				}
-//				if (lNumber != null && rNumber != null) {
-//					// Note that this is not a precise way to compare, as Number can also be BigDecimal. This will however not be the case here.
-//					return ResultWithContext.fromExisting(lNumber.floatValue() >= rNumber.floatValue(), leftResult, rightResult);
-//				}
-//
-//				throw new ExpressionEvaluationException(
-//					"Comparison operator greater-than-or-equal ('>=') not supported for type: " +
-//							leftType);
 			case "in":
 				if (rightResult.get() instanceof List) {
 					List l = (List) rightResult.get();
@@ -293,16 +239,19 @@ public class ExpressionEvaluator {
 				throw new ExpressionEvaluationException("Type of right expression must be List; given: " + rightType);
 			case "like":
 				try {
-					return ResultWithContext.fromExisting(Pattern.matches(ExpressionHelper.toComparableString(rightResult.get()), ExpressionHelper.toComparableString(leftResult.get())), leftResult, rightResult);
-				} catch (ExpressionEvaluationException e) {
+					return ResultWithContext.fromExisting(
+						Pattern.matches(ExpressionHelper.toComparableString(rightResult.get()), ExpressionHelper.toComparableString(leftResult.get())), leftResult,
+						rightResult);
+				}
+				catch (ExpressionEvaluationException e) {
 					return ResultWithContext.fromExisting(false, leftResult, rightResult);
 				}
-//				if (lString != null) {
-//					return ResultWithContext.fromExisting(Pattern.matches(Pattern.quote((String) rightResult.get()), lString),
-//						leftResult, rightResult);
-//				}
-//
-//				throw new ExpressionEvaluationException("Comparison operator like ('like') not supported for type: " + leftType);
+				//				if (lString != null) {
+				//					return ResultWithContext.fromExisting(Pattern.matches(Pattern.quote((String) rightResult.get()), lString),
+				//						leftResult, rightResult);
+				//				}
+				//
+				//				throw new ExpressionEvaluationException("Comparison operator like ('like') not supported for type: " + leftType);
 
 			default:
 				log.error("Unsupported operand {}", op);

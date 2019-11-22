@@ -307,7 +307,7 @@ public class ExpressionHelper {
 			x = x.substring(1);
 		}
 		if (x.endsWith("\"")) {
-			x = x.substring(0,x.length()-2);
+			x = x.substring(0, x.length() - 2);
 		}
 		return String.valueOf(x);
 	}

@@ -146,4 +146,13 @@ class RealBotanTest {
 		assertTrue(wrongKeyLength.isProblem());
 	}
 
+	@Test
+	@Disabled //WIP, not working yet
+	void testPlaybookCreator() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("real-examples/botan/blockciphers/obraunsdorf.playbook-creator/pbcStorage.cpp", "real-examples/botan/blockciphers/obraunsdorf.playbook-creator/mark");
+
+		assertTrue(findings.isEmpty());
+	}
+
 }

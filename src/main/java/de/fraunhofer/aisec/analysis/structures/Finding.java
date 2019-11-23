@@ -25,8 +25,7 @@ public class Finding {
 	private String onFailIdentifier;
 
 	/**
-	 * True, if this Finding indicates a problem/vulnerability.
-	 * False, if this Finding indicates a code snippet that has been checked and verified.
+	 * True, if this Finding indicates a problem/vulnerability. False, if this Finding indicates a code snippet that has been checked and verified.
 	 */
 	private boolean isProblem = true;
 
@@ -54,7 +53,8 @@ public class Finding {
 
 	/**
 	 * Constructor.
-	 *  @param logMsg Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
+	 * 
+	 * @param logMsg Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
 	 *        finding.
 	 * @param artifactUri Absolute URI of the source file.
 	 * @param onfailIdentifier Identifier of the generic finding, as given by the "onfail" construct of the MARK rule.

@@ -400,6 +400,11 @@ public class OverflowDatabase<N> implements Database<N> {
 							log.error("Class not found: {}", className);
 							continue;
 						}
+						catch (IllegalStateException e) {
+							String c = (String) v.property("code").value();
+							log.error("No type property: {}", c);
+							continue;
+						}
 						assert Collection.class.isAssignableFrom(collectionType);
 						Collection targetCollection = (Collection) collectionType.getDeclaredConstructor().newInstance();
 						targetCollection.addAll(targets);

@@ -16,7 +16,9 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -62,10 +64,20 @@ public class RuleCheckTest {
 					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
 				.build();
 		server.start();
-
+		Path botan2IncludeFolder = Path.of(URI.create("file:///usr/include/botan-2")); // FIXME depends on Botan version, i.e. this is from Debian stretch with stretch-backports
 		TranslationManager translationManager = TranslationManager.builder()
 				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+					TranslationConfiguration.builder()
+							.debugParser(true)
+							.failOnError(false)
+							.codeInNodes(true)
+							.defaultPasses()
+							.includePath(botan2IncludeFolder.toString())
+							//								.includePath(stdCppIncludeFolder.toString())
+							//								.includePath(cIncludeFolder.toString())
+							.loadIncludes(true)
+							.sourceFiles(cppFile)
+							.build())
 				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		try {

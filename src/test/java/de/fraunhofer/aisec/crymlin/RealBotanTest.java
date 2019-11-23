@@ -4,6 +4,8 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.graph.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
@@ -11,12 +13,18 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -64,13 +72,16 @@ class RealBotanTest {
 				.build();
 		server.start();
 
+		Path botan2IncludeFolder = Path.of(URI.create("file:///usr/include/botan-2")); // FIXME depends on Botan version, i.e. this is from Debian stretch with stretch-backports
 		TranslationManager translationManager = TranslationManager.builder()
 				.config(
 					TranslationConfiguration.builder()
 							.debugParser(true)
 							.failOnError(false)
 							.codeInNodes(true)
+							.includePath(botan2IncludeFolder.toString())
 							.defaultPasses()
+							.loadIncludes(false)
 							.sourceFiles(cppFile)
 							.build())
 				.build();
@@ -93,6 +104,19 @@ class RealBotanTest {
 		}
 
 		return ctx.getFindings();
+	}
+
+	@Test
+	public void testSimple() throws Exception {
+		// Just a very simple test to explore the graph
+		Set<Finding> findings = performTest("real-examples/botan/streamciphers/bsex.cpp", "real-examples/botan/streamciphers/bsex.mark");
+		GraphTraversalSource t = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal();
+
+		List<Vertex> variables = t.V().hasLabel(VariableDeclaration.class.getSimpleName()).toList();
+
+		assertTrue(variables.size() > 0);
 	}
 
 	@Test

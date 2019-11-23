@@ -52,37 +52,79 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
+	 * Returns a set of vertices with label <code>ConstructorExpression</code>.
+	 * <p>
+	 * More precisely, the returned vertices are the targets of "INITIALIZER" edges from a "VariableDeclaration" node, whereas: a) the VariableDeclaration must refer to
+	 * the type given by <code>className</code>. b) the arguments of the initializer must comply with the types given by <code>parameterTypes</code>, if not null.
+	 *
+	 * @param crymlinTraversal
+	 * @param className
+	 * @param parameterTypes
+	 * @return
+	 */
+	public static Set<Vertex> getInitializers(
+			@NonNull CrymlinTraversalSource crymlinTraversal,
+			@NonNull String className,
+			@Nullable List<String> parameterTypes) {
+		//FIXME Parameter types are still ignored. If not null, they should be checked against arguments of Initializer.
+		Set<Vertex> result = new HashSet<>();
+		Set<Object> constructorExpressionVertices = crymlinTraversal.V()
+				.as("constructorExpression")
+				.inE("INITIALIZER")
+				.outV()
+				.hasLabel(VariableDeclaration.class.getSimpleName())
+				.has("type", Utils.unifyType(className))
+				.select("constructorExpression")
+				.toSet();
+		// Need to do this manually, as we cannot cast the generic from <Object> to <Vertex>.
+		for (Object v : constructorExpressionVertices) {
+			result.add((Vertex) v);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns a set of Vertices representing the <code>CallExpression</code> to a target function.
+	 * <p>
+	 * Note that this set does not contain calls to constructors.
+	 *
 	 * @param crymlinTraversal
 	 * @param fqnClassName fully qualified name w/o function name itself
 	 * @param functionName name of the function
-	 * @param type type of the object used to call the function (i.e. method); should be name of the MARK entity
+	 * @param markEntity type of the object used to call the function (i.e. method); should be name of the MARK entity
 	 * @param parameterTypes list of parameter types; must appear in order (i.e. index 0 = type of first parameter, etc.); currently, types must be precise (i.e. with
 	 *        qualifiers, pointer, reference)
 	 * @return
 	 */
+	@NonNull
 	public static Set<Vertex> getCalls(
 			@NonNull CrymlinTraversalSource crymlinTraversal,
 			@NonNull String fqnClassName,
 			@NonNull String functionName,
-			@Nullable String type,
+			@Nullable String markEntity,
 			@NonNull List<String> parameterTypes) {
 
 		Set<Vertex> ret = new HashSet<>();
 
 		// reconstruct what type of call we're expecting
-		boolean isMethod = type != null && fqnClassName.endsWith(type);
+		boolean isMethod = markEntity != null && fqnClassName.endsWith(markEntity);
 
 		if (isMethod) {
 			// it's a method call on an instances
-			ret.addAll(crymlinTraversal.calls(functionName, type).toList());
+			ret.addAll(crymlinTraversal.calls(functionName, markEntity)
+					.toList());
 		}
+		List<Vertex> calls = crymlinTraversal.calls(functionName, markEntity)
+				.toList();
 
 		// it's a function OR a static method call -> name == fqnClassName.functionName
-		ret.addAll(crymlinTraversal.calls(fqnClassName + "." + functionName).toList());
+		ret.addAll(crymlinTraversal.calls(fqnClassName + "." + functionName)
+				.toList());
 
 		// FIXME we're not setting the default (i.e. global) namespace
 		if (fqnClassName.length() == 0) {
-			ret.addAll(crymlinTraversal.calls(functionName).toList());
+			ret.addAll(crymlinTraversal.calls(functionName)
+					.toList());
 		}
 
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
@@ -102,7 +144,8 @@ public class CrymlinQueryWrapper {
 
 				while (referencedArguments.hasNext()) {
 					// check each argument against parameter type
-					Vertex argument = referencedArguments.next().inVertex();
+					Vertex argument = referencedArguments.next()
+							.inVertex();
 					long argumentIndex = argument.value("argumentIndex");
 
 					if (argumentIndex >= parameterTypes.size()) {
@@ -147,7 +190,8 @@ public class CrymlinQueryWrapper {
 		return crymlin.byID(id)
 				.in("RHS")
 				.where(
-					has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and().has("operatorCode", "="))
+					has(T.label, LabelP.of(BinaryOperator.class.getSimpleName())).and()
+							.has("operatorCode", "="))
 				.out("LHS")
 				.has(T.label,
 					LabelP.of(VariableDeclaration.class.getSimpleName()))
@@ -161,12 +205,14 @@ public class CrymlinQueryWrapper {
 	 * @return
 	 */
 	public static boolean isCallExpression(Vertex v) {
-		if (v.label().equals(CallExpression.class.getSimpleName())) {
+		if (v.label()
+				.equals(CallExpression.class.getSimpleName())) {
 			return true;
 		}
 
 		for (String subClass : OverflowDatabase.getSubclasses(CallExpression.class)) {
-			if (v.label().equals(subClass)) {
+			if (v.label()
+					.equals(subClass)) {
 				return true;
 			}
 		}
@@ -175,7 +221,11 @@ public class CrymlinQueryWrapper {
 
 	public static List<Vertex> getNextStatements(CrymlinTraversalSource crymlin, long id) {
 		// TODO Needs testing for branches
-		return crymlin.byID(id).repeat(__().out("EOG").simplePath()).until(__().inE("STATEMENTS")).toList();
+		return crymlin.byID(id)
+				.repeat(__().out("EOG")
+						.simplePath())
+				.until(__().inE("STATEMENTS"))
+				.toList();
 	}
 
 	/**
@@ -201,7 +251,8 @@ public class CrymlinQueryWrapper {
 		final String attribute = operandParts[1];
 
 		// Get the MARK entity corresponding to the operator's instance.
-		Pair<String, MEntity> ref = rule.getEntityReferences().get(instance);
+		Pair<String, MEntity> ref = rule.getEntityReferences()
+				.get(instance);
 		String entityName = ref.getValue0();
 		MEntity referencedEntity = ref.getValue1();
 
@@ -225,7 +276,10 @@ public class CrymlinQueryWrapper {
 					vars.add(opStmt);
 				}
 				// Function parameter, i.e. "something(..., var, ...)"
-				if (opStmt.getCall().getParams().stream().anyMatch(p -> p.equals(attribute))) {
+				if (opStmt.getCall()
+						.getParams()
+						.stream()
+						.anyMatch(p -> p.equals(attribute))) {
 					args.add(opStmt);
 				}
 			}
@@ -242,12 +296,14 @@ public class CrymlinQueryWrapper {
 		for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
 			for (OpStatement opstmt : p.getValue1()) {
 
-				String fqFunctionName = opstmt.getCall().getName();
+				String fqFunctionName = opstmt.getCall()
+						.getName();
 
 				String functionName = Utils.extractMethodName(fqFunctionName);
 				String fqNamePart = Utils.extractType(fqFunctionName);
 
-				List<String> functionArgumentTypes = referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall().getParams());
+				List<String> functionArgumentTypes = referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall()
+						.getParams());
 
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
 					crymlin, fqNamePart, functionName, null, functionArgumentTypes);
@@ -265,7 +321,9 @@ public class CrymlinQueryWrapper {
 					}
 
 					// check if there was a direct initialization (i.e., int i = call(foo);)
-					nextVertices = crymlin.byID((long) v.id()).initializerVariable().toList();
+					nextVertices = crymlin.byID((long) v.id())
+							.initializerVariable()
+							.toList();
 
 					if (!nextVertices.isEmpty()) {
 						log.info("found Initializer traversals: {}", nextVertices);
@@ -278,16 +336,20 @@ public class CrymlinQueryWrapper {
 		for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
 			for (OpStatement opstmt : p.getValue1()) {
 
-				String fqFunctionName = opstmt.getCall().getName();
+				String fqFunctionName = opstmt.getCall()
+						.getName();
 				String functionName = Utils.extractMethodName(fqFunctionName);
 				String fqName = Utils.extractType(fqFunctionName);
 				if (fqName.equals(functionName)) {
 					fqName = "";
 				}
 
-				EList<String> params = opstmt.getCall().getParams();
+				EList<String> params = opstmt.getCall()
+						.getParams();
 				List<String> argumentTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
-				OptionalInt argumentIndexOptional = IntStream.range(0, params.size()).filter(i -> attribute.equals(params.get(i))).findFirst();
+				OptionalInt argumentIndexOptional = IntStream.range(0, params.size())
+						.filter(i -> attribute.equals(params.get(i)))
+						.findFirst();
 				if (argumentIndexOptional.isEmpty()) {
 					log.error("argument not found in parameters. This should not happen");
 					continue;
@@ -297,8 +359,11 @@ public class CrymlinQueryWrapper {
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
 					crymlin, fqName, functionName, entityName, argumentTypes);
 
+				vertices.addAll(CrymlinQueryWrapper.getInitializers(crymlin, fqFunctionName, argumentTypes));
 				for (Vertex v : vertices) {
-					List<Vertex> argumentVertices = crymlin.byID((long) v.id()).argument(argumentIndex).toList();
+					List<Vertex> argumentVertices = crymlin.byID((long) v.id())
+							.argument(argumentIndex)
+							.toList();
 
 					if (argumentVertices.size() == 1) {
 						matchingVertices.add(argumentVertices.get(0));
@@ -322,12 +387,14 @@ public class CrymlinQueryWrapper {
 				// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
 				// argument we're using in the function call
 				Vertex variableDeclarationVertex = next.inVertex();
-				Declaration variableDeclaration = (Declaration) OverflowDatabase.getInstance().vertexToNode(variableDeclarationVertex);
+				Declaration variableDeclaration = (Declaration) OverflowDatabase.getInstance()
+						.vertexToNode(variableDeclarationVertex);
 				ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
 				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v);
 				// fixme what if we do not know the value, shouldnt we then still return the argumentvertex?
 				if (constantValue.isPresent()) {
-					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get().getValue()); // todo? return the constantvalue or the inner value?
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get()
+							.getValue()); // todo? return the constantvalue or the inner value?
 					ret.add(mva);
 				} else {
 					log.warn("Could not constant resolve node {}", v.id());
@@ -346,14 +413,20 @@ public class CrymlinQueryWrapper {
 
 		// resolve parameters which have a corresponding var part in the entity
 		List<String> args = ent.replaceArgumentVarsWithTypes(functionDeclaration.getParams());
-		return CrymlinQueryWrapper.getCalls(crymlinTraversal, baseType, functionName, null, args);
+		Set<Vertex> initializers = CrymlinQueryWrapper.getInitializers(crymlinTraversal, Utils.unifyType(functionDeclaration.getName()), args);
+		Set<Vertex> calls = CrymlinQueryWrapper.getCalls(crymlinTraversal, baseType, functionName, null, args);
+
+		Set<Vertex> callsAndInitializers = new HashSet<>();
+		callsAndInitializers.addAll(calls);
+		callsAndInitializers.addAll(initializers);
+		return callsAndInitializers;
 	}
 
 	/**
 	 * Given a Vertex v, try to find the function or method in which v is contained.
-	 *
+	 * <p>
 	 * The resulting Vertex will be of type FunctionDeclaration or MethodDeclaration.
-	 *
+	 * <p>
 	 * If v is not contained in a function, this method returns an empty Optional.
 	 *
 	 * @param v
@@ -368,9 +441,46 @@ public class CrymlinQueryWrapper {
 						.outV())
 				.until(__.__()
 						.or(
-							__.__().hasLabel(FunctionDeclaration.class.getSimpleName()),
-							__.__().hasLabel(MethodDeclaration.class.getSimpleName()))) // FIXME can also be MethoDeclaration
+							__.__()
+									.hasLabel(FunctionDeclaration.class.getSimpleName()),
+							__.__()
+									.hasLabel(MethodDeclaration.class.getSimpleName()))) // FIXME can also be MethoDeclaration
 				.tryNext();
 	}
 
+	/**
+	 * Given a vertex that represents a <code>CallExpression</code>, return the base(s) that this call expression uses.
+	 *
+	 * The result will be either an Optional.empty() in case of static method calls or function calls, or contain a single element.
+	 *
+	 * @param callExpression
+	 * @return
+	 */
+	@NonNull
+	public static Optional<Vertex> getBaseOfCallExpression(@NonNull Vertex callExpression) {
+		Optional<Vertex> base = Optional.empty();
+		Iterator<Edge> it = callExpression.edges(Direction.OUT, "BASE");
+		Vertex ref = null;
+		if (it.hasNext()) {
+			Vertex baseVertex = it.next().inVertex();
+			Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+			if (refIterator.hasNext()) {
+				ref = refIterator.next().inVertex();
+				base = Optional.of(ref);
+			}
+		}
+		return base;
+	}
+
+	public static Optional<Vertex> getAssigneeOfConstructExpression(Vertex vertex) {
+		Iterator<Edge> it = vertex.edges(Direction.IN, "INITIALIZER");
+		if (it.hasNext()) {
+			Vertex variableDeclaration = it.next().outVertex();
+			if (!VariableDeclaration.class.getSimpleName().equals(variableDeclaration.label())) {
+				log.warn("Unexpected: Source of INITIALIZER edge to ConstructExpression is not a VariableDeclaration. Trying to continue anyway");
+			}
+			return Optional.of(variableDeclaration);
+		}
+		return Optional.empty();
+	}
 }

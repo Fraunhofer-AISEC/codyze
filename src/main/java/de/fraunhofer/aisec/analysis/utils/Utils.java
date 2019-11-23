@@ -27,7 +27,7 @@ public class Utils {
 		if (name == null) {
 			return null;
 		}
-		return name.replace("::", "\\.");
+		return name.replace("::", ".");
 	}
 
 	public static String extractMethodName(String opName) {

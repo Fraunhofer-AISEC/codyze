@@ -69,27 +69,28 @@ public class OrderNFAEvaluator {
 		//   Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
 		//   Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
 
-		Vertex functionDeclaration = null;
+		Set<String> markInstances = new HashSet<>();
+		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
 
-		for (String markInstance : instanceContext.getMarkInstances()) {
-			Vertex variableDecl = instanceContext.getVertex(markInstance);
-			Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
-			if (containingFunction.isEmpty()) {
-				log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
-				return null; // todo throw
-			}
-			if (functionDeclaration != null && !functionDeclaration.equals(containingFunction.get())) {
-				log.info("Instances are distributed over multiple methods, skipping intraprocedural order evaluation");
-				// fixme is the order true in this case, or is it false?
-				return null;
-			}
-			functionDeclaration = containingFunction.get();
+		if (markInstances.size() > 1) {
+			throw new ExpressionEvaluationException("Order statement contains more than one base. Not supported.");
+		}
+		if (markInstances.size() == 0) {
+			throw new ExpressionEvaluationException("Order statement does not contain any ops. Invalid order");
 		}
 
-		if (functionDeclaration == null) {
-			log.error("Did not find a containing function for the given instances of this order");
-			return null; // todo throw
+		Vertex variableDecl = instanceContext.getVertex(markInstances.iterator().next());
+		if (variableDecl == null) {
+			throw new ExpressionEvaluationException("Variable is not set in the instancecontext. Invalid evaluation.");
 		}
+
+		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
+		if (containingFunction.isEmpty()) {
+			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
+			throw new ExpressionNotApplicableException("Instance vertex " + variableDecl.property("code") + " is not contained in a method/function");
+		}
+
+		Vertex functionDeclaration = containingFunction.get();
 
 		boolean isOrderValid = true;
 

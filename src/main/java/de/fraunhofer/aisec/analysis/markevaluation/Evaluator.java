@@ -182,7 +182,9 @@ public class Evaluator {
 					for (Vertex v : bases) {
 						innerList.add(new Pair<>(entity.getN(), v));
 					}
-					entities.add(innerList);
+					if (!innerList.isEmpty()) {
+						entities.add(innerList);
+					}
 				} // else: unknown Entity referenced, this rule does not make much sense
 
 			}

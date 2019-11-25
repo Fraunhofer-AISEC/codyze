@@ -23,14 +23,16 @@ public class ExpressionComparator<T> implements Comparator<T> {
 	@Override
 	public int compare(T value, T t) {
 		if (t instanceof String && value instanceof String) {
+			if (value.equals(t)) {
+				return 0;
+			}
 			try {
 				BigDecimal other = new BigDecimal((String) t);
 				BigDecimal myself = new BigDecimal((String) value);
 				return myself.compareTo(other);
 			}
 			catch (NumberFormatException e) {
-				log.debug("Cannot compare " + value + " to " + t);
-				throw new ExpressionEvaluationException("Cannot compare " + value + " to " + t, e);
+				return ((String) value).compareTo((String) t);
 			}
 		}
 		log.error("Cannot compare " + value + " to " + t);

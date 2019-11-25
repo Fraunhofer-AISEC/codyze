@@ -162,14 +162,10 @@ public class Evaluator {
 
 							// Program variable is either the Base of some method call ...
 							Optional<Vertex> ref = CrymlinQueryWrapper.getBaseOfCallExpression(vertex);
-							if (ref.isPresent()) {
-								instanceVariables.add(ref.get());
-							}
+							ref.ifPresent(instanceVariables::add);
 							// .. or assignee of a VariableDeclaration with a ConstructorExpression.
 							Optional<Vertex> assignee = CrymlinQueryWrapper.getAssigneeOfConstructExpression(vertex);
-							if (assignee.isPresent()) {
-								instanceVariables.add(assignee.get());
-							}
+							assignee.ifPresent(instanceVariables::add);
 
 							if (ref.isEmpty() && assignee.isEmpty()) {
 								log.warn("Did not find an instance variable for {} when searching at node {}", referencedEntity, vertex.property("code").value());

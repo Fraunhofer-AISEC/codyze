@@ -6,10 +6,14 @@ import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.constraints.Null;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,7 +27,8 @@ public class ExpressionHelper {
 		// hide
 	}
 
-	public static String exprToString(Expression expr) {
+	@NonNull
+	public static String exprToString(@Null Expression expr) {
 		if (expr == null) {
 			return " null ";
 		}
@@ -117,12 +122,15 @@ public class ExpressionHelper {
 		return asNumber(opt.get());
 	}
 
-	public static Number asNumber(Object opt) {
+	@Nullable
+	public static Number asNumber(@Nullable Object opt) {
 		if (opt == null) {
 			return null;
 		}
-		if (opt instanceof Integer) {
-			return (Integer) opt;
+
+		// See if we can convert to numeric
+		if (opt instanceof Number) {
+			return (Number) opt;
 		}
 		if (opt instanceof ConstantValue && ((ConstantValue) opt).isNumeric()) {
 			return (Number) ((ConstantValue) opt).getValue();
@@ -225,7 +233,6 @@ public class ExpressionHelper {
 	public static void getRefsFromExp(
 			Expression exp, Set<String> entityRefs, Set<String> functionRefs) {
 		if (exp == null) {
-			log.error("Expression is null, cannot get refs");
 			return;
 		}
 		if (exp instanceof ComparisonExpression) {
@@ -274,4 +281,82 @@ public class ExpressionHelper {
 		}
 	}
 
+	public static String toComparableString(int x) {
+		return String.valueOf(x) + ".0";
+	}
+
+	public static String toComparableString(long x) {
+		return String.valueOf(x) + ".0";
+	}
+
+	public static String toComparableString(float x) {
+		return String.valueOf(x);
+	}
+
+	public static String toComparableString(double x) {
+		return String.valueOf(x);
+	}
+
+	public static String toComparableString(byte x) {
+		return String.valueOf(x) + ".0";
+	}
+
+	public static String toComparableString(char x) {
+		return String.valueOf(x);
+	}
+
+	public static String toComparableString(String x) {
+		if (x.startsWith("\"")) {
+			x = x.substring(1);
+		}
+		if (x.endsWith("\"")) {
+			x = x.substring(0, x.length() - 2);
+		}
+
+		// Check if it is numeric
+		try {
+			BigDecimal bd = new BigDecimal(x);
+			DecimalFormat df = new DecimalFormat("#.0#######");
+			return df.format(bd);
+		}
+		catch (NumberFormatException nfe) {
+			return x;
+		}
+	}
+
+	public static String toComparableString(boolean x) {
+		return String.valueOf(x);
+	}
+
+	/**
+	 * Converts a value (Numeric or String) into a "comparable String".
+	 *
+	 * A Comparable String is a String representation that represents all Numerics in a standard format that can be compared using the ExpressionComparator.
+	 *
+	 * @param x
+	 * @return
+	 */
+	public static String toComparableString(Object x) {
+		if (x == null) {
+			log.warn("Unexpected: toComparableString received null expression. Continuing best-effort.");
+			return "";
+		}
+		if (x instanceof Integer) {
+			return toComparableString((int) x);
+		}
+		if (x instanceof Float) {
+			return toComparableString((float) x);
+		}
+		if (x instanceof Long) {
+			return toComparableString((long) x);
+		}
+		if (x instanceof Double) {
+			return toComparableString((double) x);
+		}
+		if (x instanceof String) {
+			return toComparableString((String) x);
+		}
+
+		return x.toString();
+	}
 }

@@ -11,6 +11,7 @@ import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.graph.Literal;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -33,11 +34,7 @@ import org.eclipse.lsp4j.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.lang.Math.toIntExact;
 
@@ -157,29 +154,30 @@ public class Evaluator {
 			// We collect all entities and calculate which instances (=program variables) correspond to the entity.
 			// entities is a map with key: name of the Mark Entity (e.g., "b"). value: Vertex to which the program variable REFERS_TO.
 			for (AliasedEntityExpression entity : s.getEntities()) {
-				HashSet<Vertex> bases = new HashSet<>();
+				HashSet<Vertex> instanceVariables = new HashSet<>();
 				MEntity referencedEntity = this.markModel.getEntity(entity.getE());
 				if (referencedEntity != null) {
 					for (MOp op : referencedEntity.getOps()) {
 						for (Vertex vertex : op.getAllVertices()) {
-							Iterator<Edge> it = vertex.edges(Direction.OUT, "BASE");
-							Vertex ref = null;
-							if (it.hasNext()) {
-								Vertex baseVertex = it.next().inVertex();
-								Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
-								if (refIterator.hasNext()) {
-									ref = refIterator.next().inVertex();
-									bases.add(ref);
-								}
+
+							// Program variable is either the Base of some method call ...
+							Optional<Vertex> ref = CrymlinQueryWrapper.getBaseOfCallExpression(vertex);
+							if (ref.isPresent()) {
+								instanceVariables.add(ref.get());
+							}
+							// .. or assignee of a VariableDeclaration with a ConstructorExpression.
+							Optional<Vertex> assignee = CrymlinQueryWrapper.getAssigneeOfConstructExpression(vertex);
+							if (assignee.isPresent()) {
+								instanceVariables.add(assignee.get());
 							}
 
-							if (ref == null) {
-								log.warn("Did not find a base for {}", vertex.value("code").toString());
+							if (ref.isEmpty() && assignee.isEmpty()) {
+								log.warn("Did not find an instance variable for {} when searching at node {}", referencedEntity, vertex.property("code").value());
 							}
 						}
 					}
 					ArrayList<Pair<String, Vertex>> innerList = new ArrayList<>();
-					for (Vertex v : bases) {
+					for (Vertex v : instanceVariables) {
 						innerList.add(new Pair<>(entity.getN(), v));
 					}
 					if (!innerList.isEmpty()) {
@@ -207,7 +205,7 @@ public class Evaluator {
 
 				// Evaluate "when" part, if present
 				if (s.getCond() != null) {
-					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, rule);
+					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, rule, crymlinTraversal);
 					for (ResultWithContext resultCond : resultsCond) {
 						if (!(resultCond.get() instanceof Boolean)) {
 							log.error("Result is of type {}, expected boolean.", resultCond.getClass());
@@ -218,10 +216,10 @@ public class Evaluator {
 							continue;
 						}
 
-						results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), s.getEnsure().getExp(), ee, rule));
+						results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), s.getEnsure().getExp(), ee, rule, crymlinTraversal));
 					}
 				} else {
-					results.addAll(evaluateExpressionWithContext(null, s.getEnsure().getExp(), ee, rule));
+					results.addAll(evaluateExpressionWithContext(null, s.getEnsure().getExp(), ee, rule, crymlinTraversal));
 				}
 			}
 
@@ -229,10 +227,11 @@ public class Evaluator {
 			for (ResultWithContext result : results) {
 				// the value of the result should always be boolean, as this should be the result of the topmost expression
 				if (result.get() instanceof Boolean) {
-					// if the result of the expression evaluation is false, and we did not add a finding during expression
-					// evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
-					// responsible vertices
-					if (result.get().equals(false) && !result.isFindingAlreadyAdded()) {
+					/*
+					 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
+					 * responsible vertices.
+					 */
+					if (!result.isFindingAlreadyAdded()) {
 						List<Range> ranges = new ArrayList<>();
 						if (result.getResponsibleVertices().isEmpty()) {
 							ranges.add(new Range(new Position(-1, -1),
@@ -247,14 +246,16 @@ public class Evaluator {
 									new Position(endLine, endColumn)));
 							}
 						}
+						boolean isRuleViolated = !(Boolean) result.get();
 						ctx.getFindings()
 								.add(new Finding(
 									"MarkRuleEvaluationFinding: Rule "
 											+ rule.getName()
-											+ " violated",
+											+ (isRuleViolated ? " violated" : " verified"),
 									ctx.getCurrentFile(),
 									rule.getErrorMessage(),
-									ranges));
+									ranges,
+									isRuleViolated));
 					}
 				} else {
 					log.error("Unable to evaluate rule {}", rule.getName());
@@ -271,10 +272,12 @@ public class Evaluator {
 	 * @param expression The expression to be evaluated
 	 * @param expressionEvaluator The expressionevaluator
 	 * @param markRule The rule the expression is contained in
+	 * @param crymlin
 	 * @return List of results for this expression. The list contains multiple results, if one or more markvars have more corresponding vertices in the CPG
 	 */
 	private List<ResultWithContext> evaluateExpressionWithContext(@Nullable CPGVariableContext previousVariableContext, Expression expression,
-			ExpressionEvaluator expressionEvaluator, MRule markRule) {
+			ExpressionEvaluator expressionEvaluator, MRule markRule,
+			CrymlinTraversalSource crymlin) {
 
 		HashSet<String> newMarkVars = new HashSet<>();
 		ExpressionHelper.collectVars(expression, newMarkVars); // extract all used markvars from the expression
@@ -288,12 +291,23 @@ public class Evaluator {
 		// [[(r.rand, v123), (r.rand, v23)], [(cm.alg, v163), (cm.alg, v33)],
 		List<List<Pair<String, CPGVertexWithValue>>> varAssignments = new ArrayList<>();
 		for (String markVar : newMarkVars) {
-			List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(markVar, markRule);
-			List<CPGVertexWithValue> assignments = CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices);
+			List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(markVar, markRule, crymlin);
 			List<Pair<String, CPGVertexWithValue>> innerList = new ArrayList<>();
+			//TODO We should not have to distinguish between consts. and variables but rather pass any vertex to the constant resolver.
+
+			// The arguments themselves may be constants ("Literal"). In that case, add the value.
+			for (Vertex v : matchingVertices) {
+				if (v.label().equals(Literal.class.getSimpleName())) {
+					innerList.add(new Pair<>(markVar, new CPGVertexWithValue(v, v.property("value").value())));
+				}
+			}
+
+			// Use Constant resolver to resolve assignments to arguments
+			List<CPGVertexWithValue> assignments = CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices);
 			for (CPGVertexWithValue vertexWithValue : assignments) {
 				innerList.add(new Pair<>(markVar, vertexWithValue));
 			}
+
 			varAssignments.add(innerList);
 		}
 
@@ -323,17 +337,27 @@ public class Evaluator {
 			for (CPGVariableContext variableContext : variableContexts) {
 				expressionEvaluator.setCPGVariableContext(variableContext);
 				// do the evaluation of the expression for one variableContext (and one instancecontext which was set before)
-				ResultWithContext result = expressionEvaluator.evaluate(expression);
-				// result has the variablecontext already set to variableContext
+				try {
+					ResultWithContext result = expressionEvaluator.evaluate(expression);
+					// result has the variablecontext already set to variableContext
 
-				allresults.add(result);
+					allresults.add(result);
+				}
+				catch (ExpressionEvaluationException e) {
+					log.error(e.getMessage(), e);
+				}
 			}
 		} else {
 			// can this be that we do not have any markvar in a rule?
 			expressionEvaluator.setCPGVariableContext(new CPGVariableContext()); // empty context
-			ResultWithContext result = expressionEvaluator.evaluate(expression);
+			try {
+				ResultWithContext result = expressionEvaluator.evaluate(expression);
 
-			allresults.add(result);
+				allresults.add(result);
+			}
+			catch (ExpressionEvaluationException e) {
+				log.error(e.getMessage(), e);
+			}
 		}
 
 		return allresults;

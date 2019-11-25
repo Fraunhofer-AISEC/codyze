@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Wraps Mark instances ("b") and for each Mark instance (one of) the CPG vertices that defines it.
+ * Maps a Mark instances ("b") to (one of) the CPG vertices that defines it.
  *
- * key: Mark instance ("b") value: the Vertex that usages of program variables corresponding to "b" REFERS_TO
+ * key: Mark instance ("b") value: the Vertex that usages of program variables corresponding to "b" REFERS_TO. Typically a VariableDeclaration node.
  *
  */
 public class CPGInstanceContext {

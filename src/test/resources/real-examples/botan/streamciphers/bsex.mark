@@ -1,5 +1,13 @@
 package botan
 
+entity Botan::RSA_PrivateKey {
+
+    var key_length : int;
+
+    op init {
+        Botan::RSA_PrivateKey(_, key_length);
+    }
+}
 
 entity Botan::StreamCipher isa Cipher {
 	
@@ -119,4 +127,11 @@ rule UseOfBotan_StreamMode {
 	ensure
 		order sc.create(), sc.init(), (sc.start(), sc.process()*, sc.finish())+, sc.reset()?
 	onfail WrongUseOfBotan_StreamCipher
+}
+
+rule KeySize {
+	using Botan::RSA_PrivateKey as pk
+	ensure
+		pk.key_length > 4096;
+	onfail TooShortPrivateKey
 }

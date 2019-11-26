@@ -151,20 +151,9 @@ public class ExpressionEvaluator {
 		ResultWithContext leftResult = evaluateExpression(left);
 		ResultWithContext rightResult = evaluateExpression(right);
 
-		String lString = ExpressionHelper.asString(leftResult);
-		String rString = ExpressionHelper.asString(rightResult);
-
-		Number lNumber = ExpressionHelper.asNumber(leftResult);
-		Number rNumber = ExpressionHelper.asNumber(rightResult);
-
-		Boolean lBoolean = ExpressionHelper.asBoolean(leftResult);
-		Boolean rBoolean = ExpressionHelper.asBoolean(rightResult);
 		String leftComp = ExpressionHelper.toComparableString(leftResult.get());
 		String rightComp = ExpressionHelper.toComparableString(rightResult.get());
 		ExpressionComparator<String> comp = new ExpressionComparator<>();
-
-		Class leftType = leftResult.get().getClass();
-		Class rightType = rightResult.get().getClass();
 
 		log.debug("left result={} right result={}", leftResult.get(), rightResult.get());
 
@@ -216,7 +205,6 @@ public class ExpressionEvaluator {
 				if (rightResult.get() instanceof List) {
 					List l = (List) rightResult.get();
 
-					boolean evalValue = false;
 					for (Object o : l) {
 						log.debug(
 							"Comparing left expression with element of right expression: {} vs. {}",
@@ -224,20 +212,17 @@ public class ExpressionEvaluator {
 							o);
 
 						if (o != null) {
-							if (lString != null) {
-								evalValue |= lString.equals(o);
-							} else if (lNumber != null) {
-								evalValue |= lNumber.equals(o);
-							} else if (lBoolean != null) {
-								evalValue |= lBoolean.equals(o);
+							String inner = ExpressionHelper.toComparableString(o);
+							if (comp.compare(leftComp, inner) == 0) {
+								return ResultWithContext.fromExisting(true, leftResult, rightResult);
 							}
 						}
 					}
 
-					return ResultWithContext.fromExisting(evalValue, leftResult, rightResult);
+					return ResultWithContext.fromExisting(false, leftResult, rightResult);
 				}
 
-				throw new ExpressionEvaluationException("Type of right expression must be List; given: " + rightType);
+				throw new ExpressionEvaluationException("Type of right expression must be List; given: " + rightResult.get().getClass());
 			case "like":
 				try {
 					return ResultWithContext.fromExisting(

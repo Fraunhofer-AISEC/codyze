@@ -942,7 +942,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	}
 
 	private List<Field> getFieldsIncludingSuperclasses(Class c) {
-		// Try cache first. There only few (<50) different inputs c, but many calls to this method.
+		// Try cache first. There are only few (<50) different inputs c, but many calls to this method.
 		if (fieldsIncludingSuperclasses.containsKey(c.getName())) {
 			return fieldsIncludingSuperclasses.get(c.getName());
 		}

@@ -153,6 +153,7 @@ public class Evaluator {
 			// Find entities whose ops are used in the current Mark rule.
 			// We collect all entities and calculate which instances (=program variables) correspond to the entity.
 			// entities is a map with key: name of the Mark Entity (e.g., "b"). value: Vertex to which the program variable REFERS_TO.
+			boolean allEntitiesFound = true;
 			for (AliasedEntityExpression entity : s.getEntities()) {
 				HashSet<Vertex> instanceVariables = new HashSet<>();
 				MEntity referencedEntity = this.markModel.getEntity(entity.getE());
@@ -178,9 +179,15 @@ public class Evaluator {
 					}
 					if (!innerList.isEmpty()) {
 						entities.add(innerList);
+					} else {
+						allEntitiesFound = false;
 					}
 				} // else: unknown Entity referenced, this rule does not make much sense
+			}
 
+			if (!allEntitiesFound) {
+				log.error("Entitites not found in the CPG. Skipping this rule");
+				continue;
 			}
 
 			// Generate all combinations of instances for each entity.
@@ -199,23 +206,29 @@ public class Evaluator {
 			for (CPGInstanceContext instanceContext : instanceContexts) {
 				ee.setCPGInstanceContext(instanceContext);
 
-				// Evaluate "when" part, if present
-				if (s.getCond() != null) {
-					List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, rule, crymlinTraversal);
-					for (ResultWithContext resultCond : resultsCond) {
-						if (!(resultCond.get() instanceof Boolean)) {
-							log.error("Result is of type {}, expected boolean.", resultCond.getClass());
-							continue;
-						}
-						if (resultCond.get().equals(false)) {
-							log.info("Precondition is false, do not evaluate ensure.");
-							continue;
-						}
+				try {
+					// Evaluate "when" part, if present
+					if (s.getCond() != null) {
+						List<ResultWithContext> resultsCond = evaluateExpressionWithContext(null, s.getCond().getExp(), ee, rule, crymlinTraversal);
+						for (ResultWithContext resultCond : resultsCond) {
+							if (!(resultCond.get() instanceof Boolean)) {
+								log.error("Result is of type {}, expected boolean.", resultCond.getClass());
+								continue;
+							}
+							if (resultCond.get().equals(false)) {
+								log.info("Precondition is false, do not evaluate ensure.");
+								continue;
+							}
 
-						results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), s.getEnsure().getExp(), ee, rule, crymlinTraversal));
+							results.addAll(evaluateExpressionWithContext(resultCond.getVariableContext(), s.getEnsure().getExp(), ee, rule, crymlinTraversal));
+						}
+					} else {
+						results.addAll(evaluateExpressionWithContext(null, s.getEnsure().getExp(), ee, rule, crymlinTraversal));
 					}
-				} else {
-					results.addAll(evaluateExpressionWithContext(null, s.getEnsure().getExp(), ee, rule, crymlinTraversal));
+				}
+				catch (ExpressionNotApplicableException e) {
+					// the expression does not need to be evaluated in this context, continuing
+					continue;
 				}
 			}
 
@@ -339,6 +352,9 @@ public class Evaluator {
 
 					allresults.add(result);
 				}
+				catch (ExpressionNotApplicableException e) {
+					throw e;
+				}
 				catch (ExpressionEvaluationException e) {
 					log.error(e.getMessage(), e);
 				}
@@ -350,6 +366,9 @@ public class Evaluator {
 				ResultWithContext result = expressionEvaluator.evaluate(expression);
 
 				allresults.add(result);
+			}
+			catch (ExpressionNotApplicableException e) {
+				throw e;
 			}
 			catch (ExpressionEvaluationException e) {
 				log.error(e.getMessage(), e);

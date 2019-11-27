@@ -132,6 +132,13 @@ rule UseOfBotan_StreamMode {
 rule KeySize {
 	using Botan::RSA_PrivateKey as pk
 	ensure
+		pk.key_length >= 4096;
+	onfail CorrectPrivateKeyLength
+}
+
+rule KeySize {
+	using Botan::RSA_PrivateKey as pk
+	ensure
 		pk.key_length > 4096;
-	onfail TooShortPrivateKey
+	onfail WrongPrivateKeyLength
 }

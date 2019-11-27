@@ -30,8 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class RealBotanTest {
@@ -120,13 +119,31 @@ class RealBotanTest {
 	}
 
 	@Test
-	@Disabled // Fails. Current problem: Constructor initializer https://git-int.aisec.fraunhofer.de/sas/dev/cpganalysisserver/issues/16
-	void testBsex() throws Exception {
+	void testCorrecKeySize() throws Exception {
 		@NonNull
 		Set<Finding> findings = performTest("real-examples/botan/streamciphers/bsex.cpp", "real-examples/botan/streamciphers/bsex.mark");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(findings.isEmpty());
+		Finding correctKeyLength = findings
+				.stream()
+				.filter(f -> f.getOnfailIdentifier().equals("CorrectPrivateKeyLength"))
+				.findFirst()
+				.get();
+		assertFalse(correctKeyLength.isProblem());
+	}
+
+	@Test
+	void testWrongKeySize() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("real-examples/botan/streamciphers/bsex.cpp", "real-examples/botan/streamciphers/bsex.mark");
+
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		Finding wrongKeyLength = findings
+				.stream()
+				.filter(f -> f.getOnfailIdentifier().equals("WrongPrivateKeyLength"))
+				.findFirst()
+				.get();
+		assertTrue(wrongKeyLength.isProblem());
 	}
 
 }

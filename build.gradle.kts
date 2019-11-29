@@ -12,6 +12,7 @@ plugins {
 
     id("org.sonarqube") version "2.7"
     id("com.diffplug.gradle.spotless") version "3.18.0"
+    id("com.github.hierynomus.license") version "0.15.0"
 }
 
 group = "de.fraunhofer.aisec"
@@ -210,3 +211,7 @@ spotless {
 }
 
 
+downloadLicenses {
+    includeProjectDependencies = true
+    dependencyConfiguration = "compileClasspath"
+}

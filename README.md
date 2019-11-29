@@ -1,15 +1,3 @@
-# Requirements
-
-The jar runs without any dependencies, but expects a reachable Neo4J Server (with default credentials)
-
-Start it locally with:
-
-```
-docker run -e NEO4J_AUTH=neo4j/password --publish=7474:7474 --publish=7687:7687 neo4j
-```
-
-Alternatively, you can set the environment-variables `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD` to make the system connect to a different host
-
 # Test manually
 
 First, build a packaged version of the `cpg`:

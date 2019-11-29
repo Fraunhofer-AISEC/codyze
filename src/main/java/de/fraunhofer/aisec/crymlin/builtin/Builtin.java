@@ -2,8 +2,9 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.Map;
 
 /** All built-in functions must implement this interface. */
 public interface Builtin {
@@ -29,7 +30,7 @@ public interface Builtin {
 	 * @param expressionEvaluator the expressionEvaluator, this builtin is called from
 	 * @return
 	 */
-	public ResultWithContext execute(
-			ResultWithContext arguments,
+	public Map<Integer, Object> execute(
+			Map<Integer, Object> arguments,
 			ExpressionEvaluator expressionEvaluator);
 }

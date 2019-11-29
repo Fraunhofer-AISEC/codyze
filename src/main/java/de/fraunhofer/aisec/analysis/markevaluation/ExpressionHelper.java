@@ -341,6 +341,9 @@ public class ExpressionHelper {
 			log.warn("Unexpected: toComparableString received null expression. Continuing best-effort.");
 			return "";
 		}
+		if (x instanceof ConstantValue) {
+			return toComparableString(((ConstantValue) x).getValue());
+		}
 		if (x instanceof Integer) {
 			return toComparableString((int) x);
 		}

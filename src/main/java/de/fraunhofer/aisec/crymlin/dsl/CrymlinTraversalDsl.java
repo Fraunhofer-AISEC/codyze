@@ -52,7 +52,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	 *
 	 * @return
 	 */
-	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "B" }, // c/p from example, unclear.
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "A" }, // c/p from example, unclear.
 			methodTypeParameters = { "A", "B" })
 	default CrymlinTraversal<S, E> variables() {
 		return (CrymlinTraversal<S, E>) hasLabel(LabelP.of(VariableDeclaration.class.getSimpleName()));

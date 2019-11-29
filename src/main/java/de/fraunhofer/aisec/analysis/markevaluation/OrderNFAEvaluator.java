@@ -1,7 +1,6 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import com.sun.xml.bind.v2.schemagen.xmlschema.Any;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -73,21 +72,24 @@ public class OrderNFAEvaluator {
 		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
 
 		if (markInstances.size() > 1) {
-			throw new ExpressionEvaluationException("Order statement contains more than one base. Not supported.");
+			log.warn("Order statement contains more than one base. Not supported.");
+			return null;
 		}
 		if (markInstances.size() == 0) {
-			throw new ExpressionEvaluationException("Order statement does not contain any ops. Invalid order");
+			log.warn("Order statement does not contain any ops. Invalid order");
+			return null;
 		}
 
 		Vertex variableDecl = instanceContext.getVertex(markInstances.iterator().next());
 		if (variableDecl == null) {
-			throw new ExpressionEvaluationException("Variable is not set in the instancecontext. Invalid evaluation.");
+			log.warn("Variable is not set in the instancecontext. Invalid evaluation.");
+			return null;
 		}
 
 		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
 		if (containingFunction.isEmpty()) {
 			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
-			throw new ExpressionNotApplicableException("Instance vertex " + variableDecl.property("code") + " is not contained in a method/function");
+			return null;
 		}
 
 		Vertex functionDeclaration = containingFunction.get();

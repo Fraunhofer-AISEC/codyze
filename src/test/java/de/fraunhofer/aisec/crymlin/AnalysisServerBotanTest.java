@@ -101,7 +101,7 @@ public class AnalysisServerBotanTest {
 		Mark markModel = server.getMarkModel();
 		assertNotNull(markModel);
 		List<MRule> rules = markModel.getRules();
-		assertEquals(8, rules.size());
+		assertEquals(7, rules.size());
 
 		Collection<MEntity> ents = markModel.getEntities();
 		assertEquals(9, ents.size());

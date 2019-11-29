@@ -3,7 +3,6 @@ package de.fraunhofer.aisec.analysis.structures;
 
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,16 +15,13 @@ import java.util.Set;
 public class ResultWithContext {
 	private static final Logger log = LoggerFactory.getLogger(ResultWithContext.class);
 
-	private CPGInstanceContext instanceContext;
-	private CPGVariableContext variableContext;
-	private boolean findingAlreadyAdded = false;
-	@NonNull
 	private Object value;
 
 	// optionally stores a vertex "responsible" for this finding
 	private Set<Vertex> vertices = new HashSet<>();
+	private boolean findingAlreadyAdded = false;
 
-	private ResultWithContext(@NonNull Object value) {
+	private ResultWithContext(Object value) {
 		this.value = value;
 	}
 
@@ -42,34 +38,18 @@ public class ResultWithContext {
 	/**
 	 * Creates a new ResultWithContext that does not refer to a Mark Literal or Operand.
 	 *
-	 * @param other New value.
+	 * @param value New value.
 	 * @param existingResults Possibly already existing ResultWithContext objects, e.g. result of left and right part of a binary expression.
 	 * @return this
 	 */
-	public static ResultWithContext fromExisting(@NonNull Object other, ResultWithContext... existingResults) {
-		ResultWithContext result = new ResultWithContext(other);
+	public static ResultWithContext fromExisting(@NonNull Object value, ResultWithContext... existingResults) {
+		ResultWithContext result = new ResultWithContext(value);
 		if (existingResults != null) {
 			for (ResultWithContext existing : existingResults) {
 				result.vertices.addAll(existing.getResponsibleVertices());
 			}
 		}
 		return result;
-	}
-
-	public CPGVariableContext getVariableContext() {
-		return this.variableContext;
-	}
-
-	public CPGInstanceContext getInstanceContext() {
-		return this.instanceContext;
-	}
-
-	public void setInstanceContext(CPGInstanceContext instanceContext) {
-		this.instanceContext = instanceContext;
-	}
-
-	public void setVariableContext(CPGVariableContext variableContext) {
-		this.variableContext = variableContext;
 	}
 
 	@NonNull
@@ -96,4 +76,5 @@ public class ResultWithContext {
 	public void addVertex(Vertex argument) {
 		this.vertices.add(argument);
 	}
+
 }

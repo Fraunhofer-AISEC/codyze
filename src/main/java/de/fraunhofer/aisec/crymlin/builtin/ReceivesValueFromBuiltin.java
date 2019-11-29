@@ -2,8 +2,15 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
+import de.fraunhofer.aisec.analysis.utils.Utils;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ReceivesValueFromBuiltin implements Builtin {
 	@Override
@@ -12,7 +19,9 @@ public class ReceivesValueFromBuiltin implements Builtin {
 	}
 
 	@Override
-	public ResultWithContext execute(ResultWithContext arguments, ExpressionEvaluator expressionEvaluator) {
+	public Map<Integer, Object> execute(
+			Map<Integer, Object> arguments,
+			ExpressionEvaluator expressionEvaluator) {
 		// TODO implement
 
 		// TODO FW: needs to be discussed, I am not clear what this should achieve
@@ -22,6 +31,9 @@ public class ReceivesValueFromBuiltin implements Builtin {
 		 * Botan::Cipher_Dir::ENCRYPTION ensure _receives_value_from(cm.iv, rng.myValue) onfail NoRandomIV }
 		 */
 
-		return null;
+		for (Map.Entry<Integer, Object> entry : arguments.entrySet()) {
+			arguments.put(entry.getKey(), ConstantValue.NULL);
+		}
+		return arguments;
 	}
 }

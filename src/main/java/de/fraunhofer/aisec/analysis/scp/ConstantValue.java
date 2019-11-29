@@ -18,11 +18,13 @@ public class ConstantValue<T> {
 	@NonNull
 	protected T value;
 
+	public static final ConstantValue NULL = new ConstantValue(null, Type.NULL);
+
 	private enum Type {
-		NUMERIC, BOOLEAN, STRING
+		NUMERIC, BOOLEAN, STRING, NULL
 	}
 
-	private ConstantValue(@NonNull T value, @NonNull Type type) {
+	private ConstantValue(T value, @NonNull Type type) {
 		this.value = value;
 		this.type = type;
 	}
@@ -54,6 +56,10 @@ public class ConstantValue<T> {
 
 	public boolean isString() {
 		return this.type.equals(Type.STRING);
+	}
+
+	public boolean isNull() {
+		return this.type.equals(Type.NULL);
 	}
 
 	@Override

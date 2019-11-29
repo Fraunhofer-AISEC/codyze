@@ -3,12 +3,14 @@ package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
+import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Method signature: _split(String str, String splitter, int position)
@@ -27,35 +29,40 @@ public class SplitBuiltin implements Builtin {
 	}
 
 	@Override
-	public ResultWithContext execute(ResultWithContext arguments, ExpressionEvaluator expressionEvaluator) {
+	public Map<Integer, Object> execute(Map<Integer, Object> arguments, ExpressionEvaluator expressionEvaluator) {
 
 		// arguments: String, String, int
 		// example:
 		// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
 
-		List argResultList = (List) (arguments.get());
+		for (Map.Entry<Integer, Object> entry : arguments.entrySet()) {
 
-		String s = ExpressionHelper.asString(argResultList.get(0));
-		String regex = ExpressionHelper.asString(argResultList.get(1));
-		Number index = ExpressionHelper.asNumber(argResultList.get(2));
+			List argResultList = (List) (entry.getValue());
 
-		if (s == null || regex == null || index == null) {
-			return null;
+			String s = ExpressionHelper.asString(argResultList.get(0));
+			String regex = ExpressionHelper.asString(argResultList.get(1));
+			Number index = ExpressionHelper.asNumber(argResultList.get(2));
+
+			if (s == null || regex == null || index == null) {
+				return null;
+			}
+
+			log.debug("args are: " + s + "; " + regex + "; " + index);
+			String ret = null;
+			String[] splitted = s.split(regex);
+			if (index.intValue() < splitted.length) {
+				ret = splitted[index.intValue()];
+			}
+
+			if (ret != null) {
+				// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
+				// stringResult.setValue(ret);
+				arguments.put(entry.getKey(), ConstantValue.of(ret));
+			} else {
+				arguments.put(entry.getKey(), ConstantValue.NULL);
+			}
 		}
 
-		log.debug("args are: " + s + "; " + regex + "; " + index);
-		String ret = null;
-		String[] splitted = s.split(regex);
-		if (index.intValue() < splitted.length) {
-			ret = splitted[index.intValue()];
-		}
-
-		if (ret != null) {
-			// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
-			// stringResult.setValue(ret);
-			return ResultWithContext.fromExisting(ret, arguments);
-		} else {
-			return null;
-		}
+		return arguments;
 	}
 }

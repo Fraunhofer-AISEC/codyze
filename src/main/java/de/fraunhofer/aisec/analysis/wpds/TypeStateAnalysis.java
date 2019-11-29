@@ -11,7 +11,6 @@ import de.breakpoint.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;

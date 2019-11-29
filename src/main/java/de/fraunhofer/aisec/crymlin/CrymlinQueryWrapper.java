@@ -6,6 +6,7 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
 import de.fraunhofer.aisec.analysis.scp.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
@@ -393,8 +394,7 @@ public class CrymlinQueryWrapper {
 				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v);
 				// fixme what if we do not know the value, shouldnt we then still return the argumentvertex?
 				if (constantValue.isPresent()) {
-					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get()
-							.getValue()); // todo? return the constantvalue or the inner value?
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get());
 					ret.add(mva);
 				} else {
 					log.warn("Could not constant resolve node {}", v.id());
@@ -482,5 +482,27 @@ public class CrymlinQueryWrapper {
 			return Optional.of(variableDeclaration);
 		}
 		return Optional.empty();
+	}
+
+	public static List<CPGVertexWithValue> resolveOperand(MarkContextHolder instance, @NonNull String operand, @NonNull MRule rule,
+			@NonNull CrymlinTraversalSource crymlin) {
+		List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(operand, rule, crymlin);
+
+		// fixme: only operate on the given INSTANCE
+
+		List<CPGVertexWithValue> result = new ArrayList<>();
+
+		// The arguments themselves may be constants ("Literal"). In that case, add the value.
+		for (Vertex v : matchingVertices) {
+			if (v.label().equals(Literal.class.getSimpleName())) {
+				result.add(new CPGVertexWithValue(v, ConstantValue.of(v.property("value").value())));
+			}
+		}
+
+		// Use Constant resolver to resolve assignments to arguments
+		List<CPGVertexWithValue> assignments = CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices);
+		result.addAll(assignments);
+
+		return result;
 	}
 }

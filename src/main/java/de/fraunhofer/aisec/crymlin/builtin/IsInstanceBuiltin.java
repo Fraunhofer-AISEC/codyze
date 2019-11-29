@@ -1,15 +1,18 @@
 
 package de.fraunhofer.aisec.crymlin.builtin;
 
+import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.python.antlr.ast.arguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,25 +37,31 @@ public class IsInstanceBuiltin implements Builtin {
 	}
 
 	@Override
-	public ResultWithContext execute(ResultWithContext arguments, ExpressionEvaluator expressionEvaluator) {
+	public Map<Integer, Object> execute(
+			Map<Integer, Object> arguments,
+			ExpressionEvaluator expressionEvaluator) {
 
-		List argResultList = (List) (arguments.get());
+		for (Map.Entry<Integer, Object> entry : arguments.entrySet()) {
 
-		Object classnameArgument = argResultList.get(1);
-		if (!(classnameArgument instanceof String)) {
-			log.error("var of is_instance is empty");
-			return null;
+			List argResultList = (List) (entry.getValue());
+
+			Object classnameArgument = argResultList.get(1);
+			if (!(classnameArgument instanceof String)) {
+				log.error("var of is_instance is empty");
+				return null;
+			}
+			// unify type (Java/C/C++)
+			String classname = Utils.unifyType((String) classnameArgument);
+			Set<Vertex> v = expressionEvaluator.getMarkContext().getContext(entry.getKey()).getResponsibleVertices();
+
+			if (v.size() != 1) {
+				log.error("Cannot evaluate _is_instance with multiple vertices as input");
+				arguments.put(entry.getKey(), ConstantValue.NULL);
+			} else {
+				String type = v.iterator().next().value("type");
+				arguments.put(entry.getKey(), ConstantValue.of(type.equals(classname)));
+			}
 		}
-		// unify type (Java/C/C++)
-		String classname = Utils.unifyType((String) classnameArgument);
-		Set<Vertex> v = arguments.getResponsibleVertices();
-
-		if (v.size() != 1) {
-			log.error("Cannot evaluate _is_instance with multiple vertices as input");
-			return null;
-		} else {
-			String type = v.iterator().next().value("type");
-			return ResultWithContext.fromExisting(type.equals(classname), arguments);
-		}
+		return arguments;
 	}
 }

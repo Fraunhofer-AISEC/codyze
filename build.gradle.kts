@@ -11,8 +11,8 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "2.7"
-    id("com.diffplug.gradle.spotless") version "3.18.0"
-    id("com.github.hierynomus.license") version "0.15.0"
+    id("com.diffplug.gradle.spotless") version "3.26.0"
+    //id("com.github.hierynomus.license") version "0.15.0"
 }
 
 group = "de.fraunhofer.aisec"
@@ -47,9 +47,12 @@ repositories {
     mavenCentral()
 
     ivy {
-        url = uri("https://download.eclipse.org/tools/cdt/releases/9.6/cdt-9.6.0/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/9.6/cdt-9.6.0/plugins")
+        metadataSources {
+            artifact()
+        }
         patternLayout {
-            artifact("/[organisation].[artifact]_[revision].[ext]")
+            artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
 
@@ -165,40 +168,6 @@ sourceSets.configureEach {
     }
 }
 
-tasks {
-    val docker by registering(Exec::class) {
-        description = "Builds a docker image based on the Dockerfile."
-
-        dependsOn(build)
-
-        executable = "docker"
-
-        val commit = System.getenv("CI_COMMIT_SHA")
-
-        setArgs(listOf("build",
-                "-t", "registry.netsec.aisec.fraunhofer.de/cpg/" + project.name + ':' + (commit?.substring(0, 8)
-                ?: "latest"),
-                '.'))
-    }
-
-    jar {
-        manifest {
-            attributes(
-                    mapOf("Name" to "CPG Analysis Server",
-                            "Implementation-Title" to project.name,
-                            "Implementation-Version" to project.version,
-                            "Class-Path" to configurations.runtimeClasspath.files.map { it.name }.joinToString(" "),
-                            "Main-Class" to application.mainClassName
-                    )
-            )
-        }
-    }
-
-    startScripts {
-        classpath = files(project.name + "-" + project.version + ".jar")
-    }
-}
-
 spotless {
     java {
         targetExclude(
@@ -210,8 +179,7 @@ spotless {
     }
 }
 
-
-downloadLicenses {
+/*downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = "compileClasspath"
-}
+}*/

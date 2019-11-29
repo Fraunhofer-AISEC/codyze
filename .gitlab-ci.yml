@@ -1,4 +1,4 @@
-image: openjdk:11
+image: gradle:jdk11
 
 services:
   - neo4j:3.5.3
@@ -26,21 +26,17 @@ build:
     GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     PIP_CACHE_DIR: "/cache/.pip"
   tags:
-    - docker
+    - netsec
   before_script:
-    - apt update && apt install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
-    - curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-    - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-    - apt update && apt install -y docker-ce
-    - cp sonar.crt /usr/local/share/ca-certificates/sonar.crt
+    - cp netsec.crt /usr/local/share/ca-certificates/netsec.crt
     - update-ca-certificates
+    - keytool -import -trustcacerts -cacerts -storepass changeit -file netsec.crt -alias netsec -noprompt-
   script:
     # make sure the cached gradle directory exists
     - mkdir -p /cache/.gradle
     # build
     - echo $GRADLE_PROPERTIES > gradle.properties
-    - ./gradlew --parallel --refresh-dependencies -Dsonar.host.url=https://sonar.netsec.aisec.fraunhofer.de clean docker sonarqube
-    - if [[ $CI_COMMIT_REF_NAME == 'master' ]]; then docker push $DOCKER_REGISTRY_URL/$PARENT_PROJECT_NAME/$CI_PROJECT_NAME:${CI_COMMIT_SHA:0:8}; fi
+    - gradle --parallel --refresh-dependencies -Dsonar.host.url=https://sonar.netsec.aisec.fraunhofer.de clean sonarqube
   artifacts:
     when: always
     paths:

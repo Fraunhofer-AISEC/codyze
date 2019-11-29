@@ -106,10 +106,6 @@ dependencies {
 
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
-    // only needed for export to neo4j
-    // https://mvnrepository.com/artifact/org.neo4j/neo4j-tinkerpop-api-impl
-    api("org.neo4j", "neo4j-tinkerpop-api-impl", "0.9-3.4.0")
-
     // Code Property Graph
     api("de.fraunhofer.aisec", "cpg", "1.1-SNAPSHOT") { setChanging(true) }
 

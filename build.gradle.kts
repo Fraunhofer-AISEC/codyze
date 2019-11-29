@@ -12,11 +12,18 @@ plugins {
 
     id("org.sonarqube") version "2.7"
     id("com.diffplug.gradle.spotless") version "3.26.0"
-    //id("com.github.hierynomus.license") version "0.15.0"
+    id("com.github.hierynomus.license") version "0.15.0"
 }
 
 group = "de.fraunhofer.aisec"
 version = "1.0-SNAPSHOT"
+
+/* License plugin needs a special treatment, as long as the main project does not have a license yet.
+   See https://github.com/hierynomus/license-gradle-plugin/issues/155 
+*/
+gradle.startParameter.excludedTaskNames += "licenseMain"
+gradle.startParameter.excludedTaskNames += "licenseTest"
+
 
 publishing {
     publications {
@@ -179,7 +186,7 @@ spotless {
     }
 }
 
-/*downloadLicenses {
+downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = "compileClasspath"
-}*/
+}

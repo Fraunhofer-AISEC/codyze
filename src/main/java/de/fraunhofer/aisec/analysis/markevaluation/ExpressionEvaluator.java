@@ -175,21 +175,24 @@ public class ExpressionEvaluator {
 
 		Map<Integer, Object> combinedResult = new HashMap<>();
 
-		Set<Integer> keys = new HashSet<>(leftResult.keySet());
-		keys.addAll(rightResult.keySet());
+		for (Integer key : rightResult.keySet()) {
+			// we only need to look at the keys from the right side.
+			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
+			// the right side currently cannot remove values!
+			Object left = getcorrespondingLeftResult(leftResult, rightResult, key);
+			Object right = rightResult.get(key);
 
-		for (Integer key : keys) {
+			boolean leftIsNull = (left == null || left.equals(ConstantValue.NULL));
+			boolean rightIsNull = (right == null || right.equals(ConstantValue.NULL));
 
-			if (leftResult.get(key).equals(ConstantValue.NULL)
-					&&
-					rightResult.get(key).equals(ConstantValue.NULL)) {
+			if (leftIsNull && rightIsNull) {
 				// null & null = null, null | null = null
 
 				combinedResult.put(key, ConstantValue.NULL);
 
-			} else if (!(leftResult.get(key).getClass().equals(Boolean.class) || leftResult.get(key).equals(ConstantValue.NULL))
+			} else if (!(leftIsNull || left.getClass().equals(Boolean.class))
 					||
-					!(rightResult.get(key).getClass().equals(Boolean.class) || rightResult.get(key).equals(ConstantValue.NULL))) {
+					!(rightIsNull || right.getClass().equals(Boolean.class))) {
 
 				log.warn("At least one subexpression is not of type Boolean: {} vs {}",
 					ExpressionHelper.exprToString(leftExp),
@@ -197,35 +200,37 @@ public class ExpressionEvaluator {
 				combinedResult.put(key, ConstantValue.NULL);
 
 			} else if (expr instanceof LogicalAndExpression) {
-				if (leftResult.get(key).getClass().equals(Boolean.class)
-						&&
-						rightResult.get(key).getClass().equals(Boolean.class)) {
-
-					combinedResult.put(key, Boolean.logicalAnd((Boolean) leftResult.get(key), (Boolean) rightResult.get(key)));
-				} else if (leftResult.get(key).equals(ConstantValue.NULL) || rightResult.get(key).equals(ConstantValue.NULL)) {
+				if (leftIsNull || rightIsNull) {
 					// null & true = null
 					// null & false = false
-					if (rightResult.get(key).equals(false) || leftResult.get(key).equals(false)) {
+					if ((!rightIsNull && right.equals(false))
+							||
+							(!leftIsNull && left.equals(false))) {
 						combinedResult.put(key, false);
 					} else {
 						combinedResult.put(key, ConstantValue.NULL);
 					}
+				} else if (left.getClass().equals(Boolean.class)
+						&&
+						right.getClass().equals(Boolean.class)) {
+
+					combinedResult.put(key, Boolean.logicalAnd((Boolean) left, (Boolean) right));
 				}
 
 			} else { // LogicalOrExpression
-				if (leftResult.get(key).getClass().equals(Boolean.class)
-						&&
-						rightResult.get(key).getClass().equals(Boolean.class)) {
-
-					combinedResult.put(key, Boolean.logicalOr((Boolean) leftResult.get(key), (Boolean) rightResult.get(key)));
-				} else if (leftResult.get(key).equals(ConstantValue.NULL) || rightResult.get(key).equals(ConstantValue.NULL)) {
+				if (leftIsNull || rightIsNull) {
 					// null | true = true
 					// null | false = null
-					if (rightResult.get(key).equals(true) || leftResult.get(key).equals(true)) {
-						combinedResult.put(key, true);
-					} else {
+					if ((!rightIsNull && right.equals(true))
+							||
+							(!leftIsNull && left.equals(true))) {
 						combinedResult.put(key, ConstantValue.NULL);
 					}
+				} else if (left.getClass().equals(Boolean.class)
+						&&
+						right.getClass().equals(Boolean.class)) {
+
+					combinedResult.put(key, Boolean.logicalOr((Boolean) left, (Boolean) right));
 				}
 			}
 		}
@@ -236,35 +241,40 @@ public class ExpressionEvaluator {
 	@NonNull
 	private Map<Integer, Object> evaluateComparisonExpr(@NonNull ComparisonExpression expr) {
 		String op = expr.getOp();
-		Expression left = expr.getLeft();
-		Expression right = expr.getRight();
+		Expression leftExpr = expr.getLeft();
+		Expression rightExpr = expr.getRight();
 
 		log.debug(
 			"comparing expression {} with expression {}",
-			ExpressionHelper.exprToString(left),
-			ExpressionHelper.exprToString(right));
+			ExpressionHelper.exprToString(leftExpr),
+			ExpressionHelper.exprToString(rightExpr));
 
-		Map<Integer, Object> leftResult = evaluateExpression(left);
-		Map<Integer, Object> rightResult = evaluateExpression(right);
+		Map<Integer, Object> leftResult = evaluateExpression(leftExpr);
+		Map<Integer, Object> rightResult = evaluateExpression(rightExpr);
 
 		Map<Integer, Object> combinedResult = new HashMap<>();
 
-		Set<Integer> keys = new HashSet<>(leftResult.keySet());
-		keys.addAll(rightResult.keySet());
+		for (Integer key : rightResult.keySet()) {
+			// we only need to look at the keys from the right side.
+			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
+			// the right side currently cannot remove values!
+			Object left = getcorrespondingLeftResult(leftResult, rightResult, key);
+			Object right = rightResult.get(key);
 
-		for (Integer key : keys) {
-			if (leftResult.get(key).equals(ConstantValue.NULL)
-					|| rightResult.get(key).equals(ConstantValue.NULL)) {
+			if (left == null
+					|| right == null
+					|| left.equals(ConstantValue.NULL)
+					|| right.equals(ConstantValue.NULL)) {
 
 				// result of comparison is not known
 				combinedResult.put(key, ConstantValue.NULL);
 			} else {
 
-				String leftComp = ExpressionHelper.toComparableString(leftResult.get(key));
-				String rightComp = ExpressionHelper.toComparableString(rightResult.get(key));
+				String leftComp = ExpressionHelper.toComparableString(left);
+				String rightComp = ExpressionHelper.toComparableString(right);
 				ExpressionComparator<String> comp = new ExpressionComparator<>();
 
-				log.debug("left result={} right result={}", leftResult.get(key), rightResult.get(key));
+				log.debug("left result={} right result={}", left, right);
 
 				// TODO implement remaining operations -> @FW: which operations are supported?
 				switch (op) {
@@ -287,14 +297,14 @@ public class ExpressionEvaluator {
 						combinedResult.put(key, comp.compare(leftComp, rightComp) >= 0);
 						break;
 					case "in":
-						if (rightResult.get(key) instanceof List) {
-							List l = (List) rightResult.get(key);
+						if (right instanceof List) {
+							List l = (List) right;
 							boolean result = false;
 
 							for (Object o : l) {
 								log.debug(
 									"Comparing left expression with element of right expression: {} vs. {}",
-									leftResult.get(key),
+									left,
 									o);
 
 								if (o != null) {
@@ -308,14 +318,14 @@ public class ExpressionEvaluator {
 
 							combinedResult.put(key, result);
 						} else {
-							log.warn("Type of right expression must be List; given: " + rightResult.get(key).getClass());
+							log.warn("Type of right expression must be List; given: " + right.getClass());
 							combinedResult.put(key, ConstantValue.NULL);
 						}
 						break;
 					case "like":
 						boolean result = false;
 						combinedResult.put(key,
-							Pattern.matches(ExpressionHelper.toComparableString(rightResult.get(key)), ExpressionHelper.toComparableString(leftResult.get(key))));
+							Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
 						break;
 					default:
 						log.warn("Unsupported operand {}", op);
@@ -324,6 +334,23 @@ public class ExpressionEvaluator {
 			}
 		}
 		return combinedResult;
+	}
+
+	private Object getcorrespondingLeftResult(Map<Integer, Object> leftResult, Map<Integer, Object> rightResult, Integer key) {
+		if (leftResult.containsKey(key)) {
+			return leftResult.get(key);
+		}
+		List<Integer> copyStack = markContext.getCopyStack(key);
+		if (copyStack != null && !copyStack.isEmpty()) {
+			for (int i = copyStack.size() - 1; i >= 0; i--) {
+				int newKey = copyStack.get(i);
+				if (leftResult.containsKey(newKey)) {
+					return leftResult.get(newKey);
+				}
+			}
+		}
+
+		return ConstantValue.NULL;
 	}
 
 	/**
@@ -418,41 +445,42 @@ public class ExpressionEvaluator {
 
 		Map<Integer, Object> combinedResult = new HashMap<>();
 
-		Set<Integer> keys = new HashSet<>(leftResult.keySet());
-		keys.addAll(rightResult.keySet());
-
-		for (Integer key : keys) {
-
-			Class leftResultType = leftResult.get(key).getClass();
-			Class rightResultType = rightResult.get(key).getClass();
-
-			Object left = leftResult.get(key);
+		for (Integer key : rightResult.keySet()) {
+			// we only need to look at the keys from the right side.
+			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
+			// the right side currently cannot remove values!
+			Object left = getcorrespondingLeftResult(leftResult, rightResult, key);
 			Object right = rightResult.get(key);
 
-			// Unbox ConstantValues
-			if (leftResultType.equals(ConstantValue.class)) {
-				leftResultType = ((ConstantValue) left).getValue().getClass();
-				left = ((ConstantValue) left).getValue();
-			}
-
-			if (rightResultType.equals(ConstantValue.class)) {
-				rightResultType = ((ConstantValue) right).getValue().getClass();
-				right = ((ConstantValue) right).getValue();
-			}
-
-			if (!leftResultType.equals(rightResultType)) {
-				log.warn("Type of left expression does not match type of right expression: {} vs {}",
-					leftResultType.getSimpleName(),
-					rightResultType.getSimpleName());
-				combinedResult.put(key, ConstantValue.NULL);
-			}
-
-			if (leftResult.get(key).equals(ConstantValue.NULL)
-					|| rightResult.get(key).equals(ConstantValue.NULL)) {
+			if (left == null
+					|| right == null
+					|| left.equals(ConstantValue.NULL)
+					|| right.equals(ConstantValue.NULL)) {
 
 				// result of expr is not known
 				combinedResult.put(key, ConstantValue.NULL);
 			} else {
+
+				Class leftResultType = left.getClass();
+				Class rightResultType = right.getClass();
+
+				// Unbox ConstantValues
+				if (leftResultType.equals(ConstantValue.class)) {
+					leftResultType = ((ConstantValue) left).getValue().getClass();
+					left = ((ConstantValue) left).getValue();
+				}
+
+				if (rightResultType.equals(ConstantValue.class)) {
+					rightResultType = ((ConstantValue) right).getValue().getClass();
+					right = ((ConstantValue) right).getValue();
+				}
+
+				if (!leftResultType.equals(rightResultType)) {
+					log.warn("Type of left expression does not match type of right expression: {} vs {}",
+						leftResultType.getSimpleName(),
+						rightResultType.getSimpleName());
+					combinedResult.put(key, ConstantValue.NULL);
+				}
 
 				switch (op) {
 					case "*":
@@ -603,7 +631,7 @@ public class ExpressionEvaluator {
 		Map<Integer, Object> resolvedOperand = markContext.getResolvedOperand(operand.getOperand());
 
 		if (resolvedOperand == null) {
-			List<CPGVertexWithValue> operandVertices = CrymlinQueryWrapper.resolveOperand(markContext, operand.getOperand(), markRule, traversal);
+			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContext, operand.getOperand(), markRule, traversal);
 			markContext.addResolvedOperands(operand.getOperand(), operandVertices);
 			resolvedOperand = markContext.getResolvedOperand(operand.getOperand());
 		}

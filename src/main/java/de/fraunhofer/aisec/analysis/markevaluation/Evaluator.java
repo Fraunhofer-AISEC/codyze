@@ -5,22 +5,17 @@ import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
-import de.fraunhofer.aisec.analysis.structures.CPGVariableContext;
-import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.graph.Literal;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.AliasedEntityExpression;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
 import de.fraunhofer.aisec.markmodel.MEntity;
@@ -175,7 +170,7 @@ public class Evaluator {
 					for (Vertex v : instanceVariables) {
 						innerList.add(new Pair<>(entity.getN(), v));
 					}
-					if (!innerList.isEmpty()) {
+					if (innerList.isEmpty()) {
 						// we add a NULL-entry, maybe this rule can be evaluated with one entity missing anyway.
 						innerList.add(new Pair<>(entity.getN(), null));
 					}
@@ -213,11 +208,8 @@ public class Evaluator {
 						context.removeContext(entry.getKey());
 					}
 				}
-
-				result = ee.evaluate(s.getEnsure().getExp());
-			} else {
-				result = ee.evaluate(s.getEnsure().getExp());
 			}
+			result = ee.evaluate(s.getEnsure().getExp());
 
 			log.info("Got {} results", result.size());
 			for (Map.Entry<Integer, Object> entry : result.entrySet()) {
@@ -256,8 +248,10 @@ public class Evaluator {
 									ranges,
 									isRuleViolated));
 					}
+				} else if (entry.getValue() == null || entry.getValue().equals(ConstantValue.NULL)) {
+					log.warn("Unable to evaluate rule {}, result was null", rule.getName());
 				} else {
-					log.error("Unable to evaluate rule {}, result is not a boolean", rule.getName());
+					log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), entry.getValue().getClass().getSimpleName());
 				}
 			}
 		}

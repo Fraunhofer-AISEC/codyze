@@ -6,6 +6,7 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
 import de.fraunhofer.aisec.analysis.scp.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
@@ -472,6 +473,15 @@ public class CrymlinQueryWrapper {
 		return base;
 	}
 
+	public static Optional<Vertex> getBaseOfCallOfArgumentExpression(@NonNull Vertex expr) {
+		Optional<Vertex> base = Optional.empty();
+		Iterator<Edge> refIterator = expr.edges(Direction.IN, "ARGUMENTS");
+		if (refIterator.hasNext()) {
+			base = getBaseOfCallExpression(refIterator.next().outVertex());
+		}
+		return base;
+	}
+
 	public static Optional<Vertex> getAssigneeOfConstructExpression(Vertex vertex) {
 		Iterator<Edge> it = vertex.edges(Direction.IN, "INITIALIZER");
 		if (it.hasNext()) {
@@ -484,25 +494,61 @@ public class CrymlinQueryWrapper {
 		return Optional.empty();
 	}
 
-	public static List<CPGVertexWithValue> resolveOperand(MarkContextHolder instance, @NonNull String operand, @NonNull MRule rule,
+	public static HashMap<Integer, List<CPGVertexWithValue>> resolveOperand(MarkContextHolder context, @NonNull String operand, @NonNull MRule rule,
 			@NonNull CrymlinTraversalSource crymlin) {
+
+		// first get all vertices for the operand
 		List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(operand, rule, crymlin);
 
-		// fixme: only operate on the given INSTANCE
-
-		List<CPGVertexWithValue> result = new ArrayList<>();
+		List<CPGVertexWithValue> vertices = new ArrayList<>();
 
 		// The arguments themselves may be constants ("Literal"). In that case, add the value.
 		for (Vertex v : matchingVertices) {
 			if (v.label().equals(Literal.class.getSimpleName())) {
-				result.add(new CPGVertexWithValue(v, ConstantValue.of(v.property("value").value())));
+				vertices.add(new CPGVertexWithValue(v, ConstantValue.of(v.property("value").value())));
 			}
 		}
 
 		// Use Constant resolver to resolve assignments to arguments
-		List<CPGVertexWithValue> assignments = CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices);
-		result.addAll(assignments);
+		vertices.addAll(CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices));
 
-		return result;
+		// now split them up to belong to each instance
+
+		final String instance = operand.split("\\.")[0];
+
+		// precompute a list mapping
+		// from a nodeID (representing the varabledecl for the instance)
+		// to a List of contexts where this base is referenced
+		HashMap<Long, List<Integer>> nodeIDToContextIDs = new HashMap<>();
+		for (Map.Entry<Integer, MarkContext> entry : context.getAllContexts().entrySet()) {
+			Vertex opInstance = entry.getValue().getInstanceContext().getVertex(instance);
+			if (opInstance == null) {
+				log.warn("Instance not found in context");
+			} else {
+				List<Integer> contextIDs = nodeIDToContextIDs.computeIfAbsent((Long) opInstance.id(), x -> new ArrayList<>());
+				contextIDs.add(entry.getKey());
+			}
+		}
+
+		// now calculate a list of contextID to matching vertices which fill the base we are looking for
+		HashMap<Integer, List<CPGVertexWithValue>> verticesPerContext = new HashMap<>();
+		for (CPGVertexWithValue vertexWithValue : vertices) {
+			Optional<Vertex> base = getBaseOfCallOfArgumentExpression(vertexWithValue.getArgumentVertex());
+			if (base.isPresent()) {
+				List<Integer> contextIDs = nodeIDToContextIDs.get((Long) base.get().id());
+				if (contextIDs == null) {
+					log.warn("Base not found in any context. Following expressionevaluation will be incomplete");
+				} else {
+					for (Integer c : contextIDs) {
+						List<CPGVertexWithValue> verts = verticesPerContext.computeIfAbsent(c, x -> new ArrayList<>());
+						verts.add(vertexWithValue);
+					}
+				}
+			} else {
+				log.warn("Base not found for argument. Following expressionevaluation will be incomplete");
+			}
+		}
+
+		return verticesPerContext;
 	}
 }

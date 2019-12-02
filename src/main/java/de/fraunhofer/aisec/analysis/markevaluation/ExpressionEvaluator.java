@@ -179,7 +179,7 @@ public class ExpressionEvaluator {
 			// we only need to look at the keys from the right side.
 			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
 			// the right side currently cannot remove values!
-			Object left = getcorrespondingLeftResult(leftResult, rightResult, key);
+			Object left = getcorrespondingLeftResult(leftResult, key);
 			Object right = rightResult.get(key);
 
 			boolean leftIsNull = (left == null || left.equals(ConstantValue.NULL));
@@ -258,7 +258,7 @@ public class ExpressionEvaluator {
 			// we only need to look at the keys from the right side.
 			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
 			// the right side currently cannot remove values!
-			Object left = getcorrespondingLeftResult(leftResult, rightResult, key);
+			Object left = getcorrespondingLeftResult(leftResult, key);
 			Object right = rightResult.get(key);
 
 			if (left == null
@@ -336,7 +336,10 @@ public class ExpressionEvaluator {
 		return combinedResult;
 	}
 
-	private Object getcorrespondingLeftResult(Map<Integer, Object> leftResult, Map<Integer, Object> rightResult, Integer key) {
+	private Object getcorrespondingLeftResult(Map<Integer, Object> leftResult, Integer key) {
+		if (leftResult == null || key == null) {
+			return null;
+		}
 		if (leftResult.containsKey(key)) {
 			return leftResult.get(key);
 		}
@@ -449,7 +452,7 @@ public class ExpressionEvaluator {
 			// we only need to look at the keys from the right side.
 			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
 			// the right side currently cannot remove values!
-			Object left = getcorrespondingLeftResult(leftResult, rightResult, key);
+			Object left = getcorrespondingLeftResult(leftResult, key);
 			Object right = rightResult.get(key);
 
 			if (left == null

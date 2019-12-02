@@ -466,8 +466,11 @@ public class CrymlinQueryWrapper {
 			Vertex baseVertex = it.next().inVertex();
 			Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
 			if (refIterator.hasNext()) {
+				// if the node refers to another node, return the node it refers to
 				ref = refIterator.next().inVertex();
 				base = Optional.of(ref);
+			} else {
+				base = Optional.of(baseVertex);
 			}
 		}
 		return base;

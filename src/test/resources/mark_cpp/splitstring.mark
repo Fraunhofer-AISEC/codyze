@@ -5,15 +5,23 @@ entity Test {
   var foo : std.string;
 
   op functions {
-    call(foo);
+    Test::call(foo);
   }
 
 }
 
 
-rule HasBeenCalled {
+rule SPLIT_FIRSTELEMENT_EQUALS_AES {
   using Test as t
   ensure
     _split(t.foo, "/", 0) in ["AES"]
-  onfail HasBeenCalled_Failed
+  onfail SPLIT_FIRSTELEMENT_EQUALS_AES
+}
+
+
+rule SPLIT_SECONDELEMENT_EQUALS_FIRST {
+  using Test as t
+  ensure
+    _split(t.foo, "/", 0) == _split(t.foo, "/", 1)
+  onfail SPLIT_SECONDELEMENT_EQUALS_FIRST
 }

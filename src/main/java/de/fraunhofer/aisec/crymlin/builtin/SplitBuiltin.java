@@ -9,6 +9,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +36,8 @@ public class SplitBuiltin implements Builtin {
 		// example:
 		// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
 
+		Map<Integer, Object> result = new HashMap<>();
+
 		for (Map.Entry<Integer, Object> entry : arguments.entrySet()) {
 
 			List argResultList = (List) (entry.getValue());
@@ -54,15 +57,20 @@ public class SplitBuiltin implements Builtin {
 				ret = splitted[index.intValue()];
 			}
 
+			ConstantValue cv;
 			if (ret != null) {
 				// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
 				// stringResult.setValue(ret);
-				arguments.put(entry.getKey(), ConstantValue.of(ret));
+				cv = ConstantValue.of(ret);
 			} else {
-				arguments.put(entry.getKey(), ConstantValue.NULL);
+				cv = ConstantValue.NULL;
 			}
+			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+				(ConstantValue) argResultList.get(1),
+				(ConstantValue) argResultList.get(2));
+			result.put(entry.getKey(), cv);
 		}
 
-		return arguments;
+		return result;
 	}
 }

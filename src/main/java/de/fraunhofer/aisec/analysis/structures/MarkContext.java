@@ -15,12 +15,10 @@ public class MarkContext {
 
 	private CPGInstanceContext instances = null;
 	private Map<String, CPGVertexWithValue> operands = new HashMap<>();
-	private HashSet<Vertex> responsibleVertices = new HashSet<>();
 	private boolean findingAlreadyAdded = false;
 
 	public MarkContext(MarkContext other) {
 		// shallow copy
-		responsibleVertices = other.responsibleVertices;
 		other.operands.forEach(operands::put);
 		instances = other.instances;
 	}
@@ -41,21 +39,10 @@ public class MarkContext {
 
 	public void setOperand(String operand, CPGVertexWithValue value) {
 		operands.put(operand, value);
-		if (value != null) {
-			responsibleVertices.add(value.getArgumentVertex());
-		}
 	}
 
 	public CPGVertexWithValue getOperand(String operand) {
 		return operands.get(operand);
-	}
-
-	public void addResponsibleVertices(Set<Vertex> vertices) {
-		responsibleVertices.addAll(vertices);
-	}
-
-	public void addResponsibleVertex(Vertex vertex) {
-		responsibleVertices.add(vertex);
 	}
 
 	public boolean isFindingAlreadyAdded() {
@@ -66,7 +53,4 @@ public class MarkContext {
 		this.findingAlreadyAdded = b;
 	}
 
-	public Set<Vertex> getResponsibleVertices() {
-		return responsibleVertices;
-	}
 }

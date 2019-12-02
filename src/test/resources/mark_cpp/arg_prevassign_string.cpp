@@ -1,10 +1,16 @@
 
-std::string call(std::string a) {
-  return a + "42";
+class Test {
+
+public:
+
+    std::string call(std::string a) {
+      return a + "42";
+    }
 }
 
 int main() {
   std::string foo ("Hello");
   foo = "42";
-  call(foo);
+  Test t();
+  t.call(foo);
 }

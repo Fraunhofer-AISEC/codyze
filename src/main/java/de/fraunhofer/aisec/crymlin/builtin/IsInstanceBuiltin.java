@@ -4,13 +4,12 @@ package de.fraunhofer.aisec.crymlin.builtin;
 import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.python.antlr.ast.arguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,27 +40,48 @@ public class IsInstanceBuiltin implements Builtin {
 			Map<Integer, Object> arguments,
 			ExpressionEvaluator expressionEvaluator) {
 
+		Map<Integer, Object> result = new HashMap<>();
+
 		for (Map.Entry<Integer, Object> entry : arguments.entrySet()) {
 
 			List argResultList = (List) (entry.getValue());
 
+			ConstantValue cv = null;
 			Object classnameArgument = argResultList.get(1);
-			if (!(classnameArgument instanceof String)) {
-				log.error("var of is_instance is empty");
-				return null;
+			if (!(classnameArgument instanceof ConstantValue)
+					||
+					!((ConstantValue) classnameArgument).isString()) {
+				log.error("second parameter of _is_instance is not a String");
+				cv = ConstantValue.NULL;
 			}
-			// unify type (Java/C/C++)
-			String classname = Utils.unifyType((String) classnameArgument);
-			Set<Vertex> v = expressionEvaluator.getMarkContext().getContext(entry.getKey()).getResponsibleVertices();
+			if (!(argResultList.get(0) instanceof ConstantValue)) {
+				log.error("first parameter of _is_instance is not a ConstantValue containing a Vertex");
+				cv = ConstantValue.NULL;
+			}
 
-			if (v.size() != 1) {
-				log.error("Cannot evaluate _is_instance with multiple vertices as input");
-				arguments.put(entry.getKey(), ConstantValue.NULL);
-			} else {
-				String type = v.iterator().next().value("type");
-				arguments.put(entry.getKey(), ConstantValue.of(type.equals(classname)));
+			if (cv == null) {
+				// unify type (Java/C/C++)
+				String classname = Utils.unifyType((String) ((ConstantValue) classnameArgument).getValue());
+				Set<Vertex> v = ((ConstantValue) argResultList.get(0)).getResponsibleVertices();
+
+				if (v.size() != 1) {
+					log.error("Cannot evaluate _is_instance with multiple vertices as input");
+					cv = ConstantValue.NULL;
+				} else {
+					Vertex next = v.iterator().next();
+					if (next == null) {
+						log.error("Vertex is null, cannot check _is_instance");
+						cv = ConstantValue.NULL;
+					} else {
+						String type = next.value("type");
+						cv = ConstantValue.of(type.equals(classname));
+					}
+				}
+				cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+					(ConstantValue) argResultList.get(1));
 			}
+			result.put(entry.getKey(), cv);
 		}
-		return arguments;
+		return result;
 	}
 }

@@ -1,9 +1,13 @@
 
 package de.fraunhofer.aisec.analysis.scp;
 
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Representation of a hardcoded constant.
@@ -18,7 +22,17 @@ public class ConstantValue<T> {
 	@NonNull
 	protected T value;
 
+	private Set<Vertex> responsibleVertices = new HashSet<>();
+
 	public static final ConstantValue NULL = new ConstantValue(null, Type.NULL);
+
+	public static Object unbox(Object value) {
+		if (value instanceof ConstantValue) {
+			return ((ConstantValue) value).getValue();
+		} else {
+			return value;
+		}
+	}
 
 	private enum Type {
 		NUMERIC, BOOLEAN, STRING, NULL
@@ -30,7 +44,9 @@ public class ConstantValue<T> {
 	}
 
 	public static final <T> ConstantValue of(@NonNull T value) {
-		if (value instanceof Number) {
+		if (value instanceof ConstantValue) {
+			return (ConstantValue) value;
+		} else if (value instanceof Number) {
 			return new ConstantValue<>(value, Type.NUMERIC);
 		} else if (value instanceof String) {
 			return new ConstantValue<>(value, Type.STRING);
@@ -76,5 +92,25 @@ public class ConstantValue<T> {
 	@Override
 	public int hashCode() {
 		return Objects.hash(type, value);
+	}
+
+	public void addResponsibleVertex(Vertex v) {
+		responsibleVertices.add(v);
+	}
+
+	public void addResponsibleVertices(Collection<Vertex> responsibleVertices) {
+		responsibleVertices.addAll(responsibleVertices);
+	}
+
+	public void addResponsibleVerticesFrom(ConstantValue... other) {
+		if (other != null) {
+			for (ConstantValue cv : other) {
+				responsibleVertices.addAll(cv.responsibleVertices);
+			}
+		}
+	}
+
+	public Set<Vertex> getResponsibleVertices() {
+		return responsibleVertices;
 	}
 }

@@ -33,6 +33,7 @@ import java.util.concurrent.TimeoutException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
+@Disabled
 class RealBotanTest {
 
 	private @NonNull Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {

@@ -39,7 +39,10 @@ public class MarkContextHolder {
 		}
 		final Map<Integer, Object> result = new HashMap<>();
 		contexts.forEach((id, context) -> {
-			result.put(id, context.getOperand(operand).getValue());
+			CPGVertexWithValue vwv = context.getOperand(operand);
+			ConstantValue constant = ConstantValue.of(vwv.getValue());
+			constant.addResponsibleVertex(vwv.getArgumentVertex());
+			result.put(id, constant);
 		});
 		return result;
 	}

@@ -178,7 +178,7 @@ public class AnalysisServer {
 						result.getScratch().put("ctx", ctx);
 						return persistToODB(result);
 					})
-				.thenApplyAsync(
+				.thenApply(
 					result -> {
 						if (ServerConfiguration.EXPORT_TO_NEO4J) {
 							// Optional, just for debugging: re-import into Neo4J

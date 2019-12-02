@@ -25,6 +25,7 @@ import org.junit.jupiter.api.*;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -33,7 +34,6 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-@Disabled // fixme we now need to write tests which make sense -.-
 public class MarkCppTest {
 	private static HashMap<String, MarkModel> markModels;
 	private final static boolean INCLUDE_KNOWN_NONWORKING_TESTS = false;
@@ -190,71 +190,177 @@ public class MarkCppTest {
 		}
 	}
 
+	private void expected(Set<Finding> findings, String... expectedFindings) {
+		for (String expected : expectedFindings) {
+			assertTrue(1 == findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
+			Optional<Finding> first = findings.stream().filter(f -> f.toString().equals(expected)).findFirst();
+			findings.remove(first.get());
+		}
+		if (findings.size() > 0) {
+			System.out.println("Additional Findings:");
+			for (Finding f : findings) {
+				System.out.println(f.toString());
+			}
+		}
+
+		assertEquals(0, findings.size());
+	}
+
 	@Test
 	public void arg_prevassign_int() throws Exception {
-		runTest("arg_prevassign_int");
+		Set<Finding> findings = runTest("arg_prevassign_int");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		expected(findings, "line 14: MarkRuleEvaluationFinding: Rule SomethingAboutFoo violated");
 	}
 
 	@Test
 	public void arg_prevassign_bool() throws Exception {
-		runTest("arg_prevassign_bool");
+		Set<Finding> findings = runTest("arg_prevassign_bool");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		expected(findings, "line 14: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_prevassign_string() throws Exception {
-		runTest("arg_prevassign_string");
+		Set<Finding> findings = runTest("arg_prevassign_string");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		expected(findings, "line 15: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_vardecl_int() throws Exception {
-		runTest("arg_vardecl_int");
+		Set<Finding> findings = runTest("arg_vardecl_int");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_vardecl_bool() throws Exception {
-		runTest("arg_vardecl_bool");
+		Set<Finding> findings = runTest("arg_vardecl_bool");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_vardecl_string() throws Exception {
-		runTest("arg_vardecl_string");
+		Set<Finding> findings = runTest("arg_vardecl_string");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		expected(findings, "line 13: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+
 	}
 
 	@Test
 	public void split_1() throws Exception {
-		runTest("simplesplit_splitstring");
+		Set<Finding> findings = runTest("simplesplit_splitstring");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		expected(findings,
+			"line 26: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES violated",
+			"line 17: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES verified",
+			"line 17: MarkRuleEvaluationFinding: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST violated",
+			"line 26: MarkRuleEvaluationFinding: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST verified");
 	}
 
 	@Test
 	public void is_instance_1() throws Exception {
-		runTest("simple_instancestring");
+		Set<Finding> findings = runTest("simple_instancestring");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		expected(findings,
+			"line 17: MarkRuleEvaluationFinding: Rule HasBeenCalled verified");
 	}
 
 	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_prevassignop_int() throws Exception {
-		runTest("arg_prevassignop_int");
+		Set<Finding> findings = runTest("arg_prevassignop_int");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		assertFalse(true); // new tests!
 	}
 
 	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_assignconstructor_int() throws Exception {
-		runTest("arg_assignconstructor_int");
+		Set<Finding> findings = runTest("arg_assignconstructor_int");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		assertFalse(true); // new tests!
 	}
 
 	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_assignparenthesisexpr_int() throws Exception {
-		runTest("arg_assignparenthesisexpr_int");
+		Set<Finding> findings = runTest("arg_assignparenthesisexpr_int");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		assertFalse(true); // new tests!
 	}
 
 	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_uniforminitializer_int() throws Exception {
-		runTest("arg_uniforminitializer_int");
+		Set<Finding> findings = runTest("arg_uniforminitializer_int");
+
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		assertFalse(true); // new tests!
 	}
 
-	private void runTest(@NonNull String fileNamePart)
+	private @NonNull Set<Finding> runTest(@NonNull String fileNamePart)
 			throws ExecutionException, InterruptedException, TimeoutException {
 		String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);
 
@@ -287,10 +393,7 @@ public class MarkCppTest {
 
 			AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
 			assertNotNull(ctx.getFindings());
-			Set<Finding> findings = ctx.getFindings();
-
-			assertEquals(1, findings.size());
-			findings.forEach((f) -> assertTrue(f.getLogMsg().endsWith("ensure condition satisfied")));
+			return ctx.getFindings();
 		}
 		catch (TimeoutException t) {
 			analyze.cancel(true);

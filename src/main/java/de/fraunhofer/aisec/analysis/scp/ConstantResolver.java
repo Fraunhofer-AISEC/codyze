@@ -145,7 +145,7 @@ public class ConstantResolver {
 			}
 
 			// we arrived at the declaration of the variable used as an argument
-			log.info("Checking declaration for a literal initializer");
+			//log.info("Checking declaration for a literal initializer");
 
 			// check if we have an initializer with a literal
 			Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");

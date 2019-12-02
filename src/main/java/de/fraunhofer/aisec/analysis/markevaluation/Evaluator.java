@@ -162,7 +162,8 @@ public class Evaluator {
 							assignee.ifPresent(instanceVariables::add);
 
 							if (ref.isEmpty() && assignee.isEmpty()) {
-								log.warn("Did not find an instance variable for {} when searching at node {}", referencedEntity, vertex.property("code").value());
+								log.warn("Did not find an instance variable for entity {} when searching at node {}", referencedEntity.getName(),
+									vertex.property("code").value());
 							}
 						}
 					}
@@ -189,7 +190,6 @@ public class Evaluator {
 				}
 				context.addInitialInstanceContext(instance);
 			}
-			@NonNull
 			Map<Integer, Object> result;
 
 			ExpressionEvaluator ee = new ExpressionEvaluator(rule, ctx, config, crymlinTraversal, context);
@@ -199,13 +199,20 @@ public class Evaluator {
 				result = ee.evaluate(s.getCond().getExp());
 
 				for (Map.Entry<Integer, Object> entry : result.entrySet()) {
-					if (!(entry.getValue() instanceof Boolean)) {
-						log.error("Result is of type {}, expected boolean.", entry.getValue().getClass());
+					Object value = ConstantValue.unbox(entry.getValue());
+					if (value == null || value.equals(ConstantValue.NULL)) {
+						log.warn("Unable to evaluate when-part of rule {}, result was null", rule.getName());
+						continue;
+					} else if (!(value instanceof Boolean)) {
+						log.error("Unable to evaluate when-part of rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
 						continue;
 					}
-					if (entry.getValue().equals(false)) {
+
+					if (value.equals(false)) {
 						log.info("Precondition is false, do not evaluate ensure.");
 						context.removeContext(entry.getKey());
+					} else {
+						log.debug("Precondition is true, we will evaluate this context in the following.");
 					}
 				}
 			}
@@ -214,7 +221,8 @@ public class Evaluator {
 			log.info("Got {} results", result.size());
 			for (Map.Entry<Integer, Object> entry : result.entrySet()) {
 				// the value of the result should always be boolean, as this should be the result of the topmost expression
-				if (entry.getValue() instanceof Boolean) {
+				Object value = ConstantValue.unbox(entry.getValue());
+				if (value instanceof Boolean && entry.getValue() instanceof ConstantValue) {
 					/*
 					 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
 					 * responsible vertices.
@@ -224,11 +232,16 @@ public class Evaluator {
 
 					if (!c.isFindingAlreadyAdded()) {
 						List<Range> ranges = new ArrayList<>();
-						if (c.getResponsibleVertices().isEmpty()) {
+						if (((ConstantValue) entry.getValue()).getResponsibleVertices().isEmpty()) {
 							ranges.add(new Range(new Position(-1, -1),
 								new Position(-1, -1)));
 						} else {
-							for (Vertex v : c.getResponsibleVertices()) {
+							// responsible vertices are stored in the result
+							for (Object o : ((ConstantValue) entry.getValue()).getResponsibleVertices()) {
+								if (o == null) {
+									continue;
+								}
+								Vertex v = (Vertex) o;
 								int startLine = toIntExact((Long) v.property("startLine").value()) - 1;
 								int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
 								int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
@@ -237,7 +250,7 @@ public class Evaluator {
 									new Position(endLine, endColumn)));
 							}
 						}
-						boolean isRuleViolated = !(Boolean) entry.getValue();
+						boolean isRuleViolated = !(Boolean) value;
 						ctx.getFindings()
 								.add(new Finding(
 									"MarkRuleEvaluationFinding: Rule "
@@ -248,10 +261,10 @@ public class Evaluator {
 									ranges,
 									isRuleViolated));
 					}
-				} else if (entry.getValue() == null || entry.getValue().equals(ConstantValue.NULL)) {
+				} else if (value == null || value.equals(ConstantValue.NULL)) {
 					log.warn("Unable to evaluate rule {}, result was null", rule.getName());
 				} else {
-					log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), entry.getValue().getClass().getSimpleName());
+					log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
 				}
 			}
 		}

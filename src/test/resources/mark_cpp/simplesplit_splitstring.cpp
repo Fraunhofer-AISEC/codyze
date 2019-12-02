@@ -1,12 +1,28 @@
 #include <iostream>
 
-int call(string s) {
-  return 1;
+class Test {
+
+public:
+    int call(string s) {
+      return 1;
+    }
 }
 
 
-int main() {
+int pass() {
   string s = "AES/CBC/123";
 
-  call(s);
+  Test t();
+
+  t.call(s);
+}
+
+
+int test2_ok() {
+  string s = "SIV/SIV/123";
+
+  Test t();
+
+  t.call(s);
+  return 9;
 }

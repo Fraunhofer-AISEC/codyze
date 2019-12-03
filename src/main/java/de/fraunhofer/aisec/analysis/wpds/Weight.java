@@ -2,7 +2,7 @@
 package de.fraunhofer.aisec.analysis.wpds;
 
 import com.google.common.collect.Sets;
-import de.breakpoint.pushdown.weights.Semiring;
+import de.breakpointsec.pushdown.weights.Semiring;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 

@@ -140,7 +140,7 @@ dependencies {
     api("org.reflections", "reflections", "0.9.11")
 
     // Pushdown Systems
-    api("de.breakpoint", "pushdown", "1.0-SNAPSHOT")
+    api("de.breakpointsec", "pushdown", "1.1")
 
     // Jython (Scripting engine)
     api("org.python", "jython-standalone", versions["jython"])

@@ -1,0 +1,77 @@
+package botan
+
+/*
+https://botan.randombit.net/handbook/api_ref/filters.html#
+
+The system described below provides a message processing system with a straightforward API. However it makes many extra memory copies and allocations than would otherwise be required, and also tends to make applications using it somewhat opaque because it is not obvious what this or that Pipe& object actually does (type of operation, number of messages output (if any!), and so on), whereas using say a HashFunction or AEAD_Mode provides a much better idea in the code of what operation is occurring.
+
+This filter interface is no longer used within the library itself (outside a few dusty corners) and will likely not see any further major development. However it will remain included because the API is often convenient and many applications use it." 
+*/
+
+entity Botan::Pipe {
+	
+	var filterList : std::initializer_list<Botan::Filter*>
+
+	op create {
+ 		Pipe(filterList);
+		
+ 		// Don't want this ambiguity
+		forbidden Pipe (Botan::Filter, Botan::Filter, Botan::Filter, Botan::Filter);
+
+ 		// Copy constructor - maybe has problems?	
+ 		forbidden Pipe (const Pipe &);
+	}
+
+	op edit {
+		Pipe::prepend(Botan::Filter);
+		Pipe::append(Botan::Filter);
+		Pipe::pop();
+	}
+
+	op start{
+		Pipe::start_msg();
+	}
+
+	op end{
+		Pipe::end_msg();
+	}
+
+	op put_data {
+		Pipe::write (const uint8_t in[], size_t length)
+		Pipe::write (const secure_vector< uint8_t > &in)
+		Pipe::write (const std::vector< uint8_t > &in)
+		Pipe::write (const std::string &in)
+		Pipe::write (DataSource &in)
+		Pipe::write (uint8_t in)
+	}
+
+	op process_msg {
+		Pipe::process_msg (const uint8_t in[], size_t length)
+		Pipe::process_msg (const secure_vector< uint8_t > &in)
+		Pipe::process_msg (const std::vector< uint8_t > &in)
+		Pipe::process_msg (const std::string &in)
+		Pipe::process_msg (DataSource &in)
+	}
+
+	op reset {
+		Pipe::reset ()
+	}
+
+}
+
+
+rule PipeOrder {
+	using Botan::Pipe as p
+	ensure
+		order 
+			p.create(),
+			p.edit()*, 
+			(	process_msg*
+				| (p.start(), p.put_data()*, p.end())+
+
+			),
+			p.read*,
+			p.reset()?
+	onfail PipeOrder_Fail
+}
+

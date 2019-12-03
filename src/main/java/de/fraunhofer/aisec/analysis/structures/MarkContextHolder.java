@@ -11,6 +11,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+/**
+ * A MarkContextHolder contains:
+ *
+ * - a map of a unqiue "id" to a "MarkContext".
+ * 		- Each "MarkContext" contains a possible mapping from MARK instances to MARK entities ("CPGInstanceContext").
+ * - "resolved" operands TODO JS->DT: Was bedeutet "resolved" hier?
+ */
 public class MarkContextHolder {
 
 	private Map<Integer, MarkContext> contexts = new HashMap<>();

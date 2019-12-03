@@ -30,18 +30,14 @@ import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 public class ExpressionEvaluator {
@@ -56,45 +52,34 @@ public class ExpressionEvaluator {
 	private final CrymlinTraversalSource traversal;
 	// the resulting analysis context
 	private final AnalysisContext resultCtx;
-	private final MarkContextHolder markContext;
+	private final MarkContextHolder markContextHolder;
 
 	public ExpressionEvaluator(MRule rule, AnalysisContext resultCtx, ServerConfiguration config, CrymlinTraversalSource traversal, MarkContextHolder context) {
 		this.markRule = rule;
 		this.resultCtx = resultCtx;
 		this.config = config;
 		this.traversal = traversal;
-		this.markContext = context;
+		this.markContextHolder = context;
 	}
 
-	public MarkContextHolder getMarkContext() {
-		return markContext;
+	public MarkContextHolder getMarkContextHolder() {
+		return markContextHolder;
 	}
 
 	/**
 	 * Checks MARK expression against the CPG using the given instance and markvar assignments
-	 *
+	 * <p>
 	 * the value of the result is true/false if the expression is true/false null if the expression could not be evaluated (i.e., an error in the mark rule or the
 	 * evaluation)
 	 *
 	 * @param expr The MARK expression to evaluate.
-	 * @return one result (value and context)
+	 * @return a result context, mapping context ID to ConstantValue.
 	 */
-
-	public Map<Integer, Object> evaluate(Expression expr) {
-		log.debug("Evaluating top level expression: {}", ExpressionHelper.exprToString(expr));
-
-		Map<Integer, Object> result = evaluateExpression(expr);
-		return result;
-	}
-
-	/**
-	 * Evaluates one expression and returns the result
-	 * 
-	 * @return
-	 */
+	@NonNull
 	public Map<Integer, Object> evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
-		log.debug("evaluating {}: {}", expr.getClass().getSimpleName(), ExpressionHelper.exprToString(expr));
+		log.debug("evaluating {}: {}", expr.getClass()
+										   .getSimpleName(), ExpressionHelper.exprToString(expr));
 
 		if (expr instanceof OrderExpression) {
 			return evaluateOrderExpression((OrderExpression) expr);
@@ -129,17 +114,21 @@ public class ExpressionEvaluator {
 		throw new ExpressionEvaluationException("unknown expression: " + ExpressionHelper.exprToString(expr));
 	}
 
+	@NonNull
 	private Map<Integer, Object> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.debug("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, Object> result = new HashMap<>();
-		for (Map.Entry<Integer, MarkContext> entry : markContext.getAllContexts().entrySet()) {
+		for (Map.Entry<Integer, MarkContext> entry : markContextHolder.getAllContexts()
+																	  .entrySet()) {
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
-			ResultWithContext evaluate = orderEvaluator.evaluate(orderExpression, entry.getValue().getInstanceContext(), this.resultCtx, this.traversal);
+			ResultWithContext evaluate = orderEvaluator.evaluate(orderExpression, entry.getValue()
+																					   .getInstanceContext(), this.resultCtx, this.traversal);
 
 			if (evaluate != null) {
 				ConstantValue cv = ConstantValue.of(evaluate.get());
 				cv.addResponsibleVertices(evaluate.getResponsibleVertices()); // todo move to evaluation?
-				entry.getValue().setFindingAlreadyAdded(evaluate.isFindingAlreadyAdded());
+				entry.getValue()
+					 .setFindingAlreadyAdded(evaluate.isFindingAlreadyAdded());
 				result.put(entry.getKey(), cv);
 			} else {
 				result.put(entry.getKey(), ConstantValue.NULL);
@@ -148,6 +137,7 @@ public class ExpressionEvaluator {
 		return result;
 	}
 
+	@NonNull
 	private Map<Integer, Object> evaluateLogicalExpr(Expression expr) {
 		log.debug("Evaluating logical expression: {}", ExpressionHelper.exprToString(expr));
 
@@ -167,7 +157,8 @@ public class ExpressionEvaluator {
 			leftExp = loe.getLeft();
 			rightExp = loe.getRight();
 		} else {
-			throw new ExpressionEvaluationException("Unknown logical expression " + expr.getClass().getSimpleName());
+			throw new ExpressionEvaluationException("Unknown logical expression " + expr.getClass()
+																						.getSimpleName());
 		}
 
 		Map<Integer, Object> leftResult = evaluateExpression(leftExp);
@@ -193,13 +184,15 @@ public class ExpressionEvaluator {
 
 				combinedResult.put(key, ConstantValue.NULL);
 
-			} else if (!(leftIsNull || left.getClass().equals(Boolean.class))
+			} else if (!(leftIsNull || left.getClass()
+										   .equals(Boolean.class))
 					||
-					!(rightIsNull || right.getClass().equals(Boolean.class))) {
+					!(rightIsNull || right.getClass()
+										  .equals(Boolean.class))) {
 
 				log.warn("At least one subexpression is not of type Boolean: {} vs {}",
-					ExpressionHelper.exprToString(leftExp),
-					ExpressionHelper.exprToString(rightExp));
+						 ExpressionHelper.exprToString(leftExp),
+						 ExpressionHelper.exprToString(rightExp));
 				combinedResult.put(key, ConstantValue.NULL);
 
 			} else if (expr instanceof LogicalAndExpression) {
@@ -213,9 +206,11 @@ public class ExpressionEvaluator {
 					} else {
 						combinedResult.put(key, ConstantValue.NULL);
 					}
-				} else if (left.getClass().equals(Boolean.class)
+				} else if (left.getClass()
+							   .equals(Boolean.class)
 						&&
-						right.getClass().equals(Boolean.class)) {
+						right.getClass()
+							 .equals(Boolean.class)) {
 
 					ConstantValue cv = ConstantValue.of(Boolean.logicalAnd((Boolean) left, (Boolean) right));
 					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
@@ -233,9 +228,11 @@ public class ExpressionEvaluator {
 					} else {
 						combinedResult.put(key, ConstantValue.NULL);
 					}
-				} else if (left.getClass().equals(Boolean.class)
+				} else if (left.getClass()
+							   .equals(Boolean.class)
 						&&
-						right.getClass().equals(Boolean.class)) {
+						right.getClass()
+							 .equals(Boolean.class)) {
 
 					ConstantValue cv = ConstantValue.of(Boolean.logicalOr((Boolean) left, (Boolean) right));
 					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
@@ -253,9 +250,9 @@ public class ExpressionEvaluator {
 		Expression rightExpr = expr.getRight();
 
 		log.debug(
-			"comparing expression {} with expression {}",
-			ExpressionHelper.exprToString(leftExpr),
-			ExpressionHelper.exprToString(rightExpr));
+				"comparing expression {} with expression {}",
+				ExpressionHelper.exprToString(leftExpr),
+				ExpressionHelper.exprToString(rightExpr));
 
 		Map<Integer, Object> leftResult = evaluateExpression(leftExpr);
 		Map<Integer, Object> rightResult = evaluateExpression(rightExpr);
@@ -279,9 +276,9 @@ public class ExpressionEvaluator {
 
 					for (Object o : l) {
 						log.debug(
-							"Comparing left expression with element of right expression: {} vs. {}",
-							left,
-							o);
+								"Comparing left expression with element of right expression: {} vs. {}",
+								left,
+								o);
 
 						if (o != null) {
 							String inner = ExpressionHelper.toComparableString(o);
@@ -346,7 +343,7 @@ public class ExpressionEvaluator {
 
 						case "like":
 							cv = ConstantValue.of(
-								Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
+									Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
 							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
 							break;
 						default:
@@ -367,7 +364,7 @@ public class ExpressionEvaluator {
 		if (leftResult.containsKey(key)) {
 			return leftResult.get(key);
 		}
-		List<Integer> copyStack = markContext.getCopyStack(key);
+		List<Integer> copyStack = markContextHolder.getCopyStack(key);
 		if (copyStack != null && !copyStack.isEmpty()) {
 			for (int i = copyStack.size() - 1; i >= 0; i--) {
 				int newKey = copyStack.get(i);
@@ -382,10 +379,10 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Returns evaluated argument values of a Builtin-call.
-	 *
+	 * <p>
 	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(),
 	 * 42)".
-	 *
+	 * <p>
 	 * This method evaluates the Expressions of all arguments and return them as a list contained in the ResultWithContext
 	 *
 	 * @param argList the list of arguments to evaluate
@@ -410,20 +407,28 @@ public class ExpressionEvaluator {
 	 * @param expr the expression for the builtin
 	 * @return the result of the built-in call
 	 */
+	@NonNull
 	private Map<Integer, Object> evaluateBuiltin(FunctionCallExpression expr) {
 		String functionName = expr.getName();
 
 		// Call built-in function (if available)
-		Optional<Builtin> builtin = BuiltinRegistry.getInstance().getRegisteredBuiltins().stream().filter(b -> b.getName().equals(functionName)).findFirst();
+		Optional<Builtin> builtin = BuiltinRegistry.getInstance()
+												   .getRegisteredBuiltins()
+												   .stream()
+												   .filter(b -> b.getName()
+																 .equals(functionName))
+												   .findFirst();
 
 		if (builtin.isPresent()) {
 			Map<Integer, Object> arguments = evaluateArgs(expr.getArgs());
-			return builtin.get().execute(arguments, this);
+			return builtin.get()
+						  .execute(arguments, this);
 		}
 
 		throw new ExpressionEvaluationException("Unsupported function " + functionName);
 	}
 
+	@NonNull
 	private Map<Integer, Object> evaluateLiteral(Literal literal) {
 		String v = literal.getValue();
 
@@ -455,12 +460,14 @@ public class ExpressionEvaluator {
 		}
 
 		Map<Integer, Object> ret = new HashMap<>();
-		for (Integer key : markContext.getAllContexts().keySet()) {
+		for (Integer key : markContextHolder.getAllContexts()
+											.keySet()) {
 			ret.put(key, value);
 		}
 		return ret;
 	}
 
+	@NonNull
 	private Map<Integer, Object> evaluateMultiplicationExpr(MultiplicationExpression expr) {
 		log.debug("Evaluating multiplication expression: {}", ExpressionHelper.exprToString(expr));
 
@@ -493,8 +500,8 @@ public class ExpressionEvaluator {
 
 				if (!leftResultType.equals(rightResultType)) {
 					log.warn("Type of left expression does not match type of right expression: {} vs {}",
-						leftResultType.getSimpleName(),
-						rightResultType.getSimpleName());
+							 leftResultType.getSimpleName(),
+							 rightResultType.getSimpleName());
 					combinedResult.put(key, ConstantValue.NULL);
 				}
 
@@ -584,6 +591,7 @@ public class ExpressionEvaluator {
 		return combinedResult;
 	}
 
+	@NonNull
 	private Map<Integer, Object> evaluateUnaryExpr(UnaryExpression expr) {
 		log.debug("Evaluating unary expression: {}", ExpressionHelper.exprToString(expr));
 
@@ -645,17 +653,18 @@ public class ExpressionEvaluator {
 		return subExprResult;
 	}
 
+	@NonNull
 	private Map<Integer, Object> evaluateOperand(Operand operand) {
 
-		Map<Integer, Object> resolvedOperand = markContext.getResolvedOperand(operand.getOperand());
+		Map<Integer, Object> resolvedOperand = markContextHolder.getResolvedOperand(operand.getOperand());
 
 		if (resolvedOperand == null) {
-			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContext, operand.getOperand(), markRule, traversal);
+			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContextHolder, operand.getOperand(), markRule, traversal);
 			if (operandVertices.size() == 0) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand.getOperand());
 			}
-			markContext.addResolvedOperands(operand.getOperand(), operandVertices);
-			resolvedOperand = markContext.getResolvedOperand(operand.getOperand());
+			markContextHolder.addResolvedOperands(operand.getOperand(), operandVertices);
+			resolvedOperand = markContextHolder.getResolvedOperand(operand.getOperand());
 		}
 
 		return resolvedOperand;

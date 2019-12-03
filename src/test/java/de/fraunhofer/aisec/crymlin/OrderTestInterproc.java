@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-@Disabled
 class OrderTestInterproc {
 
 	private @NonNull Set<Finding> performTest(String sourceFileName) throws Exception {

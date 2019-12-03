@@ -108,32 +108,24 @@ entity Botan::Cipher_Mode isa Cipher {
 rule BlockCiphers {
 	using Botan::Cipher_Mode as cm
 	ensure
-		_split(cm.algorithm, "/", 0) in [ "AES" ]  // TODO Nicetohave: Vordefinierte Methoden highlighten
+		_split(cm.algorithm, "/", 0) in [ "AES" ]
 	onfail WrongBlockCipher
 }
 
-rule UseOfBotan_CipherMode {
-	using Botan::Cipher_Mode as cm
-	ensure
-		order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
-	onfail WrongUseOfBotan_CipherMode
-}
-
-rule UseRandomIV {
+rule UseOfPipe {
 	using Botan::Cipher_Mode as cm,
-		Botan::AutoSeededRNG as rng
-	when _split(cm.algorithm, "/", 1) == "CBC" && cm.direction == Botan::Cipher_Dir::ENCRYPTION
+		Botan::Pipe as p
 	ensure
-		_receives_value_from(cm.iv, rng.myValue)  // TODO "def" trifft es hier nicht ganz. Es geht genaugenommen nicht um die Definition der Variablen, sondern um *alle möglichen* Werte, die sie zur Laufzeit annehmen kann.
-	onfail NoRandomIV
+		p.filterList._listAny(_receives_value_from(cm))
+	onfail WrongUseOfBotan_CipherMode
 }
 
 
 rule KeyLength {
 	using Botan::Cipher_Mode as cm,
-	using Botan::SymmetricKey as sk
+		Botan::SymmetricKey as sk
 	ensure
-		_receives_value_from(cm.symkey, sk.bytes)
+		cm.symkey.length in [128, 192, 256]
 	onfail BadKeyLength
 }
 

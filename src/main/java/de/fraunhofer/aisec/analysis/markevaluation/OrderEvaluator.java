@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.breakpoint.pushdown.IllegalTransitionException;
+import de.breakpointsec.pushdown.IllegalTransitionException;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;

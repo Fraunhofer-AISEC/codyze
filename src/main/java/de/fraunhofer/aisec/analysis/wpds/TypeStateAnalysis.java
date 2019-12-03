@@ -1,13 +1,13 @@
 
 package de.fraunhofer.aisec.analysis.wpds;
 
-import de.breakpoint.pushdown.IllegalTransitionException;
-import de.breakpoint.pushdown.de.breakpoint.pushdown.fsm.Transition;
-import de.breakpoint.pushdown.de.breakpoint.pushdown.fsm.WeightedAutomaton;
-import de.breakpoint.pushdown.rules.NormalRule;
-import de.breakpoint.pushdown.rules.PopRule;
-import de.breakpoint.pushdown.rules.PushRule;
-import de.breakpoint.pushdown.rules.Rule;
+import de.breakpointsec.pushdown.IllegalTransitionException;
+import de.breakpointsec.pushdown.fsm.Transition;
+import de.breakpointsec.pushdown.fsm.WeightedAutomaton;
+import de.breakpointsec.pushdown.rules.NormalRule;
+import de.breakpointsec.pushdown.rules.PopRule;
+import de.breakpointsec.pushdown.rules.PushRule;
+import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;

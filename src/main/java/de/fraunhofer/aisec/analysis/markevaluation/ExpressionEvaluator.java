@@ -81,6 +81,12 @@ public class ExpressionEvaluator {
 	 */
 	@NonNull
 	public Map<Integer, MarkIntermediateResult> evaluateExpression(Expression expr) {
+
+		if (expr == null) {
+			log.error("Cannot evaluate null Expression");
+			return markContextHolder.generateNullResult();
+		}
+
 		// from lowest to highest operator precedence
 		log.debug("evaluating {}: {}", expr.getClass().getSimpleName(), ExpressionHelper.exprToString(expr));
 
@@ -433,8 +439,9 @@ public class ExpressionEvaluator {
 			try {
 				if (v.startsWith("0x")) {
 					value = ConstantValue.of(Integer.parseInt(v.substring(2), 16));
+				} else {
+					value = ConstantValue.of(Long.parseLong(v));
 				}
-				value = ConstantValue.of(Long.parseLong(v));
 			}
 			catch (NumberFormatException nfe) {
 				log.warn("Unable to convert integer literal {}", v, nfe);

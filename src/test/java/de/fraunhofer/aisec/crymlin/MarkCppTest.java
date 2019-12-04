@@ -308,6 +308,14 @@ public class MarkCppTest {
 	}
 
 	@Test
+	public void arg_initializerparenthesisexpr_int() throws Exception {
+		Set<Finding> findings = runTest("arg_initializerparenthesisexpr_int");
+
+		expected(findings,
+			"line 19: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+	}
+
+	@Test
 	public void arg_uniforminitializer_int() throws Exception {
 		Set<Finding> findings = runTest("arg_uniforminitializer_int");
 

@@ -30,7 +30,7 @@ public class CppLanguageFeatureTest {
 	public static void startup() throws Exception {
 		ClassLoader classLoader = CppLanguageFeatureTest.class.getClassLoader();
 
-		URL resource = classLoader.getResource("mark_rule_eval.mark");
+		URL resource = classLoader.getResource("mark_cpp/mark_rule_eval.mark");
 		assertNotNull(resource);
 		File markPoC1 = new File(resource.getFile());
 		assertNotNull(markPoC1);

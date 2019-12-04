@@ -36,6 +36,14 @@ public class MarkContextHolder {
 		return contexts;
 	}
 
+	public Map<Integer, MarkIntermediateResult> generateNullResult() {
+		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
+		contexts.keySet()
+				.forEach(
+					x -> ret.put(x, ConstantValue.NULL));
+		return ret;
+	}
+
 	public Map<Integer, MarkIntermediateResult> getResolvedOperand(String operand) {
 		if (!resolvedOperands.contains(operand)) {
 			return null;

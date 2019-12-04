@@ -38,7 +38,7 @@ public class AnalysisServerBotanTest {
 
 		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
-		URL resource = classLoader.getResource("symm_block_cipher.cpp");
+		URL resource = classLoader.getResource("mark_cpp/symm_block_cipher.cpp");
 		assertNotNull(resource);
 		File cppFile = new File(resource.getFile());
 		assertNotNull(cppFile);

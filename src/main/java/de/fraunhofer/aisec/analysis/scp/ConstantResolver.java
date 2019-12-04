@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
@@ -142,15 +143,13 @@ public class ConstantResolver {
 				// there should be at most one
 				Vertex initializerVertex = itInitializerVertex.next();
 
-				if (Arrays.asList(initializerVertex.label()
-						.split(OverflowDatabase.LabelDelimiter))
-						.contains("Literal")) {
+				List<String> labels = Arrays.asList(initializerVertex.label().split(OverflowDatabase.LabelDelimiter));
+
+				if (labels.contains("Literal")) {
 					Object literalValue = initializerVertex.property("value").value();
 					retVal = ConstantValue.tryOf(literalValue);
 
-				} else if (Arrays.asList(initializerVertex.label()
-						.split(OverflowDatabase.LabelDelimiter))
-						.contains("ConstructExpression")) {
+				} else if (labels.contains("ConstructExpression")) {
 					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "ARGUMENTS");
 					if (initializers.hasNext()) {
 						Vertex init = initializers.next();
@@ -169,9 +168,7 @@ public class ConstantResolver {
 						log.warn("More than one Arguments to Constructexpression found, not using one of them.");
 						retVal = Optional.empty();
 					}
-				} else if (Arrays.asList(initializerVertex.label()
-						.split(OverflowDatabase.LabelDelimiter))
-						.contains("InitializerListExpression")) {
+				} else if (labels.contains("InitializerListExpression")) {
 					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "INITIALIZERS");
 					if (initializers.hasNext()) {
 						Vertex init = initializers.next();
@@ -191,7 +188,33 @@ public class ConstantResolver {
 						log.warn("More than one initializer found, using none of them");
 						retVal = Optional.empty();
 					}
+				} else if (labels.contains("ExpressionList")) {
+					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "SUBEXPR");
+					Vertex init = null;
+					while (initializers.hasNext()) { // get the last initializer according to C++17 standard
+						init = initializers.next();
+					}
+					if (init != null) {
+						if (Arrays.asList(init.label()
+								.split(OverflowDatabase.LabelDelimiter))
+								.contains("Literal")) {
+							Object initValue = init.property("value").value();
+							retVal = ConstantValue.tryOf(initValue);
+
+						} else {
+							log.warn("Cannot evaluate initializer, it is a {}", init.label());
+						}
+					} else {
+						log.warn("No initializer found");
+					}
+					if (initializers.hasNext()) {
+						log.warn("More than one initializer found, using none of them");
+						retVal = Optional.empty();
+					}
+				} else {
+					log.warn("Unknown Initializer: {}", initializerVertex.label());
 				}
+
 			}
 
 			if (itInitializerVertex.hasNext()) {

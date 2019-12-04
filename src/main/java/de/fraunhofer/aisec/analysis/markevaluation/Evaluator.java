@@ -2,12 +2,13 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -190,7 +191,7 @@ public class Evaluator {
 				}
 				context.addInitialInstanceContext(instance);
 			}
-			Map<Integer, Object> result;
+			Map<Integer, MarkIntermediateResult> result;
 
 			ExpressionEvaluator ee = new ExpressionEvaluator(rule, ctx, config, crymlinTraversal, context);
 
@@ -198,7 +199,7 @@ public class Evaluator {
 			if (s.getCond() != null) {
 				result = ee.evaluate(s.getCond().getExp());
 
-				for (Map.Entry<Integer, Object> entry : result.entrySet()) {
+				for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 					Object value = ConstantValue.unbox(entry.getValue());
 					if (value == null || value.equals(ConstantValue.NULL)) {
 						log.warn("Unable to evaluate when-part of rule {}, result was null", rule.getName());
@@ -219,7 +220,7 @@ public class Evaluator {
 			result = ee.evaluate(s.getEnsure().getExp());
 
 			log.info("Got {} results", result.size());
-			for (Map.Entry<Integer, Object> entry : result.entrySet()) {
+			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 				// the value of the result should always be boolean, as this should be the result of the topmost expression
 				Object value = ConstantValue.unbox(entry.getValue());
 				if (value instanceof Boolean && entry.getValue() instanceof ConstantValue) {

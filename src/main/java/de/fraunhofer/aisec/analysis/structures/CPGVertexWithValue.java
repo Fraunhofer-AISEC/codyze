@@ -1,7 +1,6 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 public class CPGVertexWithValue {

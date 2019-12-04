@@ -2,25 +2,26 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
-import de.fraunhofer.aisec.analysis.utils.Utils;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ReceivesValueFromBuiltin implements Builtin {
+	private static final Logger log = LoggerFactory.getLogger(ReceivesValueFromBuiltin.class);
+
 	@Override
 	public @NonNull String getName() {
 		return "_receives_value_from";
 	}
 
 	@Override
-	public Map<Integer, Object> execute(
-			Map<Integer, Object> arguments,
+	public Map<Integer, MarkIntermediateResult> execute(
+			Map<Integer, MarkIntermediateResult> arguments,
 			ExpressionEvaluator expressionEvaluator) {
 		// TODO implement
 
@@ -31,7 +32,11 @@ public class ReceivesValueFromBuiltin implements Builtin {
 		 * Botan::Cipher_Dir::ENCRYPTION ensure _receives_value_from(cm.iv, rng.myValue) onfail NoRandomIV }
 		 */
 
-		for (Map.Entry<Integer, Object> entry : arguments.entrySet()) {
+		for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
+			if (!(entry.getValue() instanceof ListValue)) {
+				log.error("Arguments must be a list");
+				continue;
+			}
 			arguments.put(entry.getKey(), ConstantValue.NULL);
 		}
 		return arguments;

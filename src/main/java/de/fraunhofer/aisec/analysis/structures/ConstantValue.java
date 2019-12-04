@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.analysis.scp;
+package de.fraunhofer.aisec.analysis.structures;
 
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -14,13 +14,12 @@ import java.util.Set;
  *
  * Constants are either of type String, Numeric (int, float, double, long, short, byte), or Boolean.
  *
- * @param <T>
  */
-public class ConstantValue<T> {
+public class ConstantValue extends MarkIntermediateResult {
 	@NonNull
 	private final Type type;
 	@NonNull
-	protected T value;
+	protected Object value;
 
 	private Set<Vertex> responsibleVertices = new HashSet<>();
 
@@ -38,27 +37,28 @@ public class ConstantValue<T> {
 		NUMERIC, BOOLEAN, STRING, NULL
 	}
 
-	private ConstantValue(T value, @NonNull Type type) {
+	private ConstantValue(Object value, @NonNull Type type) {
+		super(ResultType.SINGLEVALUE);
 		this.value = value;
 		this.type = type;
 	}
 
-	public static final <T> ConstantValue of(@NonNull T value) {
+	public static ConstantValue of(@NonNull Object value) {
 		if (value instanceof ConstantValue) {
 			return (ConstantValue) value;
 		} else if (value instanceof Number) {
-			return new ConstantValue<>(value, Type.NUMERIC);
+			return new ConstantValue(value, Type.NUMERIC);
 		} else if (value instanceof String) {
-			return new ConstantValue<>(value, Type.STRING);
+			return new ConstantValue(value, Type.STRING);
 		} else if (value instanceof Boolean) {
-			return new ConstantValue<>(value, Type.BOOLEAN);
+			return new ConstantValue(value, Type.BOOLEAN);
 		} else {
 			throw new IllegalArgumentException("Constant value must be numeric, boolean, string");
 		}
 	}
 
 	@NonNull
-	public T getValue() {
+	public Object getValue() {
 		return value;
 	}
 
@@ -84,7 +84,7 @@ public class ConstantValue<T> {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-		ConstantValue<?> that = (ConstantValue<?>) o;
+		ConstantValue that = (ConstantValue) o;
 		return type == that.type &&
 				value.equals(that.value);
 	}
@@ -99,7 +99,7 @@ public class ConstantValue<T> {
 	}
 
 	public void addResponsibleVertices(Collection<Vertex> responsibleVertices) {
-		responsibleVertices.addAll(responsibleVertices);
+		this.responsibleVertices.addAll(responsibleVertices);
 	}
 
 	public void addResponsibleVerticesFrom(ConstantValue... other) {

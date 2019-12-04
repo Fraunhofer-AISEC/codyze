@@ -1,7 +1,9 @@
 
 package de.fraunhofer.aisec.crymlin.builtin;
 
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -36,15 +38,20 @@ public class IsInstanceBuiltin implements Builtin {
 	}
 
 	@Override
-	public Map<Integer, Object> execute(
-			Map<Integer, Object> arguments,
+	public Map<Integer, MarkIntermediateResult> execute(
+			Map<Integer, MarkIntermediateResult> arguments,
 			ExpressionEvaluator expressionEvaluator) {
 
-		Map<Integer, Object> result = new HashMap<>();
+		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 
-		for (Map.Entry<Integer, Object> entry : arguments.entrySet()) {
+		for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
 
-			List argResultList = (List) (entry.getValue());
+			if (!(entry.getValue() instanceof ListValue)) {
+				log.error("Arguments must be a list");
+				continue;
+			}
+
+			ListValue argResultList = (ListValue) (entry.getValue());
 
 			ConstantValue cv = null;
 			Object classnameArgument = argResultList.get(1);

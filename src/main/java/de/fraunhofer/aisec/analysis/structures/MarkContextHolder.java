@@ -1,15 +1,12 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 public class MarkContextHolder {
 
@@ -33,11 +30,11 @@ public class MarkContextHolder {
 		return contexts;
 	}
 
-	public Map<Integer, Object> getResolvedOperand(String operand) {
+	public Map<Integer, MarkIntermediateResult> getResolvedOperand(String operand) {
 		if (!resolvedOperands.contains(operand)) {
 			return null;
 		}
-		final Map<Integer, Object> result = new HashMap<>();
+		final Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 		contexts.forEach((id, context) -> {
 			CPGVertexWithValue vwv = context.getOperand(operand);
 			ConstantValue constant = ConstantValue.of(vwv.getValue());

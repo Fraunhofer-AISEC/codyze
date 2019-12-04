@@ -20,8 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.in;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.is;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 /**
  * Resolves constant values of variables, if possible.
@@ -64,6 +63,8 @@ public class ConstantResolver {
 			return Optional.empty();
 		}
 
+		Optional<ConstantValue> retVal = Optional.empty();
+
 		try (TraversalConnection conn = new TraversalConnection(this.dbType)) {
 			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 			Optional<Vertex> vdVertexOpt = crymlin
@@ -86,8 +87,8 @@ public class ConstantResolver {
 					.until(
 						is(variableDeclarationVertex))
 					.emit();
-			dumpVertices(traversal.clone()
-					.toList());
+			//dumpVertices(traversal.clone()
+			//		.toList());
 
 			while (traversal.hasNext()) {
 				Vertex tVertex = traversal.next();
@@ -113,33 +114,20 @@ public class ConstantResolver {
 								.contains("Literal");
 
 						if (isRhsLiteral) {
-							Object literalValue = rhs.property("value")
-									.value();
-							Class literalValueClass = literalValue.getClass();
+							Object literalValue = rhs.property("value").value();
 
-							if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-								return Optional.of(ConstantValue.of(((Number) literalValue).intValue()));
+							Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
+							if (constantValue.isPresent()) {
+								return constantValue;
 							}
 
-							if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-								return Optional.of(ConstantValue.of(((Number) literalValue).floatValue()));
-							}
-
-							if (literalValueClass.equals(Boolean.class)) {
-								return Optional.of(ConstantValue.of((Boolean) literalValue));
-							}
-
-							if (literalValueClass.equals(String.class)) {
-								// character and string literals both have value of type String
-								return Optional.of(ConstantValue.of((String) literalValue));
-							}
-							log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
+							log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 						}
 
-						// TODO properly resolve rhs expression
+						// fixme properly resolve rhs expression
 
-						log.warn("Value of operand set in assignment expression");
-						break;
+						log.error("Value of operand set in assignment expression");
+						return Optional.empty();
 					}
 				}
 			}
@@ -149,39 +137,70 @@ public class ConstantResolver {
 
 			// check if we have an initializer with a literal
 			Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
-			while (itInitializerVertex.hasNext()) {
+
+			if (itInitializerVertex.hasNext()) {
 				// there should be at most one
 				Vertex initializerVertex = itInitializerVertex.next();
 
 				if (Arrays.asList(initializerVertex.label()
 						.split(OverflowDatabase.LabelDelimiter))
 						.contains("Literal")) {
-					Object literalValue = initializerVertex.property("value")
-							.value();
-					Class literalValueClass = literalValue.getClass();
+					Object literalValue = initializerVertex.property("value").value();
+					retVal = ConstantValue.tryOf(literalValue);
 
-					if (literalValueClass.equals(Long.class) || literalValueClass.equals(Integer.class)) {
-						return Optional.of(ConstantValue.of(((Number) literalValue).intValue()));
+				} else if (Arrays.asList(initializerVertex.label()
+						.split(OverflowDatabase.LabelDelimiter))
+						.contains("ConstructExpression")) {
+					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "ARGUMENTS");
+					if (initializers.hasNext()) {
+						Vertex init = initializers.next();
+						if (Arrays.asList(init.label()
+								.split(OverflowDatabase.LabelDelimiter))
+								.contains("Literal")) {
+							Object initValue = init.property("value").value();
+							retVal = ConstantValue.tryOf(initValue);
+						} else {
+							log.warn("Cannot evaluate ConstructExpression, it is a {}", init.label());
+						}
+					} else {
+						log.warn("No Argument to Constructexpression");
 					}
+					if (initializers.hasNext()) {
+						log.warn("More than one Arguments to Constructexpression found, not using one of them.");
+						retVal = Optional.empty();
+					}
+				} else if (Arrays.asList(initializerVertex.label()
+						.split(OverflowDatabase.LabelDelimiter))
+						.contains("InitializerListExpression")) {
+					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "INITIALIZERS");
+					if (initializers.hasNext()) {
+						Vertex init = initializers.next();
+						if (Arrays.asList(init.label()
+								.split(OverflowDatabase.LabelDelimiter))
+								.contains("Literal")) {
+							Object initValue = init.property("value").value();
+							retVal = ConstantValue.tryOf(initValue);
 
-					if (literalValueClass.equals(Double.class) || literalValueClass.equals(Float.class)) {
-						return Optional.of(ConstantValue.of(((Number) literalValue).floatValue()));
+						} else {
+							log.warn("Cannot evaluate initializer, it is a {}", init.label());
+						}
+					} else {
+						log.warn("No initializer found");
 					}
-
-					if (literalValueClass.equals(Boolean.class)) {
-						return Optional.of(ConstantValue.of((Boolean) literalValue));
+					if (initializers.hasNext()) {
+						log.warn("More than one initializer found, using none of them");
+						retVal = Optional.empty();
 					}
-
-					if (literalValueClass.equals(String.class)) {
-						// character and string literals both have value of type String
-						return Optional.of(ConstantValue.of((String) literalValue));
-					}
-					log.error("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 				}
+			}
+
+			if (itInitializerVertex.hasNext()) {
+				log.warn("More than one initializer found, using none of them");
+				retVal = Optional.empty();
 			}
 		}
 
-		return Optional.empty();
+		return retVal;
 	}
 
 	private void dumpVertices(Collection<Vertex> vertices) {

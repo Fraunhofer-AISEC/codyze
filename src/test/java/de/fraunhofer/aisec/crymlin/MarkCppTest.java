@@ -191,8 +191,13 @@ public class MarkCppTest {
 	}
 
 	private void expected(Set<Finding> findings, String... expectedFindings) {
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
 		for (String expected : expectedFindings) {
-			assertTrue(1 == findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
+			assertEquals(1, findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
 			Optional<Finding> first = findings.stream().filter(f -> f.toString().equals(expected)).findFirst();
 			findings.remove(first.get());
 		}
@@ -210,22 +215,12 @@ public class MarkCppTest {
 	public void arg_prevassign_int() throws Exception {
 		Set<Finding> findings = runTest("arg_prevassign_int");
 
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
-
 		expected(findings, "line 14: MarkRuleEvaluationFinding: Rule SomethingAboutFoo violated");
 	}
 
 	@Test
 	public void arg_prevassign_bool() throws Exception {
 		Set<Finding> findings = runTest("arg_prevassign_bool");
-
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
 
 		expected(findings, "line 14: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
@@ -234,22 +229,12 @@ public class MarkCppTest {
 	public void arg_prevassign_string() throws Exception {
 		Set<Finding> findings = runTest("arg_prevassign_string");
 
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
-
 		expected(findings, "line 15: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_vardecl_int() throws Exception {
 		Set<Finding> findings = runTest("arg_vardecl_int");
-
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
 
 		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
@@ -258,22 +243,12 @@ public class MarkCppTest {
 	public void arg_vardecl_bool() throws Exception {
 		Set<Finding> findings = runTest("arg_vardecl_bool");
 
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
-
 		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_vardecl_string() throws Exception {
 		Set<Finding> findings = runTest("arg_vardecl_string");
-
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
 
 		expected(findings, "line 13: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 
@@ -282,11 +257,6 @@ public class MarkCppTest {
 	@Test
 	public void split_1() throws Exception {
 		Set<Finding> findings = runTest("simplesplit_splitstring");
-
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
 
 		expected(findings,
 			"line 26: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES violated",
@@ -298,11 +268,6 @@ public class MarkCppTest {
 	@Test
 	public void is_instance_1() throws Exception {
 		Set<Finding> findings = runTest("simple_instancestring");
-
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
 
 		expected(findings,
 			"line 17: MarkRuleEvaluationFinding: Rule HasBeenCalled verified");
@@ -321,17 +286,12 @@ public class MarkCppTest {
 		assertFalse(true); // new tests!
 	}
 
-	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_assignconstructor_int() throws Exception {
 		Set<Finding> findings = runTest("arg_assignconstructor_int");
 
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
-
-		assertFalse(true); // new tests!
+		expected(findings,
+			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Disabled // TODO currently unsupported feature
@@ -347,17 +307,12 @@ public class MarkCppTest {
 		assertFalse(true); // new tests!
 	}
 
-	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_uniforminitializer_int() throws Exception {
 		Set<Finding> findings = runTest("arg_uniforminitializer_int");
 
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
-
-		assertFalse(true); // new tests!
+		expected(findings,
+			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	private @NonNull Set<Finding> runTest(@NonNull String fileNamePart)

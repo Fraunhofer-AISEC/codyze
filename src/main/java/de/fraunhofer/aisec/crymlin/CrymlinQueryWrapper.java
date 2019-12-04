@@ -380,7 +380,7 @@ public class CrymlinQueryWrapper {
 		return matchingVertices;
 	}
 
-	public static List<CPGVertexWithValue> getAssignmentsForVertices(List<Vertex> vertices) {
+	public static List<CPGVertexWithValue> getAssignmentsForVertices(List<Vertex> vertices, @NonNull String operand) {
 		final List<CPGVertexWithValue> ret = new ArrayList<>();
 		// try to resolve them
 		for (Vertex v : vertices) {
@@ -394,12 +394,15 @@ public class CrymlinQueryWrapper {
 						.vertexToNode(variableDeclarationVertex);
 				ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
 				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v);
-				// fixme what if we do not know the value, shouldnt we then still return the argumentvertex?
+
+				// fixme: allow multiple returns!
 				if (constantValue.isPresent()) {
 					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get());
 					ret.add(mva);
 				} else {
-					log.warn("Could not constant resolve node {}", v.id());
+					log.warn("Could not constant resolve {}, returning Constant.UNKNOWN", operand);
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.UNKNOWN);
+					ret.add(mva);
 				}
 			}
 		}
@@ -540,7 +543,7 @@ public class CrymlinQueryWrapper {
 		}
 
 		// Use Constant resolver to resolve assignments to arguments
-		vertices.addAll(CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices));
+		vertices.addAll(CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices, operand));
 
 		// now split them up to belong to each instance
 

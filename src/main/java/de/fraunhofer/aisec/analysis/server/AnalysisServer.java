@@ -49,9 +49,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 /**
  * This is the main CPG analysis server.
@@ -180,9 +178,10 @@ public class AnalysisServer {
 					})
 				.thenApply(
 					result -> {
-						if (ServerConfiguration.EXPORT_TO_NEO4J) {
-							// Optional, just for debugging: re-import into Neo4J
-							exportToNeo4j();
+						if (ServerConfiguration.EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J) {
+							exportToGraphML();
+							// Optional, only if neo4j is available in classpath: re-import into Neo4J
+							importIntoNeo4j();
 						}
 						return result;
 					})
@@ -357,48 +356,52 @@ public class AnalysisServer {
 	 * Tinkerpop -> Neo4J-OGM -> Neo4J.
 	 *
 	 */
-	private void exportToNeo4j() {
-		try {
-			// Export from OverflowDB to file
-			OverflowDatabase.getInstance().connect();
-			Graph graph = OverflowDatabase.getInstance().getGraph();
+	private void exportToGraphML() {
+		// Export from OverflowDB to file
+		OverflowDatabase.getInstance().connect();
+		Graph graph = OverflowDatabase.getInstance().getGraph();
 
-			log.info("Exporting {} nodes to GraphML", graph.traversal().V().count().next());
-			try (FileOutputStream fos = new FileOutputStream("this-is-so-graphic.graphml")) {
-				GraphMLWriter.Builder writer = graph.io(GraphMLIo.build()).writer();
-				writer.vertexLabelKey("labels");
-				writer.create().writeGraph(fos, graph);
-			}
-			catch (IOException e) {
-				log.error("IOException", e);
-			}
+		log.info("Exporting {} nodes to GraphML", graph.traversal().V().count().next());
+		try (FileOutputStream fos = new FileOutputStream("this-is-so-graphic.graphml")) {
+			GraphMLWriter.Builder writer = graph.io(GraphMLIo.build()).writer();
+			writer.vertexLabelKey("labels");
+			writer.create().writeGraph(fos, graph);
+			log.info("Exported GraphML to {}/this-is-so-graphic.graphml", System.getProperty("user.dir"));
+		}
+		catch (IOException e) {
+			log.error("IOException", e);
+		}
+	}
 
-			// Import from file to Neo4J (for visualization only)
-			log.info("Importing into Neo4j ...");
-			try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml")) {
-				File neo4jDB = Path.of(".data", "databases", "graph.db").toFile(); // new File("./.data/databases/graph.db");
-				if (neo4jDB.exists()) {
-					Files.move(
-						neo4jDB.toPath(),
-						Path.of(
-							System.getProperty("java.io.tmpdir"),
-							"backup" + System.currentTimeMillis() + ".db"));
-				}
-				try (Neo4jGraph neo4jGraph = Neo4jGraph.open(Path.of(".data", "databases", "graph.db").toString())) {
-					GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
-					reader.strict(false);
-					reader.vertexLabelKey("labels");
-					reader.create().readGraph(fis, neo4jGraph);
-				}
+	private void importIntoNeo4j() {
+		// Import from file to Neo4J (for visualization only)
+		log.info("Importing into Neo4j ...");
+		try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml");
+				Neo4jGraph neo4jGraph = Neo4jGraph.open(Path.of(".data", "databases", "graph.db").toString())) {
+			File neo4jDB = Path.of(".data", "databases", "graph.db").toFile();
+			if (neo4jDB.exists()) {
+				Path of = Path.of(
+					System.getProperty("java.io.tmpdir"),
+					"backup" + System.currentTimeMillis() + ".db");
+				Files.move(
+					neo4jDB.toPath(), of);
+				log.info("Backed up old Neo4j-Database to {}", of.getFileName());
 			}
-			catch (IOException e) {
-				log.error("IOException", e);
-			}
-			log.info("Done importing");
+			GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
+			reader.strict(false);
+			reader.vertexLabelKey("labels");
+			reader.create().readGraph(fis, neo4jGraph);
 		}
-		catch (Throwable t) {
-			log.error("Throwable", t);
+		catch (IOException e) {
+			log.error("IOException", e);
 		}
+		catch (RuntimeException e) {
+			log.error("Neo4j not found in path, export to neo4j failed");
+		}
+		catch (Exception e) {
+			log.error("Exception", e);
+		}
+		log.info("Done importing");
 	}
 
 	public static class Builder {

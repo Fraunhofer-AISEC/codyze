@@ -1,11 +1,13 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.Utils;
@@ -29,19 +31,14 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 public class ExpressionEvaluator {
@@ -80,11 +77,10 @@ public class ExpressionEvaluator {
 	 * @return one result (value and context)
 	 */
 
-	public Map<Integer, Object> evaluate(Expression expr) {
+	public Map<Integer, MarkIntermediateResult> evaluate(Expression expr) {
 		log.debug("Evaluating top level expression: {}", ExpressionHelper.exprToString(expr));
 
-		Map<Integer, Object> result = evaluateExpression(expr);
-		return result;
+		return evaluateExpression(expr);
 	}
 
 	/**
@@ -92,7 +88,7 @@ public class ExpressionEvaluator {
 	 * 
 	 * @return
 	 */
-	public Map<Integer, Object> evaluateExpression(Expression expr) {
+	public Map<Integer, MarkIntermediateResult> evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
 		log.debug("evaluating {}: {}", expr.getClass().getSimpleName(), ExpressionHelper.exprToString(expr));
 
@@ -115,12 +111,12 @@ public class ExpressionEvaluator {
 		} else if (expr instanceof FunctionCallExpression) {
 			return evaluateBuiltin((FunctionCallExpression) expr);
 		} else if (expr instanceof LiteralListExpression) {
-			Map<Integer, Object> literalList = new HashMap<>();
+			Map<Integer, MarkIntermediateResult> literalList = new HashMap<>();
 			for (Literal l : ((LiteralListExpression) expr).getValues()) {
-				Map<Integer, Object> res = evaluateLiteral(l);
-				for (Map.Entry<Integer, Object> entry : res.entrySet()) {
-					List<Object> objects = (List<Object>) literalList.computeIfAbsent(entry.getKey(), x -> new ArrayList<>());
-					objects.add(entry.getValue());
+				Map<Integer, MarkIntermediateResult> res = evaluateLiteral(l);
+				for (Map.Entry<Integer, MarkIntermediateResult> entry : res.entrySet()) {
+					ListValue inner = (ListValue) literalList.computeIfAbsent(entry.getKey(), x -> new ListValue());
+					inner.add(entry.getValue());
 				}
 			}
 			return literalList;
@@ -129,9 +125,9 @@ public class ExpressionEvaluator {
 		throw new ExpressionEvaluationException("unknown expression: " + ExpressionHelper.exprToString(expr));
 	}
 
-	private Map<Integer, Object> evaluateOrderExpression(OrderExpression orderExpression) {
+	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.debug("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
-		Map<Integer, Object> result = new HashMap<>();
+		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 		for (Map.Entry<Integer, MarkContext> entry : markContext.getAllContexts().entrySet()) {
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
 			ResultWithContext evaluate = orderEvaluator.evaluate(orderExpression, entry.getValue().getInstanceContext(), this.resultCtx, this.traversal);
@@ -148,7 +144,7 @@ public class ExpressionEvaluator {
 		return result;
 	}
 
-	private Map<Integer, Object> evaluateLogicalExpr(Expression expr) {
+	private Map<Integer, MarkIntermediateResult> evaluateLogicalExpr(Expression expr) {
 		log.debug("Evaluating logical expression: {}", ExpressionHelper.exprToString(expr));
 
 		Expression leftExp;
@@ -170,10 +166,10 @@ public class ExpressionEvaluator {
 			throw new ExpressionEvaluationException("Unknown logical expression " + expr.getClass().getSimpleName());
 		}
 
-		Map<Integer, Object> leftResult = evaluateExpression(leftExp);
-		Map<Integer, Object> rightResult = evaluateExpression(rightExp);
+		Map<Integer, MarkIntermediateResult> leftResult = evaluateExpression(leftExp);
+		Map<Integer, MarkIntermediateResult> rightResult = evaluateExpression(rightExp);
 
-		Map<Integer, Object> combinedResult = new HashMap<>();
+		Map<Integer, MarkIntermediateResult> combinedResult = new HashMap<>();
 
 		for (Integer key : rightResult.keySet()) {
 			// we only need to look at the keys from the right side.
@@ -213,10 +209,7 @@ public class ExpressionEvaluator {
 					} else {
 						combinedResult.put(key, ConstantValue.NULL);
 					}
-				} else if (left.getClass().equals(Boolean.class)
-						&&
-						right.getClass().equals(Boolean.class)) {
-
+				} else {
 					ConstantValue cv = ConstantValue.of(Boolean.logicalAnd((Boolean) left, (Boolean) right));
 					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
 					combinedResult.put(key, cv);
@@ -233,10 +226,7 @@ public class ExpressionEvaluator {
 					} else {
 						combinedResult.put(key, ConstantValue.NULL);
 					}
-				} else if (left.getClass().equals(Boolean.class)
-						&&
-						right.getClass().equals(Boolean.class)) {
-
+				} else {
 					ConstantValue cv = ConstantValue.of(Boolean.logicalOr((Boolean) left, (Boolean) right));
 					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
 					combinedResult.put(key, cv);
@@ -247,7 +237,7 @@ public class ExpressionEvaluator {
 		return combinedResult;
 	}
 
-	private Map<Integer, Object> evaluateComparisonExpr(ComparisonExpression expr) {
+	private Map<Integer, MarkIntermediateResult> evaluateComparisonExpr(ComparisonExpression expr) {
 		String op = expr.getOp();
 		Expression leftExpr = expr.getLeft();
 		Expression rightExpr = expr.getRight();
@@ -257,10 +247,10 @@ public class ExpressionEvaluator {
 			ExpressionHelper.exprToString(leftExpr),
 			ExpressionHelper.exprToString(rightExpr));
 
-		Map<Integer, Object> leftResult = evaluateExpression(leftExpr);
-		Map<Integer, Object> rightResult = evaluateExpression(rightExpr);
+		Map<Integer, MarkIntermediateResult> leftResult = evaluateExpression(leftExpr);
+		Map<Integer, MarkIntermediateResult> rightResult = evaluateExpression(rightExpr);
 
-		Map<Integer, Object> combinedResult = new HashMap<>();
+		Map<Integer, MarkIntermediateResult> combinedResult = new HashMap<>();
 
 		for (Integer key : rightResult.keySet()) {
 			ExpressionComparator<String> comp = new ExpressionComparator<>();
@@ -271,10 +261,10 @@ public class ExpressionEvaluator {
 			ConstantValue leftBoxed = (ConstantValue) getcorrespondingLeftResult(leftResult, key);
 			Object left = leftBoxed.getValue();
 
-			if (rightResult.get(key) instanceof List) {
+			if (rightResult.get(key) instanceof ListValue) {
 
 				if (op.equals("in")) {
-					List l = (List) rightResult.get(key);
+					ListValue l = (ListValue) rightResult.get(key);
 					ConstantValue cv = ConstantValue.of(false);
 
 					for (Object o : l) {
@@ -360,7 +350,7 @@ public class ExpressionEvaluator {
 		return combinedResult;
 	}
 
-	private Object getcorrespondingLeftResult(Map<Integer, Object> leftResult, Integer key) {
+	private MarkIntermediateResult getcorrespondingLeftResult(Map<Integer, MarkIntermediateResult> leftResult, Integer key) {
 		if (leftResult == null || key == null) {
 			return ConstantValue.NULL;
 		}
@@ -389,15 +379,15 @@ public class ExpressionEvaluator {
 	 * This method evaluates the Expressions of all arguments and return them as a list contained in the ResultWithContext
 	 *
 	 * @param argList the list of arguments to evaluate
-	 * @return one result with a list of Objects as results for each argument
+	 * @return one result with a list of MarkIntermediateResult as results for each argument
 	 */
 
-	public Map<Integer, Object> evaluateArgs(List<Argument> argList) {
-		Map<Integer, Object> result = new HashMap<>();
+	public Map<Integer, MarkIntermediateResult> evaluateArgs(List<Argument> argList) {
+		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 		for (Argument arg : argList) {
-			Map<Integer, Object> r = evaluateExpression((Expression) arg);
-			for (Map.Entry<Integer, Object> entry : r.entrySet()) {
-				ArrayList<Object> o = (ArrayList<Object>) result.computeIfAbsent(entry.getKey(), x -> new ArrayList<Object>());
+			Map<Integer, MarkIntermediateResult> r = evaluateExpression((Expression) arg);
+			for (Map.Entry<Integer, MarkIntermediateResult> entry : r.entrySet()) {
+				ListValue o = (ListValue) result.computeIfAbsent(entry.getKey(), x -> new ListValue());
 				o.add(entry.getValue());
 			}
 		}
@@ -410,24 +400,24 @@ public class ExpressionEvaluator {
 	 * @param expr the expression for the builtin
 	 * @return the result of the built-in call
 	 */
-	private Map<Integer, Object> evaluateBuiltin(FunctionCallExpression expr) {
+	private Map<Integer, MarkIntermediateResult> evaluateBuiltin(FunctionCallExpression expr) {
 		String functionName = expr.getName();
 
 		// Call built-in function (if available)
 		Optional<Builtin> builtin = BuiltinRegistry.getInstance().getRegisteredBuiltins().stream().filter(b -> b.getName().equals(functionName)).findFirst();
 
 		if (builtin.isPresent()) {
-			Map<Integer, Object> arguments = evaluateArgs(expr.getArgs());
+			Map<Integer, MarkIntermediateResult> arguments = evaluateArgs(expr.getArgs());
 			return builtin.get().execute(arguments, this);
 		}
 
 		throw new ExpressionEvaluationException("Unsupported function " + functionName);
 	}
 
-	private Map<Integer, Object> evaluateLiteral(Literal literal) {
+	private Map<Integer, MarkIntermediateResult> evaluateLiteral(Literal literal) {
 		String v = literal.getValue();
 
-		Object value;
+		ConstantValue value;
 
 		// ordering based on Mark grammar
 		if (literal instanceof IntegerLiteral) {
@@ -454,22 +444,22 @@ public class ExpressionEvaluator {
 			value = ConstantValue.NULL;
 		}
 
-		Map<Integer, Object> ret = new HashMap<>();
+		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
 		for (Integer key : markContext.getAllContexts().keySet()) {
 			ret.put(key, value);
 		}
 		return ret;
 	}
 
-	private Map<Integer, Object> evaluateMultiplicationExpr(MultiplicationExpression expr) {
+	private Map<Integer, MarkIntermediateResult> evaluateMultiplicationExpr(MultiplicationExpression expr) {
 		log.debug("Evaluating multiplication expression: {}", ExpressionHelper.exprToString(expr));
 
 		String op = expr.getOp();
 
-		Map<Integer, Object> leftResult = evaluateExpression(expr.getLeft());
-		Map<Integer, Object> rightResult = evaluateExpression(expr.getRight());
+		Map<Integer, MarkIntermediateResult> leftResult = evaluateExpression(expr.getLeft());
+		Map<Integer, MarkIntermediateResult> rightResult = evaluateExpression(expr.getRight());
 
-		Map<Integer, Object> combinedResult = new HashMap<>();
+		Map<Integer, MarkIntermediateResult> combinedResult = new HashMap<>();
 
 		for (Integer key : rightResult.keySet()) {
 			// we only need to look at the keys from the right side.
@@ -584,14 +574,14 @@ public class ExpressionEvaluator {
 		return combinedResult;
 	}
 
-	private Map<Integer, Object> evaluateUnaryExpr(UnaryExpression expr) {
+	private Map<Integer, MarkIntermediateResult> evaluateUnaryExpr(UnaryExpression expr) {
 		log.debug("Evaluating unary expression: {}", ExpressionHelper.exprToString(expr));
 
 		String op = expr.getOp();
 
-		Map<Integer, Object> subExprResult = evaluateExpression(expr.getExp()); // evaluate the subexpression
+		Map<Integer, MarkIntermediateResult> subExprResult = evaluateExpression(expr.getExp()); // evaluate the subexpression
 
-		for (Map.Entry<Integer, Object> entry : subExprResult.entrySet()) {
+		for (Map.Entry<Integer, MarkIntermediateResult> entry : subExprResult.entrySet()) {
 
 			ConstantValue valueBoxed = (ConstantValue) entry.getValue();
 			Object value = valueBoxed.getValue();
@@ -645,9 +635,9 @@ public class ExpressionEvaluator {
 		return subExprResult;
 	}
 
-	private Map<Integer, Object> evaluateOperand(Operand operand) {
+	private Map<Integer, MarkIntermediateResult> evaluateOperand(Operand operand) {
 
-		Map<Integer, Object> resolvedOperand = markContext.getResolvedOperand(operand.getOperand());
+		Map<Integer, MarkIntermediateResult> resolvedOperand = markContext.getResolvedOperand(operand.getOperand());
 
 		if (resolvedOperand == null) {
 			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContext, operand.getOperand(), markRule, traversal);

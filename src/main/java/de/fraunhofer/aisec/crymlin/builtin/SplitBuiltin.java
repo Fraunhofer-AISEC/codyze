@@ -3,8 +3,9 @@ package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,17 +31,22 @@ public class SplitBuiltin implements Builtin {
 	}
 
 	@Override
-	public Map<Integer, Object> execute(Map<Integer, Object> arguments, ExpressionEvaluator expressionEvaluator) {
+	public Map<Integer, MarkIntermediateResult> execute(Map<Integer, MarkIntermediateResult> arguments, ExpressionEvaluator expressionEvaluator) {
 
 		// arguments: String, String, int
 		// example:
 		// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
 
-		Map<Integer, Object> result = new HashMap<>();
+		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 
-		for (Map.Entry<Integer, Object> entry : arguments.entrySet()) {
+		for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
 
-			List argResultList = (List) (entry.getValue());
+			if (!(entry.getValue() instanceof ListValue)) {
+				log.error("Arguments must be a list");
+				continue;
+			}
+
+			ListValue argResultList = (ListValue) (entry.getValue());
 
 			String s = ExpressionHelper.asString(argResultList.get(0));
 			String regex = ExpressionHelper.asString(argResultList.get(1));

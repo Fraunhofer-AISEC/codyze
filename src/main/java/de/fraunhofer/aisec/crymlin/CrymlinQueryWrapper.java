@@ -5,7 +5,7 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;

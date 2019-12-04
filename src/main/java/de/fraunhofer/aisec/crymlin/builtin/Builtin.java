@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Map;
@@ -30,7 +31,7 @@ public interface Builtin {
 	 * @param expressionEvaluator the expressionEvaluator, this builtin is called from
 	 * @return
 	 */
-	public Map<Integer, Object> execute(
-			Map<Integer, Object> arguments,
+	public Map<Integer, MarkIntermediateResult> execute(
+			Map<Integer, MarkIntermediateResult> arguments,
 			ExpressionEvaluator expressionEvaluator);
 }

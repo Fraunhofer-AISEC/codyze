@@ -31,6 +31,9 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,18 +56,18 @@ public class ExpressionEvaluator {
 	private final CrymlinTraversalSource traversal;
 	// the resulting analysis context
 	private final AnalysisContext resultCtx;
-	private final MarkContextHolder markContext;
+	private final MarkContextHolder markContextHolder;
 
 	public ExpressionEvaluator(MRule rule, AnalysisContext resultCtx, ServerConfiguration config, CrymlinTraversalSource traversal, MarkContextHolder context) {
 		this.markRule = rule;
 		this.resultCtx = resultCtx;
 		this.config = config;
 		this.traversal = traversal;
-		this.markContext = context;
+		this.markContextHolder = context;
 	}
 
-	public MarkContextHolder getMarkContext() {
-		return markContext;
+	public MarkContextHolder getMarkContextHolder() {
+		return markContextHolder;
 	}
 
 	/**
@@ -76,18 +79,7 @@ public class ExpressionEvaluator {
 	 * @param expr The MARK expression to evaluate.
 	 * @return one result (value and context)
 	 */
-
-	public Map<Integer, MarkIntermediateResult> evaluate(Expression expr) {
-		log.debug("Evaluating top level expression: {}", ExpressionHelper.exprToString(expr));
-
-		return evaluateExpression(expr);
-	}
-
-	/**
-	 * Evaluates one expression and returns the result
-	 * 
-	 * @return
-	 */
+	@NonNull
 	public Map<Integer, MarkIntermediateResult> evaluateExpression(Expression expr) {
 		// from lowest to highest operator precedence
 		log.debug("evaluating {}: {}", expr.getClass().getSimpleName(), ExpressionHelper.exprToString(expr));
@@ -125,10 +117,12 @@ public class ExpressionEvaluator {
 		throw new ExpressionEvaluationException("unknown expression: " + ExpressionHelper.exprToString(expr));
 	}
 
+	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.debug("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		for (Map.Entry<Integer, MarkContext> entry : markContext.getAllContexts().entrySet()) {
+		for (Map.Entry<Integer, MarkContext> entry : markContextHolder.getAllContexts()
+				.entrySet()) {
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
 			ResultWithContext evaluate = orderEvaluator.evaluate(orderExpression, entry.getValue().getInstanceContext(), this.resultCtx, this.traversal);
 
@@ -144,6 +138,7 @@ public class ExpressionEvaluator {
 		return result;
 	}
 
+	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateLogicalExpr(Expression expr) {
 		log.debug("Evaluating logical expression: {}", ExpressionHelper.exprToString(expr));
 
@@ -209,7 +204,10 @@ public class ExpressionEvaluator {
 					} else {
 						combinedResult.put(key, ConstantValue.NULL);
 					}
-				} else {
+				} else if (left.getClass().equals(Boolean.class)
+						&&
+						right.getClass().equals(Boolean.class)) {
+
 					ConstantValue cv = ConstantValue.of(Boolean.logicalAnd((Boolean) left, (Boolean) right));
 					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
 					combinedResult.put(key, cv);
@@ -226,7 +224,10 @@ public class ExpressionEvaluator {
 					} else {
 						combinedResult.put(key, ConstantValue.NULL);
 					}
-				} else {
+				} else if (left.getClass().equals(Boolean.class)
+						&&
+						right.getClass().equals(Boolean.class)) {
+
 					ConstantValue cv = ConstantValue.of(Boolean.logicalOr((Boolean) left, (Boolean) right));
 					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
 					combinedResult.put(key, cv);
@@ -357,7 +358,7 @@ public class ExpressionEvaluator {
 		if (leftResult.containsKey(key)) {
 			return leftResult.get(key);
 		}
-		List<Integer> copyStack = markContext.getCopyStack(key);
+		List<Integer> copyStack = markContextHolder.getCopyStack(key);
 		if (copyStack != null && !copyStack.isEmpty()) {
 			for (int i = copyStack.size() - 1; i >= 0; i--) {
 				int newKey = copyStack.get(i);
@@ -400,11 +401,17 @@ public class ExpressionEvaluator {
 	 * @param expr the expression for the builtin
 	 * @return the result of the built-in call
 	 */
+	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateBuiltin(FunctionCallExpression expr) {
 		String functionName = expr.getName();
 
 		// Call built-in function (if available)
-		Optional<Builtin> builtin = BuiltinRegistry.getInstance().getRegisteredBuiltins().stream().filter(b -> b.getName().equals(functionName)).findFirst();
+		Optional<Builtin> builtin = BuiltinRegistry.getInstance()
+				.getRegisteredBuiltins()
+				.stream()
+				.filter(b -> b.getName()
+						.equals(functionName))
+				.findFirst();
 
 		if (builtin.isPresent()) {
 			Map<Integer, MarkIntermediateResult> arguments = evaluateArgs(expr.getArgs());
@@ -445,12 +452,14 @@ public class ExpressionEvaluator {
 		}
 
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
-		for (Integer key : markContext.getAllContexts().keySet()) {
+		for (Integer key : markContextHolder.getAllContexts()
+				.keySet()) {
 			ret.put(key, value);
 		}
 		return ret;
 	}
 
+	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateMultiplicationExpr(MultiplicationExpression expr) {
 		log.debug("Evaluating multiplication expression: {}", ExpressionHelper.exprToString(expr));
 
@@ -574,6 +583,7 @@ public class ExpressionEvaluator {
 		return combinedResult;
 	}
 
+	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateUnaryExpr(UnaryExpression expr) {
 		log.debug("Evaluating unary expression: {}", ExpressionHelper.exprToString(expr));
 
@@ -635,17 +645,18 @@ public class ExpressionEvaluator {
 		return subExprResult;
 	}
 
+	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateOperand(Operand operand) {
 
-		Map<Integer, MarkIntermediateResult> resolvedOperand = markContext.getResolvedOperand(operand.getOperand());
+		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getResolvedOperand(operand.getOperand());
 
 		if (resolvedOperand == null) {
-			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContext, operand.getOperand(), markRule, traversal);
+			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContextHolder, operand.getOperand(), markRule, traversal);
 			if (operandVertices.size() == 0) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand.getOperand());
 			}
-			markContext.addResolvedOperands(operand.getOperand(), operandVertices);
-			resolvedOperand = markContext.getResolvedOperand(operand.getOperand());
+			markContextHolder.addResolvedOperands(operand.getOperand(), operandVertices);
+			resolvedOperand = markContextHolder.getResolvedOperand(operand.getOperand());
 		}
 
 		return resolvedOperand;

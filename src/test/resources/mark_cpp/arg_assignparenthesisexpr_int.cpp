@@ -1,6 +1,9 @@
+class Test {
 
+public:
 int call(int a) {
   return a + 1;
+}
 }
 
 /*
@@ -13,5 +16,6 @@ In this example, foo will be assigned the value 42.
 int main() {
   int foo = 1;
   foo = (1,2,3,4,42);
-  call(foo);
+  Test t();
+  t.call(foo);
 }

@@ -373,6 +373,11 @@ public class AnalysisServer {
 		}
 	}
 
+	/**
+	 * Note that this methods expects neo4j in classpath at runtime.
+	 *
+	 * It is used for debugging only.
+	 */
 	private void importIntoNeo4j() {
 		// Import from file to Neo4J (for visualization only)
 		log.info("Importing into Neo4j ...");
@@ -391,14 +396,16 @@ public class AnalysisServer {
 			reader.strict(false);
 			reader.vertexLabelKey("labels");
 			reader.create().readGraph(fis, neo4jGraph);
-		}
-		catch (IOException e) {
+
+		} catch (IOException e) {
 			log.error("IOException", e);
-		}
-		catch (RuntimeException e) {
-			log.error("Neo4j not found in path, export to neo4j failed");
-		}
-		catch (Exception e) {
+		} catch (RuntimeException e) {
+			if (e.getCause() instanceof ClassNotFoundException) {
+				log.error("Neo4j not found in path, export to neo4j failed");
+			} else {
+				e.printStackTrace();
+			}
+		} catch (Exception e) {
 			log.error("Exception", e);
 		}
 		log.info("Done importing");

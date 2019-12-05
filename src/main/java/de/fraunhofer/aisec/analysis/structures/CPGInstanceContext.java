@@ -2,6 +2,8 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,10 +24,11 @@ public class CPGInstanceContext {
 	/**
 	 * Stores a Mark instance (e.g., "b") and the Vertex that defines it.
 	 */
-	public void putMarkInstance(String s, Vertex v) {
+	public void putMarkInstance(@NonNull String s, @NonNull Vertex v) {
 		entityAssignment.put(s, v);
 	}
 
+	@Nullable
 	public Vertex getVertex(String s) {
 		return entityAssignment.get(s);
 	}

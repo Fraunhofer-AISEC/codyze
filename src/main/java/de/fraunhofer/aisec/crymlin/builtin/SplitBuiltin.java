@@ -43,6 +43,7 @@ public class SplitBuiltin implements Builtin {
 
 			if (!(entry.getValue() instanceof ListValue)) {
 				log.error("Arguments must be a list");
+				result.put(entry.getKey(), ConstantValue.NULL);
 				continue;
 			}
 
@@ -53,7 +54,9 @@ public class SplitBuiltin implements Builtin {
 			Number index = ExpressionHelper.asNumber(argResultList.get(2));
 
 			if (s == null || regex == null || index == null) {
-				return null;
+				log.error("One of the arguments was not the expected type");
+				result.put(entry.getKey(), ConstantValue.NULL);
+				continue;
 			}
 
 			log.debug("args are: " + s + "; " + regex + "; " + index);
@@ -74,6 +77,7 @@ public class SplitBuiltin implements Builtin {
 			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1),
 				(ConstantValue) argResultList.get(2));
+
 			result.put(entry.getKey(), cv);
 		}
 

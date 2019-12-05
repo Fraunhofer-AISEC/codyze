@@ -8,7 +8,6 @@ import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
@@ -130,16 +129,9 @@ public class ExpressionEvaluator {
 		for (Map.Entry<Integer, MarkContext> entry : markContextHolder.getAllContexts()
 				.entrySet()) {
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
-			ResultWithContext evaluate = orderEvaluator.evaluate(orderExpression, entry.getValue().getInstanceContext(), this.resultCtx, this.traversal);
+			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);
 
-			if (evaluate != null) {
-				ConstantValue cv = ConstantValue.of(evaluate.get());
-				cv.addResponsibleVertices(evaluate.getResponsibleVertices()); // todo move to evaluation?
-				entry.getValue().setFindingAlreadyAdded(evaluate.isFindingAlreadyAdded());
-				result.put(entry.getKey(), cv);
-			} else {
-				result.put(entry.getKey(), ConstantValue.NULL);
-			}
+			result.put(entry.getKey(), res);
 		}
 		return result;
 	}

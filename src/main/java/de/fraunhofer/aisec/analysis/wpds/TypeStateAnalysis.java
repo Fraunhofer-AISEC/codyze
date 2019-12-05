@@ -58,18 +58,24 @@ import static java.lang.Math.toIntExact;
  */
 public class TypeStateAnalysis {
 	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
+	private final MarkContextHolder markContextHolder;
 
-	public ResultWithContext analyze(OrderExpression orderExpr, CPGInstanceContext instanceContext, AnalysisContext ctx,
+	public TypeStateAnalysis(MarkContextHolder markContextHolder) {
+		this.markContextHolder = markContextHolder;
+	}
+
+	public ConstantValue analyze(OrderExpression orderExpr, Integer contextID, AnalysisContext ctx,
 			CrymlinTraversalSource crymlinTraversal,
 			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for " + ctx + " and " + crymlinTraversal);
 
+		CPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 
 		HashMap<MOp, Vertex> verticeMap = getVerticesOfRule(rule);
 		String markInstance = getMarkInstanceOrderExpression(orderExpr);
 		if (markInstance == null) {
 			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr.toString());
-			return ResultWithContext.fromLiteralOrOperand(false);
+			return ConstantValue.NULL;
 		}
 
 		// Creating a WPDS from CPG, starting at seeds. Note that this will neglect alias which have been defined before the seed.
@@ -90,22 +96,23 @@ public class TypeStateAnalysis {
 		Vertex v = instanceContext.getVertex(markInstance);
 		if (v == null) {
 			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
-			return ResultWithContext.fromLiteralOrOperand(false);
+			return ConstantValue.NULL;
 		}
 
 		// Find the function in which the vertex is located, so we can use the first statement in function as a start
 		Optional<Vertex> containingFunctionOpt = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal);
 		if (!containingFunctionOpt.isPresent()) {
 			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule.toString());
-			return ResultWithContext.fromLiteralOrOperand(false);
+			return ConstantValue.NULL;
 		}
 
 		// Turn function vertex into a FunctionDeclaration so we can work with it
 		FunctionDeclaration funcDecl = (FunctionDeclaration) OverflowDatabase.getInstance()
 				.vertexToNode(containingFunctionOpt.get());
 		if (funcDecl == null) {
-			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}", containingFunctionOpt.get().property("name").orElse(""), rule.toString());
-			return ResultWithContext.fromLiteralOrOperand(false);
+			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
+				containingFunctionOpt.get().property("name").orElse(""), rule.toString());
+			return ConstantValue.NULL;
 		}
 
 		// Create statement for start configuration and create start config
@@ -118,7 +125,7 @@ public class TypeStateAnalysis {
 		}
 
 		// For debugging only: Print the non-saturated NFA
-		log.debug("Non saturated NFA", wnfa.toString());
+		log.debug("Non saturated NFA {}", wnfa.toString());
 		log.debug(wnfa.toDotString());
 
 		// Saturate the NFA from the WPDS, using the post-* algorithm.
@@ -130,14 +137,20 @@ public class TypeStateAnalysis {
 
 		// Evaluate saturated WNFA for any MARK violations
 		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule, ctx.getCurrentFile());
-		ctx.getFindings().addAll(findings);
 
-		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(findings.isEmpty());
-		result.setFindingAlreadyAdded(true);
-		return result;
+		if (markContextHolder.createFindingsDuringEvaluation()) {
+			ctx.getFindings().addAll(findings);
+		}
+
+		ConstantValue of = ConstantValue.of(findings.isEmpty());
+		if (markContextHolder.createFindingsDuringEvaluation()) {
+			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
+		}
+		return of;
 	}
 
-	@Nullable private String getMarkInstanceOrderExpression(OrderExpression orderExpr) {
+	@Nullable
+	private String getMarkInstanceOrderExpression(OrderExpression orderExpr) {
 		TreeIterator<EObject> treeIt = orderExpr.eAllContents();
 		while (treeIt.hasNext()) {
 			EObject eObj = treeIt.next();

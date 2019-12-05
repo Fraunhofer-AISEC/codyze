@@ -18,97 +18,100 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-class RealBCTest {
+public class RealBCTest {
 
-    private @NonNull Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {
-        ClassLoader classLoader = RealBCTest.class.getClassLoader();
+	private @NonNull Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {
+		ClassLoader classLoader = RealBCTest.class.getClassLoader();
 
-        URL resource = classLoader.getResource(sourceFileName);
-        assertNotNull(resource);
-        File javaFile = new File(resource.getFile());
-        assertNotNull(javaFile);
+		URL resource = classLoader.getResource(sourceFileName);
+		assertNotNull(resource);
+		File javaFile = new File(resource.getFile());
+		assertNotNull(javaFile);
 
-        resource = classLoader.getResource(markFileName);
-        assertNotNull(resource);
-        File markPoC1 = new File(resource.getFile());
-        assertNotNull(markPoC1);
+		resource = classLoader.getResource(markFileName);
+		assertNotNull(resource);
+		File markPoC1 = new File(resource.getFile());
+		assertNotNull(markPoC1);
 
-        // Make sure we start with a clean (and connected) db
-        try {
-            Database db = OverflowDatabase.getInstance();
-            db.connect();
-            db.purgeDatabase();
-        } catch (Throwable e) {
-            e.printStackTrace();
-            assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-        }
+		// Make sure we start with a clean (and connected) db
+		try {
+			Database db = OverflowDatabase.getInstance();
+			db.connect();
+			db.purgeDatabase();
+		}
+		catch (Throwable e) {
+			e.printStackTrace();
+			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
+		}
 
-        // Start an analysis server
-        AnalysisServer server = AnalysisServer.builder()
-                .config(
-                        ServerConfiguration.builder()
-                                .launchConsole(false)
-                                .launchLsp(false)
-                                .typestateAnalysis(TYPESTATE_ANALYSIS.NFA)
-                                .markFiles(markPoC1.getAbsolutePath())
-                                .build())
-                .build();
-        server.start();
+		// Start an analysis server
+		AnalysisServer server = AnalysisServer.builder()
+				.config(
+					ServerConfiguration.builder()
+							.launchConsole(false)
+							.launchLsp(false)
+							.typestateAnalysis(TYPESTATE_ANALYSIS.NFA)
+							.markFiles(markPoC1.getAbsolutePath())
+							.build())
+				.build();
+		server.start();
 
-        TranslationManager translationManager = TranslationManager.builder()
-                .config(
-                        TranslationConfiguration.builder()
-                                .debugParser(true)
-                                .failOnError(false)
-                                .codeInNodes(true)
-                                .defaultPasses()
-                                .loadIncludes(true)
-                                .sourceFiles(javaFile)
-                                .build())
-                .build();
-        CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-        TranslationResult result;
-        try {
-            result = analyze.get(5, TimeUnit.MINUTES);
-        } catch (TimeoutException t) {
-            analyze.cancel(true);
-            throw t;
-        }
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder()
+							.debugParser(true)
+							.failOnError(false)
+							.codeInNodes(true)
+							.defaultPasses()
+							.loadIncludes(true)
+							.sourceFiles(javaFile)
+							.build())
+				.build();
+		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		TranslationResult result;
+		try {
+			result = analyze.get(5, TimeUnit.MINUTES);
+		}
+		catch (TimeoutException t) {
+			analyze.cancel(true);
+			throw t;
+		}
 
-        AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-        assertNotNull(ctx);
-        assertTrue(ctx.methods.isEmpty());
+		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+		assertNotNull(ctx);
+		assertTrue(ctx.methods.isEmpty());
 
-        for (Finding s : ctx.getFindings()) {
-            System.out.println(s);
-        }
+		for (Finding s : ctx.getFindings()) {
+			System.out.println(s);
+		}
 
-        return ctx.getFindings();
-    }
+		return ctx.getFindings();
+	}
 
-    @Test
-    public void testSimple() throws Exception {
-        // Just a very simple test to explore the graph
-        Set<Finding> findings = performTest("real-examples/bc/rwedoff.Password-Manager/Main.java", "real-examples/bc/rwedoff.Password-Manager/Password-Manager.mark");
-        GraphTraversalSource t = OverflowDatabase.getInstance()
-                .getGraph()
-                .traversal();
+	@Test
+	public void testSimple() throws Exception {
+		// Just a very simple test to explore the graph
+		Set<Finding> findings = performTest("real-examples/bc/rwedoff.Password-Manager/Main.java", "real-examples/bc/rwedoff.Password-Manager/Password-Manager.mark");
+		System.out.println(findings);
 
-        List<Vertex> variables = t.V().hasLabel(VariableDeclaration.class.getSimpleName()).toList();
+		GraphTraversalSource t = OverflowDatabase.getInstance()
+				.getGraph()
+				.traversal();
 
-        assertTrue(variables.size() > 0);
-    }
+		List<Vertex> variables = t.V().hasLabel(VariableDeclaration.class.getSimpleName()).toList();
+
+		assertTrue(variables.size() > 0);
+	}
 
 }

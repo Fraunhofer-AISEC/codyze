@@ -59,7 +59,8 @@ class LSPTest {
 					first = false;
 					assertEquals(1, publishDiagnosticsParams.getDiagnostics().size());
 				} else {
-					assertEquals(5, publishDiagnosticsParams.getDiagnostics().size());
+					// one finding is disabled via comment
+					assertEquals(4, publishDiagnosticsParams.getDiagnostics().size());
 				}
 			}
 

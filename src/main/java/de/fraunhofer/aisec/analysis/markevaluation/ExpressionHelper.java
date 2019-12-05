@@ -2,7 +2,6 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -87,15 +86,6 @@ public class ExpressionHelper {
 	}
 
 	@Nullable
-	public static String asString(ResultWithContext opt) {
-		if (opt == null) {
-			return null;
-		}
-
-		return asString(opt.get());
-	}
-
-	@Nullable
 	public static String asString(Object opt) {
 		if (opt == null) {
 			return null;
@@ -113,14 +103,6 @@ public class ExpressionHelper {
 	}
 
 	@Nullable
-	public static Number asNumber(ResultWithContext opt) {
-		if (opt == null) {
-			return null;
-		}
-		return asNumber(opt.get());
-	}
-
-	@Nullable
 	public static Number asNumber(@Nullable Object opt) {
 		if (opt == null) {
 			return null;
@@ -135,15 +117,6 @@ public class ExpressionHelper {
 		}
 
 		return null;
-	}
-
-	@Nullable
-	public static Boolean asBoolean(ResultWithContext opt) {
-		if (opt == null) {
-			return null;
-		}
-
-		return asBoolean(opt.get());
 	}
 
 	@Nullable

@@ -36,4 +36,8 @@ public class CPGInstanceContext {
 	public Set<String> getMarkInstances() {
 		return entityAssignment.keySet();
 	}
+
+	public boolean containsInstance(String instance) {
+		return entityAssignment.containsKey(instance);
+	}
 }

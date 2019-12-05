@@ -149,7 +149,7 @@ public class Evaluator {
 			// A CPGInstanceContext is a specific interpretation of a Mark rule that needs to be evaluated.
 			MarkContextHolder markCtxHolder = createMarkContext(entities);
 
-			ExpressionEvaluator ee = new ExpressionEvaluator(rule, ctx, config, crymlinTraversal, markCtxHolder);
+			ExpressionEvaluator ee = new ExpressionEvaluator(this.markModel, rule, ctx, config, crymlinTraversal, markCtxHolder);
 
 			// Evaluate "when" part, if present (will possibly remove entries from markCtxhHlder)
 			evaluateWhen(rule, markCtxHolder, ee);
@@ -268,9 +268,7 @@ public class Evaluator {
 			for (Pair<String, Vertex> p : list) {
 				String markInstanceName = p.getValue0();
 				Vertex v = p.getValue1();
-				if (v != null) {
-					instanceCtx.putMarkInstance(markInstanceName, v);
-				}
+				instanceCtx.putMarkInstance(markInstanceName, v);
 			}
 			context.addInitialInstanceContext(instanceCtx);
 		}

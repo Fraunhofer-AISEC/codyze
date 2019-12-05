@@ -1,7 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluationException;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
@@ -14,7 +13,6 @@ import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.*;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -70,7 +68,7 @@ public class RuleEnsureSemanticsTest {
 				MarkContextHolder markContextHolder = new MarkContextHolder();
 				markContextHolder.getAllContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
 
-				ExpressionEvaluator ee = new ExpressionEvaluator(r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
+				ExpressionEvaluator ee = new ExpressionEvaluator(mark, r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
 
 				Expression ensureExpr = r.getStatement().getEnsure().getExp();
 				Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(ensureExpr);

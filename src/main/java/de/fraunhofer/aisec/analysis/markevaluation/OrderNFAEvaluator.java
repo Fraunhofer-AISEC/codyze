@@ -1,12 +1,12 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import com.sun.xml.bind.v2.schemagen.xmlschema.Any;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
@@ -38,12 +38,14 @@ public class OrderNFAEvaluator {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderNFAEvaluator.class);
 	private final MRule rule;
+	private final MarkContextHolder markContextHolder;
 
-	public OrderNFAEvaluator(MRule rule) {
+	public OrderNFAEvaluator(MRule rule, MarkContextHolder markContextHolder) {
 		this.rule = rule;
+		this.markContextHolder = markContextHolder;
 	}
 
-	public ResultWithContext evaluate(OrderExpression orderExpression, CPGInstanceContext instanceContext, AnalysisContext ctx,
+	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext ctx,
 			CrymlinTraversalSource crymlinTraversal) {
 		// We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
 		// Any function calls to functions which are not specified in an entity are _ignored_
@@ -69,25 +71,30 @@ public class OrderNFAEvaluator {
 		//   Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
 		//   Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
 
+		CPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
+
 		Set<String> markInstances = new HashSet<>();
 		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
 
 		if (markInstances.size() > 1) {
-			throw new ExpressionEvaluationException("Order statement contains more than one base. Not supported.");
+			log.warn("Order statement contains more than one base. Not supported.");
+			return ConstantValue.NULL;
 		}
 		if (markInstances.size() == 0) {
-			throw new ExpressionEvaluationException("Order statement does not contain any ops. Invalid order");
+			log.warn("Order statement does not contain any ops. Invalid order");
+			return ConstantValue.NULL;
 		}
 
 		Vertex variableDecl = instanceContext.getVertex(markInstances.iterator().next());
 		if (variableDecl == null) {
-			throw new ExpressionEvaluationException("Variable is not set in the instancecontext. Invalid evaluation.");
+			log.warn("Variable is not set in the instancecontext. Invalid evaluation.");
+			return ConstantValue.NULL;
 		}
 
 		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
 		if (containingFunction.isEmpty()) {
 			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
-			throw new ExpressionNotApplicableException("Instance vertex " + variableDecl.property("code") + " is not contained in a method/function");
+			return ConstantValue.NULL;
 		}
 
 		Vertex functionDeclaration = containingFunction.get();
@@ -112,7 +119,7 @@ public class OrderNFAEvaluator {
 
 		if (verticesToOp.isEmpty()) {
 			log.info("no nodes match this rule. Skipping rule.");
-			return null;
+			return ConstantValue.NULL;
 		}
 
 		// collect all instances used in this order
@@ -124,7 +131,7 @@ public class OrderNFAEvaluator {
 			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
 				log.error("alias {} is not referenced in this rule {}", alias, rule.getName());
-				return null;
+				return ConstantValue.NULL;
 			}
 			referencedVertices.add(v.id());
 		}
@@ -228,7 +235,9 @@ public class OrderNFAEvaluator {
 									//                              vertex.value("startColumn"),
 									//                              vertex.value("endColumn"));
 									// we hide base errors for now!
+									//if (markContextHolder.createFindingsDuringEvaluation()) {
 									// ctx.getFindings().add(f);
+									//}
 									// log.info("Finding: {}", f.toString());
 								} else {
 									Set<Node> nodesInFSM;
@@ -276,7 +285,9 @@ public class OrderNFAEvaluator {
 											toIntExact(vertex.value("endLine")) - 1,
 											toIntExact(vertex.value("startColumn")) - 1,
 											toIntExact(vertex.value("endColumn")) - 1);
-										ctx.getFindings().add(f);
+										if (markContextHolder.createFindingsDuringEvaluation()) {
+											ctx.getFindings().add(f);
+										}
 										log.info("Finding: {}", f);
 										disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
 									} else {
@@ -396,13 +407,17 @@ public class OrderNFAEvaluator {
 				toIntExact(vertex.value("endLine")) - 1,
 				toIntExact(vertex.value("startColumn")) - 1,
 				toIntExact(vertex.value("endColumn")) - 1);
-			ctx.getFindings()
-					.add(f);
+			if (markContextHolder.createFindingsDuringEvaluation()) {
+				ctx.getFindings()
+						.add(f);
+			}
 			log.info("Finding: {}", f);
 		}
-		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(isOrderValid);
-		result.setFindingAlreadyAdded(true);
-		return result;
+		ConstantValue of = ConstantValue.of(isOrderValid);
+		if (markContextHolder.createFindingsDuringEvaluation()) {
+			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
+		}
+		return of;
 	}
 
 	private boolean isDisallowedBase(

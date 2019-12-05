@@ -14,8 +14,7 @@ value in the parenthesis no matter what it’s magnitude or sign is.
 In this example, foo will be assigned the value 42.
 */
 int main() {
-  int foo = 1;
-  foo = (1,2,3,4,42);
+  int foo = (1,2,3,4,42);
   Test t();
   t.call(foo);
 }

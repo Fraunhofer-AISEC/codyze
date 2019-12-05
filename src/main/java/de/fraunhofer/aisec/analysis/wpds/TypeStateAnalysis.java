@@ -1,20 +1,20 @@
 
 package de.fraunhofer.aisec.analysis.wpds;
 
-import de.breakpoint.pushdown.IllegalTransitionException;
-import de.breakpoint.pushdown.de.breakpoint.pushdown.fsm.Transition;
-import de.breakpoint.pushdown.de.breakpoint.pushdown.fsm.WeightedAutomaton;
-import de.breakpoint.pushdown.rules.NormalRule;
-import de.breakpoint.pushdown.rules.PopRule;
-import de.breakpoint.pushdown.rules.PushRule;
-import de.breakpoint.pushdown.rules.Rule;
+import de.breakpointsec.pushdown.IllegalTransitionException;
+import de.breakpointsec.pushdown.fsm.Transition;
+import de.breakpointsec.pushdown.fsm.WeightedAutomaton;
+import de.breakpointsec.pushdown.rules.NormalRule;
+import de.breakpointsec.pushdown.rules.PopRule;
+import de.breakpointsec.pushdown.rules.PushRule;
+import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.Terminal;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
@@ -25,6 +25,8 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.emf.common.util.TreeIterator;
+import org.eclipse.emf.ecore.EObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,27 +58,31 @@ import static java.lang.Math.toIntExact;
  */
 public class TypeStateAnalysis {
 	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
+	private final MarkContextHolder markContextHolder;
 
-	public ResultWithContext analyze(OrderExpression orderExpression, CPGInstanceContext instanceContext, AnalysisContext ctx,
+	public TypeStateAnalysis(MarkContextHolder markContextHolder) {
+		this.markContextHolder = markContextHolder;
+	}
+
+	public ConstantValue analyze(OrderExpression orderExpr, Integer contextID, AnalysisContext ctx,
 			CrymlinTraversalSource crymlinTraversal,
 			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for " + ctx + " and " + crymlinTraversal);
 
+		CPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
+
 		HashMap<MOp, Vertex> verticeMap = getVerticesOfRule(rule);
-
-		// Create FSM from MARK expression
-		OrderExpression inner = orderExpression;
-
-		for (String markInstance : instanceContext.getMarkInstances()) {
-			Vertex v = instanceContext.getVertex(markInstance);
-			System.out.println("MARK INSTANCE " + markInstance + " has potential Vertex " + v.label() + " :  " + v.property("code").value());
+		String markInstance = getMarkInstanceOrderExpression(orderExpr);
+		if (markInstance == null) {
+			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr.toString());
+			return ConstantValue.NULL;
 		}
 
 		// Creating a WPDS from CPG, starting at seeds. Note that this will neglect alias which have been defined before the seed.
 		HashSet<Node> seedExpression = null; // TODO Seeds must be vertices with calls which MAY be followed by a typestate violation
 
 		/* Create typestate NFA, representing the regular expression of a MARK typestate rule. */
-		NFA tsNFA = NFA.of(inner.getExp());
+		NFA tsNFA = NFA.of(orderExpr.getExp());
 		log.debug("Initial typestate NFA:\n" + tsNFA.toString());
 
 		// Create a weighted pushdown system
@@ -87,15 +93,31 @@ public class TypeStateAnalysis {
 		 * "current function" is the function containing the declaration of the program variable (e.g., "x = Botan2()") that corresponds to the current Mark instance
 		 * (e.g., "b").
 		 */
-		Vertex v = instanceContext.getVertex(instanceContext.getMarkInstances()
-				.iterator()
-				.next()); // TODO Iterate over all Mark instance, not only the first one
-		// fixme Call "Optional#isPresent()" before accessing the value.
-		Vertex method = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal).get();
-		FunctionDeclaration m = (FunctionDeclaration) OverflowDatabase.getInstance()
-				.vertexToNode(method);
-		Stmt stmt = new Stmt(m.getName(), m.getRegion());
-		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(stmt, "EPSILON", m.getName(), tsNFA);
+		Vertex v = instanceContext.getVertex(markInstance);
+		if (v == null) {
+			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
+			return ConstantValue.NULL;
+		}
+
+		// Find the function in which the vertex is located, so we can use the first statement in function as a start
+		Optional<Vertex> containingFunctionOpt = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal);
+		if (!containingFunctionOpt.isPresent()) {
+			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule.toString());
+			return ConstantValue.NULL;
+		}
+
+		// Turn function vertex into a FunctionDeclaration so we can work with it
+		FunctionDeclaration funcDecl = (FunctionDeclaration) OverflowDatabase.getInstance()
+				.vertexToNode(containingFunctionOpt.get());
+		if (funcDecl == null) {
+			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
+				containingFunctionOpt.get().property("name").orElse(""), rule.toString());
+			return ConstantValue.NULL;
+		}
+
+		// Create statement for start configuration and create start config
+		Stmt stmt = new Stmt(funcDecl.getName(), funcDecl.getRegion());
+		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(stmt, "EPSILON", funcDecl.getName(), tsNFA);
 
 		// For debugging only: Print WPDS rules
 		for (Rule r : wpds.getAllRules()) {
@@ -103,7 +125,7 @@ public class TypeStateAnalysis {
 		}
 
 		// For debugging only: Print the non-saturated NFA
-		log.debug("Non saturated NFA", wnfa.toString());
+		log.debug("Non saturated NFA {}", wnfa.toString());
 		log.debug(wnfa.toDotString());
 
 		// Saturate the NFA from the WPDS, using the post-* algorithm.
@@ -115,11 +137,28 @@ public class TypeStateAnalysis {
 
 		// Evaluate saturated WNFA for any MARK violations
 		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule, ctx.getCurrentFile());
-		ctx.getFindings().addAll(findings);
 
-		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(findings.isEmpty());
-		result.setFindingAlreadyAdded(true);
-		return result;
+		if (markContextHolder.createFindingsDuringEvaluation()) {
+			ctx.getFindings().addAll(findings);
+		}
+
+		ConstantValue of = ConstantValue.of(findings.isEmpty());
+		if (markContextHolder.createFindingsDuringEvaluation()) {
+			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
+		}
+		return of;
+	}
+
+	@Nullable
+	private String getMarkInstanceOrderExpression(OrderExpression orderExpr) {
+		TreeIterator<EObject> treeIt = orderExpr.eAllContents();
+		while (treeIt.hasNext()) {
+			EObject eObj = treeIt.next();
+			if (eObj instanceof Terminal) {
+				return ((Terminal) eObj).getEntity();
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -319,17 +358,9 @@ public class TypeStateAnalysis {
 
 						if (rhs.isPresent()) {
 							Vertex rhsVar = rhs.get();
-							//							if (isCallExpression(rhsVar)) {
-							//								// TODO Handle as push/pop rule
-							//							} else
 							if (rhsVar.property("name").isPresent()) {
 								log.debug("  Has name on right hand side " + rhsVar.property("name").value());
 								Val rhsVal = new Val((String) rhsVar.property("name").value(), currentFunctionName);
-								// We add all transitions of the typestate NFA that may be triggered by the current op
-
-								//							Set<NFATransition> relevantNFATransitions = nfa.getTransitions().stream().filter(
-								//									tran -> tran.getTarget()etOp().equals(rhsVal.getVariable())).collect(Collectors.toSet());
-								//							Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 								// Add declVal to set of currently tracked variables
 								valsInScope.add(declVal);
@@ -363,8 +394,6 @@ public class TypeStateAnalysis {
 								valsInScope.add(declVal);
 
 								// Create normal rule
-								//Weight w = new Weight(nfa.getInitialTransitions());
-								//NFATransition startCycle = new NFATransition(nfa.getStart(), nfa.getStart(), nfa.getStart().getName());
 								Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt, declVal, currentStmt,
 									Weight.one());
 								log.debug("Adding normal rule " + normalRule.toString());
@@ -687,12 +716,19 @@ public class TypeStateAnalysis {
 
 	@Nullable
 	private Statement getFirstStmtOfMethod(@NonNull CrymlinTraversalSource crymlinTraversalSource, @NonNull FunctionDeclaration potentialCallee) {
-		// Traverse along EOG edge until we find a "relevant" node (=Statement or CallExpression)
-		// TODO The following line would throw NPE, as getID() returns null. See https://git-int.aisec.fraunhofer.de/sas/dev/cpg/issues/125
-		//Vertex v = crymlinTraversalSource.byID(potentialCallee.getId()).next();
-		if (potentialCallee.getBody() != null) {
+		// Alternative: Traverse along EOG edge until we find a "relevant" node (=Statement or CallExpression)
+		//		Benchmark query = new Benchmark(this.getClass(), "query");
+		//		Optional<Vertex> vOpt = crymlinTraversalSource.byID(potentialCallee.getId())
+		//										 .outE("BODY")
+		//										 .inV()
+		//										 .tryNext();
+		//		query.stop();
+		//		if (!vOpt.isPresent()) {
+		//			log.error("Function {} does not have a body. TS analysis does not know where to start. Skipping.", potentialCallee.getName());
+		//			return null;
+		//		}
 
-			// Actually we want to do a crymlin query instead of this error-prone and manual iteration here. This requires a fix of the issue above.
+		if (potentialCallee.getBody() != null) {
 			Statement firstStmt = potentialCallee.getBody();
 			while (firstStmt instanceof CompoundStatement) {
 				firstStmt = ((CompoundStatement) firstStmt).getStatements().get(0);
@@ -700,6 +736,7 @@ public class TypeStateAnalysis {
 			return firstStmt;
 		}
 
+		log.error("Function does not have a body: {}", potentialCallee.getName());
 		return null;
 	}
 

@@ -6,7 +6,7 @@ entity Test {
   var bla : std::string;
 
   op functions {
-    bla = call(foo);
+    bla = Test::call(foo);
   }
 
 }
@@ -15,6 +15,6 @@ entity Test {
 rule HasBeenCalled {
   using Test as t
   ensure
-    _is_instance(t.foo, "std::string") && _is_instance(t.bla, "std::string")
+    _is_instance(t.foo, "std::string")
   onfail HasBeenCalled_Failed
 }

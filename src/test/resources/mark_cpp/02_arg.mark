@@ -6,7 +6,7 @@ entity Test {
   var bar : int;
 
   op functions {
-    bar = call(foo);
+    bar = Test::call(foo);
   }
 
 }
@@ -16,4 +16,11 @@ rule SomethingAboutFoo {
   ensure
     t.foo >= 0
   onfail SomethingAboutFoo_Failed
+}
+
+rule NotThree {
+  using Test as t
+  ensure
+    t.foo != "3.0"
+  onfail NotThree_Failed
 }

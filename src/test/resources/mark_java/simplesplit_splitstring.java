@@ -6,13 +6,22 @@ class bla {
   }
 
 
-  int main() {
-    //java.lang.String s = "AES/CBC/123";
-    java.lang.String s = "SIV/CBC/123";
+  int test1() {
+    java.lang.String s = "AES/CBC/123";
 
     bla b = new bla();
 
     b.call(s);
     return 9;
   }
+
+  int test2_ok() {
+      java.lang.String s = "SIV/SIV/123";
+
+      bla b = new bla();
+
+      b.call(s);
+      return 9;
+  }
+
 }

@@ -5,7 +5,7 @@ entity Test {
   var foo : int;
 
   op functions {
-    foo = call();
+    foo = Test::call();
   }
 
 }

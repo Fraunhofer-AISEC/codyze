@@ -82,20 +82,3 @@ rule UseBouncyCastle {
 	onfail NoBouncyCastleProvider
 }
 
-rule UseRandomIV {
-	using javax.crypto.Cipher as myCipherMode,
-		java.security.SecureRandom as myRng,
-		javax.crypto.spec.IvParameterSpec as paramSpec
-	when _split(algorithm, "/", 1) == "CBC" && myCipherMode.direction == javax.crypto.Cipher.ENCRYPT_MODE // == 1
-	ensure
-		/* Java source example
-		// myRng.nextBytes(iv)
-		// AlgorithmParameterSpec == IvParameterSpec && IvParameterSpec.ctor(iv)
-	    byte[] ivData = new byte[IV_LEN];
-	    sr.nextBytes(ivData);
-	    IvParameterSpec ivParamSpec = new IvParameterSpec(ivData);
-	    pbeCipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
-	     */
-	    _is_instance(paramSpec, javax.crypto.spec.IvParameterSpec) && _receives_value_from(paramSpec.iv, myRng.nextBytes(paramSpec.iv))
-	onfail NoRandomIV
-}

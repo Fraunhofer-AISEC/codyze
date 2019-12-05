@@ -36,7 +36,8 @@ build:
     - mkdir -p /cache/.gradle
     # build
     - echo $GRADLE_PROPERTIES > gradle.properties
-    - gradle --parallel --refresh-dependencies -Dsonar.host.url=https://sonar.netsec.aisec.fraunhofer.de clean sonarqube
+    # Note that "sonarqube" already implies "build"
+    - gradle --parallel --refresh-dependencies -Dsonar.branch.name=$CI_COMMIT_REF_NAME -Dsonar.host.url=https://sonar.netsec.aisec.fraunhofer.de clean build sonarqube downloadLicenses
   artifacts:
     when: always
     paths:

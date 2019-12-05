@@ -5,7 +5,9 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
-import de.fraunhofer.aisec.analysis.scp.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContext;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
@@ -32,6 +34,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.EList;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,8 +117,8 @@ public class CrymlinQueryWrapper {
 			ret.addAll(crymlinTraversal.calls(functionName, markEntity)
 					.toList());
 		}
-		List<Vertex> calls = crymlinTraversal.calls(functionName, markEntity)
-				.toList();
+		//List<Vertex> calls = crymlinTraversal.calls(functionName, markEntity)
+		//		.toList();
 
 		// it's a function OR a static method call -> name == fqnClassName.functionName
 		ret.addAll(crymlinTraversal.calls(fqnClassName + "." + functionName)
@@ -377,7 +380,7 @@ public class CrymlinQueryWrapper {
 		return matchingVertices;
 	}
 
-	public static List<CPGVertexWithValue> getAssignmentsForVertices(List<Vertex> vertices) {
+	public static List<CPGVertexWithValue> getAssignmentsForVertices(List<Vertex> vertices, @NonNull String operand) {
 		final List<CPGVertexWithValue> ret = new ArrayList<>();
 		// try to resolve them
 		for (Vertex v : vertices) {
@@ -391,13 +394,15 @@ public class CrymlinQueryWrapper {
 						.vertexToNode(variableDeclarationVertex);
 				ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
 				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v);
-				// fixme what if we do not know the value, shouldnt we then still return the argumentvertex?
+
+				// fixme: allow multiple returns!
 				if (constantValue.isPresent()) {
-					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get()
-							.getValue()); // todo? return the constantvalue or the inner value?
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get());
 					ret.add(mva);
 				} else {
-					log.warn("Could not constant resolve node {}", v.id());
+					log.warn("Could not constant resolve {}, returning Constant.NULL", operand);
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.NULL);
+					ret.add(mva);
 				}
 			}
 		}
@@ -465,9 +470,40 @@ public class CrymlinQueryWrapper {
 			Vertex baseVertex = it.next().inVertex();
 			Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
 			if (refIterator.hasNext()) {
+				// if the node refers to another node, return the node it refers to
 				ref = refIterator.next().inVertex();
 				base = Optional.of(ref);
+			} else {
+				base = Optional.of(baseVertex);
 			}
+		}
+		return base;
+	}
+
+	public static Optional<Vertex> getBaseOfInitializerArgument(@NonNull Vertex expr) {
+		Optional<Vertex> base = Optional.empty();
+		Iterator<Edge> refIterator = expr.edges(Direction.IN, "ARGUMENTS");
+		if (refIterator.hasNext()) {
+			Iterator<Edge> it = refIterator.next().outVertex().edges(Direction.IN, "INITIALIZER");
+			if (it.hasNext()) {
+				Vertex baseVertex = it.next().outVertex();
+				refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+				if (refIterator.hasNext()) {
+					// if the node refers to another node, return the node it refers to
+					base = Optional.of(refIterator.next().inVertex());
+				} else {
+					base = Optional.of(baseVertex);
+				}
+			}
+		}
+		return base;
+	}
+
+	public static Optional<Vertex> getBaseOfCallOfArgumentExpression(@NonNull Vertex expr) {
+		Optional<Vertex> base = Optional.empty();
+		Iterator<Edge> refIterator = expr.edges(Direction.IN, "ARGUMENTS");
+		if (refIterator.hasNext()) {
+			base = getBaseOfCallExpression(refIterator.next().outVertex());
 		}
 		return base;
 	}
@@ -482,5 +518,74 @@ public class CrymlinQueryWrapper {
 			return Optional.of(variableDeclaration);
 		}
 		return Optional.empty();
+	}
+
+	public static HashMap<Integer, List<CPGVertexWithValue>> resolveOperand(MarkContextHolder context, @NonNull String operand, @NonNull MRule rule,
+			@NonNull CrymlinTraversalSource crymlin) {
+
+		HashMap<Integer, List<CPGVertexWithValue>> verticesPerContext = new HashMap<>();
+
+		// first get all vertices for the operand
+		List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(operand, rule, crymlin);
+
+		if (matchingVertices.isEmpty()) {
+			log.warn("Did not find matching vertices for {}", operand);
+			return verticesPerContext;
+		}
+
+		List<CPGVertexWithValue> vertices = new ArrayList<>();
+
+		// The arguments themselves may be constants ("Literal"). In that case, add the value.
+		for (Vertex v : matchingVertices) {
+			if (v.label().equals(Literal.class.getSimpleName())) {
+				vertices.add(new CPGVertexWithValue(v, ConstantValue.of(v.property("value").value())));
+			}
+		}
+
+		// Use Constant resolver to resolve assignments to arguments
+		vertices.addAll(CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices, operand));
+
+		// now split them up to belong to each instance
+
+		final String instance = operand.split("\\.")[0];
+
+		// precompute a list mapping
+		// from a nodeID (representing the varabledecl for the instance)
+		// to a List of contexts where this base is referenced
+		HashMap<Long, List<Integer>> nodeIDToContextIDs = new HashMap<>();
+		for (Map.Entry<Integer, MarkContext> entry : context.getAllContexts().entrySet()) {
+			Vertex opInstance = entry.getValue().getInstanceContext().getVertex(instance);
+			if (opInstance == null) {
+				log.warn("Instance not found in context");
+			} else {
+				List<Integer> contextIDs = nodeIDToContextIDs.computeIfAbsent((Long) opInstance.id(), x -> new ArrayList<>());
+				contextIDs.add(entry.getKey());
+			}
+		}
+
+		// now calculate a list of contextID to matching vertices which fill the base we are looking for
+
+		for (CPGVertexWithValue vertexWithValue : vertices) {
+			Optional<Vertex> base = getBaseOfCallOfArgumentExpression(vertexWithValue.getArgumentVertex());
+			if (base.isEmpty()) { // maybe this was a ctor-expression, get assignee
+				base = CrymlinQueryWrapper.getBaseOfInitializerArgument(vertexWithValue.getArgumentVertex());
+			}
+
+			if (base.isPresent()) {
+				List<Integer> contextIDs = nodeIDToContextIDs.get((Long) base.get().id());
+				if (contextIDs == null) {
+					log.warn("Base not found in any context. Following expressionevaluation will be incomplete");
+				} else {
+					for (Integer c : contextIDs) {
+						List<CPGVertexWithValue> verts = verticesPerContext.computeIfAbsent(c, x -> new ArrayList<>());
+						verts.add(vertexWithValue);
+					}
+				}
+			} else {
+				log.warn("Base not found for argument. Following expressionevaluation will be incomplete");
+			}
+		}
+
+		return verticesPerContext;
 	}
 }

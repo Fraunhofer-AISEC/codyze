@@ -48,6 +48,7 @@ public class IsInstanceBuiltin implements Builtin {
 
 			if (!(entry.getValue() instanceof ListValue)) {
 				log.error("Arguments must be a list");
+				result.put(entry.getKey(), ConstantValue.NULL);
 				continue;
 			}
 

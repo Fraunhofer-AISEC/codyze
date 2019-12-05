@@ -400,8 +400,8 @@ public class CrymlinQueryWrapper {
 					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get());
 					ret.add(mva);
 				} else {
-					log.warn("Could not constant resolve {}, returning Constant.UNKNOWN", operand);
-					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.UNKNOWN);
+					log.warn("Could not constant resolve {}, returning Constant.NULL", operand);
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.NULL);
 					ret.add(mva);
 				}
 			}

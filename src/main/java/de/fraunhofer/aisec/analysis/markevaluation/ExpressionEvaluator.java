@@ -30,13 +30,11 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.Mark;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,8 +54,11 @@ public class ExpressionEvaluator {
 	// the resulting analysis context
 	private final AnalysisContext resultCtx;
 	private final MarkContextHolder markContextHolder;
+	private final Mark markModel;
 
-	public ExpressionEvaluator(MRule rule, AnalysisContext resultCtx, ServerConfiguration config, CrymlinTraversalSource traversal, MarkContextHolder context) {
+	public ExpressionEvaluator(Mark markModel, MRule rule, AnalysisContext resultCtx, ServerConfiguration config, CrymlinTraversalSource traversal,
+			MarkContextHolder context) {
+		this.markModel = markModel;
 		this.markRule = rule;
 		this.resultCtx = resultCtx;
 		this.config = config;
@@ -647,15 +648,39 @@ public class ExpressionEvaluator {
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateOperand(Operand operand) {
 
-		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getResolvedOperand(operand.getOperand());
+		// operands are split by "."
+		String[] split = operand.getOperand().split("\\.");
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(split[0]); // add base
+
+		Map<Integer, MarkIntermediateResult> result = markContextHolder.generateNullResult();
+
+		for (int i = 1; i < split.length; i++) {
+			sb.append(".");
+			sb.append(split[i]);
+
+			// sequentially resolve an operand from the left to the right.
+			// i.e., if the operand is t.foo.bla, resolve t.foo, then resolve t.foo.bla
+			result = evaluateSingleOperand(sb.toString());
+		}
+
+		return result;
+	}
+
+	@NonNull
+	private Map<Integer, MarkIntermediateResult> evaluateSingleOperand(String operand) {
+
+		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getResolvedOperand(operand);
 
 		if (resolvedOperand == null) {
-			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContextHolder, operand.getOperand(), markRule, traversal);
+			// if this operand is not resolved yet in this expressionevaluation, resolve it
+			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContextHolder, operand, markRule, markModel, traversal);
 			if (operandVertices.size() == 0) {
-				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand.getOperand());
+				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
 			}
-			markContextHolder.addResolvedOperands(operand.getOperand(), operandVertices);
-			resolvedOperand = markContextHolder.getResolvedOperand(operand.getOperand());
+			markContextHolder.addResolvedOperands(operand, operandVertices); // cache the resolved operand
+			resolvedOperand = markContextHolder.getResolvedOperand(operand);
 		}
 
 		return resolvedOperand;

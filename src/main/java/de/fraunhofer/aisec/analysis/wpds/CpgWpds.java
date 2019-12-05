@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.wpds;
 
-import de.breakpoint.pushdown.WPDS;
+import de.breakpointsec.pushdown.WPDS;
 import de.fraunhofer.aisec.cpg.graph.Region;
 
 /**

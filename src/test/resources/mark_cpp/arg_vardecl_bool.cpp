@@ -1,9 +1,13 @@
+class Test {
 
+public:
 bool call(bool a) {
   return !a;
+}
 }
 
 int main() {
   bool foo = true;
-  call(foo);
+  Test t();
+  t.call(foo);
 }

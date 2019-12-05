@@ -4,17 +4,17 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluationException;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -57,45 +57,45 @@ public class RuleEnsureSemanticsTest {
 
 	private void test(String markFileEnding) throws Exception {
 		List<String> markFilePaths = markModels.keySet().stream().filter(n -> n.endsWith(markFileEnding)).collect(Collectors.toList());
-		assertTrue(markFilePaths.size() == 1);
+		assertEquals(1, markFilePaths.size());
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
 		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TYPESTATE_ANALYSIS.NFA).build();
 		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)).toURI());
 
-		Set<String> failedRules = new HashSet<>();
-		Map<@NonNull String, ResultWithContext> ensureExprResults = new TreeMap<>();
+		Map<String, Map<Integer, MarkIntermediateResult>> allResults = new TreeMap<>();
 		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
 			for (MRule r : mark.getRules()) {
-				ExpressionEvaluator ee = new ExpressionEvaluator(r, ctx, config, t.getCrymlinTraversal());
+
+				MarkContextHolder markContextHolder = new MarkContextHolder();
+				markContextHolder.getAllContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
+
+				ExpressionEvaluator ee = new ExpressionEvaluator(r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
 
 				Expression ensureExpr = r.getStatement().getEnsure().getExp();
-				try {
-					ResultWithContext result = ee.evaluate(ensureExpr);
-					ensureExprResults.put(r.getName(), result);
-				}
-				catch (ExpressionEvaluationException e) {
-					failedRules.add(r.getName());
-				}
+				Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(ensureExpr);
+
+				assertEquals(1, result.size());
+
+				allResults.put(r.getName(), result);
 			}
 		}
 
-		failedRules
-				.forEach(rule -> {
-					assertTrue(rule.endsWith("fail"));
-				});
+		allResults.forEach((key, value) -> {
+			assertTrue(value.get(0) instanceof ConstantValue);
 
-		ensureExprResults.entrySet()
-				.forEach(
-					entry -> {
-						if (entry.getKey().endsWith("true")) {
-							assertTrue((Boolean) entry.getValue().get(), entry.getKey());
-						} else if (entry.getKey().endsWith("false")) {
-							assertFalse((Boolean) entry.getValue().get(), entry.getKey());
-						} else {
-							fail("Unexpected: Rule should have failed, but is " + (Boolean) entry.getValue().get() + ": " + entry.getKey());
-						}
-					});
+			MarkIntermediateResult inner = value.get(0);
+
+			if (key.endsWith("true")) {
+				assertEquals(true, ((ConstantValue) inner).getValue(), key);
+			} else if (key.endsWith("false")) {
+				assertEquals(false, ((ConstantValue) inner).getValue(), key);
+			} else if (key.endsWith("fail")) {
+				assertEquals(inner, ConstantValue.NULL);
+			} else {
+				fail("Unexpected: Rule should have failed, but is " + inner + ": " + key);
+			}
+		});
 	}
 
 	@Test

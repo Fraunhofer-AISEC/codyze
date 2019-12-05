@@ -1,6 +1,9 @@
+class Test {
 
+public:
 int call(int a) {
   return a + 1;
+}
 }
 
 /*
@@ -13,5 +16,6 @@ This should be solved by a generic data flow solver, external to the ExpressionE
 int main() {
   int foo = 41;
   foo += 1;
-  call(foo); // MARK: foo == 42?
+  Test t();
+  t.call(foo); // MARK: foo == 42?
 }

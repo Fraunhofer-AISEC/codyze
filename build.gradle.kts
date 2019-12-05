@@ -12,11 +12,18 @@ plugins {
 
     id("org.sonarqube") version "2.7"
     id("com.diffplug.gradle.spotless") version "3.26.0"
-    //id("com.github.hierynomus.license") version "0.15.0"
+    id("com.github.hierynomus.license") version "0.15.0"
 }
 
 group = "de.fraunhofer.aisec"
 version = "1.0-SNAPSHOT"
+
+/* License plugin needs a special treatment, as long as the main project does not have a license yet.
+   See https://github.com/hierynomus/license-gradle-plugin/issues/155 
+*/
+gradle.startParameter.excludedTaskNames += "licenseMain"
+gradle.startParameter.excludedTaskNames += "licenseTest"
+
 
 publishing {
     publications {
@@ -99,10 +106,6 @@ dependencies {
 
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
-    // only needed for export to neo4j
-    // https://mvnrepository.com/artifact/org.neo4j/neo4j-tinkerpop-api-impl
-    api("org.neo4j", "neo4j-tinkerpop-api-impl", "0.9-3.4.0")
-
     // Code Property Graph
     api("de.fraunhofer.aisec", "cpg", "1.1-SNAPSHOT") { setChanging(true) }
 
@@ -137,7 +140,7 @@ dependencies {
     api("org.reflections", "reflections", "0.9.11")
 
     // Pushdown Systems
-    api("de.breakpoint", "pushdown", "1.0-SNAPSHOT")
+    api("de.breakpointsec", "pushdown", "1.1")
 
     // Jython (Scripting engine)
     api("org.python", "jython-standalone", versions["jython"])
@@ -179,7 +182,7 @@ spotless {
     }
 }
 
-/*downloadLicenses {
+downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = "compileClasspath"
-}*/
+}

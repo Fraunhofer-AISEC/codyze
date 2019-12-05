@@ -10,5 +10,8 @@ class bla {
     java.lang.String j;
 
     j = call(s);
+
+    bla b = new bla();
+    j = b.call(s);
   }
 }

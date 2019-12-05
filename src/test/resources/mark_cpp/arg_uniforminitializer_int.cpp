@@ -1,6 +1,9 @@
+class Test {
 
+public:
 int call(int a) {
   return a + 1;
+}
 }
 
 /*
@@ -9,5 +12,6 @@ The Mark ExpressionEvaluator should resolve this.
 */
 int main() {
   int foo{ 42 };
-  call(foo);
+  Test t();
+  t.call(foo);
 }

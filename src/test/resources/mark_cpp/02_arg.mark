@@ -17,3 +17,10 @@ rule SomethingAboutFoo {
     t.foo >= 0
   onfail SomethingAboutFoo_Failed
 }
+
+rule NotThree {
+  using Test as t
+  ensure
+    t.foo != "3.0"
+  onfail NotThree_Failed
+}

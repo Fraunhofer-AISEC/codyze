@@ -414,7 +414,22 @@ public class ExpressionEvaluator {
 
 		if (builtin.isPresent()) {
 			Map<Integer, MarkIntermediateResult> arguments = evaluateArgs(expr.getArgs());
-			return builtin.get().execute(arguments, this);
+
+			Map<Integer, MarkIntermediateResult> result = new HashMap<>();
+			for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
+
+				if (!(entry.getValue() instanceof ListValue)) {
+					log.error("Arguments must be a list");
+					result.put(entry.getKey(), ConstantValue.NULL);
+					continue;
+				}
+
+				ConstantValue cv = builtin.get().execute((ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
+
+				result.put(entry.getKey(), cv);
+
+			}
+			return result;
 		}
 
 		throw new ExpressionEvaluationException("Unsupported function " + functionName);

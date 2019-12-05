@@ -16,11 +16,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +36,9 @@ import java.util.concurrent.TimeoutException;
 public class CpgDocumentService implements TextDocumentService {
 
 	private static final Logger log = LoggerFactory.getLogger(CpgDocumentService.class);
+
+	private static final String DISABLE_FINDING_PREFIX = "ERRORBEGONE-";
+	private static final String DISABLE_FINDING_ALL = "ERRORBEGONE-ALL";
 
 	private HashMap<String, Pair<String, PublishDiagnosticsParams>> lastScan = new HashMap<>();
 
@@ -99,15 +106,34 @@ public class CpgDocumentService implements TextDocumentService {
 				ctx.getFindings().size(),
 				Duration.between(start, Instant.now()).toMillis());
 
+			// check if there are disabled findings
+			List<String> allLines = null;
+			try {
+				allLines = Files.readAllLines(Paths.get(file.getAbsolutePath()));
+			}
+			catch (IOException e) {
+				log.error("Error reading source file for messge disabling", e);
+			}
+
 			ArrayList<Diagnostic> allDiags = new ArrayList<>();
 			for (Finding f : ctx.getFindings()) {
 				for (Range r : f.getRanges()) {
+					boolean skipWarning = false;
 					Diagnostic diagnostic = new Diagnostic();
 					diagnostic.setSeverity(DiagnosticSeverity.Error);
 					diagnostic.setCode(f.getOnfailIdentifier());
 					diagnostic.setMessage(f.getLogMsg());
 					diagnostic.setRange(r);
-					allDiags.add(diagnostic);
+					if (allLines != null) {
+						String line = allLines.get(r.getStart().getLine());
+						if (line.contains(DISABLE_FINDING_ALL) || line.contains(DISABLE_FINDING_PREFIX + f.getOnfailIdentifier())) {
+							log.warn("Skipping finding {}, disabled via comment", f);
+							skipWarning = true;
+						}
+					}
+					if (!skipWarning) {
+						allDiags.add(diagnostic);
+					}
 				}
 			}
 

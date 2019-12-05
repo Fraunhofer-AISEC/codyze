@@ -35,8 +35,6 @@ import java.util.concurrent.TimeoutException;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class MarkCppTest {
-	private static HashMap<String, MarkModel> markModels;
-	private final static boolean INCLUDE_KNOWN_NONWORKING_TESTS = false;
 
 	@BeforeAll
 	public static void startup() throws Exception {
@@ -60,7 +58,7 @@ public class MarkCppTest {
 			parser.addMarkFile(mf);
 		}
 
-		markModels = parser.parse();
+		HashMap<String, MarkModel> markModels = parser.parse();
 		assertFalse(markModels.isEmpty());
 	}
 
@@ -83,132 +81,35 @@ public class MarkCppTest {
 	}
 
 	@Test
+	@Disabled // requires Dataflow analysis
 	public void _01_assign() throws Exception {
-		ClassLoader classLoader = MarkCppTest.class.getClassLoader();
-
-		URL resource = classLoader.getResource("mark_cpp/01_assign.cpp");
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
-
-		resource = classLoader.getResource("mark_cpp/01_assign.mark");
-		assertNotNull(resource);
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
-
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build())
-				.build();
-		server.start();
-
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
-				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-	}
-
-	@Test
-	public void _02_arg() throws Exception {
-		ClassLoader classLoader = MarkCppTest.class.getClassLoader();
-
-		URL resource = classLoader.getResource("mark_cpp/02_arg.cpp");
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
-
-		resource = classLoader.getResource("mark_cpp/02_arg.mark");
-		assertNotNull(resource);
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
-
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build())
-				.build();
-		server.start();
-
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
-				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-	}
-
-	@Test
-	public void _03_arg_as_param() throws Exception {
-		ClassLoader classLoader = MarkCppTest.class.getClassLoader();
-
-		URL resource = classLoader.getResource("mark_cpp/03_arg_as_param.cpp");
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
-
-		resource = classLoader.getResource("mark_cpp/03_arg_as_param.mark");
-		assertNotNull(resource);
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
-
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build())
-				.build();
-		server.start();
-
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
-				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-	}
-
-	private void expected(Set<Finding> findings, String... expectedFindings) {
+		Set<Finding> findings = runTest("01_assign", "01_assign");
 		System.out.println("All findings:");
 		for (Finding f : findings) {
 			System.out.println(f.toString());
 		}
 
-		for (String expected : expectedFindings) {
-			assertEquals(1, findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
-			Optional<Finding> first = findings.stream().filter(f -> f.toString().equals(expected)).findFirst();
-			findings.remove(first.get());
-		}
-		if (findings.size() > 0) {
-			System.out.println("Additional Findings:");
-			for (Finding f : findings) {
-				System.out.println(f.toString());
-			}
+		assertFalse(true); // new tests!
+	}
+
+	@Test
+	public void _02_arg() throws Exception {
+		Set<Finding> findings = runTest("02_arg", "02_arg");
+		expected(findings,
+			"line 13: MarkRuleEvaluationFinding: Rule NotThree violated",
+			"line 13: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+	}
+
+	@Test
+	@Disabled // requires Dataflow analysis
+	public void _03_arg_as_param() throws Exception {
+		Set<Finding> findings = runTest("03_arg_as_param", "03_arg_as_param");
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
 		}
 
-		assertEquals(0, findings.size());
+		assertFalse(true); // new tests!
 	}
 
 	@Test
@@ -323,17 +224,15 @@ public class MarkCppTest {
 			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
-	private @NonNull Set<Finding> runTest(@NonNull String fileNamePart)
+	private @NonNull Set<Finding> runTest(@NonNull String fileNamePart, @NonNull String markFilePart)
 			throws ExecutionException, InterruptedException, TimeoutException {
-		String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);
-
 		ClassLoader classLoader = MarkCppTest.class.getClassLoader();
 		URL resource = classLoader.getResource("mark_cpp/" + fileNamePart + ".cpp");
 		assertNotNull(resource);
 		File cppFile = new File(resource.getFile());
 		assertNotNull(cppFile);
 
-		resource = classLoader.getResource("mark_cpp/" + type + ".mark");
+		resource = classLoader.getResource("mark_cpp/" + markFilePart + ".mark");
 		assertNotNull(resource);
 		File markFile = new File(resource.getFile());
 		assertNotNull(markFile);
@@ -362,5 +261,33 @@ public class MarkCppTest {
 			analyze.cancel(true);
 			throw t;
 		}
+	}
+
+	private @NonNull Set<Finding> runTest(@NonNull String fileNamePart)
+			throws ExecutionException, InterruptedException, TimeoutException {
+		String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);
+
+		return runTest(fileNamePart, type);
+	}
+
+	private void expected(Set<Finding> findings, String... expectedFindings) {
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		for (String expected : expectedFindings) {
+			assertEquals(1, findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
+			Optional<Finding> first = findings.stream().filter(f -> f.toString().equals(expected)).findFirst();
+			findings.remove(first.get());
+		}
+		if (findings.size() > 0) {
+			System.out.println("Additional Findings:");
+			for (Finding f : findings) {
+				System.out.println(f.toString());
+			}
+		}
+
+		assertEquals(0, findings.size());
 	}
 }

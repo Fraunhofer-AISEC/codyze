@@ -1,0 +1,24 @@
+package java
+
+entity javax.crypto.Cipher {
+	
+	var opmode : int;
+	var certificate;
+	var random : java.security.SecureRandom;
+	var key : java.security.Key;
+	var params;
+	var paramspecs;
+	
+	
+	op initialize {
+		javax.crypto.Cipher.init(opmode, certificate);
+		javax.crypto.Cipher.init(opmode, certificate, random);
+		javax.crypto.Cipher.init(opmode, key);
+		javax.crypto.Cipher.init(opmode, key, params);
+		javax.crypto.Cipher.init(opmode, key, params, random);
+		javax.crypto.Cipher.init(opmode, key, random);
+		javax.crypto.Cipher.init(opmode, key, paramspecs);
+		javax.crypto.Cipher.init(opmode, key, paramspecs, random);
+	}
+	
+}

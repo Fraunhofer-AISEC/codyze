@@ -1,0 +1,37 @@
+package bouncycastle
+
+entity org.bouncycastle.crypto.digests.SHA512Digest isa org.bouncycastle.crypto.Digest {
+	
+	var encodedState : byte[];
+	var copy : org.bouncycastle.crypto.digests.SHA512Digest;
+	
+	var outArray : byte[];
+	
+	op instantiate {
+        org.bouncycastle.crypto.digests.SHA512Digest();
+        org.bouncycastle.crypto.digests.SHA512Digest(encodedState);
+        org.bouncycastle.crypto.digests.SHA512Digest(copy);
+    }
+	
+	op update {
+		org.bouncycastle.crypto.digests.SHA512Digest.update(_);
+		org.bouncycastle.crypto.digests.SHA512Digest.update(_, _, _);
+	}
+	
+	op finalize {
+		org.bouncycastle.crypto.digests.SHA512Digest.doFinal(outArray, _);
+	}
+	
+	op reset {
+		org.bouncycastle.crypto.digests.SHA512Digest.reset();
+	}
+	
+}
+
+rule SHA512DigestOrder {
+	using
+		org.bouncycastle.crypto.digests.SHA512Digest as sha512
+	ensure
+		order sha512.instantiate(), (sha512.update()* , sha512.finalize())*, sha512.reset()?
+	onfail Wrong_order
+}

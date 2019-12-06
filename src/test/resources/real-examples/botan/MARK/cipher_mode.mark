@@ -116,7 +116,8 @@ rule UseOfPipe {
 	using Botan::Cipher_Mode as cm,
 		Botan::Pipe as p
 	ensure
-		p.filterList._listAny(_receives_value_from(cm))
+		_receives_value_from(p.filter, cm) |
+		cm in p.filterList
 	onfail WrongUseOfBotan_CipherMode
 }
 
@@ -129,3 +130,20 @@ rule KeyLength {
 	onfail BadKeyLength
 }
 
+rule CBCRandomIV  {
+	using Botan::Cipher_Mode as cm,
+		Botan::AutoSeededRNG as rng
+	when _split(cm.algorithm, "/", 1) == "CBC"
+	ensure
+		receives_value_from(cm.iv, rng.random_data)
+	onfail NoRandomIV	
+}
+
+rule NonRepeatedIV {
+// Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
+	using Botan::Cipher_Mode as cm,
+	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
+	ensure
+		//TODO
+	onfail RepeatedIV 
+}

@@ -21,6 +21,7 @@ public class MarkContextHolder {
 
 	private Set<String> resolvedOperands = new HashSet<>();
 	private Map<Integer, List<Integer>> copyStack = new HashMap<>();
+	private boolean createFindingsDuringEvaluation = true;
 
 	public void addInitialInstanceContext(CPGInstanceContext instance) {
 		MarkContext mk = new MarkContext();
@@ -94,5 +95,13 @@ public class MarkContextHolder {
 
 	public List<Integer> getCopyStack(Integer key) {
 		return copyStack.get(key);
+	}
+
+	public void setCreateFindingsDuringEvaluation(boolean b) {
+		this.createFindingsDuringEvaluation = b;
+	}
+
+	public boolean createFindingsDuringEvaluation() {
+		return createFindingsDuringEvaluation;
 	}
 }

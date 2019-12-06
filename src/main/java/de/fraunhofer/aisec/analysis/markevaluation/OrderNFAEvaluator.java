@@ -3,9 +3,10 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
@@ -37,59 +38,61 @@ public class OrderNFAEvaluator {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderNFAEvaluator.class);
 	private final MRule rule;
+	private final MarkContextHolder markContextHolder;
 
-	public OrderNFAEvaluator(MRule rule) {
+	public OrderNFAEvaluator(MRule rule, MarkContextHolder markContextHolder) {
 		this.rule = rule;
+		this.markContextHolder = markContextHolder;
 	}
 
-	public ResultWithContext evaluate(OrderExpression orderExpression, CPGInstanceContext instanceContext, AnalysisContext ctx,
+	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext ctx,
 			CrymlinTraversalSource crymlinTraversal) {
 		// We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
 		// Any function calls to functions which are not specified in an entity are _ignored_
 
-		// fixme not tested, if this also works for different markvars in one order
-		// should we allow this different entities in an order?
+		// it is NOT allowed to use different entities in one order
 		//  rule UseOfBotan_CipherMode {
 		//      using Forbidden as cm, Foo as f
 		//  ensure order cm.start(), cm.finish(), f.done()
 		//  onfail WrongUseOfBotan_CipherMode
-		//  } -> this does currently not work, as we store for each base, where in the FSM it is.
+		//  } -> this does not work, as we store for each base, where in the FSM it is.
 		// in this case, an instance of cm would always have a different base than f.
 
-		// is aliasing inside an order rule allowed?
+		// For this analysis, Aliasing is not analysed!
 		// I.e. order x.a, x.b, x.c
 		// x i1;
 		// i1.a();
 		// i1.b();
 		// x i2 = i1;
-		// i2.c(); -> do we know if i2 is a copy, or an alias?
-		// -> always mark as error?
+		// i2.c(); -> we do not necessarily know if i2 is a copy, or an alias?
 		// -> currently this will result in:
 		//   Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
 		//   Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
+
+		CPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 
 		Set<String> markInstances = new HashSet<>();
 		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
 
 		if (markInstances.size() > 1) {
 			log.warn("Order statement contains more than one base. Not supported.");
-			return null;
+			return ConstantValue.NULL;
 		}
 		if (markInstances.size() == 0) {
 			log.warn("Order statement does not contain any ops. Invalid order");
-			return null;
+			return ConstantValue.NULL;
 		}
 
 		Vertex variableDecl = instanceContext.getVertex(markInstances.iterator().next());
 		if (variableDecl == null) {
 			log.warn("Variable is not set in the instancecontext. Invalid evaluation.");
-			return null;
+			return ConstantValue.NULL;
 		}
 
 		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
 		if (containingFunction.isEmpty()) {
 			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
-			return null;
+			return ConstantValue.NULL;
 		}
 
 		Vertex functionDeclaration = containingFunction.get();
@@ -114,7 +117,7 @@ public class OrderNFAEvaluator {
 
 		if (verticesToOp.isEmpty()) {
 			log.info("no nodes match this rule. Skipping rule.");
-			return null;
+			return ConstantValue.NULL;
 		}
 
 		// collect all instances used in this order
@@ -126,7 +129,7 @@ public class OrderNFAEvaluator {
 			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
 				log.error("alias {} is not referenced in this rule {}", alias, rule.getName());
-				return null;
+				return ConstantValue.NULL;
 			}
 			referencedVertices.add(v.id());
 		}
@@ -156,9 +159,6 @@ public class OrderNFAEvaluator {
 
 		while (!currentWorklist.isEmpty()) {
 			HashSet<Vertex> nextWorklist = new HashSet<>();
-			//            System.out.println("SEEN: " + String.join(", ", seenStates));
-			//            printWorklist(currentWorklist, nodeIDtoEOGPathSet);
-			//            System.out.println();
 
 			for (Vertex vertex : currentWorklist) {
 				visitedNodes++;
@@ -170,7 +170,6 @@ public class OrderNFAEvaluator {
 				for (String eogPath : eogPathSet) {
 
 					// ... no direct access to the labels TreeSet of Neo4JVertex
-					// TODO JS: This might need to be adapted to non-multilabels with OverflowDB.
 					if (vertex.label().contains("MemberCallExpression")
 							// is the vertex part of any op of any mentioned entity? If not, ignore
 							&& verticesToOp.get(vertex) != null) {
@@ -217,6 +216,7 @@ public class OrderNFAEvaluator {
 								String prefixedBase = eogPath + "." + base;
 
 								if (isDisallowedBase(disallowedBases, eogPath, base)) {
+									// we hide base errors for now!
 									//                      Finding f =
 									//                          new Finding(
 									//                              "Violation against Order: "
@@ -229,8 +229,9 @@ public class OrderNFAEvaluator {
 									//                              vertex.value("endLine"),
 									//                              vertex.value("startColumn"),
 									//                              vertex.value("endColumn"));
-									// we hide base errors for now!
+									//if (markContextHolder.createFindingsDuringEvaluation()) {
 									// ctx.getFindings().add(f);
+									//}
 									// log.info("Finding: {}", f.toString());
 								} else {
 									Set<Node> nodesInFSM;
@@ -278,7 +279,9 @@ public class OrderNFAEvaluator {
 											toIntExact(vertex.value("endLine")) - 1,
 											toIntExact(vertex.value("startColumn")) - 1,
 											toIntExact(vertex.value("endColumn")) - 1);
-										ctx.getFindings().add(f);
+										if (markContextHolder.createFindingsDuringEvaluation()) {
+											ctx.getFindings().add(f);
+										}
 										log.info("Finding: {}", f);
 										disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
 									} else {
@@ -398,13 +401,17 @@ public class OrderNFAEvaluator {
 				toIntExact(vertex.value("endLine")) - 1,
 				toIntExact(vertex.value("startColumn")) - 1,
 				toIntExact(vertex.value("endColumn")) - 1);
-			ctx.getFindings()
-					.add(f);
+			if (markContextHolder.createFindingsDuringEvaluation()) {
+				ctx.getFindings()
+						.add(f);
+			}
 			log.info("Finding: {}", f);
 		}
-		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(isOrderValid);
-		result.setFindingAlreadyAdded(true);
-		return result;
+		ConstantValue of = ConstantValue.of(isOrderValid);
+		if (markContextHolder.createFindingsDuringEvaluation()) {
+			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
+		}
+		return of;
 	}
 
 	private boolean isDisallowedBase(

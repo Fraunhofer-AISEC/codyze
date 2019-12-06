@@ -60,3 +60,9 @@ void nok5() {
   p5.finish(buf);
 }
 }
+
+void nok2_disabled () {
+Botan p2 = new Botan(2);
+p2.start(iv); //ERRORBEGONE-WrongUseOfBotan_CipherMode
+// missing p2.finish(buf);
+}

@@ -60,6 +60,12 @@ public class Someclass {
       p5.finish(buf);
     }
   }
+
+  void nok2() {
+      Botan p2 = new Botan(2);
+      p2.start(iv); //ERRORBEGONE-WrongUseOfBotan_CipherMode
+      // missing p2.finish(buf);
+  }
 }
 
 public class Botan {

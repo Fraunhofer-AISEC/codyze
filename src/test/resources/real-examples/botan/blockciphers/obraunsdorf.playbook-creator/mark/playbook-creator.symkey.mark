@@ -1,0 +1,25 @@
+package botan
+
+
+entity Botan::SymmetricKey {
+	
+	var bytes; // can be `const std::string&` OR `const uint8_t[]` OR `const secure_vector<uint8_t>&` OR `const std::vector< uint8_t >&`
+	var length : size_t
+
+	op create {
+		Botan::OctetString(bytes);
+        Botan::OctetString(RandomNumberGenerator, length);
+        Botan::OctetString(bytes, length);
+	}
+	
+	op getKey {
+		Botan::OctetString::bits_of();
+        Botan::OctetString::to_string();
+
+        // TODO because it's hard for us to analyze?
+        forbidden Botan::OctetString::begin();
+        forbidden Botan::OctetString::end();
+	}
+
+}
+

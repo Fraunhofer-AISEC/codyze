@@ -149,7 +149,7 @@ public class Evaluator {
 			// A CPGInstanceContext is a specific interpretation of a Mark rule that needs to be evaluated.
 			MarkContextHolder markCtxHolder = createMarkContext(entities);
 
-			ExpressionEvaluator ee = new ExpressionEvaluator(rule, ctx, config, crymlinTraversal, markCtxHolder);
+			ExpressionEvaluator ee = new ExpressionEvaluator(this.markModel, rule, ctx, config, crymlinTraversal, markCtxHolder);
 
 			// Evaluate "when" part, if present (will possibly remove entries from markCtxhHlder)
 			evaluateWhen(rule, markCtxHolder, ee);
@@ -231,6 +231,9 @@ public class Evaluator {
 	 * @return
 	 */
 	private void evaluateWhen(@NonNull MRule rule, @NonNull MarkContextHolder markCtxHolder, @NonNull ExpressionEvaluator ee) {
+		// do not create any findings during When-Evaluation
+		markCtxHolder.setCreateFindingsDuringEvaluation(false);
+
 		RuleStatement s = rule.getStatement();
 		if (s.getCond() != null) {
 			Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(s.getCond().getExp());
@@ -253,6 +256,9 @@ public class Evaluator {
 				}
 			}
 		}
+
+		// now we can create inline findings
+		markCtxHolder.setCreateFindingsDuringEvaluation(true);
 	}
 
 	private MarkContextHolder createMarkContext(List<List<Pair<String, Vertex>>> entities) {
@@ -262,9 +268,7 @@ public class Evaluator {
 			for (Pair<String, Vertex> p : list) {
 				String markInstanceName = p.getValue0();
 				Vertex v = p.getValue1();
-				if (v != null) {
-					instanceCtx.putMarkInstance(markInstanceName, v);
-				}
+				instanceCtx.putMarkInstance(markInstanceName, v);
 			}
 			context.addInitialInstanceContext(instanceCtx);
 		}

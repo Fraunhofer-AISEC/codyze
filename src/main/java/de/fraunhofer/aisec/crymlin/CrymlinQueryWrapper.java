@@ -1,9 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
-
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContext;
@@ -25,6 +22,8 @@ import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
 import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.MVar;
+import de.fraunhofer.aisec.markmodel.Mark;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -44,7 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 public class CrymlinQueryWrapper {
 
@@ -236,28 +235,54 @@ public class CrymlinQueryWrapper {
 	 *
 	 * @param operand
 	 * @param rule
+	 * @param markModel
 	 * @param crymlin
 	 * @return
 	 */
-	public static List<Vertex> getMatchingVertices(@NonNull String operand, @NonNull MRule rule, @NonNull CrymlinTraversalSource crymlin) {
+	public static List<Vertex> getMatchingVertices(@NonNull String operand, @NonNull MRule rule, Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 		final List<Vertex> matchingVertices = new ArrayList<>();
-
-		if (StringUtils.countMatches(operand, ".") != 1) {
-			// "." separates the mark var name and the mark var object (e.g. cm.algorithm)
-			log.error("operand contains more than one '.' which is not supported.");
-			return matchingVertices;
-		}
 
 		// Split operand "myInstance.attribute" into "myInstance" and "attribute".
 		final String[] operandParts = operand.split("\\.");
-		final String instance = operandParts[0];
-		final String attribute = operandParts[1];
+		String instance = operandParts[0];
+		String attribute = operandParts[1];
 
 		// Get the MARK entity corresponding to the operator's instance.
 		Pair<String, MEntity> ref = rule.getEntityReferences()
 				.get(instance);
 		String entityName = ref.getValue0();
 		MEntity referencedEntity = ref.getValue1();
+
+		if (StringUtils.countMatches(operand, ".") > 1) {
+			log.info("References an entity inside an entity");
+			if (referencedEntity.getVars() == null) {
+				log.warn("Entity does not have vars, cannot search for inner var");
+				return matchingVertices;
+			}
+			for (int i = 1; i < operandParts.length - 1; i++) {
+				instance += "." + operandParts[i];
+				attribute = operandParts[i + 1];
+
+				MVar match = null;
+				for (MVar var : referencedEntity.getVars()) {
+					if (var.getName().equals(operandParts[i])) {
+						match = var;
+						break;
+					}
+				}
+				if (match == null) {
+					log.warn("Entity does not contain var {}", operandParts[i]);
+					return matchingVertices;
+				}
+				referencedEntity = markModel.getEntity(match.getType());
+				if (referencedEntity == null) {
+					log.warn("No Entity with name {} found", match.getType());
+					return matchingVertices;
+				}
+				entityName = referencedEntity.getName();
+			}
+		}
+		String finalAttribute = attribute;
 
 		if (referencedEntity == null) {
 			log.warn("Unexpected: rule {} without referenced entity for instance {}", rule.getName(), instance);
@@ -282,7 +307,7 @@ public class CrymlinQueryWrapper {
 				if (opStmt.getCall()
 						.getParams()
 						.stream()
-						.anyMatch(p -> p.equals(attribute))) {
+						.anyMatch(p -> p.equals(finalAttribute))) {
 					args.add(opStmt);
 				}
 			}
@@ -351,7 +376,7 @@ public class CrymlinQueryWrapper {
 						.getParams();
 				List<String> argumentTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
 				OptionalInt argumentIndexOptional = IntStream.range(0, params.size())
-						.filter(i -> attribute.equals(params.get(i)))
+						.filter(i -> finalAttribute.equals(params.get(i)))
 						.findFirst();
 				if (argumentIndexOptional.isEmpty()) {
 					log.error("argument not found in parameters. This should not happen");
@@ -400,8 +425,8 @@ public class CrymlinQueryWrapper {
 					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get());
 					ret.add(mva);
 				} else {
-					log.warn("Could not constant resolve {}, returning Constant.UNKNOWN", operand);
-					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.UNKNOWN);
+					log.warn("Could not constant resolve {}, returning Constant.NULL", operand);
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.NULL);
 					ret.add(mva);
 				}
 			}
@@ -521,12 +546,12 @@ public class CrymlinQueryWrapper {
 	}
 
 	public static HashMap<Integer, List<CPGVertexWithValue>> resolveOperand(MarkContextHolder context, @NonNull String operand, @NonNull MRule rule,
-			@NonNull CrymlinTraversalSource crymlin) {
+			Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 
 		HashMap<Integer, List<CPGVertexWithValue>> verticesPerContext = new HashMap<>();
 
 		// first get all vertices for the operand
-		List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(operand, rule, crymlin);
+		List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(operand, rule, markModel, crymlin);
 
 		if (matchingVertices.isEmpty()) {
 			log.warn("Did not find matching vertices for {}", operand);
@@ -545,21 +570,51 @@ public class CrymlinQueryWrapper {
 		// Use Constant resolver to resolve assignments to arguments
 		vertices.addAll(CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices, operand));
 
-		// now split them up to belong to each instance
-
-		final String instance = operand.split("\\.")[0];
+		// now split them up to belong to each instance (t) or markvar (t.foo)
+		final String instance = operand.substring(0, operand.lastIndexOf('.'));
 
 		// precompute a list mapping
 		// from a nodeID (representing the varabledecl for the instance)
 		// to a List of contexts where this base is referenced
 		HashMap<Long, List<Integer>> nodeIDToContextIDs = new HashMap<>();
-		for (Map.Entry<Integer, MarkContext> entry : context.getAllContexts().entrySet()) {
-			Vertex opInstance = entry.getValue().getInstanceContext().getVertex(instance);
-			if (opInstance == null) {
-				log.warn("Instance not found in context");
-			} else {
-				List<Integer> contextIDs = nodeIDToContextIDs.computeIfAbsent((Long) opInstance.id(), x -> new ArrayList<>());
-				contextIDs.add(entry.getKey());
+		if (StringUtils.countMatches(instance, '.') >= 1) {
+			// if the instance itself is a markvar,
+			// precalculate the variabledecl where each of the corresponding instance points to
+			// i.e., precalculate the variabledecl for t.foo for each instance
+
+			for (Map.Entry<Integer, MarkContext> entry : context.getAllContexts().entrySet()) {
+				CPGVertexWithValue opInstance = entry.getValue().getOperand(instance);
+				if (opInstance == null) {
+					log.warn("Instance not found in context");
+				} else if (opInstance.getArgumentVertex() == null) {
+					log.warn("markvar does not correspond to a vertex");
+				} else {
+					Vertex vertex = opInstance.getArgumentVertex();
+					// if available, get the variabledeclaration, this declaredreference refers_to
+					Iterator<Edge> refers_to = opInstance.getArgumentVertex().edges(Direction.OUT, "REFERS_TO");
+					if (refers_to.hasNext()) {
+						Edge next = refers_to.next();
+						vertex = next.inVertex();
+					}
+					List<Integer> contextIDs = nodeIDToContextIDs.computeIfAbsent((Long) vertex.id(), x -> new ArrayList<>());
+					contextIDs.add(entry.getKey());
+				}
+			}
+		} else {
+			// if the instance is entity referenced in the op, precalculate the variabledecl for each used op
+
+			for (Map.Entry<Integer, MarkContext> entry : context.getAllContexts().entrySet()) {
+				if (!entry.getValue().getInstanceContext().containsInstance(instance)) {
+					log.warn("Instance not found in context");
+				} else {
+					Vertex opInstance = entry.getValue().getInstanceContext().getVertex(instance);
+					Long id = -1L;
+					if (opInstance != null) {
+						id = (Long) opInstance.id();
+					}
+					List<Integer> contextIDs = nodeIDToContextIDs.computeIfAbsent(id, x -> new ArrayList<>());
+					contextIDs.add(entry.getKey());
+				}
 			}
 		}
 
@@ -571,18 +626,18 @@ public class CrymlinQueryWrapper {
 				base = CrymlinQueryWrapper.getBaseOfInitializerArgument(vertexWithValue.getArgumentVertex());
 			}
 
+			Long id = -1L; // -1 = null
 			if (base.isPresent()) {
-				List<Integer> contextIDs = nodeIDToContextIDs.get((Long) base.get().id());
-				if (contextIDs == null) {
-					log.warn("Base not found in any context. Following expressionevaluation will be incomplete");
-				} else {
-					for (Integer c : contextIDs) {
-						List<CPGVertexWithValue> verts = verticesPerContext.computeIfAbsent(c, x -> new ArrayList<>());
-						verts.add(vertexWithValue);
-					}
-				}
+				id = (Long) base.get().id();
+			}
+			List<Integer> contextIDs = nodeIDToContextIDs.get(id);
+			if (contextIDs == null) {
+				log.warn("Base not found in any context. Following expressionevaluation will be incomplete");
 			} else {
-				log.warn("Base not found for argument. Following expressionevaluation will be incomplete");
+				for (Integer c : contextIDs) {
+					List<CPGVertexWithValue> verts = verticesPerContext.computeIfAbsent(c, x -> new ArrayList<>());
+					verts.add(vertexWithValue);
+				}
 			}
 		}
 

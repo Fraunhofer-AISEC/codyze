@@ -63,11 +63,18 @@ public class TypeStateAnalysis {
 	private Map<MOp, Set<Vertex>> verticeMap;
 	private MRule rule;
 	private OrderExpression orderExpr;
+	private final MarkContextHolder markContextHolder;
 
-	public ResultWithContext analyze(OrderExpression orderExpr, CPGInstanceContext instanceContext, AnalysisContext ctx,
+	public TypeStateAnalysis(MarkContextHolder markContextHolder) {
+		this.markContextHolder = markContextHolder;
+	}
+
+	public ConstantValue analyze(OrderExpression orderExpr, Integer contextID, AnalysisContext ctx,
 			CrymlinTraversalSource crymlinTraversal,
 			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for " + ctx + " and " + crymlinTraversal);
+
+		CPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 
 		this.rule = rule;
 
@@ -78,14 +85,14 @@ public class TypeStateAnalysis {
 		de.fraunhofer.aisec.mark.markDsl.Expression expr = this.rule.getStatement().getEnsure().getExp();
 		if (!(expr instanceof OrderExpression)) {
 			log.error("Unexpected: TS analysis not dealing with an order expression");
-			return ResultWithContext.fromLiteralOrOperand(false);
+			return ConstantValue.NULL;
 		}
 		this.orderExpr = (OrderExpression) expr;
 
 		String markInstance = getMarkInstanceOrderExpression(orderExpr);
 		if (markInstance == null) {
 			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr.toString());
-			return ResultWithContext.fromLiteralOrOperand(false);
+			return ConstantValue.NULL;
 		}
 
 		// Creating a WPDS from CPG, starting at seeds. Note that this will neglect alias which have been defined before the seed.
@@ -106,14 +113,14 @@ public class TypeStateAnalysis {
 		Vertex v = instanceContext.getVertex(markInstance);
 		if (v == null) {
 			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
-			return ResultWithContext.fromLiteralOrOperand(false);
+			return ConstantValue.NULL;
 		}
 
 		// Find the function in which the vertex is located, so we can use the first statement in function as a start
 		Optional<Vertex> containingFunctionOpt = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal);
 		if (!containingFunctionOpt.isPresent()) {
 			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule.toString());
-			return ResultWithContext.fromLiteralOrOperand(false);
+			return ConstantValue.NULL;
 		}
 
 		// Turn function vertex into a FunctionDeclaration so we can work with it
@@ -122,7 +129,7 @@ public class TypeStateAnalysis {
 		if (funcDecl == null) {
 			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
 				containingFunctionOpt.get().property("name").orElse(""), rule.toString());
-			return ResultWithContext.fromLiteralOrOperand(false);
+			return ConstantValue.NULL;
 		}
 
 		// Create statement for start configuration and create start config
@@ -135,7 +142,7 @@ public class TypeStateAnalysis {
 		}
 
 		// For debugging only: Print the non-saturated NFA
-		log.debug("Non saturated NFA", wnfa.toString());
+		log.debug("Non saturated NFA {}", wnfa.toString());
 		log.debug(wnfa.toDotString());
 
 		// Saturate the NFA from the WPDS, using the post-* algorithm.
@@ -146,12 +153,17 @@ public class TypeStateAnalysis {
 		log.debug("Saturated WNFA {}", wnfa.toDotString());
 
 		// Evaluate saturated WNFA for any MARK violations
-		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule, verticeMap, ctx.getCurrentFile());
-		ctx.getFindings().addAll(findings);
+		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule, ctx.getCurrentFile());
 
-		ResultWithContext result = ResultWithContext.fromLiteralOrOperand(findings.isEmpty());
-		result.setFindingAlreadyAdded(true);
-		return result;
+		if (markContextHolder.createFindingsDuringEvaluation()) {
+			ctx.getFindings().addAll(findings);
+		}
+
+		ConstantValue of = ConstantValue.of(findings.isEmpty());
+		if (markContextHolder.createFindingsDuringEvaluation()) {
+			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
+		}
+		return of;
 	}
 
 	@Nullable
@@ -178,13 +190,11 @@ public class TypeStateAnalysis {
 	 * @param wnfa Weighted NFA, representing a set of configurations of the WPDS
 	 * @param tsNFA The typestate NFA
 	 * @param rule The MARK rule to check
-	 * @param verticeMap
 	 * @param currentFile
 	 * @return
 	 */
 	@NonNull
-	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, Map<MOp, Set<Vertex>> verticeMap,
-			URI currentFile) {
+	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, URI currentFile) {
 		Set<Finding> findings = new HashSet<>();
 
 		System.out.println("--------------------------");

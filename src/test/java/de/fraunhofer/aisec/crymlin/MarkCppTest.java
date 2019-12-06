@@ -81,6 +81,19 @@ public class MarkCppTest {
 	}
 
 	@Test
+	public void nested_markvars() throws Exception {
+		Set<Finding> findings = runTest("nested_markvars", "nested_markvars");
+		expected(findings, "line 27: MarkRuleEvaluationFinding: Rule SomethingSomething verified");
+	}
+
+	@Test
+	public void functioncall() throws Exception {
+		Set<Finding> findings = runTest("functioncall", "functioncall");
+		expected(findings, "line 9: MarkRuleEvaluationFinding: Rule HasBeenCalled violated",
+			"line 7: MarkRuleEvaluationFinding: Rule HasBeenCalled verified");
+	}
+
+	@Test
 	@Disabled // requires Dataflow analysis
 	public void _01_assign() throws Exception {
 		Set<Finding> findings = runTest("01_assign", "01_assign");

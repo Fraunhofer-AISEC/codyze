@@ -50,23 +50,21 @@ public class OrderNFAEvaluator {
 		// We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
 		// Any function calls to functions which are not specified in an entity are _ignored_
 
-		// fixme not tested, if this also works for different markvars in one order
-		// should we allow this different entities in an order?
+		// it is NOT allowed to use different entities in one order
 		//  rule UseOfBotan_CipherMode {
 		//      using Forbidden as cm, Foo as f
 		//  ensure order cm.start(), cm.finish(), f.done()
 		//  onfail WrongUseOfBotan_CipherMode
-		//  } -> this does currently not work, as we store for each base, where in the FSM it is.
+		//  } -> this does not work, as we store for each base, where in the FSM it is.
 		// in this case, an instance of cm would always have a different base than f.
 
-		// is aliasing inside an order rule allowed?
+		// For this analysis, Aliasing is not analysed!
 		// I.e. order x.a, x.b, x.c
 		// x i1;
 		// i1.a();
 		// i1.b();
 		// x i2 = i1;
-		// i2.c(); -> do we know if i2 is a copy, or an alias?
-		// -> always mark as error?
+		// i2.c(); -> we do not necessarily know if i2 is a copy, or an alias?
 		// -> currently this will result in:
 		//   Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
 		//   Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
@@ -161,9 +159,6 @@ public class OrderNFAEvaluator {
 
 		while (!currentWorklist.isEmpty()) {
 			HashSet<Vertex> nextWorklist = new HashSet<>();
-			//            System.out.println("SEEN: " + String.join(", ", seenStates));
-			//            printWorklist(currentWorklist, nodeIDtoEOGPathSet);
-			//            System.out.println();
 
 			for (Vertex vertex : currentWorklist) {
 				visitedNodes++;
@@ -175,7 +170,6 @@ public class OrderNFAEvaluator {
 				for (String eogPath : eogPathSet) {
 
 					// ... no direct access to the labels TreeSet of Neo4JVertex
-					// TODO JS: This might need to be adapted to non-multilabels with OverflowDB.
 					if (vertex.label().contains("MemberCallExpression")
 							// is the vertex part of any op of any mentioned entity? If not, ignore
 							&& verticesToOp.get(vertex) != null) {
@@ -222,6 +216,7 @@ public class OrderNFAEvaluator {
 								String prefixedBase = eogPath + "." + base;
 
 								if (isDisallowedBase(disallowedBases, eogPath, base)) {
+									// we hide base errors for now!
 									//                      Finding f =
 									//                          new Finding(
 									//                              "Violation against Order: "
@@ -234,7 +229,6 @@ public class OrderNFAEvaluator {
 									//                              vertex.value("endLine"),
 									//                              vertex.value("startColumn"),
 									//                              vertex.value("endColumn"));
-									// we hide base errors for now!
 									//if (markContextHolder.createFindingsDuringEvaluation()) {
 									// ctx.getFindings().add(f);
 									//}

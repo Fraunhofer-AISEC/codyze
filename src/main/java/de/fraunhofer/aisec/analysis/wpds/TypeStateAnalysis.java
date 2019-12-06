@@ -14,6 +14,7 @@ import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
+import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
 import de.fraunhofer.aisec.markmodel.MEntity;
@@ -61,6 +62,7 @@ public class TypeStateAnalysis {
 	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
 	private Map<MOp, Set<Vertex>> verticeMap;
 	private MRule rule;
+	private OrderExpression orderExpr;
 
 	public ResultWithContext analyze(OrderExpression orderExpr, CPGInstanceContext instanceContext, AnalysisContext ctx,
 			CrymlinTraversalSource crymlinTraversal,
@@ -68,7 +70,18 @@ public class TypeStateAnalysis {
 		log.info("Typestate analysis starting for " + ctx + " and " + crymlinTraversal);
 
 		this.rule = rule;
+
+		// Remember map from MARK ops to Vertices
 		this.verticeMap = getVerticesOfRule(rule);
+
+		// Remember the order expression we are analyzing
+		de.fraunhofer.aisec.mark.markDsl.Expression expr = this.rule.getStatement().getEnsure().getExp();
+		if (!(expr instanceof OrderExpression)) {
+			log.error("Unexpected: TS analysis not dealing with an order expression");
+			return ResultWithContext.fromLiteralOrOperand(false);
+		}
+		this.orderExpr = (OrderExpression) expr;
+
 		String markInstance = getMarkInstanceOrderExpression(orderExpr);
 		if (markInstance == null) {
 			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr.toString());
@@ -513,34 +526,25 @@ public class TypeStateAnalysis {
 	 * @return
 	 */
 	private boolean belongsToOp(String call, String markInstance, String op) {
-		if (this.verticeMap == null) {
+		// Get the MARK entity of the markInstance
+		Pair<String, MEntity> mEntity = this.rule.getEntityReferences().get(markInstance);
+		if (mEntity == null || mEntity.getValue1() == null) {
 			return false;
 		}
 
-		de.fraunhofer.aisec.mark.markDsl.Expression expr = this.rule.getStatement().getEnsure().getExp();
-		if (!(expr instanceof OrderExpression)) {
-			log.error("Unexpected: TS analysis not dealing with an order expression");
-			return false;
+		// TODO this method is called a few times and repeats some work. Potential for caching/optimization.
+
+		for (MOp o : mEntity.getValue1().getOps()) {
+			if (!op.equals(o.getName())) {
+				continue;
+			}
+			for (OpStatement opStatement : o.getStatements()) {
+				if (opStatement.getCall().getName().endsWith(call)) {
+					// TODO should rather compare fully qualified names instead of "endsWith"
+					return true;
+				}
+			}
 		}
-		OrderExpression orderExpr = (OrderExpression) expr;
-
-		Optional<MOp> mOpOpt = this.verticeMap.keySet().stream().filter(o -> o.getName().equals(op)).findFirst();
-		if (!mOpOpt.isPresent()) {
-			return false;
-		}
-
-		// FIXME we must ensure that "<markInstance>.<call>" is actually called on a vertex that belongs to the entity of op
-
-		Set<Vertex> vertices = this.verticeMap.get(mOpOpt.get());
-		if (vertices != null) {
-			boolean result = vertices.stream()
-					.anyMatch(v -> v.property("name")
-							.value()
-							.equals(call));
-			System.out.println("RES: " + markInstance + "." + call + " " + " is part of op " + op + " : " + result);
-			return result;
-		}
-
 		return false;
 	}
 

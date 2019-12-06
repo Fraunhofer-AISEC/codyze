@@ -82,7 +82,7 @@ class OrderTest {
 			System.out.println(s);
 		}
 
-		assertEquals(6, findings.stream().filter(s -> s.contains("Violation against Order")).count());
+		assertEquals(7, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
 		assertTrue(
 			findings.contains(
@@ -118,6 +118,9 @@ class OrderTest {
 		assertTrue(
 			findings.contains(
 				"line 56: Violation against Order: Base p5 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
+		assertTrue(
+			findings.contains(
+				"line 66: Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 
 		// Stop the analysis server
 		server.stop();

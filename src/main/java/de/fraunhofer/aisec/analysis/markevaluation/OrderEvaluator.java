@@ -4,7 +4,8 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 import de.breakpointsec.pushdown.IllegalTransitionException;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
-import de.fraunhofer.aisec.analysis.structures.ResultWithContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.wpds.TypeStateAnalysis;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
@@ -26,20 +27,20 @@ public class OrderEvaluator {
 		this.config = config;
 	}
 
-	public ResultWithContext evaluate(OrderExpression orderExpression, CPGInstanceContext instanceContext, AnalysisContext resultCtx,
-			CrymlinTraversalSource crymlinTraversal) {
+	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext resultCtx,
+			CrymlinTraversalSource crymlinTraversal, MarkContextHolder markContextHolder) {
 		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "Typestate Analysis");
 
-		ResultWithContext result = null;
+		ConstantValue result = ConstantValue.NULL;
 
 		switch (config.typestateAnalysis) {
 
 			case WPDS:
 				log.info("Evaluating order with WPDS");
-				TypeStateAnalysis ts = new TypeStateAnalysis();
+				TypeStateAnalysis ts = new TypeStateAnalysis(markContextHolder);
 				try {
 					// NOTE: rule and orderExpression might be redundant as arguments
-					result = ts.analyze(orderExpression, instanceContext, resultCtx, crymlinTraversal, rule);
+					result = ts.analyze(orderExpression, contextID, resultCtx, crymlinTraversal, rule);
 				}
 				catch (IllegalTransitionException e) {
 					log.error("Unexpected error in typestate WPDS", e);
@@ -48,8 +49,8 @@ public class OrderEvaluator {
 
 			case NFA:
 				log.info("Evaluating order with NFA");
-				OrderNFAEvaluator orderNFAEvaluator = new OrderNFAEvaluator(rule);
-				result = orderNFAEvaluator.evaluate(orderExpression, instanceContext, resultCtx, crymlinTraversal);
+				OrderNFAEvaluator orderNFAEvaluator = new OrderNFAEvaluator(rule, markContextHolder);
+				result = orderNFAEvaluator.evaluate(orderExpression, contextID, resultCtx, crymlinTraversal);
 				break;
 		}
 

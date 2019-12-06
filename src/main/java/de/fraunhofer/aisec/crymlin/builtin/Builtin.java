@@ -2,10 +2,10 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.Map;
 
 /** All built-in functions must implement this interface. */
 public interface Builtin {
@@ -27,11 +27,15 @@ public interface Builtin {
 	 *
 	 * Builtin needs to respect
 	 *
-	 * @param arguments Resolved arguments of the Builtin function call.
+	 * @param argResultList Resolved argumentsList for one context of the Builtin function call.
+	 * @param contextID
+	 * @param markContextHolder
 	 * @param expressionEvaluator the expressionEvaluator, this builtin is called from
 	 * @return
 	 */
-	public Map<Integer, MarkIntermediateResult> execute(
-			Map<Integer, MarkIntermediateResult> arguments,
+	public ConstantValue execute(
+			ListValue argResultList,
+			Integer contextID,
+			MarkContextHolder markContextHolder,
 			ExpressionEvaluator expressionEvaluator);
 }

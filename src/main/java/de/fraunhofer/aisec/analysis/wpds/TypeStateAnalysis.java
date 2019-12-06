@@ -107,7 +107,8 @@ public class TypeStateAnalysis {
 		FunctionDeclaration funcDecl = (FunctionDeclaration) OverflowDatabase.getInstance()
 				.vertexToNode(containingFunctionOpt.get());
 		if (funcDecl == null) {
-			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}", containingFunctionOpt.get().property("name").orElse(""), rule.toString());
+			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
+				containingFunctionOpt.get().property("name").orElse(""), rule.toString());
 			return ResultWithContext.fromLiteralOrOperand(false);
 		}
 
@@ -140,7 +141,8 @@ public class TypeStateAnalysis {
 		return result;
 	}
 
-	@Nullable private String getMarkInstanceOrderExpression(OrderExpression orderExpr) {
+	@Nullable
+	private String getMarkInstanceOrderExpression(OrderExpression orderExpr) {
 		TreeIterator<EObject> treeIt = orderExpr.eAllContents();
 		while (treeIt.hasNext()) {
 			EObject eObj = treeIt.next();
@@ -160,15 +162,16 @@ public class TypeStateAnalysis {
 	 * is a path through the automaton leading to the END state, the type state specification is completely covered by this path 3) If all transitions have proper type
 	 * state weights but none of them leads to END, the type state is correct but incomplete.
 	 *
-	 * @param wnfa         Weighted NFA, representing a set of configurations of the WPDS
-	 * @param tsNFA        The typestate NFA
-	 * @param rule         The MARK rule to check
+	 * @param wnfa Weighted NFA, representing a set of configurations of the WPDS
+	 * @param tsNFA The typestate NFA
+	 * @param rule The MARK rule to check
 	 * @param verticeMap
 	 * @param currentFile
 	 * @return
 	 */
 	@NonNull
-	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, Map<MOp, Set<Vertex>> verticeMap, URI currentFile) {
+	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, Map<MOp, Set<Vertex>> verticeMap,
+			URI currentFile) {
 		Set<Finding> findings = new HashSet<>();
 
 		System.out.println("--------------------------");
@@ -426,14 +429,14 @@ public class TypeStateAnalysis {
 							}
 
 						}
-//						// Create normal rule. Flow remains where it is.  // TODO should be outside of dummy, but should avoid cyclic rules
+						//						// Create normal rule. Flow remains where it is.  // TODO should be outside of dummy, but should avoid cyclic rules
 						for (Val valInScope : valsInScope) {
-//							Set<NFATransition> relevantNFATransitions = tsNfa.getTransitions()
-//									.stream()
-//									.filter(
-//										// fixme Remove this call to "equals"; comparisons between unrelated types always return false.
-//										tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
-//									.collect(Collectors.toSet());
+							//							Set<NFATransition> relevantNFATransitions = tsNfa.getTransitions()
+							//									.stream()
+							//									.filter(
+							//										// fixme Remove this call to "equals"; comparisons between unrelated types always return false.
+							//										tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
+							//									.collect(Collectors.toSet());
 							Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, Weight.one());
 							boolean skipIt = false;
 							if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
@@ -466,13 +469,9 @@ public class TypeStateAnalysis {
 		}
 
 		/*
-		 * Typestate analysis is finished. The results are as follows:
-		 *
-		 * 1) Transitions in WNFA with *empty weights* or weights into an ERROR type state indicate an error. Type state requirements are violated at this point.
-		 *
-		 * 2) If there is a path through the automaton leading to the END state, the type state specification is completely covered by this path
-		 *
-		 * 3) If all transitions have proper type state weights but none of them leads to END, the type state is correct but incomplete.
+		 * Typestate analysis is finished. The results are as follows: 1) Transitions in WNFA with *empty weights* or weights into an ERROR type state indicate an error.
+		 * Type state requirements are violated at this point. 2) If there is a path through the automaton leading to the END state, the type state specification is
+		 * completely covered by this path 3) If all transitions have proper type state weights but none of them leads to END, the type state is correct but incomplete.
 		 */
 
 		return wpds;
@@ -535,9 +534,9 @@ public class TypeStateAnalysis {
 		Set<Vertex> vertices = this.verticeMap.get(mOpOpt.get());
 		if (vertices != null) {
 			boolean result = vertices.stream()
-									 .anyMatch(v -> v.property("name")
-													 .value()
-													 .equals(call));
+					.anyMatch(v -> v.property("name")
+							.value()
+							.equals(call));
 			System.out.println("RES: " + markInstance + "." + call + " " + " is part of op " + op + " : " + result);
 			return result;
 		}
@@ -728,11 +727,11 @@ public class TypeStateAnalysis {
 			// Get first statement of callee. This is the jump target of our Push Rule.
 			Statement firstStmt = getFirstStmtOfMethod(crymlinTraversal, potentialCallee);
 
-//			// TODO The code of getFirstStmtofmethod and getFirstVertexInFunctionBody could be merged for performance reasons.
-//			Vertex firstV = getFirstVertexInFunctionBody(crymlinTraversal, potentialCallee);
-//			if (firstV != null) {
-//				worklist.add(v);
-//			}
+			//			// TODO The code of getFirstStmtofmethod and getFirstVertexInFunctionBody could be merged for performance reasons.
+			//			Vertex firstV = getFirstVertexInFunctionBody(crymlinTraversal, potentialCallee);
+			//			if (firstV != null) {
+			//				worklist.add(v);
+			//			}
 
 			if (firstStmt != null && firstStmt.getCode() != null) {
 				for (int i = 0; i < argVals.size(); i++) {
@@ -767,9 +766,9 @@ public class TypeStateAnalysis {
 	private Vertex getFirstVertexInFunctionBody(CrymlinTraversalSource crymlinTraversalSource, FunctionDeclaration function) {
 		Benchmark query = new Benchmark(this.getClass(), "query");
 		Optional<Vertex> vOpt = crymlinTraversalSource.byID(function.getId())
-										 .outE("BODY")
-										 .inV()
-										 .tryNext();
+				.outE("BODY")
+				.inV()
+				.tryNext();
 		query.stop();
 		return vOpt.orElse(null);
 	}
@@ -831,7 +830,7 @@ public class TypeStateAnalysis {
 		}
 		return opToVertex;
 	}
-	
+
 	/**
 	 * Creates an initial configuration of a WPDS from where post* runs.
 	 * <p>

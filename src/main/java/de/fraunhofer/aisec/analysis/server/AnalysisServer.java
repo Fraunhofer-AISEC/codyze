@@ -397,15 +397,18 @@ public class AnalysisServer {
 			reader.vertexLabelKey("labels");
 			reader.create().readGraph(fis, neo4jGraph);
 
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			log.error("IOException", e);
-		} catch (RuntimeException e) {
+		}
+		catch (RuntimeException e) {
 			if (e.getCause() instanceof ClassNotFoundException) {
 				log.error("Neo4j not found in path, export to neo4j failed");
 			} else {
 				e.printStackTrace();
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.error("Exception", e);
 		}
 		log.info("Done importing");

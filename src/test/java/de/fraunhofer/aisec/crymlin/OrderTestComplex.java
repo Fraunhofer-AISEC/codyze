@@ -85,7 +85,7 @@ class OrderTestComplex {
 
 		assertTrue(
 			findings.contains(
-				"line 53: Violation against Order: p5.init(); (init) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
+				"line 53: Violation against Order: p5.init(); (initOp) is not allowed. Expected one of: cm.createOp (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		// assertTrue(
 		//    findings.contains(
 		//        "line 54: Violation against Order: p5.start(); is not allowed. Base contains errors
@@ -100,16 +100,16 @@ class OrderTestComplex {
 		// already. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
-				"line 68: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
+				"line 68: Violation against Order: p6.reset(); (resetOp) is not allowed. Expected one of: cm.startOp (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
-				"line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.start] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
+				"line 68: Violation against Order: Base p6 is not correctly terminated. Expected one of [cm.startOp] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
-				"line 80: Violation against Order: p6.reset(); (reset) is not allowed. Expected one of: cm.create (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
+				"line 80: Violation against Order: p6.reset(); (resetOp) is not allowed. Expected one of: cm.createOp (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
-				"line 74: Violation against Order: p6.create(); (create) is not allowed. Expected one of: END, cm.reset, cm.start (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
+				"line 74: Violation against Order: p6.create(); (createOp) is not allowed. Expected one of: END, cm.resetOp, cm.startOp (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 
 		server.stop();
 	}

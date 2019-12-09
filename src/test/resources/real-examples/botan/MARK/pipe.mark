@@ -11,6 +11,7 @@ This filter interface is no longer used within the library itself (outside a few
 entity Botan::Pipe {
 	
 	var filterList : std::initializer_list<Botan::Filter*>
+	var filter: Botan::Filter
 
 	op create {
  		Pipe(filterList);
@@ -23,8 +24,8 @@ entity Botan::Pipe {
 	}
 
 	op edit {
-		Pipe::prepend(Botan::Filter);
-		Pipe::append(Botan::Filter);
+		Pipe::prepend(filter);
+		Pipe::append(filter);
 		Pipe::pop();
 	}
 

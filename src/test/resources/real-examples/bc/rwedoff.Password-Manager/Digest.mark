@@ -2,4 +2,28 @@ package bouncycastle
 
 entity org.bouncycastle.crypto.Digest {
 	
+	var inByte : byte;
+	var inArray : byte[];
+	var inArrayOff : int;
+	var len : int;
+	
+	var out : byte[];
+	var outOff : int;
+	
+	var resultLen : int;
+	
+	
+	op update {
+		org.bouncycastle.crypto.Digest.update(inByte);
+		org.bouncycastle.crypto.Digest.update(inArray, inArrayOff, len);
+	}
+	
+	op finalize {
+		resultLen = org.bouncycastle.crypto.Digest.doFinal(out, outOff);
+	}
+	
+	op reset {
+		org.bouncycastle.crypto.Digest.reset();
+	}
+	
 }

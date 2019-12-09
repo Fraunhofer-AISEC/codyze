@@ -2,6 +2,10 @@ package java
 
 entity javax.crypto.Cipher {
 	
+	var transformation : java.lang.String;
+	var providerString : java.lang.String;
+	var provider : java.security.Provider;
+	
 	var opmode : int;
 	var certificate;
 	var random : java.security.SecureRandom;
@@ -9,6 +13,30 @@ entity javax.crypto.Cipher {
 	var params;
 	var paramspecs;
 	
+	var input : byte[];
+	var inputOffset : int;
+	var inputLen : int;
+	var output : byte[];
+	var outputOffset : int;
+	var inputBuffer : ByteBuffer;
+	var outputBuffer : ByteBuffer;
+	var result : byte[];
+	var resultLen : int;
+	
+	var aadSrc : byte[];
+	var aadOffset : int;
+	var aadLen : int;
+	var aadBuffer : ByteBuffer;
+	
+	var wrappedKey : byte[];
+	var wrappedKeyAlgorithm : java.lang.String;
+	var wrappedKeyType : int;
+	
+	op instantiate {
+		this = javax.crypto.Cipher.getInstance(transformation);
+		this = javax.crypto.Cipher.getInstance(transformation, providerString);
+		this = javax.crypto.Cipher.getInstance(transformation, provider);
+	}
 	
 	op initialize {
 		javax.crypto.Cipher.init(opmode, certificate);
@@ -21,4 +49,45 @@ entity javax.crypto.Cipher {
 		javax.crypto.Cipher.init(opmode, key, paramspecs, random);
 	}
 	
+	op update {
+		result = javax.crypto.Cipher.update(input);
+		result= javax.crypto.Cipher.update(input, inputOffset, inputLen);
+		resultLen = javax.crypto.Cipher.update(input, inputOffset, inputLen, output);
+		resultLen = javax.crypto.Cipher.update(input, inputOffset, inputLen, output, outputOffset);
+		resultLen = javax.crypto.Cipher.update(inputBuffer, outputBuffer);
+	}
+	
+	op updateAAD {
+		javax.crypto.Cipher.updateAAD(aadSrc);
+		javax.crypto.Cipher.updateAAD(ssdSrc, aadOffset, aadLen);
+		javax.crypto.Cipher.updateAAD(aadBuffer);
+	}
+	
+	op finalize {
+		result = javax.crypto.Cipher.doFinal();
+		result = javax.crypto.Cipher.doFinal(input);
+		resultLen = javax.crypto.Cipher.doFinal(output, outputOffset);
+		result = javax.crypto.Cipher.doFinal(input, inputOffset, inputLen);
+		resultLen = javax.crypto.Cipher.doFinal(input, inputOffset, inputLen, output);
+		resultLen = javax.crypto.Cipher.doFinal(input, inputOffset, inputLen, output, outputOffset);
+		resultLen = javax.crypto.Cipher.doFinal(inputBuffer, outputBuffer);
+	}
+	
+	op wrapKey {
+		wrappedKey = javax.crypto.Cipher.unwrap(key);
+	}
+	
+	op unwrapKey {
+		key = javax.crypto.Cipher.unwrap(wrappedKey, wrappedKeyAlgorithm, wrappedKeyType);
+	}
+	
+}
+
+
+rule Cipher_Order {
+	using 
+		javax.crypto.Cipher as c
+	ensure
+		order c.instantiate(), c.initialize(), (c.wrapKey() | c.unwrapKey()) | (c.updateAAD()*, c.update()*, c.finalize())
+	onfail Wrong_Cipher_Order
 }

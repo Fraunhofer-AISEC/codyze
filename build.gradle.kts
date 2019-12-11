@@ -50,7 +50,6 @@ publishing {
 
 repositories {
     mavenLocal()
-
     mavenCentral()
 
     ivy {
@@ -63,8 +62,23 @@ repositories {
         }
     }
 
+    // fetching snapshots from maven central snapshots until CPG library is stable
+    maven {
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+        mavenContent {
+            snapshotsOnly()
+        }
+        content {
+            includeGroup("de.fraunhofer.aisec")
+        }
+    }
+
+    // fetching MARK from internal repo. this has to go before release. MARK needs to be published to maven central
     maven {
         url = uri("http://repository.***REMOVED***/repository/snapshots/")
+        content {
+            includeGroup("de.fraunhofer.aisec.mark")
+        }
     }
 }
 

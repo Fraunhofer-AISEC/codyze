@@ -126,7 +126,7 @@ rule KeyLength {
 	using Botan::Cipher_Mode as cm,
 		Botan::SymmetricKey as sk
 	ensure
-		cm.symkey.length in [128, 192, 256]
+		cm.symkey.length in [16, 24, 32]  // 128, 192, 256 bit
 	onfail BadKeyLength
 }
 
@@ -146,4 +146,13 @@ rule NonRepeatedIV {
 	ensure
 		//TODO
 	onfail RepeatedIV 
+}
+
+rule IVLengthGCM {
+// Die für den Authentisierungsmechanismus verwendeten Noncen sollen genau 96 Bit lang sein.
+	using Botan::Cipher_Mode as cm,
+	when _split(cm.algorithm, "/", 1) == "GCM"
+	ensure
+		cm.iv.length == 12 // 96 bit
+	onfail WrongIVLengthGCM 
 }

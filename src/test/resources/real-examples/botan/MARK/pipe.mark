@@ -10,17 +10,27 @@ This filter interface is no longer used within the library itself (outside a few
 
 entity Botan::Pipe {
 	
-	var filterList : std::initializer_list<Botan::Filter*>
-	var filter: Botan::Filter
+	var filterList : std::initializer_list<Botan::Filter*>;
+	var filter : Botan::Filter;
+	
+	var inArray : uint8_t[];
+	var inSecVec : secure_vector<uint8_t>;
+	var inVec : std::vector<uint8_t>;
+	var inString : std::string;
+	var inDataSource : DataSource;
+	var inByte : uint8_t;
+	var length : size_t;
+	
+	
 
 	op create {
  		Pipe(filterList);
 		
  		// Don't want this ambiguity
-		forbidden Pipe (Botan::Filter, Botan::Filter, Botan::Filter, Botan::Filter);
+		forbidden Pipe(_, _, _, _);
 
- 		// Copy constructor - maybe has problems?	
- 		forbidden Pipe (const Pipe &);
+ 		// Copy constructor - maybe has problems?
+ 		forbidden Pipe(_);
 	}
 
 	op edit {
@@ -38,24 +48,24 @@ entity Botan::Pipe {
 	}
 
 	op put_data {
-		Pipe::write (const uint8_t in[], size_t length)
-		Pipe::write (const secure_vector< uint8_t > &in)
-		Pipe::write (const std::vector< uint8_t > &in)
-		Pipe::write (const std::string &in)
-		Pipe::write (DataSource &in)
-		Pipe::write (uint8_t in)
+		Pipe::write(inArray, length);
+		Pipe::write(inSecVec);
+		Pipe::write(inVec);
+		Pipe::write(inString);
+		Pipe::write(inDataSource);
+		Pipe::write(inByte);
 	}
 
 	op process_msg {
-		Pipe::process_msg (const uint8_t in[], size_t length)
-		Pipe::process_msg (const secure_vector< uint8_t > &in)
-		Pipe::process_msg (const std::vector< uint8_t > &in)
-		Pipe::process_msg (const std::string &in)
-		Pipe::process_msg (DataSource &in)
+		Pipe::process_msg(inArray, length);
+		Pipe::process_msg(inSecVec);
+		Pipe::process_msg(inVec);
+		Pipe::process_msg(inString);
+		Pipe::process_msg(inDataSource);
 	}
 
 	op reset {
-		Pipe::reset ()
+		Pipe::reset ();
 	}
 
 }
@@ -67,11 +77,11 @@ rule PipeOrder {
 		order 
 			p.create(),
 			p.edit()*, 
-			(	process_msg*
+			(	p.process_msg()*
 				| (p.start(), p.put_data()*, p.end())+
 
 			),
-			p.read*,
+			p.read()*,
 			p.reset()?
 	onfail PipeOrder_Fail
 }

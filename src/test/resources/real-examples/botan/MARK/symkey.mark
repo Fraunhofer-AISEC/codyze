@@ -6,7 +6,7 @@ class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scr
 entity Botan::SymmetricKey {
 	
 	var bytes; // can be `const std::string&` OR `const uint8_t[]` OR `const secure_vector<uint8_t>&` OR `const std::vector< uint8_t >&`
-	var length : size_t
+	var length : size_t;
 
 	op create {
 		Botan::OctetString(bytes);

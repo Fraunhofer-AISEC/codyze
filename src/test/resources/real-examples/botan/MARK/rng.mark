@@ -1,14 +1,14 @@
 package botan
 
 entity Botan::AutoSeeded_RNG {
-	var random_data // : secure_vector< uint8_t >  OR std::vector< uint8_t, Alloc > & OR uint8_t[] OR uint8_t
-	var random_data_len : size_t
+	var random_data; // : secure_vector< uint8_t >  OR std::vector< uint8_t, Alloc > & OR uint8_t[] OR uint8_t
+	var random_data_len : size_t;
 
 	op create {
-		Botan::AutoSeeded_RNG()
-		Botan::AutoSeeded_RNG(size_t)
-		Botan::AutoSeeded_RNG(_, size_t)
-		Botan::AutoSeeded_RNG (_, _, size_t)
+		Botan::AutoSeeded_RNG();
+		Botan::AutoSeeded_RNG(size_t);
+		Botan::AutoSeeded_RNG(_, size_t);
+		Botan::AutoSeeded_RNG (_, _, size_t);
 	}
 
 	op reseed {
@@ -16,12 +16,12 @@ entity Botan::AutoSeeded_RNG {
 	}
 
 	op get_random {
-		random_data = Botan::AutoSeeded_RNG::random_vec(size_t)
-		Botan::AutoSeeded_RNG::random_vec(random_data, bytes)
-	 	Botan::AutoSeeded_RNG::randomize random_data, random_data_len)
+		random_data = Botan::AutoSeeded_RNG::random_vec(size_t);
+		Botan::AutoSeeded_RNG::random_vec(random_data, bytes);
+	 	Botan::AutoSeeded_RNG::randomize(random_data, random_data_len);
 
-	 	random_data = Botan::AutoSeeded_RNG::next_byte ()
-		random_data = Botan::AutoSeeded_RNG::next_nonzero_byte ()
+	 	random_data = Botan::AutoSeeded_RNG::next_byte();
+		random_data = Botan::AutoSeeded_RNG::next_nonzero_byte();
 
 		// TODO: Botan::AutoSeeded_RNG::randomize_with_input (uint8_t output[], size_t output_len, const uint8_t input[], size_t input_len) override
 	}
@@ -74,7 +74,7 @@ entity Botan::TPM_RNG {
 
 entity Botan::PKCS11_RNG {
 }
-*/
+
 
 
 /*

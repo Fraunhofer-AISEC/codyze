@@ -1,7 +1,7 @@
 package botan
 
 
-entity Botan::Cipher_Mode isa Cipher {
+entity Botan::Cipher_Mode {
 	
 	var algorithm : std::string;
 	var direction : Botan::Cipher_Dir; // an enum of underlying type int
@@ -116,7 +116,7 @@ rule UseOfPipe {
 	using Botan::Cipher_Mode as cm,
 		Botan::Pipe as p
 	ensure
-		_receives_value_from(p.filter, cm) |
+		_receives_value_from(p.filter, cm) ||
 		cm in p.filterList
 	onfail WrongUseOfBotan_CipherMode
 }
@@ -132,7 +132,7 @@ rule KeyLength {
 
 rule CBCRandomIV  {
 	using Botan::Cipher_Mode as cm,
-		Botan::AutoSeededRNG as rng
+		Botan::AutoSeeded_RNG as rng
 	when 
 		_split(cm.algorithm, "/", 1) == "CBC" 
 		&& cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
@@ -144,7 +144,7 @@ rule CBCRandomIV  {
 rule NonRepeatedIV {
 // Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
 	using Botan::Cipher_Mode as cm,
-		Botan::AutoSeededRNG as rng
+		Botan::AutoSeeded_RNG as rng
 	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
 	ensure
 		receives_directly_from(cm.iv, rng.random_data)		//TODO AnalysisServer: new builtin
@@ -153,7 +153,7 @@ rule NonRepeatedIV {
 
 rule IVLengthGCM {
 // Die für den Authentisierungsmechanismus verwendeten Noncen sollen genau 96 Bit lang sein.
-	using Botan::Cipher_Mode as cm,
+	using Botan::Cipher_Mode as cm
 	when _split(cm.algorithm, "/", 1) == "GCM"
 	ensure
 		cm.iv.length == 12 // 96 bit

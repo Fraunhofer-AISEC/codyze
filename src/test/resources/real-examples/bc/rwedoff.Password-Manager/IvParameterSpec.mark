@@ -2,4 +2,14 @@ package java
 
 entity javax.crypto.spec.IvParameterSpec {
 	
+	var iv : byte[];
+	var offset : int;
+	var len : int;
+	
+	
+	op instantiate {
+		javax.crypto.spec.IvParameterSpec(iv);
+		javax.crypto.spec.IvParameterSpec(iv, offset, len);
+	}
+	
 }

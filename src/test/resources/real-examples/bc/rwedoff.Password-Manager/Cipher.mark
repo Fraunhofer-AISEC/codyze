@@ -10,8 +10,8 @@ entity javax.crypto.Cipher {
 	var certificate;
 	var random : java.security.SecureRandom;
 	var key : java.security.Key;
-	var params;
-	var paramspecs;
+	var params : java.security.AlgorithmParameters;
+	var paramspecs : java.security.spec.AlgorithmParameterSpec;
 	
 	var input : byte[];
 	var inputOffset : int;
@@ -90,4 +90,46 @@ rule Cipher_Order {
 	ensure
 		order c.instantiate(), c.initialize(), (c.wrapKey() | c.unwrapKey()) | (c.updateAAD()*, c.update()*, c.finalize())
 	onfail Wrong_Cipher_Order
+}
+
+
+rule RandomInitializationVector {
+	using
+		javax.crypto.Cipher as c, 
+		javax.crypto.spec.IvParameterSpec as iv, 
+		java.security.SecureRandom as sr
+	when
+		_split(c.transformation, "/", 1) in [ "CBC", "CTR" ]
+	ensure
+		_is_instance(c.paramspecs, "javax.crypto.spec.IvParameterSpec") 
+			&& _receives_value_from(c.paramspecs, iv) 
+			&& _receives_value_from(iv.iv, sr)
+	onfail
+		UsingNonRandomIV
+}
+
+rule MockWhen1 {
+	using
+		javax.crypto.Cipher as c, 
+		javax.crypto.spec.IvParameterSpec as iv, 
+		java.security.SecureRandom as sr
+	when
+		_split(c.transformation, "/", 1) in [ "CBC", "CTR" ]
+	ensure
+		false
+	onfail
+		UsingNonRandomIV
+}
+
+rule MockWhen2 {
+	using
+		javax.crypto.Cipher as c, 
+		javax.crypto.spec.IvParameterSpec as iv, 
+		java.security.SecureRandom as sr
+	when
+		_split(c.transformation, "/", 1) in [ "CBC", "CTR" ]
+	ensure
+		true
+	onfail
+		UsingNonRandomIV
 }

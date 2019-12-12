@@ -33,77 +33,7 @@ import java.util.concurrent.TimeoutException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-class RealBotanTest {
-
-	private @NonNull Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {
-		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
-
-		URL resource = classLoader.getResource(sourceFileName);
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
-
-		resource = classLoader.getResource(markFileName);
-		assertNotNull(resource);
-		File markPoC1 = new File(resource.getFile());
-		assertNotNull(markPoC1);
-
-		// Make sure we start with a clean (and connected) db
-		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
-			db.purgeDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
-
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder()
-							.launchConsole(false)
-							.launchLsp(false)
-							.typestateAnalysis(TYPESTATE_ANALYSIS.NFA)
-							.markFiles(markPoC1.getAbsolutePath())
-							.build())
-				.build();
-		server.start();
-
-		Path botan2IncludeFolder = Path.of(URI.create("file:///usr/include/botan-2")); // FIXME depends on Botan version, i.e. this is from Debian stretch with stretch-backports
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder()
-							.debugParser(true)
-							.failOnError(false)
-							.codeInNodes(true)
-							.includePath(botan2IncludeFolder.toString())
-							.defaultPasses()
-							.loadIncludes(false)
-							.sourceFiles(cppFile)
-							.build())
-				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		TranslationResult result;
-		try {
-			result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-
-		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-		assertNotNull(ctx);
-		assertTrue(ctx.methods.isEmpty());
-
-		for (Finding s : ctx.getFindings()) {
-			System.out.println(s);
-		}
-
-		return ctx.getFindings();
-	}
+class RealBotanTest extends AbstractMarkTest {
 
 	@Test
 	public void testSimple() throws Exception {

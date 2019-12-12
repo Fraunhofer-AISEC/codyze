@@ -8,12 +8,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * A MarkContextHolder contains:
- *
- * - a map of a unqiue "id" to a "MarkContext". - Each "MarkContext" contains a possible mapping from MARK instances to MARK entities ("CPGInstanceContext"). - "resolved"
- * operands TODO JS->DT: Was bedeutet "resolved" hier?
- */
+// A MarkContextHolder contains:
+//
+// - a map of a unqiue "id" to a "MarkContext".
+//      - Each "MarkContext" contains a possible mapping from MARK instances to MARK entities ("CPGInstanceContext").
+// - "resolved operands": A set of Mark Operands (t.foo, cm.algorithm). This Operand is already analysed _for all Contexts_,
+//      the actual values/vertices for the operand are stored in the MarkContext
+// - "copyStack": If a context is a copy of another context (can e.g. happen if a constant resolving returns multiple values),
+//      this stack stores the orgin of the copy. This is required, if we need to compare MarkIntermediateResult which might not have all contexts filled:
+//      I.e., during evaluation of an expression, we first evaluate the left part of the expression-tree, then the right part.
+//      If the left part e.g. returns a result for the contexts 1 and 2, the right part of the result might create a copy one context (e.g. context 2),
+//      and e.g. return results for context 1, 2 and 3. Since we might have to compare all contexts, we need to remember that we need to compare
+//      result 3 from the right side with the result 2 from the left side.
+// - "createFindingsDuringEvaluation": Indicates, if the analysis should create findings directly. This is currently only
+//      used to tell the order-evaluation to not create a finding if it occurs in the when-part of a rule.
 public class MarkContextHolder {
 
 	private Map<Integer, MarkContext> contexts = new HashMap<>();

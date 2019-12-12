@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-@Disabled
 public class RealBCTest {
 
 	private @NonNull Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {

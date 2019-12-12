@@ -117,6 +117,10 @@ public class CpgDocumentService implements TextDocumentService {
 
 			ArrayList<Diagnostic> allDiags = new ArrayList<>();
 			for (Finding f : ctx.getFindings()) {
+				if (!f.isProblem()) {
+					// do not return errors
+					continue;
+				}
 				for (Range r : f.getRanges()) {
 					boolean skipWarning = false;
 					Diagnostic diagnostic = new Diagnostic();

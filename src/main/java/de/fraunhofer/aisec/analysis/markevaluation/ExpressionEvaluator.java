@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
+import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
@@ -31,15 +32,28 @@ import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import de.fraunhofer.aisec.markmodel.fsm.Node;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static java.lang.Math.toIntExact;
 
 public class ExpressionEvaluator {
 
@@ -127,10 +141,33 @@ public class ExpressionEvaluator {
 	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.debug("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		for (Map.Entry<Integer, MarkContext> entry : markContextHolder.getAllContexts()
-				.entrySet()) {
+		for (Map.Entry<Integer, MarkContext> entry : markContextHolder.getAllContexts().entrySet()) {
+
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
 			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);
+
+			if (markContextHolder.createFindingsDuringEvaluation() && res != null && Objects.equals(((ConstantValue) res).getValue(), true)) {
+				Set<String> markInstances = new HashSet<>();
+				ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
+				if (markInstances.size() == 1) { // otherwise, the analysis did not work anyway and we did not have a result
+					@Nullable
+					Vertex operand = entry.getValue().getInstanceContext().getVertex(markInstances.iterator().next());
+					int startLine = toIntExact((Long) operand.property("startLine").value()) - 1;
+					int endLine = toIntExact((Long) operand.property("endLine").value()) - 1;
+					int startColumn = toIntExact((Long) operand.property("startColumn").value()) - 1;
+					int endColumn = toIntExact((Long) operand.property("endColumn").value()) - 1;
+					ArrayList<Range> ranges = new ArrayList<>();
+					ranges.add(new Range(new Position(startLine, startColumn),
+						new Position(endLine, endColumn)));
+					Finding f = new Finding(
+						"Verified Order: " + this.markRule.getName(),
+						this.resultCtx.getCurrentFile(),
+						"",
+						ranges,
+						false);
+					this.resultCtx.getFindings().add(f);
+				}
+			}
 
 			result.put(entry.getKey(), res);
 		}

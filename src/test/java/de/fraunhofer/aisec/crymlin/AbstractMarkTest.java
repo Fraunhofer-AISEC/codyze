@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
@@ -25,7 +26,8 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class AbstractMarkTest {
 
-	@NonNull Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {
+	@NonNull
+	Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {
 		ClassLoader classLoader = RealBCTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);
@@ -51,27 +53,27 @@ public class AbstractMarkTest {
 
 		// Start an analysis server
 		AnalysisServer server = AnalysisServer.builder()
-											  .config(
-													  ServerConfiguration.builder()
-																		 .launchConsole(false)
-																		 .launchLsp(false)
-																		 .typestateAnalysis(TYPESTATE_ANALYSIS.NFA)
-																		 .markFiles(markPoC1.getAbsolutePath())
-																		 .build())
-											  .build();
+				.config(
+					ServerConfiguration.builder()
+							.launchConsole(false)
+							.launchLsp(false)
+							.typestateAnalysis(TYPESTATE_ANALYSIS.NFA)
+							.markFiles(markPoC1.getAbsolutePath())
+							.build())
+				.build();
 		server.start();
 
 		TranslationManager translationManager = TranslationManager.builder()
-																  .config(
-																		  TranslationConfiguration.builder()
-																								  .debugParser(true)
-																								  .failOnError(false)
-																								  .codeInNodes(true)
-																								  .defaultPasses()
-																								  .loadIncludes(true)
-																								  .sourceFiles(javaFile)
-																								  .build())
-																  .build();
+				.config(
+					TranslationConfiguration.builder()
+							.debugParser(true)
+							.failOnError(false)
+							.codeInNodes(true)
+							.defaultPasses()
+							.loadIncludes(true)
+							.sourceFiles(javaFile)
+							.build())
+				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
 		TranslationResult result;
 		try {

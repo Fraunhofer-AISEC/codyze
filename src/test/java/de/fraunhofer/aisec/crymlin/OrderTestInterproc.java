@@ -101,7 +101,7 @@ class OrderTestInterproc {
 		Set<Finding> findings = performTest("unittests/orderInterprocOk1.cpp");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(findings.isEmpty());
+		assertEquals(0, findings.stream().filter(Finding::isProblem).count());
 	}
 
 	@Test

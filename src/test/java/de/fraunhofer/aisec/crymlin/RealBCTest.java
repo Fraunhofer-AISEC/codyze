@@ -30,75 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-public class RealBCTest {
-
-	private @NonNull Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {
-		ClassLoader classLoader = RealBCTest.class.getClassLoader();
-
-		URL resource = classLoader.getResource(sourceFileName);
-		assertNotNull(resource);
-		File javaFile = new File(resource.getFile());
-		assertNotNull(javaFile);
-
-		resource = classLoader.getResource(markFileName);
-		assertNotNull(resource);
-		File markPoC1 = new File(resource.getFile());
-		assertNotNull(markPoC1);
-
-		// Make sure we start with a clean (and connected) db
-		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
-			db.purgeDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
-
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder()
-							.launchConsole(false)
-							.launchLsp(false)
-							.typestateAnalysis(TYPESTATE_ANALYSIS.NFA)
-							.markFiles(markPoC1.getAbsolutePath())
-							.build())
-				.build();
-		server.start();
-
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder()
-							.debugParser(true)
-							.failOnError(false)
-							.codeInNodes(true)
-							.defaultPasses()
-							.loadIncludes(true)
-							.sourceFiles(javaFile)
-							.build())
-				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		TranslationResult result;
-		try {
-			result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-
-		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-		assertNotNull(ctx);
-		assertTrue(ctx.methods.isEmpty());
-
-		for (Finding s : ctx.getFindings()) {
-			System.out.println(s);
-		}
-
-		return ctx.getFindings();
-	}
+public class RealBCTest extends AbstractMarkTest {
 
 	@Test
 	public void testSimple() throws Exception {

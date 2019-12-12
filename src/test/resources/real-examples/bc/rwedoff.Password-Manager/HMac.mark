@@ -1,0 +1,5 @@
+package bouncycastle
+
+entity org.bouncycastle.crypto.macs.HMac {
+	
+}

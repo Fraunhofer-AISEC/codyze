@@ -36,15 +36,8 @@ public class RealBCTest extends AbstractMarkTest {
 	public void testSimple() throws Exception {
 		// Just a very simple test to explore the graph
 		Set<Finding> findings = performTest("real-examples/bc/rwedoff.Password-Manager/Main.java", "real-examples/bc/rwedoff.Password-Manager/");
-		System.out.println(findings);
 
-		GraphTraversalSource t = OverflowDatabase.getInstance()
-				.getGraph()
-				.traversal();
-
-		List<Vertex> variables = t.V().hasLabel(VariableDeclaration.class.getSimpleName()).toList();
-
-		assertTrue(variables.size() > 0);
+		assertTrue(findings.stream().filter(Finding::isProblem).count() == 0);
 	}
 
 }

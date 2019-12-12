@@ -133,7 +133,9 @@ rule KeyLength {
 rule CBCRandomIV  {
 	using Botan::Cipher_Mode as cm,
 		Botan::AutoSeededRNG as rng
-	when _split(cm.algorithm, "/", 1) == "CBC"
+	when 
+		_split(cm.algorithm, "/", 1) == "CBC" 
+		&& cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
 	ensure
 		receives_value_from(cm.iv, rng.random_data)
 	onfail NoRandomIV	
@@ -142,9 +144,10 @@ rule CBCRandomIV  {
 rule NonRepeatedIV {
 // Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
 	using Botan::Cipher_Mode as cm,
+		Botan::AutoSeededRNG as rng
 	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
 	ensure
-		//TODO
+		receives_directly_from(cm.iv, rng.random_data)		//TODO AnalysisServer: new builtin
 	onfail RepeatedIV 
 }
 

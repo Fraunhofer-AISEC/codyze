@@ -167,6 +167,10 @@ public class OrderNFAEvaluator {
 				seenStates.add(currentState);
 
 				HashSet<String> eogPathSet = nodeIDtoEOGPathSet.get((Long) vertex.id());
+				if (eogPathSet == null) {
+					log.warn("Error during Order-evaluation, no path set for node {}", (Long) vertex.id());
+					continue;
+				}
 				for (String eogPath : eogPathSet) {
 
 					// ... no direct access to the labels TreeSet of Neo4JVertex

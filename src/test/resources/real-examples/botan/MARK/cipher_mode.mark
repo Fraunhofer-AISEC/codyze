@@ -137,7 +137,7 @@ rule CBCRandomIV  {
 		_split(cm.algorithm, "/", 1) == "CBC" 
 		&& cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
 	ensure
-		receives_value_from(cm.iv, rng.random_data)
+		_receives_value_from(cm.iv, rng.random_data)
 	onfail NoRandomIV	
 }
 

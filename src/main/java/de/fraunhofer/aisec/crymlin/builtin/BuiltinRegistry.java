@@ -6,6 +6,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * All MARK built-in functions that shall be supported by the evaluation must be registered here.
+ */
 public class BuiltinRegistry {
 
 	private static BuiltinRegistry INSTANCE = null;

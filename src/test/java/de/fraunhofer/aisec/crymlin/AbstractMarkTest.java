@@ -12,6 +12,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.File;
 import java.net.URL;
@@ -26,8 +27,12 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class AbstractMarkTest {
 
+	Set<Finding> performTest(String sourceFileName) throws Exception {
+		return performTest(sourceFileName, null);
+	}
+
 	@NonNull
-	Set<Finding> performTest(String sourceFileName, String markFileName) throws Exception {
+	Set<Finding> performTest(String sourceFileName, @Nullable String markFileName) throws Exception {
 		ClassLoader classLoader = RealBCTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);
@@ -35,10 +40,14 @@ public class AbstractMarkTest {
 		File javaFile = new File(resource.getFile());
 		assertNotNull(javaFile);
 
-		resource = classLoader.getResource(markFileName);
-		assertNotNull(resource);
-		File markPoC1 = new File(resource.getFile());
-		assertNotNull(markPoC1);
+		String markDirPath = "";
+		if (markFileName != null) {
+			resource = classLoader.getResource(markFileName);
+			assertNotNull(resource);
+			File markDir = new File(resource.getFile());
+			assertNotNull(markDir);
+			markDirPath = markDir.getAbsolutePath();
+		}
 
 		// Make sure we start with a clean (and connected) db
 		try {
@@ -58,7 +67,7 @@ public class AbstractMarkTest {
 							.launchConsole(false)
 							.launchLsp(false)
 							.typestateAnalysis(TYPESTATE_ANALYSIS.NFA)
-							.markFiles(markPoC1.getAbsolutePath())
+							.markFiles(markDirPath)
 							.build())
 				.build();
 		server.start();

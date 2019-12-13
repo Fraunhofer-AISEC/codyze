@@ -22,9 +22,6 @@ import java.util.Set;
  * <p>
  * In case of an error or an empty result, this Builtin returns an Optional.empty.
  *
- *
- * FIxME does is_instance even make sense? we fill markvars by looking for methods with the exact signature as specified in the entity. we could check for that, but isnt
- * it by default true for all nodes we find?
  */
 public class IsInstanceBuiltin implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(IsInstanceBuiltin.class);

@@ -14,21 +14,18 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-public class MarkJavaTest {
+public class MarkJavaTest extends AbstractMarkTest {
 
 	@BeforeEach
 	public void clearDatabase() {
@@ -44,7 +41,7 @@ public class MarkJavaTest {
 
 	@Test
 	public void split_1() throws Exception {
-		Set<Finding> findings = runTest("simplesplit_splitstring");
+		Set<Finding> findings = performTest("mark_java/simplesplit_splitstring.java", "mark_java/splitstring.mark");
 
 		System.out.println("All findings:");
 		for (Finding f : findings) {
@@ -76,7 +73,7 @@ public class MarkJavaTest {
 	// fixme disabled until is_instance is implemented
 	@Test
 	public void is_instance_1() throws Exception {
-		Set<Finding> findings = runTest("simple_instancestring");
+		Set<Finding> findings = performTest("mark_java/simple_instancestring.java", "mark_java/instancestring.mark");
 
 		System.out.println("All findings:");
 		for (Finding f : findings) {
@@ -103,46 +100,4 @@ public class MarkJavaTest {
 		assertEquals(0, findings.size());
 	}
 
-	private Set<Finding> runTest(@NonNull String fileNamePart)
-			throws ExecutionException, InterruptedException, TimeoutException {
-		String type = fileNamePart.substring(fileNamePart.lastIndexOf('_') + 1);
-
-		ClassLoader classLoader = MarkJavaTest.class.getClassLoader();
-		URL resource = classLoader.getResource("mark_java/" + fileNamePart + ".java");
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
-
-		resource = classLoader.getResource("mark_java/" + type + ".mark");
-		assertNotNull(resource);
-		File markFile = new File(resource.getFile());
-		assertNotNull(markFile);
-
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markFile.getAbsolutePath()).build())
-				.build();
-		server.start();
-
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
-				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
-
-			AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-			assertNotNull(ctx.getFindings());
-			Set<Finding> findings = ctx.getFindings();
-
-			return findings;
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-	}
 }

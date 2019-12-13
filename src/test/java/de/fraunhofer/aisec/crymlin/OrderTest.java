@@ -1,114 +1,45 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.Finding;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-class OrderTest {
+class OrderTest extends AbstractMarkTest {
 
-	private void performTest(String sourceFileName) throws Exception {
-		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
+	@Test
+	void checkJava() throws Exception {
+		Set<Finding> results = performTest("unittests/order.java", "unittests/order.mark");
 
-		URL resource = classLoader.getResource(sourceFileName);
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
+		Set<String> findings = results.stream().map(f -> f.toString()).collect(Collectors.toSet());
+		check(findings);
+	}
 
-		resource = classLoader.getResource("unittests/order.mark");
-		assertNotNull(resource);
-		File markPoC1 = new File(resource.getFile());
-		assertNotNull(markPoC1);
+	@Test
+	void checkCpp() throws Exception {
+		Set<Finding> results = performTest("unittests/order.cpp", "unittests/order.mark");
 
-		// Make sure we start with a clean (and connected) db
-		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
-			db.purgeDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
+		Set<String> findings = results.stream().map(f -> f.toString()).collect(Collectors.toSet());
+		check(findings);
+	}
 
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
-				.build();
-		server.start();
-
-		// Start the analysis
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
-				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		TranslationResult result;
-		try {
-			result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-
-		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-		assertNotNull(ctx);
-		assertTrue(ctx.methods.isEmpty());
-
-		List<String> findings = new ArrayList<>();
-		assertNotNull(ctx.getFindings());
-		ctx.getFindings().forEach(x -> findings.add(x.toString()));
-
-		for (String s : findings) {
-			System.out.println(s);
-		}
-
+	private void check(Set<String> findings) {
 		assertEquals(7, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
 		assertTrue(
 			findings.contains(
 				"line 48: Violation against Order: p4.start(iv); (start) is not allowed. Expected one of: END (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
-		// assertTrue(
-		//    findings.contains(
-		//        "line 45: Violation against Order: p4.finish(buf); is not allowed. Base contains
-		// errors already. (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
 				"line 31: Violation against Order: p3.finish(buf); (finish) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
 				"line 13: Violation against Order: p.set_key(key); (init) is not allowed. Expected one of: cm.start (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
-		// assertTrue(
-		//    findings.contains(
-		//        "line 14: Violation against Order: p.start(iv.bits_of()); is not allowed. Base
-		// contains errors already. (WrongUseOfBotan_CipherMode)"));
-		// assertTrue(
-		//    findings.contains(
-		//        "line 15: Violation against Order: p.finish(buf); is not allowed. Base contains errors
-		// already. (WrongUseOfBotan_CipherMode)"));
-		// assertTrue(
-		//    findings.contains(
-		//        "line 17: Violation against Order: p.set_key(key); is not allowed. Base contains
-		// errors already. (WrongUseOfBotan_CipherMode)"));
 		assertTrue(
 			findings.contains(
 				"line 22: Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
@@ -122,17 +53,5 @@ class OrderTest {
 			findings.contains(
 				"line 66: Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 
-		// Stop the analysis server
-		server.stop();
-	}
-
-	@Test
-	void checkJava() throws Exception {
-		performTest("unittests/order.java");
-	}
-
-	@Test
-	void checkCpp() throws Exception {
-		performTest("unittests/order.cpp");
 	}
 }

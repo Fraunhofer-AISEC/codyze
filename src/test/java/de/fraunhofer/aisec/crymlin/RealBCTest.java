@@ -36,11 +36,22 @@ public class RealBCTest extends AbstractMarkTest {
 		// Just a very simple test to explore the graph
 		Set<Finding> findings = performTest("real-examples/bc/rwedoff.Password-Manager/Main.java", "real-examples/bc/rwedoff.Password-Manager/");
 
-		for (Finding f : findings) {
-			System.out.println(f);
-		}
+		System.out.println("\n\n\n");
+		findings.stream().filter(f -> f.isProblem()).forEach(System.out::println);
+		System.out.println("\n");
+		findings.stream().filter(f -> !f.isProblem()).forEach(System.out::println);
+		System.out.println("\n\n\n");
 
 		assertEquals(0, findings.stream().filter(Finding::isProblem).count());
 	}
 
 }
+// currently broken/need investigating
+
+// line 139: Violation against Order: rng.generateSeed(16) (generate) is not allowed. Expected one of: sr.instantiate (Wrong_Order_For_SecureRandom)
+// line 351: Violation against Order: rng.generateSeed(16) (generate) is not allowed. Expected one of: sr.instantiate (Wrong_Order_For_SecureRandom)
+// line 0: MarkRuleEvaluationFinding: Rule MockWhen1 violated
+// line 330: Violation against Order: rng.generateSeed(seedBytes) (generate) is not allowed. Expected one of: sr.instantiate (Wrong_Order_For_SecureRandom)
+
+// line -1: Verified Order: Cipher_Order
+// line 0: MarkRuleEvaluationFinding: Rule MockWhen2 verified

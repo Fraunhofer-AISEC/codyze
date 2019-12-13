@@ -454,6 +454,10 @@ public class CrymlinQueryWrapper {
 		Set<Vertex> callsAndInitializers = new HashSet<>();
 		callsAndInitializers.addAll(calls);
 		callsAndInitializers.addAll(initializers);
+
+		// fix for Java. In java, a ctor is always accompanied with a newexpression
+		callsAndInitializers.removeIf(c -> c.label().contains("NewExpression"));
+
 		return callsAndInitializers;
 	}
 
@@ -547,6 +551,16 @@ public class CrymlinQueryWrapper {
 		Iterator<Edge> it = vertex.edges(Direction.IN, "INITIALIZER");
 		if (it.hasNext()) {
 			Vertex variableDeclaration = it.next().outVertex();
+			it = variableDeclaration.edges(Direction.IN, "INITIALIZER");
+			if (it.hasNext()) {
+				variableDeclaration = it.next().outVertex();
+			}
+			Iterator<Edge> refIterator = variableDeclaration.edges(Direction.OUT, "REFERS_TO");
+			if (refIterator.hasNext()) {
+				// if the node refers to another node, return the node it refers to
+				variableDeclaration = refIterator.next().inVertex();
+			}
+
 			if (!VariableDeclaration.class.getSimpleName().equals(variableDeclaration.label())) {
 				log.warn("Unexpected: Source of INITIALIZER edge to ConstructExpression is not a VariableDeclaration. Trying to continue anyway");
 			}

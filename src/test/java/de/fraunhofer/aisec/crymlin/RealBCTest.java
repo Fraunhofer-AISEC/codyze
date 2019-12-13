@@ -42,16 +42,10 @@ public class RealBCTest extends AbstractMarkTest {
 		findings.stream().filter(f -> !f.isProblem()).forEach(System.out::println);
 		System.out.println("\n\n\n");
 
-		assertEquals(0, findings.stream().filter(Finding::isProblem).count());
+		assertEquals(1, findings.stream().filter(Finding::isProblem).count()); // MockWhen1 results in a finding.
 	}
 
 }
 // currently broken/need investigating
 
-// line 139: Violation against Order: rng.generateSeed(16) (generate) is not allowed. Expected one of: sr.instantiate (Wrong_Order_For_SecureRandom)
-// line 351: Violation against Order: rng.generateSeed(16) (generate) is not allowed. Expected one of: sr.instantiate (Wrong_Order_For_SecureRandom)
-// line 0: MarkRuleEvaluationFinding: Rule MockWhen1 violated
-// line 330: Violation against Order: rng.generateSeed(seedBytes) (generate) is not allowed. Expected one of: sr.instantiate (Wrong_Order_For_SecureRandom)
-
 // line -1: Verified Order: Cipher_Order
-// line 0: MarkRuleEvaluationFinding: Rule MockWhen2 verified

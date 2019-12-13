@@ -69,7 +69,7 @@ public class CrymlinQueryWrapper {
 			@NonNull String className,
 			@Nullable List<String> parameterTypes) {
 		//FIXME Parameter types are still ignored. If not null, they should be checked against arguments of Initializer.
-		Set<Vertex> result = new HashSet<>();
+		Set<Vertex> vertices = crymlinTraversal.ctor(Utils.unifyType(className)).toSet();
 		Set<Object> constructorExpressionVertices = crymlinTraversal.V()
 				.as("constructorExpression")
 				.inE("INITIALIZER")
@@ -80,9 +80,9 @@ public class CrymlinQueryWrapper {
 				.toSet();
 		// Need to do this manually, as we cannot cast the generic from <Object> to <Vertex>.
 		for (Object v : constructorExpressionVertices) {
-			result.add((Vertex) v);
+			vertices.add((Vertex) v);
 		}
-		return result;
+		return vertices;
 	}
 
 	/**

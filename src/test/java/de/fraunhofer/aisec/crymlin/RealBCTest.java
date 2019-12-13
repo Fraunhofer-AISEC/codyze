@@ -29,7 +29,6 @@ import java.util.concurrent.TimeoutException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-@Disabled
 public class RealBCTest extends AbstractMarkTest {
 
 	@Test
@@ -49,4 +48,5 @@ public class RealBCTest extends AbstractMarkTest {
 }
 // currently broken/need investigating
 
+// the problem seems to be that the entity references `this` which is not correct. See github-issue #5
 // line -1: Verified Order: Cipher_Order

@@ -4,6 +4,8 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
+import java.text.NumberFormat;
+import java.util.Locale;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
@@ -287,7 +289,10 @@ public class ExpressionHelper {
 		// Check if it is numeric
 		try {
 			BigDecimal bd = new BigDecimal(x);
-			DecimalFormat df = new DecimalFormat("#.0#######");
+			NumberFormat df = NumberFormat.getInstance(Locale.ENGLISH);
+			df.setMinimumFractionDigits(1);
+			df.setMaximumFractionDigits(8);
+
 			return df.format(bd);
 		}
 		catch (NumberFormatException nfe) {

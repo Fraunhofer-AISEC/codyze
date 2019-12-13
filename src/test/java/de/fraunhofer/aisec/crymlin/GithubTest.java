@@ -36,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
+// TODO Remove before release or at least remove hardcoded paths
+
 @Disabled
 class GithubTest {
 

@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class OrderTestComplex {
 
+	// TODO Use AbstractMarkTest
 	private void performTest(String sourceFileName) throws Exception {
 		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
@@ -86,18 +87,6 @@ class OrderTestComplex {
 		assertTrue(
 			findings.contains(
 				"line 53: Violation against Order: p5.init(); (initOp) is not allowed. Expected one of: cm.createOp (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
-		// assertTrue(
-		//    findings.contains(
-		//        "line 54: Violation against Order: p5.start(); is not allowed. Base contains errors
-		// already. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
-		// assertTrue(
-		//    findings.contains(
-		//        "line 55: Violation against Order: p5.process(); is not allowed. Base contains errors
-		// already. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
-		// assertTrue(
-		//    findings.contains(
-		//        "line 56: Violation against Order: p5.finish(); is not allowed. Base contains errors
-		// already. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 		assertTrue(
 			findings.contains(
 				"line 68: Violation against Order: p6.reset(); (resetOp) is not allowed. Expected one of: cm.startOp (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));

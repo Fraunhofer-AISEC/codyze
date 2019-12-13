@@ -53,10 +53,6 @@ public class MarkLoadOutputTest {
 		}
 	}
 
-	@AfterAll
-	public static void teardown() throws Exception {
-	}
-
 	@Test
 	public void markModelLoaderTest() throws Exception {
 

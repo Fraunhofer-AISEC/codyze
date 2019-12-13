@@ -74,6 +74,22 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	}
 
 	/**
+	 * Returns the vertices representing the construct site of a object with the given fully qualified type.
+	 *
+	 * This traversal step will return vertices of type ConstructExpression (or its subclasses).
+	 *
+	 * @param type of the ctor
+	 * @return traversal of matched {@code ConstructExpression} vertices
+	 */
+	public GraphTraversal<Vertex, Vertex> ctor(String type) {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.hasLabel(
+			ConstructExpression.class.getSimpleName(),
+			OverflowDatabase.getSubclasses(ConstructExpression.class)).has("type", type);
+	}
+
+	/**
 	 * Returns method calls on an instance (object) with the given name and where the instance has the specified type.
 	 *
 	 * @param calleeName name of the called method

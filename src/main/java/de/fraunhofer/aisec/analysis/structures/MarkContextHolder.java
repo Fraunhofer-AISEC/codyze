@@ -1,6 +1,11 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +28,8 @@ import java.util.Set;
 // - "createFindingsDuringEvaluation": Indicates, if the analysis should create findings directly. This is currently only
 //      used to tell the order-evaluation to not create a finding if it occurs in the when-part of a rule.
 public class MarkContextHolder {
+
+	private static final Logger log = LoggerFactory.getLogger(MarkContextHolder.class);
 
 	private Map<Integer, MarkContext> contexts = new HashMap<>();
 	private int currentElements = 0;
@@ -75,6 +82,8 @@ public class MarkContextHolder {
 		contexts.forEach((id, context) -> {
 			List<CPGVertexWithValue> operandVertices = operandVerticesForContext.get(id);
 			if (operandVertices == null || operandVertices.size() == 0) {
+				Vertex vertex = context.getInstanceContext().getVertex(operand.substring(0, operand.lastIndexOf('.')));
+				log.warn("Did not find a value for Instance {} {}", id, (vertex == null) ? "null" : vertex.value("code"));
 				context.setOperand(operand, new CPGVertexWithValue(null, ConstantValue.NULL));
 			} else if (operandVertices.size() == 1) {
 				context.setOperand(operand, operandVertices.get(0));

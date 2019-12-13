@@ -25,6 +25,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -54,12 +55,12 @@ class RealBotanTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("real-examples/botan/streamciphers/bsex.cpp", "real-examples/botan/streamciphers/bsex.mark");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		Finding correctKeyLength = findings
+		Optional<Finding> correctKeyLength = findings
 				.stream()
 				.filter(f -> f.getOnfailIdentifier().equals("CorrectPrivateKeyLength"))
-				.findFirst()
-				.get();
-		assertFalse(correctKeyLength.isProblem());
+				.findFirst();
+		assertTrue(correctKeyLength.isPresent());
+		assertFalse(correctKeyLength.get().isProblem());
 	}
 
 	@Test
@@ -68,12 +69,12 @@ class RealBotanTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("real-examples/botan/streamciphers/bsex.cpp", "real-examples/botan/streamciphers/bsex.mark");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		Finding wrongKeyLength = findings
+		Optional<Finding> wrongKeyLength = findings
 				.stream()
 				.filter(f -> f.getOnfailIdentifier().equals("WrongPrivateKeyLength"))
-				.findFirst()
-				.get();
-		assertTrue(wrongKeyLength.isProblem());
+				.findFirst();
+		assertTrue(wrongKeyLength.isPresent());
+		assertTrue(wrongKeyLength.get().isProblem());
 	}
 
 	@Test

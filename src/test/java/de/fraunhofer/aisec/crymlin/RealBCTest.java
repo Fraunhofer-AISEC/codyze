@@ -26,8 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class RealBCTest extends AbstractMarkTest {
@@ -37,7 +36,11 @@ public class RealBCTest extends AbstractMarkTest {
 		// Just a very simple test to explore the graph
 		Set<Finding> findings = performTest("real-examples/bc/rwedoff.Password-Manager/Main.java", "real-examples/bc/rwedoff.Password-Manager/");
 
-		assertTrue(findings.stream().filter(Finding::isProblem).count() == 0);
+		for (Finding f : findings) {
+			System.out.println(f);
+		}
+
+		assertEquals(0, findings.stream().filter(Finding::isProblem).count());
 	}
 
 }

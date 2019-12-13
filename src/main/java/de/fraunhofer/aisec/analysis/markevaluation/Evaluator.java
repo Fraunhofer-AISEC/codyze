@@ -172,7 +172,7 @@ public class Evaluator {
 		for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 			// the value of the result should always be boolean, as this should be the result of the topmost expression
 			Object value = ConstantValue.unbox(entry.getValue());
-			if (value instanceof Boolean && entry.getValue() instanceof ConstantValue) {
+			if (value instanceof Boolean) {
 				/*
 				 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
 				 * responsible vertices.
@@ -302,15 +302,18 @@ public class Evaluator {
 			}
 			for (MOp op : referencedEntity.getOps()) {
 				for (Vertex vertex : op.getAllVertices()) {
+					Optional<Vertex> ref;
 
-					// Program variable is either the Base of some method call ...
-					Optional<Vertex> ref = CrymlinQueryWrapper.getBaseOfCallExpression(vertex);
+					if ((vertex.property("initializer_type").isPresent() && vertex.value("initializer_type").equals("de.fraunhofer.aisec.cpg.graph.ConstructExpression"))
+							|| (vertex.property("nodeType").isPresent() && vertex.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.ConstructExpression"))) {
+						ref = CrymlinQueryWrapper.getAssigneeOfConstructExpression(vertex);
+					} else {
+						// Program variable is either the Base of some method call ...
+						ref = CrymlinQueryWrapper.getBaseOfCallExpression(vertex);
+					}
 					ref.ifPresent(instanceVariables::add);
-					// .. or assignee of a VariableDeclaration with a ConstructorExpression.
-					Optional<Vertex> assignee = CrymlinQueryWrapper.getAssigneeOfConstructExpression(vertex);
-					assignee.ifPresent(instanceVariables::add);
 
-					if (ref.isEmpty() && assignee.isEmpty()) {
+					if (ref.isEmpty()) {
 						log.warn("Did not find an instance variable for entity {} when searching at node {}", referencedEntity.getName(),
 							vertex.property("code").value());
 					}

@@ -108,25 +108,30 @@ public class CrymlinQueryWrapper {
 
 		Set<Vertex> ret = new HashSet<>();
 
+		fqnClassName = Utils.unifyType(fqnClassName);
+
 		// reconstruct what type of call we're expecting
 		boolean isMethod = markEntity != null && fqnClassName.endsWith(markEntity);
 
 		if (isMethod) {
 			// it's a method call on an instances
-			ret.addAll(crymlinTraversal.calls(functionName, markEntity)
-					.toList());
+			ret.addAll(crymlinTraversal.calls(functionName, markEntity).toSet());
 		}
 		//List<Vertex> calls = crymlinTraversal.calls(functionName, markEntity)
 		//		.toList();
 
 		// it's a function OR a static method call -> name == fqnClassName.functionName
-		ret.addAll(crymlinTraversal.calls(fqnClassName + "." + functionName)
-				.toList());
+		ret.addAll(crymlinTraversal.calls(fqnClassName + "." + functionName).toSet());
+
+		// todo: missing: ctor-calls!
 
 		// FIXME we're not setting the default (i.e. global) namespace
 		if (fqnClassName.length() == 0) {
-			ret.addAll(crymlinTraversal.calls(functionName)
-					.toList());
+			ret.addAll(crymlinTraversal.calls(functionName).toSet());
+		}
+
+		if (ret.isEmpty()) {
+			ret.addAll(crymlinTraversal.ctor(fqnClassName + "." + functionName).toSet());
 		}
 
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
@@ -396,7 +401,7 @@ public class CrymlinQueryWrapper {
 					if (argumentVertices.size() == 1) {
 						matchingVertices.add(argumentVertices.get(0));
 					} else {
-						log.warn("Did not find one matching argument node, got {}", argumentVertices.size());
+						log.warn("Did not find exactly one matching argument node for function {}, got {}", functionName, argumentVertices.size());
 					}
 				}
 			}
@@ -512,6 +517,11 @@ public class CrymlinQueryWrapper {
 			Iterator<Edge> it = refIterator.next().outVertex().edges(Direction.IN, "INITIALIZER");
 			if (it.hasNext()) {
 				Vertex baseVertex = it.next().outVertex();
+				// for java, an initializer is contained in another
+				it = baseVertex.edges(Direction.IN, "INITIALIZER");
+				if (it.hasNext()) {
+					baseVertex = it.next().outVertex();
+				}
 				refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
 				if (refIterator.hasNext()) {
 					// if the node refers to another node, return the node it refers to

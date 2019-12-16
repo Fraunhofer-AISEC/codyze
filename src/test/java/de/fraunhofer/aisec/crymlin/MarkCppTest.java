@@ -175,10 +175,9 @@ public class MarkCppTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/arg_assignconstructor_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings,
-			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 15: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
-	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_assignparenthesisexpr_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_assignparenthesisexpr_int.cpp", "mark_cpp/int.mark");
@@ -188,7 +187,12 @@ public class MarkCppTest extends AbstractMarkTest {
 			System.out.println(f.toString());
 		}
 
-		assertFalse(true); // new tests!
+		expected(findings,
+			"line 20: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+
+		// TODO To be implemented https://git-int.aisec.fraunhofer.de/sas/dev/cpganalysisserver/issues/17
+		//expected(findings,
+		//		 "line 27: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test

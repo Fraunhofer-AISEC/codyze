@@ -19,3 +19,11 @@ int main() {
   Test t();
   t.call(foo);
 }
+
+// FIXME constant resolver will choose undeterminstically one of the "foo"s - either the correct one above or this one here.
+//int testExpressionInExpressionList() {
+//  int foo = 1;
+//  foo = (1,2,3,4,41+1);
+//  Test t();
+//  t.call(foo);
+//}

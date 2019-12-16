@@ -2,7 +2,10 @@
 package de.fraunhofer.aisec.analysis.scp;
 
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.Declaration;
+import de.fraunhofer.aisec.cpg.graph.ExpressionList;
+import de.fraunhofer.aisec.cpg.graph.Literal;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
@@ -88,15 +91,13 @@ public class ConstantResolver {
 					.until(
 						is(variableDeclarationVertex))
 					.emit();
-			//dumpVertices(traversal.clone()
-			//		.toList());
 
 			while (traversal.hasNext()) {
 				Vertex tVertex = traversal.next();
 
 				boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label()
 						.split(OverflowDatabase.LabelDelimiter))
-						.contains("BinaryOperator");
+						.contains(BinaryOperator.class.getSimpleName());
 
 				if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode")
 						.value())) {
@@ -110,9 +111,8 @@ public class ConstantResolver {
 						Vertex rhs = tVertex.vertices(Direction.OUT, "RHS")
 								.next();
 
-						boolean isRhsLiteral = Arrays.asList(rhs.label()
-								.split(OverflowDatabase.LabelDelimiter))
-								.contains("Literal");
+						boolean isRhsLiteral = rhs.label().equals(Literal.class.getSimpleName());
+						boolean isRhsExpressionList = rhs.label().equals(ExpressionList.class.getSimpleName());
 
 						if (isRhsLiteral) {
 							Object literalValue = rhs.property("value").value();
@@ -123,10 +123,24 @@ public class ConstantResolver {
 							}
 
 							log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
+						} else if (isRhsExpressionList) {
+
+							if (rhs.edges(Direction.IN, "EOG").hasNext()) {
+								Vertex lastExpressionInList = rhs.edges(Direction.IN, "EOG")
+										.next()
+										.outVertex();
+								// TODO Do not assume that last in ExpressionList is a constant but rather apply ConstantResolution again.
+								// See https://***REMOVED***/***REMOVED***/issues/17
+								if (lastExpressionInList.label().equals(Literal.class.getSimpleName())) {
+									Object literalValue = lastExpressionInList.property("value").value();
+									Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
+									if (constantValue.isPresent()) {
+										return constantValue;
+									}
+									log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
+								}
+							}
 						}
-
-						// fixme properly resolve rhs expression
-
 						log.error("Value of operand set in assignment expression");
 						return Optional.empty();
 					}

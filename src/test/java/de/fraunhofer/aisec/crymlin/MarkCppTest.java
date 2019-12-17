@@ -175,7 +175,7 @@ public class MarkCppTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/arg_assignconstructor_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings,
-			"line 15: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test

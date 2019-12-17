@@ -188,11 +188,10 @@ public class MarkCppTest extends AbstractMarkTest {
 		}
 
 		expected(findings,
-			"line 20: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 19: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 
-		// TODO To be implemented https://git-int.aisec.fraunhofer.de/sas/dev/cpganalysisserver/issues/17
-		//expected(findings,
-		//		 "line 27: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+		expected(findings,
+				 "line 28: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test

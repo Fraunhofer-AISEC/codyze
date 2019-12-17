@@ -1,20 +1,20 @@
 
 package de.fraunhofer.aisec.analysis.scp;
 
+import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
-import de.fraunhofer.aisec.cpg.graph.Declaration;
-import de.fraunhofer.aisec.cpg.graph.ExpressionList;
-import de.fraunhofer.aisec.cpg.graph.Literal;
+import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.cdt.internal.core.model.Variable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,8 +81,8 @@ public class ConstantResolver {
 			}
 
 			Vertex variableDeclarationVertex = vdVertexOpt.get();
-			log.debug("Vertex for function call: {}", callExpressionVertex);
-			log.debug("Vertex of variable declaration: {}", variableDeclarationVertex);
+			log.debug("Vertex for function call: {}", callExpressionVertex.property("code").value());
+			log.debug("Vertex of variable declaration: {}", variableDeclarationVertex.property("code").value());
 
 			// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
 			// one of them must have more information on the value of the operand
@@ -94,6 +94,7 @@ public class ConstantResolver {
 
 			while (traversal.hasNext()) {
 				Vertex tVertex = traversal.next();
+				log.debug("Check if is assigment to tVertex: {}", tVertex.property("code").value());
 
 				boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label()
 						.split(OverflowDatabase.LabelDelimiter))
@@ -107,7 +108,9 @@ public class ConstantResolver {
 
 					if (lhs.vertices(Direction.OUT, "REFERS_TO")
 							.next()
-							.equals(variableDeclarationVertex)) {
+						   .id()
+							.equals(variableDeclarationVertex.id())) {
+						log.debug("   LHS of this node is interesting. Will evaluate RHS: {}", tVertex.property("code").value());
 						Vertex rhs = tVertex.vertices(Direction.OUT, "RHS")
 								.next();
 
@@ -138,6 +141,26 @@ public class ConstantResolver {
 										return constantValue;
 									}
 									log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
+								} else if (lastExpressionInList.label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
+									System.out.println("Trying to resolve " + lastExpressionInList);
+
+									// Get declaration of the variable used as last item in expression list
+									Iterator<Edge> refersTo = lastExpressionInList.edges(Direction.IN, "DFG");
+									if (refersTo.hasNext()) {
+										Vertex v = refersTo.next().outVertex();
+										if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
+											VariableDeclaration varDecl = (VariableDeclaration) OverflowDatabase.getInstance().vertexToNode(v);
+											ConstantResolver resolver = new ConstantResolver(this.dbType);
+											Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(varDecl, lastExpressionInList);
+											if (constantValue.isPresent()) {
+												return constantValue;
+											}
+										} else {
+											log.warn("Last expression in ExpressionList does not have a VariableDeclaration. Cannot resolve its value: {}", lastExpressionInList.property("code").value());
+										}
+									} else {
+										log.warn("Last expression in ExpressionList has no incoming DFG. Cannot resolve its value: {}", lastExpressionInList.property("code").value());
+									}
 								}
 							}
 						}

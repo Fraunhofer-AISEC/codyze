@@ -49,17 +49,6 @@ public class AbstractMarkTest {
 			markDirPath = markDir.getAbsolutePath();
 		}
 
-		// Make sure we start with a clean (and connected) db
-		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
-			db.purgeDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
-
 		// Start an analysis server
 		AnalysisServer server = AnalysisServer.builder()
 				.config(

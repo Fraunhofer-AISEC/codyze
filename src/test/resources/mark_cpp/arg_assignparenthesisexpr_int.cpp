@@ -1,10 +1,9 @@
 class Test {
-
-public:
-int call(int a) {
-  return a + 1;
-}
-}
+  public:
+  int call(int a) {
+    return a + 1;
+  }
+};
 
 /*
 C++ 17, the variable can be declared by providing values through parenthesis too. The difference between
@@ -16,14 +15,15 @@ In this example, foo will be assigned the value 42.
 int main() {
   int foo = 1;
   foo = (1,2,3,4,42);
-  Test t();
+  Test t;
   t.call(foo);
 }
 
-// FIXME constant resolver will choose undeterminstically one of the "foo"s - either the correct one above or this one here.
-//int testExpressionInExpressionList() {
-//  int foo = 1;
-//  foo = (1,2,3,4,41+1);
-//  Test t();
-//  t.call(foo);
-//}
+int testExpressionInExpressionList() {
+  int x = 23;
+  x = 42;
+  int foo = 1;
+  foo = (1,2,3,4,x);
+  Test t;
+  t.call(foo);
+}

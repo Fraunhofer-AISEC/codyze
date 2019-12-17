@@ -4,7 +4,7 @@ public:
 int call(int a) {
   return a + 1;
 }
-}
+};
 
 /*
  foo is assigned the value 42 by "constructor initialization". The ExpressionEvaluator of Mark
@@ -12,6 +12,6 @@ int call(int a) {
 */
 int main() {
   int foo(42);
-  Test t();
+  Test t;
   t.call(foo);
 }

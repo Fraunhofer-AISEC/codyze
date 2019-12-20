@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -103,7 +104,26 @@ class RealBotanTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("real-examples/botan/blockciphers/Prudkovskiy.Qt_LockBox/crypto.cpp",
 			"real-examples/botan/MARK");
 
-		assertTrue(findings.isEmpty());
-		//TODO meaningful assertions
+		// We expect two correct block ciphers AES/CBC (isProblem == false) at line 16 and 22
+		List<Finding> blockCiphers = findings
+				.stream()
+				.filter(f -> f.getOnfailIdentifier().equals("WrongBlockCipher"))
+				.filter(f -> !f.isProblem())
+				.collect(Collectors.toList());
+		assertEquals(2, blockCiphers.size());
+		assertTrue(blockCiphers.stream().anyMatch(f -> f.getRanges().get(0).getStart().getLine() == 15));
+		assertTrue(blockCiphers.stream().anyMatch(f -> f.getRanges().get(0).getStart().getLine() == 21));
+
+		// We expect an incorrect key size at line 16 and 22
+		List<Finding> keyLengths = findings
+				.stream()
+				.filter(f -> f.getOnfailIdentifier().equals("BadKeyLength"))
+				.filter(f -> f.isProblem())
+				.collect(Collectors.toList());
+		assertEquals(1, keyLengths);
+
+		assertEquals(2, keyLengths.get(0).getRanges().size());
+		assertTrue(keyLengths.get(0).getRanges().stream().anyMatch(r -> r.getStart().getLine() == 15));
+		assertTrue(keyLengths.get(0).getRanges().stream().anyMatch(r -> r.getStart().getLine() == 21));
 	}
 }

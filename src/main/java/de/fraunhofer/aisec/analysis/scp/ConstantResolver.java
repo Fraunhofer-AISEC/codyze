@@ -104,7 +104,8 @@ public class ConstantResolver {
 					Vertex lhs = tVertex.vertices(Direction.OUT, "LHS")
 							.next();
 
-					if (lhs.vertices(Direction.OUT, "REFERS_TO")
+					Iterator<Vertex> assignees = lhs.vertices(Direction.OUT, "REFERS_TO");
+					if (assignees.hasNext() && assignees
 							.next()
 							.id()
 							.equals(variableDeclarationVertex.id())) {

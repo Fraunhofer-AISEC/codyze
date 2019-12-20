@@ -188,10 +188,8 @@ public class MarkCppTest extends AbstractMarkTest {
 		}
 
 		expected(findings,
-			"line 19: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
-
-		expected(findings,
-				 "line 28: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 19: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified",
+			"line 28: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
 	@Test

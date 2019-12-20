@@ -87,4 +87,23 @@ class RealBotanTest extends AbstractMarkTest {
 		assertTrue(findings.isEmpty());
 	}
 
+	@Test
+	@Disabled //WIP, not working yet
+	void testArsenic() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("real-examples/botan/blockciphers/Antidote1911.Arsenic/Crypto.cpp",
+			"real-examples/botan/MARK");
+
+		assertTrue(findings.isEmpty());
+	}
+
+	@Test
+	void testQt_LockBox() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("real-examples/botan/blockciphers/Prudkovskiy.Qt_LockBox/crypto.cpp",
+			"real-examples/botan/MARK");
+
+		assertTrue(findings.isEmpty());
+		//TODO meaningful assertions
+	}
 }

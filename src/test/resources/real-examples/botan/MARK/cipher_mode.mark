@@ -30,6 +30,9 @@ entity Botan::Cipher_Mode {
 		 * function call(s):
 		 * - Cipher_Mode* get_cipher_mode(const std::string& algo_spec, Cipher_Dir direction, const std::string& provider = "")
 		 */
+		Botan::get_cipher(algorithm, symkey, iv, direction)
+		Botan::get_cipher(algorithm, svkey, iv, direction)
+
 		Botan::get_cipher_mode(algorithm, direction);
 		Botan::get_cipher_mode(algorithm, direction, provider);
 
@@ -108,7 +111,8 @@ entity Botan::Cipher_Mode {
 rule BlockCiphers {
 	using Botan::Cipher_Mode as cm
 	ensure
-		_split(cm.algorithm, "/", 0) in [ "AES" ]
+		(_split(cm.algorithm, "/", 0) == "AES")
+		|| (_split(_split(cm.algorithm, "/", 0), "-", 0) == "AES")
 	onfail WrongBlockCipher
 }
 
@@ -147,7 +151,7 @@ rule NonRepeatedIV {
 		Botan::AutoSeeded_RNG as rng
 	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
 	ensure
-		receives_directly_from(cm.iv, rng.random_data)		//TODO AnalysisServer: new builtin
+		_receives_value_directly_from(cm.iv, rng.random_data)
 	onfail RepeatedIV 
 }
 

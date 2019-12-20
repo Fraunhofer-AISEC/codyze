@@ -279,13 +279,10 @@ public class AnalysisServer {
 	public void stop() {
 		if (interp != null) {
 			interp.close();
-			interp = null;
 		}
 		if (lsp != null) {
 			lsp.shutdown();
-			lsp = null;
 		}
-		config = null;
 		markModel = null;
 
 		log.info("stop.");

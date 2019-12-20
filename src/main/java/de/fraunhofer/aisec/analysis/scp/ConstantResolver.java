@@ -96,9 +96,7 @@ public class ConstantResolver {
 				Vertex tVertex = traversal.next();
 				log.debug("Check if is assigment to tVertex: {}", tVertex.property("code").value());
 
-				boolean isBinaryOperatorVertex = Arrays.asList(tVertex.label()
-						.split(OverflowDatabase.LabelDelimiter))
-						.contains(BinaryOperator.class.getSimpleName());
+				boolean isBinaryOperatorVertex = tVertex.label().contains(BinaryOperator.class.getSimpleName());
 
 				if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode")
 						.value())) {
@@ -108,7 +106,7 @@ public class ConstantResolver {
 
 					if (lhs.vertices(Direction.OUT, "REFERS_TO")
 							.next()
-						   .id()
+							.id()
 							.equals(variableDeclarationVertex.id())) {
 						log.debug("   LHS of this node is interesting. Will evaluate RHS: {}", tVertex.property("code").value());
 						Vertex rhs = tVertex.vertices(Direction.OUT, "RHS")
@@ -156,10 +154,12 @@ public class ConstantResolver {
 												return constantValue;
 											}
 										} else {
-											log.warn("Last expression in ExpressionList does not have a VariableDeclaration. Cannot resolve its value: {}", lastExpressionInList.property("code").value());
+											log.warn("Last expression in ExpressionList does not have a VariableDeclaration. Cannot resolve its value: {}",
+												lastExpressionInList.property("code").value());
 										}
 									} else {
-										log.warn("Last expression in ExpressionList has no incoming DFG. Cannot resolve its value: {}", lastExpressionInList.property("code").value());
+										log.warn("Last expression in ExpressionList has no incoming DFG. Cannot resolve its value: {}",
+											lastExpressionInList.property("code").value());
 									}
 								}
 							}

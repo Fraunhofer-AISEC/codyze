@@ -107,7 +107,7 @@ class LSPTest {
 					first = false;
 					assertEquals(1, publishDiagnosticsParams.getDiagnostics().size());
 				} else {
-					assertEquals(6, publishDiagnosticsParams.getDiagnostics().size());
+					assertEquals(7, publishDiagnosticsParams.getDiagnostics().size());
 				}
 			}
 

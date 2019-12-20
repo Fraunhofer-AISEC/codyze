@@ -9,12 +9,12 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ReceivesValueFromBuiltin implements Builtin {
+public class ReceivesValueDirectlyFromBuiltin implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(ReceivesValueFromBuiltin.class);
 
 	@Override
 	public @NonNull String getName() {
-		return "_receives_value_from";
+		return "_receives_value_directly_from";
 	}
 
 	@Override
@@ -25,13 +25,6 @@ public class ReceivesValueFromBuiltin implements Builtin {
 			ExpressionEvaluator expressionEvaluator) {
 		// TODO implement
 		log.warn("the builtin " + getName() + " is not implemented yet");
-
-		// TODO FW: needs to be discussed, I am not clear what this should achieve
-		// the example is:
-		/*
-		 * rule UseRandomIV { using Botan::Cipher_Mode as cm, Botan::AutoSeededRNG as rng when _split(cm.algorithm, "/", 1) == "CBC" && cm.direction ==
-		 * Botan::Cipher_Dir::ENCRYPTION ensure _receives_value_from(cm.iv, rng.myValue) onfail NoRandomIV }
-		 */
 
 		return ConstantValue.NULL;
 	}

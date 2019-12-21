@@ -58,7 +58,7 @@ public class ConstantResolver {
 	 * <p>
 	 * 7. {no interjacent assignment} determine value of variableDeclarationVertex (e.g. from its initializer)
 	 * <p>
-	 * 8. {no intializer with value e.g. function argument} continue traversing the graph
+	 * 8. {no initializer with value e.g. function argument} continue traversing the graph
 	 *
 	 * @param variableDeclaration
 	 */ // TODO Should be replaced by a more generic function that takes a single DeclaredReferenceExpression as an argument
@@ -94,7 +94,7 @@ public class ConstantResolver {
 
 			while (traversal.hasNext()) {
 				Vertex tVertex = traversal.next();
-				log.debug("Check if is assigment to tVertex: {}", tVertex.property("code").value());
+				log.debug("Check if is assignment to {}: {}", variableDeclarationVertex.property("code").value(), tVertex.property("code").value());
 
 				boolean isBinaryOperatorVertex = tVertex.label().contains(BinaryOperator.class.getSimpleName());
 

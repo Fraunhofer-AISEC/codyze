@@ -12,6 +12,7 @@ entity Botan::SymmetricKey {
 		Botan::OctetString(bytes);
         Botan::OctetString(RandomNumberGenerator, length);
         Botan::OctetString(bytes, length);
+        Botan::SymmetricKey(bytes, length);
 	}
 	
 	op getKey {

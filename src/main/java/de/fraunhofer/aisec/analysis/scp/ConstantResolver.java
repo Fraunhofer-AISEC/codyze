@@ -183,11 +183,11 @@ public class ConstantResolver {
 
 				List<String> labels = Arrays.asList(initializerVertex.label().split(OverflowDatabase.LabelDelimiter));
 
-				if (labels.contains("Literal")) {
+				if (labels.contains(Literal.class.getSimpleName())) {
 					Object literalValue = initializerVertex.property("value").value();
 					retVal = ConstantValue.tryOf(literalValue);
 
-				} else if (labels.contains("ConstructExpression")) {
+				} else if (labels.contains(ConstructExpression.class.getSimpleName())) {
 					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "ARGUMENTS");
 					if (initializers.hasNext()) {
 						Vertex init = initializers.next();
@@ -200,13 +200,13 @@ public class ConstantResolver {
 							log.warn("Cannot evaluate ConstructExpression, it is a {}", init.label());
 						}
 					} else {
-						log.warn("No Argument to Constructexpression");
+						log.warn("No Argument to ConstructExpression");
 					}
 					if (initializers.hasNext()) {
-						log.warn("More than one Arguments to Constructexpression found, not using one of them.");
+						log.warn("More than one Arguments to ConstructExpression found, not using one of them.");
 						retVal = Optional.empty();
 					}
-				} else if (labels.contains("InitializerListExpression")) {
+				} else if (labels.contains(InitializerListExpression.class.getSimpleName())) {
 					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "INITIALIZERS");
 					if (initializers.hasNext()) {
 						Vertex init = initializers.next();
@@ -226,7 +226,7 @@ public class ConstantResolver {
 						log.warn("More than one initializer found, using none of them");
 						retVal = Optional.empty();
 					}
-				} else if (labels.contains("ExpressionList")) {
+				} else if (labels.contains(ExpressionList.class.getSimpleName())) {
 					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "SUBEXPR");
 					Vertex init = null;
 					while (initializers.hasNext()) { // get the last initializer according to C++17 standard
@@ -262,26 +262,6 @@ public class ConstantResolver {
 		}
 
 		return retVal;
-	}
-
-	private void dumpVertices(Collection<Vertex> vertices) {
-		log.debug("Dumping vertices: {}", vertices.size());
-
-		int i = 0;
-		for (Vertex v : vertices) {
-			log.debug("Vertex {}: {}", i++, v);
-		}
-	}
-
-	private void dumpPaths(Collection<Path> paths) {
-		log.debug("Number of paths: {}", paths.size());
-
-		for (Path p : paths) {
-			log.debug("Path of length: {}", p.size());
-			for (Object o : p) {
-				log.debug("Path step: {}", o);
-			}
-		}
 	}
 
 }

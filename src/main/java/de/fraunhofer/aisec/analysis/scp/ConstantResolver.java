@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.analysis.scp;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -171,29 +172,24 @@ public class ConstantResolver {
 				}
 			}
 
-			// we arrived at the declaration of the variable used as an argument
+			// we arrived at the declaration of the variable
 			//log.info("Checking declaration for a literal initializer");
 
-			// check if we have an initializer with a literal
+			// See if we have an initializer
 			Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
 
 			if (itInitializerVertex.hasNext()) {
-				// there should be at most one
 				Vertex initializerVertex = itInitializerVertex.next();
 
-				List<String> labels = Arrays.asList(initializerVertex.label().split(OverflowDatabase.LabelDelimiter));
-
-				if (labels.contains(Literal.class.getSimpleName())) {
+				if (Utils.hasLabel(initializerVertex, Literal.class)) {
 					Object literalValue = initializerVertex.property("value").value();
 					retVal = ConstantValue.tryOf(literalValue);
 
-				} else if (labels.contains(ConstructExpression.class.getSimpleName())) {
+				} else if (Utils.hasLabel(initializerVertex, ConstructExpression.class)) {
 					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "ARGUMENTS");
 					if (initializers.hasNext()) {
 						Vertex init = initializers.next();
-						if (Arrays.asList(init.label()
-								.split(OverflowDatabase.LabelDelimiter))
-								.contains("Literal")) {
+						if (Utils.hasLabel(init, Literal.class)) {
 							Object initValue = init.property("value").value();
 							retVal = ConstantValue.tryOf(initValue);
 						} else {
@@ -206,13 +202,12 @@ public class ConstantResolver {
 						log.warn("More than one Arguments to ConstructExpression found, not using one of them.");
 						retVal = Optional.empty();
 					}
-				} else if (labels.contains(InitializerListExpression.class.getSimpleName())) {
+
+				} else if (Utils.hasLabel(initializerVertex, InitializerListExpression.class)) {
 					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "INITIALIZERS");
 					if (initializers.hasNext()) {
 						Vertex init = initializers.next();
-						if (Arrays.asList(init.label()
-								.split(OverflowDatabase.LabelDelimiter))
-								.contains("Literal")) {
+						if (Utils.hasLabel(init, Literal.class)) {
 							Object initValue = init.property("value").value();
 							retVal = ConstantValue.tryOf(initValue);
 
@@ -226,16 +221,15 @@ public class ConstantResolver {
 						log.warn("More than one initializer found, using none of them");
 						retVal = Optional.empty();
 					}
-				} else if (labels.contains(ExpressionList.class.getSimpleName())) {
+
+				} else if (Utils.hasLabel(initializerVertex, ExpressionList.class)) {
 					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "SUBEXPR");
 					Vertex init = null;
 					while (initializers.hasNext()) { // get the last initializer according to C++17 standard
 						init = initializers.next();
 					}
 					if (init != null) {
-						if (Arrays.asList(init.label()
-								.split(OverflowDatabase.LabelDelimiter))
-								.contains("Literal")) {
+						if (Utils.hasLabel(init, Literal.class)) {
 							Object initValue = init.property("value").value();
 							retVal = ConstantValue.tryOf(initValue);
 

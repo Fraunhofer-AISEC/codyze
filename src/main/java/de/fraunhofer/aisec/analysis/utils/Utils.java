@@ -2,8 +2,11 @@
 package de.fraunhofer.aisec.analysis.utils;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
+import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -11,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Set;
 
 public class Utils {
 	private static final Logger log = LoggerFactory.getLogger(Utils.class);
@@ -93,5 +97,20 @@ public class Utils {
 				log.debug("Path step: {}", o);
 			}
 		}
+	}
+
+	/**
+	 * Returns true if the given vertex has a label that equals to the given CPG class or any of its subclasses.
+	 *
+	 * That is, hasLabel(v, Node.class) will always return true.
+	 *
+	 * @param v 			A vertex with a label.
+	 * @param cpgClass		Any class from the CPG hierarchy.
+	 * @return
+	 */
+	public static boolean hasLabel(@NonNull Vertex v, @NonNull Class<? extends Node> cpgClass) {
+		String label = v.label();
+		Set<String> subClasses = Set.of(OverflowDatabase.getSubclasses(cpgClass));
+		return label.equals(cpgClass.getSimpleName()) || subClasses.contains(label);
 	}
 }

@@ -86,7 +86,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
 		return traversal.hasLabel(
 			ConstructExpression.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(ConstructExpression.class)).has("type", type);
+			OverflowDatabase.getSubclasses(ConstructExpression.class)).has("possibleSubTypes", type);
 	}
 
 	/**

@@ -89,7 +89,7 @@ class RealBotanTest extends AbstractMarkTest {
 	}
 
 	@Test
-	@Disabled //WIP, not working yet
+	//@Disabled //WIP, not working yet
 	void testArsenic() throws Exception {
 		@NonNull
 		Set<Finding> findings = performTest("real-examples/botan/blockciphers/Antidote1911.Arsenic/Crypto.cpp",

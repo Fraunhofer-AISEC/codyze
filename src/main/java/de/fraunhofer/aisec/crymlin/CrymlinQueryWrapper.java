@@ -33,7 +33,6 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,21 +235,23 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
-	 * TODO JS->FW: Write a comment here, describing what vertices this method returns for given operand. Maybe give an example.
+	 * Returns a List of Vertices with label "VariableDeclaration" that correspond to a given MARK variable in a given rule.
 	 *
-	 * @param operand
-	 * @param rule
-	 * @param markModel
-	 * @param crymlin
-	 * @return
+	 * For instance,
+	 *
+	 * @param markVar     The MARK variable.
+	 * @param rule        The MARK rule using the MARK variable.
+	 * @param markModel   The current MARK model.
+	 * @param crymlin     A CrymlinTraversalSource for querying the CPG.
+	 * @return            List of Vertex objects whose label is "VariableDeclaration".
 	 */
-	public static List<Vertex> getMatchingVertices(@NonNull String operand, @NonNull MRule rule, Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
+	public static List<Vertex> getMatchingVertices(@NonNull String markVar, @NonNull MRule rule, Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 		final List<Vertex> matchingVertices = new ArrayList<>();
 
 		// Split operand "myInstance.attribute" into "myInstance" and "attribute".
-		final String[] operandParts = operand.split("\\.");
-		String instance = operandParts[0];
-		String attribute = operandParts[1];
+		final String[] markVarParts = markVar.split("\\.");
+		String instance = markVarParts[0];
+		String attribute = markVarParts[1];
 
 		// Get the MARK entity corresponding to the operator's instance.
 		Pair<String, MEntity> ref = rule.getEntityReferences()
@@ -258,25 +259,26 @@ public class CrymlinQueryWrapper {
 		String entityName = ref.getValue0();
 		MEntity referencedEntity = ref.getValue1();
 
-		if (StringUtils.countMatches(operand, ".") > 1) {
+		if (referencedEntity == null) {
+			log.warn("Unexpected: rule {} without referenced entity for instance {}", rule.getName(), instance);
+			return matchingVertices;
+		}
+
+		if (StringUtils.countMatches(markVar, ".") > 1) {
 			log.info("References an entity inside an entity");
-			if (referencedEntity.getVars() == null) {
-				log.warn("Entity does not have vars, cannot search for inner var");
-				return matchingVertices;
-			}
-			for (int i = 1; i < operandParts.length - 1; i++) {
-				instance += "." + operandParts[i];
-				attribute = operandParts[i + 1];
+			for (int i = 1; i < markVarParts.length - 1; i++) {
+				instance += "." + markVarParts[i];
+				attribute = markVarParts[i + 1];
 
 				MVar match = null;
 				for (MVar var : referencedEntity.getVars()) {
-					if (var.getName().equals(operandParts[i])) {
+					if (var.getName().equals(markVarParts[i])) {
 						match = var;
 						break;
 					}
 				}
 				if (match == null) {
-					log.warn("Entity does not contain var {}", operandParts[i]);
+					log.warn("Entity does not contain var {}", markVarParts[i]);
 					return matchingVertices;
 				}
 				referencedEntity = markModel.getEntity(match.getType());
@@ -288,11 +290,6 @@ public class CrymlinQueryWrapper {
 			}
 		}
 		String finalAttribute = attribute;
-
-		if (referencedEntity == null) {
-			log.warn("Unexpected: rule {} without referenced entity for instance {}", rule.getName(), instance);
-			return matchingVertices;
-		}
 
 		List<Pair<MOp, Set<OpStatement>>> usesAsVar = new ArrayList<>();
 		List<Pair<MOp, Set<OpStatement>>> usesAsFunctionArgs = new ArrayList<>();
@@ -346,21 +343,21 @@ public class CrymlinQueryWrapper {
 
 					// todo: move this to crymlintraversal. For some reason, the .toList() blocks if the
 					// step is in the crymlin traversal
-					List<Vertex> nextVertices = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
+					List<Vertex> varDeclarations = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
 
-					if (!nextVertices.isEmpty()) {
-						log.info("found RHS traversals: {}", nextVertices);
-						matchingVertices.addAll(nextVertices);
+					if (!varDeclarations.isEmpty()) {
+						log.info("found RHS traversals: {}", varDeclarations);
+						matchingVertices.addAll(varDeclarations);
 					}
 
 					// check if there was a direct initialization (i.e., int i = call(foo);)
-					nextVertices = crymlin.byID((long) v.id())
+					varDeclarations = crymlin.byID((long) v.id())
 							.initializerVariable()
 							.toList();
 
-					if (!nextVertices.isEmpty()) {
-						log.info("found Initializer traversals: {}", nextVertices);
-						matchingVertices.addAll(nextVertices);
+					if (!varDeclarations.isEmpty()) {
+						log.info("found Initializer traversals: {}", varDeclarations);
+						matchingVertices.addAll(varDeclarations);
 					}
 				}
 			}
@@ -410,9 +407,22 @@ public class CrymlinQueryWrapper {
 		return matchingVertices;
 	}
 
-	public static List<CPGVertexWithValue> getAssignmentsForVertices(List<Vertex> vertices, @NonNull String operand) {
+	/**
+	 * Given a MARK variable and a list of vertices, attempts to find constant values that would be assigned to these variables at runtime.
+	 *
+	 * The precision of this resolution depends on the implementation of the ConstantResolver.
+	 *
+	 * @param vertices
+	 * @param markVar
+	 * @return
+	 */
+	public static List<CPGVertexWithValue> resolveValuesForVertices(List<Vertex> vertices, @NonNull String markVar) {
 		final List<CPGVertexWithValue> ret = new ArrayList<>();
 		// try to resolve them
+		for (Vertex v : vertices) {
+			System.out.println(v.label());
+		}
+
 		for (Vertex v : vertices) {
 			Iterator<Edge> refersTo = v.edges(Direction.OUT, "REFERS_TO");
 			if (refersTo.hasNext()) {
@@ -430,7 +440,7 @@ public class CrymlinQueryWrapper {
 					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get());
 					ret.add(mva);
 				} else {
-					log.warn("Could not constant resolve {}, returning Constant.NULL", operand);
+					log.warn("Could not constant resolve {}, returning Constant.NULL", markVar);
 					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.NULL);
 					ret.add(mva);
 				}
@@ -569,16 +579,16 @@ public class CrymlinQueryWrapper {
 		return Optional.empty();
 	}
 
-	public static HashMap<Integer, List<CPGVertexWithValue>> resolveOperand(MarkContextHolder context, @NonNull String operand, @NonNull MRule rule,
+	public static HashMap<Integer, List<CPGVertexWithValue>> resolveOperand(MarkContextHolder context, @NonNull String markVar, @NonNull MRule rule,
 			Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 
 		HashMap<Integer, List<CPGVertexWithValue>> verticesPerContext = new HashMap<>();
 
 		// first get all vertices for the operand
-		List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(operand, rule, markModel, crymlin);
+		List<Vertex> matchingVertices = CrymlinQueryWrapper.getMatchingVertices(markVar, rule, markModel, crymlin);
 
 		if (matchingVertices.isEmpty()) {
-			log.warn("Did not find matching vertices for {}", operand);
+			log.warn("Did not find matching vertices for {}", markVar);
 			return verticesPerContext;
 		}
 
@@ -592,10 +602,10 @@ public class CrymlinQueryWrapper {
 		}
 
 		// Use Constant resolver to resolve assignments to arguments
-		vertices.addAll(CrymlinQueryWrapper.getAssignmentsForVertices(matchingVertices, operand));
+		vertices.addAll(CrymlinQueryWrapper.resolveValuesForVertices(matchingVertices, markVar));
 
 		// now split them up to belong to each instance (t) or markvar (t.foo)
-		final String instance = operand.substring(0, operand.lastIndexOf('.'));
+		final String instance = markVar.substring(0, markVar.lastIndexOf('.'));
 
 		// precompute a list mapping
 		// from a nodeID (representing the varabledecl for the instance)

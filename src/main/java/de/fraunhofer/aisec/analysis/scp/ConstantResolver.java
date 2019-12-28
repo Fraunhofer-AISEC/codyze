@@ -63,7 +63,7 @@ public class ConstantResolver {
 	 *
 	 * @param variableDeclaration
 	 */ // TODO Should be replaced by a more generic function that takes a single DeclaredReferenceExpression as an argument
-	public Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Declaration variableDeclaration, @NonNull Vertex callExpressionVertex) {
+	public Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Declaration variableDeclaration, @NonNull Vertex vDeclaredReferenceExpr) {
 		if (variableDeclaration == null) {
 			return Optional.empty();
 		}
@@ -82,12 +82,12 @@ public class ConstantResolver {
 			}
 
 			Vertex variableDeclarationVertex = vdVertexOpt.get();
-			log.debug("Vertex for function call: {}", callExpressionVertex.property("code").value());
+			log.debug("Vertex for function call: {}", vDeclaredReferenceExpr.property("code").value());
 			log.debug("Vertex of variable declaration: {}", variableDeclarationVertex.property("code").value());
 
 			// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
 			// one of them must have more information on the value of the operand
-			CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) callExpressionVertex.id())
+			CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) vDeclaredReferenceExpr.id())
 					.repeat(in("EOG"))
 					.until(
 						is(variableDeclarationVertex))

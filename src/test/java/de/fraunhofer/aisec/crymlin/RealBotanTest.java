@@ -13,7 +13,9 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -89,13 +91,20 @@ class RealBotanTest extends AbstractMarkTest {
 	}
 
 	@Test
-	//@Disabled //WIP, not working yet
 	void testArsenic() throws Exception {
 		@NonNull
 		Set<Finding> findings = performTest("real-examples/botan/blockciphers/Antidote1911.Arsenic/Crypto.cpp",
 			"real-examples/botan/MARK");
 
-		assertTrue(findings.isEmpty());
+		// We expect a correct key size in line 250 and 355
+		List<Finding> correctKeySizes = findings
+				.stream()
+				.filter(f -> !f.isProblem())
+				.collect(Collectors.toList());
+		assertEquals(2, correctKeySizes.size());
+		assertTrue(correctKeySizes.stream().anyMatch(f -> f.getRanges().get(0).getStart().getLine() == 249));
+		assertTrue(correctKeySizes.stream().anyMatch(f -> f.getRanges().get(0).getStart().getLine() == 354));
+
 	}
 
 	@Test

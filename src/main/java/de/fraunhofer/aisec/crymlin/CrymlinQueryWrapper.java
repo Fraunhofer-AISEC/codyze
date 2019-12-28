@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
@@ -85,9 +86,8 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
-	 * Returns a set of Vertices representing the <code>CallExpression</code> to a target function.
+	 * Returns a set of Vertices representing the <code>CallExpression</code> to a target function or a <code>ConstructExpression</code> to an initialized type.
 	 * <p>
-	 * Note that this set does not contain calls to constructors.
 	 *
 	 * @param crymlinTraversal
 	 * @param fqnClassName fully qualified name w/o function name itself
@@ -116,13 +116,14 @@ public class CrymlinQueryWrapper {
 			// it's a method call on an instances
 			ret.addAll(crymlinTraversal.calls(functionName, markEntity).toSet());
 		}
-		//List<Vertex> calls = crymlinTraversal.calls(functionName, markEntity)
-		//		.toList();
 
 		// it's a function OR a static method call -> name == fqnClassName.functionName
 		ret.addAll(crymlinTraversal.calls(fqnClassName + "." + functionName).toSet());
 
-		// todo: missing: ctor-calls!
+		// In case of constructors, "functionName" holds the name of the constructed type.
+		Set<Vertex> ctors = crymlinTraversal.ctor(functionName)
+				.toSet();
+		ret.addAll(ctors);
 
 		// FIXME we're not setting the default (i.e. global) namespace
 		if (fqnClassName.length() == 0) {
@@ -138,58 +139,66 @@ public class CrymlinQueryWrapper {
 			v -> {
 				Iterator<Edge> referencedArguments = v.edges(Direction.OUT, "ARGUMENTS");
 
-				if (parameterTypes.isEmpty() && referencedArguments.hasNext()) {
-					// expecting no arguments but got at least one -> remove
-					return true;
-				}
-
-				if (!parameterTypes.isEmpty() && !referencedArguments.hasNext()) {
-					// expecting some parameters but got no arguments -> remove
-					return true;
-				}
-
+				// Collect all argument Vertices into a list
+				List<Vertex> arguments = new ArrayList<>();
 				while (referencedArguments.hasNext()) {
-					// check each argument against parameter type
-					Vertex argument = referencedArguments.next()
-							.inVertex();
-					long argumentIndex = argument.value("argumentIndex");
-
-					if (argumentIndex >= parameterTypes.size()) {
-						// last given parameter type must be "..." or remove
-						return !Constants.ELLIPSIS.equals(parameterTypes.get(parameterTypes.size() - 1));
-					} else { // remove if types don't match
-						// Use "unified" types for Java and C/C++
-						String paramType = Utils.unifyType(parameterTypes.get((int) argumentIndex));
-						if (!(Constants.UNDERSCORE.equals(paramType)
-								|| Constants.ELLIPSIS.equals(paramType))) {
-							// it's not a single type wild card -> types must match
-							// TODO improve type matching
-							// currently, we check for perfect match but we may need to be more fuzzy e.g.
-							// ignore
-							// type qualifier (e.g. const) or strip reference types
-							// FIXME match expects fully-qualified type literal; in namespace 'std',
-							// 'std::string' becomes just 'string'
-							// FIXME string literals in C++ have type 'const char[{some integer}]' instead of
-							// 'std::string'
-							if (paramType.equals("std.string")) {
-								String argValue = argument.<String> property("type").orElse("");
-
-								if (paramType.equals(argValue)
-										|| Pattern.matches("const char\\s*\\[\\d*\\]", argValue)) {
-									// it matches C++ string types
-									return false;
-								}
-							} else if (!paramType.equals(argument.value("type"))) {
-								// types don't match -> remove
-								return true;
-							}
-						}
-					}
+					Edge e = referencedArguments.next();
+					arguments.add(e.inVertex());
 				}
-				return false;
+
+				return !argumentsMatchParameters(parameterTypes, arguments);
 			});
 
 		return ret;
+	}
+
+	/**
+	 * Returns true if the given list of arguments (of a function or method or constructor call) matches the given list of parameter types.
+	 *
+	 * @param parameterTypes		List of types.
+	 * @param referencedArguments	List of Vertices. Each Vertex is expected to have an "argumentIndex" property.
+	 * @return
+	 */
+	private static boolean argumentsMatchParameters(@NonNull List<String> parameterTypes, @NonNull List<Vertex> referencedArguments) {
+		return parameterTypes.size() == referencedArguments.size();
+
+		// TODO Following code is horribly broken and must be rewritten
+		//		for (Vertex argument : referencedArguments) {
+		//			// check each argument against parameter type
+		//			long argumentIndex = argument.value("argumentIndex");
+		//
+		//			if (argumentIndex >= parameterTypes.size()) {
+		//				// last given parameter type must be "..." or remove
+		//				return !Constants.ELLIPSIS.equals(parameterTypes.get(parameterTypes.size() - 1));
+		//			} else { // remove if types don't match
+		//				// Use "unified" types for Java and C/C++
+		//				String paramType = Utils.unifyType(parameterTypes.get((int) argumentIndex));
+		//				if (!(Constants.UNDERSCORE.equals(paramType)
+		//						|| Constants.ELLIPSIS.equals(paramType))) {
+		//					// it's not a single type wild card -> types must match
+		//					// TODO improve type matching
+		//					// currently, we check for perfect match but we may need to be more fuzzy e.g.
+		//					// ignore
+		//					// type qualifier (e.g. const) or strip reference types
+		//					// FIXME match expects fully-qualified type literal; in namespace 'std',
+		//					// 'std::string' becomes just 'string'
+		//					// FIXME string literals in C++ have type 'const char[{some integer}]' instead of
+		//					// 'std::string'
+		//					if (paramType.equals("std.string")) {
+		//						String argValue = argument.<String> property("type").orElse("");
+		//
+		//						if (paramType.equals(argValue)
+		//								|| Pattern.matches("const char\\s*\\[\\d*\\]", argValue)) {
+		//							// it matches C++ string types
+		//							return false;
+		//						}
+		//					} else if (!paramType.equals(argument.value("type"))) {
+		//						// types don't match -> remove
+		//						return true;
+		//					}
+		//				}
+		//			}
+		//		}
 	}
 
 	public static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {
@@ -235,25 +244,23 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
-	 * Returns a List of Vertices with label "VariableDeclaration" that correspond to a given MARK variable in a given rule.
-	 *
-	 * For instance,
+	 * Returns a List of Vertices with label "DeclaredReferenceExpression" that correspond to a given MARK variable in a given rule.
 	 *
 	 * @param markVar     The MARK variable.
 	 * @param rule        The MARK rule using the MARK variable.
 	 * @param markModel   The current MARK model.
 	 * @param crymlin     A CrymlinTraversalSource for querying the CPG.
-	 * @return            List of Vertex objects whose label is "VariableDeclaration".
+	 * @return            List of Vertex objects whose label is "DeclaredReferenceExpression".
 	 */
 	public static List<Vertex> getMatchingVertices(@NonNull String markVar, @NonNull MRule rule, Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 		final List<Vertex> matchingVertices = new ArrayList<>();
-
-		// Split operand "myInstance.attribute" into "myInstance" and "attribute".
+		System.out.println("GETMATCHINGVERTICES CALLED WITH MARK VAR " + markVar + " from rule: " + rule.getName());
+		// Split MARK variable "myInstance.attribute" into "myInstance" and "attribute".
 		final String[] markVarParts = markVar.split("\\.");
 		String instance = markVarParts[0];
 		String attribute = markVarParts[1];
 
-		// Get the MARK entity corresponding to the operator's instance.
+		// Get the MARK entity corresponding to the MARK instance variable.
 		Pair<String, MEntity> ref = rule.getEntityReferences()
 				.get(instance);
 		String entityName = ref.getValue0();
@@ -386,6 +393,7 @@ public class CrymlinQueryWrapper {
 				}
 				int argumentIndex = argumentIndexOptional.getAsInt();
 
+				System.out.println("Checking for call: " + fqName + " - " + functionName + " - " + entityName + " - " + String.join(", ", argumentTypes));
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
 					crymlin, fqName, functionName, entityName, argumentTypes);
 
@@ -403,7 +411,8 @@ public class CrymlinQueryWrapper {
 				}
 			}
 		}
-
+		System.out.println("GETMATCHINGVERTICES returns "
+				+ String.join(", ", matchingVertices.stream().map(v -> v.label() + ": " + v.property("code").value()).collect(Collectors.toList())));
 		return matchingVertices;
 	}
 
@@ -412,18 +421,19 @@ public class CrymlinQueryWrapper {
 	 *
 	 * The precision of this resolution depends on the implementation of the ConstantResolver.
 	 *
-	 * @param vertices
+	 * @param vDeclaredReferenceExprs
 	 * @param markVar
 	 * @return
 	 */
-	public static List<CPGVertexWithValue> resolveValuesForVertices(List<Vertex> vertices, @NonNull String markVar) {
+	public static List<CPGVertexWithValue> resolveValuesForVertices(List<Vertex> vDeclaredReferenceExprs, @NonNull String markVar) {
 		final List<CPGVertexWithValue> ret = new ArrayList<>();
 		// try to resolve them
-		for (Vertex v : vertices) {
-			System.out.println(v.label());
+		System.out.println("MARK VAR" + markVar);
+		for (Vertex v : vDeclaredReferenceExprs) {
+			System.out.println(v.label() + " : " + v.property("code").value());
 		}
 
-		for (Vertex v : vertices) {
+		for (Vertex v : vDeclaredReferenceExprs) {
 			Iterator<Edge> refersTo = v.edges(Direction.OUT, "REFERS_TO");
 			if (refersTo.hasNext()) {
 				Edge next = refersTo.next();
@@ -594,9 +604,9 @@ public class CrymlinQueryWrapper {
 
 		List<CPGVertexWithValue> vertices = new ArrayList<>();
 
-		// The arguments themselves may be constants ("Literal"). In that case, add the value.
+		// The arguments themselves may be constants ("Literal"). In that case, immediately add the value.
 		for (Vertex v : matchingVertices) {
-			if (v.label().equals(Literal.class.getSimpleName())) {
+			if (Utils.hasLabel(v, Literal.class)) {
 				vertices.add(new CPGVertexWithValue(v, ConstantValue.of(v.property("value").value())));
 			}
 		}

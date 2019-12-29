@@ -165,6 +165,12 @@ public class CrymlinQueryWrapper {
 		arguments:
 		while (i < markParameters.size() && i < sourceArguments.size()) {
 			String markParam = markParameters.get(i);
+
+			// ELLIPSIS (...) means we do not care about any further arguments
+			if (markParam != null && Constants.ELLIPSIS.equals(markParam)) {
+				return true;
+			}
+
 			Set<Type> sourceArgs = new HashSet<>();
 			/* We cannot assume that the position in sourceArgument corresponds with the actual order. Must rather check "argumentIndex" property. */
 			for (Vertex vArg : sourceArguments) {
@@ -183,13 +189,14 @@ public class CrymlinQueryWrapper {
 				return false;
 			}
 
-			// ELLIPSIS (...) means we do not care about any further arguments
-			if (Constants.ELLIPSIS.equals(markParam)) {
-				return true;
+			// UNDERSCORE means we do not care about this specific argument at all
+			if (Constants.UNDERSCORE.equals(markParam)) {
+				i++;
+				continue;
 			}
 
-			// UNDERSCORE means we do not care about this specific argument
-			if (Constants.UNDERSCORE.equals(markParam)) {
+			// ANY_TYPE means we have a MARK variable, but do not care about its type
+			if (Constants.ANY_TYPE.equals(markParam)) {
 				i++;
 				continue;
 			}

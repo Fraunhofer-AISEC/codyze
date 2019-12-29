@@ -110,15 +110,16 @@ public class Evaluator {
 			for (MOp op : ent.getOps()) {
 				log.debug("Looking for call statements for {}", op.getName());
 				int numMatches = 0;
-				for (OpStatement a : op.getStatements()) {
-					Set<Vertex> temp = CrymlinQueryWrapper.getVerticesForFunctionDeclaration(a.getCall(), ent, crymlinTraversal);
+				for (OpStatement opStmt : op.getStatements()) {
+					Set<Vertex> temp = CrymlinQueryWrapper.getVerticesForFunctionDeclaration(opStmt.getCall(), ent, crymlinTraversal);
 					log.debug(
-						"{}({}):{}",
-						a.getCall().getName(),
-						String.join(", ", a.getCall().getParams()),
+						"Call {}({}) of op {} found {} times",
+						opStmt.getCall().getName(),
+						String.join(", ", opStmt.getCall().getParams()),
+						op.getName(),
 						temp.size());
 					numMatches += temp.size();
-					op.addVertex(a, temp);
+					op.addVertex(opStmt, temp);
 				}
 				op.setParsingFinished();
 				if (numMatches > 0) {

@@ -144,6 +144,8 @@ public class MEntity {
 			String typeForVar = getTypeForVar(functionArguments.get(i));
 			if (typeForVar != null) {
 				functionArgumentTypes.add(i, typeForVar);
+			} else if (functionArguments.get(i).equals(Constants.ELLIPSIS)) {
+				functionArgumentTypes.add(Constants.ELLIPSIS);
 			} else {
 				functionArgumentTypes.add(Constants.ANY_TYPE);
 			}

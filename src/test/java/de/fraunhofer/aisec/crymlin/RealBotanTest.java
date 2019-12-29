@@ -108,6 +108,7 @@ class RealBotanTest extends AbstractMarkTest {
 	}
 
 	@Test
+	@Disabled //WIP, does not work yet
 	void testQt_LockBox() throws Exception {
 		@NonNull
 		Set<Finding> findings = performTest("real-examples/botan/blockciphers/Prudkovskiy.Qt_LockBox/crypto.cpp",

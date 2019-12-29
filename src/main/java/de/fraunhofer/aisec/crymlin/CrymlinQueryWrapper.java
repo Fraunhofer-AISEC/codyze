@@ -403,7 +403,7 @@ public class CrymlinQueryWrapper {
 				}
 				int argumentIndex = argumentIndexOptional.getAsInt();
 
-				System.out.println("Checking for call: " + fqName + " - " + functionName + " - " + entityName + " - " + String.join(", ", markParameterTypes));
+				System.out.println("Checking for call/ctor. ffqname: " + fqName + " - functionname: " + functionName + " - entity: " + entityName + " - markParams: " + String.join(", ", markParameterTypes));
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
 					crymlin, fqName, functionName, entityName, markParameterTypes);
 

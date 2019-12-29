@@ -174,6 +174,15 @@ public class Utils {
 				break;
 			}
 		}
+
+		if (String.join(",", sourceTypes.stream().map(t -> t.getTypeName()).collect(Collectors.toList())).trim().equals("")) {
+			/**
+			 * TODO Empty "possibleSubTypes" means that the type could not be resolved from source code. This is ok. It is however unclear/undefined how this should be handled if MARK requires a type.
+			 */
+			log.warn("CHECK ME: Cannot compare empty argument type in source code to MARK type {}. Will assume it matches.", markType);
+			result = true;
+		}
+
 		log.debug("Any of {} is a subtype of {}: {}", String.join(",", sourceTypes.stream().map(t -> t.getTypeName()).collect(Collectors.toList())), markType, result);
 
 		return result;

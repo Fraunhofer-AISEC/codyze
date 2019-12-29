@@ -162,8 +162,7 @@ public class CrymlinQueryWrapper {
 	private static boolean argumentsMatchParameters(@NonNull List<String> markParameters, @NonNull List<Vertex> sourceArguments) {
 		int i = 0;
 
-		arguments:
-		while (i < markParameters.size() && i < sourceArguments.size()) {
+		arguments: while (i < markParameters.size() && i < sourceArguments.size()) {
 			String markParam = markParameters.get(i);
 
 			// ELLIPSIS (...) means we do not care about any further arguments
@@ -178,7 +177,7 @@ public class CrymlinQueryWrapper {
 						.orElse(-1);
 				if (sourceArgPos == i) {
 					String subTypeProperty = (String) vArg.property("possibleSubTypes").value();
-					for (String subType: subTypeProperty.split(",")) {
+					for (String subType : subTypeProperty.split(",")) {
 						sourceArgs.add(Type.createFrom(subType));
 					}
 				}
@@ -403,7 +402,8 @@ public class CrymlinQueryWrapper {
 				}
 				int argumentIndex = argumentIndexOptional.getAsInt();
 
-				System.out.println("Checking for call/ctor. ffqname: " + fqName + " - functionname: " + functionName + " - entity: " + entityName + " - markParams: " + String.join(", ", markParameterTypes));
+				System.out.println("Checking for call/ctor. ffqname: " + fqName + " - functionname: " + functionName + " - entity: " + entityName + " - markParams: "
+						+ String.join(", ", markParameterTypes));
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
 					crymlin, fqName, functionName, entityName, markParameterTypes);
 

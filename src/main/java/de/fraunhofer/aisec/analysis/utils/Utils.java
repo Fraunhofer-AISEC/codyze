@@ -151,8 +151,9 @@ public class Utils {
 		// There are various representations of "string" and we map them manually here.
 		if (uniMark.equals("string")) {
 			switch (uniSource) {
-				case "QString": result = true;
-				break;
+				case "QString":
+					result = true;
+					break;
 			}
 		}
 

@@ -167,9 +167,9 @@ public class CrymlinQueryWrapper {
 			/* We cannot assume that the position in sourceArgument corresponds with the actual order. Must rather check "argumentIndex" property. */
 			for (Vertex vArg : sourceArguments) {
 				long sourceArgPos = (long) vArg.property("argumentIndex")
-														.orElse(-1);
+						.orElse(-1);
 				if (sourceArgPos == i) {
-					sourceArg = vArg.<String>property("type").orElse("");
+					sourceArg = vArg.<String> property("type").orElse("");
 				}
 			}
 

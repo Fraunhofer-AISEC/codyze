@@ -6,6 +6,7 @@ import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -112,5 +113,55 @@ public class Utils {
 		String label = v.label();
 		Set<String> subClasses = Set.of(OverflowDatabase.getSubclasses(cpgClass));
 		return label.equals(cpgClass.getSimpleName()) || subClasses.contains(label);
+	}
+
+	/**
+	 * Returns true if a type from the source language is equal to a type in MARK.
+	 *
+	 * Namespaces are ignored.
+	 *
+	 * For instance:
+	 *
+	 * isSubTypeOf("uint8", "uint8")  -> true
+	 * isSubTypeOf("string", "std.string")  -> true
+	 * isSubTypeOf("std::string", "std.string")  -> true
+	 * isSubTypeOf("random::string", "std.string")  -> true
+	 *
+	 * @param sourceType
+	 * @param markType
+	 * @return
+	 */
+	public static boolean isSubTypeOf(String sourceType, String markType) {
+		String uniSource = unifyType(sourceType);
+		if (uniSource.contains(".") && !uniSource.endsWith(".")) {
+			uniSource = uniSource.substring(uniSource.lastIndexOf('.') + 1);
+		}
+		// TODO Currently, the "type" property may contain modifiers such as "const", so we must remove them here. Will change in CPG.
+		if (uniSource.contains(" ") && !uniSource.endsWith(" ")) {
+			uniSource = uniSource.substring(uniSource.lastIndexOf(' ') + 1);
+		}
+
+		String uniMark = unifyType(markType);
+		if (uniMark.contains(".") && !uniMark.endsWith(".")) {
+			uniMark = uniMark.substring(uniMark.lastIndexOf('.') + 1);
+		}
+
+		// TODO We do not consider type hierarchies here but simply match for equality plus a few manual mappings
+		boolean result = uniSource.equals(uniMark);
+		// There are various representations of "string" and we map them manually here.
+		if (uniMark.equals("string")) {
+			switch (uniSource) {
+				case "QString": result = true;
+				break;
+			}
+		}
+
+		// If type could not be determined, we err on the false positive side.
+		if (sourceType.equals("UNKNOWN")) {
+			result = true;
+		}
+		log.debug("{} is a subtype of {}: {}", sourceType, markType, result);
+
+		return result;
 	}
 }

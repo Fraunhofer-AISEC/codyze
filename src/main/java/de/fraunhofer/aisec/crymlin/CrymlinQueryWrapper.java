@@ -16,7 +16,6 @@ import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.markmodel.Constants;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
@@ -33,6 +32,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.EList;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,52 +153,50 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
-	 * Returns true if the given list of arguments (of a function or method or constructor call) matches the given list of parameter types.
+	 * Returns true if the given list of arguments (of a function or method or constructor call) matches the given list of parameters in MARK.
 	 *
-	 * @param parameterTypes		List of types.
-	 * @param referencedArguments	List of Vertices. Each Vertex is expected to have an "argumentIndex" property.
+	 * @param markParameters		List of types.
+	 * @param sourceArguments	List of Vertices. Each Vertex is expected to have an "argumentIndex" property.
 	 * @return
 	 */
-	private static boolean argumentsMatchParameters(@NonNull List<String> parameterTypes, @NonNull List<Vertex> referencedArguments) {
-		return parameterTypes.size() == referencedArguments.size();
+	private static boolean argumentsMatchParameters(@NonNull List<String> markParameters, @NonNull List<Vertex> sourceArguments) {
+		int i = 0;
+		while (i < markParameters.size() && i < sourceArguments.size()) {
+			String markParam = markParameters.get(i);
+			String sourceArg = "";
+			/* We cannot assume that the position in sourceArgument corresponds with the actual order. Must rather check "argumentIndex" property. */
+			for (Vertex vArg : sourceArguments) {
+				long sourceArgPos = (long) vArg.property("argumentIndex")
+														.orElse(-1);
+				if (sourceArgPos == i) {
+					sourceArg = vArg.<String>property("type").orElse("");
+				}
+			}
 
-		// TODO Following code is horribly broken and must be rewritten
-		//		for (Vertex argument : referencedArguments) {
-		//			// check each argument against parameter type
-		//			long argumentIndex = argument.value("argumentIndex");
-		//
-		//			if (argumentIndex >= parameterTypes.size()) {
-		//				// last given parameter type must be "..." or remove
-		//				return !Constants.ELLIPSIS.equals(parameterTypes.get(parameterTypes.size() - 1));
-		//			} else { // remove if types don't match
-		//				// Use "unified" types for Java and C/C++
-		//				String paramType = Utils.unifyType(parameterTypes.get((int) argumentIndex));
-		//				if (!(Constants.UNDERSCORE.equals(paramType)
-		//						|| Constants.ELLIPSIS.equals(paramType))) {
-		//					// it's not a single type wild card -> types must match
-		//					// TODO improve type matching
-		//					// currently, we check for perfect match but we may need to be more fuzzy e.g.
-		//					// ignore
-		//					// type qualifier (e.g. const) or strip reference types
-		//					// FIXME match expects fully-qualified type literal; in namespace 'std',
-		//					// 'std::string' becomes just 'string'
-		//					// FIXME string literals in C++ have type 'const char[{some integer}]' instead of
-		//					// 'std::string'
-		//					if (paramType.equals("std.string")) {
-		//						String argValue = argument.<String> property("type").orElse("");
-		//
-		//						if (paramType.equals(argValue)
-		//								|| Pattern.matches("const char\\s*\\[\\d*\\]", argValue)) {
-		//							// it matches C++ string types
-		//							return false;
-		//						}
-		//					} else if (!paramType.equals(argument.value("type"))) {
-		//						// types don't match -> remove
-		//						return true;
-		//					}
-		//				}
-		//			}
-		//		}
+			if (markParam == null || sourceArg == null) {
+				log.error("Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argumentIndex: {}", String.join(", ", markParameters));
+				return false;
+			}
+
+			// ELLIPSIS (...) means we do not care about any further arguments
+			if (Constants.ELLIPSIS.equals(markParam)) {
+				return true;
+			}
+
+			// UNDERSCORE means we do not care about this specific argument
+			if (Constants.UNDERSCORE.equals(markParam)) {
+				i++;
+				continue;
+			}
+
+			if (!Utils.isSubTypeOf(sourceArg, markParam)) {
+				return false;
+			}
+
+			i++;
+		}
+
+		return i == markParameters.size() && i == sourceArguments.size();
 	}
 
 	public static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {

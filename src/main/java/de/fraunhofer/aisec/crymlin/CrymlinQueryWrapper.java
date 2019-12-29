@@ -93,7 +93,7 @@ public class CrymlinQueryWrapper {
 	 * @param fqnClassName fully qualified name w/o function name itself
 	 * @param functionName name of the function
 	 * @param markEntity type of the object used to call the function (i.e. method); should be name of the MARK entity
-	 * @param parameterTypes list of parameter types; must appear in order (i.e. index 0 = type of first parameter, etc.); currently, types must be precise (i.e. with
+	 * @param markParameterTypes list of parameter types; must appear in order (i.e. index 0 = type of first parameter, etc.); currently, types must be precise (i.e. with
 	 *        qualifiers, pointer, reference)
 	 * @return
 	 */
@@ -103,7 +103,7 @@ public class CrymlinQueryWrapper {
 			@NonNull String fqnClassName,
 			@NonNull String functionName,
 			@Nullable String markEntity,
-			@NonNull List<String> parameterTypes) {
+			@NonNull List<String> markParameterTypes) {
 
 		Set<Vertex> ret = new HashSet<>();
 
@@ -146,7 +146,7 @@ public class CrymlinQueryWrapper {
 					arguments.add(e.inVertex());
 				}
 
-				return !argumentsMatchParameters(parameterTypes, arguments);
+				return !argumentsMatchParameters(markParameterTypes, arguments);
 			});
 
 		return ret;
@@ -161,20 +161,25 @@ public class CrymlinQueryWrapper {
 	 */
 	private static boolean argumentsMatchParameters(@NonNull List<String> markParameters, @NonNull List<Vertex> sourceArguments) {
 		int i = 0;
+
+		arguments:
 		while (i < markParameters.size() && i < sourceArguments.size()) {
 			String markParam = markParameters.get(i);
-			String sourceArg = "";
+			Set<Type> sourceArgs = new HashSet<>();
 			/* We cannot assume that the position in sourceArgument corresponds with the actual order. Must rather check "argumentIndex" property. */
 			for (Vertex vArg : sourceArguments) {
 				long sourceArgPos = (long) vArg.property("argumentIndex")
 						.orElse(-1);
 				if (sourceArgPos == i) {
-					sourceArg = vArg.<String> property("type").orElse("");
+					String subTypeProperty = (String) vArg.property("possibleSubTypes").value();
+					for (String subType: subTypeProperty.split(",")) {
+						sourceArgs.add(Type.createFrom(subType));
+					}
 				}
 			}
 
-			if (markParam == null || sourceArg == null) {
-				log.error("Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argumentIndex: {}", String.join(", ", markParameters));
+			if (markParam == null || sourceArgs.isEmpty()) {
+				log.error("Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argument types: {}", String.join(", ", markParameters));
 				return false;
 			}
 
@@ -189,7 +194,7 @@ public class CrymlinQueryWrapper {
 				continue;
 			}
 
-			if (!Utils.isSubTypeOf(sourceArg, markParam)) {
+			if (!Utils.isSubTypeOf(sourceArgs, markParam)) {
 				return false;
 			}
 
@@ -381,7 +386,7 @@ public class CrymlinQueryWrapper {
 
 				EList<String> params = opstmt.getCall()
 						.getParams();
-				List<String> argumentTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
+				List<String> markParameterTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
 				OptionalInt argumentIndexOptional = IntStream.range(0, params.size())
 						.filter(i -> finalAttribute.equals(params.get(i)))
 						.findFirst();
@@ -391,11 +396,11 @@ public class CrymlinQueryWrapper {
 				}
 				int argumentIndex = argumentIndexOptional.getAsInt();
 
-				System.out.println("Checking for call: " + fqName + " - " + functionName + " - " + entityName + " - " + String.join(", ", argumentTypes));
+				System.out.println("Checking for call: " + fqName + " - " + functionName + " - " + entityName + " - " + String.join(", ", markParameterTypes));
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
-					crymlin, fqName, functionName, entityName, argumentTypes);
+					crymlin, fqName, functionName, entityName, markParameterTypes);
 
-				vertices.addAll(CrymlinQueryWrapper.getInitializers(crymlin, fqFunctionName, argumentTypes));
+				vertices.addAll(CrymlinQueryWrapper.getInitializers(crymlin, fqFunctionName, markParameterTypes));
 				for (Vertex v : vertices) {
 					List<Vertex> argumentVertices = crymlin.byID((long) v.id())
 							.argument(argumentIndex)
@@ -438,10 +443,8 @@ public class CrymlinQueryWrapper {
 				// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
 				// argument we're using in the function call
 				Vertex variableDeclarationVertex = next.inVertex();
-				Declaration variableDeclaration = (Declaration) OverflowDatabase.getInstance()
-						.vertexToNode(variableDeclarationVertex);
 				ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
-				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclaration, v);
+				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclarationVertex, v);
 
 				// fixme: allow multiple returns!
 				if (constantValue.isPresent()) {
@@ -629,7 +632,7 @@ public class CrymlinQueryWrapper {
 				if (opInstance == null) {
 					log.warn("Instance not found in context");
 				} else if (opInstance.getArgumentVertex() == null) {
-					log.warn("markvar does not correspond to a vertex");
+					log.warn("MARK variable {} does not correspond to a vertex", markVar);
 				} else {
 					Vertex vertex = opInstance.getArgumentVertex();
 					// if available, get the variabledeclaration, this declaredreference refers_to

@@ -108,7 +108,6 @@ class RealBotanTest extends AbstractMarkTest {
 	}
 
 	@Test
-	@Disabled //WIP, does not work yet
 	void testQt_LockBox() throws Exception {
 		@NonNull
 		Set<Finding> findings = performTest("real-examples/botan/blockciphers/Prudkovskiy.Qt_LockBox/crypto.cpp",
@@ -124,13 +123,13 @@ class RealBotanTest extends AbstractMarkTest {
 		assertTrue(blockCiphers.stream().anyMatch(f -> f.getRanges().get(0).getStart().getLine() == 15));
 		assertTrue(blockCiphers.stream().anyMatch(f -> f.getRanges().get(0).getStart().getLine() == 21));
 
-		// We expect an incorrect key size at line 16 and 22
+		// We expect an incorrect key size at line 16 and 22 because it is not explicitly set.
 		List<Finding> keyLengths = findings
 				.stream()
 				.filter(f -> f.getOnfailIdentifier().equals("BadKeyLength"))
 				.filter(f -> f.isProblem())
 				.collect(Collectors.toList());
-		assertEquals(1, keyLengths);
+		assertEquals(1, keyLengths.size());
 
 		assertEquals(2, keyLengths.get(0).getRanges().size());
 		assertTrue(keyLengths.get(0).getRanges().stream().anyMatch(r -> r.getStart().getLine() == 15));

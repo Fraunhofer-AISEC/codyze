@@ -2,12 +2,10 @@
 package de.fraunhofer.aisec.analysis.utils;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import de.fraunhofer.aisec.markmodel.Constants;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -16,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Utils {
 	private static final Logger log = LoggerFactory.getLogger(Utils.class);
@@ -127,41 +126,55 @@ public class Utils {
 	 * isSubTypeOf("std::string", "std.string")  -> true
 	 * isSubTypeOf("random::string", "std.string")  -> true
 	 *
-	 * @param sourceType
+	 * @param sourceTypes
 	 * @param markType
 	 * @return
 	 */
-	public static boolean isSubTypeOf(String sourceType, String markType) {
-		String uniSource = unifyType(sourceType);
-		if (uniSource.contains(".") && !uniSource.endsWith(".")) {
-			uniSource = uniSource.substring(uniSource.lastIndexOf('.') + 1);
-		}
-		// TODO Currently, the "type" property may contain modifiers such as "const", so we must remove them here. Will change in CPG.
-		if (uniSource.contains(" ") && !uniSource.endsWith(" ")) {
-			uniSource = uniSource.substring(uniSource.lastIndexOf(' ') + 1);
+	public static boolean isSubTypeOf(@NonNull Set<Type> sourceTypes, @NonNull String markType) {
+		boolean result = false;
+
+		if (markType.equals(Constants.ANY_TYPE)) {
+			log.debug("Any of {} is a subtype of {}: true", String.join(",", sourceTypes.stream().map(t -> t.getTypeName()).collect(Collectors.toList())), markType);
+			return true;
 		}
 
-		String uniMark = unifyType(markType);
-		if (uniMark.contains(".") && !uniMark.endsWith(".")) {
-			uniMark = uniMark.substring(uniMark.lastIndexOf('.') + 1);
-		}
+		for (Type sourceType : sourceTypes) {
+			String uniSource = unifyType(sourceType.getTypeName());
+			if (uniSource.contains(".") && !uniSource.endsWith(".")) {
+				uniSource = uniSource.substring(uniSource.lastIndexOf('.') + 1);
+			}
+			// TODO Currently, the "type" property may contain modifiers such as "const", so we must remove them here. Will change in CPG.
+			if (uniSource.contains(" ") && !uniSource.endsWith(" ")) {
+				uniSource = uniSource.substring(uniSource.lastIndexOf(' ') + 1);
+			}
 
-		// TODO We do not consider type hierarchies here but simply match for equality plus a few manual mappings
-		boolean result = uniSource.equals(uniMark);
-		// There are various representations of "string" and we map them manually here.
-		if (uniMark.equals("string")) {
-			switch (uniSource) {
-				case "QString":
-					result = true;
-					break;
+			String uniMark = unifyType(markType);
+			if (uniMark.contains(".") && !uniMark.endsWith(".")) {
+				uniMark = uniMark.substring(uniMark.lastIndexOf('.') + 1);
+			}
+
+			// TODO We do not consider type hierarchies here but simply match for equality plus a few manual mappings
+			result = uniSource.equals(uniMark);
+			// There are various representations of "string" and we map them manually here.
+			if (uniMark.equals("string")) {
+				switch (uniSource) {
+					case "QString":
+						result = true;
+						break;
+				}
+			}
+
+			// If type could not be determined, we err on the false positive side.
+			if (sourceType.equals("UNKNOWN")) {
+				result = true;
+			}
+
+			// If any of the subtypes match, we can return.
+			if (result) {
+				break;
 			}
 		}
-
-		// If type could not be determined, we err on the false positive side.
-		if (sourceType.equals("UNKNOWN")) {
-			result = true;
-		}
-		log.debug("{} is a subtype of {}: {}", sourceType, markType, result);
+		log.debug("Any of {} is a subtype of {}: {}", String.join(",", sourceTypes.stream().map(t -> t.getTypeName()).collect(Collectors.toList())), markType, result);
 
 		return result;
 	}

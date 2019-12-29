@@ -145,7 +145,7 @@ public class MEntity {
 			if (typeForVar != null) {
 				functionArgumentTypes.add(i, typeForVar);
 			} else {
-				functionArgumentTypes.add(functionArguments.get(i));
+				functionArgumentTypes.add(Constants.ANY_TYPE);
 			}
 		}
 		return functionArgumentTypes;

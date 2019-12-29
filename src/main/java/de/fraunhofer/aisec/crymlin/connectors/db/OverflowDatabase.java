@@ -428,7 +428,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		catch (NoSuchMethodException e) {
 			log.error("A converter needs to have an empty constructor", e);
 		}
-		catch (Exception e) {
+		catch (Throwable e) {
 			log.error("Error creating new {} node", targetClass.getName(), e);
 		}
 		return null;

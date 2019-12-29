@@ -61,10 +61,10 @@ public class ConstantResolver {
 	 * <p>
 	 * 8. {no initializer with value e.g. function argument} continue traversing the graph
 	 *
-	 * @param variableDeclaration
+	 * @param variableDeclarationVertex
 	 */ // TODO Should be replaced by a more generic function that takes a single DeclaredReferenceExpression as an argument
-	public Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Declaration variableDeclaration, @NonNull Vertex vDeclaredReferenceExpr) {
-		if (variableDeclaration == null) {
+	public Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Vertex variableDeclarationVertex, @NonNull Vertex vDeclaredReferenceExpr) {
+		if (variableDeclarationVertex == null) {
 			return Optional.empty();
 		}
 
@@ -72,16 +72,6 @@ public class ConstantResolver {
 
 		try (TraversalConnection conn = new TraversalConnection(this.dbType)) {
 			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
-			Optional<Vertex> vdVertexOpt = crymlin
-					.byID(variableDeclaration.getId())
-					.tryNext();
-
-			if (vdVertexOpt.isEmpty()) {
-				log.warn("Unexpected: VariableDeclaration not available in graph. ID={}", variableDeclaration.getId());
-				return Optional.empty();
-			}
-
-			Vertex variableDeclarationVertex = vdVertexOpt.get();
 			log.debug("Vertex for function call: {}", vDeclaredReferenceExpr.property("code").value());
 			log.debug("Vertex of variable declaration: {}", variableDeclarationVertex.property("code").value());
 
@@ -149,9 +139,8 @@ public class ConstantResolver {
 									if (refersTo.hasNext()) {
 										Vertex v = refersTo.next().outVertex();
 										if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
-											VariableDeclaration varDecl = (VariableDeclaration) OverflowDatabase.getInstance().vertexToNode(v);
 											ConstantResolver resolver = new ConstantResolver(this.dbType);
-											Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(varDecl, lastExpressionInList);
+											Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(v, lastExpressionInList);
 											if (constantValue.isPresent()) {
 												return constantValue;
 											}

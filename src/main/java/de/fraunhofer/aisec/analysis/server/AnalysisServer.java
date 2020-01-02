@@ -162,7 +162,7 @@ public class AnalysisServer {
 			 cleaned up and following analysis runs (with totally different graphs) will still contain vertices from the previous graph.
 		 */
 		Iterator<Vertex> it = ConstantValue.NULL.getResponsibleVertices()
-												.iterator();
+				.iterator();
 		while (it.hasNext()) {
 			it.next();
 			it.remove();

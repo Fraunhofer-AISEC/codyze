@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.analysis.server;
 
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -25,6 +26,7 @@ import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLReader;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
@@ -46,6 +48,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -154,6 +157,18 @@ public class AnalysisServer {
 	 * @return the Future for this analysis
 	 */
 	public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer) {
+		/* -------------- FIXME Workaround for #52 ----------
+			ConstantValue.NULL is final static. But in the course of an analysis, its "responsibleVertices" field is populated with vertices from the graph. This is never
+			 cleaned up and following analysis runs (with totally different graphs) will still contain vertices from the previous graph.
+		 */
+		Iterator<Vertex> it = ConstantValue.NULL.getResponsibleVertices()
+				.iterator();
+		while (it.hasNext()) {
+			it.next();
+			it.remove();
+		}
+		// ------------  END WORKAROUND -------------------
+
 		/*
 		 * Create analysis context and register at all passes supporting contexts. An analysis context is an in-memory data structure that can be used to exchange data
 		 * across passes outside of the actual CPG.

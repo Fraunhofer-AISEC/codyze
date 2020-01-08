@@ -43,7 +43,7 @@ public class SplitBuiltin implements Builtin {
 
 		if (s == null || regex == null || index == null) {
 			log.error("One of the arguments was not the expected type");
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		log.debug("args are: " + s + "; " + regex + "; " + index);
@@ -59,7 +59,7 @@ public class SplitBuiltin implements Builtin {
 			// stringResult.setValue(ret);
 			cv = ConstantValue.of(ret);
 		} else {
-			cv = ConstantValue.NULL;
+			cv = ConstantValue.newNull();
 		}
 		cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
 			(ConstantValue) argResultList.get(1),

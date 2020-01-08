@@ -212,13 +212,13 @@ public class ExpressionEvaluator {
 			Object left = leftBoxed.getValue();
 			Object right = rightBoxed.getValue();
 
-			boolean leftIsNull = leftBoxed.equals(ConstantValue.NULL);
-			boolean rightIsNull = rightBoxed.equals(ConstantValue.NULL);
+			boolean leftIsNull = ConstantValue.isNull(leftBoxed);
+			boolean rightIsNull = ConstantValue.isNull(rightBoxed);
 
 			if (leftIsNull && rightIsNull) {
 				// null & null = null, null | null = null
 
-				combinedResult.put(key, ConstantValue.NULL);
+				combinedResult.put(key, ConstantValue.newNull());
 
 			} else if (!(leftIsNull || left.getClass().equals(Boolean.class))
 					||
@@ -227,7 +227,7 @@ public class ExpressionEvaluator {
 				log.warn("At least one subexpression is not of type Boolean: {} vs {}",
 					ExpressionHelper.exprToString(leftExp),
 					ExpressionHelper.exprToString(rightExp));
-				combinedResult.put(key, ConstantValue.NULL);
+				combinedResult.put(key, ConstantValue.newNull());
 
 			} else if (expr instanceof LogicalAndExpression) {
 				if (leftIsNull || rightIsNull) {
@@ -238,7 +238,7 @@ public class ExpressionEvaluator {
 							(!leftIsNull && left.equals(false))) {
 						combinedResult.put(key, ConstantValue.of(false));
 					} else {
-						combinedResult.put(key, ConstantValue.NULL);
+						combinedResult.put(key, ConstantValue.newNull());
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&
@@ -258,7 +258,7 @@ public class ExpressionEvaluator {
 							(!leftIsNull && left.equals(true))) {
 						combinedResult.put(key, ConstantValue.of(true));
 					} else {
-						combinedResult.put(key, ConstantValue.NULL);
+						combinedResult.put(key, ConstantValue.newNull());
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&
@@ -323,7 +323,7 @@ public class ExpressionEvaluator {
 					combinedResult.put(key, cv);
 				} else {
 					log.warn("Unknown op for List on the right side");
-					combinedResult.put(key, ConstantValue.NULL);
+					combinedResult.put(key, ConstantValue.newNull());
 				}
 
 			} else {
@@ -331,11 +331,10 @@ public class ExpressionEvaluator {
 				ConstantValue rightBoxed = (ConstantValue) rightResult.get(key);
 				Object right = rightBoxed.getValue();
 
-				if (leftBoxed.equals(ConstantValue.NULL)
-						|| rightBoxed.equals(ConstantValue.NULL)) {
+				if (ConstantValue.isNull(leftBoxed) || ConstantValue.isNull(rightBoxed)) {
 
 					// result of comparison is not known
-					combinedResult.put(key, ConstantValue.NULL);
+					combinedResult.put(key, ConstantValue.newNull());
 				} else {
 
 					String leftComp = ExpressionHelper.toComparableString(left);
@@ -378,7 +377,7 @@ public class ExpressionEvaluator {
 							break;
 						default:
 							log.warn("Unsupported operand {}", op);
-							cv = ConstantValue.NULL;
+							cv = ConstantValue.newNull();
 					}
 					combinedResult.put(key, cv);
 				}
@@ -389,7 +388,7 @@ public class ExpressionEvaluator {
 
 	private MarkIntermediateResult getcorrespondingLeftResult(Map<Integer, MarkIntermediateResult> leftResult, Integer key) {
 		if (leftResult == null || key == null) {
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 		if (leftResult.containsKey(key)) {
 			return leftResult.get(key);
@@ -404,7 +403,7 @@ public class ExpressionEvaluator {
 			}
 		}
 
-		return ConstantValue.NULL;
+		return ConstantValue.newNull();
 	}
 
 	/**
@@ -457,7 +456,7 @@ public class ExpressionEvaluator {
 
 				if (!(entry.getValue() instanceof ListValue)) {
 					log.error("Arguments must be a list");
-					result.put(entry.getKey(), ConstantValue.NULL);
+					result.put(entry.getKey(), ConstantValue.newNull());
 					continue;
 				}
 
@@ -490,7 +489,7 @@ public class ExpressionEvaluator {
 			}
 			catch (NumberFormatException nfe) {
 				log.warn("Unable to convert integer literal {}", v, nfe);
-				value = ConstantValue.NULL;
+				value = ConstantValue.newNull();
 			}
 		} else if (literal instanceof BooleanLiteral) {
 			log.debug("Literal is Boolean: {}", v);
@@ -500,7 +499,7 @@ public class ExpressionEvaluator {
 			value = ConstantValue.of(Utils.stripQuotedString(v));
 		} else {
 			log.warn("Unknown literal encountered: {}", v);
-			value = ConstantValue.NULL;
+			value = ConstantValue.newNull();
 		}
 
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
@@ -532,11 +531,10 @@ public class ExpressionEvaluator {
 			Object left = leftBoxed.getValue();
 			Object right = rightBoxed.getValue();
 
-			if (leftBoxed.equals(ConstantValue.NULL)
-					|| rightBoxed.equals(ConstantValue.NULL)) {
+			if (ConstantValue.isNull(leftBoxed) || ConstantValue.isNull(rightBoxed)) {
 
 				// result of expr is not known
-				combinedResult.put(key, ConstantValue.NULL);
+				combinedResult.put(key, ConstantValue.newNull());
 			} else {
 
 				Class leftResultType = left.getClass();
@@ -546,7 +544,7 @@ public class ExpressionEvaluator {
 					log.warn("Type of left expression does not match type of right expression: {} vs {}",
 						leftResultType.getSimpleName(),
 						rightResultType.getSimpleName());
-					combinedResult.put(key, ConstantValue.NULL);
+					combinedResult.put(key, ConstantValue.newNull());
 				}
 
 				Object unboxedResult;
@@ -560,7 +558,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Float) left * (Float) right);
 						} else {
 							log.warn("Multiplication operator multiplication ('*') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.NULL;
+							unboxedResult = ConstantValue.newNull();
 						}
 						break;
 					case "/":
@@ -570,7 +568,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Float) left / (Float) right);
 						} else {
 							log.warn("Multiplication operator division ('/') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.NULL;
+							unboxedResult = ConstantValue.newNull();
 						}
 						break;
 					case "%":
@@ -578,7 +576,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left % (Integer) right);
 						} else {
 							log.warn("Multiplication operator remainder ('%') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.NULL;
+							unboxedResult = ConstantValue.newNull();
 						}
 						break;
 					case "<<":
@@ -587,11 +585,11 @@ public class ExpressionEvaluator {
 								unboxedResult = ((Integer) left << (Integer) right);
 							} else {
 								log.warn("Left shift operator supports only non-negative integers as its right operand");
-								unboxedResult = ConstantValue.NULL;
+								unboxedResult = ConstantValue.newNull();
 							}
 						} else {
 							log.warn("Multiplication operator left shift ('<<') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.NULL;
+							unboxedResult = ConstantValue.newNull();
 						}
 						break;
 					case ">>":
@@ -600,11 +598,11 @@ public class ExpressionEvaluator {
 								unboxedResult = ((Integer) left >> (Integer) right);
 							} else {
 								log.warn("Right shift operator supports only non-negative integers as its right operand");
-								unboxedResult = ConstantValue.NULL;
+								unboxedResult = ConstantValue.newNull();
 							}
 						} else {
 							log.warn("Multiplication operator right shift ('>>') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.NULL;
+							unboxedResult = ConstantValue.newNull();
 						}
 						break;
 					case "&":
@@ -612,7 +610,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left & (Integer) right);
 						} else {
 							log.warn("Addition operator bitwise and ('&') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.NULL;
+							unboxedResult = ConstantValue.newNull();
 						}
 						break;
 					case "&^":
@@ -620,12 +618,12 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left & ~(Integer) right);
 						} else {
 							log.warn("Addition operator bitwise or ('|') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.NULL;
+							unboxedResult = ConstantValue.newNull();
 						}
 						break;
 					default:
 						log.error("Unsupported expression {}", op);
-						unboxedResult = ConstantValue.NULL;
+						unboxedResult = ConstantValue.newNull();
 				}
 				ConstantValue cv = ConstantValue.of(unboxedResult);
 				cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
@@ -657,7 +655,7 @@ public class ExpressionEvaluator {
 						continue; // do not change anything
 					} else {
 						log.warn("Unary operator plus sign ('+') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ConstantValue.NULL;
+						unboxedResult = ConstantValue.newNull();
 					}
 					break;
 				case "-":
@@ -667,7 +665,7 @@ public class ExpressionEvaluator {
 						unboxedResult = -((Float) value);
 					} else {
 						log.warn("Unary operator minus sign ('-') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ConstantValue.NULL;
+						unboxedResult = ConstantValue.newNull();
 					}
 					break;
 				case "!":
@@ -675,7 +673,7 @@ public class ExpressionEvaluator {
 						unboxedResult = !((Boolean) value);
 					} else {
 						log.warn("Unary operator logical not ('!') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ConstantValue.NULL;
+						unboxedResult = ConstantValue.newNull();
 					}
 					break;
 				case "^":
@@ -683,12 +681,12 @@ public class ExpressionEvaluator {
 						unboxedResult = ~((Integer) value);
 					} else {
 						log.warn("Unary operator bitwise complement ('~') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ConstantValue.NULL;
+						unboxedResult = ConstantValue.newNull();
 					}
 					break;
 				default:
 					log.warn("Trying to evaluate unknown unary expression: " + ExpressionHelper.exprToString(expr));
-					unboxedResult = ConstantValue.NULL;
+					unboxedResult = ConstantValue.newNull();
 			}
 			ConstantValue cv = ConstantValue.of(unboxedResult);
 			cv.addResponsibleVerticesFrom(valueBoxed);

@@ -459,7 +459,7 @@ public class CrymlinQueryWrapper {
 					ret.add(mva);
 				} else {
 					log.warn("Could not constant resolve {}, returning Constant.NULL", markVar);
-					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.NULL);
+					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.newNull());
 					ret.add(mva);
 				}
 			}

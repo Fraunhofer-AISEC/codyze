@@ -26,6 +26,6 @@ public class ReceivesValueDirectlyFromBuiltin implements Builtin {
 		// TODO implement
 		log.warn("the builtin " + getName() + " is not implemented yet");
 
-		return ConstantValue.NULL;
+		return ConstantValue.newNull();
 	}
 }

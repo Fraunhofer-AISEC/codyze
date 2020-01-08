@@ -33,6 +33,6 @@ public class ReceivesValueFromBuiltin implements Builtin {
 		 * Botan::Cipher_Dir::ENCRYPTION ensure _receives_value_from(cm.iv, rng.myValue) onfail NoRandomIV }
 		 */
 
-		return ConstantValue.NULL;
+		return ConstantValue.newNull();
 	}
 }

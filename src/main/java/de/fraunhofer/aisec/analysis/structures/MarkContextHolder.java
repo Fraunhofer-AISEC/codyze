@@ -1,7 +1,6 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +55,7 @@ public class MarkContextHolder {
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
 		contexts.keySet()
 				.forEach(
-					x -> ret.put(x, ConstantValue.NULL));
+					x -> ret.put(x, ConstantValue.newNull()));
 		return ret;
 	}
 
@@ -68,10 +67,28 @@ public class MarkContextHolder {
 		contexts.forEach((id, context) -> {
 			CPGVertexWithValue vwv = context.getOperand(operand);
 			ConstantValue constant = ConstantValue.of(vwv.getValue());
-			constant.addResponsibleVertex(vwv.getArgumentVertex());
+			constant.addResponsibleVertex(getVertexFromSelfOrFromParent(operand, context));
 			result.put(id, constant);
 		});
 		return result;
+	}
+
+	// return the vertex responsible for this operand, or (if the vertex would be null), the vertex of the base of this
+	// operand
+	private Vertex getVertexFromSelfOrFromParent(String operand, MarkContext context) {
+		CPGVertexWithValue vwv = context.getOperand(operand);
+		if (vwv == null) {
+			return null;
+		}
+		Vertex argumentVertex = vwv.getArgumentVertex();
+		if (argumentVertex != null) {
+			return argumentVertex;
+		}
+		String[] split = operand.split("\\.");
+		if (split.length >= 2) {
+			return getVertexFromSelfOrFromParent(operand.substring(0, operand.lastIndexOf('.')), context);
+		}
+		return null;
 	}
 
 	public void addResolvedOperands(String operand, Map<Integer, List<CPGVertexWithValue>> operandVerticesForContext) {
@@ -84,7 +101,7 @@ public class MarkContextHolder {
 			if (operandVertices == null || operandVertices.size() == 0) {
 				Vertex vertex = context.getInstanceContext().getVertex(operand.substring(0, operand.lastIndexOf('.')));
 				log.warn("Did not find a value for Instance {} {}", id, (vertex == null) ? "null" : vertex.value("code"));
-				context.setOperand(operand, new CPGVertexWithValue(null, ConstantValue.NULL));
+				context.setOperand(operand, new CPGVertexWithValue(null, ConstantValue.newNull()));
 			} else if (operandVertices.size() == 1) {
 				context.setOperand(operand, operandVertices.get(0));
 			} else {

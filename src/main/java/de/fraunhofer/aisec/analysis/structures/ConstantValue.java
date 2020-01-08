@@ -30,8 +30,13 @@ public class ConstantValue extends MarkIntermediateResult {
 
 	private Set<Vertex> responsibleVertices = new HashSet<>();
 
-	public static final ConstantValue NULL = new ConstantValue(null, Type.NULL);
-	public static final ConstantValue UNKNOWN = new ConstantValue(null, Type.UNKNOWN);
+	public static boolean isNull(Object value) {
+		return value instanceof ConstantValue && ((ConstantValue) value).isNull();
+	}
+
+	public static ConstantValue newNull() {
+		return new ConstantValue(null, Type.NULL);
+	}
 
 	public static Object unbox(Object value) {
 		if (value instanceof ConstantValue) {

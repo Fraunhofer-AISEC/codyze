@@ -157,17 +157,6 @@ public class AnalysisServer {
 	 * @return the Future for this analysis
 	 */
 	public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer) {
-		/* -------------- FIXME Workaround for #52 ----------
-			ConstantValue.NULL is final static. But in the course of an analysis, its "responsibleVertices" field is populated with vertices from the graph. This is never
-			 cleaned up and following analysis runs (with totally different graphs) will still contain vertices from the previous graph.
-		 */
-		Iterator<Vertex> it = ConstantValue.NULL.getResponsibleVertices()
-				.iterator();
-		while (it.hasNext()) {
-			it.next();
-			it.remove();
-		}
-		// ------------  END WORKAROUND -------------------
 
 		/*
 		 * Create analysis context and register at all passes supporting contexts. An analysis context is an in-memory data structure that can be used to exchange data

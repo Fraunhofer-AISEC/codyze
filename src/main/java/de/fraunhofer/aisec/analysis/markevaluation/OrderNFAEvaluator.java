@@ -76,23 +76,23 @@ public class OrderNFAEvaluator {
 
 		if (markInstances.size() > 1) {
 			log.warn("Order statement contains more than one base. Not supported.");
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 		if (markInstances.size() == 0) {
 			log.warn("Order statement does not contain any ops. Invalid order");
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		Vertex variableDecl = instanceContext.getVertex(markInstances.iterator().next());
 		if (variableDecl == null) {
 			log.warn("Variable is not set in the instancecontext. Invalid evaluation.");
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
 		if (containingFunction.isEmpty()) {
 			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		Vertex functionDeclaration = containingFunction.get();
@@ -117,7 +117,7 @@ public class OrderNFAEvaluator {
 
 		if (verticesToOp.isEmpty()) {
 			log.info("no nodes match this rule. Skipping rule.");
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		// collect all instances used in this order
@@ -129,7 +129,7 @@ public class OrderNFAEvaluator {
 			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
 				log.error("alias {} is not referenced in this rule {}", alias, rule.getName());
-				return ConstantValue.NULL;
+				return ConstantValue.newNull();
 			}
 			referencedVertices.add(v.id());
 		}

@@ -129,10 +129,9 @@ class RealBotanTest extends AbstractMarkTest {
 				.filter(f -> f.getOnfailIdentifier().equals("BadKeyLength"))
 				.filter(f -> f.isProblem())
 				.collect(Collectors.toList());
-		assertEquals(1, keyLengths.size());
+		assertEquals(2, keyLengths.size());
 
-		assertEquals(2, keyLengths.get(0).getRanges().size());
 		assertTrue(keyLengths.get(0).getRanges().stream().anyMatch(r -> r.getStart().getLine() == 15));
-		assertTrue(keyLengths.get(0).getRanges().stream().anyMatch(r -> r.getStart().getLine() == 21));
+		assertTrue(keyLengths.get(1).getRanges().stream().anyMatch(r -> r.getStart().getLine() == 21));
 	}
 }

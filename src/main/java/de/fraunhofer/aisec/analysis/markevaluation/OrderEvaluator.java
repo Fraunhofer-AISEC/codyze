@@ -31,7 +31,7 @@ public class OrderEvaluator {
 			CrymlinTraversalSource crymlinTraversal, MarkContextHolder markContextHolder) {
 		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "Typestate Analysis");
 
-		ConstantValue result = ConstantValue.NULL;
+		ConstantValue result = ConstantValue.newNull();
 
 		switch (config.typestateAnalysis) {
 

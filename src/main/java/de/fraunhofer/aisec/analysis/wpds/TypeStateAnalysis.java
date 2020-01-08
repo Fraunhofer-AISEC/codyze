@@ -85,14 +85,14 @@ public class TypeStateAnalysis {
 		de.fraunhofer.aisec.mark.markDsl.Expression expr = this.rule.getStatement().getEnsure().getExp();
 		if (!(expr instanceof OrderExpression)) {
 			log.error("Unexpected: TS analysis not dealing with an order expression");
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 		this.orderExpr = (OrderExpression) expr;
 
 		String markInstance = getMarkInstanceOrderExpression(orderExpr);
 		if (markInstance == null) {
 			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr.toString());
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		// Creating a WPDS from CPG, starting at seeds. Note that this will neglect alias which have been defined before the seed.
@@ -113,14 +113,14 @@ public class TypeStateAnalysis {
 		Vertex v = instanceContext.getVertex(markInstance);
 		if (v == null) {
 			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		// Find the function in which the vertex is located, so we can use the first statement in function as a start
 		Optional<Vertex> containingFunctionOpt = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal);
 		if (!containingFunctionOpt.isPresent()) {
 			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule.toString());
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		// Turn function vertex into a FunctionDeclaration so we can work with it
@@ -129,7 +129,7 @@ public class TypeStateAnalysis {
 		if (funcDecl == null) {
 			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
 				containingFunctionOpt.get().property("name").orElse(""), rule.toString());
-			return ConstantValue.NULL;
+			return ConstantValue.newNull();
 		}
 
 		// Create statement for start configuration and create start config

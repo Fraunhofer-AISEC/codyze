@@ -170,7 +170,7 @@ dependencies {
 application {
     mainClassName = "de.fraunhofer.aisec.analysis.Main"
     // Required to give Ehcache deep reflective access to fields to correctly esitmate the cache size.
-    applicationDefaultJvmArgs = listOf("--add-opens java.base/jdk.internal.reflect=ALL-UNNAMED")
+    applicationDefaultJvmArgs = listOf("--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED")
 }
 tasks.named<Test>("test") {
     useJUnitPlatform()

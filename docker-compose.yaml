@@ -9,8 +9,8 @@ services:
       - NEO4J_AUTH=neo4j/password
     volumes:
       - ./.data:/data
-  cpganalysisserver:
-    image: registry.netsec.aisec.fraunhofer.de/cpganalysisserver/cpganalysisserver
+  codyze:
+    image: registry.netsec.aisec.fraunhofer.de/codyze/codyze
     ports:
       - 9000:9000
     environment:

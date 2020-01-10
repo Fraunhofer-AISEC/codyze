@@ -6,7 +6,7 @@ First, build a packaged version of the `cpg`:
 ./gradlew installDist
 ```
 
-This will provide you with a shell wrapper around `java -jar` called `bin/cpganalysisserver` in the `build/install/cpganalysisserver` folder.
+This will provide you with a shell wrapper around `java -jar` called `bin/codyze` in the `build/install/codyze` folder.
 
 You can start the binary without arguments to go into the interactive console, or with -lsp to start the lsp server.
 
@@ -39,13 +39,13 @@ This should trigger the LSP server to translate the document into the graph.
 
 1. Download and install the `LSP Support` plugin. Restart IntelliJ.
 2. Goto `Settings` -> `Language Server Protocol` -> `Server Definitions`
-3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `build/install/cpganalysisserver/bin/cpganalysisserver` script. 
+3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `build/install/codyze/bin/codyze` script. 
  
 ![](lsp-settings-intellij.png "IntelliJ LSP Setttings")
 
 If everything works as intended, you should see a green circle in your IntelliJ status bar, indicating that the connection to the language server was successful. Afterwards each time you open a Java file, it should get translated into the neo4j graph, visible in the neo4j browser (http://localhost:7474/browser).
 
-Additionally, the `cpganalysisserver` program should log debug messages into `logs/debug.log` in the folder of your current IntelliJ project.
+Additionally, the `codyze` program should log debug messages into `logs/debug.log` in the folder of your current IntelliJ project.
  
 ```
 2019-03-01 16:39:39,071 WARN  GenericEndpoint Unsupported notification method: workspace/didChangeWatchedFiles
@@ -60,7 +60,7 @@ Additionally, the `cpganalysisserver` program should log debug messages into `lo
 ```
 
 If IntelliJ complains "no connection after 10s" does not necessarily mean that it tried 10 seconds. It can also mean that the server did not start at all.
-To debug what is sent to the LSP-Server, modify the /cpganalysisserver script and make the last line sth. like:
+To debug what is sent to the LSP-Server, modify the /codyze script and make the last line sth. like:
 
 ```
 echo "Starting" > /tmp/bla
@@ -71,7 +71,7 @@ exec "$JAVACMD" "$@" | tee -a /tmp/bla
 automate with:
 
 ```
-./gradlew installDist; and sed -i '$ d' build/install/cpganalysisserver/bin/cpganalysisserver ; and echo 'exec "$JAVACMD" "$@" | tee -a /tmp/cpgoutput' >> build/install/cpganalysisserver/bin/cpganalysisserver
+./gradlew installDist; and sed -i '$ d' build/install/codyze/bin/codyze ; and echo 'exec "$JAVACMD" "$@" | tee -a /tmp/cpgoutput' >> build/install/codyze/bin/codyze
 ```
 
 To silence
@@ -79,4 +79,4 @@ To silence
 java.lang.reflect.InaccessibleObjectException: Unable to make field protected final java.lang.reflect.Field jdk.internal.reflect.UnsafeFieldAccessorImpl.field accessible: module java.base does not "opens jdk.internal.reflect" to unnamed module @5dbd2d01
 ```
 
-add `--add-opens java.base/jdk.internal.reflect=ALL-UNNAMED` to the start-command in `build/install/cpganalysisserver/bin/cpganalysisserver`
+add `--add-opens java.base/jdk.internal.reflect=ALL-UNNAMED` to the start-command in `build/install/codyze/bin/codyze`

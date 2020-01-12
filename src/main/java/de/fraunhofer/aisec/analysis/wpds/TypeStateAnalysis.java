@@ -375,7 +375,7 @@ public class TypeStateAnalysis {
 
 						if (rhs.isPresent()) {
 							Vertex rhsVar = rhs.get();
-							if (rhsVar.property("name").isPresent()) {
+							if (rhsVar.property("name").isPresent() && !"".equals(rhsVar.property("name").value())) {
 								log.debug("  Has name on right hand side " + rhsVar.property("name").value());
 								Val rhsVal = new Val((String) rhsVar.property("name").value(), currentFunctionName);
 

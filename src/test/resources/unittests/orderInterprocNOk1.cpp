@@ -8,7 +8,7 @@
 // cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
 
 
-  void ok1() {
+  void nok1() {
     // Constructor will trigger MARK rule
     Botan2 p2 = new Botan2(1);
 

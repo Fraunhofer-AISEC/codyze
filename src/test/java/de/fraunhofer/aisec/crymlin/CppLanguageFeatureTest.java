@@ -26,8 +26,6 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class CppLanguageFeatureTest extends AbstractMarkTest {
 
-	private static AnalysisServer server;
-
 	@Test
 	public void functionTest() throws Exception {
 		Set<Finding> result = performTest("cpp/function.cpp",

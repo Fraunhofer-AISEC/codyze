@@ -144,6 +144,22 @@ public class Evaluator {
 			/* Evaluate "using" part and collect the instances of MARK entities, as well as the potential vertex representing the base object variables. */
 			List<List<Pair<String, Vertex>>> entities = findInstancesForEntities(rule);
 
+			if (!entities.isEmpty()) {
+				boolean atLeastOneEntityFound = false;
+				outer: for (List<Pair<String, Vertex>> entity : entities) {
+					for (Pair<String, Vertex> stringVertexPair : entity) {
+						if (stringVertexPair.getValue1() != null) {
+							atLeastOneEntityFound = true;
+							break outer;
+						}
+					}
+				}
+				if (!atLeastOneEntityFound) {
+					log.info("no vertices for at least one MarkVar for this rule. skipping.");
+					return;
+				}
+			}
+
 			/* Create evaluation context. */
 			// Generate all combinations of instances for each entity.
 			// We take the n-th cartesian product of all _possible_ program variables that correspond to Mark entities.

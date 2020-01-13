@@ -402,7 +402,7 @@ public class AnalysisServer {
 		}
 		catch (RuntimeException e) {
 			if (e.getCause() instanceof ClassNotFoundException) {
-				log.error("Neo4j not found in path, export to neo4j failed");
+				log.warn("Neo4j not found in path, export to neo4j failed");
 			} else {
 				throw e;
 			}

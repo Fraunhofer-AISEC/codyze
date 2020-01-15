@@ -30,12 +30,13 @@ public class CppLanguageFeatureTest extends AbstractMarkTest {
 	public void functionTest() throws Exception {
 		Set<Finding> result = performTest("cpp/function.cpp",
 			"mark_cpp/mark_rule_eval.mark");
-
+		//TODO Implement a proper test https://***REMOVED***/***REMOVED***/issues/57
 	}
 
 	@Test
 	public void functionPointerTest() throws Exception {
 		Set<Finding> result = performTest("cpp/function_ptr.cpp",
 			"mark_cpp/mark_rule_eval.mark");
+		//TODO Implement a proper test https://***REMOVED***/***REMOVED***/issues/57
 	}
 }

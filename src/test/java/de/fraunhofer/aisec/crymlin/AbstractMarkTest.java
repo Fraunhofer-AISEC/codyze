@@ -9,8 +9,6 @@ import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -26,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class AbstractMarkTest {
+
+	protected TranslationManager translationManager;
+	protected AnalysisServer server;
+	protected TranslationResult translationResult;
 
 	Set<Finding> performTest(String sourceFileName) throws Exception {
 		return performTest(sourceFileName, null);
@@ -50,7 +52,7 @@ public class AbstractMarkTest {
 		}
 
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
+		server = AnalysisServer.builder()
 				.config(
 					ServerConfiguration.builder()
 							.launchConsole(false)
@@ -61,7 +63,7 @@ public class AbstractMarkTest {
 				.build();
 		server.start();
 
-		TranslationManager translationManager = TranslationManager.builder()
+		translationManager = TranslationManager.builder()
 				.config(
 					TranslationConfiguration.builder()
 							.debugParser(true)
@@ -73,16 +75,15 @@ public class AbstractMarkTest {
 							.build())
 				.build();
 		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		TranslationResult result;
 		try {
-			result = analyze.get(5, TimeUnit.MINUTES);
+			translationResult = analyze.get(5, TimeUnit.MINUTES);
 		}
 		catch (TimeoutException t) {
 			analyze.cancel(true);
 			throw t;
 		}
 
-		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+		AnalysisContext ctx = (AnalysisContext) translationResult.getScratch().get("ctx");
 		assertNotNull(ctx);
 		assertTrue(ctx.methods.isEmpty());
 

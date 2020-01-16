@@ -150,7 +150,7 @@ dependencies {
     api("com.steelbridgelabs.oss", "neo4j-gremlin-bolt", versions["neo4j-gremlin-bolt"])   // For fast bolt:    // access to Neo4J
 
     // Fast in-memory graph DB (alternative to Neo4J)
-    api("io.shiftleft", "overflowdb-tinkerpop3", "0.29")
+    api("io.shiftleft", "overflowdb-tinkerpop3", "0.33")
     api("org.reflections", "reflections", "0.9.11")
 
     // Pushdown Systems

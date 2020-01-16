@@ -10,6 +10,8 @@ theme = ["docsy"]
 enableGitInfo = true
 height="min"
 
+publishDir = "docs"
+
 # Language settings
 contentDir = "content/en"
 defaultContentLanguage = "en"

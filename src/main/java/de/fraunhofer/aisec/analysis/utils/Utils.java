@@ -165,7 +165,7 @@ public class Utils {
 			}
 
 			// If type could not be determined, we err on the false positive side.
-			if (sourceType.equals("UNKNOWN")) {
+			if (sourceType.getTypeName().equals("UNKNOWN")) {
 				result = true;
 			}
 

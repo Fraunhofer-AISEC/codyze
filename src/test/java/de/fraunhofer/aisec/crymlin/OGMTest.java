@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
@@ -60,6 +61,8 @@ public class OGMTest {
 		// Get all vertices from graph ...
 		Graph graph = OverflowDatabase.getInstance().getGraph();
 		Iterator<Vertex> vIt = graph.vertices();
+		int vertices = 0;
+		int verticesWithLabel = 0;
 		while (vIt.hasNext()) {
 			// ... and convert back to node
 			Vertex v = vIt.next();
@@ -69,16 +72,53 @@ public class OGMTest {
 			// Vertices will always have an auto-generated ID ...
 			assertNotNull(v.id());
 
-			// ... which should be the same as the one of the converted Node object
+			// ... which should be the same as the one of the converted Node object.
 			assertEquals(v.id(), n.getId());
+
+			// Vertices will have a "labels" property
+			if (v.label() != null) {
+				String vLabel = v.label();
+				assertNotNull(vLabel, "Null label");
+
+				// ... which matches the class of the Node object.
+				assertEquals(vLabel, n.getClass().getSimpleName());
+				verticesWithLabel++;
+			}
+
+			// Number of edges should be same, no matter whether we get them directly from the vertex or via graph traversal.
+			long vEdgeCount = Iterators.size(v.edges(Direction.OUT));
+			long gEdgeCount = OverflowDatabase.getInstance().getGraph().traversal().V(v.id()).outE().count().next();
+			assertEquals(vEdgeCount, gEdgeCount);
+
+			// Number of transitive edges should be same, no matter whether we get them directly from the vertex or via graph traversal.
+			Iterator<Edge> eIt = v.edges(Direction.OUT);
+			long vTranEdgeCount = 0;
+			while (eIt.hasNext()) {
+				vTranEdgeCount += Iterators.size(eIt.next()
+						.inVertex()
+						.edges(Direction.OUT));
+			}
+			long gTranEdgeCount = OverflowDatabase.getInstance()
+					.getGraph()
+					.traversal()
+					.V(v.id())
+					.outE()
+					.inV()
+					.outE()
+					.count()
+					.next();
+			assertEquals(vTranEdgeCount, gTranEdgeCount);
 
 			if (v.label().equals("RecordDeclaration")) {
 				// We expect properties that were created by a Converter to be converted back into property
 				// object
 				assertTrue(n.getRegion().getStartLine() > -1);
 			}
-			System.out.println(n.toString());
+			vertices++;
 		}
+
+		// All vertices have a label.
+		assertEquals(vertices, verticesWithLabel, "Only " + verticesWithLabel + " of " + vertices + " vertices have a type label");
 	}
 
 	/** Test proper edges around an <code>IfStatement</code> */

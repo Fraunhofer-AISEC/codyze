@@ -1,17 +1,13 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Representation of a hardcoded constant.
@@ -35,7 +31,7 @@ public class ConstantValue extends MarkIntermediateResult {
 	}
 
 	public static ConstantValue newNull() {
-		return new ConstantValue(null, Type.NULL);
+		return new ConstantValue("", Type.NULL);
 	}
 
 	public static Object unbox(Object value) {
@@ -50,7 +46,7 @@ public class ConstantValue extends MarkIntermediateResult {
 		NUMERIC, BOOLEAN, STRING, NULL, UNKNOWN
 	}
 
-	private ConstantValue(Object value, @NonNull Type type) {
+	private ConstantValue(@NonNull Object value, @NonNull Type type) {
 		super(ResultType.SINGLEVALUE);
 		this.value = value;
 		this.type = type;
@@ -70,7 +66,21 @@ public class ConstantValue extends MarkIntermediateResult {
 		}
 	}
 
-	public static Optional<ConstantValue> tryOf(Object o) {
+	/**
+	 * Converts a specific value into a ConstantValue.
+	 *
+	 * Specific values must be non-null and of a type that can be converted into Type.NUMERIC, Type.STRING, or Type.BOOLEAN.
+	 *
+	 * If conversion is not possible, returns Optional.empty.
+	 *
+	 * @param o Specific object.
+	 * @return
+	 */
+	@NonNull
+	public static Optional<ConstantValue> tryOf(@Nullable Object o) {
+		if (o == null) {
+			return Optional.empty();
+		}
 		Class vClass = o.getClass();
 
 		if (vClass.equals(Long.class) || vClass.equals(Integer.class)) {

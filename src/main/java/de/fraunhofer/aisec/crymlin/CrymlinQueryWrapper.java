@@ -2,10 +2,7 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContext;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.analysis.structures.Pair;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
@@ -13,16 +10,7 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.dsl.__;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import de.fraunhofer.aisec.markmodel.Constants;
-
-import java.util.*;
-
-import de.fraunhofer.aisec.markmodel.MEntity;
-import de.fraunhofer.aisec.markmodel.MOp;
-import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
-import de.fraunhofer.aisec.markmodel.MRule;
-import de.fraunhofer.aisec.markmodel.MVar;
-import de.fraunhofer.aisec.markmodel.Mark;
+import de.fraunhofer.aisec.markmodel.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -32,18 +20,15 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.EList;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
 public class CrymlinQueryWrapper {
 
@@ -263,7 +248,6 @@ public class CrymlinQueryWrapper {
 	 */
 	public static List<Vertex> getMatchingVertices(@NonNull String markVar, @NonNull MRule rule, Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 		final List<Vertex> matchingVertices = new ArrayList<>();
-		System.out.println("GETMATCHINGVERTICES CALLED WITH MARK VAR " + markVar + " from rule: " + rule.getName());
 		// Split MARK variable "myInstance.attribute" into "myInstance" and "attribute".
 		final String[] markVarParts = markVar.split("\\.");
 		String instance = markVarParts[0];
@@ -340,6 +324,10 @@ public class CrymlinQueryWrapper {
 		}
 
 		for (Pair<MOp, Set<OpStatement>> p : usesAsVar) {
+			if (p.getValue1() == null) {
+				log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.getValue0());
+				continue;
+			}
 			for (OpStatement opstmt : p.getValue1()) {
 
 				String fqFunctionName = opstmt.getCall()
@@ -380,6 +368,10 @@ public class CrymlinQueryWrapper {
 		}
 
 		for (Pair<MOp, Set<OpStatement>> p : usesAsFunctionArgs) {
+			if (p.getValue1() == null) {
+				log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.getValue0());
+				continue;
+			}
 			for (OpStatement opstmt : p.getValue1()) {
 
 				String fqFunctionName = opstmt.getCall()
@@ -402,7 +394,7 @@ public class CrymlinQueryWrapper {
 				}
 				int argumentIndex = argumentIndexOptional.getAsInt();
 
-				System.out.println("Checking for call/ctor. ffqname: " + fqName + " - functionname: " + functionName + " - entity: " + entityName + " - markParams: "
+				log.debug("Checking for call/ctor. ffqname: " + fqName + " - functionname: " + functionName + " - entity: " + entityName + " - markParams: "
 						+ String.join(", ", markParameterTypes));
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
 					crymlin, fqName, functionName, entityName, markParameterTypes);
@@ -421,7 +413,7 @@ public class CrymlinQueryWrapper {
 				}
 			}
 		}
-		System.out.println("GETMATCHINGVERTICES returns "
+		log.debug("GETMATCHINGVERTICES returns "
 				+ String.join(", ", matchingVertices.stream().map(v -> v.label() + ": " + v.property("code").value()).collect(Collectors.toList())));
 		return matchingVertices;
 	}
@@ -431,37 +423,39 @@ public class CrymlinQueryWrapper {
 	 *
 	 * The precision of this resolution depends on the implementation of the ConstantResolver.
 	 *
-	 * @param vDeclaredReferenceExprs
+	 * @param vertices
 	 * @param markVar
 	 * @return
 	 */
-	public static List<CPGVertexWithValue> resolveValuesForVertices(List<Vertex> vDeclaredReferenceExprs, @NonNull String markVar) {
+	public static List<CPGVertexWithValue> resolveValuesForVertices(List<Vertex> vertices, @NonNull String markVar) {
 		final List<CPGVertexWithValue> ret = new ArrayList<>();
-		// try to resolve them
-		System.out.println("MARK VAR" + markVar);
-		for (Vertex v : vDeclaredReferenceExprs) {
-			System.out.println(v.label() + " : " + v.property("code").value());
-		}
 
-		for (Vertex v : vDeclaredReferenceExprs) {
-			Iterator<Edge> refersTo = v.edges(Direction.OUT, "REFERS_TO");
-			if (refersTo.hasNext()) {
-				Edge next = refersTo.next();
-				// vertices (SHOULD ONLY BE ONE) representing a variable declaration for the
-				// argument we're using in the function call
-				Vertex variableDeclarationVertex = next.inVertex();
+		for (Vertex v : vertices) {
+			if (Utils.hasLabel(v, Literal.class)) {
+				// The vertices may already be constants ("Literal"). In that case, immediately add the value.
+				ret.add(new CPGVertexWithValue(v, ConstantValue.of(v.property("value").value())));
+			} else if (Utils.hasLabel(v, DeclaredReferenceExpression.class)) {
+				// Otherwise we use ConstantResolver to find concrete values of a DeclaredReferenceExpression.
 				ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
-				Optional<ConstantValue> constantValue = cResolver.resolveConstantValueOfFunctionArgument(variableDeclarationVertex, v);
-
-				// fixme: allow multiple returns!
-				if (constantValue.isPresent()) {
-					CPGVertexWithValue mva = new CPGVertexWithValue(v, constantValue.get());
-					ret.add(mva);
-				} else {
-					log.warn("Could not constant resolve {}, returning Constant.NULL", markVar);
-					CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.newNull());
-					ret.add(mva);
+				DeclaredReferenceExpression declExpr = (DeclaredReferenceExpression) OverflowDatabase.getInstance()
+						.vertexToNode(v);
+				if (declExpr == null) {
+					continue;
 				}
+
+				Set<ConstantValue> constantValue = cResolver.resolveConstantValues(declExpr);
+
+				if (!constantValue.isEmpty()) {
+					ret.addAll(constantValue.stream().map(cv -> new CPGVertexWithValue(v, cv)).collect(Collectors.toSet()));
+				} else {
+					//TODO JS -> DT:  Why do we need to return a NULL value if not resolved successfully? Why not empty List?
+					ret.add(new CPGVertexWithValue(v, ConstantValue.newNull()));
+				}
+			} else {
+				log.info("Cannot resolve concrete value of a node that is not a DeclaredReferenceExpression or a Literal: " + v.label() + " Returning NULL");
+				//TODO JS -> DT:  Why do we need to return a NULL value if not resolved successfully? Why not empty List?
+				CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.newNull());
+				ret.add(mva);
 			}
 		}
 		return ret;
@@ -612,13 +606,6 @@ public class CrymlinQueryWrapper {
 
 		List<CPGVertexWithValue> vertices = new ArrayList<>();
 
-		// The arguments themselves may be constants ("Literal"). In that case, immediately add the value.
-		for (Vertex v : matchingVertices) {
-			if (Utils.hasLabel(v, Literal.class)) {
-				vertices.add(new CPGVertexWithValue(v, ConstantValue.of(v.property("value").value())));
-			}
-		}
-
 		// Use Constant resolver to resolve assignments to arguments
 		vertices.addAll(CrymlinQueryWrapper.resolveValuesForVertices(matchingVertices, markVar));
 
@@ -694,5 +681,21 @@ public class CrymlinQueryWrapper {
 		}
 
 		return verticesPerContext;
+	}
+
+	/**
+	 * Returns a set of ValueDeclarations where the variable/field/argument given by <code>delRefExpr</code> is declared.
+	 *
+	 * @param declRefExpr
+	 * @return
+	 */
+	public static Set<ValueDeclaration> getDeclarationSites(@NonNull DeclaredReferenceExpression declRefExpr) {
+		Set<Vertex> refersTo = OverflowDatabase.getInstance().getGraph().traversal().V(declRefExpr.getId()).outE("REFERS_TO").inV().toBulkSet();
+		Set<ValueDeclaration> varDecls = new HashSet<>();
+		for (Vertex v : refersTo) {
+			ValueDeclaration varDecl = (ValueDeclaration) OverflowDatabase.getInstance().vertexToNode(v);
+			varDecls.add(varDecl);
+		}
+		return varDecls;
 	}
 }

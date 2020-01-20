@@ -4,7 +4,6 @@ package de.fraunhofer.aisec.analysis.scp;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -16,10 +15,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.in;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.is;
@@ -27,11 +24,11 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.is;
 /**
  * Resolves constant values of variables, if possible.
  */
-public class ConstantResolver {
-	private static final Logger log = LoggerFactory.getLogger(ConstantResolver.class);
+public class ConstantResolverOLD {
+	private static final Logger log = LoggerFactory.getLogger(ConstantResolverOLD.class);
 	private final TraversalConnection.Type dbType;
 
-	public ConstantResolver(TraversalConnection.Type dbType) {
+	public ConstantResolverOLD(TraversalConnection.Type dbType) {
 		this.dbType = dbType;
 	}
 
@@ -58,30 +55,9 @@ public class ConstantResolver {
 	 * <p>
 	 * 8. {no initializer with value e.g. function argument} continue traversing the graph
 	 *
-	 * @param declRefExpr The DeclaredReferenceExpression that will be resolved.
-	 */
-	public Set<ConstantValue> resolveConstantValues(@NonNull DeclaredReferenceExpression declRefExpr) {
-		Set<ConstantValue> result = new HashSet<>();
-		Set<ValueDeclaration> declarations = CrymlinQueryWrapper.getDeclarationSites(declRefExpr);
-
-		try (TraversalConnection conn = new TraversalConnection(this.dbType)) {
-			CrymlinTraversalSource t = conn.getCrymlinTraversal();
-			for (ValueDeclaration decl : declarations) {
-				Vertex vDecl = t.byID(decl.getId()).tryNext().orElseThrow();
-				Vertex vExpr = t.byID(declRefExpr.getId())
-						.tryNext()
-						.orElseThrow();
-				Optional<ConstantValue> val = resolveConstantValueOfFunctionArgument(vDecl, vExpr);
-				if (val.isPresent()) {
-					result.add(val.get());
-				}
-			}
-		}
-
-		return result;
-	}
-
-	private Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Vertex variableDeclarationVertex, @NonNull Vertex vDeclaredReferenceExpr) {
+	 * @param variableDeclarationVertex
+	 */ // TODO Should be replaced by a more generic function that takes a single DeclaredReferenceExpression as an argument
+	public Optional<ConstantValue> resolveConstantValueOfFunctionArgument(@Nullable Vertex variableDeclarationVertex, @NonNull Vertex vDeclaredReferenceExpr) {
 		if (variableDeclarationVertex == null) {
 			return Optional.empty();
 		}
@@ -137,13 +113,12 @@ public class ConstantResolver {
 						} else if (isRhsExpressionList) {
 
 							if (rhs.edges(Direction.IN, "EOG").hasNext()) {
-								// C/C++ assigns last expression in list.
 								Vertex lastExpressionInList = rhs.edges(Direction.IN, "EOG")
 										.next()
 										.outVertex();
-
-								if (Utils.hasLabel(lastExpressionInList, Literal.class)) {
-									// If last expression is Literal --> assign its value immediately.
+								// TODO Do not assume that last in ExpressionList is a constant but rather apply ConstantResolution again.
+								// See https://***REMOVED***/***REMOVED***/issues/17
+								if (lastExpressionInList.label().equals(Literal.class.getSimpleName())) {
 									Object literalValue = lastExpressionInList.property("value").value();
 									Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
 									if (constantValue.isPresent()) {
@@ -151,12 +126,14 @@ public class ConstantResolver {
 									}
 									log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 								} else if (lastExpressionInList.label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
+									System.out.println("Trying to resolve " + lastExpressionInList);
+
 									// Get declaration of the variable used as last item in expression list
 									Iterator<Edge> refersTo = lastExpressionInList.edges(Direction.IN, "DFG");
 									if (refersTo.hasNext()) {
 										Vertex v = refersTo.next().outVertex();
 										if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
-											ConstantResolver resolver = new ConstantResolver(this.dbType);
+											ConstantResolverOLD resolver = new ConstantResolverOLD(this.dbType);
 											Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(v, lastExpressionInList);
 											if (constantValue.isPresent()) {
 												return constantValue;

@@ -127,3 +127,8 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 public
+
+# Benchmark files
+
+scripts/owasp_sast_benchmark/owasp_sast
+scripts/owasp_sast_benchmark/master.zip

@@ -1,16 +1,18 @@
 
 package de.fraunhofer.aisec.analysis.cpgpasses;
 
-import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import de.fraunhofer.aisec.cpg.passes.Pass;
 
 /**
  * A {@code Pass} that has access to an in-memory analysis context.
  *
  * @author julian
  */
-public interface PassWithContext extends Pass {
+public abstract class PassWithContext extends Pass {
+	protected AnalysisContext ctx;
 
-	public void setContext(@NonNull AnalysisContext ctx);
+	public void setContext(AnalysisContext ctx) {
+		this.ctx = ctx;
+	}
 }

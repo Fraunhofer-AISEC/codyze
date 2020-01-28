@@ -1,15 +1,18 @@
 
 package de.fraunhofer.aisec.analysis.server;
 
+import de.fraunhofer.aisec.analysis.JythonInterpreter;
+import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
+import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.FindingDescription;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
-import de.fraunhofer.aisec.analysis.JythonInterpreter;
 import de.fraunhofer.aisec.crymlin.builtin.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
@@ -17,16 +20,12 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection.Type;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
-import de.fraunhofer.aisec.analysis.structures.FindingDescription;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
-import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLReader;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
@@ -47,8 +46,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -411,6 +412,37 @@ public class AnalysisServer {
 			log.error("Exception", e);
 		}
 		log.info("Done importing");
+	}
+
+	public CompletableFuture<TranslationResult> analyze(String url) {
+		List<File> files = new ArrayList<>();
+		File f = new File(url);
+		if (f.isDirectory()) {
+			File[] list = f.listFiles();
+			if (list != null) {
+				files.addAll(Arrays.asList(list));
+			} else {
+				log.error("Null file list");
+			}
+		} else {
+			files.add(f);
+		}
+
+		OverflowDatabase.getInstance().connect(); // simply returns if already connected
+		OverflowDatabase.getInstance().purgeDatabase();
+
+		TranslationManager translationManager = TranslationManager.builder()
+				.config(
+					TranslationConfiguration.builder()
+							.debugParser(true)
+							.failOnError(false)
+							.codeInNodes(true)
+							.defaultPasses()
+							.sourceFiles(
+								files.toArray(new File[0]))
+							.build())
+				.build();
+		return analyze(translationManager);
 	}
 
 	public static class Builder {

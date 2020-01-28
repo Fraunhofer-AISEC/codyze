@@ -12,7 +12,9 @@ import javax.script.ScriptException;
 import java.util.Map;
 
 /**
- * Demonstrates how to run Crymlin queries dynamically from Java.
+ * Main class for the interactive Codyze console.
+ *
+ * The console allows interacting with the server and running crymlin queries dynamically from Java.
  *
  * @author julian
  */
@@ -64,18 +66,15 @@ public class JythonInterpreter implements AutoCloseable {
 	public void spawnInteractiveConsole() {
 
 		System.out.println(
-			"                           _ _       \n"
-					+ "                          | (_)      \n"
-					+ "  ___ _ __ _   _ _ __ ___ | |_ _ __  \n"
-					+ " / __| '__| | | | '_ ` _ \\| | | '_ \\ \n"
-					+ "| (__| |  | |_| | | | | | | | | | | |\n"
-					+ " \\___|_|   \\__, |_| |_| |_|_|_|_| |_|\n"
-					+ "            __/ |                    \n"
-					+ "           |___/                     \n"
-					+ "\n");
+			" ██████╗ ██████╗ ██████╗ ██╗   ██╗███████╗███████╗\n"
+					+ "██╔════╝██╔═══██╗██╔══██╗╚██╗ ██╔╝╚══███╔╝██╔════╝\n"
+					+ "██║     ██║   ██║██║  ██║ ╚████╔╝   ███╔╝ █████╗  \n"
+					+ "██║     ██║   ██║██║  ██║  ╚██╔╝   ███╔╝  ██╔══╝  \n"
+					+ "╚██████╗╚██████╔╝██████╔╝   ██║   ███████╗███████╗\n"
+					+ " ╚═════╝ ╚═════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝");
 		// Print help
 		Commands commands = new Commands(this);
-		commands.help();
+		//		commands.help();
 
 		try (InteractiveConsole c = new InteractiveConsole()) {
 			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {

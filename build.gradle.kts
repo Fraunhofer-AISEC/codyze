@@ -130,6 +130,9 @@ dependencies {
     // LSP
     api("org.eclipse.lsp4j", "org.eclipse.lsp4j", versions["lsp4j"])
 
+    api("info.picocli", "picocli", "4.1.4")
+    annotationProcessor("info.picocli", "picocli-codegen", "4.1.4")
+
     // Gremlin
     api("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])
     annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"]) {

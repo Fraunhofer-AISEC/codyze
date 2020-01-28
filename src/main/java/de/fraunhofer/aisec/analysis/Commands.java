@@ -44,43 +44,12 @@ public class Commands {
 	 * @param url
 	 */
 	public void analyze(String url) {
-		List<File> files = new ArrayList<>();
-		File f = new File(url);
-		if (f.isDirectory()) {
-			File[] list = f.listFiles();
-			if (list != null) {
-				files.addAll(Arrays.asList(list));
-			} else {
-				log.error("Null file list");
-			}
-		} else {
-			files.add(f);
-		}
-
-		OverflowDatabase.getInstance().connect(); // simply returns if already connected
-		if (!OverflowDatabase.getInstance().isConnected()) {
-			return;
-		}
-		OverflowDatabase.getInstance().purgeDatabase();
-
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder()
-							.debugParser(true)
-							.failOnError(false)
-							.codeInNodes(true)
-							.defaultPasses()
-							.sourceFiles(
-								files.toArray(new File[0]))
-							.build())
-				.build();
-
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
 			log.error("Analysis server not available");
 			return;
 		}
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		CompletableFuture<TranslationResult> analyze = server.analyze(url);
 
 		try {
 			TranslationResult translationResult = analyze.get(10, TimeUnit.MINUTES);

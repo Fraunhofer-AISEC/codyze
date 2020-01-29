@@ -98,7 +98,7 @@ public class MOp {
 			sb.append(p.getVar());
 			if (p.getTypes().size() > 0) {
 				sb.append(": ");
-				sb.append(String.join(", ", p.getTypes()));
+				sb.append(String.join("| ", p.getTypes()));
 			}
 			ret.add(sb.toString());
 		}

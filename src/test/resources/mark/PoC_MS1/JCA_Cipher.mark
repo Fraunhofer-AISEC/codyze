@@ -3,16 +3,15 @@ package jca
 
 entity javax.crypto.Cipher isa Cipher {
 	
-	var transformation : java.lang.String;
-	var provider : java.security.Provider;
-	var providerAsString : java.lang.String;
+	var transformation;
+	var provider;
+	var providerAsString;
 	
 	
-	var direction : int;
-	var key : java.security.Key;
-	var params : java.security.spec.AlgorithmParameters;
-	var paramSpec : java.security.spec.AlgorithmParameterSpec;
-	var random : java.security.SecureRandom;
+	var direction;
+	var key;
+	var paramSpec;
+	var random;
 
 	op create {
 		/*
@@ -20,9 +19,9 @@ entity javax.crypto.Cipher isa Cipher {
 		 * static Cipher getInstance(String transformation, Provider provider)
 		 * static Cipher getInstance(String transformation, String provider)
 		 */
-		Cipher.getInstance(transformation);
-		Cipher.getInstance(transformation, provider);
-		Cipher.getInstance(transformation, providerAsString);
+		Cipher.getInstance(transformation: java.lang.String);
+		Cipher.getInstance(transformation: java.lang.String, provider: java.security.Provider);
+		Cipher.getInstance(transformation: java.lang.String, providerAsString: java.lang.String);
 	}
 	
 	op init {
@@ -36,10 +35,10 @@ entity javax.crypto.Cipher isa Cipher {
 		 * void init(int opmode, Key key, AlgorithmParameters params, SecureRandom random)
 		 * void init(int opmode, Key key, SecureRandom random)
 		 */
-		Cipher.init(direction, key);
-		Cipher.init(direction, key, paramSpec);
-		Cipher.init(direction, key, paramSpec, random);
-		Cipher.init(direction, key, random);
+		Cipher.init(direction: int, key: java.security.Key);
+		Cipher.init(direction: int, key: java.security.Key, paramSpec: java.security.spec.AlgorithmParameterSpec);
+		Cipher.init(direction: int, key: java.security.Key, paramSpec: java.security.spec.AlgorithmParameterSpec, random: java.security.SecureRandom);
+		Cipher.init(direction: int, key: java.security.Key, random: java.security.SecureRandom);
 	}
 	
 	op process {

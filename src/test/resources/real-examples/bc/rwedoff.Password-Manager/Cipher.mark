@@ -2,83 +2,83 @@ package java
 
 entity javax.crypto.Cipher {
 	
-	var transformation : java.lang.String;
-	var providerString : java.lang.String;
-	var provider : java.security.Provider;
+	var transformation;
+	var providerString;
+	var provider;
 	
-	var opmode : int;
+	var opmode;
 	var certificate;
-	var random : java.security.SecureRandom;
-	var key : java.security.Key;
-	var params : java.security.AlgorithmParameters;
-	var paramspecs : java.security.spec.AlgorithmParameterSpec;
+	var random;
+	var key;
+	var params;
+	var paramspecs;
 	
-	var input : byte[];
-	var inputOffset : int;
-	var inputLen : int;
-	var output : byte[];
-	var outputOffset : int;
-	var inputBuffer : ByteBuffer;
-	var outputBuffer : ByteBuffer;
-	var result : byte[];
-	var resultLen : int;
+	var input;
+	var inputOffset;
+	var inputLen;
+	var output;
+	var outputOffset;
+	var inputBuffer;
+	var outputBuffer;
+	var result;
+	var resultLen;
 	
-	var aadSrc : byte[];
-	var aadOffset : int;
-	var aadLen : int;
-	var aadBuffer : ByteBuffer;
+	var aadSrc;
+	var aadOffset;
+	var aadLen;
+	var aadBuffer;
 	
-	var wrappedKey : byte[];
-	var wrappedKeyAlgorithm : java.lang.String;
-	var wrappedKeyType : int;
+	var wrappedKey;
+	var wrappedKeyAlgorithm;
+	var wrappedKeyType;
 	
 	op instantiate {
-		this = javax.crypto.Cipher.getInstance(transformation);
-		this = javax.crypto.Cipher.getInstance(transformation, providerString);
-		this = javax.crypto.Cipher.getInstance(transformation, provider);
+		this = javax.crypto.Cipher.getInstance(transformation: java.lang.String);
+		this = javax.crypto.Cipher.getInstance(transformation: java.lang.String, providerString: java.lang.String);
+		this = javax.crypto.Cipher.getInstance(transformation: java.lang.String, provider: java.security.Provider);
 	}
 	
 	op initialize {
-		javax.crypto.Cipher.init(opmode, certificate);
-		javax.crypto.Cipher.init(opmode, certificate, random);
-		javax.crypto.Cipher.init(opmode, key);
-		javax.crypto.Cipher.init(opmode, key, params);
-		javax.crypto.Cipher.init(opmode, key, params, random);
-		javax.crypto.Cipher.init(opmode, key, random);
-		javax.crypto.Cipher.init(opmode, key, paramspecs);
-		javax.crypto.Cipher.init(opmode, key, paramspecs, random);
+		javax.crypto.Cipher.init(opmode: int, certificate);
+		javax.crypto.Cipher.init(opmode: int, certificate, random: java.security.SecureRandom);
+		javax.crypto.Cipher.init(opmode: int, key: java.security.Key);
+		javax.crypto.Cipher.init(opmode: int, key: java.security.Key, params: java.security.AlgorithmParameters);
+		javax.crypto.Cipher.init(opmode: int, key: java.security.Key, params: java.security.AlgorithmParameters, random: java.security.SecureRandom);
+		javax.crypto.Cipher.init(opmode: int, key: java.security.Key, random: java.security.SecureRandom);
+		javax.crypto.Cipher.init(opmode: int, key: java.security.Key, paramspecs: java.security.spec.AlgorithmParameterSpec);
+		javax.crypto.Cipher.init(opmode: int, key: java.security.Key, paramspecs: java.security.spec.AlgorithmParameterSpec, random: java.security.SecureRandom);
 	}
 	
 	op update {
-		result = javax.crypto.Cipher.update(input);
-		result= javax.crypto.Cipher.update(input, inputOffset, inputLen);
-		resultLen = javax.crypto.Cipher.update(input, inputOffset, inputLen, output);
-		resultLen = javax.crypto.Cipher.update(input, inputOffset, inputLen, output, outputOffset);
-		resultLen = javax.crypto.Cipher.update(inputBuffer, outputBuffer);
+		result = javax.crypto.Cipher.update(input: byte[]);
+		result= javax.crypto.Cipher.update(input: byte[], inputOffset: int, inputLen: int);
+		resultLen = javax.crypto.Cipher.update(input: byte[], inputOffset: int, inputLen: int, output: byte[]);
+		resultLen = javax.crypto.Cipher.update(input: byte[], inputOffset: int, inputLen: int, output: byte[], outputOffset: int);
+		resultLen = javax.crypto.Cipher.update(inputBuffer: ByteBuffer, outputBuffer: ByteBuffer);
 	}
 	
 	op updateAAD {
-		javax.crypto.Cipher.updateAAD(aadSrc);
-		javax.crypto.Cipher.updateAAD(ssdSrc, aadOffset, aadLen);
-		javax.crypto.Cipher.updateAAD(aadBuffer);
+		javax.crypto.Cipher.updateAAD(aadSrc: byte[]);
+		javax.crypto.Cipher.updateAAD(ssdSrc: byte[], aadOffset: int, aadLen: int);
+		javax.crypto.Cipher.updateAAD(aadBuffer: ByteBuffer);
 	}
 	
 	op finalize {
 		result = javax.crypto.Cipher.doFinal();
-		result = javax.crypto.Cipher.doFinal(input);
-		resultLen = javax.crypto.Cipher.doFinal(output, outputOffset);
-		result = javax.crypto.Cipher.doFinal(input, inputOffset, inputLen);
-		resultLen = javax.crypto.Cipher.doFinal(input, inputOffset, inputLen, output);
-		resultLen = javax.crypto.Cipher.doFinal(input, inputOffset, inputLen, output, outputOffset);
-		resultLen = javax.crypto.Cipher.doFinal(inputBuffer, outputBuffer);
+		result = javax.crypto.Cipher.doFinal(input: byte[]);
+		resultLen = javax.crypto.Cipher.doFinal(output: byte[], outputOffset: int);
+		result = javax.crypto.Cipher.doFinal(input: byte[], inputOffset: int, inputLen: int);
+		resultLen = javax.crypto.Cipher.doFinal(input: byte[], inputOffset: int, inputLen: int, output: byte[]);
+		resultLen = javax.crypto.Cipher.doFinal(input: byte[], inputOffset: int, inputLen: int, output: byte[], outputOffset: int);
+		resultLen = javax.crypto.Cipher.doFinal(inputBuffer: ByteBuffer, outputBuffer: ByteBuffer);
 	}
 	
 	op wrapKey {
-		wrappedKey = javax.crypto.Cipher.unwrap(key);
+		wrappedKey = javax.crypto.Cipher.unwrap(key: java.security.Key);
 	}
 	
 	op unwrapKey {
-		key = javax.crypto.Cipher.unwrap(wrappedKey, wrappedKeyAlgorithm, wrappedKeyType);
+		key = javax.crypto.Cipher.unwrap(wrappedKey: byte[], wrappedKeyAlgorithm: java.lang.String, wrappedKeyType: int);
 	}
 	
 }

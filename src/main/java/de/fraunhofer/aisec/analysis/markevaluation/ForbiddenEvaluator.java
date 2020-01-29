@@ -51,7 +51,7 @@ public class ForbiddenEvaluator {
 					boolean vertexAllowed = false;
 					HashSet<String> violating = new HashSet<>();
 					for (OpStatement call : entry.getValue()) {
-						String callString = call.getCall().getName() + "(" + String.join(",", call.getCall().getParams()) + ")";
+						String callString = call.getCall().getName() + "(" + String.join(",", MOp.paramsToString(call.getCall().getParams())) + ")";
 
 						if (!"forbidden".equals(call.getForbidden())) {
 							// there is at least one CallStatement which explicitly allows this Vertex!

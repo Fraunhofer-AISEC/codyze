@@ -2,17 +2,17 @@ package java
 
 entity java.security.MessageDigest {
 
-	var this : java.security.MessageDigest;
+	var this;
 
-	var algorithm : java.lang.String;
-	var providerString : java.lang.String;
-	var provider : java.security.Provider;
+	var algorithm;
+	var providerString;
+	var provider;
 	
 	
 	op instantiate {
-		this = java.security.MessageDigest.getInstance(algorithm);
-		this = java.security.MessageDigest.getInstance(algorithm, providerString);
-		this = java.security.MessageDigest.getInstance(algorithm, provider);
+		this = java.security.MessageDigest.getInstance(algorithm: java.lang.String);
+		this = java.security.MessageDigest.getInstance(algorithm: java.lang.String, providerString: java.lang.String);
+		this = java.security.MessageDigest.getInstance(algorithm: java.lang.String, provider: java.security.Provider);
 	}
 	
 }

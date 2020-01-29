@@ -127,7 +127,7 @@ dependencies {
     api("org.ehcache", "ehcache", "3.8.0")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
-    api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.1.1-SNAPSHOT:repackaged") { setChanging(true) }
+    api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.2.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // api stuff
     api("org.glassfish.jersey.inject", "jersey-hk2", versions["jersey"])

@@ -2,8 +2,10 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
+import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.emf.common.util.EList;
 
 import java.util.*;
 
@@ -110,7 +112,7 @@ public class MEntity {
 							+ (callStatement.getVar() == null ? "" : callStatement.getVar() + " = ")
 							+ callStatement.getCall().getName()
 							+ "("
-							+ String.join(", ", callStatement.getCall().getParams())
+							+ String.join(", ", MOp.paramsToString(callStatement.getCall().getParams()))
 							+ ");\n");
 			}
 			sb.append("\t}\n");
@@ -126,30 +128,5 @@ public class MEntity {
 		for (MVar var : vars) {
 			parsedVars.put(var.getName(), var.getType());
 		}
-	}
-
-	@Nullable
-	public String getTypeForVar(String name) {
-		if (parsedVars == null) { // do a real search
-			Optional<MVar> first = this.vars.stream().filter(v -> v.getName().equals(name)).findFirst();
-			return first.map(MVar::getType).orElse(null);
-		} else { // we prepared this already
-			return parsedVars.get(name);
-		}
-	}
-
-	public List<String> replaceArgumentVarsWithTypes(List<String> functionArguments) {
-		List<String> functionArgumentTypes = new ArrayList<>();
-		for (int i = 0; i < functionArguments.size(); i++) {
-			String typeForVar = getTypeForVar(functionArguments.get(i));
-			if (typeForVar != null) {
-				functionArgumentTypes.add(i, typeForVar);
-			} else if (functionArguments.get(i).equals(Constants.ELLIPSIS)) {
-				functionArgumentTypes.add(Constants.ELLIPSIS);
-			} else {
-				functionArgumentTypes.add(Constants.ANY_TYPE);
-			}
-		}
-		return functionArgumentTypes;
 	}
 }

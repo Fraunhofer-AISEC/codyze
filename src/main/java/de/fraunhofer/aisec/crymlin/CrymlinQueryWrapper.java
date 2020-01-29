@@ -10,6 +10,7 @@ import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.dsl.__;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
+import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
@@ -52,7 +53,7 @@ public class CrymlinQueryWrapper {
 	public static Set<Vertex> getInitializers(
 			@NonNull CrymlinTraversalSource crymlinTraversal,
 			@NonNull String className,
-			@Nullable List<String> parameterTypes) {
+			EList<Parameter> parameterTypes) {
 		//FIXME Parameter types are still ignored. If not null, they should be checked against arguments of Initializer.
 		Set<Vertex> vertices = crymlinTraversal.ctor(Utils.unifyType(className)).toSet();
 		Set<Object> constructorExpressionVertices = crymlinTraversal.V()
@@ -78,7 +79,7 @@ public class CrymlinQueryWrapper {
 	 * @param fqnClassName fully qualified name w/o function name itself
 	 * @param functionName name of the function
 	 * @param markEntity type of the object used to call the function (i.e. method); should be name of the MARK entity
-	 * @param markParameterTypes list of parameter types; must appear in order (i.e. index 0 = type of first parameter, etc.); currently, types must be precise (i.e. with
+	 * @param parameters list of parameter types; must appear in order (i.e. index 0 = type of first parameter, etc.); currently, types must be precise (i.e. with
 	 *        qualifiers, pointer, reference)
 	 * @return
 	 */
@@ -88,7 +89,7 @@ public class CrymlinQueryWrapper {
 			@NonNull String fqnClassName,
 			@NonNull String functionName,
 			@Nullable String markEntity,
-			@NonNull List<String> markParameterTypes) {
+			EList<Parameter> parameters) {
 
 		Set<Vertex> ret = new HashSet<>();
 
@@ -131,7 +132,7 @@ public class CrymlinQueryWrapper {
 					arguments.add(e.inVertex());
 				}
 
-				return !argumentsMatchParameters(markParameterTypes, arguments);
+				return !argumentsMatchParameters(parameters, arguments);
 			});
 
 		return ret;
@@ -140,18 +141,18 @@ public class CrymlinQueryWrapper {
 	/**
 	 * Returns true if the given list of arguments (of a function or method or constructor call) matches the given list of parameters in MARK.
 	 *
-	 * @param markParameters		List of types.
-	 * @param sourceArguments	List of Vertices. Each Vertex is expected to have an "argumentIndex" property.
+	 * @param markParameters        List of types.
+	 * @param sourceArguments    List of Vertices. Each Vertex is expected to have an "argumentIndex" property.
 	 * @return
 	 */
-	private static boolean argumentsMatchParameters(@NonNull List<String> markParameters, @NonNull List<Vertex> sourceArguments) {
+	private static boolean argumentsMatchParameters(EList<Parameter> markParameters, @NonNull List<Vertex> sourceArguments) {
 		int i = 0;
 
 		arguments: while (i < markParameters.size() && i < sourceArguments.size()) {
-			String markParam = markParameters.get(i);
+			Parameter markParam = markParameters.get(i);
 
 			// ELLIPSIS (...) means we do not care about any further arguments
-			if (markParam != null && Constants.ELLIPSIS.equals(markParam)) {
+			if (Constants.ELLIPSIS.equals(markParam.getVar())) {
 				return true;
 			}
 
@@ -168,19 +169,20 @@ public class CrymlinQueryWrapper {
 				}
 			}
 
-			if (markParam == null || sourceArgs.isEmpty()) {
-				log.error("Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argument types: {}", String.join(", ", markParameters));
+			if (sourceArgs.isEmpty()) {
+				log.error("Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argument types: {}",
+					String.join(", ", MOp.paramsToString(markParameters)));
 				return false;
 			}
 
 			// UNDERSCORE means we do not care about this specific argument at all
-			if (Constants.UNDERSCORE.equals(markParam)) {
+			if (Constants.UNDERSCORE.equals(markParam.getVar())) {
 				i++;
 				continue;
 			}
 
 			// ANY_TYPE means we have a MARK variable, but do not care about its type
-			if (Constants.ANY_TYPE.equals(markParam)) {
+			if (Constants.ANY_TYPE.equals(markParam.getVar())) {
 				i++;
 				continue;
 			}
@@ -256,6 +258,11 @@ public class CrymlinQueryWrapper {
 		// Get the MARK entity corresponding to the MARK instance variable.
 		Pair<String, MEntity> ref = rule.getEntityReferences()
 				.get(instance);
+		if (ref == null) {
+			log.warn("Unexpected: rule {} without referenced entity for instance {}", rule.getName(), instance);
+			return matchingVertices;
+		}
+
 		String entityName = ref.getValue0();
 		MEntity referencedEntity = ref.getValue1();
 
@@ -309,7 +316,7 @@ public class CrymlinQueryWrapper {
 				if (opStmt.getCall()
 						.getParams()
 						.stream()
-						.anyMatch(p -> p.equals(finalAttribute))) {
+						.anyMatch(p -> p.getVar().equals(finalAttribute))) {
 					args.add(opStmt);
 				}
 			}
@@ -336,11 +343,8 @@ public class CrymlinQueryWrapper {
 				String functionName = Utils.extractMethodName(fqFunctionName);
 				String fqNamePart = Utils.extractType(fqFunctionName);
 
-				List<String> functionArgumentTypes = referencedEntity.replaceArgumentVarsWithTypes(opstmt.getCall()
-						.getParams());
-
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
-					crymlin, fqNamePart, functionName, null, functionArgumentTypes);
+					crymlin, fqNamePart, functionName, null, opstmt.getCall().getParams());
 
 				for (Vertex v : vertices) {
 					// check if there was an assignment
@@ -382,11 +386,9 @@ public class CrymlinQueryWrapper {
 					fqName = "";
 				}
 
-				EList<String> params = opstmt.getCall()
-						.getParams();
-				List<String> markParameterTypes = referencedEntity.replaceArgumentVarsWithTypes(params);
+				EList<Parameter> params = opstmt.getCall().getParams();
 				OptionalInt argumentIndexOptional = IntStream.range(0, params.size())
-						.filter(i -> finalAttribute.equals(params.get(i)))
+						.filter(i -> finalAttribute.equals(params.get(i).getVar()))
 						.findFirst();
 				if (argumentIndexOptional.isEmpty()) {
 					log.error("argument not found in parameters. This should not happen");
@@ -395,11 +397,11 @@ public class CrymlinQueryWrapper {
 				int argumentIndex = argumentIndexOptional.getAsInt();
 
 				log.debug("Checking for call/ctor. ffqname: " + fqName + " - functionname: " + functionName + " - entity: " + entityName + " - markParams: "
-						+ String.join(", ", markParameterTypes));
+						+ String.join(", ", MOp.paramsToString(params)));
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
-					crymlin, fqName, functionName, entityName, markParameterTypes);
+					crymlin, fqName, functionName, entityName, params);
 
-				vertices.addAll(CrymlinQueryWrapper.getInitializers(crymlin, fqFunctionName, markParameterTypes));
+				vertices.addAll(CrymlinQueryWrapper.getInitializers(crymlin, fqFunctionName, params));
 				for (Vertex v : vertices) {
 					List<Vertex> argumentVertices = crymlin.byID((long) v.id())
 							.argument(argumentIndex)
@@ -469,9 +471,8 @@ public class CrymlinQueryWrapper {
 		String baseType = Utils.extractType(functionDeclaration.getName());
 
 		// resolve parameters which have a corresponding var part in the entity
-		List<String> args = ent.replaceArgumentVarsWithTypes(functionDeclaration.getParams());
-		Set<Vertex> initializers = CrymlinQueryWrapper.getInitializers(crymlinTraversal, Utils.unifyType(functionDeclaration.getName()), args);
-		Set<Vertex> calls = CrymlinQueryWrapper.getCalls(crymlinTraversal, baseType, functionName, null, args);
+		Set<Vertex> initializers = CrymlinQueryWrapper.getInitializers(crymlinTraversal, Utils.unifyType(functionDeclaration.getName()), functionDeclaration.getParams());
+		Set<Vertex> calls = CrymlinQueryWrapper.getCalls(crymlinTraversal, baseType, functionName, null, functionDeclaration.getParams());
 
 		Set<Vertex> callsAndInitializers = new HashSet<>();
 		callsAndInitializers.addAll(calls);

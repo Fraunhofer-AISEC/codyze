@@ -45,7 +45,7 @@ class ForbiddenTest extends AbstractMarkTest {
 				"line 41: Violation against forbidden call(s) BotanF.set_key(_,_) in entity Forbidden. Call was b.set_key(nonce, iv);"));
 		assertTrue(
 			findings.contains(
-				"line 36: Violation against forbidden call(s) BotanF.start(nonce,_) in entity Forbidden. Call was b.start(nonce, b);"));
+				"line 36: Violation against forbidden call(s) BotanF.start(nonce: int,_) in entity Forbidden. Call was b.start(nonce, b);"));
 		assertTrue(
 			findings.contains(
 				"line 35: Violation against forbidden call(s) BotanF.start() in entity Forbidden. Call was b.start();"));

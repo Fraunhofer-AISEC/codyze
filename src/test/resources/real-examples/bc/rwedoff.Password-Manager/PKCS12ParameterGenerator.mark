@@ -2,20 +2,20 @@ package bouncycastle
 
 entity org.bouncycastle.crypto.generators.PKCS12ParametersGenerator isa org.bouncycastle.crypto.PBEParametersGenerator {
 	
-	var digest : org.bouncycastle.crypto.Digest;
+	var digest;
 	
-	var keySize : int;
-	var ivSize : int;
-	var cipherParams : org.bouncycastle.crypto.CipherParameters;
+	var keySize;
+	var ivSize;
+	var cipherParams;
 	
 	op instantiate {
-		this = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator(digest);
+		this = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator(digest: org.bouncycastle.crypto.Digest);
 	}
 	
 	op generateCipherParameters {
-		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedMacParameters(keySize);
-		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedParameters(keySize);
-		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedParameters(keySize, ivSize);
+		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedMacParameters(keySize: int);
+		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedParameters(keySize: int);
+		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedParameters(keySize: int, ivSize: int);
 	}
 	
 }

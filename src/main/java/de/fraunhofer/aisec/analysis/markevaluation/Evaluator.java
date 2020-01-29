@@ -115,7 +115,7 @@ public class Evaluator {
 					log.debug(
 						"Call {}({}) of op {} found {} times",
 						opStmt.getCall().getName(),
-						String.join(", ", opStmt.getCall().getParams()),
+						String.join(", ", MOp.paramsToString(opStmt.getCall().getParams())),
 						op.getName(),
 						temp.size());
 					numMatches += temp.size();
@@ -227,7 +227,7 @@ public class Evaluator {
 						ranges,
 						isRuleViolated));
 				}
-			} else if (value == null || ConstantValue.isNull(value)) {
+			} else if (value == null || ConstantValue.isNull(value) || ConstantValue.isNull(entry.getValue())) {
 				log.warn("Unable to evaluate rule {}, result was null", rule.getName());
 			} else {
 				log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());

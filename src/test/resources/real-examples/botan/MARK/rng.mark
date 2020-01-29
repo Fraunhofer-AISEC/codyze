@@ -1,8 +1,8 @@
 package botan
 
-entity Botan::AutoSeeded_RNG {
+entity Botan.AutoSeeded_RNG {
 	var random_data; // : secure_vector< uint8_t >  OR std::vector< uint8_t, Alloc > & OR uint8_t[] OR uint8_t
-	var random_data_len : size_t;
+	var random_data_len;
 
 	op create {
 		Botan::AutoSeeded_RNG();
@@ -36,7 +36,7 @@ rule RNGOrder {
 
 
 /* TODO
-entity Botan::System_RNG {
+entity Botan.System_RNG {
 	
 
 	op create{
@@ -60,19 +60,19 @@ rule CheckIfSeeded {
 }
 */
 
-entity Botan::HMAC_DRBG {
+entity Botan.HMAC_DRBG {
 }
 
-entity Botan::ChaCha_RNG {
+entity Botan.ChaCha_RNG {
 }
 
-entity Botan::RDRAND_RNG {
+entity Botan.RDRAND_RNG {
 }
 
-entity Botan::TPM_RNG {
+entity Botan.TPM_RNG {
 }
 
-entity Botan::PKCS11_RNG {
+entity Botan.PKCS11_RNG {
 }
 
 

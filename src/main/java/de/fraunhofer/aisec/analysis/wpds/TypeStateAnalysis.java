@@ -423,7 +423,7 @@ public class TypeStateAnalysis {
 						// TODO Proper handling of variables in scope
 						ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(v);
 						if (returnV != null && !returnV.isDummy()) {
-							returnV.getReturnValue().toString();
+							//returnV.getReturnValue().toString();
 							Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
 
 							for (Val returnedVal : returnedVals) {

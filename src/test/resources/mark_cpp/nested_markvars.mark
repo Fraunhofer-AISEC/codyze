@@ -9,10 +9,10 @@ entity Outer {
 }
 
 entity Inner {
-  var value : int;
+  var value;
 
   op init {
-    Inner::init(value);
+    Inner::init(value: int);
   }
 }
 

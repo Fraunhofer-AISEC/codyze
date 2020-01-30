@@ -506,7 +506,7 @@ public class CrymlinQueryWrapper {
 							__.__()
 									.hasLabel(FunctionDeclaration.class.getSimpleName()),
 							__.__()
-									.hasLabel(MethodDeclaration.class.getSimpleName()))) // FIXME can also be MethoDeclaration
+									.hasLabel(MethodDeclaration.class.getSimpleName())))
 				.tryNext();
 	}
 

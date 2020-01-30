@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -9,78 +10,30 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-class OrderTestComplex {
+class OrderTestComplex extends AbstractMarkTest {
 
-	// TODO Use AbstractMarkTest
-	private void performTest(String sourceFileName) throws Exception {
-		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
+	private void performTestAndCheck(String sourceFileName) throws Exception {
 
-		URL resource = classLoader.getResource(sourceFileName);
-		assertNotNull(resource);
-		File cppFile = new File(resource.getFile());
-		assertNotNull(cppFile);
-
-		resource = classLoader.getResource("unittests/order2.mark");
-		assertNotNull(resource);
-		File markPoC1 = new File(resource.getFile());
-		assertNotNull(markPoC1);
-
-		// Make sure we start with a clean (and connected) db
-		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
-			db.purgeDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
-
-		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
-				.build();
-		server.start();
-
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
-				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
-		TranslationResult result;
-		try {
-			result = analyze.get(5, TimeUnit.MINUTES);
-		}
-		catch (TimeoutException t) {
-			analyze.cancel(true);
-			throw t;
-		}
-
-		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-		assertNotNull(ctx);
-		assertTrue(ctx.methods.isEmpty());
-
-		List<String> findings = new ArrayList<>();
-		assertNotNull(ctx.getFindings());
-		ctx.getFindings().forEach(x -> findings.add(x.toString()));
-
-		for (String s : findings) {
-			System.out.println(s);
-		}
+		Set<Finding> results = performTest(sourceFileName, "unittests/order2.mark");
+		Set<String> findings = results.stream()
+				.map(Finding::toString)
+				.collect(Collectors.toSet());
 
 		assertEquals(5, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
@@ -105,11 +58,11 @@ class OrderTestComplex {
 
 	@Test
 	void testJava() throws Exception {
-		performTest("unittests/order2.java");
+		performTestAndCheck("unittests/order2.java");
 	}
 
 	@Test
 	void testCpp() throws Exception {
-		performTest("unittests/order2.cpp");
+		performTestAndCheck("unittests/order2.cpp");
 	}
 }

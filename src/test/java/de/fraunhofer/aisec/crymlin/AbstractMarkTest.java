@@ -28,6 +28,7 @@ public class AbstractMarkTest {
 	protected TranslationManager translationManager;
 	protected AnalysisServer server;
 	protected TranslationResult translationResult;
+	protected TYPESTATE_ANALYSIS TYPESTATEANALYSIS = TYPESTATE_ANALYSIS.NFA;
 
 	Set<Finding> performTest(String sourceFileName) throws Exception {
 		return performTest(sourceFileName, null);
@@ -57,7 +58,7 @@ public class AbstractMarkTest {
 					ServerConfiguration.builder()
 							.launchConsole(false)
 							.launchLsp(false)
-							.typestateAnalysis(TYPESTATE_ANALYSIS.NFA)
+							.typestateAnalysis(TYPESTATEANALYSIS)
 							.markFiles(markDirPath)
 							.build())
 				.build();

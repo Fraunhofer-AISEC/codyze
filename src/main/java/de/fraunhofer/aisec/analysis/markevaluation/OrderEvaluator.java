@@ -2,11 +2,7 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.breakpointsec.pushdown.IllegalTransitionException;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.wpds.TypeStateAnalysis;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -31,7 +27,7 @@ public class OrderEvaluator {
 			CrymlinTraversalSource crymlinTraversal, MarkContextHolder markContextHolder) {
 		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "Typestate Analysis");
 
-		ConstantValue result = ConstantValue.newNull();
+		ConstantValue result;
 
 		switch (config.typestateAnalysis) {
 
@@ -44,6 +40,7 @@ public class OrderEvaluator {
 				}
 				catch (IllegalTransitionException e) {
 					log.error("Unexpected error in typestate WPDS", e);
+					result = ErrorValue.newErrorValue("Unexpected error in typestate WPDS", e);
 				}
 				break;
 
@@ -52,6 +49,9 @@ public class OrderEvaluator {
 				OrderNFAEvaluator orderNFAEvaluator = new OrderNFAEvaluator(rule, markContextHolder);
 				result = orderNFAEvaluator.evaluate(orderExpression, contextID, resultCtx, crymlinTraversal);
 				break;
+
+			default:
+				result = ErrorValue.newErrorValue("Unknown typestateanalysis");
 		}
 
 		tsBench.stop();

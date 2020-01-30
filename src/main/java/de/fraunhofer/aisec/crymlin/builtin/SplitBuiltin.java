@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.crymlin.builtin;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -43,7 +44,7 @@ public class SplitBuiltin implements Builtin {
 
 		if (s == null || regex == null || index == null) {
 			log.error("One of the arguments was not the expected type");
-			return ConstantValue.newNull();
+			return ErrorValue.newErrorValue("One of the arguments was not the expected type");
 		}
 
 		log.debug("args are: " + s + "; " + regex + "; " + index);
@@ -51,16 +52,15 @@ public class SplitBuiltin implements Builtin {
 		String[] splitted = s.split(regex);
 		if (index.intValue() < splitted.length) {
 			ret = splitted[index.intValue()];
+		} else {
+			log.error("{} did not have an {}-th element when split by '{}'", s, index, regex);
+			return ErrorValue.newErrorValue("{} did not have an {}-th element when split by '{}'", s, index, regex);
 		}
 
-		ConstantValue cv;
-		if (ret != null) {
-			// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
-			// stringResult.setValue(ret);
-			cv = ConstantValue.of(ret);
-		} else {
-			cv = ConstantValue.newNull();
-		}
+		ConstantValue cv = ConstantValue.of(ret);
+		// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
+		// stringResult.setValue(ret);
+
 		cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
 			(ConstantValue) argResultList.get(1),
 			(ConstantValue) argResultList.get(2));

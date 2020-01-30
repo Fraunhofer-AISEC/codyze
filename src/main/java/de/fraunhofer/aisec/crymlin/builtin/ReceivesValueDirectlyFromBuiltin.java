@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -26,6 +27,6 @@ public class ReceivesValueDirectlyFromBuiltin implements Builtin {
 		// TODO implement
 		log.warn("the builtin " + getName() + " is not implemented yet");
 
-		return ConstantValue.newNull();
+		return ErrorValue.newErrorValue("ReceivesValueDirectlyFromBuiltin not implemented yet");
 	}
 }

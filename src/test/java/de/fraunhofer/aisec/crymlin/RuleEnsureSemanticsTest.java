@@ -89,7 +89,7 @@ public class RuleEnsureSemanticsTest {
 			} else if (key.endsWith("false")) {
 				assertEquals(false, ((ConstantValue) inner).getValue(), key);
 			} else if (key.endsWith("fail")) {
-				assertTrue(ConstantValue.isNull(inner));
+				assertTrue(ConstantValue.isError(inner));
 			} else {
 				fail("Unexpected: Rule should have failed, but is " + inner + ": " + key);
 			}

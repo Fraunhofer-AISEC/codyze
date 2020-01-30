@@ -1,15 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
-import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContext;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
@@ -212,33 +204,37 @@ public class ExpressionEvaluator {
 			Object left = leftBoxed.getValue();
 			Object right = rightBoxed.getValue();
 
-			boolean leftIsNull = ConstantValue.isNull(leftBoxed);
-			boolean rightIsNull = ConstantValue.isNull(rightBoxed);
+			boolean leftHasError = ConstantValue.isError(leftBoxed);
+			boolean rightHasError = ConstantValue.isError(rightBoxed);
 
-			if (leftIsNull && rightIsNull) {
+			if (leftHasError && rightHasError) {
 				// null & null = null, null | null = null
 
-				combinedResult.put(key, ConstantValue.newNull());
+				combinedResult.put(key, ErrorValue.newErrorValue("cannot logically compare, left and right expression has error"));
 
-			} else if (!(leftIsNull || left.getClass().equals(Boolean.class))
+			} else if (!(leftHasError || left.getClass().equals(Boolean.class))
 					||
-					!(rightIsNull || right.getClass().equals(Boolean.class))) {
+					!(rightHasError || right.getClass().equals(Boolean.class))) {
 
 				log.warn("At least one subexpression is not of type Boolean: {} vs {}",
 					ExpressionHelper.exprToString(leftExp),
 					ExpressionHelper.exprToString(rightExp));
-				combinedResult.put(key, ConstantValue.newNull());
+				combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical expression, left is {}, right is {}",
+					ExpressionHelper.exprToString(leftExp),
+					ExpressionHelper.exprToString(rightExp)));
 
 			} else if (expr instanceof LogicalAndExpression) {
-				if (leftIsNull || rightIsNull) {
+				if (leftHasError || rightHasError) {
 					// null & true = null
 					// null & false = false
-					if ((!rightIsNull && right.equals(false))
+					if ((!rightHasError && right.equals(false))
 							||
-							(!leftIsNull && left.equals(false))) {
+							(!leftHasError && left.equals(false))) {
 						combinedResult.put(key, ConstantValue.of(false));
 					} else {
-						combinedResult.put(key, ConstantValue.newNull());
+						combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical and, left is {}, right is {}",
+							ExpressionHelper.exprToString(leftExp),
+							ExpressionHelper.exprToString(rightExp)));
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&
@@ -250,15 +246,17 @@ public class ExpressionEvaluator {
 				}
 
 			} else { // LogicalOrExpression
-				if (leftIsNull || rightIsNull) {
+				if (leftHasError || rightHasError) {
 					// null | true = true
 					// null | false = null
-					if ((!rightIsNull && right.equals(true))
+					if ((!rightHasError && right.equals(true))
 							||
-							(!leftIsNull && left.equals(true))) {
+							(!leftHasError && left.equals(true))) {
 						combinedResult.put(key, ConstantValue.of(true));
 					} else {
-						combinedResult.put(key, ConstantValue.newNull());
+						combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical or, left is {}, right is {}",
+							ExpressionHelper.exprToString(leftExp),
+							ExpressionHelper.exprToString(rightExp)));
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&
@@ -323,7 +321,7 @@ public class ExpressionEvaluator {
 					combinedResult.put(key, cv);
 				} else {
 					log.warn("Unknown op for List on the right side");
-					combinedResult.put(key, ConstantValue.newNull());
+					combinedResult.put(key, ErrorValue.newErrorValue("Unknown op {} for List on the right side", op));
 				}
 
 			} else {
@@ -331,10 +329,10 @@ public class ExpressionEvaluator {
 				ConstantValue rightBoxed = (ConstantValue) rightResult.get(key);
 				Object right = rightBoxed.getValue();
 
-				if (ConstantValue.isNull(leftBoxed) || ConstantValue.isNull(rightBoxed)) {
+				if (ConstantValue.isError(leftBoxed) || ConstantValue.isError(rightBoxed)) {
 
 					// result of comparison is not known
-					combinedResult.put(key, ConstantValue.newNull());
+					combinedResult.put(key, ErrorValue.newErrorValue("cannot perform comparison, left or right expression has errors"));
 				} else {
 
 					String leftComp = ExpressionHelper.toComparableString(left);
@@ -376,7 +374,7 @@ public class ExpressionEvaluator {
 							break;
 						default:
 							log.warn("Unsupported operand {}", op);
-							cv = ConstantValue.newNull();
+							cv = ErrorValue.newErrorValue("Unsupported operand {}", op);
 					}
 					combinedResult.put(key, cv);
 				}
@@ -387,7 +385,7 @@ public class ExpressionEvaluator {
 
 	private MarkIntermediateResult getcorrespondingLeftResult(Map<Integer, MarkIntermediateResult> leftResult, Integer key) {
 		if (leftResult == null || key == null) {
-			return ConstantValue.newNull();
+			return ErrorValue.newErrorValue("Could not find a result");
 		}
 		if (leftResult.containsKey(key)) {
 			return leftResult.get(key);
@@ -402,7 +400,7 @@ public class ExpressionEvaluator {
 			}
 		}
 
-		return ConstantValue.newNull();
+		return ErrorValue.newErrorValue("Could not find a result");
 	}
 
 	/**
@@ -455,7 +453,7 @@ public class ExpressionEvaluator {
 
 				if (!(entry.getValue() instanceof ListValue)) {
 					log.error("Arguments must be a list");
-					result.put(entry.getKey(), ConstantValue.newNull());
+					result.put(entry.getKey(), ErrorValue.newErrorValue("arguments must be a list, are {}", entry.getValue().getClass()));
 					continue;
 				}
 
@@ -488,7 +486,7 @@ public class ExpressionEvaluator {
 			}
 			catch (NumberFormatException nfe) {
 				log.warn("Unable to convert integer literal {}", v, nfe);
-				value = ConstantValue.newNull();
+				value = ErrorValue.newErrorValue("Unable to convert integer literal {}", v, nfe);
 			}
 		} else if (literal instanceof BooleanLiteral) {
 			log.debug("Literal is Boolean: {}", v);
@@ -498,7 +496,7 @@ public class ExpressionEvaluator {
 			value = ConstantValue.of(Utils.stripQuotedString(v));
 		} else {
 			log.warn("Unknown literal encountered: {}", v);
-			value = ConstantValue.newNull();
+			value = ErrorValue.newErrorValue("Unknown literal encountered: {}", v);
 		}
 
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
@@ -530,10 +528,10 @@ public class ExpressionEvaluator {
 			Object left = leftBoxed.getValue();
 			Object right = rightBoxed.getValue();
 
-			if (ConstantValue.isNull(leftBoxed) || ConstantValue.isNull(rightBoxed)) {
+			if (ConstantValue.isError(leftBoxed) || ConstantValue.isError(rightBoxed)) {
 
 				// result of expr is not known
-				combinedResult.put(key, ConstantValue.newNull());
+				combinedResult.put(key, ErrorValue.newErrorValue("cannot multiply expressions, left or right expression has errors"));
 			} else {
 
 				Class leftResultType = left.getClass();
@@ -543,7 +541,9 @@ public class ExpressionEvaluator {
 					log.warn("Type of left expression does not match type of right expression: {} vs {}",
 						leftResultType.getSimpleName(),
 						rightResultType.getSimpleName());
-					combinedResult.put(key, ConstantValue.newNull());
+					combinedResult.put(key, ErrorValue.newErrorValue("Type of left expression does not match type of right expression: {} vs {}",
+						leftResultType.getSimpleName(),
+						rightResultType.getSimpleName()));
 				}
 
 				Object unboxedResult;
@@ -557,7 +557,8 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Float) left * (Float) right);
 						} else {
 							log.warn("Multiplication operator multiplication ('*') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.newNull();
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator multiplication ('*') not supported for type: {}",
+								leftResultType.getSimpleName());
 						}
 						break;
 					case "/":
@@ -567,7 +568,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Float) left / (Float) right);
 						} else {
 							log.warn("Multiplication operator division ('/') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.newNull();
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator division ('/') not supported for type: {}", leftResultType.getSimpleName());
 						}
 						break;
 					case "%":
@@ -575,7 +576,8 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left % (Integer) right);
 						} else {
 							log.warn("Multiplication operator remainder ('%') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.newNull();
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator remainder ('%') not supported for type: {}",
+								leftResultType.getSimpleName());
 						}
 						break;
 					case "<<":
@@ -584,11 +586,12 @@ public class ExpressionEvaluator {
 								unboxedResult = ((Integer) left << (Integer) right);
 							} else {
 								log.warn("Left shift operator supports only non-negative integers as its right operand");
-								unboxedResult = ConstantValue.newNull();
+								unboxedResult = ErrorValue.newErrorValue("Left shift operator supports only non-negative integers as its right operand");
 							}
 						} else {
 							log.warn("Multiplication operator left shift ('<<') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.newNull();
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator left shift ('<<') not supported for type: {}",
+								leftResultType.getSimpleName());
 						}
 						break;
 					case ">>":
@@ -597,11 +600,12 @@ public class ExpressionEvaluator {
 								unboxedResult = ((Integer) left >> (Integer) right);
 							} else {
 								log.warn("Right shift operator supports only non-negative integers as its right operand");
-								unboxedResult = ConstantValue.newNull();
+								unboxedResult = ErrorValue.newErrorValue("Right shift operator supports only non-negative integers as its right operand");
 							}
 						} else {
 							log.warn("Multiplication operator right shift ('>>') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.newNull();
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator right shift ('>>') not supported for type: {}",
+								leftResultType.getSimpleName());
 						}
 						break;
 					case "&":
@@ -609,7 +613,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left & (Integer) right);
 						} else {
 							log.warn("Addition operator bitwise and ('&') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.newNull();
+							unboxedResult = ErrorValue.newErrorValue("Addition operator bitwise and ('&') not supported for type: {}", leftResultType.getSimpleName());
 						}
 						break;
 					case "&^":
@@ -617,12 +621,12 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left & ~(Integer) right);
 						} else {
 							log.warn("Addition operator bitwise or ('|') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ConstantValue.newNull();
+							unboxedResult = ErrorValue.newErrorValue("Addition operator bitwise or ('|') not supported for type: {}", leftResultType.getSimpleName());
 						}
 						break;
 					default:
 						log.error("Unsupported expression {}", op);
-						unboxedResult = ConstantValue.newNull();
+						unboxedResult = ErrorValue.newErrorValue("Unsupported expression {}", op);
 				}
 				ConstantValue cv = ConstantValue.of(unboxedResult);
 				cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
@@ -654,7 +658,7 @@ public class ExpressionEvaluator {
 						continue; // do not change anything
 					} else {
 						log.warn("Unary operator plus sign ('+') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ConstantValue.newNull();
+						unboxedResult = ErrorValue.newErrorValue("Unary operator plus sign ('+') not supported for type: {}", subExprResultType.getSimpleName());
 					}
 					break;
 				case "-":
@@ -664,7 +668,7 @@ public class ExpressionEvaluator {
 						unboxedResult = -((Float) value);
 					} else {
 						log.warn("Unary operator minus sign ('-') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ConstantValue.newNull();
+						unboxedResult = ErrorValue.newErrorValue("Unary operator minus sign ('-') not supported for type: {}", subExprResultType.getSimpleName());
 					}
 					break;
 				case "!":
@@ -672,7 +676,7 @@ public class ExpressionEvaluator {
 						unboxedResult = !((Boolean) value);
 					} else {
 						log.warn("Unary operator logical not ('!') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ConstantValue.newNull();
+						unboxedResult = ErrorValue.newErrorValue("Unary operator logical not ('!') not supported for type: {}", subExprResultType.getSimpleName());
 					}
 					break;
 				case "^":
@@ -680,12 +684,12 @@ public class ExpressionEvaluator {
 						unboxedResult = ~((Integer) value);
 					} else {
 						log.warn("Unary operator bitwise complement ('~') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ConstantValue.newNull();
+						unboxedResult = ErrorValue.newErrorValue("Unary operator bitwise complement ('~') not supported for type: {}", subExprResultType.getSimpleName());
 					}
 					break;
 				default:
 					log.warn("Trying to evaluate unknown unary expression: " + ExpressionHelper.exprToString(expr));
-					unboxedResult = ConstantValue.newNull();
+					unboxedResult = ErrorValue.newErrorValue("Trying to evaluate unknown unary expression: " + ExpressionHelper.exprToString(expr));
 			}
 			ConstantValue cv = ConstantValue.of(unboxedResult);
 			cv.addResponsibleVerticesFrom(valueBoxed);

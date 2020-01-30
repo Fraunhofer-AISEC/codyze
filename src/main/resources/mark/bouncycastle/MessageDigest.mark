@@ -1,0 +1,36 @@
+package java.jca
+
+entity MessageDigest {
+    
+    var algorithm;
+    var provider;
+    var input;
+    var digest;
+    
+    op create {
+        java.security.MessageDigest.getInstance(algorithm : java.lang.String);
+        java.security.MessageDigest.getInstance(
+            algorithm : java.lang.String,
+            provider : java.lang.String | java.security.Provider
+        );
+    }
+    
+    op update {
+        java.security.MessageDigest.update(input : byte | byte[] | ByteBuffer);
+        java.security.MessageDigest.update(
+            input : byte[],
+            ...
+        );
+    }
+    
+    op digest {
+        digest = java.security.MessageDigest.digest();
+        digest = java.security.MessageDigest.digest(input : byte[]);
+        java.security.MessageDigest.digest(digest : byte[], ...);
+    }
+    
+    op reset {
+        java.security.MessageDigest.reset();
+    }
+    
+}

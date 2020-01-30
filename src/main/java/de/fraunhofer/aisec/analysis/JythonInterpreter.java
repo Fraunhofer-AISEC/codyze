@@ -1,15 +1,19 @@
 
 package de.fraunhofer.aisec.analysis;
 
+import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.python.util.InteractiveConsole;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Main class for the interactive Codyze console.
@@ -31,6 +35,9 @@ public class JythonInterpreter implements AutoCloseable {
 
 	// store last result
 	private TranslationResult lastTranslationResult = null;
+
+	@NonNull
+	private Set<Finding> findings = new HashSet<>();
 
 	/** Connect to the graph database and initialize the internal Jython engine. */
 	public void connect() {
@@ -96,15 +103,20 @@ public class JythonInterpreter implements AutoCloseable {
 		this.engine.getBindings(ScriptContext.ENGINE_SCOPE).remove("crymlin"); // Trav. source of crymlin
 	}
 
-	public void setResult(TranslationResult translationResult) {
-		this.lastTranslationResult = translationResult;
-	}
-
 	public TranslationResult getLastResult() {
 		return lastTranslationResult;
 	}
 
 	public ScriptEngine getEngine() {
 		return engine;
+	}
+
+	public void setFindings(@NonNull Set<Finding> findings) {
+		this.findings = findings;
+	}
+
+	@NonNull
+	public Set<Finding> getFindings() {
+		return this.findings;
 	}
 }

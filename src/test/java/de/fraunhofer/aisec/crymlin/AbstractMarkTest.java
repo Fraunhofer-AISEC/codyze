@@ -8,7 +8,6 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -21,13 +20,12 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class AbstractMarkTest {
 
 	protected TranslationManager translationManager;
 	protected AnalysisServer server;
-	protected TranslationResult translationResult;
+	protected AnalysisContext ctx;
 	protected TYPESTATE_ANALYSIS TYPESTATEANALYSIS = TYPESTATE_ANALYSIS.NFA;
 
 	Set<Finding> performTest(String sourceFileName) throws Exception {
@@ -75,16 +73,15 @@ public class AbstractMarkTest {
 							.sourceFiles(javaFile)
 							.build())
 				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		CompletableFuture<AnalysisContext> analyze = server.analyze(translationManager);
 		try {
-			translationResult = analyze.get(5, TimeUnit.MINUTES);
+			ctx = analyze.get(5, TimeUnit.MINUTES);
 		}
 		catch (TimeoutException t) {
 			analyze.cancel(true);
 			throw t;
 		}
 
-		AnalysisContext ctx = (AnalysisContext) translationResult.getScratch().get("ctx");
 		assertNotNull(ctx);
 		assertTrue(ctx.methods.isEmpty());
 

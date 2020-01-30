@@ -1,16 +1,15 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.cpgpasses.StatementsPerMethodPass;
+import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.Method;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.cpgpasses.StatementsPerMethodPass;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.analysis.structures.Method;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 public class AnalysisServerQueriesTest {
 
 	private static AnalysisServer server;
-	private static TranslationResult result;
+	private static AnalysisContext result;
 
 	@BeforeAll
 	public static void startup() throws Exception {
@@ -65,7 +64,7 @@ public class AnalysisServerQueriesTest {
 
 		// Start the analysis
 		TranslationManager translationManager = newJavaAnalysisRun(javaFile);
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		CompletableFuture<AnalysisContext> analyze = server.analyze(translationManager);
 		try {
 			result = analyze.get(5, TimeUnit.MINUTES);
 		}
@@ -85,7 +84,7 @@ public class AnalysisServerQueriesTest {
 	@Test
 	public void contextTest() {
 		// Get analysis context from scratch
-		AnalysisContext ctx = (AnalysisContext) AnalysisServerQueriesTest.result.getScratch().get("ctx");
+		AnalysisContext ctx = AnalysisServerQueriesTest.result;
 
 		// We expect at least some methods
 		assertNotNull(ctx);

@@ -1,14 +1,13 @@
 
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.Pair;
+import de.fraunhofer.aisec.cpg.TranslationConfiguration;
+import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -89,17 +88,11 @@ public class CpgDocumentService implements TextDocumentService {
 					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(file).build())
 				.build();
 
-		CompletableFuture<TranslationResult> analyze = instance.analyze(tm);
+		CompletableFuture<AnalysisContext> analyze = instance.analyze(tm);
 
 		try {
-			TranslationResult result = analyze.get(5, TimeUnit.MINUTES);
+			AnalysisContext ctx = analyze.get(5, TimeUnit.MINUTES);
 
-			AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-
-			if (ctx == null) {
-				log.error("ctx is null. Did the analysis run without errors?");
-				return;
-			}
 			log.info(
 				"Analysis for {} done. Returning {} findings. Took {} ms\n-------------------------------------------------------------------",
 				uriString,

@@ -1,13 +1,13 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.TestAppender;
+import de.fraunhofer.aisec.cpg.TranslationConfiguration;
+import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.AfterAll;
@@ -152,9 +152,9 @@ class GithubTest {
 				.build();
 
 		boolean hasError = false;
-		CompletableFuture<TranslationResult> analyze = server.analyze(tm);
+		CompletableFuture<AnalysisContext> analyze = server.analyze(tm);
 		try {
-			TranslationResult result = analyze.get(30, TimeUnit.MINUTES);
+			AnalysisContext result = analyze.get(30, TimeUnit.MINUTES);
 
 			assertNotNull(result);
 			//      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");

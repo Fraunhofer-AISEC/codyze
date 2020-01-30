@@ -46,10 +46,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -74,6 +71,8 @@ public class AnalysisServer {
 	private JythonInterpreter interp;
 
 	private CpgLanguageServer lsp;
+
+	private TranslationResult translationResult;
 
 	private Mark markModel = new Mark();
 
@@ -157,14 +156,14 @@ public class AnalysisServer {
 	 * @param analyzer the translationmanager to analyze
 	 * @return the Future for this analysis
 	 */
-	public CompletableFuture<TranslationResult> analyze(TranslationManager analyzer) {
+	public CompletableFuture<AnalysisContext> analyze(TranslationManager analyzer) {
 
 		/*
 		 * Create analysis context and register at all passes supporting contexts. An analysis context is an in-memory data structure that can be used to exchange data
 		 * across passes outside of the actual CPG.
 		 */
 
-		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceFiles().get(0).toURI()); // NOTE: We currently operate on a single source file.
+		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceLocations().get(0).toURI()); // NOTE: We currently operate on a single source file.
 		for (Pass p : analyzer.getPasses()) {
 			if (p instanceof PassWithContext) {
 				((PassWithContext) p).setContext(ctx);
@@ -177,6 +176,7 @@ public class AnalysisServer {
 					result -> {
 						// Attach analysis context to result
 						result.getScratch().put("ctx", ctx);
+						translationResult = result;
 						return persistToODB(result);
 					})
 				.thenApply(
@@ -196,7 +196,8 @@ public class AnalysisServer {
 							this.markModel.getRules().size());
 						// Evaluate all MARK rules
 						Evaluator mi = new Evaluator(this.markModel, this.config);
-						return mi.evaluate(result, ctx);
+						mi.evaluate(result, ctx);
+						return ctx;
 					});
 	}
 
@@ -288,13 +289,16 @@ public class AnalysisServer {
 		if (lsp != null) {
 			lsp.shutdown();
 		}
-		markModel = null;
 
 		log.info("stop.");
 	}
 
 	public CpgLanguageServer getLSP() {
 		return lsp;
+	}
+
+	public TranslationResult getTranslationResult() {
+		return translationResult;
 	}
 
 	@Deprecated
@@ -414,7 +418,7 @@ public class AnalysisServer {
 		log.info("Done importing");
 	}
 
-	public CompletableFuture<TranslationResult> analyze(String url) {
+	public CompletableFuture<AnalysisContext> analyze(String url) {
 		List<File> files = new ArrayList<>();
 		File f = new File(url);
 		if (f.isDirectory()) {

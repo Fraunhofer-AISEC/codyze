@@ -1,7 +1,7 @@
 package botan
 
 
-entity Botan.Cipher_Mode {
+entity Cipher_Mode {
 	
 	var algorithm;
 	var symkey : Botan.SymmetricKey; 
@@ -26,8 +26,13 @@ entity Botan.Cipher_Mode {
 		We allow secure vector because real world examples seem to use it
 		*/
 		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir);
-		Botan::get_cipher(algorithm: std::string, symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>, iv: Botan::InitializationVector | Botan::secure_vector<uint8_t>, direction: Botan::Cipher_Dir)
-		Botan::get_cipher(algorithm: std::string, symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>, direction: Botan::Cipher_Dir)
+		Botan::get_cipher(
+		    algorithm: std::string,
+		     symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>,
+		     iv: Botan::InitializationVector | Botan::secure_vector<uint8_t>,
+		     direction: Botan::Cipher_Dir
+		);
+		Botan::get_cipher(algorithm: std::string, symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>, direction: Botan::Cipher_Dir);
 		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir, provider);
 	}
 
@@ -35,7 +40,7 @@ entity Botan.Cipher_Mode {
 		Botan::Cipher_Mode::set_key(symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>);
 		forbidden Botan::Cipher_Mode::set_key(_, _);
 
-		Botan::Keyed_Filter::set_key(symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>)
+		Botan::Keyed_Filter::set_key(symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>);
 	}
 
 	op start {
@@ -72,9 +77,10 @@ entity Botan.Cipher_Mode {
 }
 
 
-rule order {
-	using Botan.Cipher_Mode as cm
-	ensure order //TODO: don't know correct order because when cipher mode is created with iv and key then we dont need to initialize it
+rule Order {
+	// using Botan.Cipher_Mode as cm TODO MARK: allow fq-names for MARK entities
+    using Cipher_Mode as cm
+	ensure order cm.a() //TODO: don't know correct order because when cipher mode is created with iv and key then we dont need to initialize it
 	onfail WrongOrder
 }
 

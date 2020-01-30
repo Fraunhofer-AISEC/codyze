@@ -342,7 +342,6 @@ public class ExpressionEvaluator {
 
 					log.debug("left result={} right result={}", left, right);
 
-					// TODO implement remaining operations -> @FW: which operations are supported?
 					ConstantValue cv;
 					switch (op) {
 						case "==":

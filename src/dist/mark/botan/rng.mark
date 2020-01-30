@@ -1,6 +1,6 @@
 package botan
 
-entity Botan.AutoSeeded_RNG {
+entity AutoSeeded_RNG {
 	var random_data;
 	var random_data_len;
 
@@ -68,19 +68,19 @@ rule CheckIfSeeded {
 }
 */
 
-entity Botan.HMAC_DRBG {
+entity HMAC_DRBG {
 }
 
-entity Botan.ChaCha_RNG {
+entity ChaCha_RNG {
 }
 
-entity Botan.RDRAND_RNG {
+entity RDRAND_RNG {
 }
 
-entity Botan.TPM_RNG {
+entity TPM_RNG {
 }
 
-entity Botan.PKCS11_RNG {
+entity PKCS11_RNG {
 }
 
 

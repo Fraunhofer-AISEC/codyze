@@ -38,11 +38,6 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 		return traversal.has("type", VariableDeclaration.class.getSimpleName());
 	}
 
-	// FIXME names of functions are '<namespace>::<function name>'
-	// Thus, we would need to search for labels with the fully qualified name.
-	// I think C++ discourages the use of namespace names as class/struct names. We could "interpret"
-	// namespaces as "types".
-
 	/**
 	 * Returns function and method calls.
 	 *

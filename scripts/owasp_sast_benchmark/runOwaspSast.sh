@@ -14,3 +14,10 @@ if  [ ! -d $WORKING_DIR ]; then
 	echo "Unzipping ..."
 	unzip master.zip -d $WORKING_DIR
 fi
+
+export JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.lang=ALL-UNNAMED"
+export JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.lang.reflect=ALL-UNNAMED"
+export JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.util=ALL-UNNAMED"
+export JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED"
+
+JAVA_OPTS=$JAVA_OPTS ../../build/install/codyze/bin/codyze -c -s=$WORKING_DIR/Benchmark-master/src/main/java/ -m=../../../src/test/resources/mark_java/

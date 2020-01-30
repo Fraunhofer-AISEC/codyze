@@ -26,12 +26,8 @@ public class ConstantValue extends MarkIntermediateResult {
 
 	private Set<Vertex> responsibleVertices = new HashSet<>();
 
-	public static boolean isNull(Object value) {
-		return value instanceof ConstantValue && ((ConstantValue) value).isNull();
-	}
-
-	public static ConstantValue newNull() {
-		return new ConstantValue("", Type.NULL);
+	public static boolean isError(Object o) {
+		return o instanceof ErrorValue;
 	}
 
 	public static Object unbox(Object value) {
@@ -42,11 +38,15 @@ public class ConstantValue extends MarkIntermediateResult {
 		}
 	}
 
-	private enum Type {
-		NUMERIC, BOOLEAN, STRING, NULL, UNKNOWN
+	public static MarkIntermediateResult newUninitialized() {
+		return new ConstantValue("", Type.UNINITIALIZED);
 	}
 
-	private ConstantValue(@NonNull Object value, @NonNull Type type) {
+	protected enum Type {
+		NUMERIC, BOOLEAN, STRING, ERROR, UNINITIALIZED
+	}
+
+	protected ConstantValue(@NonNull Object value, @NonNull Type type) {
 		super(ResultType.SINGLEVALUE);
 		this.value = value;
 		this.type = type;
@@ -119,10 +119,6 @@ public class ConstantValue extends MarkIntermediateResult {
 
 	public boolean isString() {
 		return this.type.equals(Type.STRING);
-	}
-
-	public boolean isNull() {
-		return this.type.equals(Type.NULL);
 	}
 
 	@Override

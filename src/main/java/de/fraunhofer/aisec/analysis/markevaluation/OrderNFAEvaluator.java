@@ -1,12 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.analysis.structures.Pair;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
@@ -76,23 +71,23 @@ public class OrderNFAEvaluator {
 
 		if (markInstances.size() > 1) {
 			log.warn("Order statement contains more than one base. Not supported.");
-			return ConstantValue.newNull();
+			return ErrorValue.newErrorValue("Order statement contains more than one base. Not supported.");
 		}
 		if (markInstances.size() == 0) {
 			log.warn("Order statement does not contain any ops. Invalid order");
-			return ConstantValue.newNull();
+			return ErrorValue.newErrorValue("Order statement does not contain any ops. Invalid order");
 		}
 
 		Vertex variableDecl = instanceContext.getVertex(markInstances.iterator().next());
 		if (variableDecl == null) {
 			log.warn("Variable is not set in the instancecontext. Invalid evaluation.");
-			return ConstantValue.newNull();
+			return ErrorValue.newErrorValue("Variable is not set in the instancecontext. Invalid evaluation.");
 		}
 
 		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
 		if (containingFunction.isEmpty()) {
 			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
-			return ConstantValue.newNull();
+			return ErrorValue.newErrorValue("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
 		}
 
 		Vertex functionDeclaration = containingFunction.get();
@@ -117,7 +112,7 @@ public class OrderNFAEvaluator {
 
 		if (verticesToOp.isEmpty()) {
 			log.info("no nodes match this rule. Skipping rule.");
-			return ConstantValue.newNull();
+			return ErrorValue.newErrorValue("no nodes match this rule. Skipping rule.");
 		}
 
 		// collect all instances used in this order
@@ -129,7 +124,7 @@ public class OrderNFAEvaluator {
 			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
 				log.error("alias {} is not referenced in this rule {}", alias, rule.getName());
-				return ConstantValue.newNull();
+				return ErrorValue.newErrorValue("alias {} is not referenced in this rule {}", alias, rule.getName());
 			}
 			referencedVertices.add(v.id());
 		}

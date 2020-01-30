@@ -450,13 +450,11 @@ public class CrymlinQueryWrapper {
 				if (!constantValue.isEmpty()) {
 					ret.addAll(constantValue.stream().map(cv -> new CPGVertexWithValue(v, cv)).collect(Collectors.toSet()));
 				} else {
-					//TODO JS -> DT:  Why do we need to return a NULL value if not resolved successfully? Why not empty List?
-					ret.add(new CPGVertexWithValue(v, ConstantValue.newNull()));
+					ret.add(new CPGVertexWithValue(v, ErrorValue.newErrorValue("could not resolve {}", markVar)));
 				}
 			} else {
 				log.info("Cannot resolve concrete value of a node that is not a DeclaredReferenceExpression or a Literal: " + v.label() + " Returning NULL");
-				//TODO JS -> DT:  Why do we need to return a NULL value if not resolved successfully? Why not empty List?
-				CPGVertexWithValue mva = new CPGVertexWithValue(v, ConstantValue.newNull());
+				CPGVertexWithValue mva = new CPGVertexWithValue(v, ErrorValue.newErrorValue("could not resolve {}", markVar));
 				ret.add(mva);
 			}
 		}

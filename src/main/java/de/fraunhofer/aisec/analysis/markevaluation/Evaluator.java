@@ -227,8 +227,8 @@ public class Evaluator {
 						ranges,
 						isRuleViolated));
 				}
-			} else if (value == null || ConstantValue.isNull(value) || ConstantValue.isNull(entry.getValue())) {
-				log.warn("Unable to evaluate rule {}, result was null", rule.getName());
+			} else if (value == null || ConstantValue.isError(value) || ConstantValue.isError(entry.getValue())) {
+				log.warn("Unable to evaluate rule {}, result had an error", rule.getName());
 			} else {
 				log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
 			}
@@ -258,7 +258,7 @@ public class Evaluator {
 
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 				Object value = ConstantValue.unbox(entry.getValue());
-				if (value == null || ConstantValue.isNull(value)) {
+				if (value == null || ConstantValue.isError(value)) {
 					log.warn("Unable to evaluate when-part of rule {}, result was null", rule.getName());
 					continue;
 				} else if (!(value instanceof Boolean)) {

@@ -38,7 +38,7 @@ public class ConstantValue extends MarkIntermediateResult {
 		}
 	}
 
-	public static MarkIntermediateResult newUninitialized() {
+	public static ConstantValue newUninitialized() {
 		return new ConstantValue("", Type.UNINITIALIZED);
 	}
 
@@ -143,6 +143,10 @@ public class ConstantValue extends MarkIntermediateResult {
 
 	public void addResponsibleVertices(Collection<Vertex> responsibleVertices) {
 		this.responsibleVertices.addAll(responsibleVertices);
+	}
+
+	public void addResponsibleVertices(Vertex... responsibleVertices) {
+		this.responsibleVertices.addAll(Arrays.asList(responsibleVertices));
 	}
 
 	public void addResponsibleVerticesFrom(ConstantValue... other) {

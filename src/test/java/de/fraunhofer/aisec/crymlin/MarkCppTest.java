@@ -138,25 +138,6 @@ public class MarkCppTest extends AbstractMarkTest {
 
 	}
 
-	@Test
-	public void split_1() throws Exception {
-		Set<Finding> findings = performTest("mark_cpp/simplesplit_splitstring.cpp", "mark_cpp/splitstring.mark");
-
-		expected(findings,
-			"line 26: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES violated",
-			"line 17: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES verified",
-			"line 17: MarkRuleEvaluationFinding: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST violated",
-			"line 26: MarkRuleEvaluationFinding: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST verified");
-	}
-
-	@Test
-	public void is_instance_1() throws Exception {
-		Set<Finding> findings = performTest("mark_cpp/simple_instancestring.cpp", "mark_cpp/instancestring.mark");
-
-		expected(findings,
-			"line 17: MarkRuleEvaluationFinding: Rule HasBeenCalled verified");
-	}
-
 	@Disabled // TODO currently unsupported feature
 	@Test
 	public void arg_prevassignop_int() throws Exception {
@@ -208,24 +189,4 @@ public class MarkCppTest extends AbstractMarkTest {
 			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
-	private void expected(Set<Finding> findings, String... expectedFindings) {
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
-
-		for (String expected : expectedFindings) {
-			assertEquals(1, findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
-			Optional<Finding> first = findings.stream().filter(f -> f.toString().equals(expected)).findFirst();
-			findings.remove(first.get());
-		}
-		if (findings.size() > 0) {
-			System.out.println("Additional Findings:");
-			for (Finding f : findings) {
-				System.out.println(f.toString());
-			}
-		}
-
-		assertEquals(0, findings.size());
-	}
 }

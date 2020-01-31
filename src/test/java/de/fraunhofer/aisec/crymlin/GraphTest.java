@@ -1,16 +1,15 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 /** Tests structure of CPG generated from "real" source files. */
 class GraphTest {
-	static TranslationResult result;
+	static AnalysisContext result;
 	static AnalysisServer server;
 
 	@BeforeAll
@@ -61,7 +60,7 @@ class GraphTest {
 				.config(
 					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
 				.build();
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		CompletableFuture<AnalysisContext> analyze = server.analyze(translationManager);
 		try {
 			result = analyze.get(5, TimeUnit.MINUTES);
 		}
@@ -70,7 +69,7 @@ class GraphTest {
 			throw t;
 		}
 
-		AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+		AnalysisContext ctx = result;
 		assertNotNull(ctx);
 		assertTrue(ctx.methods.isEmpty());
 	}

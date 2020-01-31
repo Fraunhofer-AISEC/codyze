@@ -7,7 +7,7 @@ import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
+import de.fraunhofer.aisec.analysis.structures.TypestateMode;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
@@ -58,7 +58,7 @@ public class RuleEnsureSemanticsTest {
 		assertEquals(1, markFilePaths.size());
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
-		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TYPESTATE_ANALYSIS.NFA).build();
+		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
 		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)));
 
 		Map<String, Map<Integer, MarkIntermediateResult>> allResults = new TreeMap<>();

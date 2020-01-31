@@ -2,73 +2,123 @@
 package de.fraunhofer.aisec.analysis;
 
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
-import org.apache.commons.cli.*;
+import de.fraunhofer.aisec.analysis.structures.TypestateMode;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
+import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 /** Start point of the standalone analysis server. */
-public class Main {
-
+@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+public class Main implements Callable<Integer> {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-	//  static {
-	//    // bridge java.util.logging to slf4j
-	//    // we do this here and in the Analysisserver, as both can be the entrypoint (Main for normal
-	//    // start, Analysserver for tests)
-	//    log.debug("Resetting logging handlers (log4j, jul)");
-	//    SLF4JBridgeHandler.removeHandlersForRootLogger(); // (since SLF4J 1.6.5)
-	//    SLF4JBridgeHandler.install();
-	//  }
+	@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
+	private ExecutionMode executionMode;
+
+	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
+	private AnalysisMode analysisModeMode;
+
+	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
+	private File analysisInput;
+
+	@Option(names = { "-m",
+			"--mark" }, paramLabel = "<path>", description = "Load MARK policy files from folder", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+	private File markFolderName;
+
+	@Option(names = { "-o",
+			"--output" }, paramLabel = "<file>", description = "Write results to file. Use -- for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+	private File outputFile;
+
+	@Option(names = {
+			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
+	private long timeout;
 
 	public static void main(String... args) {
+		int exitCode = new CommandLine(new Main()).execute(args);
+		System.exit(exitCode);
+	}
+
+	@Override
+	public Integer call() throws Exception {
 		Instant start = Instant.now();
-		log.info("Analysis server starting");
-
-		Options options = new Options();
-
-		Option input = new Option("lsp", false, "Start in lsp mode");
-		input.setRequired(false);
-		options.addOption(input);
-
-		Option markoption = new Option("mark", true, "Folder to mark files, or one mark file to be loaded");
-		markoption.setRequired(false);
-		options.addOption(markoption);
-
-		CommandLineParser parser = new BasicParser();
-		HelpFormatter formatter = new HelpFormatter();
-		CommandLine cmd;
-
-		boolean lsp = false;
-		String markFolderName = null;
-
-		try {
-			cmd = parser.parse(options, args);
-			lsp = cmd.hasOption("lsp");
-			markFolderName = cmd.getOptionValue("mark"); // can be a folder or a file
-		}
-		catch (ParseException e) {
-			System.out.println(e.getMessage());
-			formatter.printHelp("cpganalysisserver", options);
-			System.exit(1);
-		}
-
-		if (markFolderName != null) {
-			log.info("Loading MARK files from {}", markFolderName);
-		} else {
-			log.info("Do not load any MARK files.");
-		}
 
 		AnalysisServer server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder().launchLsp(lsp).launchConsole(!lsp).markFiles(markFolderName).build())
+				.config(ServerConfiguration.builder()
+						.launchLsp(executionMode.lsp)
+						.launchConsole(executionMode.tui)
+						.markFiles(markFolderName.getAbsolutePath())
+						.build())
 				.build();
 
 		server.start();
-		log.info(
-			"Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
+		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
+
+		if (analysisInput != null) {
+			log.info("Analyzing {}", analysisInput);
+			AnalysisContext ctx = server.analyze(analysisInput.getAbsolutePath())
+					.get(timeout, TimeUnit.MINUTES);
+
+			writeFindings(ctx.getFindings());
+		}
+
+		return 0;
 	}
+
+	private void writeFindings(Set<Finding> findings) {
+		StringBuilder sb = new StringBuilder();
+		for (Finding f : findings) {
+			JSONObject jFinding = new JSONObject(f);
+			sb.append(jFinding.toString(2));
+		}
+
+		if (outputFile.getName().equals("--")) {
+			System.out.println(sb.toString());
+		} else {
+			//TODO Write to output file
+			throw new RuntimeException("Writing to file not implemented yet");
+		}
+
+	}
+}
+
+/**
+ * Codyze runs in any of three modes:
+ *
+ * CLI: Non-interactive command line client. Accepts arguments from command line and runs analysis.
+ *
+ * LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE support.
+ *
+ * TUI: The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries.
+ */
+class ExecutionMode {
+	@Option(names = "-c", required = true, description = "Start in command line mode.")
+	boolean cli;
+	@Option(names = "-l", required = true, description = "Start in language server protocol (LSP) mode.")
+	boolean lsp;
+	@Option(names = "-t", required = true, description = "Start interactive console (Text-based User Interface).")
+	boolean tui;
+}
+
+class AnalysisMode {
+
+	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
+	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
+	private TypestateMode tsMode;
+
+	@Option(names = { "--interproc" }, description = "Enables interprocedural data flow analysis (more precise but slower).")
+	private boolean interproc;
+
 }

@@ -2,7 +2,7 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
+import de.fraunhofer.aisec.analysis.structures.TypestateMode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OrderTestInterproc extends AbstractMarkTest {
 
 	OrderTestInterproc() {
-		TYPESTATEANALYSIS = TYPESTATE_ANALYSIS.WPDS;
+		tsMode = TypestateMode.WPDS;
 	}
 
 	@Test

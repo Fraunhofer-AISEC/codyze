@@ -1,36 +1,15 @@
 ---
-title: "Writing MARK Policies"
-linkTitle: "Writing MARK Policies"
+title: "Write MARK Policies"
+linkTitle: "Write MARK Policies"
 weight: 2
 description: >
-  Using MARK policies to model security-critical libraries.
+  MARK is a policy language to describe the correct and safe use of cryptographic libraries.
 ---
 
-{{% pageinfo %}}
-This is a placeholder page that shows you how to use this template site.
-{{% /pageinfo %}}
+Codyze parses source code and checks it for compliance with predefined policies. These policies are written in a domain-specific language called _MARK_ and describe the correct and expected use of security-critical APIs. For example, a correct usage of cryptographic libraries will require certain key lengths, cryptographic primitives, and a certain order of API calls.
 
-Information in this section helps your user try your project themselves.
+Codyze comes with a set of MARK policies for the _Botan_ (C++) and _Bouncycastle_ (Java) libraries, but MARK policies can be added anytime and are not necessarily limited to cryptographic libraries.
 
-* What do your users need to do to start using your project? This could include downloading/installation instructions, including any prerequisites or system requirements.
+While MARK policies are simple text files and can be created with any text editor, we recommend [installing the Eclipse plugin](installation) which comes with syntax highlighting and code completion for editing MARK files.
 
-* Introductory “Hello World” example, if appropriate. More complex tutorials should live in the Tutorials section.
-
-Consider using the headings below for your getting started page. You can delete any that are not applicable to your project.
-
-## Prerequisites
-
-Are there any system requirements for using your project? What languages are supported (if any)? Do users need to already have any software or tools installed?
-
-## Installation
-
-Where can your user find your project code? How can they install it (binaries, installable package, build from source)? Are there multiple options/versions they can install and how should they choose the right one for them?
-
-## Setup
-
-Is there any initial setup users need to do after installation to try your project?
-
-## Try it out!
-
-Can your users test their installation, for example by running a commmand or deploying a Hello World example?
-
+MARK policies are separated into _Entities_ and _Rules_. Entities describe and group API functions at an abstract level and declare MARK variables that refer to function arguments or return values. Rules describe the expected usage of these entities. A violation of a rule will result in a _Finding_ and shown as a warning or error in the developer's IDE.

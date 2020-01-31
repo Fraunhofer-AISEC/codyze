@@ -4,7 +4,6 @@ package de.fraunhofer.aisec.analysis.structures;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
-import java.net.URI;
 import java.util.*;
 
 public class AnalysisContext {

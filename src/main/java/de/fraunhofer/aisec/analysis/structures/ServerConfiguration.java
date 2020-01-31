@@ -2,6 +2,8 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {
@@ -13,19 +15,21 @@ public class ServerConfiguration {
 	public final boolean launchLsp;
 
 	/** Directory or file with MARK entities/rules. */
+	@Nullable
 	public final String markModelFiles;
 
 	/** Which type of typestate analysis do we want? */
-	public final TYPESTATE_ANALYSIS typestateAnalysis;
+	@NonNull
+	public final TypestateMode typestateAnalysis;
 
 	// should we export the data to neo4j
 	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = true;
 
-	private ServerConfiguration(boolean launchConsole, boolean launchLsp, String markModelFiles, TYPESTATE_ANALYSIS typestateAnalysis) {
+	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
-		this.typestateAnalysis = typestateAnalysis;
+		this.typestateAnalysis = typestateMode;
 	}
 
 	public static Builder builder() {
@@ -35,8 +39,9 @@ public class ServerConfiguration {
 	public static class Builder {
 		private boolean launchConsole = true;
 		private boolean launchLsp = true;
+		@Nullable
 		private String markModelFiles = ""; // Path of a file or directory
-		private TYPESTATE_ANALYSIS typestateAnalysis = TYPESTATE_ANALYSIS.NFA;
+		private TypestateMode typestateAnalysis = TypestateMode.NFA;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -48,12 +53,12 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder markFiles(String markModelFiles) {
+		public Builder markFiles(@Nullable String markModelFiles) {
 			this.markModelFiles = markModelFiles;
 			return this;
 		}
 
-		public Builder typestateAnalysis(TYPESTATE_ANALYSIS tsAnalysis) {
+		public Builder typestateAnalysis(@NonNull TypestateMode tsAnalysis) {
 			this.typestateAnalysis = tsAnalysis;
 			return this;
 		}

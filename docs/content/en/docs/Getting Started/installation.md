@@ -1,6 +1,6 @@
 ---
-title: "Installation"
-linkTitle: "Installation"
+title: "Install Codyze"
+linkTitle: "Install Codyze"
 weight: 1
 date: 2017-01-05
 description: >
@@ -20,10 +20,7 @@ Download and Install
 
 * Download the zipped analysis server from the [release page](https://github.com/Fraunhofer-AISEC/codyze/releases)
 * Unzip the file
-* Run the `server.bat` (Windows) or `server.sh` (Mac, Linux) script from the unzipped folder to start the analysis server
-* The server will start in console mode and you should see the following banner
-  TODO
-
+* Run `server.bat -l` (Windows) or `server.sh -l` (Mac, Linux) from the unzipped folder to start the analysis server in LSP mode
 
 
 ## Install Eclipse Plugin

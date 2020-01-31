@@ -3,13 +3,13 @@ package de.fraunhofer.aisec.crymlin;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
@@ -38,7 +38,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class OGMTest {
 
-	private static TranslationResult result;
+	private static AnalysisContext result;
+	private static AnalysisServer server;
 
 	@BeforeAll
 	static void setup() throws ExecutionException, InterruptedException {
@@ -50,7 +51,7 @@ public class OGMTest {
 
 		TranslationManager tm = TranslationManager.builder().config(config).build();
 		// Start an analysis server
-		AnalysisServer server = AnalysisServer.builder().config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).build()).build();
+		server = AnalysisServer.builder().config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).build()).build();
 		server.start();
 
 		result = server.analyze(tm).get();
@@ -247,7 +248,7 @@ public class OGMTest {
 
 	@Test
 	void retrieveAllTranslationUnits() throws Exception {
-		List<TranslationUnitDeclaration> original = result.getTranslationUnits();
+		List<TranslationUnitDeclaration> original = server.getTranslationResult().getTranslationUnits();
 		OverflowDatabase.<Node> getInstance().saveAll(original);
 
 		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
@@ -300,7 +301,7 @@ public class OGMTest {
 			server.start();
 
 			result = server.analyze(tm).get();
-			OverflowDatabase.getInstance().saveAll(result.getTranslationUnits());
+			OverflowDatabase.getInstance().saveAll(server.getTranslationResult().getTranslationUnits());
 		}
 	}
 }

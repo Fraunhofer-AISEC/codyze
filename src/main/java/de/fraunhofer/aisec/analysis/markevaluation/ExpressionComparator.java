@@ -35,7 +35,7 @@ public class ExpressionComparator<T> implements Comparator<T> {
 				return ((String) value).compareTo((String) t);
 			}
 		}
-		log.error("Cannot compare " + value + " to " + t);
+		log.error("Cannot compare {} to {}", value, t);
 		return -1;
 	}
 }

@@ -47,7 +47,7 @@ public class SplitBuiltin implements Builtin {
 			return ErrorValue.newErrorValue("One of the arguments was not the expected type");
 		}
 
-		log.debug("args are: " + s + "; " + regex + "; " + index);
+		log.debug("args are: {}; {}; {}", s, regex, index);
 		String ret = null;
 		String[] splitted = s.split(regex);
 		if (index.intValue() < splitted.length) {

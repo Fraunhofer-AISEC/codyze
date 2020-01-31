@@ -5,6 +5,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * Representation of a hardcoded constant.
  *
@@ -21,7 +23,6 @@ public class ErrorValue extends ConstantValue {
 	}
 
 	public static ErrorValue newErrorValue(@NonNull String format, Object... args) {
-		;
 		return new ErrorValue("", String.format(format, args));
 	}
 
@@ -39,6 +40,11 @@ public class ErrorValue extends ConstantValue {
 			return false;
 		ErrorValue that = (ErrorValue) o;
 		return description.equals(that.description);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(description);
 	}
 
 }

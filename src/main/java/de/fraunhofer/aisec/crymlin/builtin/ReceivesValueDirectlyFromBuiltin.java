@@ -25,7 +25,7 @@ public class ReceivesValueDirectlyFromBuiltin implements Builtin {
 			MarkContextHolder markContextHolder,
 			ExpressionEvaluator expressionEvaluator) {
 		// TODO implement
-		log.warn("the builtin " + getName() + " is not implemented yet");
+		log.warn("the builtin _receives_value_directly_from is not implemented yet");
 
 		return ErrorValue.newErrorValue("ReceivesValueDirectlyFromBuiltin not implemented yet");
 	}

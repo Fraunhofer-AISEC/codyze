@@ -25,7 +25,7 @@ public class ReceivesValueFromBuiltin implements Builtin {
 			MarkContextHolder markContextHolder,
 			ExpressionEvaluator expressionEvaluator) {
 		// TODO implement
-		log.warn("the builtin " + getName() + " is not implemented yet");
+		log.warn("the builtin _receives_value_from is not implemented yet");
 
 		// TODO FW: needs to be discussed, I am not clear what this should achieve
 		// the example is:

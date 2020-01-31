@@ -72,7 +72,7 @@ public class TypeStateAnalysis {
 	public ConstantValue analyze(OrderExpression orderExpr, Integer contextID, AnalysisContext ctx,
 			CrymlinTraversalSource crymlinTraversal,
 			MRule rule) throws IllegalTransitionException {
-		log.info("Typestate analysis starting for " + ctx + " and " + crymlinTraversal);
+		log.info("Typestate analysis starting for {} and {}", ctx, crymlinTraversal);
 
 		CPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 
@@ -100,7 +100,7 @@ public class TypeStateAnalysis {
 
 		/* Create typestate NFA, representing the regular expression of a MARK typestate rule. */
 		NFA tsNFA = NFA.of(orderExpr.getExp());
-		log.debug("Initial typestate NFA:\n" + tsNFA.toString());
+		log.debug("Initial typestate NFA:\n{}", tsNFA);
 
 		// Create a weighted pushdown system
 		CpgWpds wpds = createWpds(seedExpression, verticeMap, crymlinTraversal, tsNFA);
@@ -199,7 +199,7 @@ public class TypeStateAnalysis {
 	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, String currentFile) {
 		Set<Finding> findings = new HashSet<>();
 
-		System.out.println("--------------------------");
+		log.warn("--------------------------");
 
 		// TODO reachableTypestates and didMove are currently not used.
 		Set<Node> reachableTypestates = new HashSet<>();
@@ -232,7 +232,7 @@ public class TypeStateAnalysis {
 						didMove = tsNFA.handleEvent(tran.getLabel());
 						Node typestate = tran.getTarget();
 						reachableTypestates.add(typestate);
-						log.debug(" Reached " + typestate + " by " + t.getLabel().toString());
+						log.debug(" Reached {} by {}", typestate, t.getLabel().toString());
 					}
 				} else if (!w.equals(Weight.one()) && t.getLabel().toString().contains(t.getStart().getVariable())) {
 					String name = "Invalid typestate of variable " + t.getStart() + " at statement: " + t.getLabel() + " . Violates order of " + rule.getName();
@@ -248,7 +248,7 @@ public class TypeStateAnalysis {
 			}
 		}
 
-		log.debug("Final config: " + String.join(", " + tsNFA.getCurrentConfiguration().stream().map(n -> n.getName()).collect(Collectors.toList())));
+		log.debug("Final config: {}", String.join(", " + tsNFA.getCurrentConfiguration().stream().map(n -> n.getName()).collect(Collectors.toList())));
 
 		return findings;
 	}
@@ -266,7 +266,7 @@ public class TypeStateAnalysis {
 	 * @throws IllegalTransitionException
 	 */
 	private CpgWpds createWpds(@Nullable HashSet<Node> seedExpressions, Map<MOp, Set<Vertex>> verticeMap, CrymlinTraversalSource crymlinTraversal, NFA tsNfa) {
-		log.debug("-----  Creating WPDS ----------");
+		log.info("-----  Creating WPDS ----------");
 		HashSet<Vertex> alreadySeen = new HashSet<>();
 		/**
 		 * We need OverflowDB to convert vertices back to CPG nodes.
@@ -295,7 +295,7 @@ public class TypeStateAnalysis {
 				continue;
 			}
 			String currentFunctionName = fd.getName();
-			System.out.println("Processing function " + currentFunctionName);
+			log.info("Processing function {}", currentFunctionName);
 			ArrayDeque<Vertex> worklist = new ArrayDeque<>();
 			worklist.add(functionDeclaration);
 			Stmt previousStmt = new Stmt(fd.getName(), fd.getRegion());
@@ -310,9 +310,9 @@ public class TypeStateAnalysis {
 			}
 			while (!worklist.isEmpty()) {
 				Vertex v = worklist.pop();
-				log.debug("TYPE: " + v.property("labels").value());
+				log.debug("TYPE: {}", v.property("labels").value());
 				String code = (String) v.property("code").value();
-				log.debug("CODE: " + code);
+				log.debug("CODE: {}", code);
 
 				// We consider only "Statements" and CallExpressions in the EOG
 				if (isCallExpression(v) || v.edges(Direction.IN, "STATEMENTS").hasNext()) {
@@ -337,7 +337,7 @@ public class TypeStateAnalysis {
 								Set<PushRule<Stmt, Val, Weight>> pushRules = createPushRules(mce, crymlinTraversal, currentFunctionName, tsNfa, previousStmt, currentStmt,
 									v, worklist);
 								for (PushRule<Stmt, Val, Weight> pushRule : pushRules) {
-									System.out.println("  Adding push rule: " + pushRule.toString());
+									log.debug("  Adding push rule: {}", pushRule.toString());
 									wpds.addRule(pushRule);
 
 									// Remember that arguments flow only into callee and do not bypass it.
@@ -364,7 +364,7 @@ public class TypeStateAnalysis {
 					}
 
 					if (isDeclarationStatement(v)) {
-						log.debug("Found variable declaration " + v.property("code").value());
+						log.debug("Found variable declaration {}", v.property("code").value());
 
 						Vertex decl = v.edges(Direction.OUT, "DECLARATIONS").next().inVertex();
 						Val declVal = new Val((String) decl.property("name").value(), currentFunctionName);
@@ -378,23 +378,23 @@ public class TypeStateAnalysis {
 						if (rhs.isPresent()) {
 							Vertex rhsVar = rhs.get();
 							if (rhsVar.property("name").isPresent() && !"".equals(rhsVar.property("name").value())) {
-								log.debug("  Has name on right hand side " + rhsVar.property("name").value());
+								log.debug("  Has name on right hand side {}", rhsVar.property("name").value());
 								Val rhsVal = new Val((String) rhsVar.property("name").value(), currentFunctionName);
 
 								// Add declVal to set of currently tracked variables
 								valsInScope.add(declVal);
 
 								Rule<Stmt, Val, Weight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, Weight.one());
-								log.debug("Adding normal rule " + normalRuleSelf.toString());
+								log.debug("Adding normal rule {}", normalRuleSelf);
 								wpds.addRule(normalRuleSelf);
 
 								Rule<Stmt, Val, Weight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt, Weight.one());
-								log.debug("Adding normal rule " + normalRuleCopy.toString());
+								log.debug("Adding normal rule {}", normalRuleCopy);
 								wpds.addRule(normalRuleCopy);
 
 							} else {
 								// handle new instantiations of objects
-								log.debug("  Has no name on right hand side: " + v.property("code").value().toString());
+								log.debug("  Has no name on right hand side: {}", v.property("code").value());
 
 								// Normal copy of all values in scope
 								for (Val valInScope : valsInScope) {
@@ -415,7 +415,7 @@ public class TypeStateAnalysis {
 								// Create normal rule
 								Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt, declVal, currentStmt,
 									Weight.one());
-								log.debug("Adding normal rule " + normalRule.toString());
+								log.debug("Adding normal rule {}", normalRule);
 								wpds.addRule(normalRule);
 
 							}
@@ -440,7 +440,7 @@ public class TypeStateAnalysis {
 								PopRule<Stmt, Val, Weight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue().getName().toString(), currentFunctionName),
 									currentStmt, returnedVal, weight);
 								wpds.addRule(returnPopRule);
-								log.debug("Adding pop rule " + returnPopRule.toString());
+								log.debug("Adding pop rule {}", returnPopRule);
 							}
 
 							// Pop Rules for side effects on parameters
@@ -449,7 +449,7 @@ public class TypeStateAnalysis {
 								for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
 									PopRule<Stmt, Val, Weight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(), Weight.one());
 									wpds.addRule(popRule);
-									log.debug("Adding pop rule " + popRule.toString());
+									log.debug("Adding pop rule {}", popRule);
 								}
 							}
 
@@ -459,7 +459,6 @@ public class TypeStateAnalysis {
 							//							Set<NFATransition> relevantNFATransitions = tsNfa.getTransitions()
 							//									.stream()
 							//									.filter(
-							//										// fixme Remove this call to "equals"; comparisons between unrelated types always return false.
 							//										tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
 							//									.collect(Collectors.toSet());
 							Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, Weight.one());
@@ -471,7 +470,7 @@ public class TypeStateAnalysis {
 								}
 							}
 							if (!skipIt) {
-								log.debug("Adding normal rule!!! " + normalRule.toString());
+								log.debug("Adding normal rule!!! {}", normalRule);
 								wpds.addRule(normalRule);
 							}
 						}

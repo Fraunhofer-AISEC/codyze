@@ -2,8 +2,10 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
+import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,5 +89,19 @@ public class MOp {
 		statementToCPGVertex = new HashMap<>();
 		vertexToStatements = new HashMap<>();
 		allVertices = new HashSet<>();
+	}
+
+	public static ArrayList<String> paramsToString(EList<Parameter> params) {
+		ArrayList<String> ret = new ArrayList<>();
+		for (Parameter p : params) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(p.getVar());
+			if (p.getTypes().size() > 0) {
+				sb.append(": ");
+				sb.append(String.join("| ", p.getTypes()));
+			}
+			ret.add(sb.toString());
+		}
+		return ret;
 	}
 }

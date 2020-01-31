@@ -53,23 +53,12 @@ repositories {
     mavenCentral()
 
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/9.6/cdt-9.6.0/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/9.10/cdt-9.10.0/plugins")
         metadataSources {
             artifact()
         }
         patternLayout {
             artifact("/[organisation].[module]_[revision].[ext]")
-        }
-    }
-
-    // fetching snapshots from maven central snapshots until CPG library is stable
-    maven {
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-        mavenContent {
-            snapshotsOnly()
-        }
-        content {
-            includeGroup("de.fraunhofer.aisec")
         }
     }
 
@@ -105,34 +94,28 @@ val versions = mapOf(
         "jython" to "2.7.1",
         "tinkerpop" to "3.4.3",
         "neo4j-gremlin-bolt" to "0.3.1",
-        "xml.bind" to "2.3.1"
+        "xml.bind" to "2.3.1",
+        "cpg" to "1.3"
 )
 
 dependencies {
     api("org.json", "json", versions["json"])
 
-    api("org.apache.commons", "commons-lang3", versions["commons-lang3"])
     api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
     api("org.apache.logging.log4j", "log4j-core", versions["log4j"])
-    // api("org.slf4j", "jul-to-slf4j", versions["slf4j"]) included in cpg as it is needed there
     api("org.slf4j", "log4j-over-slf4j", versions["slf4j"]) // needed for xtext.parser.antlr
     api("org.slf4j", "slf4j-api", versions["slf4j"])
 
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
     // Code Property Graph
-    api("de.fraunhofer.aisec", "cpg", "1.2-SNAPSHOT") { setChanging(true) }
+    api("de.fraunhofer.aisec", "cpg", versions["cpg"])
 
     // Ehcache is used to cache heavyweight reflection operations
     api("org.ehcache", "ehcache", "3.8.0")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
-    api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.1.1-SNAPSHOT:repackaged") { setChanging(true) }
-
-    // api stuff
-    api("org.glassfish.jersey.inject", "jersey-hk2", versions["jersey"])
-    api("org.glassfish.jersey.containers", "jersey-container-grizzly2-http", versions["jersey"])
-    api("org.glassfish.jersey.media", "jersey-media-json-jackson", versions["jersey"])
+    api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.2.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // LSP
     api("org.eclipse.lsp4j", "org.eclipse.lsp4j", versions["lsp4j"])
@@ -158,9 +141,6 @@ dependencies {
 
     // Jython (Scripting engine)
     api("org.python", "jython-standalone", versions["jython"])
-
-    // needed for jersey, not part of JDK anymore
-    api("javax.xml.bind", "jaxb-api", versions["xml.bind"])
 
     testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])
     testImplementation("org.junit.jupiter", "junit-jupiter-params", versions["junit5"])

@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.Constants;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -127,18 +128,18 @@ public class Utils {
 	 * isSubTypeOf("random::string", "std.string")  -> true
 	 *
 	 * @param sourceTypes
-	 * @param markType
+	 * @param markParameter
 	 * @return
 	 */
-	public static boolean isSubTypeOf(@NonNull Set<Type> sourceTypes, @NonNull String markType) {
+	public static boolean isSubTypeOf(@NonNull Set<Type> sourceTypes, Parameter markParameter) {
 		boolean result = false;
 
-		if (markType.equals(Constants.ANY_TYPE)) {
-			log.debug("Any of {} is a subtype of {}: true", String.join(",", sourceTypes.stream().map(t -> t.getTypeName()).collect(Collectors.toList())), markType);
+		if (markParameter.getVar().equals(Constants.ANY_TYPE)) {
+			log.debug("Any of {} is a subtype of {}: true", sourceTypes.stream().map(Type::getTypeName).collect(Collectors.joining(",")), markParameter);
 			return true;
 		}
 
-		for (Type sourceType : sourceTypes) {
+		anymatch: for (Type sourceType : sourceTypes) {
 			String uniSource = unifyType(sourceType.getTypeName());
 			if (uniSource.contains(".") && !uniSource.endsWith(".")) {
 				uniSource = uniSource.substring(uniSource.lastIndexOf('.') + 1);
@@ -148,42 +149,46 @@ public class Utils {
 				uniSource = uniSource.substring(uniSource.lastIndexOf(' ') + 1);
 			}
 
-			String uniMark = unifyType(markType);
-			if (uniMark.contains(".") && !uniMark.endsWith(".")) {
-				uniMark = uniMark.substring(uniMark.lastIndexOf('.') + 1);
-			}
+			if (markParameter.getTypes().isEmpty()) {
+				return true; // match all
+			} else {
+				for (String type : markParameter.getTypes()) {
+					String uniMark = unifyType(type);
+					if (uniMark.contains(".") && !uniMark.endsWith(".")) {
+						uniMark = uniMark.substring(uniMark.lastIndexOf('.') + 1);
+					}
 
-			// TODO We do not consider type hierarchies here but simply match for equality plus a few manual mappings
-			result = uniSource.equals(uniMark);
-			// There are various representations of "string" and we map them manually here.
-			if (uniMark.equals("string")) {
-				switch (uniSource) {
-					case "QString":
+					// TODO We do not consider type hierarchies here but simply match for equality plus a few manual mappings
+					result = uniSource.equals(uniMark);
+					// There are various representations of "string" and we map them manually here.
+					if (uniMark.equals("string")) {
+						switch (uniSource) {
+							case "QString":
+								result = true;
+								break;
+						}
+					}
+
+					// If type could not be determined, we err on the false positive side.
+					if (sourceType.getTypeName().equals("UNKNOWN")) {
 						result = true;
-						break;
+					}
+
+					// If any of the subtypes match, we can return.
+					if (result) {
+						break anymatch;
+					}
 				}
-			}
-
-			// If type could not be determined, we err on the false positive side.
-			if (sourceType.getTypeName().equals("UNKNOWN")) {
-				result = true;
-			}
-
-			// If any of the subtypes match, we can return.
-			if (result) {
-				break;
 			}
 		}
 
-		if (String.join(",", sourceTypes.stream().map(t -> t.getTypeName()).collect(Collectors.toList())).trim().equals("")) {
-			/**
-			 * TODO Empty "possibleSubTypes" means that the type could not be resolved from source code. This is ok. It is however unclear/undefined how this should be handled if MARK requires a type.
-			 */
-			log.warn("CHECK ME: Cannot compare empty argument type in source code to MARK type {}. Will assume it matches.", markType);
+		if (sourceTypes.stream().map(Type::getTypeName).collect(Collectors.joining(",")).trim().equals("")) {
+			// TODO Empty "possibleSubTypes" means that the type could not be resolved from source code. This is ok. It is however unclear/undefined how this should be handled if MARK requires a type.
+			log.warn("CHECK ME: Cannot compare empty argument type in source code to MARK type {}. Will assume it matches.", markParameter);
 			result = true;
 		}
 
-		log.debug("Any of {} is a subtype of {}: {}", String.join(",", sourceTypes.stream().map(t -> t.getTypeName()).collect(Collectors.toList())), markType, result);
+		log.debug("Any of {} is a subtype of {}: {}", sourceTypes.stream().map(Type::getTypeName).collect(Collectors.joining(",")), markParameter, result);
 
 		return result;
 	}

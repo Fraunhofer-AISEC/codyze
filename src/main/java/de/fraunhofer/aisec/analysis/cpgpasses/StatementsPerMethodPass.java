@@ -16,13 +16,7 @@ import de.fraunhofer.aisec.analysis.utils.Utils;
  *
  * @author julian
  */
-public class StatementsPerMethodPass implements PassWithContext {
-	private AnalysisContext ctx;
-
-	@Override
-	public void setContext(AnalysisContext ctx) {
-		this.ctx = ctx;
-	}
+public class StatementsPerMethodPass extends PassWithContext {
 
 	@Override
 	public void accept(TranslationResult t) {

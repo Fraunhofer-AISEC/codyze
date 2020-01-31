@@ -2,49 +2,49 @@ package java
 
 entity java.security.SecureRandom {
 	
-	var seedBytes : byte[];
-	var seedLong : long;
+	var seedBytes;
+	var seedLong;
 	
-	var algorithm : java.lang.String;
-	var providerString : java.lang.String;
-	var provider : java.security.Provider;
-	var params : java.security.SecureRandomParameters;
+	var algorithm;
+	var providerString;
+	var provider;
+	var params;
 	
-	var newSeed : bytes[];
-	var numBytes : int;
+	var newSeed;
+	var numBytes;
 	
-	var randomBytes : bytes[];
+	var randomBytes;
 	
 	
 	op instantiate {
 		java.security.SecureRandom();
-		java.security.SecureRandom(seedBytes);
+		java.security.SecureRandom(seedBytes: byte[]);
 		
-		java.security.SecureRandom.getInstance(algorithm);
-		java.security.SecureRandom.getInstance(algorithm, providerString);
-		java.security.SecureRandom.getInstance(algorithm, provider);
-		java.security.SecureRandom.getInstance(algorithm, params);
-		java.security.SecureRandom.getInstance(algorithm, params, providerString);
-		java.security.SecureRandom.getInstance(algorithm, params, provider);
+		java.security.SecureRandom.getInstance(algorithm: java.lang.String);
+		java.security.SecureRandom.getInstance(algorithm: java.lang.String, providerString: java.lang.String);
+		java.security.SecureRandom.getInstance(algorithm: java.lang.String, provider: java.security.Provider);
+		java.security.SecureRandom.getInstance(algorithm: java.lang.String, params: java.security.SecureRandomParameters);
+		java.security.SecureRandom.getInstance(algorithm: java.lang.String, params: java.security.SecureRandomParameters, providerString: java.lang.String);
+		java.security.SecureRandom.getInstance(algorithm: java.lang.String, params: java.security.SecureRandomParameters, provider: java.security.Provider);
 		
 		java.security.SecureRandom.getInstanceStrong();
 	}
 	
 	op generate {
-		newSeed = java.security.SecureRandom.generateSeed(numBytes);
+		newSeed = java.security.SecureRandom.generateSeed(numBytes: int);
 	}
 	
 	op bytes {
-		java.security.SecureRandom.nextBytes(randomBytes);
-		java.security.SecureRandom.nextBytes(randomBytes, params);
+		java.security.SecureRandom.nextBytes(randomBytes:  bytes[]);
+		java.security.SecureRandom.nextBytes(randomBytes:  bytes[], params: java.security.SecureRandomParameters);
 	}
 	
 	op reseed {
 		java.security.SecureRandom.reseed();
-		java.security.SecureRandom.reseed(params);
+		java.security.SecureRandom.reseed(params: java.security.SecureRandomParameters);
 		
-		java.security.SecureRandom.setSeed(seedBytes);
-		java.security.SecureRandom.setSeed(seedLong);
+		java.security.SecureRandom.setSeed(seedBytes: byte[]);
+		java.security.SecureRandom.setSeed(seedLong: long);
 	}
 	
 }

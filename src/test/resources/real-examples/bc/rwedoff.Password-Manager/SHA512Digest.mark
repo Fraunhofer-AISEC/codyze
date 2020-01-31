@@ -2,30 +2,30 @@ package bouncycastle
 
 entity org.bouncycastle.crypto.digests.SHA512Digest isa org.bouncycastle.crypto.Digest {
 	
-	var instance : org.bouncycastle.crypto.digests.SHA512Digest; // Alternative for `this`
+	var instance; // Alternative for `this`
 	
-	var encodedState : byte[];
-	var copy : org.bouncycastle.crypto.digests.SHA512Digest;
+	var encodedState;
+	var copy;
 	
-	var inByte : byte;
-	var inByteArray : byte[];
-	var inByteArrayOff : int;
-	var inByteArraylen : int;
+	var inByte;
+	var inByteArray;
+	var inByteArrayOff;
+	var inByteArraylen;
 	
-	var outArray : byte[];
-	var outArrayOff : int;
-	var resultLen : int;
+	var outArray;
+	var outArrayOff;
+	var resultLen;
 	
 	
 	op instantiate {
         this = org.bouncycastle.crypto.digests.SHA512Digest();
-        this = org.bouncycastle.crypto.digests.SHA512Digest(encodedState);
-        instance = org.bouncycastle.crypto.digests.SHA512Digest(copy);
+        this = org.bouncycastle.crypto.digests.SHA512Digest(encodedState: byte[]);
+        instance = org.bouncycastle.crypto.digests.SHA512Digest(copy: org.bouncycastle.crypto.digests.SHA512Digest);
     }
 	
 	op update {
-		org.bouncycastle.crypto.digests.SHA512Digest.update(inByte);
-		org.bouncycastle.crypto.digests.SHA512Digest.update(inByteArray, inByteArrayOff, inByteArrayLen);
+		org.bouncycastle.crypto.digests.SHA512Digest.update(inByte: byte);
+		org.bouncycastle.crypto.digests.SHA512Digest.update(inByteArray: byte[], inByteArrayOff: int, inByteArrayLen: int);
 	}
 	
 	op finish {
@@ -33,7 +33,7 @@ entity org.bouncycastle.crypto.digests.SHA512Digest isa org.bouncycastle.crypto.
 	}
 	
 	op finalize {
-		resultLen = org.bouncycastle.crypto.digests.SHA512Digest.doFinal(outArray, outArrayOff);
+		resultLen = org.bouncycastle.crypto.digests.SHA512Digest.doFinal(outArray: byte[], outArrayOff: int);
 	}
 	
 	op reset {

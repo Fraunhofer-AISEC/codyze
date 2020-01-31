@@ -1,10 +1,10 @@
 package unittests
 
 entity Forbidden isa Cipher {
-	var nonce : int;
-	var nonce_length : std.size_t;
-	var iv : int;
-	var myValue : BotanF.InitializationVector;
+	var nonce;
+	var nonce_length;
+	var iv;
+	var myValue;
 
 	op create {
         BotanF.get_cipher_mode(_, _);
@@ -19,11 +19,11 @@ entity Forbidden isa Cipher {
 	}
 
 	op start {
-        BotanF.start(iv);
+        BotanF.start(iv: int);
 
     	forbidden BotanF.start();
     	forbidden BotanF.start(_);
-        forbidden BotanF.start(nonce, _);
+        forbidden BotanF.start(nonce: int, _);
         forbidden BotanF.start_msg(...);
 	}
 }

@@ -1,12 +1,11 @@
 package botan
 
 
-entity Botan::SymmetricKey {
+entity Botan.SymmetricKey {
 	var value;
-	var length : uint;
+	var length;
 	
 	op create {
-		constructor(_, length);
+		constructor(_, length: uint);
 	}
-	
 }

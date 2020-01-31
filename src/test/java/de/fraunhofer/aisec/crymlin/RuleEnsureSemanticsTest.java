@@ -59,7 +59,7 @@ public class RuleEnsureSemanticsTest {
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
 		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TYPESTATE_ANALYSIS.NFA).build();
-		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)).toURI());
+		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)));
 
 		Map<String, Map<Integer, MarkIntermediateResult>> allResults = new TreeMap<>();
 		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
@@ -89,7 +89,7 @@ public class RuleEnsureSemanticsTest {
 			} else if (key.endsWith("false")) {
 				assertEquals(false, ((ConstantValue) inner).getValue(), key);
 			} else if (key.endsWith("fail")) {
-				assertTrue(ConstantValue.isNull(inner));
+				assertTrue(ConstantValue.isError(inner));
 			} else {
 				fail("Unexpected: Rule should have failed, but is " + inner + ": " + key);
 			}

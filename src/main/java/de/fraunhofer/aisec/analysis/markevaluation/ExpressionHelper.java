@@ -4,20 +4,20 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
-import java.text.NumberFormat;
-import java.util.Locale;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.Null;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** Static helper methods for evaluating MARK expressions. */
+/**
+ * Static helper methods for evaluating MARK expressions.
+ */
 public class ExpressionHelper {
 
 	private static final Logger log = LoggerFactory.getLogger(ExpressionHelper.class);
@@ -27,7 +27,7 @@ public class ExpressionHelper {
 	}
 
 	@NonNull
-	public static String exprToString(@Null Expression expr) {
+	public static String exprToString(@Nullable Expression expr) {
 		if (expr == null) {
 			return " null ";
 		}
@@ -306,8 +306,9 @@ public class ExpressionHelper {
 
 	/**
 	 * Converts a value (Numeric or String) into a "comparable String".
-	 *
-	 * A Comparable String is a String representation that represents all Numerics in a standard format that can be compared using the ExpressionComparator.
+	 * <p>
+	 * A Comparable String is a String representation that represents all Numerics in a standard format that can be
+	 * compared using the ExpressionComparator.
 	 *
 	 * @param x
 	 * @return

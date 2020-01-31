@@ -126,7 +126,7 @@ public class ConstantResolverOLD {
 									}
 									log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
 								} else if (lastExpressionInList.label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
-									System.out.println("Trying to resolve " + lastExpressionInList);
+									log.info("Trying to resolve {}", lastExpressionInList);
 
 									// Get declaration of the variable used as last item in expression list
 									Iterator<Edge> refersTo = lastExpressionInList.edges(Direction.IN, "DFG");

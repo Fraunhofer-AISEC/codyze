@@ -33,22 +33,20 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 // TODO Remove before release or at least remove hardcoded paths
-
 @Disabled
 class GithubTest {
 
 	private static final int FILES_OFFSET = 0;
 	private static final int MAX_FILES_TO_SCAN = -1; // -1: all
+	private static final String OUTFOLDERNAME = "/home/user/temp/eval_151020/";
 	private static final String baseFolder;
 	private static final Logger log = LoggerFactory.getLogger(GithubTest.class);
+	private static final boolean RESCAN = true;
 	private static AnalysisServer server;
 	private static TestAppender logCopy;
-
-	private static long numTest = 0;
 
 	static {
 		//    ClassLoader classLoader = GithubTest.class.getClassLoader();
@@ -71,7 +69,7 @@ class GithubTest {
 		}
 		Collections.sort(ret);
 		// random!
-		//    Collections.shuffle(ret);
+		Collections.shuffle(ret);
 		if (MAX_FILES_TO_SCAN != -1) {
 			ret = ret.subList(FILES_OFFSET, FILES_OFFSET + MAX_FILES_TO_SCAN);
 		}
@@ -101,13 +99,23 @@ class GithubTest {
 	}
 
 	@AfterAll
-	static void shutdown() throws Exception {
+	static void shutdown() {
 		server.stop();
 	}
 
 	@ParameterizedTest
 	@MethodSource("listFiles")
 	void performTest(String sourceFileName) throws Exception {
+
+		File dir = new File(OUTFOLDERNAME);
+		final String tmpString = sourceFileName;
+		File[] matchingFiles = dir.listFiles(pathname -> pathname.getName().endsWith(tmpString + ".out"));
+
+		if (!RESCAN && matchingFiles != null && matchingFiles.length > 0) {
+			System.out.println("File already scanned");
+			return;
+		}
+
 		Path tempDir = Files.createTempDirectory("githubtest_");
 		File tempFile = new File(tempDir.toString() + File.separator + sourceFileName);
 		Files.copy(
@@ -146,7 +154,7 @@ class GithubTest {
 		boolean hasError = false;
 		CompletableFuture<TranslationResult> analyze = server.analyze(tm);
 		try {
-			TranslationResult result = analyze.get(10, TimeUnit.MINUTES);
+			TranslationResult result = analyze.get(30, TimeUnit.MINUTES);
 
 			assertNotNull(result);
 			//      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
@@ -167,7 +175,7 @@ class GithubTest {
 		OverflowDatabase.getInstance().close();
 
 		PrintWriter writer = new PrintWriter(
-			"/tmp/out/" + System.currentTimeMillis() + "_" + cppFile.getName() + ".out",
+			OUTFOLDERNAME + System.currentTimeMillis() + "_" + cppFile.getName() + ".out",
 			StandardCharsets.UTF_8);
 		for (LogEvent e : logCopy.getLog()) {
 			writer.println(
@@ -215,7 +223,7 @@ class GithubTest {
 	void specificTest() throws Exception {
 		OverflowDatabase.getInstance().purgeDatabase();
 
-		// performTest("WorldStateMgr.cpp");
+		//		performTest("p059.java");
 
 		// performTest("redis.c"); // very long persisting
 
@@ -223,6 +231,9 @@ class GithubTest {
 		// performTest("indexed_data.cpp");
 		// performTest("RSHooks.cpp");
 
-		performTest("bf538f-ezkit.c");
+		performTest("OSOption.cpp");
+
+		// NPE
 	}
+
 }

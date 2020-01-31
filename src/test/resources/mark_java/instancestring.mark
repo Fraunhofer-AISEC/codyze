@@ -2,11 +2,11 @@ package mark_cpp
 
 entity Test {
 
-  var foo : java.lang.String;
-  var bla : java.lang.String;
+  var foo;
+  var bla;
 
   op functions {
-    bla = bla.call(foo);
+    bla = bla.call(foo: java.lang.String);
   }
 
 }

@@ -3,7 +3,7 @@ package botan
 /* typedef for Botan::OctetString
 class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
 */
-entity Botan::SymmetricKey {
+entity Botan.SymmetricKey {
 	
 	var bytes; // can be `const std::string&` OR `const uint8_t[]` OR `const secure_vector<uint8_t>&` OR `const std::vector< uint8_t >&`
 	var length;

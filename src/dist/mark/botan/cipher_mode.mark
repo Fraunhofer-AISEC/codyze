@@ -1,0 +1,145 @@
+package botan
+
+
+entity Cipher_Mode {
+	
+	var algorithm;
+	var symkey : Botan.SymmetricKey; 
+	var iv : Botan.InitializationVector;
+	var direction;
+
+	// TODO: do we really need provider, input, nonce, ..? We do not define rules over them
+	var provider;
+
+	var input;
+	var input_length;
+
+	var nonce;
+	var nonce_length;
+
+
+	op create {
+		/* 
+		Note: allows creating objects of Type Botan::Keyed_Filter and Botan::Cipher_Mode, therefore all other ops should consider member functions of these two classes 
+
+		Botan::OctetString might be allowed for key and IV, but we will not accept it because Botan::SymmetricKey and Botan::InitializationVector carry more semantics, which should increase safety and maintainability.
+		We allow secure vector because real world examples seem to use it
+		*/
+		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir);
+		Botan::get_cipher(
+		    algorithm: std::string,
+		     symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>,
+		     iv: Botan::InitializationVector | Botan::secure_vector<uint8_t>,
+		     direction: Botan::Cipher_Dir
+		);
+		Botan::get_cipher(algorithm: std::string, symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>, direction: Botan::Cipher_Dir);
+		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir, provider);
+	}
+
+	op init {
+		Botan::Cipher_Mode::set_key(symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>);
+		forbidden Botan::Cipher_Mode::set_key(_, _);
+
+		Botan::Keyed_Filter::set_key(symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>);
+	}
+
+	op start {
+    	Botan::Cipher_Mode::start();
+
+    	/* TODO what about nonces? are they IVs? @studier?
+		Botan::Cipher_Mode::start(nonce)
+		Botan::Cipher_Mode::start(nonce, nonce_length);
+		Botan::Cipher_Mode::start_msg(nonce, nonce_length);
+		*/
+
+		Botan::Keyed_Filter::start_msg();
+	}
+
+	op process {
+		Botan::Cipher_Mode::process(input, input_length);
+		Botan::Cipher_Mode::update(input);
+		Botan::Cipher_Mode::update(input, _);
+
+		Botan::Keyed_Filter::write(input, input_length);
+	}
+
+	op finish {
+		Botan::Cipher_Mode::finish(input);
+		Botan::Cipher_Mode::finish(input, _);
+
+		Botan::Keyed_Filter::end_msg();
+	}
+
+	op reset {
+		Botan::Cipher_Mode::reset();
+	}
+	
+}
+
+
+rule Order {
+	// using Botan.Cipher_Mode as cm TODO MARK: allow fq-names for MARK entities
+    using Cipher_Mode as cm
+	ensure order cm.a() //TODO: don't know correct order because when cipher mode is created with iv and key then we dont need to initialize it
+	onfail WrongOrder
+}
+
+
+rule BlockCiphers {
+	using Botan.Cipher_Mode as cm
+	ensure
+		(_split(cm.algorithm, "/", 0) == "AES")
+		|| (_split(_split(cm.algorithm, "/", 0), "-", 0) == "AES")
+	onfail WrongBlockCipher
+}
+
+rule UseOfPipe {
+	using Botan.Cipher_Mode as cm,
+		Botan.Pipe as p
+	ensure
+		_receives_value_from(p.filter, cm) ||
+		cm in p.filterList
+	onfail WrongUseOfBotan_CipherMode
+}
+
+
+rule KeyLength {
+	using Botan.Cipher_Mode as cm,
+		Botan.SymmetricKey as sk
+	ensure
+		cm.symkey.length in [16, 24, 32]  // 128, 192, 256 bit
+	onfail BadKeyLength
+}
+
+rule CBCRandomIV  {
+	using Botan.Cipher_Mode as cm,
+		Botan.AutoSeeded_RNG as rng
+	when 
+		_split(cm.algorithm, "/", 1) == "CBC" 
+		&& cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
+	ensure
+		_receives_value_from(cm.iv, rng.random_data)
+	onfail NoRandomIV	
+}
+
+rule NonRepeatedIV {
+/* Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
+	wird erreicht in dem wir versichern, dass der Wert des IV direkt aus rng.random_data kommt, da das bedeutet, dass damit neue Zufallszahlen generiert werden
+	TODO: ist das wirklich aussreichend?
+*/
+	using Botan.Cipher_Mode as cm,
+		Botan.AutoSeeded_RNG as rng
+	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
+	ensure
+		_receives_value_directly_from(cm.iv, rng.random_data)
+	onfail RepeatedIV 
+}
+
+rule IVLengthGCM {
+// TODO: Die für den Authentisierungsmechanismus verwendeten Noncen sollen genau 96 Bit lang sein.
+	using Botan.Cipher_Mode as cm
+	when _split(cm.algorithm, "/", 1) == "GCM"
+	ensure
+		1 == 1
+	onfail WrongIVLengthGCM
+}

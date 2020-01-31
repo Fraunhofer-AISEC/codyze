@@ -1,8 +1,8 @@
 package botan
 
 
-entity Botan::AutoSeededRNG isa RandomSource {
-	var myValue : Botan::InitializationVector;
+entity Botan.AutoSeededRNG isa RandomSource {
+	var myValue;
 	
 	op generate {
 		myValue = Botan::AutoSeededRNG::random_vec(_);

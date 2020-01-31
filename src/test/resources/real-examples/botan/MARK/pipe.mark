@@ -8,23 +8,23 @@ The system described below provides a message processing system with a straightf
 This filter interface is no longer used within the library itself (outside a few dusty corners) and will likely not see any further major development. However it will remain included because the API is often convenient and many applications use it." 
 */
 
-entity Botan::Pipe {
+entity Botan.Pipe {
 	
-	var filterList : std::initializer_list<Botan::Filter*>;
-	var filter : Botan::Filter;
+	var filterList;
+	var filter;
 	
-	var inArray : uint8_t[];
-	var inSecVec : secure_vector<uint8_t>;
-	var inVec : std::vector<uint8_t>;
-	var inString : std::string;
-	var inDataSource : DataSource;
-	var inByte : uint8_t;
-	var length : size_t;
+	var inArray;
+	var inSecVec;
+	var inVec;
+	var inString;
+	var inDataSource;
+	var inByte;
+	var length;
 	
 	
 
 	op create {
- 		Pipe(filterList);
+ 		Pipe(filterList: std::initializer_list<Botan::Filter*>);
 		
  		// Don't want this ambiguity
 		forbidden Pipe(_, _, _, _);
@@ -34,8 +34,8 @@ entity Botan::Pipe {
 	}
 
 	op edit {
-		Pipe::prepend(filter);
-		Pipe::append(filter);
+		Pipe::prepend(filter: Botan::Filter);
+		Pipe::append(filter: Botan::Filter);
 		Pipe::pop();
 	}
 
@@ -48,20 +48,20 @@ entity Botan::Pipe {
 	}
 
 	op put_data {
-		Pipe::write(inArray, length);
-		Pipe::write(inSecVec);
-		Pipe::write(inVec);
-		Pipe::write(inString);
-		Pipe::write(inDataSource);
-		Pipe::write(inByte);
+		Pipe::write(inArray: uint8_t[], length: size_t);
+		Pipe::write(inSecVec: secure_vector<uint8_t>);
+		Pipe::write(inVec: std::vector<uint8_t>);
+		Pipe::write(inString: std::string);
+		Pipe::write(inDataSource: DataSource);
+		Pipe::write(inByte: uint8_t);
 	}
 
 	op process_msg {
-		Pipe::process_msg(inArray, length);
-		Pipe::process_msg(inSecVec);
-		Pipe::process_msg(inVec);
-		Pipe::process_msg(inString);
-		Pipe::process_msg(inDataSource);
+		Pipe::process_msg(inArray: uint8_t[], length: size_t);
+		Pipe::process_msg(inSecVec: secure_vector<uint8_t>);
+		Pipe::process_msg(inVec: secure_vector<uint8_t>);
+		Pipe::process_msg(inString: std::string);
+		Pipe::process_msg(inDataSource: uint8_t);
 	}
 
 	op reset {
@@ -72,7 +72,7 @@ entity Botan::Pipe {
 
 
 rule PipeOrder {
-	using Botan::Pipe as p
+	using Botan.Pipe as p
 	ensure
 		order 
 			p.create(),

@@ -115,7 +115,7 @@ public class Evaluator {
 					log.debug(
 						"Call {}({}) of op {} found {} times",
 						opStmt.getCall().getName(),
-						String.join(", ", opStmt.getCall().getParams()),
+						String.join(", ", MOp.paramsToString(opStmt.getCall().getParams())),
 						op.getName(),
 						temp.size());
 					numMatches += temp.size();
@@ -178,12 +178,12 @@ public class Evaluator {
 			log.info("Got {} results", result.size());
 
 			/* Get findings from "result" */
-			Collection<Finding> findings = getFindings(result, ctx.getCurrentFile(), markCtxHolder, rule);
+			Collection<Finding> findings = getFindings(result, markCtxHolder, rule);
 			ctx.getFindings().addAll(findings);
 		}
 	}
 
-	private Collection<Finding> getFindings(@NonNull Map<Integer, MarkIntermediateResult> result, @NonNull URI currentFile, @NonNull MarkContextHolder markCtxHolder,
+	private Collection<Finding> getFindings(@NonNull Map<Integer, MarkIntermediateResult> result, @NonNull MarkContextHolder markCtxHolder,
 			@NonNull MRule rule) {
 		Collection<Finding> findings = new HashSet<>();
 
@@ -197,6 +197,8 @@ public class Evaluator {
 				 */
 
 				MarkContext c = markCtxHolder.getContext(entry.getKey());
+
+				String currentFile = "";
 
 				if (!c.isFindingAlreadyAdded()) {
 					List<Range> ranges = new ArrayList<>();
@@ -215,6 +217,8 @@ public class Evaluator {
 							int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
 							ranges.add(new Range(new Position(startLine, startColumn),
 								new Position(endLine, endColumn)));
+
+							currentFile = CrymlinQueryWrapper.getFileLocation(v);
 						}
 					}
 					boolean isRuleViolated = !(Boolean) value;
@@ -227,8 +231,8 @@ public class Evaluator {
 						ranges,
 						isRuleViolated));
 				}
-			} else if (value == null || ConstantValue.isNull(value)) {
-				log.warn("Unable to evaluate rule {}, result was null", rule.getName());
+			} else if (value == null || ConstantValue.isError(value) || ConstantValue.isError(entry.getValue())) {
+				log.warn("Unable to evaluate rule {}, result had an error", rule.getName());
 			} else {
 				log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
 			}
@@ -258,7 +262,7 @@ public class Evaluator {
 
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 				Object value = ConstantValue.unbox(entry.getValue());
-				if (value == null || ConstantValue.isNull(value)) {
+				if (value == null || ConstantValue.isError(value)) {
 					log.warn("Unable to evaluate when-part of rule {}, result was null", rule.getName());
 					continue;
 				} else if (!(value instanceof Boolean)) {

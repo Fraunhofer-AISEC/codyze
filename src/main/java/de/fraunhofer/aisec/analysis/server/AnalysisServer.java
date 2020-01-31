@@ -2,7 +2,6 @@
 package de.fraunhofer.aisec.analysis.server;
 
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -26,7 +25,6 @@ import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLReader;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
@@ -48,7 +46,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -83,8 +80,9 @@ public class AnalysisServer {
 		// Register built-in functions
 		BuiltinRegistry.getInstance().register(new SplitBuiltin());
 		BuiltinRegistry.getInstance().register(new IsInstanceBuiltin());
-		BuiltinRegistry.getInstance().register(new ReceivesValueFromBuiltin());
-		BuiltinRegistry.getInstance().register(new ReceivesValueDirectlyFromBuiltin());
+		BuiltinRegistry.getInstance().register(new EogConnectionBuiltin());
+		BuiltinRegistry.getInstance().register(new DirectEogConnectionBuiltin());
+		BuiltinRegistry.getInstance().register(new ReceivesValueFrom());
 	}
 
 	/**
@@ -163,7 +161,7 @@ public class AnalysisServer {
 		 * across passes outside of the actual CPG.
 		 */
 
-		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceFiles().get(0).toURI()); // NOTE: We currently operate on a single source file.
+		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceLocations()); // NOTE: We currently operate on a single source file.
 		for (Pass p : analyzer.getPasses()) {
 			if (p instanceof PassWithContext) {
 				((PassWithContext) p).setContext(ctx);

@@ -2,10 +2,10 @@ package mark_cpp
 
 entity Test {
 
-  var foo : int;
+  var foo;
 
   op functions {
-    Test::call(foo);
+    Test::call(foo: int);
   }
 
 }

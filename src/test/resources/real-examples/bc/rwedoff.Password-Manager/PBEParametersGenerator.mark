@@ -2,21 +2,21 @@ package bouncycastle
 
 entity org.bouncycastle.crypto.PBEParametersGenerator {
 	
-	var password : byte[];
-	var salt : byte[];
-	var iterationCount : int;
+	var password;
+	var salt;
+	var iterationCount;
 	
-	var passwordChars : char[];
-	var convertedPasswortBytes : byte[];
+	var passwordChars;
+	var convertedPasswortBytes;
 	
 	op initialize {
-		org.bouncycastle.crypto.PBEParametersGenerator.init(password, salt, iterationCount);
+		org.bouncycastle.crypto.PBEParametersGenerator.init(password: byte[], salt: byte[], iterationCount: int);
 	}
 	
 	op convertPassword {
-		convertedPasswortBytes = org.bouncycastle.crypto.PBEParametersGenerator.PKCS12PasswordToBytes(passwordChars);
-		convertedPasswortBytes = org.bouncycastle.crypto.PBEParametersGenerator.PKCS5PasswordToBytes(passwordChars);
-		convertedPasswortBytes = org.bouncycastle.crypto.PBEParametersGenerator.PKCS5PasswordToUTF8Bytes(passwordChars);
+		convertedPasswortBytes = org.bouncycastle.crypto.PBEParametersGenerator.PKCS12PasswordToBytes(passwordChars: char[]);
+		convertedPasswortBytes = org.bouncycastle.crypto.PBEParametersGenerator.PKCS5PasswordToBytes(passwordChars: char[]);
+		convertedPasswortBytes = org.bouncycastle.crypto.PBEParametersGenerator.PKCS5PasswordToUTF8Bytes(passwordChars: char[]);
 	}
 	
 }

@@ -1,12 +1,8 @@
 
 package de.fraunhofer.aisec.analysis;
 
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
@@ -14,9 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -44,47 +37,16 @@ public class Commands {
 	 * @param url
 	 */
 	public void analyze(String url) {
-		List<File> files = new ArrayList<>();
-		File f = new File(url);
-		if (f.isDirectory()) {
-			File[] list = f.listFiles();
-			if (list != null) {
-				files.addAll(Arrays.asList(list));
-			} else {
-				log.error("Null file list");
-			}
-		} else {
-			files.add(f);
-		}
-
-		OverflowDatabase.getInstance().connect(); // simply returns if already connected
-		if (!OverflowDatabase.getInstance().isConnected()) {
-			return;
-		}
-		OverflowDatabase.getInstance().purgeDatabase();
-
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder()
-							.debugParser(true)
-							.failOnError(false)
-							.codeInNodes(true)
-							.defaultPasses()
-							.sourceFiles(
-								files.toArray(new File[0]))
-							.build())
-				.build();
-
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
 			log.error("Analysis server not available");
 			return;
 		}
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		CompletableFuture<AnalysisContext> analyze = server.analyze(url);
 
 		try {
-			TranslationResult translationResult = analyze.get(10, TimeUnit.MINUTES);
-			jythonInterpreter.setResult(translationResult);
+			AnalysisContext ctx = analyze.get(10, TimeUnit.MINUTES);
+			jythonInterpreter.setFindings(ctx.getFindings());
 		}
 		catch (InterruptedException e) {
 			log.error("Interrupted", e);
@@ -128,14 +90,7 @@ public class Commands {
 	}
 
 	public void show_findings() {
-		TranslationResult lastResult = jythonInterpreter.getLastResult();
-		if (lastResult == null) {
-			System.err.println("No analysis run yet.");
-			return;
-		}
-		AnalysisContext ctx = (AnalysisContext) lastResult.getScratch().get("ctx");
-
-		for (Finding fi : ctx.getFindings()) {
+		for (Finding fi : jythonInterpreter.getFindings()) {
 			System.out.println(fi);
 		}
 	}

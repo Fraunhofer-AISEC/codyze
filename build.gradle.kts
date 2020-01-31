@@ -95,7 +95,8 @@ val versions = mapOf(
         "tinkerpop" to "3.4.3",
         "neo4j-gremlin-bolt" to "0.3.1",
         "xml.bind" to "2.3.1",
-        "cpg" to "1.3"
+        "cpg" to "1.3",
+        "json" to "20190722"        
 )
 
 dependencies {
@@ -119,6 +120,13 @@ dependencies {
 
     // LSP
     api("org.eclipse.lsp4j", "org.eclipse.lsp4j", versions["lsp4j"])
+
+    // JSON parser for generation of results file
+    api("org.json", "json", versions["json)"])
+
+    // Command line interface support
+    api("info.picocli", "picocli", "4.1.4")
+    annotationProcessor("info.picocli", "picocli-codegen", "4.1.4")
 
     // Gremlin
     api("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])

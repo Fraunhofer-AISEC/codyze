@@ -1,6 +1,6 @@
 ---
-title: "Contributors"
-linkTitle: "Contributors"
+title: "Contributing to Codyze"
+linkTitle: "Contributing to Codyze"
 weight: 10
 description: >
   Contributing to Codyze and updating this documentation
@@ -64,18 +64,6 @@ To report a bug, make sure to include the following information:
 1. What have you done? Provide the minimal set of files needed to reproduce the bug. If we cannot reproduce it, it's not a bug.
 1. What outcome have you expected, what outcome did you get?
 1. Can you provide any hints on what might be the cause of the bug and how you think it should be fixed?
-
-## Contributing code
-
-For minor fixes please proceed as follows:
-
-1. Fork the [Codyze repo](https://github.com/Fraunhofer-AISEC/codyze) on GitHub.
-1. Create a branch for your contribution. We recommend prefixing the branch name with `fix-` if you are providing a bug fix or `feature-` if you plan to add a feature.
-1. Make your changes and send a pull request (PR). Make sure to describe want you intend the code to do and refer to any issues your PR might address (using the notation `#123`)
-1. If you're not yet ready for a review, add "WIP" to the PR name to indicate it's a work in progress.
-1. Wait for the automated PR workflow to do some checks.
-1. Continue working on your PR by pushing further commits to your branch until you are satisfied
-1. When you're ready for a review, add a comment to the PR, and remove any "WIP" markers.
 
 
 ## Useful resources

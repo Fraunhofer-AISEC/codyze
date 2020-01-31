@@ -1,18 +1,24 @@
 
 package de.fraunhofer.aisec.analysis;
 
+import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.python.util.InteractiveConsole;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * Demonstrates how to run Crymlin queries dynamically from Java.
+ * Main class for the interactive Codyze console.
+ *
+ * The console allows interacting with the server and running crymlin queries dynamically from Java.
  *
  * @author julian
  */
@@ -29,6 +35,9 @@ public class JythonInterpreter implements AutoCloseable {
 
 	// store last result
 	private TranslationResult lastTranslationResult = null;
+
+	@NonNull
+	private Set<Finding> findings = new HashSet<>();
 
 	/** Connect to the graph database and initialize the internal Jython engine. */
 	public void connect() {
@@ -64,18 +73,15 @@ public class JythonInterpreter implements AutoCloseable {
 	public void spawnInteractiveConsole() {
 
 		System.out.println(
-			"                           _ _       \n"
-					+ "                          | (_)      \n"
-					+ "  ___ _ __ _   _ _ __ ___ | |_ _ __  \n"
-					+ " / __| '__| | | | '_ ` _ \\| | | '_ \\ \n"
-					+ "| (__| |  | |_| | | | | | | | | | | |\n"
-					+ " \\___|_|   \\__, |_| |_| |_|_|_|_| |_|\n"
-					+ "            __/ |                    \n"
-					+ "           |___/                     \n"
-					+ "\n");
+			" ██████╗ ██████╗ ██████╗ ██╗   ██╗███████╗███████╗\n"
+					+ "██╔════╝██╔═══██╗██╔══██╗╚██╗ ██╔╝╚══███╔╝██╔════╝\n"
+					+ "██║     ██║   ██║██║  ██║ ╚████╔╝   ███╔╝ █████╗  \n"
+					+ "██║     ██║   ██║██║  ██║  ╚██╔╝   ███╔╝  ██╔══╝  \n"
+					+ "╚██████╗╚██████╔╝██████╔╝   ██║   ███████╗███████╗\n"
+					+ " ╚═════╝ ╚═════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝");
 		// Print help
 		Commands commands = new Commands(this);
-		commands.help();
+		//		commands.help();
 
 		try (InteractiveConsole c = new InteractiveConsole()) {
 			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
@@ -97,15 +103,20 @@ public class JythonInterpreter implements AutoCloseable {
 		this.engine.getBindings(ScriptContext.ENGINE_SCOPE).remove("crymlin"); // Trav. source of crymlin
 	}
 
-	public void setResult(TranslationResult translationResult) {
-		this.lastTranslationResult = translationResult;
-	}
-
 	public TranslationResult getLastResult() {
 		return lastTranslationResult;
 	}
 
 	public ScriptEngine getEngine() {
 		return engine;
+	}
+
+	public void setFindings(@NonNull Set<Finding> findings) {
+		this.findings = findings;
+	}
+
+	@NonNull
+	public Set<Finding> getFindings() {
+		return this.findings;
 	}
 }

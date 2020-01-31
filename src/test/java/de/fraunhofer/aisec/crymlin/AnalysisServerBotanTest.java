@@ -1,14 +1,13 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
@@ -31,7 +30,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 public class AnalysisServerBotanTest {
 
 	private static AnalysisServer server;
-	private static TranslationResult result;
+	private static AnalysisContext result;
 
 	@BeforeAll
 	public static void startup() throws Exception {
@@ -69,7 +68,7 @@ public class AnalysisServerBotanTest {
 
 		// Start the analysis (BOTAN Symmetric Example by Oliver)
 		TranslationManager translationManager = newAnalysisRun(cppFile);
-		CompletableFuture<TranslationResult> analyze = server.analyze(translationManager);
+		CompletableFuture<AnalysisContext> analyze = server.analyze(translationManager);
 		try {
 			result = analyze.get(5, TimeUnit.MINUTES);
 		}
@@ -89,7 +88,7 @@ public class AnalysisServerBotanTest {
 	@Test
 	public void contextTest() {
 		// Get analysis context from scratch
-		AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result.getScratch().get("ctx");
+		AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result;
 
 		// We expect no methods (as there is no class)
 		assertNotNull(ctx);
@@ -109,7 +108,7 @@ public class AnalysisServerBotanTest {
 
 	@Test
 	public void markEvaluationTest() throws Exception {
-		AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result.getScratch().get("ctx");
+		AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result;
 		assertNotNull(ctx);
 		List<String> findings = new ArrayList<>();
 		assertNotNull(ctx.getFindings());

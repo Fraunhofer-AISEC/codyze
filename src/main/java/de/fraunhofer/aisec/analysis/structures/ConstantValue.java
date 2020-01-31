@@ -38,7 +38,7 @@ public class ConstantValue extends MarkIntermediateResult {
 		}
 	}
 
-	public static MarkIntermediateResult newUninitialized() {
+	public static ConstantValue newUninitialized() {
 		return new ConstantValue("", Type.UNINITIALIZED);
 	}
 

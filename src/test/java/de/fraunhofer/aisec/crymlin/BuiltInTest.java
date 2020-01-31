@@ -51,10 +51,23 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void receives_value_from_1() throws Exception {
-		Set<Finding> findings = performTest("mark_cpp/simple_receivesvalue.cpp", "mark_cpp/receivesvalue.mark");
+	public void eog_connection_1() throws Exception {
+		Set<Finding> findings = performTest("mark_cpp/simple_eog_connection.cpp", "mark_cpp/eog_connection.mark");
 
-		assertEquals(0, findings.size());
+		expected(findings,
+			"line [22, 24]: MarkRuleEvaluationFinding: Rule ControlFlow violated",
+			"line [33, 37]: MarkRuleEvaluationFinding: Rule ControlFlow verified",
+			"line [45, 46]: MarkRuleEvaluationFinding: Rule ControlFlow verified");
+	}
+
+	@Test
+	public void direct_eog_connection_1() throws Exception {
+		Set<Finding> findings = performTest("mark_cpp/simple_eog_connection.cpp", "mark_cpp/direct_eog_connection.mark");
+
+		expected(findings,
+			"line [22, 24]: MarkRuleEvaluationFinding: Rule ControlFlow violated",
+			"line [33, 37]: MarkRuleEvaluationFinding: Rule ControlFlow violated",
+			"line [45, 46]: MarkRuleEvaluationFinding: Rule ControlFlow verified");
 	}
 
 }

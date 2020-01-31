@@ -723,4 +723,40 @@ public class CrymlinQueryWrapper {
 	public static String getFileLocation(Vertex v) {
 		return v.value("file");
 	}
+
+	public static boolean eogConnection(Vertex source, Vertex sink, boolean branchesAllowed) {
+
+		if (Objects.equals(source, sink)) {
+			return true;
+		}
+
+		HashSet<Vertex> workList = new HashSet<>();
+		HashSet<Vertex> seen = new HashSet<>();
+		workList.add(source);
+
+		while (!workList.isEmpty()) {
+			HashSet<Vertex> newWorkList = new HashSet<>();
+			for (Vertex v : workList) {
+				seen.add(v);
+				Iterator<Edge> eog = v.edges(Direction.OUT, "EOG");
+				int numEdges = 0;
+				while (eog.hasNext()) {
+					numEdges++;
+					if (numEdges > 1 && !branchesAllowed) {
+						return false;
+					}
+					Vertex next = eog.next().inVertex();
+					if (next.equals(sink)) {
+						return true;
+					}
+					if (!seen.contains(next)) {
+						newWorkList.add(next);
+					}
+				}
+			}
+			workList = newWorkList;
+		}
+
+		return false;
+	}
 }

@@ -421,8 +421,9 @@ public class ExpressionEvaluator {
 						.equals(functionName))
 				.findFirst();
 
+		Map<Integer, MarkIntermediateResult> arguments = evaluateArgs(expr.getArgs());
+
 		if (builtin.isPresent()) {
-			Map<Integer, MarkIntermediateResult> arguments = evaluateArgs(expr.getArgs());
 
 			Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
@@ -441,7 +442,12 @@ public class ExpressionEvaluator {
 			return result;
 		}
 
-		throw new ExpressionEvaluationException("Unsupported function " + functionName);
+		log.error("Unsupported builtin {}", functionName);
+		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
+		for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
+			result.put(entry.getKey(), ErrorValue.newErrorValue("Unsupported builtin {}", functionName));
+		}
+		return result;
 	}
 
 	private Map<Integer, MarkIntermediateResult> evaluateLiteral(Literal literal) {

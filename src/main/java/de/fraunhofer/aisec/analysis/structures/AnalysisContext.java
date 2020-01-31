@@ -1,15 +1,10 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.Method;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 
 public class AnalysisContext {
 
@@ -19,11 +14,15 @@ public class AnalysisContext {
 
 	/** Map of method signatures to {@code Method}s. */
 	public final Map<String, Method> methods = new HashMap<>();
+	private final List<File> sourceLocations;
 
-	private URI currentFile;
+	public AnalysisContext(List<File> sourceLocations) {
+		this.sourceLocations = sourceLocations;
+	}
 
-	public AnalysisContext(URI currentFile) {
-		this.currentFile = currentFile;
+	public AnalysisContext(File f) {
+		this.sourceLocations = new ArrayList<>();
+		this.sourceLocations.add(f);
 	}
 
 	/**
@@ -36,7 +35,7 @@ public class AnalysisContext {
 		return this.findings;
 	}
 
-	public URI getCurrentFile() {
-		return this.currentFile;
+	public List<File> getSourceLocations() {
+		return sourceLocations;
 	}
 }

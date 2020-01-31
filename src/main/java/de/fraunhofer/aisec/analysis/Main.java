@@ -118,7 +118,7 @@ class AnalysisMode {
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
 	private TypestateMode tsMode;
 
-	@Option(names = {"--interproc" }, description = "Enables interprocedural analysis (more precise but slower).")
+	@Option(names = { "--interproc" }, description = "Enables interprocedural analysis (more precise but slower).")
 	private boolean interproc;
 
 }

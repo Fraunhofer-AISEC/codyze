@@ -13,13 +13,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AbstractMarkTest {
 
@@ -90,6 +90,27 @@ public class AbstractMarkTest {
 		}
 
 		return ctx.getFindings();
+	}
+
+	protected void expected(Set<Finding> findings, String... expectedFindings) {
+		System.out.println("All findings:");
+		for (Finding f : findings) {
+			System.out.println(f.toString());
+		}
+
+		for (String expected : expectedFindings) {
+			assertEquals(1, findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
+			Optional<Finding> first = findings.stream().filter(f -> f.toString().equals(expected)).findFirst();
+			findings.remove(first.get());
+		}
+		if (findings.size() > 0) {
+			System.out.println("Additional Findings:");
+			for (Finding f : findings) {
+				System.out.println(f.toString());
+			}
+		}
+
+		assertEquals(0, findings.size());
 	}
 
 }

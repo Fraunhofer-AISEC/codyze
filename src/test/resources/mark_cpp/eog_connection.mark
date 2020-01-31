@@ -17,6 +17,6 @@ entity Test {
 rule ControlFlow {
   using Test as t
   ensure
-    _receives_value_from(t.source, t.sink)
+    _eog_connection(t.source, t.sink)
   onfail ControlFlow_FOUND
 }

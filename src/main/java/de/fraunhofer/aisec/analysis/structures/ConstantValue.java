@@ -145,6 +145,10 @@ public class ConstantValue extends MarkIntermediateResult {
 		this.responsibleVertices.addAll(responsibleVertices);
 	}
 
+	public void addResponsibleVertices(Vertex... responsibleVertices) {
+		this.responsibleVertices.addAll(Arrays.asList(responsibleVertices));
+	}
+
 	public void addResponsibleVerticesFrom(ConstantValue... other) {
 		if (other != null) {
 			for (ConstantValue cv : other) {

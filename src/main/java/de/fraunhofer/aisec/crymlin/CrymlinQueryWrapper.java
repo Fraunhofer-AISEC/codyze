@@ -697,4 +697,8 @@ public class CrymlinQueryWrapper {
 		}
 		return varDecls;
 	}
+
+	public static String getFileLocation(Vertex v) {
+		return v.value("file");
+	}
 }

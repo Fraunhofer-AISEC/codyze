@@ -178,12 +178,12 @@ public class Evaluator {
 			log.info("Got {} results", result.size());
 
 			/* Get findings from "result" */
-			Collection<Finding> findings = getFindings(result, ctx.getCurrentFile(), markCtxHolder, rule);
+			Collection<Finding> findings = getFindings(result, markCtxHolder, rule);
 			ctx.getFindings().addAll(findings);
 		}
 	}
 
-	private Collection<Finding> getFindings(@NonNull Map<Integer, MarkIntermediateResult> result, @NonNull URI currentFile, @NonNull MarkContextHolder markCtxHolder,
+	private Collection<Finding> getFindings(@NonNull Map<Integer, MarkIntermediateResult> result, @NonNull MarkContextHolder markCtxHolder,
 			@NonNull MRule rule) {
 		Collection<Finding> findings = new HashSet<>();
 
@@ -197,6 +197,8 @@ public class Evaluator {
 				 */
 
 				MarkContext c = markCtxHolder.getContext(entry.getKey());
+
+				String currentFile = "";
 
 				if (!c.isFindingAlreadyAdded()) {
 					List<Range> ranges = new ArrayList<>();
@@ -215,6 +217,8 @@ public class Evaluator {
 							int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
 							ranges.add(new Range(new Position(startLine, startColumn),
 								new Position(endLine, endColumn)));
+
+							currentFile = CrymlinQueryWrapper.getFileLocation(v);
 						}
 					}
 					boolean isRuleViolated = !(Boolean) value;

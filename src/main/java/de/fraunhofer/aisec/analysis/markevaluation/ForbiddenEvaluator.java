@@ -77,7 +77,7 @@ public class ForbiddenEvaluator {
 								+ ent.getName()
 								+ ". Call was "
 								+ v.value("code").toString();
-						Finding f = new Finding(message, "FORBIDDEN", ctx.getCurrentFile(), startLine, endLine, startColumn, endColumn);
+						Finding f = new Finding(message, "FORBIDDEN", CrymlinQueryWrapper.getFileLocation(v), startLine, endLine, startColumn, endColumn);
 						ctx.getFindings().add(f);
 						log.info("Finding: {}", f);
 					}

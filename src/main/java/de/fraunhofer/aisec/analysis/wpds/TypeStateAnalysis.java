@@ -155,7 +155,7 @@ public class TypeStateAnalysis {
 		log.debug("Saturated WNFA {}", wnfa.toDotString());
 
 		// Evaluate saturated WNFA for any MARK violations
-		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule, ctx.getCurrentFile());
+		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule, funcDecl.getFile());
 
 		if (markContextHolder.createFindingsDuringEvaluation()) {
 			ctx.getFindings().addAll(findings);
@@ -196,7 +196,7 @@ public class TypeStateAnalysis {
 	 * @return
 	 */
 	@NonNull
-	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, URI currentFile) {
+	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, String currentFile) {
 		Set<Finding> findings = new HashSet<>();
 
 		System.out.println("--------------------------");

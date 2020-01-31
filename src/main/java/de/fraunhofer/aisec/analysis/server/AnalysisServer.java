@@ -163,7 +163,7 @@ public class AnalysisServer {
 		 * across passes outside of the actual CPG.
 		 */
 
-		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceFiles().get(0).toURI()); // NOTE: We currently operate on a single source file.
+		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceLocations()); // NOTE: We currently operate on a single source file.
 		for (Pass p : analyzer.getPasses()) {
 			if (p instanceof PassWithContext) {
 				((PassWithContext) p).setContext(ctx);

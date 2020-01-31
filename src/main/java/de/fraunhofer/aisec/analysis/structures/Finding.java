@@ -44,11 +44,12 @@ public class Finding {
 	 * @param startColumn Column in code where the finding begins. Note that LPS start counting at 1.
 	 * @param endColumn Column in code where the finding ends.
 	 */
-	public Finding(String logMsg, String onfailIdentifier, URI artifactUri, int startLine, int endLine, int startColumn, int endColumn) {
+	public Finding(String logMsg, String onfailIdentifier, String artifactUri, int startLine, int endLine, int startColumn, int endColumn) {
 		this.logMsg = logMsg;
 		this.onFailIdentifier = onfailIdentifier;
 		this.locations
-				.add(new PhysicalLocation(new ArtifactLocation(artifactUri, null), new Range(new Position(startLine, startColumn), new Position(endLine, endColumn))));
+				.add(new PhysicalLocation(new ArtifactLocation(URI.create(artifactUri), null),
+					new Range(new Position(startLine, startColumn), new Position(endLine, endColumn))));
 	}
 
 	/**
@@ -61,11 +62,11 @@ public class Finding {
 	 * @param ranges List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
 	 * @param isProblem true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
 	 */
-	public Finding(String logMsg, URI artifactUri, String onfailIdentifier, List<Range> ranges, boolean isProblem) {
+	public Finding(String logMsg, String artifactUri, String onfailIdentifier, List<Range> ranges, boolean isProblem) {
 		this.logMsg = logMsg;
 		this.onFailIdentifier = onfailIdentifier;
 		for (Range r : ranges) {
-			this.locations.add(new PhysicalLocation(new ArtifactLocation(artifactUri, null), r));
+			this.locations.add(new PhysicalLocation(new ArtifactLocation(URI.create(artifactUri), null), r));
 		}
 		this.isProblem = isProblem;
 	}

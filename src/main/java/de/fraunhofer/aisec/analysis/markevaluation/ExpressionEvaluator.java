@@ -153,7 +153,7 @@ public class ExpressionEvaluator {
 						new Position(endLine, endColumn)));
 					Finding f = new Finding(
 						"Verified Order: " + this.markRule.getName(),
-						this.resultCtx.getCurrentFile(),
+						CrymlinQueryWrapper.getFileLocation(operand),
 						"",
 						ranges,
 						false);

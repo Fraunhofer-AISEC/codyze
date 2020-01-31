@@ -2,13 +2,17 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Set;
 
 public class ReceivesValueFromBuiltin implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(ReceivesValueFromBuiltin.class);
@@ -24,8 +28,34 @@ public class ReceivesValueFromBuiltin implements Builtin {
 			Integer contextID,
 			MarkContextHolder markContextHolder,
 			ExpressionEvaluator expressionEvaluator) {
-		// TODO implement
-		log.warn("the builtin _receives_value_from is not implemented yet");
+
+		if (argResultList.size() != 2) {
+			log.error("Invalid number of arguments: {}", argResultList.size());
+			return ErrorValue.newErrorValue("Invalid number of arguments: {}", argResultList.size());
+		}
+
+		if (!(argResultList.get(0) instanceof ConstantValue) || !(argResultList.get(1) instanceof ConstantValue)) {
+			log.error("Argument is not a ConstantValue");
+			return ErrorValue.newErrorValue("Argument is not a ConstantValue");
+		}
+
+		Set<Vertex> responsibleVerticesArg0 = ((ConstantValue) argResultList.get(0)).getResponsibleVertices();
+		Set<Vertex> responsibleVerticesArg1 = ((ConstantValue) argResultList.get(1)).getResponsibleVertices();
+
+		if (responsibleVerticesArg0.size() != 1 || responsibleVerticesArg1.size() != 1) {
+			log.error("Vertices for arguments not available or invalid");
+			return ErrorValue.newErrorValue("Vertices for arguments not available or invalid");
+		}
+
+		Vertex arg0 = responsibleVerticesArg0.iterator().next();
+		Vertex arg1 = responsibleVerticesArg1.iterator().next();
+
+		if (arg0 == null || arg1 == null) {
+			log.error("Vertices for arguments are invalid");
+			return ErrorValue.newErrorValue("Vertices for arguments are invalid");
+		}
+
+		// now we have one vertex each for arg0 and arg1, bot not null
 
 		// TODO FW: needs to be discussed, I am not clear what this should achieve
 		// the example is:
@@ -34,6 +64,7 @@ public class ReceivesValueFromBuiltin implements Builtin {
 		 * Botan::Cipher_Dir::ENCRYPTION ensure _receives_value_from(cm.iv, rng.myValue) onfail NoRandomIV }
 		 */
 
+		log.error("the builtin _receives_value_from is not implemented yet");
 		return ErrorValue.newErrorValue("ReceivesValueFromBuiltin not implemented yet");
 	}
 }

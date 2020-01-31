@@ -37,4 +37,8 @@ public class ListValue extends MarkIntermediateResult implements Iterable<MarkIn
 	public Spliterator<MarkIntermediateResult> spliterator() {
 		return values.spliterator();
 	}
+
+	public int size() {
+		return values.size();
+	}
 }

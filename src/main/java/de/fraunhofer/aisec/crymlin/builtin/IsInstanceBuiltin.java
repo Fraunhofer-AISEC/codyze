@@ -67,6 +67,7 @@ public class IsInstanceBuiltin implements Builtin {
 				} else {
 					String type = next.value("type");
 					cv = ConstantValue.of(type.equals(classname));
+					// todo we could also check `mostPreciseType` once available
 				}
 			}
 			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),

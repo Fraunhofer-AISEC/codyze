@@ -86,31 +86,9 @@ public class MarkModelLoader {
 			return;
 		}
 
-		//    for (Map.Entry<String, Pair<String, MEntity>> entry :
-		// rule.getEntityReferences().entrySet()) {
-		//      if (entry.getValue().getValue1() == null) {
-		//        System.out.println(entry.getKey() + ": " + entry.getValue().getValue0() + " - NULL");
-		//      } else {
-		//        System.out.println(
-		//            entry.getKey()
-		//                + ": "
-		//                + entry.getValue().getValue0()
-		//                + " - "
-		//                + entry.getValue().getValue1().getName());
-		//      }
-		//    }
-
 		if (rule.getStatement().getEnsure() != null) {
 			ExpressionHelper.getRefsFromExp(rule.getStatement().getEnsure().getExp(), entityRefs, functionRefs);
 		}
-		//    System.out.println("eref");
-		//    for(String s: entityRefs) {
-		//      System.out.println("\t" + s);
-		//    }
-		//    System.out.println("fref");
-		//    for(String s: functionRefs) {
-		//      System.out.println("\t" + s);
-		//    }
 	}
 
 	@NonNull

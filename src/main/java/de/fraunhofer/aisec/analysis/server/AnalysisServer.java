@@ -46,7 +46,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -83,8 +86,9 @@ public class AnalysisServer {
 		// Register built-in functions
 		BuiltinRegistry.getInstance().register(new SplitBuiltin());
 		BuiltinRegistry.getInstance().register(new IsInstanceBuiltin());
-		BuiltinRegistry.getInstance().register(new ReceivesValueFromBuiltin());
-		BuiltinRegistry.getInstance().register(new ReceivesValueDirectlyFromBuiltin());
+		BuiltinRegistry.getInstance().register(new EogConnectionBuiltin());
+		BuiltinRegistry.getInstance().register(new DirectEogConnectionBuiltin());
+		BuiltinRegistry.getInstance().register(new ReceivesValueFrom());
 	}
 
 	/**
@@ -163,7 +167,7 @@ public class AnalysisServer {
 		 * across passes outside of the actual CPG.
 		 */
 
-		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceLocations().get(0).toURI()); // NOTE: We currently operate on a single source file.
+		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceLocations().get(0)); // NOTE: We currently operate on a single source file.
 		for (Pass p : analyzer.getPasses()) {
 			if (p instanceof PassWithContext) {
 				((PassWithContext) p).setContext(ctx);

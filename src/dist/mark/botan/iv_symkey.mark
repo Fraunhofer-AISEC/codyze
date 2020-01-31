@@ -1,0 +1,54 @@
+package botan
+
+
+/* InitializationVector can be Botan::OctetString - a class wrapping..
+		- Botan::secure_vector 	(seems reasonable to allow)
+		- uint8_t[]				(currently not allowed)
+		- std::vector 			(currently not allowed)
+		- std::string 			(currently not allowed)
+	TODO: do we want to allow them?
+*/
+entity InitializationVector {
+	
+	var bytes;
+	var rng: Botan.RandomNumberGenerator;
+	var length;
+
+	op create {
+		Botan::OctetString(bytes: Botan::secure_vector);
+        Botan::OctetString(rng: Botan::RandomNumberGenerator, length);
+	}
+	
+	op get {
+		Botan::OctetString::bits_of();
+        Botan::OctetString::as_string();
+
+        // TODO because it's hard for us to analyze?
+        forbidden Botan::OctetString::begin();
+        forbidden Botan::OctetString::end();
+	}
+
+}
+
+entity SymmetricKey {
+	
+	var bytes;
+	var rng: Botan.RandomNumberGenerator;
+	var length;
+
+	op create {
+		Botan::OctetString(bytes: Botan::secure_vector);
+        Botan::OctetString(rng: Botan::RandomNumberGenerator, length);
+	}
+	
+	op get {
+		Botan::OctetString::bits_of();
+        Botan::OctetString::as_string();
+
+        // TODO because it's hard for us to analyze?
+        forbidden Botan::OctetString::begin();
+        forbidden Botan::OctetString::end();
+	}
+
+}
+

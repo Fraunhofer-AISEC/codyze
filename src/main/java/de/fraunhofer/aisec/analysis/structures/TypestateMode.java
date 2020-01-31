@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-public enum TYPESTATE_ANALYSIS {
+public enum TypestateMode {
 
 	/**
 	 * Non-deterministic finite automaton. Intraprocedural, not alias-aware.

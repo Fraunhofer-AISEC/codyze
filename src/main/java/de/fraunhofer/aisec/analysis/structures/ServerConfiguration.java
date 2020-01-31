@@ -20,16 +20,16 @@ public class ServerConfiguration {
 
 	/** Which type of typestate analysis do we want? */
 	@NonNull
-	public final TYPESTATE_ANALYSIS typestateAnalysis;
+	public final TypestateMode typestateAnalysis;
 
 	// should we export the data to neo4j
 	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = false;
 
-	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TYPESTATE_ANALYSIS typestateAnalysis) {
+	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
-		this.typestateAnalysis = typestateAnalysis;
+		this.typestateAnalysis = typestateMode;
 	}
 
 	public static Builder builder() {
@@ -41,7 +41,7 @@ public class ServerConfiguration {
 		private boolean launchLsp = true;
 		@Nullable
 		private String markModelFiles = ""; // Path of a file or directory
-		private TYPESTATE_ANALYSIS typestateAnalysis = TYPESTATE_ANALYSIS.NFA;
+		private TypestateMode typestateAnalysis = TypestateMode.NFA;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -58,7 +58,7 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder typestateAnalysis(@NonNull TYPESTATE_ANALYSIS tsAnalysis) {
+		public Builder typestateAnalysis(@NonNull TypestateMode tsAnalysis) {
 			this.typestateAnalysis = tsAnalysis;
 			return this;
 		}

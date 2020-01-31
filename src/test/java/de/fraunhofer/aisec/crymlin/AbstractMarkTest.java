@@ -5,7 +5,7 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.analysis.structures.TYPESTATE_ANALYSIS;
+import de.fraunhofer.aisec.analysis.structures.TypestateMode;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -26,7 +26,7 @@ public class AbstractMarkTest {
 	protected TranslationManager translationManager;
 	protected AnalysisServer server;
 	protected AnalysisContext ctx;
-	protected TYPESTATE_ANALYSIS TYPESTATEANALYSIS = TYPESTATE_ANALYSIS.NFA;
+	protected TypestateMode tsMode = TypestateMode.NFA;
 
 	Set<Finding> performTest(String sourceFileName) throws Exception {
 		return performTest(sourceFileName, null);
@@ -56,7 +56,7 @@ public class AbstractMarkTest {
 					ServerConfiguration.builder()
 							.launchConsole(false)
 							.launchLsp(false)
-							.typestateAnalysis(TYPESTATEANALYSIS)
+							.typestateAnalysis(tsMode)
 							.markFiles(markDirPath)
 							.build())
 				.build();

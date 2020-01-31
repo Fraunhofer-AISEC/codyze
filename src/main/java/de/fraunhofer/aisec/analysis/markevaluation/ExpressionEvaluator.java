@@ -194,12 +194,13 @@ public class ExpressionEvaluator {
 
 		Map<Integer, MarkIntermediateResult> combinedResult = new HashMap<>();
 
-		for (Integer key : rightResult.keySet()) {
+		for (Map.Entry<Integer, MarkIntermediateResult> entry : rightResult.entrySet()) {
 			// we only need to look at the keys from the right side.
 			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
 			// the right side currently cannot remove values!
+			Integer key = entry.getKey();
 			ConstantValue leftBoxed = (ConstantValue) getcorrespondingLeftResult(leftResult, key);
-			ConstantValue rightBoxed = (ConstantValue) rightResult.get(key);
+			ConstantValue rightBoxed = (ConstantValue) entry.getValue();
 
 			Object left = leftBoxed.getValue();
 			Object right = rightBoxed.getValue();
@@ -287,19 +288,20 @@ public class ExpressionEvaluator {
 
 		Map<Integer, MarkIntermediateResult> combinedResult = new HashMap<>();
 
-		for (Integer key : rightResult.keySet()) {
+		for (Map.Entry<Integer, MarkIntermediateResult> entry : rightResult.entrySet()) {
 			ExpressionComparator<String> comp = new ExpressionComparator<>();
 
 			// we only need to look at the keys from the right side.
 			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
 			// the right side currently cannot remove values!
+			Integer key = entry.getKey();
 			ConstantValue leftBoxed = (ConstantValue) getcorrespondingLeftResult(leftResult, key);
 			Object left = leftBoxed.getValue();
 
-			if (rightResult.get(key) instanceof ListValue) {
+			if (entry.getValue() instanceof ListValue) {
 
 				if (op.equals("in")) {
-					ListValue l = (ListValue) rightResult.get(key);
+					ListValue l = (ListValue) entry.getValue();
 					ConstantValue cv = ConstantValue.of(false);
 
 					for (Object o : l) {
@@ -326,7 +328,7 @@ public class ExpressionEvaluator {
 
 			} else {
 
-				ConstantValue rightBoxed = (ConstantValue) rightResult.get(key);
+				ConstantValue rightBoxed = (ConstantValue) entry.getValue();
 				Object right = rightBoxed.getValue();
 
 				if (ConstantValue.isError(leftBoxed) || ConstantValue.isError(rightBoxed)) {
@@ -518,12 +520,13 @@ public class ExpressionEvaluator {
 
 		Map<Integer, MarkIntermediateResult> combinedResult = new HashMap<>();
 
-		for (Integer key : rightResult.keySet()) {
+		for (Map.Entry<Integer, MarkIntermediateResult> entry : rightResult.entrySet()) {
 			// we only need to look at the keys from the right side.
 			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
 			// the right side currently cannot remove values!
+			Integer key = entry.getKey();
 			ConstantValue leftBoxed = (ConstantValue) getcorrespondingLeftResult(leftResult, key);
-			ConstantValue rightBoxed = (ConstantValue) rightResult.get(key);
+			ConstantValue rightBoxed = (ConstantValue) entry.getValue();
 
 			Object left = leftBoxed.getValue();
 			Object right = rightBoxed.getValue();
@@ -688,8 +691,8 @@ public class ExpressionEvaluator {
 					}
 					break;
 				default:
-					log.warn("Trying to evaluate unknown unary expression: " + ExpressionHelper.exprToString(expr));
-					unboxedResult = ErrorValue.newErrorValue("Trying to evaluate unknown unary expression: " + ExpressionHelper.exprToString(expr));
+					log.warn("Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
+					unboxedResult = ErrorValue.newErrorValue("Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
 			}
 			ConstantValue cv = ConstantValue.of(unboxedResult);
 			cv.addResponsibleVerticesFrom(valueBoxed);

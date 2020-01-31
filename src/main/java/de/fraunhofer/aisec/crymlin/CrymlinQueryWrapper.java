@@ -453,7 +453,7 @@ public class CrymlinQueryWrapper {
 					ret.add(new CPGVertexWithValue(v, ErrorValue.newErrorValue("could not resolve {}", markVar)));
 				}
 			} else {
-				log.info("Cannot resolve concrete value of a node that is not a DeclaredReferenceExpression or a Literal: " + v.label() + " Returning NULL");
+				log.info("Cannot resolve concrete value of a node that is not a DeclaredReferenceExpression or a Literal: {} Returning NULL", v.label());
 				CPGVertexWithValue mva = new CPGVertexWithValue(v, ErrorValue.newErrorValue("could not resolve {}", markVar));
 				ret.add(mva);
 			}

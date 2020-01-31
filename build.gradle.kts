@@ -62,17 +62,6 @@ repositories {
         }
     }
 
-    // fetching snapshots from maven central snapshots until CPG library is stable
-    maven {
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-        mavenContent {
-            snapshotsOnly()
-        }
-        content {
-            includeGroup("de.fraunhofer.aisec")
-        }
-    }
-
     // fetching MARK from internal repo. this has to go before release. MARK needs to be published to maven central
     maven {
         url = uri("http://repository.***REMOVED***/repository/snapshots/")
@@ -105,7 +94,8 @@ val versions = mapOf(
         "jython" to "2.7.1",
         "tinkerpop" to "3.4.3",
         "neo4j-gremlin-bolt" to "0.3.1",
-        "xml.bind" to "2.3.1"
+        "xml.bind" to "2.3.1",
+        "cpg" to "1.3"
 )
 
 dependencies {
@@ -119,7 +109,7 @@ dependencies {
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
     // Code Property Graph
-    api("de.fraunhofer.aisec", "cpg", "1.3-SNAPSHOT") { setChanging(true) }
+    api("de.fraunhofer.aisec", "cpg", versions["cpg"])
 
     // Ehcache is used to cache heavyweight reflection operations
     api("org.ehcache", "ehcache", "3.8.0")

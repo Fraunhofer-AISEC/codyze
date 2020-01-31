@@ -1,6 +1,6 @@
 ---
-title: "Installation"
-linkTitle: "Installation"
+title: "Install MARK IDE"
+linkTitle: "Install MARK IDE"
 weight: 1
 date: 2019-12-10
 description: >

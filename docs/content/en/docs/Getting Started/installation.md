@@ -1,6 +1,6 @@
 ---
-title: "Installation"
-linkTitle: "Installation"
+title: "Install Codyze"
+linkTitle: "Install Codyze"
 weight: 1
 date: 2017-01-05
 description: >

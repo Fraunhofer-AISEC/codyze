@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /** Start point of the standalone analysis server. */
-@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpAutoWidth = true)
+@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 public class Main implements Callable<Integer> {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -114,11 +114,11 @@ class ExecutionMode {
 
 class AnalysisMode {
 
-	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Use non-deterministic finite automaton\nWPDS: Use weighted pushdown system")
+	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
 	private TypestateMode tsMode;
 
-	@Option(names = { "--interproc" }, description = "Enables interprocedural analysis (more precise but slower).")
+	@Option(names = { "--interproc" }, description = "Enables interprocedural data flow analysis (more precise but slower).")
 	private boolean interproc;
 
 }

@@ -7,43 +7,19 @@ import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.mark.markDsl.Argument;
-import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
-import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
-import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
-import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
-import de.fraunhofer.aisec.mark.markDsl.Literal;
-import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
-import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
-import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
-import de.fraunhofer.aisec.mark.markDsl.Operand;
-import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
-import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
-import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
+import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
-import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.lang.Math.toIntExact;
 
@@ -70,10 +46,6 @@ public class ExpressionEvaluator {
 		this.config = config;
 		this.traversal = traversal;
 		this.markContextHolder = context;
-	}
-
-	public MarkContextHolder getMarkContextHolder() {
-		return markContextHolder;
 	}
 
 	/**
@@ -144,20 +116,22 @@ public class ExpressionEvaluator {
 				if (markInstances.size() == 1) { // otherwise, the analysis did not work anyway and we did not have a result
 					@Nullable
 					Vertex operand = entry.getValue().getInstanceContext().getVertex(markInstances.iterator().next());
-					int startLine = toIntExact((Long) operand.property("startLine").value()) - 1;
-					int endLine = toIntExact((Long) operand.property("endLine").value()) - 1;
-					int startColumn = toIntExact((Long) operand.property("startColumn").value()) - 1;
-					int endColumn = toIntExact((Long) operand.property("endColumn").value()) - 1;
-					ArrayList<Range> ranges = new ArrayList<>();
-					ranges.add(new Range(new Position(startLine, startColumn),
-						new Position(endLine, endColumn)));
-					Finding f = new Finding(
-						"Verified Order: " + this.markRule.getName(),
-						CrymlinQueryWrapper.getFileLocation(operand),
-						"",
-						ranges,
-						false);
-					this.resultCtx.getFindings().add(f);
+					if (operand != null) {
+						int startLine = toIntExact((Long) operand.property("startLine").value()) - 1;
+						int endLine = toIntExact((Long) operand.property("endLine").value()) - 1;
+						int startColumn = toIntExact((Long) operand.property("startColumn").value()) - 1;
+						int endColumn = toIntExact((Long) operand.property("endColumn").value()) - 1;
+						ArrayList<Range> ranges = new ArrayList<>();
+						ranges.add(new Range(new Position(startLine, startColumn),
+							new Position(endLine, endColumn)));
+						Finding f = new Finding(
+							"Verified Order: " + this.markRule.getName(),
+							CrymlinQueryWrapper.getFileLocation(operand),
+							"",
+							ranges,
+							false);
+						this.resultCtx.getFindings().add(f);
+					}
 				}
 			}
 

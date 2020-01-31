@@ -148,7 +148,7 @@ public class CrymlinQueryWrapper {
 	private static boolean argumentsMatchParameters(EList<Parameter> markParameters, @NonNull List<Vertex> sourceArguments) {
 		int i = 0;
 
-		arguments: while (i < markParameters.size() && i < sourceArguments.size()) {
+		while (i < markParameters.size() && i < sourceArguments.size()) {
 			Parameter markParam = markParameters.get(i);
 
 			// ELLIPSIS (...) means we do not care about any further arguments
@@ -520,13 +520,12 @@ public class CrymlinQueryWrapper {
 	public static Optional<Vertex> getBaseOfCallExpression(@NonNull Vertex callExpression) {
 		Optional<Vertex> base = Optional.empty();
 		Iterator<Edge> it = callExpression.edges(Direction.OUT, "BASE");
-		Vertex ref = null;
 		if (it.hasNext()) {
 			Vertex baseVertex = it.next().inVertex();
 			Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
 			if (refIterator.hasNext()) {
 				// if the node refers to another node, return the node it refers to
-				ref = refIterator.next().inVertex();
+				Vertex ref = refIterator.next().inVertex();
 				base = Optional.of(ref);
 			} else {
 				base = Optional.of(baseVertex);
@@ -603,10 +602,8 @@ public class CrymlinQueryWrapper {
 			return verticesPerContext;
 		}
 
-		List<CPGVertexWithValue> vertices = new ArrayList<>();
-
 		// Use Constant resolver to resolve assignments to arguments
-		vertices.addAll(CrymlinQueryWrapper.resolveValuesForVertices(matchingVertices, markVar));
+		List<CPGVertexWithValue> vertices = new ArrayList<>(CrymlinQueryWrapper.resolveValuesForVertices(matchingVertices, markVar));
 
 		// now split them up to belong to each instance (t) or markvar (t.foo)
 		final String instance = markVar.substring(0, markVar.lastIndexOf('.'));

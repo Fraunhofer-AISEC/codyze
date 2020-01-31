@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.TypestateMode;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,15 +21,15 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /** Start point of the standalone analysis server. */
-@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.0", description = "Codyze finds security flaws in source code", sortOptions = false)
+@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpAutoWidth = true)
 public class Main implements Callable<Integer> {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
 	@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
-	private Mode mode;
+	private ExecutionMode executionMode;
 
-	@Option(names = { "-i", "--interproc" }, description = "Enables interprocedural analysis (more precise but slower).")
-	private boolean interproc;
+	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
+	private AnalysisMode analysisModeMode;
 
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File analysisInput;
@@ -41,7 +42,7 @@ public class Main implements Callable<Integer> {
 			"--output" }, paramLabel = "<file>", description = "Write results to file. Use -- for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 	private File outputFile;
 
-	@Option(names = { "-t",
+	@Option(names = {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
 	private long timeout;
 
@@ -56,8 +57,8 @@ public class Main implements Callable<Integer> {
 
 		AnalysisServer server = AnalysisServer.builder()
 				.config(ServerConfiguration.builder()
-						.launchLsp(mode.lsp)
-						.launchConsole(mode.tui)
+						.launchLsp(executionMode.lsp)
+						.launchConsole(executionMode.tui)
 						.markFiles(markFolderName.getAbsolutePath())
 						.build())
 				.build();
@@ -102,11 +103,22 @@ public class Main implements Callable<Integer> {
  *
  * TUI: The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries.
  */
-class Mode {
+class ExecutionMode {
 	@Option(names = "-c", required = true, description = "Start in command line mode.")
 	boolean cli;
 	@Option(names = "-l", required = true, description = "Start in language server protocol (LSP) mode.")
 	boolean lsp;
 	@Option(names = "-t", required = true, description = "Start interactive console (Text-based User Interface).")
 	boolean tui;
+}
+
+class AnalysisMode {
+
+	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Use non-deterministic finite automaton\nWPDS: Use weighted pushdown system")
+	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
+	private TypestateMode tsMode;
+
+	@Option(names = {"--interproc" }, description = "Enables interprocedural analysis (more precise but slower).")
+	private boolean interproc;
+
 }

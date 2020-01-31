@@ -1,6 +1,6 @@
 ---
-title: "Contributors"
-linkTitle: "Contributors"
+title: "Contributing to Codyze"
+linkTitle: "Contributing to Codyze"
 weight: 10
 description: >
   Contributing to Codyze and updating this documentation

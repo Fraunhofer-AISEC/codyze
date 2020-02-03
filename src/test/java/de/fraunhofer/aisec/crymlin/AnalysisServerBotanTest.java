@@ -123,13 +123,13 @@ public class AnalysisServerBotanTest {
 	/**
 	 * Helper method for initializing an Analysis Run.
 	 *
-	 * @param sourceFiles
+	 * @param sourceLocations
 	 * @return
 	 */
-	private static TranslationManager newAnalysisRun(File... sourceFiles) {
+	private static TranslationManager newAnalysisRun(File... sourceLocations) {
 		return TranslationManager.builder()
 				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceFiles(sourceFiles).build())
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceLocations(sourceLocations).build())
 				.build();
 	}
 }

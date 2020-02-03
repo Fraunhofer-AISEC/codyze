@@ -96,10 +96,10 @@ public class AnalysisServerQueriesTest {
 	/**
 	 * Helper method for initializing an Analysis Run.
 	 *
-	 * @param sourceFiles
+	 * @param sourceLocations
 	 * @return
 	 */
-	private static TranslationManager newJavaAnalysisRun(File... sourceFiles) {
+	private static TranslationManager newJavaAnalysisRun(File... sourceLocations) {
 		return TranslationManager.builder()
 				.config(
 					TranslationConfiguration.builder()
@@ -107,8 +107,8 @@ public class AnalysisServerQueriesTest {
 							.failOnError(false)
 							.defaultPasses()
 							.registerPass(new StatementsPerMethodPass())
-							.sourceFiles(
-								sourceFiles)
+							.sourceLocations(
+								sourceLocations)
 							.build())
 				.build();
 	}

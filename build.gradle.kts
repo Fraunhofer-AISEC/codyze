@@ -52,6 +52,14 @@ repositories {
     mavenLocal()
     mavenCentral()
 
+    // NOTE: Remove this when we "release". this is the public sonatype repo which is used to
+    // sync to maven central, but directly adding this repo is faster than waiting for a maven central sync,
+    // which takes 8 hours in the worse case. so it is useful during heavy development but should be removed
+    // if everything is more stable
+    maven {
+        setUrl("https://oss.sonatype.org/content/groups/public")
+    }
+
     ivy {
         setUrl("https://download.eclipse.org/tools/cdt/releases/9.10/cdt-9.10.0/plugins")
         metadataSources {
@@ -95,7 +103,7 @@ val versions = mapOf(
         "tinkerpop" to "3.4.3",
         "neo4j-gremlin-bolt" to "0.3.1",
         "xml.bind" to "2.3.1",
-        "cpg" to "1.3",
+        "cpg" to "1.3.2",
         "json" to "20190722"        
 )
 

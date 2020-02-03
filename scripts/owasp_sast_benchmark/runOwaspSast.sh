@@ -15,9 +15,16 @@ if  [ ! -d $WORKING_DIR ]; then
 	unzip master.zip -d $WORKING_DIR
 fi
 
-export JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.lang=ALL-UNNAMED"
-export JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.lang.reflect=ALL-UNNAMED"
-export JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.util=ALL-UNNAMED"
-export JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED"
+JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.lang=ALL-UNNAMED"
+JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.lang.reflect=ALL-UNNAMED"
+JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.util=ALL-UNNAMED"
+JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED"
 
-JAVA_OPTS=$JAVA_OPTS ../../build/install/codyze/bin/codyze -c -s=$WORKING_DIR/Benchmark-master/src/main/java/ -m=../../../src/test/resources/mark_java/
+# Source is whole OWASP benchmark by default, otherwise file given as input argument
+SOURCE=$WORKING_DIR/Benchmark-master/src/main/java/
+if [ ! -z "$1" ]
+then
+	SOURCE=$1
+fi
+echo "Running benchmark against $SOURCE"
+JAVA_OPTS=$JAVA_OPTS ../../build/install/codyze/bin/codyze -c -s=$SOURCE -m=../../../src/test/resources/mark_java/

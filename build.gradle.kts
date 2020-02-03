@@ -95,7 +95,7 @@ val versions = mapOf(
         "tinkerpop" to "3.4.3",
         "neo4j-gremlin-bolt" to "0.3.1",
         "xml.bind" to "2.3.1",
-        "cpg" to "1.3-SNAPSHOT",
+        "cpg" to "1.3.1",
         "json" to "20190722"        
 )
 
@@ -110,7 +110,7 @@ dependencies {
     api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
 
     // Code Property Graph
-    api("de.fraunhofer.aisec", "cpg", versions["cpg"])  { setChanging(true) }
+    api("de.fraunhofer.aisec", "cpg", versions["cpg"])
 
     // Ehcache is used to cache heavyweight reflection operations
     api("org.ehcache", "ehcache", "3.8.0")

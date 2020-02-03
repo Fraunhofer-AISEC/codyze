@@ -446,7 +446,7 @@ public class AnalysisServer {
 							.failOnError(false)
 							.codeInNodes(true)
 							.defaultPasses()
-							.sourceFiles(
+							.sourceLocations(
 								files.toArray(new File[0]))
 							.build())
 				.build();

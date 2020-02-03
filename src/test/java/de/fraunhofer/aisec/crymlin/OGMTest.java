@@ -47,7 +47,7 @@ public class OGMTest {
 		assertNotNull(resource);
 		File sourceFile = new File(resource.getFile());
 
-		TranslationConfiguration config = TranslationConfiguration.builder().sourceFiles(sourceFile).defaultPasses().debugParser(true).failOnError(true).build();
+		TranslationConfiguration config = TranslationConfiguration.builder().sourceLocations(sourceFile).defaultPasses().debugParser(true).failOnError(true).build();
 
 		TranslationManager tm = TranslationManager.builder().config(config).build();
 		// Start an analysis server
@@ -293,7 +293,7 @@ public class OGMTest {
 			assertNotNull(resource);
 			File sourceFile = new File(resource.getFile());
 
-			TranslationConfiguration config = TranslationConfiguration.builder().sourceFiles(sourceFile).defaultPasses().debugParser(true).failOnError(true).build();
+			TranslationConfiguration config = TranslationConfiguration.builder().sourceLocations(sourceFile).defaultPasses().debugParser(true).failOnError(true).build();
 
 			TranslationManager tm = TranslationManager.builder().config(config).build();
 			// Start an analysis server

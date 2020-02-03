@@ -83,11 +83,13 @@ public class ConstantResolverOLD {
 
 				boolean isBinaryOperatorVertex = tVertex.label().contains(BinaryOperator.class.getSimpleName());
 
-				if (isBinaryOperatorVertex && "=".equals(tVertex.property("operatorCode")
-						.value())) {
+				Iterator<Vertex> lhsVertices = tVertex.vertices(Direction.OUT, "LHS");
+
+				if (isBinaryOperatorVertex
+						&& "=".equals(tVertex.property("operatorCode").value())
+						&& lhsVertices.hasNext()) {
 					// this is an assignment that may set the value of our operand
-					Vertex lhs = tVertex.vertices(Direction.OUT, "LHS")
-							.next();
+					Vertex lhs = lhsVertices.next();
 
 					Iterator<Vertex> assignees = lhs.vertices(Direction.OUT, "REFERS_TO");
 					if (assignees.hasNext() && assignees

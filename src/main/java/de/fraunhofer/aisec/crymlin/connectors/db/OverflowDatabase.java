@@ -45,6 +45,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -243,7 +245,12 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	@Override
 	public <T extends N> T find(Class<T> clazz, Long id) {
-		return (T) vertexToNode(graph.traversal().V(id).next());
+		GraphTraversal<Vertex, Vertex> v = graph.traversal().V(id);
+		if (v.hasNext()) {
+			return (T) vertexToNode(v.next());
+		} else {
+			return null;
+		}
 	}
 
 	@Override

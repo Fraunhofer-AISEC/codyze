@@ -12,6 +12,7 @@ import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
@@ -363,10 +364,12 @@ public class TypeStateAnalysis {
 						/* "DeclarationStatements" result in a normal rule, assigning rhs to lhs. */
 					}
 
-					if (isDeclarationStatement(v)) {
+					Iterator<Edge> declarations = v.edges(Direction.OUT, "DECLARATIONS");
+
+					if (isDeclarationStatement(v) && declarations.hasNext()) {
 						log.debug("Found variable declaration {}", v.property("code").value());
 
-						Vertex decl = v.edges(Direction.OUT, "DECLARATIONS").next().inVertex();
+						Vertex decl = declarations.next().inVertex();
 						Val declVal = new Val((String) decl.property("name").value(), currentFunctionName);
 
 						Optional<Vertex> rhs = Optional.empty();
@@ -678,20 +681,22 @@ public class TypeStateAnalysis {
 				}
 				// Finally we need to find out in which function the call site actually is
 				String callerFunctionName = null;
-				Vertex callerFunction = crymlinTraversalSource.byID((long) call.id())
+				CrymlinTraversal<Vertex, Vertex> traversal = crymlinTraversalSource.byID((long) call.id())
 						.repeat(__().out("EOG"))
 						.until(__().in("STATEMENTS"))
 						//					.limit(10)
 						.in("STATEMENTS")
-						.in("BODY")
-						//					.outV()
-						.next();
-				if (callerFunction != null) {
-					callerFunctionName = callerFunction.property("name").value().toString();
-				}
+						.in("BODY");
+				//					.outV()
+				if (traversal.hasNext()) {
+					Vertex callerFunction = traversal.next();
+					if (callerFunction != null) {
+						callerFunctionName = callerFunction.property("name").value().toString();
+					}
 
-				if (callerFunctionName != null) {
-					returnedVals.add(new Val(returnVar, callerFunctionName));
+					if (callerFunctionName != null) {
+						returnedVals.add(new Val(returnVar, callerFunctionName));
+					}
 				}
 			}
 		}

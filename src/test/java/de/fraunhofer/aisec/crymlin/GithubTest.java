@@ -148,7 +148,7 @@ class GithubTest {
 
 		TranslationManager tm = TranslationManager.builder()
 				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceFiles(cppFile).build())
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceLocations(cppFile).build())
 				.build();
 
 		boolean hasError = false;

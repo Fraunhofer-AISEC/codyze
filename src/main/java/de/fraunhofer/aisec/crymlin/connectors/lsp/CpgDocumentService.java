@@ -85,7 +85,7 @@ public class CpgDocumentService implements TextDocumentService {
 		}
 		TranslationManager tm = TranslationManager.builder()
 				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(file).build())
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceLocations(file).build())
 				.build();
 
 		CompletableFuture<AnalysisContext> analyze = instance.analyze(tm);

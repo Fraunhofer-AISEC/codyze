@@ -58,7 +58,7 @@ class GraphTest {
 		// Start the analysis
 		TranslationManager translationManager = TranslationManager.builder()
 				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceFiles(cppFile).build())
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceLocations(cppFile).build())
 				.build();
 		CompletableFuture<AnalysisContext> analyze = server.analyze(translationManager);
 		try {

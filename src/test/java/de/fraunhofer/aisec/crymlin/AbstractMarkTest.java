@@ -70,7 +70,7 @@ public class AbstractMarkTest {
 							.codeInNodes(true)
 							.defaultPasses()
 							.loadIncludes(true)
-							.sourceFiles(javaFile)
+							.sourceLocations(javaFile)
 							.build())
 				.build();
 		CompletableFuture<AnalysisContext> analyze = server.analyze(translationManager);

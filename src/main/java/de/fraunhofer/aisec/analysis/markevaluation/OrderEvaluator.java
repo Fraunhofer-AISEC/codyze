@@ -40,7 +40,7 @@ public class OrderEvaluator {
 				}
 				catch (IllegalTransitionException e) {
 					log.error("Unexpected error in typestate WPDS", e);
-					result = ErrorValue.newErrorValue("Unexpected error in typestate WPDS", e);
+					result = ErrorValue.newErrorValue("Unexpected error in typestate WPDS %s", e.getMessage());
 				}
 				break;
 

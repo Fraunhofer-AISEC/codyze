@@ -38,33 +38,41 @@ public class SplitBuiltin implements Builtin {
 		// example:
 		// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
 
-		String s = ExpressionHelper.asString(argResultList.get(0));
-		String regex = ExpressionHelper.asString(argResultList.get(1));
-		Number index = ExpressionHelper.asNumber(argResultList.get(2));
+		try {
+			BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class, ConstantValue.class, ConstantValue.class);
 
-		if (s == null || regex == null || index == null) {
-			log.error("One of the arguments was not the expected type");
-			return ErrorValue.newErrorValue("One of the arguments was not the expected type");
+			String s = ExpressionHelper.asString(argResultList.get(0));
+			String regex = ExpressionHelper.asString(argResultList.get(1));
+			Number index = ExpressionHelper.asNumber(argResultList.get(2));
+
+			if (s == null || regex == null || index == null) {
+				log.error("One of the arguments was not the expected type");
+				return ErrorValue.newErrorValue("One of the arguments was not the expected type");
+			}
+
+			log.debug("args are: {}; {}; {}", s, regex, index);
+			String ret;
+			String[] splitted = s.split(regex);
+			if (index.intValue() < splitted.length) {
+				ret = splitted[index.intValue()];
+			} else {
+				log.error("{} did not have an {}-th element when split by '{}'", s, index, regex);
+				return ErrorValue.newErrorValue("%s did not have an %d-th element when split by '%s'", s, index, regex);
+			}
+
+			ConstantValue cv = ConstantValue.of(ret);
+			// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
+			// stringResult.setValue(ret);
+
+			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+				(ConstantValue) argResultList.get(1),
+				(ConstantValue) argResultList.get(2));
+
+			return cv;
 		}
-
-		log.debug("args are: {}; {}; {}", s, regex, index);
-		String ret = null;
-		String[] splitted = s.split(regex);
-		if (index.intValue() < splitted.length) {
-			ret = splitted[index.intValue()];
-		} else {
-			log.error("{} did not have an {}-th element when split by '{}'", s, index, regex);
-			return ErrorValue.newErrorValue("{} did not have an {}-th element when split by '{}'", s, index, regex);
+		catch (InvalidArgumentException e) {
+			log.warn(e.getMessage());
+			return ErrorValue.newErrorValue(e.getMessage());
 		}
-
-		ConstantValue cv = ConstantValue.of(ret);
-		// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
-		// stringResult.setValue(ret);
-
-		cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
-			(ConstantValue) argResultList.get(1),
-			(ConstantValue) argResultList.get(2));
-
-		return cv;
 	}
 }

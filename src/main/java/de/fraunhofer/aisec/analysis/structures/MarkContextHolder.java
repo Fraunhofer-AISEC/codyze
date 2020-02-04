@@ -102,7 +102,7 @@ public class MarkContextHolder {
 				Vertex vertex = context.getInstanceContext().getVertex(operand.substring(0, operand.lastIndexOf('.')));
 				log.warn("Did not find a value for Instance {} {}", id, (vertex == null) ? "null" : vertex.value("code"));
 				context.setOperand(operand, new CPGVertexWithValue(null,
-					ErrorValue.newErrorValue("Did not find a value for Instance {} {}", id, (vertex == null) ? "null" : vertex.value("code"))));
+					ErrorValue.newErrorValue("Did not find a value for Instance %d %s", id, (vertex == null) ? "null" : vertex.value("code").toString())));
 			} else if (operandVertices.size() == 1) {
 				context.setOperand(operand, operandVertices.get(0));
 			} else {

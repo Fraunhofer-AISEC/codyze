@@ -194,7 +194,7 @@ public class ExpressionEvaluator {
 				log.warn("At least one subexpression is not of type Boolean: {} vs {}",
 					ExpressionHelper.exprToString(leftExp),
 					ExpressionHelper.exprToString(rightExp));
-				combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical expression, left is {}, right is {}",
+				combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical expression, left is %s, right is %s",
 					ExpressionHelper.exprToString(leftExp),
 					ExpressionHelper.exprToString(rightExp)));
 
@@ -207,7 +207,7 @@ public class ExpressionEvaluator {
 							(!leftHasError && left.equals(false))) {
 						combinedResult.put(key, ConstantValue.of(false));
 					} else {
-						combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical and, left is {}, right is {}",
+						combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical and, left is %s, right is %s",
 							ExpressionHelper.exprToString(leftExp),
 							ExpressionHelper.exprToString(rightExp)));
 					}
@@ -229,7 +229,7 @@ public class ExpressionEvaluator {
 							(!leftHasError && left.equals(true))) {
 						combinedResult.put(key, ConstantValue.of(true));
 					} else {
-						combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical or, left is {}, right is {}",
+						combinedResult.put(key, ErrorValue.newErrorValue("cannot perform logical or, left is %s, right is %s",
 							ExpressionHelper.exprToString(leftExp),
 							ExpressionHelper.exprToString(rightExp)));
 					}
@@ -297,7 +297,7 @@ public class ExpressionEvaluator {
 					combinedResult.put(key, cv);
 				} else {
 					log.warn("Unknown op for List on the right side");
-					combinedResult.put(key, ErrorValue.newErrorValue("Unknown op {} for List on the right side", op));
+					combinedResult.put(key, ErrorValue.newErrorValue("Unknown op %s for List on the right side", op));
 				}
 
 			} else {
@@ -350,7 +350,7 @@ public class ExpressionEvaluator {
 							break;
 						default:
 							log.warn("Unsupported operand {}", op);
-							cv = ErrorValue.newErrorValue("Unsupported operand {}", op);
+							cv = ErrorValue.newErrorValue("Unsupported operand %s", op);
 					}
 					combinedResult.put(key, cv);
 				}
@@ -430,7 +430,7 @@ public class ExpressionEvaluator {
 
 				if (!(entry.getValue() instanceof ListValue)) {
 					log.error("Arguments must be a list");
-					result.put(entry.getKey(), ErrorValue.newErrorValue("arguments must be a list, are {}", entry.getValue().getClass()));
+					result.put(entry.getKey(), ErrorValue.newErrorValue("arguments must be a list, are %s", entry.getValue().getClass().getSimpleName()));
 					continue;
 				}
 
@@ -445,7 +445,7 @@ public class ExpressionEvaluator {
 		log.error("Unsupported builtin {}", functionName);
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 		for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
-			result.put(entry.getKey(), ErrorValue.newErrorValue("Unsupported builtin {}", functionName));
+			result.put(entry.getKey(), ErrorValue.newErrorValue("Unsupported builtin %s", functionName));
 		}
 		return result;
 	}
@@ -468,7 +468,7 @@ public class ExpressionEvaluator {
 			}
 			catch (NumberFormatException nfe) {
 				log.warn("Unable to convert integer literal {}", v, nfe);
-				value = ErrorValue.newErrorValue("Unable to convert integer literal {}", v, nfe);
+				value = ErrorValue.newErrorValue("Unable to convert integer literal %s: %s", v, nfe.getMessage());
 			}
 		} else if (literal instanceof BooleanLiteral) {
 			log.debug("Literal is Boolean: {}", v);
@@ -478,7 +478,7 @@ public class ExpressionEvaluator {
 			value = ConstantValue.of(Utils.stripQuotedString(v));
 		} else {
 			log.warn("Unknown literal encountered: {}", v);
-			value = ErrorValue.newErrorValue("Unknown literal encountered: {}", v);
+			value = ErrorValue.newErrorValue("Unknown literal encountered: %s", v);
 		}
 
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
@@ -524,7 +524,7 @@ public class ExpressionEvaluator {
 					log.warn("Type of left expression does not match type of right expression: {} vs {}",
 						leftResultType.getSimpleName(),
 						rightResultType.getSimpleName());
-					combinedResult.put(key, ErrorValue.newErrorValue("Type of left expression does not match type of right expression: {} vs {}",
+					combinedResult.put(key, ErrorValue.newErrorValue("Type of left expression does not match type of right expression: %s vs %s",
 						leftResultType.getSimpleName(),
 						rightResultType.getSimpleName()));
 				}
@@ -540,7 +540,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Float) left * (Float) right);
 						} else {
 							log.warn("Multiplication operator multiplication ('*') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ErrorValue.newErrorValue("Multiplication operator multiplication ('*') not supported for type: {}",
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator multiplication ('*') not supported for type: %s",
 								leftResultType.getSimpleName());
 						}
 						break;
@@ -551,7 +551,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Float) left / (Float) right);
 						} else {
 							log.warn("Multiplication operator division ('/') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ErrorValue.newErrorValue("Multiplication operator division ('/') not supported for type: {}", leftResultType.getSimpleName());
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator division ('/') not supported for type: %s", leftResultType.getSimpleName());
 						}
 						break;
 					case "%":
@@ -559,7 +559,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left % (Integer) right);
 						} else {
 							log.warn("Multiplication operator remainder ('%') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ErrorValue.newErrorValue("Multiplication operator remainder ('%') not supported for type: {}",
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator remainder ('%') not supported for type: %s",
 								leftResultType.getSimpleName());
 						}
 						break;
@@ -573,7 +573,7 @@ public class ExpressionEvaluator {
 							}
 						} else {
 							log.warn("Multiplication operator left shift ('<<') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ErrorValue.newErrorValue("Multiplication operator left shift ('<<') not supported for type: {}",
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator left shift ('<<') not supported for type: %s",
 								leftResultType.getSimpleName());
 						}
 						break;
@@ -587,7 +587,7 @@ public class ExpressionEvaluator {
 							}
 						} else {
 							log.warn("Multiplication operator right shift ('>>') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ErrorValue.newErrorValue("Multiplication operator right shift ('>>') not supported for type: {}",
+							unboxedResult = ErrorValue.newErrorValue("Multiplication operator right shift ('>>') not supported for type: %s",
 								leftResultType.getSimpleName());
 						}
 						break;
@@ -596,7 +596,7 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left & (Integer) right);
 						} else {
 							log.warn("Addition operator bitwise and ('&') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ErrorValue.newErrorValue("Addition operator bitwise and ('&') not supported for type: {}", leftResultType.getSimpleName());
+							unboxedResult = ErrorValue.newErrorValue("Addition operator bitwise and ('&') not supported for type: %s", leftResultType.getSimpleName());
 						}
 						break;
 					case "&^":
@@ -604,12 +604,12 @@ public class ExpressionEvaluator {
 							unboxedResult = ((Integer) left & ~(Integer) right);
 						} else {
 							log.warn("Addition operator bitwise or ('|') not supported for type: {}", leftResultType.getSimpleName());
-							unboxedResult = ErrorValue.newErrorValue("Addition operator bitwise or ('|') not supported for type: {}", leftResultType.getSimpleName());
+							unboxedResult = ErrorValue.newErrorValue("Addition operator bitwise or ('|') not supported for type: %s", leftResultType.getSimpleName());
 						}
 						break;
 					default:
 						log.error("Unsupported expression {}", op);
-						unboxedResult = ErrorValue.newErrorValue("Unsupported expression {}", op);
+						unboxedResult = ErrorValue.newErrorValue("Unsupported expression %s", op);
 				}
 				ConstantValue cv = ConstantValue.of(unboxedResult);
 				cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
@@ -641,7 +641,7 @@ public class ExpressionEvaluator {
 						continue; // do not change anything
 					} else {
 						log.warn("Unary operator plus sign ('+') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ErrorValue.newErrorValue("Unary operator plus sign ('+') not supported for type: {}", subExprResultType.getSimpleName());
+						unboxedResult = ErrorValue.newErrorValue("Unary operator plus sign ('+') not supported for type: %s", subExprResultType.getSimpleName());
 					}
 					break;
 				case "-":
@@ -651,7 +651,7 @@ public class ExpressionEvaluator {
 						unboxedResult = -((Float) value);
 					} else {
 						log.warn("Unary operator minus sign ('-') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ErrorValue.newErrorValue("Unary operator minus sign ('-') not supported for type: {}", subExprResultType.getSimpleName());
+						unboxedResult = ErrorValue.newErrorValue("Unary operator minus sign ('-') not supported for type: %s", subExprResultType.getSimpleName());
 					}
 					break;
 				case "!":
@@ -659,7 +659,7 @@ public class ExpressionEvaluator {
 						unboxedResult = !((Boolean) value);
 					} else {
 						log.warn("Unary operator logical not ('!') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ErrorValue.newErrorValue("Unary operator logical not ('!') not supported for type: {}", subExprResultType.getSimpleName());
+						unboxedResult = ErrorValue.newErrorValue("Unary operator logical not ('!') not supported for type: %s", subExprResultType.getSimpleName());
 					}
 					break;
 				case "^":
@@ -667,12 +667,12 @@ public class ExpressionEvaluator {
 						unboxedResult = ~((Integer) value);
 					} else {
 						log.warn("Unary operator bitwise complement ('~') not supported for type: {}", subExprResultType.getSimpleName());
-						unboxedResult = ErrorValue.newErrorValue("Unary operator bitwise complement ('~') not supported for type: {}", subExprResultType.getSimpleName());
+						unboxedResult = ErrorValue.newErrorValue("Unary operator bitwise complement ('~') not supported for type: %s", subExprResultType.getSimpleName());
 					}
 					break;
 				default:
 					log.warn("Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
-					unboxedResult = ErrorValue.newErrorValue("Trying to evaluate unknown unary expression: {}", ExpressionHelper.exprToString(expr));
+					unboxedResult = ErrorValue.newErrorValue("Trying to evaluate unknown unary expression: %s", ExpressionHelper.exprToString(expr));
 			}
 			ConstantValue cv = ConstantValue.of(unboxedResult);
 			cv.addResponsibleVerticesFrom(valueBoxed);

@@ -2,9 +2,9 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -15,15 +15,30 @@ import java.util.Objects;
  */
 public class ErrorValue extends ConstantValue {
 
-	private static final Logger log = LoggerFactory.getLogger(ErrorValue.class);
 	private final String description;
 
 	public static ErrorValue newErrorValue(@NonNull String description) {
 		return new ErrorValue("", description);
 	}
 
-	public static ErrorValue newErrorValue(@NonNull String format, Object... args) {
-		return new ErrorValue("", String.format(format, args));
+	public static ErrorValue newErrorValue(String description, List<MarkIntermediateResult> oldErrorMessages) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(description);
+		sb.append("\n");
+		for (MarkIntermediateResult cv : oldErrorMessages) {
+			if (cv instanceof ErrorValue) {
+				if (!((ErrorValue) cv).getDescription().isEmpty()) {
+					sb.append(((ErrorValue) cv).getDescription());
+					sb.append("\n");
+				}
+			}
+		}
+
+		return new ErrorValue("", sb.substring(0, sb.length() - 1)); // remove last newline
+	}
+
+	public static ErrorValue newErrorValue(@NonNull String description, MarkIntermediateResult... oldErrorMessages) {
+		return newErrorValue(description, Arrays.asList(oldErrorMessages));
 	}
 
 	protected ErrorValue(@NonNull Object value, @NonNull String description) {
@@ -47,4 +62,7 @@ public class ErrorValue extends ConstantValue {
 		return Objects.hash(description);
 	}
 
+	public String getDescription() {
+		return description;
+	}
 }

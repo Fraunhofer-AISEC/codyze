@@ -41,7 +41,7 @@ public class EogConnectionBuiltin implements Builtin {
 		}
 		catch (InvalidArgumentException e) {
 			log.warn(e.getMessage());
-			return ErrorValue.newErrorValue(e.getMessage());
+			return ErrorValue.newErrorValue(e.getMessage(), argResultList.getAll());
 		}
 
 		// TODO FW: needs to be discussed, I am not clear what this should achieve

@@ -56,7 +56,8 @@ public class BuiltinHelper {
 
 		for (int i = 0; i < arguments.size(); i++) {
 			if (!arguments.get(i).getClass().equals(expectedClasses[i])) {
-				throw new InvalidArgumentException(String.format("Argument %d is not the correct type. Expected: %s, was: %s", i, expectedClasses[i], arguments.get(i)));
+				throw new InvalidArgumentException(
+					String.format("Argument %d is not the correct type. Expected: %s, was: %s", i, expectedClasses[i].getName(), arguments.get(i).getClass().getName()));
 			}
 		}
 	}

@@ -87,7 +87,7 @@ public class OrderNFAEvaluator {
 		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
 		if (containingFunction.isEmpty()) {
 			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
-			return ErrorValue.newErrorValue("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
+			return ErrorValue.newErrorValue("Instance vertex %s is not contained in a method/function", variableDecl.property("code").toString());
 		}
 
 		Vertex functionDeclaration = containingFunction.get();
@@ -124,7 +124,7 @@ public class OrderNFAEvaluator {
 			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
 				log.error("alias {} is not referenced in this rule {}", alias, rule.getName());
-				return ErrorValue.newErrorValue("alias {} is not referenced in this rule {}", alias, rule.getName());
+				return ErrorValue.newErrorValue("alias %s is not referenced in this rule %s", alias, rule.getName());
 			}
 			referencedVertices.add(v.id());
 		}

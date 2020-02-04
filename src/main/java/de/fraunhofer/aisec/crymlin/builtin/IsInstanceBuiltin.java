@@ -38,22 +38,18 @@ public class IsInstanceBuiltin implements Builtin {
 			MarkContextHolder markContextHolder,
 			ExpressionEvaluator expressionEvaluator) {
 
-		ConstantValue cv = null;
-		Object classnameArgument = argResultList.get(1);
-		if (!(classnameArgument instanceof ConstantValue)
-				||
-				!((ConstantValue) classnameArgument).isString()) {
-			log.error("second parameter of _is_instance is not a String");
-			cv = ErrorValue.newErrorValue("second parameter of _is_instance is not a String");
-		}
-		if (!(argResultList.get(0) instanceof ConstantValue)) {
-			log.error("first parameter of _is_instance is not a ConstantValue containing a Vertex");
-			cv = ErrorValue.newErrorValue("first parameter of _is_instance is not a ConstantValue containing a Vertex");
-		}
+		try {
+			BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class, ConstantValue.class);
 
-		if (cv == null) {
+			ConstantValue cv;
+			ConstantValue classnameArgument = (ConstantValue) argResultList.get(1);
+			if (!classnameArgument.isString()) {
+				log.error("second parameter of _is_instance is not a String");
+				return ErrorValue.newErrorValue("second parameter of _is_instance is not a String");
+			}
+
 			// unify type (Java/C/C++)
-			String classname = Utils.unifyType((String) ((ConstantValue) classnameArgument).getValue());
+			String classname = Utils.unifyType((String) classnameArgument.getValue());
 			Set<Vertex> v = ((ConstantValue) argResultList.get(0)).getResponsibleVertices();
 
 			if (v.size() != 1) {
@@ -72,7 +68,11 @@ public class IsInstanceBuiltin implements Builtin {
 			}
 			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1));
+			return cv;
 		}
-		return cv;
+		catch (InvalidArgumentException e) {
+			log.warn(e.getMessage());
+			return ErrorValue.newErrorValue(e.getMessage());
+		}
 	}
 }

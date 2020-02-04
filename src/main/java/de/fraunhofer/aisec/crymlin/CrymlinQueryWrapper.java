@@ -477,14 +477,14 @@ public class CrymlinQueryWrapper {
 					});
 				} else {
 					CPGVertexWithValue add = CPGVertexWithValue.of(v);
-					v.setValue(ErrorValue.newErrorValue("could not resolve {}", markVar));
+					v.setValue(ErrorValue.newErrorValue("could not resolve %s", markVar));
 					ret.add(add);
 				}
 			} else {
 				log.info("Cannot resolve concrete value of a node that is not a DeclaredReferenceExpression or a Literal: {} Returning NULL",
 					v.getArgumentVertex().label());
 				CPGVertexWithValue add = CPGVertexWithValue.of(v);
-				v.setValue(ErrorValue.newErrorValue("could not resolve {}", markVar));
+				v.setValue(ErrorValue.newErrorValue("could not resolve %s", markVar));
 				ret.add(add);
 			}
 		}

@@ -1,9 +1,16 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.crymlin.builtin.BuiltinHelper;
+import de.fraunhofer.aisec.crymlin.builtin.InvalidArgumentException;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedVertex;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -11,8 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class BuiltInTest extends AbstractMarkTest {
@@ -68,6 +74,119 @@ public class BuiltInTest extends AbstractMarkTest {
 			"line [22, 24]: MarkRuleEvaluationFinding: Rule ControlFlow violated",
 			"line [33, 37]: MarkRuleEvaluationFinding: Rule ControlFlow violated",
 			"line [45, 46]: MarkRuleEvaluationFinding: Rule ControlFlow verified");
+	}
+
+	@Test
+	public void extractResponsibleVertices() {
+
+		ListValue lv = new ListValue();
+		ConstantValue cv1 = ConstantValue.of(2);
+		cv1.addResponsibleVertices(new DetachedVertex(new Object(), "", null));
+		lv.add(cv1);
+
+		ConstantValue cv2 = ConstantValue.of(2);
+		cv2.addResponsibleVertices(new DetachedVertex(new Object(), "", null));
+		lv.add(cv2);
+
+		try {
+			// we expect this does not throw
+			BuiltinHelper.extractResponsibleVertices(lv, 2);
+		}
+		catch (InvalidArgumentException e) {
+			fail();
+		}
+
+		try {
+			// we expect this throws as we would expect one more argument
+			BuiltinHelper.extractResponsibleVertices(lv, 3);
+			fail();
+		}
+		catch (InvalidArgumentException e) {
+			// ok
+		}
+
+		try {
+			// we expect this throws as the second ConstantValue has 2 responsiblevertices
+			cv2.addResponsibleVertices(new DetachedVertex(new Object(), "", null));
+			BuiltinHelper.extractResponsibleVertices(lv, 2);
+			fail();
+		}
+		catch (InvalidArgumentException e) {
+			// ok
+		}
+
+		lv = new ListValue();
+		cv1 = ConstantValue.of(2);
+		lv.add(cv1);
+
+		try {
+			// we expect this throws as the responsiblevertex is not availabe
+			BuiltinHelper.extractResponsibleVertices(lv, 1);
+			fail();
+		}
+		catch (InvalidArgumentException e) {
+			// ok
+		}
+
+		try {
+			// we expect this throws as the second argument is missing
+			BuiltinHelper.extractResponsibleVertices(lv, 2);
+			fail();
+		}
+		catch (InvalidArgumentException e) {
+			// ok
+		}
+
+		lv = new ListValue();
+		cv1 = ErrorValue.newErrorValue("test");
+		lv.add(cv1);
+
+		try {
+			// we expect this throws as first argument is an ErrorValue
+			BuiltinHelper.extractResponsibleVertices(lv, 1);
+			fail();
+		}
+		catch (InvalidArgumentException e) {
+			// ok
+		}
+	}
+
+	@Test
+	public void verifyArgumentTypesOrThrow() {
+		ListValue lv = new ListValue();
+		lv.add(ConstantValue.of(2));
+		lv.add(ConstantValue.of(3));
+
+		try {
+			// we expect this does not throw
+			BuiltinHelper.verifyArgumentTypesOrThrow(lv, ConstantValue.class, ConstantValue.class);
+		}
+		catch (InvalidArgumentException e) {
+			fail();
+		}
+
+		lv.add(ErrorValue.newErrorValue("error"));
+		try {
+			// we expect this to throw as there is one argument too many
+			BuiltinHelper.verifyArgumentTypesOrThrow(lv, ConstantValue.class, ConstantValue.class);
+			fail();
+		}
+		catch (InvalidArgumentException e) {
+			// ok
+		}
+
+		try {
+			// we expect this to throw as there is one argument too many
+			BuiltinHelper.verifyArgumentTypesOrThrow(lv, ConstantValue.class, ConstantValue.class, ConstantValue.class);
+			fail();
+		}
+		catch (InvalidArgumentException e) {
+			// ok
+		}
+
+		// we expect this to be ok
+		BuiltinHelper.verifyArgumentTypesOrThrow(lv, ConstantValue.class, ConstantValue.class, ErrorValue.class);
+
 	}
 
 }

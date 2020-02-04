@@ -78,16 +78,18 @@ public class OrderNFAEvaluator {
 			return ErrorValue.newErrorValue("Order statement does not contain any ops. Invalid order");
 		}
 
-		Vertex variableDecl = instanceContext.getVertex(markInstances.iterator().next());
+		String markVar = markInstances.iterator().next();
+
+		Vertex variableDecl = instanceContext.getVertex(markVar);
 		if (variableDecl == null) {
-			log.warn("Variable is not set in the instancecontext. Invalid evaluation.");
-			return ErrorValue.newErrorValue("Variable is not set in the instancecontext. Invalid evaluation.");
+			log.warn("No instance for markvar {} set in the instancecontext. Invalid evaluation.", markVar);
+			return ErrorValue.newErrorValue(String.format("No instance for markvar %s set in the instancecontext. Invalid evaluation.", markVar));
 		}
 
 		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
 		if (containingFunction.isEmpty()) {
 			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
-			return ErrorValue.newErrorValue("Instance vertex %s is not contained in a method/function", variableDecl.property("code").toString());
+			return ErrorValue.newErrorValue(String.format("Instance vertex %s is not contained in a method/function", variableDecl.property("code").toString()));
 		}
 
 		Vertex functionDeclaration = containingFunction.get();
@@ -124,7 +126,7 @@ public class OrderNFAEvaluator {
 			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
 				log.error("alias {} is not referenced in this rule {}", alias, rule.getName());
-				return ErrorValue.newErrorValue("alias %s is not referenced in this rule %s", alias, rule.getName());
+				return ErrorValue.newErrorValue(String.format("alias %s is not referenced in this rule %s", alias, rule.getName()));
 			}
 			referencedVertices.add(v.id());
 		}

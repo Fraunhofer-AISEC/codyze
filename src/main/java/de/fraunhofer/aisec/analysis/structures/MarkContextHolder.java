@@ -99,10 +99,9 @@ public class MarkContextHolder {
 		contexts.forEach((id, context) -> {
 			List<CPGVertexWithValue> operandVertices = operandVerticesForContext.get(id);
 			if (operandVertices == null || operandVertices.size() == 0) {
-				Vertex vertex = context.getInstanceContext().getVertex(operand.substring(0, operand.lastIndexOf('.')));
-				log.warn("Did not find a value for Instance {} {}", id, (vertex == null) ? "null" : vertex.value("code"));
+				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
 				context.setOperand(operand, new CPGVertexWithValue(null,
-					ErrorValue.newErrorValue("Did not find a value for Instance %d %s", id, (vertex == null) ? "null" : vertex.value("code").toString())));
+					ErrorValue.newErrorValue(String.format("Did not find any vertices for %s, following evaluation will be imprecise", operand))));
 			} else if (operandVertices.size() == 1) {
 				context.setOperand(operand, operandVertices.get(0));
 			} else {

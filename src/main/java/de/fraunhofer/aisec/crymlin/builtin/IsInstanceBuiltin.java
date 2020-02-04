@@ -45,7 +45,7 @@ public class IsInstanceBuiltin implements Builtin {
 			ConstantValue classnameArgument = (ConstantValue) argResultList.get(1);
 			if (!classnameArgument.isString()) {
 				log.error("second parameter of _is_instance is not a String");
-				return ErrorValue.newErrorValue("second parameter of _is_instance is not a String");
+				return ErrorValue.newErrorValue("second parameter of _is_instance is not a String", argResultList.getAll());
 			}
 
 			// unify type (Java/C/C++)
@@ -54,12 +54,12 @@ public class IsInstanceBuiltin implements Builtin {
 
 			if (v.size() != 1) {
 				log.error("Cannot evaluate _is_instance with multiple vertices as input");
-				cv = ErrorValue.newErrorValue("Cannot evaluate _is_instance with multiple vertices as input");
+				cv = ErrorValue.newErrorValue("Cannot evaluate _is_instance with multiple vertices as input", argResultList.getAll());
 			} else {
 				Vertex next = v.iterator().next();
 				if (next == null) {
 					log.error("Vertex is null, cannot check _is_instance");
-					cv = ErrorValue.newErrorValue("Vertex is null, cannot check _is_instance");
+					cv = ErrorValue.newErrorValue("Vertex is null, cannot check _is_instance", argResultList.getAll());
 				} else {
 					String type = next.value("type");
 					cv = ConstantValue.of(type.equals(classname));
@@ -72,7 +72,7 @@ public class IsInstanceBuiltin implements Builtin {
 		}
 		catch (InvalidArgumentException e) {
 			log.warn(e.getMessage());
-			return ErrorValue.newErrorValue(e.getMessage());
+			return ErrorValue.newErrorValue(e.getMessage(), argResultList.getAll());
 		}
 	}
 }

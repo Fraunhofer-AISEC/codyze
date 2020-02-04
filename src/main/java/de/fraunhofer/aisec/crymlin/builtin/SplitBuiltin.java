@@ -46,8 +46,8 @@ public class SplitBuiltin implements Builtin {
 			Number index = ExpressionHelper.asNumber(argResultList.get(2));
 
 			if (s == null || regex == null || index == null) {
-				log.error("One of the arguments was not the expected type");
-				return ErrorValue.newErrorValue("One of the arguments was not the expected type");
+				log.error("One of the arguments for _split was not the expected type, or not initialized/resolved");
+				return ErrorValue.newErrorValue("One of the arguments for _split was not the expected type, or not initialized/resolved", argResultList.getAll());
 			}
 
 			log.debug("args are: {}; {}; {}", s, regex, index);
@@ -57,7 +57,7 @@ public class SplitBuiltin implements Builtin {
 				ret = splitted[index.intValue()];
 			} else {
 				log.error("{} did not have an {}-th element when split by '{}'", s, index, regex);
-				return ErrorValue.newErrorValue("%s did not have an %d-th element when split by '%s'", s, index, regex);
+				return ErrorValue.newErrorValue(String.format("%s did not have an %s-th element when split by '%s'", s, index.toString(), regex), argResultList.getAll());
 			}
 
 			ConstantValue cv = ConstantValue.of(ret);
@@ -72,7 +72,7 @@ public class SplitBuiltin implements Builtin {
 		}
 		catch (InvalidArgumentException e) {
 			log.warn(e.getMessage());
-			return ErrorValue.newErrorValue(e.getMessage());
+			return ErrorValue.newErrorValue(e.getMessage(), argResultList.getAll());
 		}
 	}
 }

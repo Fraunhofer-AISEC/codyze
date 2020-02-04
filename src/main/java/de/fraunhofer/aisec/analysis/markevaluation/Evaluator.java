@@ -2,15 +2,7 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.MarkContext;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
-import de.fraunhofer.aisec.analysis.structures.Pair;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
@@ -231,8 +223,11 @@ public class Evaluator {
 						ranges,
 						isRuleViolated));
 				}
-			} else if (value == null || ConstantValue.isError(value) || ConstantValue.isError(entry.getValue())) {
-				log.warn("Unable to evaluate rule {}, result had an error", rule.getName());
+			} else if (value == null) {
+				log.warn("Unable to evaluate rule {}, resultwas null, this should not happen.", rule.getName());
+			} else if (ConstantValue.isError(entry.getValue())) {
+				log.warn("Unable to evaluate rule {}, result had an error: \n{}", rule.getName(),
+					((ErrorValue) entry.getValue()).getDescription());
 			} else {
 				log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
 			}

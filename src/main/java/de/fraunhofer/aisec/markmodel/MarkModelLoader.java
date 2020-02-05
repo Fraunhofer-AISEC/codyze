@@ -110,7 +110,7 @@ public class MarkModelLoader {
 						if (ref == null) {
 							log.error(
 								"Entity {} not loaded. Referenced in rule {} in file {}",
-								entity.getE().getName(),
+								entity.getN(),
 								rule.getName(),
 								containedInThisFile);
 						}

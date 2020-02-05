@@ -195,8 +195,8 @@ public class ExpressionEvaluator {
 					ExpressionHelper.exprToString(leftExp),
 					ExpressionHelper.exprToString(rightExp));
 				combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical expression, left is %s, right is %s",
-					ExpressionHelper.exprToString(leftExp),
-					ExpressionHelper.exprToString(rightExp)), leftBoxed, rightBoxed));
+					leftHasError ? "error" : left.toString(),
+					rightHasError ? "error" : right.toString()), leftBoxed, rightBoxed));
 
 			} else if (expr instanceof LogicalAndExpression) {
 				if (leftHasError || rightHasError) {
@@ -208,8 +208,8 @@ public class ExpressionEvaluator {
 						combinedResult.put(key, ConstantValue.of(false));
 					} else {
 						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical and, left is %s, right is %s",
-							ExpressionHelper.exprToString(leftExp),
-							ExpressionHelper.exprToString(rightExp))));
+							leftHasError ? "error" : left.toString(),
+							rightHasError ? "error" : right.toString())));
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&
@@ -230,8 +230,8 @@ public class ExpressionEvaluator {
 						combinedResult.put(key, ConstantValue.of(true));
 					} else {
 						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical or, left is %s, right is %s",
-							ExpressionHelper.exprToString(leftExp),
-							ExpressionHelper.exprToString(rightExp))));
+							leftHasError ? "error" : left.toString(),
+							rightHasError ? "error" : right.toString())));
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&

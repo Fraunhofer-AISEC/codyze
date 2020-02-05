@@ -261,8 +261,12 @@ public class Evaluator {
 
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 				Object value = ConstantValue.unbox(entry.getValue());
-				if (value == null || ConstantValue.isError(value)) {
-					log.warn("Unable to evaluate when-part of rule {}, result was null", rule.getName());
+				if (value == null) {
+					log.warn("Unable to evaluate rule {}, resultwas null, this should not happen.", rule.getName());
+					continue;
+				} else if (ConstantValue.isError(entry.getValue())) {
+					log.warn("Unable to evaluate when-part of rule {}, result had an error: \n\t{}", rule.getName(),
+						((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
 					continue;
 				} else if (!(value instanceof Boolean)) {
 					log.error("Unable to evaluate when-part of rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
@@ -336,7 +340,7 @@ public class Evaluator {
 
 					if (ref.isEmpty()) {
 						log.warn("Did not find an instance variable for entity {} when searching at node {}", referencedEntity.getName(),
-							vertex.property("code").value());
+							vertex.property("code").value().toString().replaceAll("\n\\s*", " "));
 					}
 				}
 			}

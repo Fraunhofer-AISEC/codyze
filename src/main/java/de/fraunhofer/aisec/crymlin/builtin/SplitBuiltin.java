@@ -46,7 +46,7 @@ public class SplitBuiltin implements Builtin {
 			Number index = ExpressionHelper.asNumber(argResultList.get(2));
 
 			if (s == null || regex == null || index == null) {
-				log.error("One of the arguments for _split was not the expected type, or not initialized/resolved");
+				log.warn("One of the arguments for _split was not the expected type, or not initialized/resolved");
 				return ErrorValue.newErrorValue("One of the arguments for _split was not the expected type, or not initialized/resolved", argResultList.getAll());
 			}
 
@@ -56,7 +56,7 @@ public class SplitBuiltin implements Builtin {
 			if (index.intValue() < splitted.length) {
 				ret = splitted[index.intValue()];
 			} else {
-				log.error("{} did not have an {}-th element when split by '{}'", s, index, regex);
+				log.warn("{} did not have an {}-th element when split by '{}'", s, index, regex);
 				return ErrorValue.newErrorValue(String.format("%s did not have an %s-th element when split by '%s'", s, index.toString(), regex), argResultList.getAll());
 			}
 

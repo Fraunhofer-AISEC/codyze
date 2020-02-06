@@ -11,10 +11,10 @@ import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
+import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
@@ -33,12 +33,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.crymlin.dsl.__.*;
 import static de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper.isCallExpression;
+import static de.fraunhofer.aisec.crymlin.dsl.__.__;
 import static java.lang.Math.toIntExact;
 
 /**
@@ -158,12 +157,12 @@ public class TypeStateAnalysis {
 		// Evaluate saturated WNFA for any MARK violations
 		Set<Finding> findings = getFindingsFromWpds(wnfa, tsNFA, rule, funcDecl.getFile());
 
-		if (markContextHolder.createFindingsDuringEvaluation()) {
+		if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 			ctx.getFindings().addAll(findings);
 		}
 
 		ConstantValue of = ConstantValue.of(findings.isEmpty());
-		if (markContextHolder.createFindingsDuringEvaluation()) {
+		if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
 		}
 		return of;

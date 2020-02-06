@@ -296,7 +296,7 @@ public class OrderNFAEvaluator {
 												toIntExact(vertex.value("endLine")) - 1,
 												toIntExact(vertex.value("startColumn")) - 1,
 												toIntExact(vertex.value("endColumn")) - 1);
-											if (markContextHolder.createFindingsDuringEvaluation()) {
+											if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 												ctx.getFindings().add(f);
 											}
 											log.info("Finding: {}", f);
@@ -419,14 +419,14 @@ public class OrderNFAEvaluator {
 				toIntExact(vertex.value("endLine")) - 1,
 				toIntExact(vertex.value("startColumn")) - 1,
 				toIntExact(vertex.value("endColumn")) - 1);
-			if (markContextHolder.createFindingsDuringEvaluation()) {
+			if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 				ctx.getFindings()
 						.add(f);
 			}
 			log.info("Finding: {}", f);
 		}
 		ConstantValue of = ConstantValue.of(isOrderValid);
-		if (markContextHolder.createFindingsDuringEvaluation()) {
+		if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
 		}
 		return of;

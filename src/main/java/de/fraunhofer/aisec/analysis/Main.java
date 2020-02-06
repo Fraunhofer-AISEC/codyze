@@ -29,7 +29,7 @@ public class Main implements Callable<Integer> {
 	private ExecutionMode executionMode;
 
 	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-	private AnalysisMode analysisModeMode;
+	private AnalysisMode analysisMode;
 
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File analysisInput;
@@ -59,6 +59,7 @@ public class Main implements Callable<Integer> {
 				.config(ServerConfiguration.builder()
 						.launchLsp(executionMode.lsp)
 						.launchConsole(executionMode.tui)
+						.typestateAnalysis(analysisMode.tsMode)
 						.markFiles(markFolderName.getAbsolutePath())
 						.build())
 				.build();
@@ -66,12 +67,15 @@ public class Main implements Callable<Integer> {
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (analysisInput != null) {
+		if (!executionMode.lsp && analysisInput != null) {
 			log.info("Analyzing {}", analysisInput);
 			AnalysisContext ctx = server.analyze(analysisInput.getAbsolutePath())
 					.get(timeout, TimeUnit.MINUTES);
 
 			writeFindings(ctx.getFindings());
+		} else if (executionMode.lsp) {
+			// Block main thread. Work is done in
+			Thread.currentThread().join();
 		}
 
 		return 0;
@@ -114,11 +118,11 @@ class ExecutionMode {
 
 class AnalysisMode {
 
-	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
+	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", defaultValue = "NFA", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
-	private TypestateMode tsMode;
+	protected TypestateMode tsMode = TypestateMode.NFA;
 
 	@Option(names = { "--interproc" }, description = "Enables interprocedural data flow analysis (more precise but slower).")
-	private boolean interproc;
+	protected boolean interproc = false;
 
 }

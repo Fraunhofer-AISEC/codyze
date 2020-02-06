@@ -84,11 +84,13 @@ public class AnalysisServer {
 		AnalysisServer.instance = this;
 
 		// Register built-in functions
+		// todo find this using reflection
 		BuiltinRegistry.getInstance().register(new SplitBuiltin());
 		BuiltinRegistry.getInstance().register(new IsInstanceBuiltin());
 		BuiltinRegistry.getInstance().register(new EogConnectionBuiltin());
 		BuiltinRegistry.getInstance().register(new DirectEogConnectionBuiltin());
 		BuiltinRegistry.getInstance().register(new ReceivesValueFrom());
+		BuiltinRegistry.getInstance().register(new InsideSameFunction());
 	}
 
 	/**

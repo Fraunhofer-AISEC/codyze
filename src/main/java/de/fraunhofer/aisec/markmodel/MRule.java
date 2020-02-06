@@ -4,10 +4,8 @@ package de.fraunhofer.aisec.markmodel;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
-import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 

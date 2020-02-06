@@ -22,7 +22,6 @@ import org.eclipse.lsp4j.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.util.*;
 
 import static java.lang.Math.toIntExact;
@@ -136,22 +135,26 @@ public class Evaluator {
 			/* Evaluate "using" part and collect the instances of MARK entities, as well as the potential vertex representing the base object variables. */
 			List<List<Pair<String, Vertex>>> entities = findInstancesForEntities(rule);
 
-			// skip evaluation if none of the markvars are found in the graph
-			//			if (!entities.isEmpty()) {
-			//				boolean atLeastOneEntityFound = false;
-			//				outer: for (List<Pair<String, Vertex>> entity : entities) {
-			//					for (Pair<String, Vertex> stringVertexPair : entity) {
-			//						if (stringVertexPair.getValue1() != null) {
-			//							atLeastOneEntityFound = true;
-			//							break outer;
-			//						}
-			//					}
-			//				}
-			//				if (!atLeastOneEntityFound) {
-			//					log.info("no vertices for at least one MarkVar for this rule. skipping.");
-			//					return;
-			//				}
-			//			}
+			// skip evaluation if there are no cpg-nodes which would be used in this evaluation
+			if (!entities.isEmpty()) {
+				boolean hasCPGNodes = false;
+				outer: for (Map.Entry<String, Pair<String, MEntity>> entity : rule.getEntityReferences().entrySet()) {
+					if (entity.getValue() == null || entity.getValue().getValue1() == null) {
+						log.warn("Rule {} references an unknown entity {}", rule.getName(), entity.getKey());
+						break;
+					}
+					for (MOp op : entity.getValue().getValue1().getOps()) {
+						if (!op.getAllVertices().isEmpty()) {
+							hasCPGNodes = true;
+							break outer;
+						}
+					}
+				}
+				if (!hasCPGNodes) {
+					log.warn("Rule {} does not have any corresponding CPG-nodes. Skipping", rule.getName());
+					continue;
+				}
+			}
 
 			/* Create evaluation context. */
 			// Generate all combinations of instances for each entity.
@@ -167,10 +170,10 @@ public class Evaluator {
 			/* Evaluate "ensure" part */
 			Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(rule.getStatement().getEnsure().getExp());
 
-			log.info("Got {} results", result.size());
-
 			/* Get findings from "result" */
 			Collection<Finding> findings = getFindings(result, markCtxHolder, rule);
+
+			log.info("Got {} findings", findings.size());
 			ctx.getFindings().addAll(findings);
 		}
 	}
@@ -226,8 +229,8 @@ public class Evaluator {
 			} else if (value == null) {
 				log.warn("Unable to evaluate rule {}, resultwas null, this should not happen.", rule.getName());
 			} else if (ConstantValue.isError(entry.getValue())) {
-				log.warn("Unable to evaluate rule {}, result had an error: \n{}", rule.getName(),
-					((ErrorValue) entry.getValue()).getDescription());
+				log.warn("Unable to evaluate rule {}, result had an error: \n\t{}", rule.getName(),
+					((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
 			} else {
 				log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
 			}
@@ -257,8 +260,12 @@ public class Evaluator {
 
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 				Object value = ConstantValue.unbox(entry.getValue());
-				if (value == null || ConstantValue.isError(value)) {
-					log.warn("Unable to evaluate when-part of rule {}, result was null", rule.getName());
+				if (value == null) {
+					log.warn("Unable to evaluate rule {}, resultwas null, this should not happen.", rule.getName());
+					continue;
+				} else if (ConstantValue.isError(entry.getValue())) {
+					log.warn("Unable to evaluate when-part of rule {}, result had an error: \n\t{}", rule.getName(),
+						((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
 					continue;
 				} else if (!(value instanceof Boolean)) {
 					log.error("Unable to evaluate when-part of rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
@@ -332,7 +339,7 @@ public class Evaluator {
 
 					if (ref.isEmpty()) {
 						log.warn("Did not find an instance variable for entity {} when searching at node {}", referencedEntity.getName(),
-							vertex.property("code").value());
+							vertex.property("code").value().toString().replaceAll("\n\\s*", " "));
 					}
 				}
 			}

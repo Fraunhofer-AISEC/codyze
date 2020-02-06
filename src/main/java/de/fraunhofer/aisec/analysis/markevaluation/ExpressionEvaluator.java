@@ -110,7 +110,7 @@ public class ExpressionEvaluator {
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
 			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);
 
-			if (markContextHolder.isCreateFindingsDuringEvaluation() && res != null && Objects.equals(((ConstantValue) res).getValue(), true)) {
+			if (markContextHolder.isCreateFindingsDuringEvaluation() && res != null && Objects.equals(res.getValue(), true)) {
 				Set<String> markInstances = new HashSet<>();
 				ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
 				if (markInstances.size() == 1) { // otherwise, the analysis did not work anyway and we did not have a result
@@ -195,8 +195,8 @@ public class ExpressionEvaluator {
 					ExpressionHelper.exprToString(leftExp),
 					ExpressionHelper.exprToString(rightExp));
 				combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical expression, left is %s, right is %s",
-					ExpressionHelper.exprToString(leftExp),
-					ExpressionHelper.exprToString(rightExp)), leftBoxed, rightBoxed));
+					leftHasError ? "error" : left.toString(),
+					rightHasError ? "error" : right.toString()), leftBoxed, rightBoxed));
 
 			} else if (expr instanceof LogicalAndExpression) {
 				if (leftHasError || rightHasError) {
@@ -208,8 +208,8 @@ public class ExpressionEvaluator {
 						combinedResult.put(key, ConstantValue.of(false));
 					} else {
 						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical and, left is %s, right is %s",
-							ExpressionHelper.exprToString(leftExp),
-							ExpressionHelper.exprToString(rightExp))));
+							leftHasError ? "error" : left.toString(),
+							rightHasError ? "error" : right.toString())));
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&
@@ -230,8 +230,8 @@ public class ExpressionEvaluator {
 						combinedResult.put(key, ConstantValue.of(true));
 					} else {
 						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical or, left is %s, right is %s",
-							ExpressionHelper.exprToString(leftExp),
-							ExpressionHelper.exprToString(rightExp))));
+							leftHasError ? "error" : left.toString(),
+							rightHasError ? "error" : right.toString())));
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&
@@ -278,7 +278,7 @@ public class ExpressionEvaluator {
 					ListValue l = (ListValue) entry.getValue();
 					ConstantValue cv = ConstantValue.of(false);
 
-					for (Object o : l) {
+					for (MarkIntermediateResult o : l) {
 						log.debug(
 							"Comparing left expression with element of right expression: {} vs. {}",
 							left,
@@ -396,9 +396,44 @@ public class ExpressionEvaluator {
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 		for (Argument arg : argList) {
 			Map<Integer, MarkIntermediateResult> r = evaluateExpression((Expression) arg);
+
+			// if the argument contains more than one var, the evaluation of the n+1-th argument could have increased the number of contexts
+			// ex: for argument 0 t.foo we get back the result [1, 2] (i.e., two possible values of t.foo)
+			//     evaluating the argument 1 t.bar, we could get back [3, 4, 3, 4] which means we only have another two possible values for t.bar,
+			//          but since we need to look at each combination, this is the cross-product of the possible values for t.foo and t.bar.
+			//     to correctly fill the argumentlist, we therefore look through all currently returned results, and iff their context was copied during the evaluation
+			//     in the example, the third element (second 3) would have been a copy, the un-copied context would be [t.foo=1, t.bar=3], the copy [t.foo=2, t.bar=3]
+			//     we remember what the previous argument was, and add that to the current argument return list.
+			//     in the example above, this means, that once we get to the second 3, we not only add the 3 to the argument list, but also add the parameter it was
+			//     copied from, i.e., the 1.
+			//     The resulting argument list for this example would be [(1,3), (2,4), (1,4), (2,4)]
+
+			Map<Integer, ArrayList<MarkIntermediateResult>> previousArgument = new HashMap<>();
+			for (Integer key : r.keySet()) {
+				if (!result.containsKey(key)) {
+					MarkIntermediateResult prev = getcorrespondingLeftResult(result, key);
+					if (!((prev instanceof ErrorValue) && ((ErrorValue) prev).getDescription().equals("Could not find a result"))) {
+						// this is a real result
+						if (!(prev instanceof ListValue)) {
+							log.error("Previous result of an Argument evaluation was not a Listvalue");
+						} else {
+							ArrayList<MarkIntermediateResult> deepCopy = new ArrayList<>(((ListValue) prev).getAll());
+							previousArgument.put(key, deepCopy);
+						}
+					}
+				}
+			}
+
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : r.entrySet()) {
-				ListValue o = (ListValue) result.computeIfAbsent(entry.getKey(), x -> new ListValue());
-				o.add(entry.getValue());
+				MarkIntermediateResult o = result.get(entry.getKey());
+				if (o == null) {
+					o = new ListValue();
+					if (previousArgument.containsKey(entry.getKey())) {
+						((ListValue) o).addAll(previousArgument.get(entry.getKey()));
+					}
+					result.put(entry.getKey(), o);
+				}
+				((ListValue) o).add(entry.getValue());
 			}
 		}
 		return result;
@@ -728,5 +763,9 @@ public class ExpressionEvaluator {
 		}
 
 		return resolvedOperand;
+	}
+
+	public CrymlinTraversalSource getCrymlinTraversal() {
+		return this.traversal;
 	}
 }

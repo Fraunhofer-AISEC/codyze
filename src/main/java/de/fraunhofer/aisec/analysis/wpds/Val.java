@@ -3,6 +3,8 @@ package de.fraunhofer.aisec.analysis.wpds;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.util.Objects;
+
 public class Val {
 
 	private final String variable;
@@ -46,9 +48,6 @@ public class Val {
 		if (!variable.equals(other.variable)) {
 			return false;
 		}
-		if (!currentScope.equals(other.currentScope)) {
-			return false;
-		}
-		return true;
+		return currentScope.equals(other.currentScope);
 	}
 }

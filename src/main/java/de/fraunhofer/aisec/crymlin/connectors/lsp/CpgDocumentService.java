@@ -163,7 +163,6 @@ public class CpgDocumentService implements TextDocumentService {
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
-		// log.info("Handling didChange: {}", params);
 	}
 
 	@Override

@@ -42,7 +42,15 @@ public class ListValue extends MarkIntermediateResult implements Iterable<MarkIn
 		return values.size();
 	}
 
+	public boolean isEmpty() {
+		return values.isEmpty();
+	}
+
 	public List<MarkIntermediateResult> getAll() {
 		return values;
+	}
+
+	public void addAll(List<MarkIntermediateResult> add) {
+		values.addAll(add);
 	}
 }

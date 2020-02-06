@@ -60,9 +60,7 @@ import static java.lang.Math.toIntExact;
  */
 public class TypeStateAnalysis {
 	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
-	private Map<MOp, Set<Vertex>> verticeMap;
 	private MRule rule;
-	private OrderExpression orderExpr;
 	private final MarkContextHolder markContextHolder;
 
 	public TypeStateAnalysis(MarkContextHolder markContextHolder) {
@@ -79,7 +77,7 @@ public class TypeStateAnalysis {
 		this.rule = rule;
 
 		// Remember map from MARK ops to Vertices
-		this.verticeMap = getVerticesOfRule(rule);
+		Map<MOp, Set<Vertex>> verticeMap = getVerticesOfRule(rule);
 
 		// Remember the order expression we are analyzing
 		de.fraunhofer.aisec.mark.markDsl.Expression expr = this.rule.getStatement().getEnsure().getExp();
@@ -87,11 +85,10 @@ public class TypeStateAnalysis {
 			log.error("Unexpected: TS analysis not dealing with an order expression");
 			return ErrorValue.newErrorValue("Unexpected: TS analysis not dealing with an order expression");
 		}
-		this.orderExpr = (OrderExpression) expr;
 
 		String markInstance = getMarkInstanceOrderExpression(orderExpr);
 		if (markInstance == null) {
-			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr.toString());
+			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr);
 			return ErrorValue.newErrorValue(String.format("OrderExpression does not refer to a Mark instance: %s. Will not run TS analysis", orderExpr.toString()));
 		}
 
@@ -118,8 +115,8 @@ public class TypeStateAnalysis {
 
 		// Find the function in which the vertex is located, so we can use the first statement in function as a start
 		Optional<Vertex> containingFunctionOpt = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal);
-		if (!containingFunctionOpt.isPresent()) {
-			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule.toString());
+		if (containingFunctionOpt.isEmpty()) {
+			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule);
 			return ErrorValue.newErrorValue(String.format("Vertex %s not located within a function. Cannot start TS analysis for rule %s", v.property("code").orElse(""),
 				rule.toString()));
 		}
@@ -129,7 +126,7 @@ public class TypeStateAnalysis {
 				.vertexToNode(containingFunctionOpt.get());
 		if (funcDecl == null) {
 			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
-				containingFunctionOpt.get().property("name").orElse(""), rule.toString());
+				containingFunctionOpt.get().property("name").orElse(""), rule);
 			return ErrorValue.newErrorValue(String.format("Function %s could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule %s",
 				containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
 		}
@@ -140,18 +137,18 @@ public class TypeStateAnalysis {
 
 		// For debugging only: Print WPDS rules
 		for (Rule r : wpds.getAllRules()) {
-			log.debug(r.toString());
+			log.debug("rule: {}", r);
 		}
 
 		// For debugging only: Print the non-saturated NFA
-		log.debug("Non saturated NFA {}", wnfa.toString());
+		log.debug("Non saturated NFA {}", wnfa);
 		log.debug(wnfa.toDotString());
 
 		// Saturate the NFA from the WPDS, using the post-* algorithm.
 		wpds.poststar(wnfa);
 
 		// For debugging only: Print the post-*-saturated NFA
-		log.debug("Saturated WNFA {}", wnfa.toString());
+		log.debug("Saturated WNFA {}", wnfa);
 		log.debug("Saturated WNFA {}", wnfa.toDotString());
 
 		// Evaluate saturated WNFA for any MARK violations
@@ -232,7 +229,7 @@ public class TypeStateAnalysis {
 						didMove = tsNFA.handleEvent(tran.getLabel());
 						Node typestate = tran.getTarget();
 						reachableTypestates.add(typestate);
-						log.debug(" Reached {} by {}", typestate, t.getLabel().toString());
+						log.debug(" Reached {} by {}", typestate, t.getLabel());
 					}
 				} else if (!w.equals(Weight.one()) && t.getLabel().toString().contains(t.getStart().getVariable())) {
 					String name = "Invalid typestate of variable " + t.getStart() + " at statement: " + t.getLabel() + " . Violates order of " + rule.getName();
@@ -248,7 +245,7 @@ public class TypeStateAnalysis {
 			}
 		}
 
-		log.debug("Final config: {}", String.join(", " + tsNFA.getCurrentConfiguration().stream().map(n -> n.getName()).collect(Collectors.toList())));
+		log.debug("Final config: {}", String.join(", " + tsNFA.getCurrentConfiguration().stream().map(Node::getName).collect(Collectors.toList())));
 
 		return findings;
 	}
@@ -337,7 +334,7 @@ public class TypeStateAnalysis {
 								Set<PushRule<Stmt, Val, Weight>> pushRules = createPushRules(mce, crymlinTraversal, currentFunctionName, tsNfa, previousStmt, currentStmt,
 									v, worklist);
 								for (PushRule<Stmt, Val, Weight> pushRule : pushRules) {
-									log.debug("  Adding push rule: {}", pushRule.toString());
+									log.debug("  Adding push rule: {}", pushRule);
 									wpds.addRule(pushRule);
 
 									// Remember that arguments flow only into callee and do not bypass it.
@@ -405,7 +402,7 @@ public class TypeStateAnalysis {
 									if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
 										Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
 										if (!normalRule.getS1().equals(forbiddenVal)) {
-											log.debug("Adding normal rule " + normalRule.toString());
+											log.debug("Adding normal rule {}", normalRule);
 											wpds.addRule(normalRule);
 										}
 									}
@@ -427,7 +424,6 @@ public class TypeStateAnalysis {
 						// TODO Proper handling of variables in scope
 						ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(v);
 						if (returnV != null && !returnV.isDummy()) {
-							//returnV.getReturnValue().toString();
 							Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
 
 							for (Val returnedVal : returnedVals) {
@@ -439,7 +435,7 @@ public class TypeStateAnalysis {
 								Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 								// Pop Rule for actually returned value
-								PopRule<Stmt, Val, Weight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue().getName().toString(), currentFunctionName),
+								PopRule<Stmt, Val, Weight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue().getName(), currentFunctionName),
 									currentStmt, returnedVal, weight);
 								wpds.addRule(returnPopRule);
 								log.debug("Adding pop rule {}", returnPopRule);
@@ -630,7 +626,7 @@ public class TypeStateAnalysis {
 
 					Set<Pair<Val, Val>> pToA = new HashSet<>();
 					for (int i = 0; i < Math.min(params.size(), args.size()); i++) {
-						pToA.add(new Pair(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
+						pToA.add(new Pair<>(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
 					}
 					result.put(calleeName, pToA);
 				}

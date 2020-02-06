@@ -37,15 +37,15 @@ public class FSM {
 					}
 					for (Map.Entry<String, Node> entry : sorted.entrySet()) {
 						Node s = entry.getValue();
-						Integer id_succ = nodeToId.get(s);
-						if (id_succ == null) {
-							id_succ = nodeCounter++;
-							nodeToId.put(s, id_succ);
+						Integer idSucc = nodeToId.get(s);
+						if (idSucc == null) {
+							idSucc = nodeCounter++;
+							nodeToId.put(s, idSucc);
 						}
 						if (!seen.contains(s)) {
 							newWork.add(s);
 						}
-						sb.append("\t-> ").append(s).append("(").append(id_succ).append(")").append("\n");
+						sb.append("\t-> ").append(s).append("(").append(idSucc).append(")").append("\n");
 					}
 					seen.add(n);
 				}

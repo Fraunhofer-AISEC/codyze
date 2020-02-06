@@ -31,8 +31,6 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 	@Override
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 		start = Instant.now();
-		//    log.info("Pre-connecting to DB");
-		//    Database.getInstance().connect();
 
 		InitializeResult result = new InitializeResult();
 

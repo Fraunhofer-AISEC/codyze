@@ -20,7 +20,7 @@ public interface Builtin {
 	 * @return
 	 */
 	@NonNull
-	public String getName();
+	String getName();
 
 	/**
 	 * Runs this Builtin.
@@ -33,7 +33,7 @@ public interface Builtin {
 	 * @param expressionEvaluator the expressionEvaluator, this builtin is called from
 	 * @return
 	 */
-	public ConstantValue execute(
+	ConstantValue execute(
 			ListValue argResultList,
 			Integer contextID,
 			MarkContextHolder markContextHolder,

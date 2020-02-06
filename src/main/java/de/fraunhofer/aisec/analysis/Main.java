@@ -14,6 +14,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
@@ -55,12 +57,20 @@ public class Main implements Callable<Integer> {
 	public Integer call() throws Exception {
 		Instant start = Instant.now();
 
+		if (analysisMode == null) {
+			analysisMode = new AnalysisMode();
+		}
+		if (analysisMode.tsMode == null) {
+			analysisMode.tsMode = TypestateMode.NFA;
+		}
+
 		AnalysisServer server = AnalysisServer.builder()
 				.config(ServerConfiguration.builder()
 						.launchLsp(executionMode.lsp)
 						.launchConsole(executionMode.tui)
 						.typestateAnalysis(analysisMode.tsMode)
 						.markFiles(markFolderName.getAbsolutePath())
+						.typestateAnalysis(analysisMode.tsMode)
 						.build())
 				.build();
 
@@ -91,8 +101,12 @@ public class Main implements Callable<Integer> {
 		if (outputFile.getName().equals("--")) {
 			System.out.println(sb.toString());
 		} else {
-			//TODO Write to output file
-			throw new RuntimeException("Writing to file not implemented yet");
+			try (PrintWriter out = new PrintWriter(outputFile.getAbsolutePath())) {
+				out.println(sb.toString());
+			}
+			catch (FileNotFoundException e) {
+				System.out.println(e.getMessage());
+			}
 		}
 
 	}
@@ -122,6 +136,7 @@ class AnalysisMode {
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
 	protected TypestateMode tsMode = TypestateMode.NFA;
 
+	// fixme unused!
 	@Option(names = { "--interproc" }, description = "Enables interprocedural data flow analysis (more precise but slower).")
 	protected boolean interproc = false;
 

@@ -124,7 +124,7 @@ dependencies {
     api("org.ehcache", "ehcache", "3.8.0")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
-    api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.2.0-SNAPSHOT:repackaged") { setChanging(true) }
+    api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.3.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // LSP
     api("org.eclipse.lsp4j", "org.eclipse.lsp4j", versions["lsp4j"])

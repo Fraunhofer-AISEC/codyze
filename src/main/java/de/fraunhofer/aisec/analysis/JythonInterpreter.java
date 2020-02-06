@@ -81,7 +81,6 @@ public class JythonInterpreter implements AutoCloseable {
 					+ " ╚═════╝ ╚═════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝");
 		// Print help
 		Commands commands = new Commands(this);
-		//		commands.help();
 
 		try (InteractiveConsole c = new InteractiveConsole()) {
 			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {

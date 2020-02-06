@@ -22,7 +22,6 @@ import org.eclipse.lsp4j.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.util.*;
 
 import static java.lang.Math.toIntExact;
@@ -145,7 +144,7 @@ public class Evaluator {
 						break;
 					}
 					for (MOp op : entity.getValue().getValue1().getOps()) {
-						if (op.getAllVertices().size() > 0) {
+						if (!op.getAllVertices().isEmpty()) {
 							hasCPGNodes = true;
 							break outer;
 						}

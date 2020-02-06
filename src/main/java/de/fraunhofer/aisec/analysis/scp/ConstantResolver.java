@@ -136,41 +136,39 @@ public class ConstantResolver {
 							}
 
 							log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
-						} else if (isRhsExpressionList) {
+						} else if (isRhsExpressionList
+								&& rhs.edges(Direction.IN, "EOG").hasNext()) {
+							// C/C++ assigns last expression in list.
+							Vertex lastExpressionInList = rhs.edges(Direction.IN, "EOG")
+									.next()
+									.outVertex();
 
-							if (rhs.edges(Direction.IN, "EOG").hasNext()) {
-								// C/C++ assigns last expression in list.
-								Vertex lastExpressionInList = rhs.edges(Direction.IN, "EOG")
-										.next()
-										.outVertex();
-
-								if (Utils.hasLabel(lastExpressionInList, Literal.class)) {
-									// If last expression is Literal --> assign its value immediately.
-									Object literalValue = lastExpressionInList.property("value").value();
-									Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
-									if (constantValue.isPresent()) {
-										return constantValue;
-									}
-									log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
-								} else if (lastExpressionInList.label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
-									// Get declaration of the variable used as last item in expression list
-									Iterator<Edge> refersTo = lastExpressionInList.edges(Direction.IN, "DFG");
-									if (refersTo.hasNext()) {
-										Vertex v = refersTo.next().outVertex();
-										if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
-											ConstantResolver resolver = new ConstantResolver(this.dbType);
-											Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(v, lastExpressionInList);
-											if (constantValue.isPresent()) {
-												return constantValue;
-											}
-										} else {
-											log.warn("Last expression in ExpressionList does not have a VariableDeclaration. Cannot resolve its value: {}",
-												lastExpressionInList.property("code").value());
+							if (Utils.hasLabel(lastExpressionInList, Literal.class)) {
+								// If last expression is Literal --> assign its value immediately.
+								Object literalValue = lastExpressionInList.property("value").value();
+								Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
+								if (constantValue.isPresent()) {
+									return constantValue;
+								}
+								log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
+							} else if (lastExpressionInList.label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
+								// Get declaration of the variable used as last item in expression list
+								Iterator<Edge> refersTo = lastExpressionInList.edges(Direction.IN, "DFG");
+								if (refersTo.hasNext()) {
+									Vertex v = refersTo.next().outVertex();
+									if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
+										ConstantResolver resolver = new ConstantResolver(this.dbType);
+										Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(v, lastExpressionInList);
+										if (constantValue.isPresent()) {
+											return constantValue;
 										}
 									} else {
-										log.warn("Last expression in ExpressionList has no incoming DFG. Cannot resolve its value: {}",
+										log.warn("Last expression in ExpressionList does not have a VariableDeclaration. Cannot resolve its value: {}",
 											lastExpressionInList.property("code").value());
 									}
+								} else {
+									log.warn("Last expression in ExpressionList has no incoming DFG. Cannot resolve its value: {}",
+										lastExpressionInList.property("code").value());
 								}
 							}
 						}

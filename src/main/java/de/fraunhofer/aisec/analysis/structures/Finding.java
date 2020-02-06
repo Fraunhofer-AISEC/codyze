@@ -1,8 +1,6 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-import de.fraunhofer.aisec.cpg.graph.Region;
-import org.apache.commons.collections.list.UnmodifiableList;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
@@ -11,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -21,7 +18,6 @@ import java.util.stream.Collectors;
  *
  */
 public class Finding {
-	private static final Logger log = LoggerFactory.getLogger(Finding.class);
 	private String onFailIdentifier;
 
 	/**

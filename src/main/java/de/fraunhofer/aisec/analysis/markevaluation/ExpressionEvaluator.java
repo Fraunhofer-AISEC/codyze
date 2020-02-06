@@ -110,7 +110,7 @@ public class ExpressionEvaluator {
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
 			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);
 
-			if (markContextHolder.createFindingsDuringEvaluation() && res != null && Objects.equals(((ConstantValue) res).getValue(), true)) {
+			if (markContextHolder.createFindingsDuringEvaluation() && res != null && Objects.equals(res.getValue(), true)) {
 				Set<String> markInstances = new HashSet<>();
 				ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
 				if (markInstances.size() == 1) { // otherwise, the analysis did not work anyway and we did not have a result
@@ -278,7 +278,7 @@ public class ExpressionEvaluator {
 					ListValue l = (ListValue) entry.getValue();
 					ConstantValue cv = ConstantValue.of(false);
 
-					for (Object o : l) {
+					for (MarkIntermediateResult o : l) {
 						log.debug(
 							"Comparing left expression with element of right expression: {} vs. {}",
 							left,

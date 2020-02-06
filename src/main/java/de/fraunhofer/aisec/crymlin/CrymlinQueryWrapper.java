@@ -406,8 +406,8 @@ public class CrymlinQueryWrapper {
 				}
 				int argumentIndex = argumentIndexOptional.getAsInt();
 
-				log.debug("Checking for call/ctor. ffqname: " + fqName + " - functionname: " + functionName + " - entity: " + entityName + " - markParams: "
-						+ String.join(", ", MOp.paramsToString(params)));
+				log.debug("Checking for call/ctor. ffqname: {} - functionname: {} - entity: {} - markParams: {}", fqName, functionName, entityName,
+					String.join(", ", MOp.paramsToString(params)));
 				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
 					crymlin, fqName, functionName, entityName, params);
 
@@ -431,11 +431,10 @@ public class CrymlinQueryWrapper {
 				}
 			}
 		}
-		log.debug("GETMATCHINGVERTICES returns "
-				+ String.join(", ",
-					matchingVertices.stream()
-							.map(v -> v.getArgumentVertex().label() + ": " + v.getArgumentVertex().property("code").value())
-							.collect(Collectors.toList())));
+		log.debug("GETMATCHINGVERTICES returns {}",
+			matchingVertices.stream()
+					.map(v -> v.getArgumentVertex().label() + ": " + v.getArgumentVertex().property("code").value())
+					.collect(Collectors.joining(", ")));
 		return matchingVertices;
 	}
 
@@ -619,7 +618,7 @@ public class CrymlinQueryWrapper {
 		return Optional.empty();
 	}
 
-	public static HashMap<Integer, List<CPGVertexWithValue>> resolveOperand(MarkContextHolder context, @NonNull String markVar, @NonNull MRule rule,
+	public static Map<Integer, List<CPGVertexWithValue>> resolveOperand(MarkContextHolder context, @NonNull String markVar, @NonNull MRule rule,
 			Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 
 		HashMap<Integer, List<CPGVertexWithValue>> verticesPerContext = new HashMap<>();

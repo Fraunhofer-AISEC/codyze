@@ -26,11 +26,11 @@ public class ErrorValue extends ConstantValue {
 		sb.append(description);
 		sb.append("\n");
 		for (MarkIntermediateResult cv : oldErrorMessages) {
-			if (cv instanceof ErrorValue) {
-				if (!((ErrorValue) cv).getDescription().isEmpty()) {
-					sb.append(((ErrorValue) cv).getDescription());
-					sb.append("\n");
-				}
+			if (cv instanceof ErrorValue
+					&&
+					!((ErrorValue) cv).getDescription().isEmpty()) {
+				sb.append(((ErrorValue) cv).getDescription());
+				sb.append("\n");
 			}
 		}
 

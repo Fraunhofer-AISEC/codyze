@@ -2,10 +2,8 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
-import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.eclipse.emf.common.util.EList;
 
 import java.util.*;
 

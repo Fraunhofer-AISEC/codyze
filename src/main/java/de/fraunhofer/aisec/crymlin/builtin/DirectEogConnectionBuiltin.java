@@ -16,6 +16,10 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * this Builtin checks if there is a _direct_ EOG-connection (i.e., without branches) between the two given vertices (responsible for the markvars given as parameters)
+ */
+
 public class DirectEogConnectionBuiltin implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(DirectEogConnectionBuiltin.class);
 

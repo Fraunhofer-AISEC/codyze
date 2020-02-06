@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  *
  * This Builtin behaves like str.split(splitter)[position].
  *
- * In case of an error, this Builtin returns null;
+ * In case of an error, this Builtin returns an ErrorValue;
  */
 public class SplitBuiltin implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(SplitBuiltin.class);

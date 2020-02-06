@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * this Builtin checks if there is an arbitrary EOG-connection between the two given vertices (responsible for the markvars given as parameters)
+ */
 public class EogConnectionBuiltin implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(EogConnectionBuiltin.class);
 

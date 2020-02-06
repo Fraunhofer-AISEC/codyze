@@ -14,6 +14,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
@@ -55,11 +57,19 @@ public class Main implements Callable<Integer> {
 	public Integer call() throws Exception {
 		Instant start = Instant.now();
 
+		if (analysisModeMode == null) {
+			analysisModeMode = new AnalysisMode();
+		}
+		if (analysisModeMode.tsMode == null) {
+			analysisModeMode.tsMode = TypestateMode.NFA;
+		}
+
 		AnalysisServer server = AnalysisServer.builder()
 				.config(ServerConfiguration.builder()
 						.launchLsp(executionMode.lsp)
 						.launchConsole(executionMode.tui)
 						.markFiles(markFolderName.getAbsolutePath())
+						.typestateAnalysis(analysisModeMode.tsMode)
 						.build())
 				.build();
 
@@ -87,8 +97,12 @@ public class Main implements Callable<Integer> {
 		if (outputFile.getName().equals("--")) {
 			System.out.println(sb.toString());
 		} else {
-			//TODO Write to output file
-			throw new RuntimeException("Writing to file not implemented yet");
+			try (PrintWriter out = new PrintWriter(outputFile.getAbsolutePath())) {
+				out.println(sb.toString());
+			}
+			catch (FileNotFoundException e) {
+				System.out.println(e.getMessage());
+			}
 		}
 
 	}
@@ -114,11 +128,12 @@ class ExecutionMode {
 
 class AnalysisMode {
 
-	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
+	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", defaultValue = "NFA", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural) <- default\nWPDS: Weighted pushdown system (slower, interprocedural)")
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
-	private TypestateMode tsMode;
+	TypestateMode tsMode;
 
+	// fixme unused!
 	@Option(names = { "--interproc" }, description = "Enables interprocedural data flow analysis (more precise but slower).")
-	private boolean interproc;
+	boolean interproc;
 
 }

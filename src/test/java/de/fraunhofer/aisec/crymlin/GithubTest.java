@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 // TODO Remove before release or at least remove hardcoded paths
-@Disabled
+
 class GithubTest {
 
 	private static final int FILES_OFFSET = 0;
@@ -53,7 +53,7 @@ class GithubTest {
 		//    URL resource = classLoader.getResource("random_github");
 		//    assertNotNull(resource);
 		// baseFolder = resource.getFile();
-		baseFolder = "/home/user/projects/bsi/code/githubcrawler/singlefiles";
+		baseFolder = "/home/ubuntu/github";
 	}
 
 	private static List<String> listFiles() {

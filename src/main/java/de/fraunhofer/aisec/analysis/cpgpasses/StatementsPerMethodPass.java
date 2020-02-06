@@ -73,11 +73,12 @@ public class StatementsPerMethodPass extends PassWithContext {
 
 	@Override
 	public void setLang(LanguageFrontend languageFrontend) {
+		this.lang = languageFrontend;
 	}
 
 	@Override
 	public LanguageFrontend getLang() {
-		return null;
+		return lang;
 	}
 
 	@Override

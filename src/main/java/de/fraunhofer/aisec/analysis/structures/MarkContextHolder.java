@@ -135,7 +135,7 @@ public class MarkContextHolder {
 		this.createFindingsDuringEvaluation = b;
 	}
 
-	public boolean createFindingsDuringEvaluation() {
+	public boolean isCreateFindingsDuringEvaluation() {
 		return createFindingsDuringEvaluation;
 	}
 }

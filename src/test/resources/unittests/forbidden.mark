@@ -1,6 +1,6 @@
 package unittests
 
-entity Forbidden isa Cipher {
+entity Forbidden {
 	var nonce;
 	var nonce_length;
 	var iv;

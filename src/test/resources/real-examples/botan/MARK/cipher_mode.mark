@@ -30,8 +30,8 @@ entity Botan.Cipher_Mode {
     		 * function call(s):
     		 * - Cipher_Mode* get_cipher_mode(const std::string& algo_spec, Cipher_Dir direction, const std::string& provider = "")
     		 */
-    		 Botan::get_cipher(algorithm: std::string, symkey: Botan::SymmetricKey, iv: Botan::InitializationVector, direction)
-             Botan::get_cipher(algorithm: std::string, svkey: Botan::secure_vector<uint8_t>, iv: Botan::InitializationVector, direction)
+    		 Botan::get_cipher(algorithm: std::string, symkey: Botan::SymmetricKey, iv: Botan::InitializationVector, direction);
+             Botan::get_cipher(algorithm: std::string, svkey: Botan::secure_vector<uint8_t>, iv: Botan::InitializationVector, direction);
 
     		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir);
     		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir, provider: std::string);

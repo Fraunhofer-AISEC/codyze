@@ -1,6 +1,6 @@
 package unittests
 
-entity Order isa Cipher {
+entity Order {
 	var nonce;
 	var nonce_length;
 	var iv;

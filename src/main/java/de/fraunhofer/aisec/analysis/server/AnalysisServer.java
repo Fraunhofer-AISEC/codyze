@@ -31,6 +31,8 @@ import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLReader;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -264,6 +266,14 @@ public class AnalysisServer {
 
 		HashMap<String, MarkModel> markModels = parser.parse();
 		log.info("Done parsing MARK files in {} ms", Duration.between(start, Instant.now()).toMillis());
+
+		for (Map.Entry<URI, List<Resource.Diagnostic>> e : parser.getErrors().entrySet()) {
+			if (e.getValue() != null && !e.getValue().isEmpty()) {
+				for (Resource.Diagnostic d : e.getValue()) {
+					log.warn("Error in {}: l{}: {}", e.getKey().toFileString(), d.getLine(), d.getMessage());
+				}
+			}
+		}
 
 		start = Instant.now();
 		log.info("Transforming MARK Xtext to internal format");

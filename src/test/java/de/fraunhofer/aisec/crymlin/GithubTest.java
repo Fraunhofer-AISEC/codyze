@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 // TODO Remove before release or at least remove hardcoded paths
-
+@Disabled
 class GithubTest {
 
 	private static final int FILES_OFFSET = 0;

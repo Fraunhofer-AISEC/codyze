@@ -4,6 +4,8 @@
 #
 # Downloads latest OWASP SAST benchmark and runs Codyze against it
 #
+# (C) Fraunhofer AISEC 2020, Julian Schütte
+#
 # ################################################################
 
 WORKING_DIR="$(dirname "$(readlink -f "$0")")/owasp_sast"
@@ -27,4 +29,4 @@ then
 	SOURCE=$1
 fi
 echo "Running benchmark against $SOURCE"
-JAVA_OPTS=$JAVA_OPTS ../../build/install/codyze/bin/codyze -c -s=$SOURCE -m=../../../src/test/resources/mark_java/
+JAVA_OPTS=$JAVA_OPTS ../../build/install/codyze/bin/codyze -c --timeout=1200 -s=$SOURCE -m=../../../src/test/resources/mark_java/

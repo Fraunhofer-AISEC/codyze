@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This builtin checks if 2 vertices (given via the two markvar parameters) are contained in the same function/method
+ */
 public class InsideSameFunction implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(InsideSameFunction.class);
 

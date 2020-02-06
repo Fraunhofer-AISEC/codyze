@@ -204,7 +204,7 @@ public class NFA {
 		}
 
 		log.error("ERROR, unknown Expression: {}", expr.getClass());
-		return null;
+		return new HashSet<>();
 	}
 
 	/**

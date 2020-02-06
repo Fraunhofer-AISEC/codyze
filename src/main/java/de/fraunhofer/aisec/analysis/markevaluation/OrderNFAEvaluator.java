@@ -73,7 +73,7 @@ public class OrderNFAEvaluator {
 			log.warn("Order statement contains more than one base. Not supported.");
 			return ErrorValue.newErrorValue("Order statement contains more than one base. Not supported.");
 		}
-		if (markInstances.size() == 0) {
+		if (markInstances.isEmpty()) {
 			log.warn("Order statement does not contain any ops. Invalid order");
 			return ErrorValue.newErrorValue("Order statement does not contain any ops. Invalid order");
 		}

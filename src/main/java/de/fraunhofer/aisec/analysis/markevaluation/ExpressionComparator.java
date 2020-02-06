@@ -1,7 +1,6 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

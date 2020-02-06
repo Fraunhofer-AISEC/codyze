@@ -7,14 +7,12 @@ import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import jnr.ffi.annotations.In;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * this Builtin checks if there is a _direct_ EOG-connection (i.e., without branches) between the two given vertices (responsible for the markvars given as parameters)

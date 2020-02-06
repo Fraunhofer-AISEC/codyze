@@ -10,12 +10,12 @@ import java.util.Objects;
 /** Wrapper for a statement in a CPG to be used as a WPDS control location. */
 public class Stmt {
 	@NonNull
-	private final String stmt;
+	private final String stmtName;
 	@Nullable
 	private final Region region;
 
 	public Stmt(@NonNull String code, @Nullable Region region) {
-		this.stmt = code;
+		this.stmtName = code;
 		this.region = region;
 	}
 
@@ -26,7 +26,7 @@ public class Stmt {
 
 	@Override
 	public String toString() {
-		return (region != null ? region.getStartLine() + ":" + region.getStartColumn() + " " : "") + stmt;
+		return (region != null ? region.getStartLine() + ":" + region.getStartColumn() + " " : "") + stmtName;
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class Stmt {
 		if (o == null || getClass() != o.getClass())
 			return false;
 		Stmt stmt1 = (Stmt) o;
-		boolean samestmt = stmt.equals(stmt1.stmt);
+		boolean samestmt = stmtName.equals(stmt1.stmtName);
 		boolean sameStart = true;
 		if (region != null && stmt1.region != null) {
 			sameStart = Objects.equals(region.getStartLine(), stmt1.region.getStartLine()) && Objects.equals(region.getStartColumn(), stmt1.region.getStartColumn());
@@ -47,9 +47,9 @@ public class Stmt {
 	@Override
 	public int hashCode() {
 		if (region == null) {
-			return Objects.hash(stmt);
+			return Objects.hash(stmtName);
 		} else {
-			return Objects.hash(stmt, region.getStartLine(), region.getStartColumn());
+			return Objects.hash(stmtName, region.getStartLine(), region.getStartColumn());
 		}
 	}
 }

@@ -122,7 +122,7 @@ public class Weight extends Semiring {
 			return this.fixedElement.toString();
 		}
 
-		return String.join(", ", this.value.stream().map(t -> t.toString()).collect(Collectors.toList()));
+		return this.value.stream().map(NFATransition::toString).collect(Collectors.joining(", "));
 	}
 
 	@Override
@@ -154,10 +154,7 @@ public class Weight extends Semiring {
 		if (this.fixedElement != null && !this.fixedElement.equals(other.fixedElement))
 			return false;
 
-		if (!this.value.equals(other.value))
-			return false;
-
-		return true;
+		return this.value.equals(other.value);
 	}
 
 }

@@ -1,9 +1,10 @@
 
 package de.fraunhofer.aisec.analysis.utils;
 
-import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
-import de.fraunhofer.aisec.cpg.graph.*;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
+import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.Type;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.Constants;
@@ -162,10 +163,10 @@ public class Utils {
 					result = uniSource.equals(uniMark);
 					// There are various representations of "string" and we map them manually here.
 					if (uniMark.equals("string")) {
-						switch (uniSource) {
-							case "QString":
-								result = true;
-								break;
+						if (uniSource.equals("QString")) {
+							result = true;
+						} else {
+							log.warn("comparing string from MARK against {} from Sourcefile. Does currently not match", uniSource);
 						}
 					}
 

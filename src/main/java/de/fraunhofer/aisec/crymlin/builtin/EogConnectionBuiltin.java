@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * this Builtin checks if there is an arbitrary EOG-connection between the two given vertices (responsible for the markvars given as parameters)

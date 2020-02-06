@@ -91,12 +91,12 @@ public class MOp {
 		allVertices = new HashSet<>();
 	}
 
-	public static ArrayList<String> paramsToString(EList<Parameter> params) {
+	public static List<String> paramsToString(EList<Parameter> params) {
 		ArrayList<String> ret = new ArrayList<>();
 		for (Parameter p : params) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(p.getVar());
-			if (p.getTypes().size() > 0) {
+			if (!p.getTypes().isEmpty()) {
 				sb.append(": ");
 				sb.append(String.join("| ", p.getTypes()));
 			}

@@ -34,11 +34,8 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 @GremlinDsl(traversalSource = "de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl")
 public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 
-	String ARGUMENTS = "ARGUMENTS";
-	String ARGUMENT_INDEX = "argumentIndex";
-
 	default CrymlinTraversalDsl<S, Vertex> argument(int i) {
-		return (CrymlinTraversalDsl<S, Vertex>) out(ARGUMENTS).has(ARGUMENT_INDEX, i);
+		return (CrymlinTraversalDsl<S, Vertex>) out(CrymlinConstants.ARGUMENTS).has(CrymlinConstants.ARGUMENT_INDEX, i);
 	}
 
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "A" }, // c/p from example, unclear.

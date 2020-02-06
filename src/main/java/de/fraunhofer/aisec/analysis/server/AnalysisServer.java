@@ -89,8 +89,8 @@ public class AnalysisServer {
 		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
 			log.info("Registering builtin {}", builtin.getName());
 			try {
-				Builtin instance = builtin.newInstance();
-				BuiltinRegistry.getInstance().register(instance);
+				Builtin bi = builtin.getDeclaredConstructor().newInstance();
+				BuiltinRegistry.getInstance().register(bi);
 			}
 			catch (Exception e) {
 				log.error("Could not instantiate {}: ", builtin.getName(), e);
@@ -146,14 +146,7 @@ public class AnalysisServer {
 	private void launchLspServer() {
 		lsp = new CpgLanguageServer();
 
-		/*
-		 * pool = Executors.newCachedThreadPool(); port = 9000; try ( serverSocket = new ServerSocket(port)) {
-		 * System.out.println("The language server is running on port " + port); pool.submit( () -> { while (true) { clientSocket = serverSocket.accept(); launcher =
-		 * LSPLauncher.createServerLauncher( lsp, clientSocket.getInputStream(), clientSocket.getOutputStream()); launcher.startListening(); client =
-		 * launcher.getRemoteProxy(); lsp.connect(client); } }); System.in.read(); }
-		 */
 		Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(lsp, System.in, System.out);
-
 		launcher.startListening();
 
 		LanguageClient client = launcher.getRemoteProxy();

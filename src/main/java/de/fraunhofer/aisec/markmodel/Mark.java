@@ -13,8 +13,6 @@ import java.util.List;
 
 public class Mark {
 
-	private static final Logger log = LoggerFactory.getLogger(Mark.class);
-
 	@NonNull
 	private HashMap<String, MEntity> entityByName = new HashMap<>();
 

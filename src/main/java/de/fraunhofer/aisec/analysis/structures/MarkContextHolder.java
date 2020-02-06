@@ -24,6 +24,8 @@ import java.util.Set;
 //      If the left part e.g. returns a result for the contexts 1 and 2, the right part of the result might create a copy one context (e.g. context 2),
 //      and e.g. return results for context 1, 2 and 3. Since we might have to compare all contexts, we need to remember that we need to compare
 //      result 3 from the right side with the result 2 from the left side.
+//		copyStack is a map from a context_id to a list of contexts_ids, where the right side are the contexts this was copied from.
+//		The last entry of the right side list is the most recently added one.
 // - "createFindingsDuringEvaluation": Indicates, if the analysis should create findings directly. This is currently only
 //      used to tell the order-evaluation to not create a finding if it occurs in the when-part of a rule.
 public class MarkContextHolder {
@@ -105,14 +107,15 @@ public class MarkContextHolder {
 			} else if (operandVertices.size() == 1) {
 				context.setOperand(operand, operandVertices.get(0));
 			} else {
-				List<Integer> newStack = copyStack.computeIfAbsent(id, x -> new ArrayList<>());
+				List<Integer> oldStack = copyStack.computeIfAbsent(id, x -> new ArrayList<>());
 				for (int i = 1; i < operandVertices.size(); i++) {
 					MarkContext mk = new MarkContext(context); // create a shallow! copy
 					mk.setOperand(operand, operandVertices.get(i));
 					toAdd.put(currentElements, mk);
 
-					newStack.add(currentElements);
-					copyStackToAdd.put(currentElements, newStack);
+					List<Integer> stackForNewContext = new ArrayList<>(oldStack);
+					stackForNewContext.add(id);
+					copyStackToAdd.put(currentElements, stackForNewContext);
 					currentElements++;
 				}
 				context.setOperand(operand, operandVertices.get(0)); // set the current one to the first value

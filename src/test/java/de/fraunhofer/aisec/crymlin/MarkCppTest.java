@@ -64,6 +64,20 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
+	public void functioncallComplex() throws Exception {
+		Set<Finding> findings = performTest("mark_cpp/functioncall_complex.cpp", "mark_cpp/functioncall_complex.mark");
+		expected(findings,
+			"line [11, 12]: MarkRuleEvaluationFinding: Rule Local verified",
+			"line [17, 18]: MarkRuleEvaluationFinding: Rule Local violated",
+
+			"line [11, 12]: MarkRuleEvaluationFinding: Rule Global verified",
+
+			"line [12, 17]: MarkRuleEvaluationFinding: Rule Global violated",
+			"line [11, 18]: MarkRuleEvaluationFinding: Rule Global violated",
+			"line [17, 18]: MarkRuleEvaluationFinding: Rule Global violated");
+	}
+
+	@Test
 	@Disabled // requires Dataflow analysis
 	public void _01_assign() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/01_assign.cpp", "mark_cpp/01_assign.mark");

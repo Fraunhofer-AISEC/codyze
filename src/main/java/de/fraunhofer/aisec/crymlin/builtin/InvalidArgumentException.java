@@ -6,7 +6,7 @@ package de.fraunhofer.aisec.crymlin.builtin;
  *
  * This exception is expected to the caught by the outermost "evaluation" method of a MARK expression.
  */
-public class InvalidArgumentException extends RuntimeException {
+public class InvalidArgumentException extends Exception {
 	public InvalidArgumentException(String s) {
 		super(s);
 	}

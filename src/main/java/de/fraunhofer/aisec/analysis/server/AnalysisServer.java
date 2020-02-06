@@ -31,9 +31,12 @@ import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLReader;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +49,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -84,11 +84,20 @@ public class AnalysisServer {
 		AnalysisServer.instance = this;
 
 		// Register built-in functions
-		BuiltinRegistry.getInstance().register(new SplitBuiltin());
-		BuiltinRegistry.getInstance().register(new IsInstanceBuiltin());
-		BuiltinRegistry.getInstance().register(new EogConnectionBuiltin());
-		BuiltinRegistry.getInstance().register(new DirectEogConnectionBuiltin());
-		BuiltinRegistry.getInstance().register(new ReceivesValueFrom());
+		Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.builtin");
+		int i = 0;
+		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
+			log.info("Registering builtin {}", builtin.getName());
+			try {
+				Builtin bi = builtin.getDeclaredConstructor().newInstance();
+				BuiltinRegistry.getInstance().register(bi);
+			}
+			catch (Exception e) {
+				log.error("Could not instantiate {}: ", builtin.getName(), e);
+			}
+			i++;
+		}
+		log.info("Registered {} builtins", i);
 	}
 
 	/**
@@ -137,14 +146,7 @@ public class AnalysisServer {
 	private void launchLspServer() {
 		lsp = new CpgLanguageServer();
 
-		/*
-		 * pool = Executors.newCachedThreadPool(); port = 9000; try ( serverSocket = new ServerSocket(port)) {
-		 * System.out.println("The language server is running on port " + port); pool.submit( () -> { while (true) { clientSocket = serverSocket.accept(); launcher =
-		 * LSPLauncher.createServerLauncher( lsp, clientSocket.getInputStream(), clientSocket.getOutputStream()); launcher.startListening(); client =
-		 * launcher.getRemoteProxy(); lsp.connect(client); } }); System.in.read(); }
-		 */
 		Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(lsp, System.in, System.out);
-
 		launcher.startListening();
 
 		LanguageClient client = launcher.getRemoteProxy();
@@ -257,6 +259,14 @@ public class AnalysisServer {
 
 		HashMap<String, MarkModel> markModels = parser.parse();
 		log.info("Done parsing MARK files in {} ms", Duration.between(start, Instant.now()).toMillis());
+
+		for (Map.Entry<URI, List<Resource.Diagnostic>> e : parser.getErrors().entrySet()) {
+			if (e.getValue() != null && !e.getValue().isEmpty()) {
+				for (Resource.Diagnostic d : e.getValue()) {
+					log.warn("Error in {}: l{}: {}", e.getKey().toFileString(), d.getLine(), d.getMessage());
+				}
+			}
+		}
 
 		start = Instant.now();
 		log.info("Transforming MARK Xtext to internal format");

@@ -9,7 +9,7 @@ entity Botan.RSA_PrivateKey {
     }
 }
 
-entity Botan.StreamCipher isa Cipher {
+entity Botan.StreamCipher {
 	
 	var algorithm;
     	var direction; // an enum of underlying type int
@@ -130,13 +130,13 @@ rule UseOfBotan_StreamMode {
 rule KeySize {
 	using Botan.RSA_PrivateKey as pk
 	ensure
-		pk.key_length >= 4096;
+		pk.key_length >= 4096
 	onfail CorrectPrivateKeyLength
 }
 
 rule KeySize {
 	using Botan.RSA_PrivateKey as pk
 	ensure
-		pk.key_length > 4096;
+		pk.key_length > 4096
 	onfail WrongPrivateKeyLength
 }

@@ -53,7 +53,7 @@ class GithubTest {
 		//    URL resource = classLoader.getResource("random_github");
 		//    assertNotNull(resource);
 		// baseFolder = resource.getFile();
-		baseFolder = "/home/user/projects/bsi/code/githubcrawler/singlefiles";
+		baseFolder = "/home/ubuntu/github";
 	}
 
 	private static List<String> listFiles() {

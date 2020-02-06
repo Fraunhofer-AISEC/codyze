@@ -152,7 +152,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void verifyArgumentTypesOrThrow() {
+	public void verifyArgumentTypesOrThrow() throws InvalidArgumentException {
 		ListValue lv = new ListValue();
 		lv.add(ConstantValue.of(2));
 		lv.add(ConstantValue.of(3));

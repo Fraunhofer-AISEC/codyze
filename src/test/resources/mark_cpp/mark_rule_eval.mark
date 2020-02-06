@@ -1,7 +1,7 @@
 package botan
 
 
-entity Botan.Cipher_Mode isa Cipher {
+entity Botan.Cipher_Mode {
 
 	var algorithm;
 	var direction; // an enum of underlying type int
@@ -132,15 +132,6 @@ rule SimpleUseOfBotan2_CipherMode {
 	ensure
 		order cm.create(), cm.init(), cm.start()+, cm.finish()
 	onfail WrongUseOfBotan_CipherMode
-}
-
-rule UseRandomIV {
-	using Botan.Cipher_Mode as cm,
-		Botan.AutoSeededRNG as rng
-	when _split("AES/CBC", "/", 1) == "CBC" || cm.direction == Botan::Cipher_Dir::ENCRYPTION
-	ensure
-		_receives_value_from(cm.iv, rng.myValue)  // TODO "def" trifft es hier nicht ganz. Es geht genaugenommen nicht um die Definition der Variablen, sondern um *alle möglichen* Werte, die sie zur Laufzeit annehmen kann.
-	onfail NoRandomIV
 }
 
 

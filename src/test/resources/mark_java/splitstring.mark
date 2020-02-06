@@ -4,7 +4,7 @@ entity Test {
 
   var foo;
 
-  op functions() {
+  op functions {
     bla.call(foo: java.lang.String);
   }
 

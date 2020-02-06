@@ -311,14 +311,14 @@ public class TypeStateAnalysis {
 			while (!worklist.isEmpty()) {
 				Vertex v = worklist.pop();
 				log.debug("TYPE: {}", v.property("labels").value());
-				String code = (String) v.property("code").value();
+				String code = (String) v.property("code").orElse("");
 				log.debug("CODE: {}", code);
 
 				// We consider only "Statements" and CallExpressions in the EOG
 				if (isCallExpression(v) || v.edges(Direction.IN, "STATEMENTS").hasNext()) {
 
 					Stmt currentStmt = new Stmt(
-						v.property("code").value().toString(),
+						v.property("code").orElse("").toString(),
 						new Region(
 							toIntExact((long) v.property("startLine").value()),
 							toIntExact((long) v.property("startColumn").value()),
@@ -366,7 +366,7 @@ public class TypeStateAnalysis {
 					Iterator<Edge> declarations = v.edges(Direction.OUT, "DECLARATIONS");
 
 					if (isDeclarationStatement(v) && declarations.hasNext()) {
-						log.debug("Found variable declaration {}", v.property("code").value());
+						log.debug("Found variable declaration {}", v.property("code").orElse(""));
 
 						Vertex decl = declarations.next().inVertex();
 						Val declVal = new Val((String) decl.property("name").value(), currentFunctionName);
@@ -396,7 +396,7 @@ public class TypeStateAnalysis {
 
 							} else {
 								// handle new instantiations of objects
-								log.debug("  Has no name on right hand side: {}", v.property("code").value());
+								log.debug("  Has no name on right hand side: {}", v.property("code").orElse(""));
 
 								// Normal copy of all values in scope
 								for (Val valInScope : valsInScope) {
@@ -756,7 +756,7 @@ public class TypeStateAnalysis {
 				for (int i = 0; i < argVals.size(); i++) {
 					for (Vertex returnSiteVertex : returnSites) {
 						Stmt returnSite = new Stmt(
-							returnSiteVertex.property("code").value().toString(),
+							returnSiteVertex.property("code").orElse("").toString(),
 							new Region(
 								toIntExact((long) returnSiteVertex.property("startLine").value()),
 								toIntExact((long) returnSiteVertex.property("startColumn").value()),

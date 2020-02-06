@@ -34,6 +34,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +47,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -84,13 +82,20 @@ public class AnalysisServer {
 		AnalysisServer.instance = this;
 
 		// Register built-in functions
-		// todo find this using reflection
-		BuiltinRegistry.getInstance().register(new SplitBuiltin());
-		BuiltinRegistry.getInstance().register(new IsInstanceBuiltin());
-		BuiltinRegistry.getInstance().register(new EogConnectionBuiltin());
-		BuiltinRegistry.getInstance().register(new DirectEogConnectionBuiltin());
-		BuiltinRegistry.getInstance().register(new ReceivesValueFrom());
-		BuiltinRegistry.getInstance().register(new InsideSameFunction());
+		Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.builtin");
+		int i = 0;
+		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
+			log.info("Registering builtin {}", builtin.getName());
+			try {
+				Builtin instance = builtin.newInstance();
+				BuiltinRegistry.getInstance().register(instance);
+			}
+			catch (Exception e) {
+				log.error("Could not instantiate {}: ", builtin.getName(), e);
+			}
+			i++;
+		}
+		log.info("Registered {} builtins", i);
 	}
 
 	/**

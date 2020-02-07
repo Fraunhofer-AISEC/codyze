@@ -35,18 +35,21 @@ class OrderTestInterproc extends AbstractMarkTest {
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														  .collect(Collectors.toMap(
-																  f -> f.getRanges().get(0).getStart().getLine(),
-																  f -> f.isProblem()
-														  ));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.containsKey(28));
-		assertTrue(startLineNumbers.get(28));  // isProblem
+		assertTrue(startLineNumbers.get(28)); // isProblem
 		assertTrue(startLineNumbers.containsKey(30));
-		assertTrue(startLineNumbers.get(30));  // isProblem
+		assertTrue(startLineNumbers.get(30)); // isProblem
 		assertTrue(startLineNumbers.containsKey(32));
-		assertTrue(startLineNumbers.get(32));  // isProblem
+		assertTrue(startLineNumbers.get(32)); // isProblem
 	}
 
 	@Test
@@ -55,13 +58,16 @@ class OrderTestInterproc extends AbstractMarkTest {
 		Set<Finding> findings = performTest("unittests/orderInterprocNOk2.cpp", "unittests/order2.mark");
 
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														 .collect(Collectors.toMap(
-																 f -> f.getRanges().get(0).getStart().getLine(),
-																 f -> f.isProblem()
-														 ));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.containsKey(30));
-		assertTrue(startLineNumbers.get(30));  // isProblem
+		assertTrue(startLineNumbers.get(30)); // isProblem
 	}
 }

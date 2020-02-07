@@ -6,6 +6,7 @@ import de.fraunhofer.aisec.analysis.structures.TypestateMode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,13 +33,23 @@ class OrderTestInterproc extends AbstractMarkTest {
 		@NonNull
 		Set<Finding> findings = performTest("unittests/orderInterprocNOk1.cpp", "unittests/order2.mark");
 
-		Set<Integer> startLineNumbers = findings.stream().map(f -> f.getRanges().get(0).getStart().getLine()).collect(Collectors.toSet());
+		// Extract <line nr, isProblem> from findings
+		Map<Integer, Boolean> startLineNumbers = findings.stream()
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(startLineNumbers.contains(28));
-		assertTrue(startLineNumbers.contains(30));
-		assertTrue(startLineNumbers.contains(32));
-
+		assertTrue(startLineNumbers.containsKey(28));
+		assertTrue(startLineNumbers.get(28)); // isProblem
+		assertTrue(startLineNumbers.containsKey(30));
+		assertTrue(startLineNumbers.get(30)); // isProblem
+		assertTrue(startLineNumbers.containsKey(32));
+		assertTrue(startLineNumbers.get(32)); // isProblem
 	}
 
 	@Test
@@ -46,9 +57,17 @@ class OrderTestInterproc extends AbstractMarkTest {
 		@NonNull
 		Set<Finding> findings = performTest("unittests/orderInterprocNOk2.cpp", "unittests/order2.mark");
 
-		Set<Integer> startLineNumbers = findings.stream().map(f -> f.getRanges().get(0).getStart().getLine()).collect(Collectors.toSet());
+		Map<Integer, Boolean> startLineNumbers = findings.stream()
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(startLineNumbers.contains(30));
+		assertTrue(startLineNumbers.containsKey(30));
+		assertTrue(startLineNumbers.get(30)); // isProblem
 	}
 }

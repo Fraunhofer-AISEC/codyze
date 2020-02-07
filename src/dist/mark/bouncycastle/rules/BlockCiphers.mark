@@ -10,7 +10,7 @@ rule Cipher {
         Cipher as c
     ensure
         _split(c.transform, "/", 0) in ["AES", "AES_128", "AES_192", "AES_256"] /* valid AES BlockCipher */
-        || _split(c.transform, "/", 0) in ["AES", "AES_128", "AES_192", "AES_256"]
+//        || _split(c.transform, "/", 0) in ["AES", "AES_128", "AES_192", "AES_256"]
     onfail
         Invalid_TR21021_Cipher
 }
@@ -28,6 +28,19 @@ rule CipherMode {
 }
 
 /**
+ * General rule: We're just checking if on of the allowed paddings is used.
+ */
+rule CipherMode {
+    using
+        Cipher as c
+    ensure
+        _split(c.transform, "/", 2) in ["CCM", "GCM", "CBC", "CTR"]
+    onfail
+        Invalid_TR21021_CipherMode
+}
+
+
+/**
  * TODO
  * Special rule: We're checking if a default cipher mode is used that is not allowed.
  */
@@ -37,7 +50,7 @@ rule DefaultCipherMode {
     when
         _split(c.transform, "/", 1) == "" // TODO how to indicate no value returned/determined
     ensure
-        bla
+        foobar // TODO
     onfail
         Invalid_TR21021_Default_CipherMode
 }

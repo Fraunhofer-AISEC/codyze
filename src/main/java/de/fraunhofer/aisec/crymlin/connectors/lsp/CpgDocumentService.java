@@ -36,8 +36,8 @@ public class CpgDocumentService implements TextDocumentService {
 
 	private static final Logger log = LoggerFactory.getLogger(CpgDocumentService.class);
 
-	private static final String DISABLE_FINDING_PREFIX = "ERRORBEGONE-";
-	private static final String DISABLE_FINDING_ALL = "ERRORBEGONE-ALL";
+	private static final String DISABLE_FINDING_PREFIX = "CODYZE-IGNORE-";
+	private static final String DISABLE_FINDING_ALL = "CODYZE-IGNORE-ALL";
 
 	private HashMap<String, Pair<String, PublishDiagnosticsParams>> lastScan = new HashMap<>();
 

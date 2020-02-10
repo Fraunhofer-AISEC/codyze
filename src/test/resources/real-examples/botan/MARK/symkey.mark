@@ -9,10 +9,10 @@ entity Botan.SymmetricKey {
 	var length;
 
 	op create {
-		Botan::OctetString(bytes);
-        Botan::OctetString(RandomNumberGenerator, length);
-        Botan::OctetString(bytes, length);
-        Botan::SymmetricKey(bytes, length);
+		OctetString(bytes);
+        OctetString(RandomNumberGenerator, length);
+        OctetString(bytes, length);
+        SymmetricKey(bytes, length);
 	}
 	
 	op getKey {

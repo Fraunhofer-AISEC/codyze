@@ -39,40 +39,46 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
-	 * Returns a set of vertices with label <code>ConstructorExpression</code>.
+	 * Returns a set of Vertices representing the <code>ConstructExpression</code> to an initialized type.
 	 * <p>
-	 * More precisely, the returned vertices are the targets of "INITIALIZER" edges from a "VariableDeclaration" node, whereas: a) the VariableDeclaration must refer to
-	 * the type given by <code>className</code>. b) the arguments of the initializer must comply with the types given by <code>parameterTypes</code>, if not null.
 	 *
 	 * @param crymlinTraversal
-	 * @param className
-	 * @param parameterTypes
+	 * @param fqnName fully qualified name
+	 * @param parameters list of parameter types; must appear in order (i.e. index 0 = type of first parameter, etc.); currently, types must be precise (i.e. with
+	 *        qualifiers, pointer, reference)
 	 * @return
 	 */
-	// FIXME requires a resaonable test-case
-	public static Set<Vertex> getInitializers(
+	@NonNull
+	public static Set<Vertex> getCtors(
 			@NonNull CrymlinTraversalSource crymlinTraversal,
-			@NonNull String className,
-			EList<Parameter> parameterTypes) {
-		//FIXME Parameter types are still ignored. If not null, they should be checked against arguments of Initializer.
-		Set<Vertex> vertices = crymlinTraversal.ctor(Utils.unifyType(className)).toSet();
-		Set<Object> constructorExpressionVertices = crymlinTraversal.V()
-				.as("constructorExpression")
-				.inE("INITIALIZER")
-				.outV()
-				.hasLabel(VariableDeclaration.class.getSimpleName())
-				.has("type", Utils.unifyType(className))
-				.select("constructorExpression")
-				.toSet();
-		// Need to do this manually, as we cannot cast the generic from <Object> to <Vertex>.
-		for (Object v : constructorExpressionVertices) {
-			vertices.add((Vertex) v);
-		}
-		return vertices;
+			@NonNull String fqnName,
+			EList<Parameter> parameters) {
+
+		fqnName = Utils.unifyType(fqnName);
+
+		// In case of constructors, "functionName" holds the name of the constructed type.
+		Set<Vertex> ret = new HashSet<>(crymlinTraversal.ctor(fqnName).toSet());
+
+		// now, ret contains possible candidates --> need to filter out calls where params don't match
+		ret.removeIf(
+			v -> {
+				Iterator<Edge> referencedArguments = v.edges(Direction.OUT, "ARGUMENTS");
+
+				// Collect all argument Vertices into a list
+				List<Vertex> arguments = new ArrayList<>();
+				while (referencedArguments.hasNext()) {
+					Edge e = referencedArguments.next();
+					arguments.add(e.inVertex());
+				}
+
+				return !argumentsMatchParameters(parameters, arguments);
+			});
+
+		return ret;
 	}
 
 	/**
-	 * Returns a set of Vertices representing the <code>CallExpression</code> to a target function or a <code>ConstructExpression</code> to an initialized type.
+	 * Returns a set of Vertices representing the <code>CallExpression</code> to a target function
 	 * <p>
 	 *
 	 * @param crymlinTraversal
@@ -91,10 +97,6 @@ public class CrymlinQueryWrapper {
 
 		// since fqn is a fully qualified name, this includes method calls on an instance, static calls, and functioncalls
 		Set<Vertex> ret = new HashSet<>(crymlinTraversal.calls(fqnName).toSet());
-
-		// In case of constructors, "functionName" holds the name of the constructed type.
-		Set<Vertex> ctors = crymlinTraversal.ctor(fqnName).toSet();
-		ret.addAll(ctors);
 
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
 		ret.removeIf(
@@ -309,8 +311,8 @@ public class CrymlinQueryWrapper {
 
 				String fqFunctionName = opstmt.getCall().getName();
 
-				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
-					crymlin, fqFunctionName, opstmt.getCall().getParams());
+				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(crymlin, fqFunctionName, opstmt.getCall().getParams());
+				vertices.addAll(CrymlinQueryWrapper.getCtors(crymlin, fqFunctionName, opstmt.getCall().getParams()));
 
 				for (Vertex v : vertices) {
 					// precalculate base
@@ -364,22 +366,31 @@ public class CrymlinQueryWrapper {
 				int argumentIndex = argumentIndexOptional.getAsInt();
 
 				log.debug("Checking for call/ctor. fqname: {} - markParams: {}", fqFunctionName, String.join(", ", MOp.paramsToString(params)));
-				// fixme baseType was the name of the entity, unknown why this is needed?
-				Set<Vertex> vertices = CrymlinQueryWrapper.getCalls(
-					crymlin, fqFunctionName, params);
 
-				vertices.addAll(CrymlinQueryWrapper.getInitializers(crymlin, fqFunctionName, params));
-				for (Vertex v : vertices) {
+				for (Vertex v : CrymlinQueryWrapper.getCalls(crymlin, fqFunctionName, params)) {
 					List<Vertex> argumentVertices = crymlin.byID((long) v.id())
 							.argument(argumentIndex)
 							.toList();
 
 					if (argumentVertices.size() == 1) {
+						// get base of call expression
 						Optional<Vertex> baseOfCallExpression = CrymlinQueryWrapper.getBaseOfCallExpression(v);
-						if (baseOfCallExpression.isEmpty()) { // maybe this was a ctor-expression, get assignee
-							// todo maybe we should split this up directly: look for function calls and ctors separately
-							baseOfCallExpression = CrymlinQueryWrapper.getBaseOfInitializerArgument(argumentVertices.get(0));
-						}
+						CPGVertexWithValue cpgVertexWithValue = new CPGVertexWithValue(argumentVertices.get(0), ConstantValue.newUninitialized());
+						cpgVertexWithValue.setBase(baseOfCallExpression.orElse(null));
+						matchingVertices.add(cpgVertexWithValue);
+					} else {
+						log.warn("multiple arguments for function {} have the same argument_id. Invalid cpg.", fqFunctionName);
+					}
+				}
+
+				for (Vertex v : CrymlinQueryWrapper.getCtors(crymlin, fqFunctionName, params)) {
+					List<Vertex> argumentVertices = crymlin.byID((long) v.id())
+							.argument(argumentIndex)
+							.toList();
+
+					if (argumentVertices.size() == 1) {
+						// get base of initializer for ctor
+						Optional<Vertex> baseOfCallExpression = CrymlinQueryWrapper.getBaseOfInitializerArgument(argumentVertices.get(0));
 						CPGVertexWithValue cpgVertexWithValue = new CPGVertexWithValue(argumentVertices.get(0), ConstantValue.newUninitialized());
 						cpgVertexWithValue.setBase(baseOfCallExpression.orElse(null));
 						matchingVertices.add(cpgVertexWithValue);
@@ -454,10 +465,8 @@ public class CrymlinQueryWrapper {
 			CrymlinTraversalSource crymlinTraversal) {
 
 		// resolve parameters which have a corresponding var part in the entity
-		Set<Vertex> callsAndInitializers = new HashSet<>();
-		callsAndInitializers
-				.addAll(CrymlinQueryWrapper.getInitializers(crymlinTraversal, Utils.unifyType(functionDeclaration.getName()), functionDeclaration.getParams()));
-		callsAndInitializers.addAll(CrymlinQueryWrapper.getCalls(crymlinTraversal, functionDeclaration.getName(), functionDeclaration.getParams()));
+		Set<Vertex> callsAndInitializers = new HashSet<>(CrymlinQueryWrapper.getCalls(crymlinTraversal, functionDeclaration.getName(), functionDeclaration.getParams()));
+		callsAndInitializers.addAll(CrymlinQueryWrapper.getCtors(crymlinTraversal, functionDeclaration.getName(), functionDeclaration.getParams()));
 
 		// fix for Java. In java, a ctor is always accompanied with a newexpression
 		callsAndInitializers.removeIf(c -> c.label().contains("NewExpression"));

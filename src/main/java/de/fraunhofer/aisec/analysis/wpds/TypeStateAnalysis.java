@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.analysis.wpds;
 
 import de.breakpointsec.pushdown.IllegalTransitionException;
+import de.breakpointsec.pushdown.WPDS;
 import de.breakpointsec.pushdown.fsm.Transition;
 import de.breakpointsec.pushdown.fsm.WeightedAutomaton;
 import de.breakpointsec.pushdown.rules.NormalRule;
@@ -131,9 +132,7 @@ public class TypeStateAnalysis {
 				containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
 		}
 
-		// Create statement for start configuration and create start config
-		Stmt stmt = new Stmt(funcDecl.getName(), funcDecl.getRegion());
-		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(stmt, "EPSILON", funcDecl.getName(), tsNFA);
+		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration("EPSILON", funcDecl, tsNFA, wpds);
 
 		// For debugging only: Print WPDS rules
 		for (Rule r : wpds.getAllRules()) {
@@ -182,9 +181,11 @@ public class TypeStateAnalysis {
 	 * <p>
 	 * This method receives a post-*-saturated WNFA and creates Findings if any violations of the given MARK rule are found.
 	 * <p>
-	 * 1) Transitions in WNFA with *empty weights* or weights into an ERROR type state indicate an error. Type state requirements are violated at this point. 2) If there
-	 * is a path through the automaton leading to the END state, the type state specification is completely covered by this path 3) If all transitions have proper type
-	 * state weights but none of them leads to END, the type state is correct but incomplete.
+	 * 1) Transitions in WNFA with *empty weights* or weights into an ERROR type state indicate an error. Type state requirements are violated at this point.
+	 *
+	 * 2) If there is a path through the automaton leading to the END state, the type state specification is completely covered by this path
+	 *
+	 * 3) If all transitions have proper type state weights but none of them leads to END, the type state is correct but incomplete.
 	 *
 	 * @param wnfa Weighted NFA, representing a set of configurations of the WPDS
 	 * @param tsNFA The typestate NFA
@@ -196,40 +197,35 @@ public class TypeStateAnalysis {
 	private Set<Finding> getFindingsFromWpds(@NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule, String currentFile) {
 		Set<Finding> findings = new HashSet<>();
 
-		log.warn("--------------------------");
-
 		// TODO reachableTypestates and didMove are currently not used.
 		Set<Node> reachableTypestates = new HashSet<>();
 
+		// Indicates if there any typestate-changing operations at all
+		boolean containsAnyTypestateChange = false;
+
 		Set<Val> startStates = new HashSet<>();
-		for (Transition<Stmt, Val> transition : wnfa.getTransitions()) {
-			Weight w = wnfa.getWeightFor(transition);
-			if (w.value() instanceof Set) {
-				Set<NFATransition> weight = (Set<NFATransition>) w.value();
-				for (NFATransition<Node> t : weight) {
-					if (t.getSource().getName().equals("START.START")) {
-						startStates.add(transition.getStart());
-					}
-				}
+		for (Transition<Stmt, Val> transition : wnfa.getTransitions()) {  // TODO Julian: shorten this block?
+			if (transition.getStart().equals(wnfa.getInitialState())) {
+				System.out.println("This is leads into initialstate: " + transition.toString());
+				startStates.add(transition.getStart());
+				break;
 			}
 		}
-		if (startStates.isEmpty()) {
-			log.debug("No starting state found");
-			return findings;
-		}
 
+		boolean didMove = false;
 		for (Val startState : startStates) {
+			log.warn("--------- Getting findings from WPDS with start state {}-----------------", startState.toString());
 			Collection<Transition<Stmt, Val>> ts = wnfa.getTransitionsOutOf(startState);
 			for (Transition<Stmt, Val> t : ts) {
 				Weight w = wnfa.getWeightFor(t);
 				if (w.value() instanceof Set && !((Set) w.value()).isEmpty()) {
 					Set<NFATransition> transitions = (Set<NFATransition>) w.value();
-					boolean didMove = false;
 					for (NFATransition<Node> tran : transitions) {
-						didMove = tsNFA.handleEvent(tran.getLabel());
+						didMove = tsNFA.handleEvent(tran.getLabel());  // TODO Julian: return valueOf handleEvent is broken, but also actually not needed here.
 						Node typestate = tran.getTarget();
 						reachableTypestates.add(typestate);
 						log.debug(" Reached {} by {}", typestate, t.getLabel());
+						didMove = true;
 					}
 				} else if (!w.equals(Weight.one()) && t.getLabel().toString().contains(t.getStart().getVariable())) {
 					String name = "Invalid typestate of variable " + t.getStart() + " at statement: " + t.getLabel() + " . Violates order of " + rule.getName();
@@ -243,6 +239,20 @@ public class TypeStateAnalysis {
 					findings.add(f);
 				}
 			}
+		}
+
+		// If typestate automaton did not move at all from the initial state, we also create a finding.
+		if (!didMove) {
+			// TODO A nicer finding message
+			String name = "Invalid typestate of variable at statement: " + wnfa.getInitialState() + " . Not enterering initial state. " + rule.getName();
+
+			// lines are human-readable, i.e., off-by-one  // TODO Fix this region.
+			int startLine = toIntExact(1);
+			int endLine = toIntExact(1);
+			int startColumn = toIntExact(1);
+			int endColumn = toIntExact(1);
+			Finding f = new Finding(name, rule.getErrorMessage(), currentFile, startLine, endLine, startColumn, endColumn);
+			findings.add(f);
 		}
 
 		log.debug("Final config: {}", String.join(", " + tsNFA.getCurrentConfiguration().stream().map(Node::getName).collect(Collectors.toList())));
@@ -430,7 +440,8 @@ public class TypeStateAnalysis {
 								Set<NFATransition> relevantNFATransitions = tsNfa.getTransitions()
 										.stream()
 										.filter(
-											tran -> tran.getTarget().getOp().equals(returnedVal.getVariable()))
+											tran ->
+													tran.getTarget().getOp().equals(returnedVal.getVariable()))
 										.collect(Collectors.toSet());
 								Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
@@ -520,6 +531,7 @@ public class TypeStateAnalysis {
 		// Create normal rule. Flow remains where it is.
 		for (Val valInScope : valsInScope) {
 			NormalRule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, weight);
+			log.debug("Adding normal rule {}", normalRule);
 			result.add(normalRule);
 		}
 
@@ -534,7 +546,11 @@ public class TypeStateAnalysis {
 	 * @param op
 	 * @return
 	 */
-	private boolean belongsToOp(String call, String markInstance, String op) {
+	private boolean belongsToOp(String call, @Nullable String markInstance, String op) {
+		if (markInstance == null) {
+			return false;
+		}
+
 		// Get the MARK entity of the markInstance
 		Pair<String, MEntity> mEntity = this.rule.getEntityReferences().get(markInstance);
 		if (mEntity == null || mEntity.getValue1() == null) {
@@ -855,13 +871,76 @@ public class TypeStateAnalysis {
 	 * Typically, the initial configuration will refer to a single "trigger" statement from where typestate analysis should start. This statement i
 	 *
 	 *
-	 * @param stmt
 	 * @param variable
-	 * @param method
 	 * @return
 	 */
-	private WeightedAutomaton createInitialConfiguration(Stmt stmt, String variable, String method, NFA nfa) {
-		Val initialState = new Val(variable, method);
+	private WeightedAutomaton createInitialConfiguration(String variable, FunctionDeclaration funcDecl, NFA tsNfa, WPDS wpds) {
+		Map<MOp, Set<Vertex>> verticeMap = getVerticesOfRule(rule);
+		// Follow funcDecl EOG nodes until we find a call of an OP
+		for (Map.Entry<MOp, Set<Vertex>> entry : verticeMap.entrySet()) {
+			System.out.println("   OP: " + entry.getKey().getName());
+			for (Vertex v : entry.getValue()) {
+				System.out.println("       " + v.property("code").value());
+				System.out.println("        BASE: " + v.property("base").orElse("NONE"));
+			}
+		}
+
+		// TODO Remove
+//		List<String> verts = getVerticesOfRule(rule).entrySet()
+//													.stream()
+//													.flatMap(e -> e.getValue().stream())
+//													.map(v -> (String) v.property("code").orElse(""))
+//													.collect(Collectors.toList());
+
+		Val initialState = null;
+		Stmt stmt = null;
+
+		Set<NormalRule<Stmt, Val, Weight>> normalRules = wpds.getNormalRules();
+		System.out.println(normalRules.size() +" normal rules!!");
+		for (NormalRule<Stmt, Val, Weight> nr : normalRules) {
+			if (nr.getWeight().value() instanceof Set) {
+				Set<NFATransition> weight = (Set<NFATransition>) nr.getWeight().value();
+				Val target = nr.getS2();
+
+
+				for (NFATransition<Node> t : weight) {
+					if (t.getSource().getName().equals("START.START")) {
+						System.out.println("This is it: " + nr.getS1());
+						System.out.println("   and: "     + nr.getL1());
+
+						initialState = nr.getS1();
+						stmt = nr.getL1();
+					}
+				}
+			}
+		}
+
+//		ArrayDeque<de.fraunhofer.aisec.cpg.graph.Node> worklist = new ArrayDeque<>();
+//		worklist.add(funcDecl);
+
+//		while (!worklist.isEmpty()) {
+//			de.fraunhofer.aisec.cpg.graph.Node currentNode = worklist.poll();
+//			if (verts.contains(currentNode.getCode())) {
+//				System.out.println("FOUND A MATCHING NODE. THIS IS WHERE INITIAL CONFIGURATION WILL START: " + currentNode.getCode());
+//				stmt = new Stmt(currentNode.getCode(), currentNode.getRegion());
+//				initialState = new Val("p2", funcDecl.getName());
+//				break;
+//			} else {
+//				System.out.println("not matching: " + currentNode.getCode());
+//			}
+//			worklist.addAll(currentNode.getNextEOG());
+//		}
+		if (initialState == null) {
+
+			System.out.println("Null initialstate");
+			initialState = new Val("p2", "nok2");
+			stmt = new Stmt("Botan2 p2 = new Botan2(1);", new Region(5,5,5,31));
+		}
+
+		// Create statement for start configuration and create start CONFIG
+//		Stmt stmt = new Stmt(funcDecl.getName(), funcDecl.getRegion());
+//		System.out.println("Creating initial configuration for " + variable + " at statement " + stmt + " in " + funcDecl.getName());
+//		Val initialState = new Val(variable, funcDecl.getName());
 		WeightedAutomaton<Stmt, Val, Weight> wnfa = new WeightedAutomaton<Stmt, Val, Weight>(initialState) {
 			@Override
 			public Val createState(Val val, Stmt stmt) {

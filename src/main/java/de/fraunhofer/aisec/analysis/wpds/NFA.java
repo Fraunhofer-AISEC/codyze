@@ -112,7 +112,6 @@ public class NFA {
 
 		// make transitions explicit
 		populateTransitions();
-
 		// Create transitions from artificial START state into start nodes
 		for (Node startNode : startNodes) {
 			NFATransition initialTransition = new NFATransition(START, startNode, startNode.getOp());
@@ -208,7 +207,7 @@ public class NFA {
 	}
 
 	/**
-	 * Returns the (aritifial) START state.
+	 * Returns the (artificial) START state.
 	 *
 	 * @return
 	 */

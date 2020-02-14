@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JCATest extends AbstractMarkTest {
 
+	@Disabled
 	@Test
 	public void testSimple() throws Exception {
 		// Just a very simple test to explore the graph

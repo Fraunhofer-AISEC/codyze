@@ -1,0 +1,14 @@
+package java.jca
+
+entity ECPoint {
+	
+	var x;
+	var y;
+	
+	op instantiate {
+		java.security.spec.ECPoint(
+			x : java.math.BigInteger,
+			y : java.math.BigInteger
+		);
+	}
+}

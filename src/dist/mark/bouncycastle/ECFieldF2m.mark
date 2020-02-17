@@ -1,0 +1,20 @@
+package java.jca
+
+entity ECFieldF2m {
+    
+    
+    
+    op instantiate {
+        java.security.spec.ECFieldF2m(
+            m : int
+        );
+        java.security.spec.ECFieldF2m(
+            m : int,
+            ks : int[]
+        );
+        java.security.spec.ECFieldF2m(
+            m : int,
+            rp : java.math.BigInteger
+        );
+    }
+}

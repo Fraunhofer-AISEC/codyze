@@ -1,0 +1,80 @@
+package botan
+
+entity Botan.HashFunction {
+	var alg;
+	var data;
+	var len;
+	var hash_output;
+	
+	op create {
+		Botan::HashFunction::create(alg);
+		Botan::HashFunction::create(alg, _);
+		Botan::HashFunction::create_or_throw(alg);
+		Botan::HashFunction::create_or_throw(alg, _);
+	}
+	
+	op update {
+		Botan::HashFunction::update(data);
+		Botan::HashFunction::update(data: uint8_t[], length);
+	}
+
+	op finalize {
+		hash_output = Botan::HashFunction::final();
+		hash_output = Botan::HashFunction::final_stdvec();
+		Botan::HashFunction::final(hash_output);
+	}
+	
+	op process {
+		hash_output = Botan::HashFunction::process(data);
+		hash_output = Botan::HashFunction::process(data: uint8_t[], length);
+	}
+}
+
+rule Order {
+	using Botan.HashFunction as hf
+	ensure order 
+		hf.create(),
+		(
+			(hf.update()*, hf.finalize)
+			| hf.process()
+		)
+}
+
+// Botan provides options for combining hash functions in "Parallel" and "Comp4P". This is not covered here.
+rule 4_01_HashFunctions {
+	using Botan.HashFunction as hf
+	ensure hf.alg in ["SHA-256", "SHA-512-256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
+}
+
+
+
+
+/*
+ * TODO: Botan supports creation of hash functions by inistantiating the respective classes. They are not modelled yet:
+ * Botan::SHA_3_256, Botan::SHA_3_384, Botan::SHA_3_512, Botan::MDx_HashFunction(Botan::SHA_256, Botan::SHA_384, Botan::SHA_512_256, Botan::SHA_512)
+ */
+ 
+ 
+ 
+ /*
+  * For use of hashes in Filter/Pipes
+  * correct order is defined in pipe.mark
+  */
+ entity Botan.Hash_Filter {
+ 	var hash_function: Botan.HashFunction;
+ 	var request;
+ 	
+ 	op create {
+ 		Botan::Hash_Filter(request: std::string, len);
+ 		Botan::Hash_Filter(request: std::string, len);
+ 		Botan::Hash_Filter(hash_function: Botan::HashFunction);
+ 		Botan::Hash_Filter(hash_function: Botan::HashFunction, len);
+ 	}
+ } 
+ 
+ rule 4_01_HashFilter{
+	using Botan.Hash_Filter as hf
+	when _has_value(hf.request)   // TODO: Builtin _has_value
+	ensure hf.request in ["SHA-256", "SHA-512-256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
+}
+ 

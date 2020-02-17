@@ -1,0 +1,14 @@
+package java.jca
+
+entity ECGenParameterSpec {
+	
+	var stdName;
+	
+	
+	op instantiate {
+		java.security.spec.ECGenParameterSpec(
+			stdName : java.lang.String 
+		);
+	}
+	
+}

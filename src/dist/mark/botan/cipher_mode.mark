@@ -1,7 +1,7 @@
 package botan
 
 
-entity Cipher_Mode {
+entity Botan.Cipher_Mode {
 	
 	var algorithm;
 	var symkey : Botan.SymmetricKey; 

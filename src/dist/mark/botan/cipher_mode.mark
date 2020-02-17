@@ -84,6 +84,12 @@ rule Order {
 	onfail WrongOrder
 }
 
+rule 2_1_01_Modes {
+	using Botan.Cipher_Mode as cm
+	ensure
+		_split(cm.algorithm, "/", 1) in ["CCM", "GCM", "CBC", "CTR"]
+	onfail WrongMode
+}
 
 rule BlockCiphers {
 	using Botan.Cipher_Mode as cm

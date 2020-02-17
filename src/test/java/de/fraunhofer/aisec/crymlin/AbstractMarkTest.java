@@ -13,6 +13,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -34,7 +35,7 @@ public class AbstractMarkTest {
 
 	@NonNull
 	Set<Finding> performTest(String sourceFileName, @Nullable String markFileName) throws Exception {
-		ClassLoader classLoader = RealBCTest.class.getClassLoader();
+		ClassLoader classLoader = AbstractMarkTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);
 		assertNotNull(resource);
@@ -44,6 +45,13 @@ public class AbstractMarkTest {
 		String markDirPath = "";
 		if (markFileName != null) {
 			resource = classLoader.getResource(markFileName);
+
+			if (resource == null) {
+				// Assume `markFileName` is relative to project base `src` folder
+				Path p = Path.of(classLoader.getResource(".").toURI()).resolve(Path.of("..", "..", "..", "src")).resolve(markFileName).normalize();
+				resource = p.toUri().toURL();
+			}
+
 			assertNotNull(resource);
 			File markDir = new File(resource.getFile());
 			assertNotNull(markDir);

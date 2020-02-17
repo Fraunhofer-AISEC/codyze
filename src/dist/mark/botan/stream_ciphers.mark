@@ -1,0 +1,63 @@
+package botan
+
+//TODO: Do we need to model stream ciphers outside of cipher_modes?
+
+entity Botan.StreamCipher {
+	var algorithm;
+	var key: SymmetricKey;
+	var iv; // TODO: Problem: Botan 2.4. does not support Botan::InitializationVector for the set_iv() method
+	var iv_len;
+	var inout;
+	
+	op create {
+		Botan::StreamCipher::create(algorithm);
+		Botan::StreamCipher::create(algorithm, _);
+		Botan::StreamCipher::create_or_throw(algorithm);
+		Botan::StreamCipher::create_or_throw(algorithm, _);
+    }
+    
+   	op set_key {
+		Botan::StreamCipher::set_key(key);
+		forbidden Botan::StreamCipher::set_key(_, _);
+    }
+    
+    op set_iv {
+    	// TODO: Problem: Botan 2.4. does not support Botan::InitializationVector for the set_iv() method
+    	// => rules for freshly generated IVs cannot are not modelled, because Botan::InitializationVector (in iv_symkey.mark) is not used here.
+    	Botan::StreamCipher::set_iv(iv, iv_len);
+    }
+    
+    /*op seek {
+    	//TODO? do we want to forbid or whitelist? is it safe? is using it good practice?
+    }
+    op clear {
+    	//TODO? do we want to forbid or whitelist? is it safe? is using it good practice?
+    }
+    op clone {
+    	//TODO? do we want to forbid or whitelist? is it safe? is using it good practice?
+    }*/
+    
+    op crypt {
+    	//forbid because it is safer to use vectors with included length information
+    	forbidden Botan::StreamCipher::cipher(...);
+    	forbidden Botan::StreamCipher::cipher1(...);
+    	Botan::StreamCipher::decrypt(inout);
+    	Botan::StreamCipher::encrypt(inout);
+    	Botan::StreamCipher::encipher(inout);
+    }
+}
+
+rule Order{
+	using Botan.StreamCipher as sc
+	ensure order 
+		sc.create()*,
+		(
+			  (set_key, set_iv)
+			| (set_iv, set_key)
+		),
+		crypt
+}
+
+/**
+ * TODO: the stream ciphers can also be created by using the concrete subclasses (Botan::ChaCha, Botan::CTR_BE, ...)
+ */

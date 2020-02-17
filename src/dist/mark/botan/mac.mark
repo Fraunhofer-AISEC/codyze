@@ -1,0 +1,91 @@
+package botan
+
+entity MAC {
+	var algorithm;
+	var key: SymmetricKey;
+	var data;
+	var nonce;
+	var nonce_len;
+	var mac_output;
+	var comparable;
+	
+	op create {
+		Botan::MessageAuthenticationCode::create(algorithm);
+		Botan::MessageAuthenticationCode::create(algorithm, _);
+		Botan::MessageAuthenticationCode::create_or_throw(algorith);
+		Botan::MessageAuthenticationCode::create_or_throw(algorith, _);
+	}
+	
+	op init {
+		Botan::MessageAuthenticationCode::set_key(key);
+	}
+	
+	op start {
+		Botan::MessageAuthenticationCode::start();
+		Botan::MessageAuthenticationCode::start(nonce);
+		Botan::MessageAuthenticationCode::start(nonce, nonce_len);
+		Botan::MessageAuthenticationCode::start_msg(nonce, nonce_len);
+	}
+	
+	op update {
+		Botan::MessageAuthenticationCode::update(data);
+		Botan::MessageAuthenticationCode::update(data: uint8_t[], length);
+		Botan::MessageAuthenticationCode::update_be(data);
+	}
+
+	op finalize {
+		mac_output = Botan::MessageAuthenticationCode::final();
+		mac_output = Botan::MessageAuthenticationCode::final_stdvec();
+		Botan::MessageAuthenticationCode::final(mac_output);
+	}
+	
+	op process {
+		mac_output = Botan::MessageAuthenticationCode::process(data);
+		mac_output = Botan::MessageAuthenticationCode::process(data: uint8_t[], length);
+	}
+	
+	op verify {
+		// From Botan Handbook: "Finalize the current MAC computation and compare the result to the passed mac. Returns true, if the verification is successful and false otherwise."
+		// => in order rule : alternative to finalize?
+		Botan::MessageAuthenticationCode::verify_mac(comparable);
+		forbidden Botan::MessageAuthenticationCode::verify_mac(_,_);  //forbid because it is safer to use vectors with included length information
+	}
+	
+	/*
+	op clear {
+    	//TODO? do we want to forbid or whitelist? is it safe? is using it good practice?
+    }
+    op clone {
+    	//TODO? do we want to forbid or whitelist? is it safe? is using it good practice?
+    }*/
+}
+
+
+/*rule Order {
+	//TODO
+}*/
+
+
+rule 5_3_01_MAC {
+	using MAC as mac
+	ensure mac.algorithm in ["CMAC", "OMAC", "HMAC", "GMAC"]  // according to botan handbook: CMAC == OMAC
+}
+
+rule 5_3_02_MAC_KEYLEN {
+	using MAC as mac
+	ensure mac.key.length >= 16 // 16 Byte = 128 bit
+}
+
+rule 5_3_03_MAC_NONCELEN {
+	using MAC as mac
+	ensure mac.nonce_len >= 12 // 12 Byte = 96 bit
+}
+
+
+/*
+  * For use of hashes in Filter/Pipes
+  * correct order is defined in pipe.mark
+  */
+ entity Botan.MAC_Filter {
+	//TODO
+ } 

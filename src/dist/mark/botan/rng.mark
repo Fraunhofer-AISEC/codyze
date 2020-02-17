@@ -11,6 +11,7 @@ entity AutoSeeded_RNG {
 		Botan::AutoSeeded_RNG(size_t);
 		Botan::AutoSeeded_RNG(_, size_t);
 		Botan::AutoSeeded_RNG (_, _,_);
+		*/
 	}
 
 	op reseed {

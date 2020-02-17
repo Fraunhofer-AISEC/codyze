@@ -16,7 +16,6 @@ entity Botan.HashFunction {
 	op update {
 		Botan::HashFunction::update(data);
 		Botan::HashFunction::update(data: uint8_t[], length);
-		)
 	}
 
 	op finalize {
@@ -41,8 +40,6 @@ rule Order {
 		)
 }
 
-
-
 // Botan provides options for combining hash functions in "Parallel" and "Comp4P". This is not covered here.
 rule 4_01_HashFunctions {
 	using Botan.HashFunction as hf
@@ -65,6 +62,7 @@ rule 4_01_HashFunctions {
   */
  entity Botan.Hash_Filter {
  	var hash_function: Botan.HashFunction;
+ 	var request;
  	
  	op create {
  		Botan::Hash_Filter(request: std::string, len);
@@ -73,4 +71,10 @@ rule 4_01_HashFunctions {
  		Botan::Hash_Filter(hash_function: Botan::HashFunction, len);
  	}
  } 
+ 
+ rule 4_01_HashFilter{
+	using Botan.Hash_Filter as hf
+	when _has_value(hf.request)   // TODO: Builtin _has_value
+	ensure hf.request in ["SHA-256", "SHA-512-256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
+}
  

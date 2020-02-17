@@ -38,7 +38,7 @@ entity Botan.StreamCipher {
     }*/
     
     op crypt {
-    	//TODO: forbid because it is safer to use vectors with included length information
+    	//forbid because it is safer to use vectors with included length information
     	forbidden Botan::StreamCipher::cipher(...);
     	forbidden Botan::StreamCipher::cipher1(...);
     	Botan::StreamCipher::decrypt(inout);

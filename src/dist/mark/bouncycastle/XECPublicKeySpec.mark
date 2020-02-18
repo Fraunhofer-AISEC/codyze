@@ -1,0 +1,14 @@
+package java.jca
+
+entity XECPublicKeySpec {
+	
+	var params;
+	var u;
+	
+	op instantiate {
+		java.security.spec.XECPublicKeySpec(
+			params : java.security.spec.AlgorithmParameterSpec,
+			u : java.math.BigInteger
+		);
+	}
+}

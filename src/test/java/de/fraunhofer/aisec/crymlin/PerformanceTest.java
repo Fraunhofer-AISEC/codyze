@@ -49,8 +49,7 @@ public class PerformanceTest {
 		//     OverflowDatabase.getInstance().saveAll(nodes);
 
 		for (Node n : nodes) {
-			Vertex v = db.createVertex(n);
-			db.createEdges(v, n);
+			db.createVertex(n);
 		}
 		long end = System.currentTimeMillis();
 		System.out.println((end - start));

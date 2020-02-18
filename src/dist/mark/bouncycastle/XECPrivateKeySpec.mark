@@ -1,0 +1,14 @@
+package java.jca
+
+entity XECPrivateKeySpec {
+	
+	var params;
+	var scalar;
+	
+	op instantiate {
+		java.security.spec.XECPrivateKeySpec(
+			params : java.security.spec.AlgorithmParameterSpec,
+			scalar : byte[]
+		);
+	}
+}

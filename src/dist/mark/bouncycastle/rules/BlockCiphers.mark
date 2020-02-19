@@ -9,7 +9,8 @@ rule Cipher {
     using
         Cipher as c
     ensure
-        _split(c.transform, "/", 0) in ["AES", "AES_128", "AES_192", "AES_256"] /* valid AES BlockCipher */
+    	/* BSI TR-02102-1, ID 2.01  */
+        _split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"] /* don't allow plain `AES`, because it is unclear which one it maps to */
 //        || _split(c.transform, "/", 0) in ["AES", "AES_128", "AES_192", "AES_256"]
     onfail
         Invalid_TR21021_Cipher
@@ -22,22 +23,66 @@ rule CipherMode {
     using
         Cipher as c
     ensure
+    	/* BSI TR-02102-1, ID 2.1.01 */
         _split(c.transform, "/", 1) in ["CCM", "GCM", "CBC", "CTR"]
     onfail
         Invalid_TR21021_CipherMode
 }
 
 /**
- * General rule: We're just checking if on of the allowed paddings is used.
+ * Special rule: Concrete limitations on cipher mode CCM
  */
-rule CipherMode {
+rule AES_CCM {
     using
         Cipher as c
+    when
+    	/* Allowed block cipher in CCM cipher mode */
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["CCM"]
     ensure
-        _split(c.transform, "/", 2) in ["CCM", "GCM", "CBC", "CTR"]
+    	false // TODO
     onfail
-        Invalid_TR21021_CipherMode
+        Invalid_TR21021_CCMInsufficientTagLength
 }
+
+/**
+ * Special rule: Concrete limitations on cipher mode CCM
+ */
+rule AES_GCM_TagLength {
+    using
+        Cipher as c,
+        GCMParameterSpec as gcm
+    when
+    	/* Allowed block cipher in CCM cipher mode */
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["GCM"]
+    ensure
+    	_is_instance(c.paramspec, "javax.crypto.spec.GCMParameterSpec")
+    	&& _becomes(c.paramspec, gcm) /* Now, c.paramspec should become become another MARK entity */
+    	&& gcm.tLen >= 96 /* apparently, there are fixed sizes 96, 104, 112, 120 and 128 */
+    onfail
+        Invalid_TR21021_GCMInsufficientTagLength
+}
+
+rule AES_GCM_IVLength {
+    using
+        Cipher as c,
+        GCMParameterSpec as gcm
+    when
+    	/* Allowed block cipher in CCM cipher mode */
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["GCM"]
+    ensure
+    	_is_instance(c.paramspec, "javax.crypto.spec.GCMParameterSpec")
+    	&& _becomes(c.paramspec, gcm) /* Now, c.paramspec should become become another MARK entity */
+    	&& (
+    		_length(gcm.src) == 12 /* in bytes */
+    		|| gcm.len == 12
+    		)
+    onfail
+        Invalid_TR21021_GCMInsufficientIVLength
+}
+
 
 
 /**

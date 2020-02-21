@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.markmodel.fsm;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -18,6 +19,7 @@ public class Node {
 	@Relationship(value = "s")
 	private Set<Node> successors = new HashSet<>();
 
+	@Nullable
 	private String base;
 	private String op;
 
@@ -28,7 +30,7 @@ public class Node {
 	public Node() {
 	}
 
-	public Node(String base, String op) {
+	public Node(@Nullable String base, String op) {
 		this.base = base;
 		this.op = op;
 	}
@@ -49,6 +51,7 @@ public class Node {
 		}
 	}
 
+	@Nullable
 	public String getBase() {
 		return base;
 	}
@@ -92,6 +95,6 @@ public class Node {
 	}
 
 	public String toString() {
-		return getName(); // + ", MARKING: " + String.join(", ", markings);
+		return getName() + (isEnd?" (E)":""); // + ", MARKING: " + String.join(", ", markings);
 	}
 }

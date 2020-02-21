@@ -3,7 +3,6 @@ package de.fraunhofer.aisec.markmodel.fsm;
 
 import de.fraunhofer.aisec.mark.markDsl.*;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,33 +54,12 @@ public class FSM {
 		return sb.toString();
 	}
 
-	//	public static void clearDB() {
-	//		String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
-	//		String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
-	//		String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
-	//		Configuration configuration = (new Configuration.Builder()).uri(uri).autoIndex("none").credentials(username, password).verifyConnection(true).build();
-	//		SessionFactory sessionFactory = new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
-	//		Session session = sessionFactory.openSession();
-	//		session.purgeDatabase();
-	//		sessionFactory.close();
-	//	}
-	//
-	//	public void pushToDB() {
-	//		String uri = System.getenv().getOrDefault("NEO4J_URI", "bolt://localhost");
-	//		String username = System.getenv().getOrDefault("NEO4J_USERNAME", "neo4j");
-	//		String password = System.getenv().getOrDefault("NEO4J_PASSWORD", "password");
-	//		Configuration configuration = (new Configuration.Builder()).uri(uri).autoIndex("none").credentials(username, password).verifyConnection(true).build();
-	//		SessionFactory sessionFactory = new SessionFactory(configuration, "de.fraunhofer.aisec.markmodel.fsm");
-	//		Session session = sessionFactory.openSession();
-	//		startNodes.forEach(session::save);
-	//		sessionFactory.close();
-	//	}
 
 	/**
 	 * Order-Statement to FSM
 	 *
 	 * <p>
-	 * Possible classes of the order construct: Terminal SequenceExpression RepetitionExpression (mit ?, *, +)
+	 * Possible classes of the order construct: Terminal SequenceExpression RepetitionExpression (with ?, *, +)
 	 *
 	 * <p>
 	 * Start with a "empty" FSM with only StartNode and EndNode

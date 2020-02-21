@@ -1,0 +1,59 @@
+entity Botan.EC_Group {
+	var param;
+	
+	op create {
+		Botan::EC_Group(param)
+	}
+}
+
+entity Botan.ECIES_Params {
+	var ec_group: Botan.EC_Group;
+	var kdf_spec;
+	var block_cipher_algo_spec;
+	var block_cipher_key_len;
+	var mac_spec;
+	var mac_key_len;
+	
+	op create {
+		Botan::ECIES_System_Params (ec_group, kdf_spec, block_cipher_algo_spec, block_cipher_key_len, mac_spec, mac_key_len);
+		
+		// crypto-question: is it insecure to use non-default PointGF-Compressions and ECIES-Modes?
+		forbidden Botan::ECIES_System_Params (ec_group, kdf_spec, block_cipher_algo_spec, block_cipher_key_len, mac_spec, mac_key_len, _, _);
+	}
+	
+	/*
+	 * TODO: there are other functions. Do we need to model them? 
+	 * Most of them are "read-only" functions, i.e., getting information about the created ECIES Params (e.g. domain(), mac_keylen()),...
+	 * What about create_cipher() and create_mac() which create Cipher/MAC objects according to ECIES params
+	 */
+}
+
+
+
+// Note: I guess we do not need to model the corresponding decryptor class, as the critical operation is the encryption
+entity Botan.ECIES_Encryptor {
+	var rng: Botan.AutoSeeded_RNG; var rng: AutoSeeded_RNG; // TODO: Allow all secure RNGs  //TODO: the RNGs in constructor and encrypt functions can be different instances (which seems to be safe, as long as both are safe RNGs)
+	var ecies_params: Botan.ECIES_Params;
+	var key_agreement_key;
+	var plain_text;
+	var plain_text_length;
+	var cipher_text;
+	
+	op create {
+		Botan::ECIES_Encryptor(rng, ecies_params);
+		Botan::ECIES_Encryptor(key_agreement_key, ecies_params, rng); //TODO is this safe, specifying own key_agreement key?
+	}
+	
+	// TODO: do we need set_initialization_vector and set_other_key as ops? Do we allow them? Are they safe? - intuition: no.  What about set_label?
+	
+	op encrypt {
+		cipher_text = Botan::ECIES_Encryptor::encrypt(plain_text, rng);
+		cipher_text = Botan::ECIES_Encryptor::encrypt(plain_text, plain_text_length, rng);
+	}
+}
+
+rule 3_3_02_CurveParams {
+	using Botan.EC_Group as ecg
+	ensure ecg.param in ["brainpoolP256r1, brainpoolP320r1, brainpoolP384r1, brainpoolP512r1"]
+}
+

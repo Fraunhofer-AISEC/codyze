@@ -1,5 +1,8 @@
 package botan
 
+/* TODO: make one generic RNG entity that an be any of Botan's safe RNGs */
+
+
 entity AutoSeeded_RNG {
 	var random_data;
 	var random_data_len;

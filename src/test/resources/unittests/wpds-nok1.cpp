@@ -1,7 +1,3 @@
-
-// DOES NOT COMPILE
-// DOES NOT MAKE REAL SENSE
-
 // EXAMPLES FOR CORRECT INTERPROCEDURAL TYPESTATE.
 
 // allowed:
@@ -17,20 +13,16 @@
     // Aliasing: Operations on p3 are now equal to p2
     Botan2 p3 = p2;
 
-    p2.init(test);
+    p2.init();
 
-    // Continue in other function + alias to p4
-    Botan2 p4 = someFunction(p2);
+    p2.start();
 
     p2.process();
     p3.process();
 
-    // NOT OK: Calling start() again.
-    //Botan2 p5 = someFunction(p4);
+    p2.start();
 
-    p5.process();
-
-    p4.finish();
+    p2.finish();  // Finish on p4 alias
   }
 
   Botan2 someFunction(Botan2 x) {

@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.analysis.wpds;
 
 import com.google.common.collect.Sets;
 import de.breakpointsec.pushdown.weights.Semiring;
+import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -73,11 +74,26 @@ public class Weight extends Semiring {
 
 		Set<NFATransition> resultSet = new HashSet<>();
 		for (NFATransition my : this.value) {
+			boolean validTsTransition = false;
 			for (NFATransition theirs : otherW.value) {
 				// 1-step transitive hull. Avoid endless loops by skipping cyclic transitions.
 				if (my.getTarget().equals(theirs.getSource())) {
-					resultSet.add(new NFATransition(my.getSource(), theirs.getTarget(), my.getLabel()));
+					// NFATransition.equal() returns false for non-same Nodes, thus we check manually:
+					NFATransition newTsTran = new NFATransition(my.getSource(), theirs.getTarget(), my.getLabel());
+					if (resultSet.stream().noneMatch(tr ->
+							   tr.getSource().toString().equals(newTsTran.getSource().toString())
+							&& tr.getLabel().equals(newTsTran.getLabel())
+							&& tr.getTarget().toString().equals(newTsTran.getTarget().toString()))) {
+						resultSet.add(newTsTran);
+					} else {
+						System.out.println("Skipping duplicate");
+					}
+					validTsTransition = true;
+					System.out.println("Found further transition from " + my.toString() + " AND " + theirs.toString() + " : \t\t" + newTsTran);
 				}
+			}
+			if (!validTsTransition) {
+				resultSet.add(new NFATransition(my.getSource(), new Node("ERROR", "ERROR"), my.getLabel()));
 			}
 		}
 		if (resultSet.isEmpty()) {
@@ -94,10 +110,24 @@ public class Weight extends Semiring {
 	 */
 	@Override
 	public Semiring combineWith(Semiring other) {
-		if (other instanceof Weight)
-			return new Weight(Sets.union(this.value, ((Weight) other).value));
+		if (this.equals(one()) && other.equals(one())) {
+			return one();
+		}
 
-		throw new IllegalArgumentException("Expected Weight but got " + other.getClass().getName());
+		if (this.equals(zero()) && other.equals(zero())) {
+			return zero();
+		}
+
+		if (other instanceof Weight) {
+			Set<NFATransition> union = Sets.union(this.value, ((Weight) other).value);
+			if (union.isEmpty()) {
+				System.out.println("EMPTY UNION OF " + this + " and " + other);
+			}
+			return new Weight(union);
+		}
+
+		return new Weight(Set.of());
+		//throw new IllegalArgumentException("Expected Weight but got " + other.getClass().getName());
 	}
 
 	@Override

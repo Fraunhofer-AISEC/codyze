@@ -55,13 +55,13 @@ public class NFA {
 		this.transitions.add(t);
 	}
 
-	public boolean handleEvent(String event) {
+	public boolean handleEvent(NFATransition<Node> event) {
 		boolean didTransition = false;
 		Iterator<Node> it = currentConfiguration.iterator();
 		while (it.hasNext()) {
 			Node currentConfig = it.next();
 			List<Node> possibleTargets = this.transitions.stream()
-					.filter(t -> t.getSource().equals(currentConfig) && t.getLabel().equals(event))
+					.filter(t -> t.getSource().equals(currentConfig) && t.getSource().equals(event.getSource()) && t.getLabel().equals(event.getLabel()))
 					.map(
 						NFATransition::getTarget)
 					.collect(Collectors.toList());

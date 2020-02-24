@@ -103,7 +103,7 @@ public class ExpressionEvaluator {
 
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
-		log.debug("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
+		log.info("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 		for (Map.Entry<Integer, MarkContext> entry : markContextHolder.getAllContexts().entrySet()) {
 

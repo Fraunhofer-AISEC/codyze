@@ -26,7 +26,7 @@
     p3.process();
 
     // NOT OK: Calling start() again.
-    Botan2 p5 = someFunction(p4);
+    //Botan2 p5 = someFunction(p4);
 
     p5.process();
 

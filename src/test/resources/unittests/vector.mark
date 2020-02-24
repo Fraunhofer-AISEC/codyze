@@ -17,7 +17,7 @@ entity Vector {
 rule VectorLastElement {
 	using Vector as vec
 	ensure
-		order   vec.addOp(), ( vec.clearOp()+ , vec.addOp())* , vec.lastElementOp()
+		order   vec.addOp(), ( vec.addOp()*, ( vec.clearOp()+ , vec.addOp())* , vec.lastElementOp() )*
 	onfail WrongUseOfBotan_CipherMode
 }
 

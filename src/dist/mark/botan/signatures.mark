@@ -1,7 +1,7 @@
 package botan
 
 entity Botan.PK_Verifier {
-	var pub_key: //TODO specify MARK-Entity!
+	var pub_key; //TODO specify MARK-Entity!
 	var emsa;
 	var input;
 	var input_length;
@@ -34,7 +34,8 @@ rule Order {
 	ensure order
 		v.create(),
 		(
-			(v.update*, v.check_after_update)*
-			| v.check_whole_msg*
+			(v.update()*, v.check_after_update())*
+			| v.check_whole_msg()*
 		)
+	onfail Order
 }

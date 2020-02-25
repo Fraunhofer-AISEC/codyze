@@ -1,7 +1,7 @@
 package botan
 
 entity Botan.PK_Verifier {
-	var pub_key; //TODO specify MARK-Entity!
+	var pub_key: Botan.Public_Key;
 	var emsa;
 	var input;
 	var input_length;
@@ -30,7 +30,8 @@ entity Botan.PK_Verifier {
 }
 
 rule Order {
-	using Botan.PK_Verifier as v
+	using 
+		Botan.PK_Verifier as v
 	ensure order
 		v.create(),
 		(
@@ -39,3 +40,50 @@ rule Order {
 		)
 	onfail Order
 }
+
+rule _5_5_4_1_02_RSA_SIG_Format {
+	using
+		Botan.PK_Verifier as v
+	when
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+	ensure
+		_split(v.emsa, "(", 0) in ["EMSA4", "ISO_9796_DS2", "ISO_9796_DS3"]
+	onfail 
+		_5_5_4_1_02_RSA_SIG_Format
+}
+
+rule SIG_ALGS {
+	using 
+		Botan.PK_Verifier as v
+	ensure
+		_instance_of(v) in ["Botan::RSA_PublicKey", "Botan::ECDSA_PublicKey", "Botan::ECKCDSA_PublicKey", "Botan::ECGDSA_PublicKey"]
+	onfail
+		SIG_ALGS
+}
+
+rule _5_5_4_1_02_RSA_SIG_KeyLen {
+	using
+		Botan.PK_Verifier as v
+	when
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+	ensure
+		v.pub_key.rsa_bits >= 3000
+	onfail 
+		_5_5_4_1_02_RSA_SIG_KeyLen
+}
+
+
+
+rule _5_5_4_1_02_RSA_SIG_KeyLen_2022 {
+	using
+		Botan.PK_Verifier as v
+	when
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+	ensure
+		v.pub_key.rsa_bits >= 2000
+	onfail 
+		_5_5_4_1_02_RSA_SIG_KeyLen_2022
+}
+
+
+

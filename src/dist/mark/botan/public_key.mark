@@ -15,6 +15,9 @@ entity Botan.Public_Key {
 	var rng;
 	var rsa_bits;
 	var dl_group: Botan.DL_Group;
+	var ec_group: Botan.EC_Group;
+	var key_source;
+	var password;
 	
 	op create {
 		Botan::RSA_PublicKey::RSA_PublicKey(rng, rsa_bits);

@@ -1,8 +1,10 @@
+package botan
+
 entity Botan.EC_Group {
 	var param;
 	
 	op create {
-		Botan::EC_Group(param)
+		Botan::EC_Group(param);
 	}
 }
 
@@ -52,8 +54,9 @@ entity Botan.ECIES_Encryptor {
 	}
 }
 
-rule 3_3_02_CurveParams {
+rule TR02102_3_3_02_CurveParams {
 	using Botan.EC_Group as ecg
 	ensure ecg.param in ["brainpoolP256r1, brainpoolP320r1, brainpoolP384r1, brainpoolP512r1"]
+	onfail TR02102_3_3_02_CurveParams
 }
 

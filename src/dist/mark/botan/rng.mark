@@ -40,7 +40,7 @@ entity AutoSeeded_RNG {
 }
 
 rule RNGOrder {
-	using Botan::AutoSeeded_RNG as r
+	using AutoSeeded_RNG as r
 	ensure
 		order r.create(), (r.add_entropy()|r.reseed())*, r.get_random()*
 	onfail WrongOrderOfRNG

@@ -7,7 +7,7 @@ package botan
  * This filter interface is no longer used within the library itself (outside a few dusty corners) and will likely not see any further major development. However it will remain included because the API is often convenient and many applications use it." 
 */
 
-entity Pipe {
+entity Botan.Pipe {
 	
 	var filterList;
 	var filter;

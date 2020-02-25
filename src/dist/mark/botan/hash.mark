@@ -35,15 +35,18 @@ rule Order {
 	ensure order 
 		hf.create(),
 		(
-			(hf.update()*, hf.finalize)
+			(hf.update()*, hf.finalize())
 			| hf.process()
 		)
+	onfail Order
+		
 }
 
 // Botan provides options for combining hash functions in "Parallel" and "Comp4P". This is not covered here.
-rule 4_01_HashFunctions {
+rule _4_01_HashFunctions {
 	using Botan.HashFunction as hf
 	ensure hf.alg in ["SHA-256", "SHA-512-256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
+	onfail _01_HashFunctions
 }
 
 
@@ -72,9 +75,10 @@ rule 4_01_HashFunctions {
  	}
  } 
  
- rule 4_01_HashFilter{
+ rule _4_01_HashFilter {
 	using Botan.Hash_Filter as hf
 	when _has_value(hf.request)   // TODO: Builtin _has_value
 	ensure hf.request in ["SHA-256", "SHA-512-256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
+	onfail _01_HashFilter
 }
  

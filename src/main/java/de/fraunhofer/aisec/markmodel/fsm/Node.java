@@ -7,8 +7,11 @@ import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @NodeEntity
 public class Node {
@@ -26,6 +29,7 @@ public class Node {
 	private boolean isStart = false;
 	private boolean isEnd = false;
 	private boolean isFake = false; // if this is a fake start/end node
+	private boolean isError = false;  // If this indicates an invalid type state
 
 	public Node() {
 	}
@@ -33,6 +37,10 @@ public class Node {
 	public Node(@Nullable String base, String op) {
 		this.base = base;
 		this.op = op;
+	}
+
+	public void setError(boolean isError) {
+		this.isError = isError;
 	}
 
 	public void addSuccessor(Node s) {
@@ -96,5 +104,35 @@ public class Node {
 
 	public String toString() {
 		return getName() + (isEnd?" (E)":""); // + ", MARKING: " + String.join(", ", markings);
+	}
+
+	public boolean isError() {
+		return isError;
+	}
+
+	@Override public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		Node node = (Node) o;
+		boolean equal = isStart == node.isStart &&
+				isEnd == node.isEnd &&
+				isFake == node.isFake &&
+				isError == node.isError &&
+				Objects.equals(id, node.id) &&
+				Objects.equals(base, node.base) &&
+				Objects.equals(op, node.op);
+
+		return equal && successors.stream().sorted(Comparator.comparing(s -> s.getName())).map(n -> n.getName()).collect(Collectors.toList()).equals(
+				node.getSuccessors().stream().sorted(Comparator.comparing(s -> s.getName())).map(n -> n.getName()).collect(Collectors.toList()));
+	}
+
+	@Override public int hashCode() {
+		int prime = 31;
+		for (Node n : this.successors) {
+			prime *= n.getName().hashCode();
+		}
+		return prime*Objects.hash(id, base, op, isStart, isEnd, isFake, isError);
 	}
 }

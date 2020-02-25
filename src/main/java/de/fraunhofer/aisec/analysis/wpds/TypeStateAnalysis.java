@@ -101,18 +101,6 @@ public class TypeStateAnalysis {
 
 		/* Create typestate NFA, representing the regular expression of a MARK typestate rule. */
 		NFA tsNFA = NFA.of(orderExpr.getExp());
-//		tsNFA.clear();
-//		Node start = new Node("START", "START");
-//		Node empty = new Node("EMPTY", "EMPTY");
-//		Node nonempty = new Node("NONEMPTY", "NONEMPTY");
-//		Node error = new Node("ERROR", "ERROR");
-//		tsNFA.addTransition(new NFATransition<>(start, empty, "newOp()"));
-//		tsNFA.addTransition(new NFATransition<>(empty, empty, "clearOp()"));
-//		tsNFA.addTransition(new NFATransition<>(empty, nonempty, "addOp()"));
-//		tsNFA.addTransition(new NFATransition<>(nonempty, nonempty, "addOp()"));
-//		tsNFA.addTransition(new NFATransition<>(nonempty, nonempty, "lastElementOp()"));
-//		tsNFA.addTransition(new NFATransition<>(nonempty, empty, "clearOp()"));
-//		tsNFA.addTransition(new NFATransition<>(empty, error, "lastElementOp()"));
 		log.debug("Initial typestate NFA:\n{}", tsNFA);
 
 		// Create a weighted pushdown system
@@ -218,98 +206,17 @@ public class TypeStateAnalysis {
 	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule,
 											 String currentFile) {
 		Set<Finding> findings = new HashSet<>();
-
-		// TODO reachableTypestates is currently not used.
-		Set<Node> reachableTypestates = new HashSet<>();
-
-		List<Transition<Stmt, Val>> initialStates = new ArrayList<>();
-		for (Rule<Stmt, Val, Weight> r : wpds.getAllRules()) {
-			Weight weight = r.getWeight();
-			if (weight.value() instanceof Set) {
-				for (NFATransition<Node> w : (Set<NFATransition<Node>>) weight.value()) {
-					if (w.getSource().toString().contains("START")) {
-						initialStates.addAll(wnfa.getTransitionsOutOf(wnfa.getInitialState()).stream().filter(tr -> tr.getLabel().equals(r.getL2())).collect(Collectors.toList()));
+		for (Transition<Stmt, Val> tran : wnfa.getTransitions()) {
+			Weight w = wnfa.getWeightFor(tran);
+			if (w.value() instanceof Set) {
+				Set<NFATransition<Node>> reachableTypestates = (Set<NFATransition<Node>>) w.value();
+				for (NFATransition<Node> reachableTypestate : reachableTypestates) {
+					if (reachableTypestate.getTarget().isError()) {
+						findings.add(createBadFinding(tran, currentFile));
 					}
 				}
 			}
 		}
-
-		System.out.println("Initial state WWW: " + initialStates);
-		Set<Transition<Stmt, Val>> startStates = new HashSet<>();
-		for (Transition<Stmt, Val> transition : initialStates) {
-			startStates.add(transition);
-			System.out.println("START STATE: " + transition.toString());
-
-		}
-
-		Set<Rule<Stmt, Val, Weight>> rules = wpds.getAllRules();
-		ArrayDeque<Transition<Stmt, Val>> nextWpdsTrans = new ArrayDeque<>(startStates);
-		boolean didMove = false;
-		List<Transition<Stmt, Val>> sortedStatements = wnfa.getTransitions()
-														   .stream()
-														   .sorted(Comparator.comparing(tr -> tr.getLabel()
-																								.getRegion()
-																								.getStartLine()))
-														   .collect(Collectors.toList());
-		while (!nextWpdsTrans.isEmpty()) {  // TODO Incorrect. Do not iterate by line no., but rather create worklist of next applicable rule.
-			Transition<Stmt, Val> t = nextWpdsTrans.pop();
-			log.warn("--------- Getting findings from WPDS for {}-----------------", t.toString());
-				Weight w = wnfa.getWeightFor(t);
-				log.info("   Weights: " + w);
-
-				if (w.value() instanceof Set && !((Set) w.value()).isEmpty()) {
-					Set<NFATransition> tsTransitions = (Set<NFATransition>) w.value();
-					for (NFATransition<Node> tsTran : tsTransitions) {
-						log.debug("Automaton is in state(s) " + tsNFA.getCurrentConfiguration() + " Check if we can apply TS transition " + tsTran.toString());
-						didMove |= tsNFA.handleEvent(tsTran); // TODO Julian: return valueOf handleEvent is broken, but also actually not needed here.
-						Node newTypestate = tsTran.getTarget();
-						reachableTypestates.add(newTypestate);
-
-						if (didMove) {
-							log.debug("   Yes. Reached {} by {}. didMove: {}", newTypestate, t.getLabel(), didMove);
-							log.debug("       Now in state(s) " + tsNFA.getCurrentConfiguration());
-							findings.add(createGoodFinding(t, currentFile));
-						}
-					}
-				} else if (w.equals(Weight.zero())) {
-					findings.add(createBadFinding(t, currentFile));
-				} else {
-					System.out.println("Dunno what to do: " + w + " trans: " + t);
-					didMove = true;  // No bad finding
-				}
-
-				if (!didMove) {
-					log.debug("   No. No valid TS target!");
-					List<NFATransition<Node>> expected = tsNFA.getTransitions()
-															  .stream()
-															  .filter(tsT -> tsNFA.getCurrentConfiguration().stream().anyMatch(cur -> cur.equals(tsT.getSource())))
-															  .collect(Collectors.toList());
-					findings.add(createBadFinding(t, currentFile, expected));
-				}
-
-				didMove = false;
-
-				// Find next applicable WPDS rules from the current stmt
-			System.out.println("What's the next state(s) after " + t.getStart() + " label " + t.getLabel());
-			for (Rule<Stmt, Val, Weight> r : rules) {
-				if (r.getL1().equals(t.getLabel()) && r.getS1().equals(t.getStart())) {
-					final Stmt nextStmt = r.getL2();
-					final Val nextVal = r.getS2();
-
-					List<Transition<Stmt, Val>> nextTransitions = wnfa.getTransitions()
-																	  .stream()
-																	  .filter(tr -> tr.getLabel()
-																					  .equals(nextStmt) && tr.getStart()
-																											.equals(nextVal))
-																	  .collect(Collectors.toList());
-					System.out.println("    " + String.join(", ", nextTransitions.stream().map(tr -> tr.toString()).collect(Collectors.toList())));
-					nextWpdsTrans.addAll(nextTransitions);
-					break;
-				}
-			}
-		}
-
-		log.debug("Final config: {}", String.join(", " + tsNFA.getCurrentConfiguration().stream().map(Node::getName).collect(Collectors.toList())));
 
 		return findings;
 	}
@@ -381,10 +288,7 @@ public class TypeStateAnalysis {
 		/* Create empty WPDS */
 		CpgWpds wpds = new CpgWpds();
 
-		// TODO WPDS should be "seeded" for a relevant statements. Currently we transform whole functions into a WPDS
-
-		// Alias analysis for base of seed: Create set of objects which are aliases of seed
-		// TODO Alias analysis before seed
+		// TODO Optimization: WPDS can be limited to the slicing for the relevant statements. Currently we transform whole functions into a WPDS.
 
 		/**
 		 * For each function, create a WPDS
@@ -496,6 +400,10 @@ public class TypeStateAnalysis {
 
 									System.out.println("Is member call");
 									MemberCallExpression call = (MemberCallExpression) OverflowDatabase.getInstance().vertexToNode(rhsVar);
+									if (call == null) {
+										log.error("Unexpected: null base of MemberCallExpression " + rhsVar);
+										continue;
+									}
 									de.fraunhofer.aisec.cpg.graph.Node base = call.getBase();
 									System.out.println("BASE NAME: " + base);
 									Val rhsVal = new Val(base.getName(), currentFunctionName);
@@ -548,7 +456,7 @@ public class TypeStateAnalysis {
 							Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
 
 							for (Val returnedVal : returnedVals) {
-								Set<NFATransition> relevantNFATransitions = tsNfa.getTransitions()
+								Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
 										.stream()
 										.filter(
 											tran -> tran.getTarget().getOp().equals(returnedVal.getVariable()))
@@ -626,7 +534,7 @@ public class TypeStateAnalysis {
 	private Set<NormalRule<Stmt, Val, Weight>> createNormalRules(final NFA tsNfa, final CallExpression mce, final Stmt previousStmt, final Stmt currentStmt,
 			final Set<Val> valsInScope) {
 		Set<NormalRule<Stmt, Val, Weight>> result = new HashSet<>();
-		Set<NFATransition> relevantNFATransitions = tsNfa.getTransitions()
+		Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
 				.stream()
 				.filter(
 					tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
@@ -837,7 +745,7 @@ public class TypeStateAnalysis {
 	 */
 	private Set<PushRule<Stmt, Val, Weight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
 			NFA nfa, Stmt previousStmt, Stmt currentStmt, Vertex v, ArrayDeque<Vertex> worklist) {
-		Set<NFATransition> relevantNFATransitions = nfa.getTransitions()
+		Set<NFATransition<Node>> relevantNFATransitions = nfa.getTransitions()
 				.stream()
 				.filter(
 					tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
@@ -862,12 +770,6 @@ public class TypeStateAnalysis {
 
 			// Get first statement of callee. This is the jump target of our Push Rule.
 			Statement firstStmt = getFirstStmtOfMethod(crymlinTraversal, potentialCallee);
-
-			//			// TODO The code of getFirstStmtofmethod and getFirstVertexInFunctionBody could be merged for performance reasons.
-			//			Vertex firstV = getFirstVertexInFunctionBody(crymlinTraversal, potentialCallee);
-			//			if (firstV != null) {
-			//				worklist.add(v);
-			//			}
 
 			if (firstStmt != null && firstStmt.getCode() != null) {
 				for (int i = 0; i < argVals.size(); i++) {
@@ -911,18 +813,6 @@ public class TypeStateAnalysis {
 
 	@Nullable
 	private Statement getFirstStmtOfMethod(@NonNull CrymlinTraversalSource crymlinTraversalSource, @NonNull FunctionDeclaration potentialCallee) {
-		// Alternative: Traverse along EOG edge until we find a "relevant" node (=Statement or CallExpression)
-		//		Benchmark query = new Benchmark(this.getClass(), "query");
-		//		Optional<Vertex> vOpt = crymlinTraversalSource.byID(potentialCallee.getId())
-		//										 .outE("BODY")
-		//										 .inV()
-		//										 .tryNext();
-		//		query.stop();
-		//		if (!vOpt.isPresent()) {
-		//			log.error("Function {} does not have a body. TS analysis does not know where to start. Skipping.", potentialCallee.getName());
-		//			return null;
-		//		}
-
 		if (potentialCallee.getBody() != null) {
 			Statement firstStmt = potentialCallee.getBody();
 			while (firstStmt instanceof CompoundStatement) {
@@ -989,13 +879,6 @@ public class TypeStateAnalysis {
 				System.out.println("        BASE: " + v.property("base").orElse("NONE"));
 			}
 		}
-
-		// TODO Remove
-		//		List<String> verts = getVerticesOfRule(rule).entrySet()
-		//													.stream()
-		//													.flatMap(e -> e.getValue().stream())
-		//													.map(v -> (String) v.property("code").orElse(""))
-		//													.collect(Collectors.toList());
 
 		Val initialState = null;
 		Stmt stmt = null;

@@ -54,7 +54,6 @@ public class FSM {
 		return sb.toString();
 	}
 
-
 	/**
 	 * Order-Statement to FSM
 	 *

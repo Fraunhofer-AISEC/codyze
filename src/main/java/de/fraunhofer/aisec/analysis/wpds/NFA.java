@@ -159,11 +159,11 @@ public class NFA {
 
 					// Get all successor nodes of n and sort them
 					List<Node> sortedSuccessors = n.getSuccessors()
-												   .stream()
-												   .sorted(Comparator.comparing(node -> node.getName()))
-												   .collect(Collectors.toList());
+							.stream()
+							.sorted(Comparator.comparing(node -> node.getName()))
+							.collect(Collectors.toList());
 
-					for (Node s: sortedSuccessors) {
+					for (Node s : sortedSuccessors) {
 						Integer idSucc = nodeToId.get(s);
 						if (idSucc == null) {
 							idSucc = nodeCounter++;

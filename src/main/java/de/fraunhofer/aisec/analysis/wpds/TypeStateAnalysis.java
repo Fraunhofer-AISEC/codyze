@@ -139,10 +139,10 @@ public class TypeStateAnalysis {
 
 		// For debugging only: Print WPDS rules
 		for (Rule r : wpds.getAllRules()
-						  .stream()
-						  .sorted(Comparator.comparing(r -> r.getL1().getRegion().getStartLine()))
-						  .sorted(Comparator.comparing(r -> r.getL1().getRegion().getStartColumn()))
-						  .collect(Collectors.toList())) {
+				.stream()
+				.sorted(Comparator.comparing(r -> r.getL1().getRegion().getStartLine()))
+				.sorted(Comparator.comparing(r -> r.getL1().getRegion().getStartColumn()))
+				.collect(Collectors.toList())) {
 			log.debug("rule: {}", r);
 		}
 
@@ -204,7 +204,7 @@ public class TypeStateAnalysis {
 	 */
 	@NonNull
 	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule,
-											 String currentFile) {
+			String currentFile) {
 		Set<Finding> findings = new HashSet<>();
 		for (Transition<Stmt, Val> tran : wnfa.getTransitions()) {
 			Weight w = wnfa.getWeightFor(tran);
@@ -262,7 +262,8 @@ public class TypeStateAnalysis {
 		int endLine = toIntExact(t.getLabel().getRegion().getEndLine()) - 1;
 		int startColumn = toIntExact(t.getLabel().getRegion().getStartColumn()) - 1;
 		int endColumn = toIntExact(t.getLabel().getRegion().getEndColumn()) - 1;
-		return new Finding("Good: " + t.getStart() + " at " + t.getLabel(), rule.getErrorMessage(), currentFile, List.of(new Range(new Position(startLine, endLine), new Position(startColumn, endColumn))), false);
+		return new Finding("Good: " + t.getStart() + " at " + t.getLabel(), rule.getErrorMessage(), currentFile,
+			List.of(new Range(new Position(startLine, endLine), new Position(startColumn, endColumn))), false);
 	}
 
 	/**
@@ -346,7 +347,7 @@ public class TypeStateAnalysis {
 								if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
 									Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
 									if (!normalRule.getS1()
-												   .equals(forbiddenVal)) {
+											.equals(forbiddenVal)) {
 										skipIt = true;
 									}
 								}
@@ -355,7 +356,6 @@ public class TypeStateAnalysis {
 								}
 							}
 							previousStmt = currentStmt;
-
 
 							if (!isPhantom(mce)) {
 								/*
@@ -370,7 +370,7 @@ public class TypeStateAnalysis {
 
 									// Remember that arguments flow only into callee and do not bypass it.
 									skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
-									previousStmt = pushRule.getCallSite();  // Previous stmt is return location
+									previousStmt = pushRule.getCallSite(); // Previous stmt is return location
 								}
 							}
 
@@ -941,7 +941,7 @@ public class TypeStateAnalysis {
 		};
 		Val ACCEPTING = new Val("ACCEPT", "ACCEPT");
 		// Create an automaton for the initial configuration from where post* will start.
-		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING), initialWeight!=null?initialWeight:Weight.one());
+		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING), initialWeight != null ? initialWeight : Weight.one());
 		// Add final ("accepting") states to NFA.
 		wnfa.addFinalState(ACCEPTING);
 

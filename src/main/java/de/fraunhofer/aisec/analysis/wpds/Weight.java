@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * (FSM), created from the typedef definition in a Mark file (=a regular expression).
  */
 public class Weight extends Semiring {
-	private @NonNull Set<NFATransition> value = new HashSet<>();
+	private @NonNull Set<NFATransition<Node>> value = new HashSet<>();
 	@Nullable
 	private NFA nfa = null;
 	@Nullable
@@ -34,7 +34,7 @@ public class Weight extends Semiring {
 		this.nfa = nfa;
 	}
 
-	public Weight(@NonNull Set<NFATransition> typestateTransitions) {
+	public Weight(@NonNull Set<NFATransition<Node>> typestateTransitions) {
 		this.value = typestateTransitions;
 	}
 
@@ -72,28 +72,19 @@ public class Weight extends Semiring {
 
 		Weight otherW = (Weight) other;
 
-		Set<NFATransition> resultSet = new HashSet<>();
-		for (NFATransition my : this.value) {
+		Set<NFATransition<Node>> resultSet = new HashSet<>();
+		for (NFATransition<Node> my : this.value) {
 			boolean validTsTransition = false;
-			for (NFATransition theirs : otherW.value) {
-				// 1-step transitive hull. Avoid endless loops by skipping cyclic transitions.
-				if (my.getTarget().equals(theirs.getSource())) {
-					// NFATransition.equal() returns false for non-same Nodes, thus we check manually:
-					NFATransition newTsTran = new NFATransition(my.getSource(), theirs.getTarget(), my.getLabel());
-					if (resultSet.stream().noneMatch(tr ->
-							   tr.getSource().toString().equals(newTsTran.getSource().toString())
-							&& tr.getLabel().equals(newTsTran.getLabel())
-							&& tr.getTarget().toString().equals(newTsTran.getTarget().toString()))) {
+			for (NFATransition<Node> theirs : otherW.value) {
+				// 1-step transitive hull. Note that we check for equality of names, as equality of Node objects includes their successor collection.
+				if (my.getTarget().getName().equals(theirs.getSource().getName())) {
+					NFATransition<Node> newTsTran = new NFATransition<Node>(my.getSource(), theirs.getTarget(), my.getLabel());
 						resultSet.add(newTsTran);
-					} else {
-						System.out.println("Skipping duplicate");
-					}
 					validTsTransition = true;
-					System.out.println("Found further transition from " + my.toString() + " AND " + theirs.toString() + " : \t\t" + newTsTran);
 				}
 			}
 			if (!validTsTransition) {
-				resultSet.add(new NFATransition(my.getSource(), new Node("ERROR", "ERROR"), my.getLabel()));
+				resultSet.add(new NFATransition(my.getSource(), NFA.ERROR, my.getLabel()));
 			}
 		}
 		if (resultSet.isEmpty()) {
@@ -119,7 +110,7 @@ public class Weight extends Semiring {
 		}
 
 		if (other instanceof Weight) {
-			Set<NFATransition> union = Sets.union(this.value, ((Weight) other).value);
+			Set<NFATransition<Node>> union = Sets.union(this.value, ((Weight) other).value);
 			if (union.isEmpty()) {
 				System.out.println("EMPTY UNION OF " + this + " and " + other);
 			}
@@ -186,5 +177,4 @@ public class Weight extends Semiring {
 
 		return this.value.equals(other.value);
 	}
-
 }

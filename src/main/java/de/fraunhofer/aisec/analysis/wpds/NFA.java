@@ -19,6 +19,11 @@ public class NFA {
 	private Set<Node> startNodes = null;
 
 	final private Node START = new Node("START", "START");
+	final static public Node ERROR;
+	static {
+		ERROR = new Node("ERROR", "ERROR");
+		ERROR.setError(true);
+	}
 
 	/* Set of transitions between states */
 	private Set<NFATransition<Node>> transitions = new HashSet<>();

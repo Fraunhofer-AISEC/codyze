@@ -6,9 +6,7 @@ public class WpdsVectorExample {
     v.add();
     v = accessLastElement(v);
     v.clear();
-    v = accessLastElement(v);
-    v.add();
-    v.lastElement();
+    accessLastElement(v);
   }
 
   Vector accessLastElement(Vector u) {

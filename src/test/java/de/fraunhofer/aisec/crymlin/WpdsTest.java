@@ -62,21 +62,18 @@ class WpdsTest extends AbstractMarkTest {
 	@Test
 	void testWpdsVector() throws Exception {
 
-
-
-
 		@NonNull
 		Set<Finding> findings = performTest("unittests/wpds-vector-example.java", "unittests/vector.mark");
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														 .collect(Collectors.toMap(
-																 f -> f.getRanges().get(0).getStart().getLine(),
-																 f -> f.isProblem(),
-																 (isProblemA, isProblemB) -> {
-																	 System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
-																	 return isProblemA && isProblemB;
-																 }));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 	}
 
 	@Test
@@ -86,28 +83,28 @@ class WpdsTest extends AbstractMarkTest {
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														 .collect(Collectors.toMap(
-																 f -> f.getRanges().get(0).getStart().getLine(),
-																 f -> f.isProblem(),
-																 (isProblemA, isProblemB) -> {
-																	 System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
-																	 return isProblemA && isProblemB;
-																 }));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(startLineNumbers.containsKey(10));  // create
+		assertTrue(startLineNumbers.containsKey(10)); // create
 		assertFalse(startLineNumbers.get(10));
-		assertTrue(startLineNumbers.containsKey(15));  // init
+		assertTrue(startLineNumbers.containsKey(15)); // init
 		assertFalse(startLineNumbers.get(15));
-		assertTrue(startLineNumbers.containsKey(31));  // start
+		assertTrue(startLineNumbers.containsKey(31)); // start
 		assertFalse(startLineNumbers.get(31));
-		assertTrue(startLineNumbers.containsKey(21));  // process
+		assertTrue(startLineNumbers.containsKey(21)); // process
 		assertFalse(startLineNumbers.get(21));
 		assertTrue(startLineNumbers.containsKey(22)); // process
 		assertFalse(startLineNumbers.get(22));
 		assertTrue(startLineNumbers.containsKey(24)); // process
 		assertFalse(startLineNumbers.get(24));
-		assertTrue(startLineNumbers.containsKey(26));  // finish
+		assertTrue(startLineNumbers.containsKey(26)); // finish
 		assertFalse(startLineNumbers.get(26));
 	}
 
@@ -118,28 +115,28 @@ class WpdsTest extends AbstractMarkTest {
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														 .collect(Collectors.toMap(
-																 f -> f.getRanges().get(0).getStart().getLine(),
-																 f -> f.isProblem(),
-																 (isProblemA, isProblemB) -> {
-																	 System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
-																	 return isProblemA && isProblemB;
-																 }));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(startLineNumbers.containsKey(10));  // create
+		assertTrue(startLineNumbers.containsKey(10)); // create
 		assertFalse(startLineNumbers.get(10));
-		assertTrue(startLineNumbers.containsKey(15));  // init
+		assertTrue(startLineNumbers.containsKey(15)); // init
 		assertFalse(startLineNumbers.get(15));
-		assertTrue(startLineNumbers.containsKey(17));  // start
+		assertTrue(startLineNumbers.containsKey(17)); // start
 		assertFalse(startLineNumbers.get(17));
-		assertTrue(startLineNumbers.containsKey(20));  // process
+		assertTrue(startLineNumbers.containsKey(20)); // process
 		assertFalse(startLineNumbers.get(20));
-		assertTrue(startLineNumbers.containsKey(21));  // process
+		assertTrue(startLineNumbers.containsKey(21)); // process
 		assertFalse(startLineNumbers.get(21));
-		assertTrue(startLineNumbers.containsKey(23));  // process
+		assertTrue(startLineNumbers.containsKey(23)); // process
 		assertFalse(startLineNumbers.get(23));
-		assertTrue(startLineNumbers.containsKey(25));  // finish
+		assertTrue(startLineNumbers.containsKey(25)); // finish
 		assertFalse(startLineNumbers.get(25));
 	}
 
@@ -150,24 +147,24 @@ class WpdsTest extends AbstractMarkTest {
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														 .collect(Collectors.toMap(
-																 f -> f.getRanges().get(0).getStart().getLine(),
-																 f -> f.isProblem(),
-																 (isProblemA, isProblemB) -> {
-																	 System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
-																	 return isProblemA && isProblemB;
-																 }));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(startLineNumbers.containsKey(10));  //
+		assertTrue(startLineNumbers.containsKey(10)); //
 		assertFalse(startLineNumbers.get(10));
-		assertTrue(startLineNumbers.containsKey(17));  //
+		assertTrue(startLineNumbers.containsKey(17)); //
 		assertFalse(startLineNumbers.get(17));
-		assertTrue(startLineNumbers.containsKey(21));  // process
+		assertTrue(startLineNumbers.containsKey(21)); // process
 		assertFalse(startLineNumbers.get(21));
-		assertTrue(startLineNumbers.containsKey(22));  // process
+		assertTrue(startLineNumbers.containsKey(22)); // process
 		assertFalse(startLineNumbers.get(22));
-		assertTrue(startLineNumbers.containsKey(24));  // start
+		assertTrue(startLineNumbers.containsKey(24)); // start
 		assertTrue(startLineNumbers.get(24));
 		assertTrue(startLineNumbers.containsKey(25));
 		assertTrue(startLineNumbers.get(25));

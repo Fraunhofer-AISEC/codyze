@@ -29,7 +29,7 @@ public class Node {
 	private boolean isStart = false;
 	private boolean isEnd = false;
 	private boolean isFake = false; // if this is a fake start/end node
-	private boolean isError = false;  // If this indicates an invalid type state
+	private boolean isError = false; // If this indicates an invalid type state
 
 	public Node() {
 	}
@@ -103,14 +103,15 @@ public class Node {
 	}
 
 	public String toString() {
-		return getName() + (isEnd?" (E)":""); // + ", MARKING: " + String.join(", ", markings);
+		return getName() + (isEnd ? " (E)" : ""); // + ", MARKING: " + String.join(", ", markings);
 	}
 
 	public boolean isError() {
 		return isError;
 	}
 
-	@Override public boolean equals(Object o) {
+	@Override
+	public boolean equals(Object o) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())
@@ -124,15 +125,20 @@ public class Node {
 				Objects.equals(base, node.base) &&
 				Objects.equals(op, node.op);
 
-		return equal && successors.stream().sorted(Comparator.comparing(s -> s.getName())).map(n -> n.getName()).collect(Collectors.toList()).equals(
-				node.getSuccessors().stream().sorted(Comparator.comparing(s -> s.getName())).map(n -> n.getName()).collect(Collectors.toList()));
+		return equal && successors.stream()
+				.sorted(Comparator.comparing(s -> s.getName()))
+				.map(n -> n.getName())
+				.collect(Collectors.toList())
+				.equals(
+					node.getSuccessors().stream().sorted(Comparator.comparing(s -> s.getName())).map(n -> n.getName()).collect(Collectors.toList()));
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 		int prime = 31;
 		for (Node n : this.successors) {
 			prime *= n.getName().hashCode();
 		}
-		return prime*Objects.hash(id, base, op, isStart, isEnd, isFake, isError);
+		return prime * Objects.hash(id, base, op, isStart, isEnd, isFake, isError);
 	}
 }

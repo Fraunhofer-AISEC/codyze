@@ -4,7 +4,7 @@ package botan
 
 entity Botan.StreamCipher {
 	var algorithm;
-	var key: SymmetricKey;
+	var key: Botan.SymmetricKey;
 	var iv; // TODO: Problem: Botan 2.4. does not support Botan::InitializationVector for the set_iv() method
 	var iv_len;
 	var inout;
@@ -52,12 +52,13 @@ rule Order{
 	ensure order 
 		sc.create()*,
 		(
-			  (set_key, set_iv)
-			| (set_iv, set_key)
+			  (sc.set_key(), sc.set_iv())
+			| (sc.set_iv(), sc.set_key())
 		),
-		crypt
+		sc.crypt()
+	onfail Order
 }
 
 /**
- * TODO: the stream ciphers can also be created by using the concrete subclasses (Botan::ChaCha, Botan::CTR_BE, ...)
+ * Note: the stream ciphers can also be created by using the concrete subclasses (Botan::ChaCha, Botan::CTR_BE, ...)
  */

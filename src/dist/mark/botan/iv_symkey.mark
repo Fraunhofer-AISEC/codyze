@@ -8,7 +8,7 @@ package botan
 		- std::string 			(currently not allowed)
 	TODO: do we want to allow them?
 */
-entity InitializationVector {
+entity Botan.InitializationVector {
 	
 	var bytes;
 	var rng: Botan.RNG;
@@ -30,7 +30,7 @@ entity InitializationVector {
 
 }
 
-entity SymmetricKey {
+entity Botan.SymmetricKey {
 	
 	var bytes;
 	var rng: Botan.RNG;

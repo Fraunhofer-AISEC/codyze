@@ -1,71 +1,88 @@
 package botan
 
 
+/*
+ * From Botan Handbook:
+ * "In general a bare block cipher is not what you should be using. You probably want a cipher mode instead (see Cipher Modes)"
+ */
+
 entity Botan.Cipher_Mode {
 	
 	var algorithm;
 	var symkey : Botan.SymmetricKey; 
 	var iv : Botan.InitializationVector;
+	var iv_length;
 	var direction;
-
-	// TODO: do we really need provider, input, nonce, ..? We do not define rules over them
-	var provider;
 
 	var input;
 	var input_length;
+	
+	var inout;
+	
+	var aead_data;
+	var aead_data_len;
 
-	var nonce;
-	var nonce_length;
-
-
-	op create {
-		/* 
+	/* 
 		Note: allows creating objects of Type Botan::Keyed_Filter and Botan::Cipher_Mode, therefore all other ops should consider member functions of these two classes 
 
 		Botan::OctetString might be allowed for key and IV, but we will not accept it because Botan::SymmetricKey and Botan::InitializationVector carry more semantics, which should increase safety and maintainability.
 		We allow secure vector because real world examples seem to use it
 		*/
-		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir);
+
+	op create_uninit {
+		Botan::get_cipher_mode(algorithm, direction, ...);
+		Botan::get_cipher(algorithm, direction);
+	}
+	
+	op create_key_init {
 		Botan::get_cipher(
-		    algorithm: std::string,
-		     symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>,
-		     iv: Botan::InitializationVector | Botan::secure_vector<uint8_t>,
-		     direction: Botan::Cipher_Dir
+			algorithm, 
+			iv: Botan::InitializationVector, 
+			direction
 		);
-		Botan::get_cipher(algorithm: std::string, symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>, direction: Botan::Cipher_Dir);
-		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir, provider);
+	}
+	
+	op create_key_iv_init {
+		Botan::get_cipher(
+			algorithm, 
+			symkey: Botan::SymmetricKey, 
+			iv: Botan::InitializationVector, 
+			direction
+		);
 	}
 
-	op init {
+	op set_key {
 		Botan::Cipher_Mode::set_key(symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>);
 		forbidden Botan::Cipher_Mode::set_key(_, _);
-
 		Botan::Keyed_Filter::set_key(symkey: Botan::SymmetricKey | Botan::secure_vector<uint8_t>);
 	}
+	
+	op set_iv {
+		Botan::Keyed_Filter::set_iv(iv: Botan::InitializationVector);
+	}
 
-	op start {
-    	Botan::Cipher_Mode::start();
-
-    	/* TODO what about nonces? are they IVs? @studier?
-		Botan::Cipher_Mode::start(nonce)
-		Botan::Cipher_Mode::start(nonce, nonce_length);
-		Botan::Cipher_Mode::start_msg(nonce, nonce_length);
-		*/
-
+	op start_no_iv {
+		Botan::Cipher_Mode::start();
 		Botan::Keyed_Filter::start_msg();
+	}
+	
+	op start_iv {
+		Botan::Cipher_Mode::start(iv);
+		Botan::Cipher_Mode::start(iv, iv_length);
+		Botan::Cipher_Mode::start_msg(iv, iv_length);
 	}
 
 	op process {
 		Botan::Cipher_Mode::process(input, input_length);
-		Botan::Cipher_Mode::update(input);
-		Botan::Cipher_Mode::update(input, _);
+		Botan::Cipher_Mode::update(inout);
+		Botan::Cipher_Mode::update(inout, _);
 
 		Botan::Keyed_Filter::write(input, input_length);
 	}
 
 	op finish {
-		Botan::Cipher_Mode::finish(input);
-		Botan::Cipher_Mode::finish(input, _);
+		Botan::Cipher_Mode::finish(inout);
+		Botan::Cipher_Mode::finish(inout, _);
 
 		Botan::Keyed_Filter::end_msg();
 	}
@@ -74,17 +91,21 @@ entity Botan.Cipher_Mode {
 		Botan::Cipher_Mode::reset();
 	}
 	
+	op assoc_data {
+		Botan::AEAD_Filter::set_associated_data(aead_data, aead_data_len);
+	}
+	
 }
 
 
 rule Order {
 	// using Botan.Cipher_Mode as cm TODO MARK: allow fq-names for MARK entities
-    using Cipher_Mode as cm
-	ensure order cm.a() //TODO: don't know correct order because when cipher mode is created with iv and key then we dont need to initialize it
+    using Botan.Cipher_Mode as cm
+	ensure order cm.a() //TODO order
 	onfail WrongOrder
 }
 
-rule 2_1_01_Modes {
+rule _2_1_01_Modes {
 	using Botan.Cipher_Mode as cm
 	ensure
 		_split(cm.algorithm, "/", 1) in ["CCM", "GCM", "CBC", "CTR"]
@@ -119,7 +140,7 @@ rule KeyLength {
 
 rule CBCRandomIV  {
 	using Botan.Cipher_Mode as cm,
-		Botan.AutoSeeded_RNG as rng
+		Botan.RNG as rng
 	when 
 		_split(cm.algorithm, "/", 1) == "CBC" 
 		&& cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
@@ -134,7 +155,7 @@ rule NonRepeatedIV {
 	TODO: ist das wirklich aussreichend?
 */
 	using Botan.Cipher_Mode as cm,
-		Botan.AutoSeeded_RNG as rng
+		Botan.RNG as rng
 	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
 	ensure
 		_receives_value_directly_from(cm.iv, rng.random_data)

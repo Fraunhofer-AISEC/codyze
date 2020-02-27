@@ -12,7 +12,7 @@ takes a reference to a Public_Key, it can take any public key or private key, an
 
 
 entity Botan.Public_Key {
-	var rng;
+	var rng: Botan.RNG;
 	var rsa_bits;
 	var dl_group: Botan.DL_Group;
 	var ec_group: Botan.EC_Group;

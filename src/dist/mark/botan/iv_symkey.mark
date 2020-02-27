@@ -11,7 +11,7 @@ package botan
 entity InitializationVector {
 	
 	var bytes;
-	var rng: Botan.RandomNumberGenerator;
+	var rng: Botan.RNG;
 	var length;
 
 	op create {
@@ -33,7 +33,7 @@ entity InitializationVector {
 entity SymmetricKey {
 	
 	var bytes;
-	var rng: Botan.RandomNumberGenerator;
+	var rng: Botan.RNG;
 	var length;
 
 	op create {

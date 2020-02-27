@@ -1,6 +1,6 @@
 package botan
 
-entity MAC {
+entity Botan.MAC {
 	var algorithm;
 	var key: SymmetricKey;
 	var data;
@@ -67,19 +67,19 @@ entity MAC {
 
 
 rule _5_3_01_MAC {
-	using MAC as mac
+	using Botan.MAC as mac
 	ensure mac.algorithm in ["CMAC", "OMAC", "HMAC", "GMAC"]  // according to botan handbook: CMAC == OMAC
 	onfail _5_3_01_MAC
 }
 
 rule _5_3_02_MAC_KEYLEN {
-	using MAC as mac
+	using Botan.MAC as mac
 	ensure mac.key.length >= 16 // 16 Byte = 128 bit
 	onfail _5_3_02_MAC_KEYLEN
 }
 
 rule _5_3_03_MAC_NONCELEN {
-	using MAC as mac
+	using Botan.MAC as mac
 	ensure mac.nonce_len >= 12 // 12 Byte = 96 bit
 	onfail _5_3_03_MAC_NONCELEN
 }

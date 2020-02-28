@@ -1,11 +1,11 @@
-package bsi.tr21021
+package bsi.tr_02102_1
 
 /**
- * General rule: We're just checking if one of the allowed block ciphers is used.
+ * 
  * 
  * BouncyCastle/JCA uses underscore in the security standard names.
  */
-rule Cipher {
+rule ID_2_01 {
     using
         Cipher as c
     ensure
@@ -17,127 +17,129 @@ rule Cipher {
 }
 
 /**
- * General rule: We're just checking if one of the allowed cipher modes is used.
+ * 
  */
-rule CipherMode {
+rule ID_2_1_01 {
     using
         Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
     ensure
     	/* BSI TR-02102-1, ID 2.1.01 */
         _split(c.transform, "/", 1) in ["CCM", "GCM", "CBC", "CTR"]
     onfail
-        Invalid_TR21021_CipherMode
+        InvalidCipherModeforAESBlockCipher
 }
-
-/**
- * Special rule: Concrete limitations on cipher mode CCM
- */
-rule AES_CCM {
-    using
-        Cipher as c
-    when
-    	/* Allowed block cipher in CCM cipher mode */
-    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
-    	&& _split(c.transform, "/", 1) in ["CCM"]
-    ensure
-    	false // TODO
-    onfail
-        Invalid_TR21021_CCMInsufficientTagLength
-}
-
-/**
- * Special rule: Concrete limitations on cipher mode CCM
- */
-rule AES_GCM_TagLength {
-    using
-        Cipher as c,
-        GCMParameterSpec as gcm
-    when
-    	/* Allowed block cipher in CCM cipher mode */
-    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
-    	&& _split(c.transform, "/", 1) in ["GCM"]
-    ensure
-    	_is_instance(c.paramspec, "javax.crypto.spec.GCMParameterSpec")
-    	&& _becomes(c.paramspec, gcm) /* Now, c.paramspec should become become another MARK entity */
-    	&& gcm.tLen >= 96 /* apparently, there are fixed sizes 96, 104, 112, 120 and 128 */
-    onfail
-        Invalid_TR21021_GCMInsufficientTagLength
-}
-
-rule AES_GCM_IVLength {
-    using
-        Cipher as c,
-        GCMParameterSpec as gcm
-    when
-    	/* Allowed block cipher in CCM cipher mode */
-    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
-    	&& _split(c.transform, "/", 1) in ["GCM"]
-    ensure
-    	_is_instance(c.paramspec, "javax.crypto.spec.GCMParameterSpec")
-    	&& _becomes(c.paramspec, gcm) /* Now, c.paramspec should become become another MARK entity */
-    	&& (
-    		_length(gcm.src) == 12 /* in bytes */
-    		|| gcm.len == 12
-    		)
-    onfail
-        Invalid_TR21021_GCMInsufficientIVLength
-}
-
-
-
-/**
- * TODO
- * Special rule: We're checking if a default cipher mode is used that is not allowed.
- */
-rule DefaultCipherMode {
-    using
-        Cipher as c
-    when
-        _split(c.transform, "/", 1) == "" // TODO how to indicate no value returned/determined
-    ensure
-        foobar // TODO
-    onfail
-        Invalid_TR21021_Default_CipherMode
-}
-
-
-rule Crypt {
-    using
-        Cipher as c
-    when
-        _split(c.transform, "/", 1) in ["CBC", "CTR"]
-        && (c.opmode == 1 /* javax.crypto.Cipher.ENCRYPT_MODE */
-            || c.opmode == 2 /* javax.crypto.Cipher.DECRYPT_MODE */
-        )
-    ensure
-        order c.instantiate(),
-            c.init(),
-            c.update()*,
-            c.finalize()
-    onfail
-        Invalid_TR21021_Order
-}
-
-/**
- * Special rule: Different order when using AEAD with GCM/CCM
- */
-rule AEAD_Crypt {
-    using
-        Cipher as c
-    when
-        _split(c.transform, "/", 1) in ["CCM", "GCM"]
-        && (c.opmode == 1 /* javax.crypto.Cipher.ENCRYPT_MODE */
-            || c.opmode == 2 /* javax.crypto.Cipher.DECRYPT_MODE */
-        )
-    ensure
-        order c.instantiate(),
-            c.init(),
-            c.aad()*, /* optional because only called if actually supplying AAD */
-            c.update()*,
-            c.finalize()
-    onfail
-        Invalid_TR21021_Order_AEAD
-}
-
-// TODO order rule for key wrap
-// TODO order rule for key unwrapping
+//
+///**
+// * 
+// */
+//rule AES_CCM {
+//    using
+//        Cipher as c
+//    when
+//    	/* Allowed block cipher in CCM cipher mode */
+//    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+//    	&& _split(c.transform, "/", 1) in ["CCM"]
+//    ensure
+//    	false // TODO
+//    onfail
+//        Invalid_TR21021_CCMInsufficientTagLength
+//}
+//
+///**
+// * Special rule: Concrete limitations on cipher mode CCM
+// */
+//rule AES_GCM_TagLength {
+//    using
+//        Cipher as c,
+//        GCMParameterSpec as gcm
+//    when
+//    	/* Allowed block cipher in CCM cipher mode */
+//    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+//    	&& _split(c.transform, "/", 1) in ["GCM"]
+//    ensure
+//    	_is_instance(c.paramspec, "javax.crypto.spec.GCMParameterSpec")
+//    	&& _becomes(c.paramspec, gcm) /* Now, c.paramspec should become become another MARK entity */
+//    	&& gcm.tLen >= 96 /* apparently, there are fixed sizes 96, 104, 112, 120 and 128 */
+//    onfail
+//        Invalid_TR21021_GCMInsufficientTagLength
+//}
+//
+//rule AES_GCM_IVLength {
+//    using
+//        Cipher as c,
+//        GCMParameterSpec as gcm
+//    when
+//    	/* Allowed block cipher in CCM cipher mode */
+//    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+//    	&& _split(c.transform, "/", 1) in ["GCM"]
+//    ensure
+//    	_is_instance(c.paramspec, "javax.crypto.spec.GCMParameterSpec")
+//    	&& _is(c.paramspec, gcm) /* Now, c.paramspec should become become another MARK entity */
+//    	&& (
+//    		_length(gcm.src) == 12 /* in bytes */
+//    		|| gcm.len == 12
+//    		)
+//    onfail
+//        Invalid_TR21021_GCMInsufficientIVLength
+//}
+//
+//
+//
+///**
+// * TODO
+// * Special rule: We're checking if a default cipher mode is used that is not allowed.
+// */
+//rule DefaultCipherMode {
+//    using
+//        Cipher as c
+//    when
+//        _split(c.transform, "/", 1) == "" // TODO how to indicate no value returned/determined
+//    ensure
+//        foobar // TODO
+//    onfail
+//        Invalid_TR21021_Default_CipherMode
+//}
+//
+//
+//rule Crypt {
+//    using
+//        Cipher as c
+//    when
+//        _split(c.transform, "/", 1) in ["CBC", "CTR"]
+//        && (c.opmode == 1 /* javax.crypto.Cipher.ENCRYPT_MODE */
+//            || c.opmode == 2 /* javax.crypto.Cipher.DECRYPT_MODE */
+//        )
+//    ensure
+//        order c.instantiate(),
+//            c.init(),
+//            c.update()*,
+//            c.finalize()
+//    onfail
+//        Invalid_TR21021_Order
+//}
+//
+///**
+// * Special rule: Different order when using AEAD with GCM/CCM
+// */
+//rule AEAD_Crypt {
+//    using
+//        Cipher as c
+//    when
+//        _split(c.transform, "/", 1) in ["CCM", "GCM"]
+//        && (c.opmode == 1 /* javax.crypto.Cipher.ENCRYPT_MODE */
+//            || c.opmode == 2 /* javax.crypto.Cipher.DECRYPT_MODE */
+//        )
+//    ensure
+//        order c.instantiate(),
+//            c.init(),
+//            c.aad()*, /* optional because only called if actually supplying AAD */
+//            c.update()*,
+//            c.finalize()
+//    onfail
+//        Invalid_TR21021_Order_AEAD
+//}
+//
+//// TODO order rule for key wrap
+//// TODO order rule for key unwrapping

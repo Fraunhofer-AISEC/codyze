@@ -331,6 +331,9 @@ public class Evaluator {
 					if ((vertex.property("initializer_type").isPresent() && vertex.value("initializer_type").equals("de.fraunhofer.aisec.cpg.graph.ConstructExpression"))
 							|| (vertex.property("nodeType").isPresent() && vertex.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.ConstructExpression"))) {
 						ref = CrymlinQueryWrapper.getAssigneeOfConstructExpression(vertex);
+					} else if (vertex.property("nodeType").isPresent() && vertex.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.StaticCallExpression")) {
+						// mainly for builder function
+						ref = CrymlinQueryWrapper.getDFGTarget(vertex);
 					} else {
 						// Program variable is either the Base of some method call ...
 						ref = CrymlinQueryWrapper.getBaseOfCallExpression(vertex);

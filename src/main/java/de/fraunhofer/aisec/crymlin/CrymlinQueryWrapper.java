@@ -374,7 +374,12 @@ public class CrymlinQueryWrapper {
 
 					if (argumentVertices.size() == 1) {
 						// get base of call expression
-						Optional<Vertex> baseOfCallExpression = CrymlinQueryWrapper.getBaseOfCallExpression(v);
+						Optional<Vertex> baseOfCallExpression;
+						if (v.property("nodeType").isPresent() && v.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.StaticCallExpression")) {
+							baseOfCallExpression = CrymlinQueryWrapper.getDFGTarget(v);
+						} else {
+							baseOfCallExpression = CrymlinQueryWrapper.getBaseOfCallExpression(v);
+						}
 						CPGVertexWithValue cpgVertexWithValue = new CPGVertexWithValue(argumentVertices.get(0), ConstantValue.newUninitialized());
 						cpgVertexWithValue.setBase(baseOfCallExpression.orElse(null));
 						matchingVertices.add(cpgVertexWithValue);
@@ -720,5 +725,13 @@ public class CrymlinQueryWrapper {
 		}
 
 		return false;
+	}
+
+	public static Optional<Vertex> getDFGTarget(Vertex vertex) {
+		Iterator<Edge> it = vertex.edges(Direction.OUT, "DFG");
+		if (it.hasNext()) {
+			return Optional.of(it.next().inVertex());
+		}
+		return Optional.empty();
 	}
 }

@@ -95,6 +95,15 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
+	public void hasValueJava() throws Exception {
+		Set<Finding> findings = performTest("mark_java/has_value.java", "mark_java/has_value.mark");
+
+		expected(findings,
+			"line 17: MarkRuleEvaluationFinding: Rule Bar violated",
+			"line 21: MarkRuleEvaluationFinding: Rule Foo verified");
+	}
+
+	@Test
 	public void extractResponsibleVertices() {
 
 		ListValue lv = new ListValue();

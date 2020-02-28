@@ -15,18 +15,18 @@
     p2.create();
 
     // Aliasing: Operations on p3 are now equal to p2
-    Botan2 p3 = p2;
+    //Botan2 p3 = p2;
 
-    p2.init(test);
+    p2.init();
 
     // Continue in other function + alias to p4
     Botan2 p4 = someFunction(p2);
 
     p2.process();
-    p3.process();
+    p2.process();
 
     // NOT OK: Calling start() again.
-    //Botan2 p5 = someFunction(p4);
+    Botan2 p5 = someFunction(p4);
 
     p5.process();
 

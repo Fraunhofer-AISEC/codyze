@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.wpds;
 
+import com.google.common.collect.Sets;
 import de.breakpointsec.pushdown.IllegalTransitionException;
 import de.breakpointsec.pushdown.WPDS;
 import de.breakpointsec.pushdown.fsm.Transition;
@@ -205,7 +206,22 @@ public class TypeStateAnalysis {
 	@NonNull
 	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule,
 			String currentFile) {
+		// Final findings
 		Set<Finding> findings = new HashSet<>();
+		// We collect good findings first, but add them only if TS machine reaches END state
+		Set<NonNullPair<Stmt, Val>> potentialGoodFindings = new HashSet<>();
+		boolean endReached = false;
+
+		// All configurations for which we have rules. Ignoring Weight.ONE
+		Set<NonNullPair<Stmt, Val>> wpdsConfigs = new HashSet<>();
+		for (Rule<Stmt, Val, Weight> r : wpds.getAllRules()) {
+			if (!r.getWeight().equals(Weight.one())) {
+				wpdsConfigs.add(new NonNullPair<Stmt, Val>(r.getL1(), r.getS1()));
+				wpdsConfigs.add(new NonNullPair<Stmt, Val>(r.getL2(), r.getS2()));
+			}
+
+		}
+
 		for (Transition<Stmt, Val> tran : wnfa.getTransitions()) {
 			Weight w = wnfa.getWeightFor(tran);
 			if (w.value() instanceof Set) {
@@ -213,8 +229,34 @@ public class TypeStateAnalysis {
 				for (NFATransition<Node> reachableTypestate : reachableTypestates) {
 					if (reachableTypestate.getTarget().isError()) {
 						findings.add(createBadFinding(tran, currentFile));
+					} else {
+						potentialGoodFindings.add(new NonNullPair(tran.getLabel(), tran.getStart()));
 					}
+
+					endReached |= reachableTypestate.getTarget().isEnd();
 				}
+			} else if (w.equals(Weight.zero())) {
+				// Check if this is actually a feasible configuration
+				NonNullPair<Stmt, Val> conf = new NonNullPair<>(tran.getLabel(), tran.getStart());
+				if (wpdsConfigs.stream().anyMatch(c -> c.getValue0().equals(conf.getValue0()) && c.getValue1().equals(conf.getValue1()))) {
+					findings.add(createBadFinding(conf.getValue0(), conf.getValue1(), currentFile, Set.of()));
+				}
+			}
+		}
+
+		if (endReached && findings.isEmpty()) {
+			findings.addAll(potentialGoodFindings.stream().map(p -> createGoodFinding(p.getValue0(), p.getValue1(), currentFile)).collect(Collectors.toSet()));
+		} else {
+			// Add all uses of the typestate variable which are NOT contained in the saturated wNFA as "bad" findings
+			Set<NonNullPair<Stmt, Val>> wnfaConfigs = wnfa.getTransitions()
+															.stream()
+															.map(t -> new NonNullPair<Stmt, Val>(t.getLabel(), t.getStart()))
+															.collect(Collectors.toSet());
+
+			Sets.SetView<NonNullPair<Stmt, Val>> invalidOperations = Sets.difference(wpdsConfigs, wnfaConfigs);
+
+			for (NonNullPair<Stmt, Val> invalidOp : invalidOperations) {
+				//findings.add(createBadFinding(invalidOp.getValue0(), invalidOp.getValue1(), currentFile,  List.of()));
 			}
 		}
 
@@ -224,13 +266,14 @@ public class TypeStateAnalysis {
 	/**
 	 * Creates a finding indicating a typestate error in the program.
 	 *
-	 * @param t
+	 * @param stmt
+	 * @param val
 	 * @param currentFile
 	 * @param expected
 	 * @return
 	 */
-	private Finding createBadFinding(@NonNull Transition<Stmt, Val> t, @NonNull String currentFile, @NonNull Collection<NFATransition<Node>> expected) {
-		String name = "Invalid typestate of variable " + t.getStart() + " at statement: " + t.getLabel() + " . Violates order of " + rule.getName();
+	private Finding createBadFinding(Stmt stmt, Val val, @NonNull String currentFile, @NonNull Collection<NFATransition<Node>> expected) {
+		String name = "Invalid typestate of variable " + val + " at statement: " + stmt + " . Violates order of " + rule.getName();
 		if (!expected.isEmpty()) {
 			name += " Expected one of " + String.join(", ", expected.stream().map(tran -> tran.toString()).collect(Collectors.toList()));
 		} else {
@@ -238,31 +281,32 @@ public class TypeStateAnalysis {
 		}
 
 		// lines are human-readable, i.e., off-by-one
-		int startLine = toIntExact(t.getLabel().getRegion().getStartLine()) - 1;
-		int endLine = toIntExact(t.getLabel().getRegion().getEndLine()) - 1;
-		int startColumn = toIntExact(t.getLabel().getRegion().getStartColumn()) - 1;
-		int endColumn = toIntExact(t.getLabel().getRegion().getEndColumn()) - 1;
+		int startLine = toIntExact(stmt.getRegion().getStartLine()) - 1;
+		int endLine = toIntExact(stmt.getRegion().getEndLine()) - 1;
+		int startColumn = toIntExact(stmt.getRegion().getStartColumn()) - 1;
+		int endColumn = toIntExact(stmt.getRegion().getEndColumn()) - 1;
 		return new Finding(name, rule.getErrorMessage(), currentFile, startLine, endLine, startColumn, endColumn);
 	}
 
 	private Finding createBadFinding(Transition<Stmt, Val> t, String currentFile) {
-		return createBadFinding(t, currentFile, List.of());
+		return createBadFinding(t.getLabel(), t.getStart(), currentFile, List.of());
 	}
 
 	/**
 	 * Create a "non-finding" (i.e. positive confirmation)
 	 * Lines are human-readable, i.e., off-by-one.
 	 *
-	 * @param t
+	 * @param stmt
+	 * @param val
 	 * @param currentFile
 	 * @return
 	 */
-	private Finding createGoodFinding(Transition<Stmt, Val> t, String currentFile) {
-		int startLine = toIntExact(t.getLabel().getRegion().getStartLine()) - 1;
-		int endLine = toIntExact(t.getLabel().getRegion().getEndLine()) - 1;
-		int startColumn = toIntExact(t.getLabel().getRegion().getStartColumn()) - 1;
-		int endColumn = toIntExact(t.getLabel().getRegion().getEndColumn()) - 1;
-		return new Finding("Good: " + t.getStart() + " at " + t.getLabel(), rule.getErrorMessage(), currentFile,
+	private Finding createGoodFinding(Stmt stmt, Val val, String currentFile) {
+		int startLine = toIntExact(stmt.getRegion().getStartLine()) - 1;
+		int endLine = toIntExact(stmt.getRegion().getEndLine()) - 1;
+		int startColumn = toIntExact(stmt.getRegion().getStartColumn()) - 1;
+		int endColumn = toIntExact(stmt.getRegion().getEndColumn()) - 1;
+		return new Finding("Good: " + val + " at " + stmt, rule.getErrorMessage(), currentFile,
 			List.of(new Range(new Position(startLine, endLine), new Position(startColumn, endColumn))), false);
 	}
 
@@ -392,16 +436,17 @@ public class TypeStateAnalysis {
 						}
 
 						if (rhs.isPresent()) {
-							Vertex rhsVar = rhs.get();
-							if (rhsVar.property("name").isPresent() && !"".equals(rhsVar.property("name").value())) {
-								log.debug("  Has name on right hand side {}", rhsVar.property("name").value());
+							Vertex rhsVertex = rhs.get();
+							if (rhsVertex.property("name").isPresent() && !"".equals(rhsVertex.property("name").value())) {
+								log.debug("  Has name on right hand side {}", rhsVertex.property("name").value());
 								// Handle only member calls
-								if (Utils.hasLabel(rhsVar, MemberCallExpression.class)) {
+								if (Utils.hasLabel(rhsVertex, MemberCallExpression.class)) {
 
 									System.out.println("Is member call");
-									MemberCallExpression call = (MemberCallExpression) OverflowDatabase.getInstance().vertexToNode(rhsVar);
+									MemberCallExpression call = (MemberCallExpression) OverflowDatabase.getInstance()
+																									   .vertexToNode(rhsVertex);
 									if (call == null) {
-										log.error("Unexpected: null base of MemberCallExpression " + rhsVar);
+										log.error("Unexpected: null base of MemberCallExpression " + rhsVertex);
 										continue;
 									}
 									de.fraunhofer.aisec.cpg.graph.Node base = call.getBase();
@@ -414,11 +459,24 @@ public class TypeStateAnalysis {
 									Rule<Stmt, Val, Weight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, Weight.one());
 									log.debug("Adding normal rule {}", normalRuleSelf);
 									wpds.addRule(normalRuleSelf);
-
-									Rule<Stmt, Val, Weight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt, Weight.one());
-									log.debug("Adding normal rule {}", normalRuleCopy);
-									wpds.addRule(normalRuleCopy);
+								} else {
+									// Propagate flow from right-hand to left-hand side (variable declaration)
+									Val rhsVal = new Val((String) rhsVertex.property("name")
+																		.value(), currentFunctionName);
+									// Add declVal to set of currently tracked variables
+									valsInScope.add(declVal);
+									Rule<Stmt, Val, Weight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt, Weight.one());
+									log.debug("Adding normal rule {}", normalRulePropagate);
+									wpds.addRule(normalRulePropagate);
 								}
+
+								// Additionally, flow remains at rhs.
+								Val rhsVal = new Val((String) rhsVertex.property("name")
+																	.value(), currentFunctionName);
+								Rule<Stmt, Val, Weight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, Weight.one());
+								log.debug("Adding normal rule {}", normalRuleCopy);
+								wpds.addRule(normalRuleCopy);
+
 							} else {
 								// handle new instantiations of objects
 								log.debug("  Has no name on right hand side: {}", v.property("code").orElse(""));
@@ -941,7 +999,7 @@ public class TypeStateAnalysis {
 		};
 		Val ACCEPTING = new Val("ACCEPT", "ACCEPT");
 		// Create an automaton for the initial configuration from where post* will start.
-		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING), initialWeight != null ? initialWeight : Weight.one());
+		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING), Weight.one());
 		// Add final ("accepting") states to NFA.
 		wnfa.addFinalState(ACCEPTING);
 

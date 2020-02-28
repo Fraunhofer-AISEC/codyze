@@ -1,0 +1,13 @@
+package bsi.tr_02102_1
+
+/**
+ * 
+ */
+rule ID_4_01 {
+	using
+		MessageDigest as md
+	ensure
+		md.algorithm in ["SHA-256", "SHA-512/256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
+	onfail
+		InvalidHashFunction
+}

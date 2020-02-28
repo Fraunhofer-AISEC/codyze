@@ -42,14 +42,6 @@ rule Order {
 		
 }
 
-// Botan provides options for combining hash functions in "Parallel" and "Comp4P". This is not covered here.
-rule _4_01_HashFunctions {
-	using Botan.HashFunction as hf
-	ensure hf.alg in ["SHA-256", "SHA-512-256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
-	onfail _01_HashFunctions
-}
-
-
 
 
 /*

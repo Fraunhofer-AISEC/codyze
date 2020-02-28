@@ -54,9 +54,3 @@ entity Botan.ECIES_Encryptor {
 	}
 }
 
-rule TR02102_3_3_02_CurveParams {
-	using Botan.ECIES_Encryptor as ee
-	ensure ee.ecies_params.ec_group.param in ["brainpoolP256r1, brainpoolP320r1, brainpoolP384r1, brainpoolP512r1"]
-	onfail TR02102_3_3_02_CurveParams
-}
-

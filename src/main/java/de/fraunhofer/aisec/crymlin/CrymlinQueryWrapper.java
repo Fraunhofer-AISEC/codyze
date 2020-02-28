@@ -734,6 +734,14 @@ public class CrymlinQueryWrapper {
 		return Optional.empty();
 	}
 
+	public static Optional<Vertex> refersTo(Vertex vertex) {
+		Iterator<Edge> it = vertex.edges(Direction.IN, "REFERS_TO");
+		if (it.hasNext()) {
+			return Optional.of(it.next().outVertex());
+		}
+		return Optional.empty();
+	}
+
 	public static Optional<Vertex> getInitializerFor(Vertex vertex) {
 		// we first go back to the declaredreference (if any)
 		Iterator<Edge> it = vertex.edges(Direction.IN, "REFERS_TO");

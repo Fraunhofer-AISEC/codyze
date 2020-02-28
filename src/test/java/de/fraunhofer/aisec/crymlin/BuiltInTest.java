@@ -86,6 +86,15 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
+	public void isJava() throws Exception {
+		Set<Finding> findings = performTest("mark_java/is.java", "mark_java/is.mark");
+
+		expected(findings,
+			"line 22: MarkRuleEvaluationFinding: Rule FooBar violated",
+			"line 17: MarkRuleEvaluationFinding: Rule FooBar verified");
+	}
+
+	@Test
 	public void extractResponsibleVertices() {
 
 		ListValue lv = new ListValue();

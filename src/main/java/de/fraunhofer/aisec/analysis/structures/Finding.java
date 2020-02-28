@@ -100,7 +100,7 @@ public class Finding {
 		if (locations.size() == 1) {
 			lines = (locations.get(0).getRange().getStart().getLine() + 1) + "";
 		} else {
-			lines = "[" + locations.stream().map(loc -> "" + (loc.getRange().getStart().getLine() + 1)).sorted().collect(Collectors.joining(", ")) + "]";
+			lines = "[" + locations.stream().map(loc -> "" + (loc.getRange().getStart().getLine() + 1)).sorted().distinct().collect(Collectors.joining(", ")) + "]";
 		}
 		return "line " + lines + ": " + logMsg + addIfExists;
 	}

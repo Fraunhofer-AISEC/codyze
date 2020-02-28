@@ -1,0 +1,20 @@
+package mark_cpp
+
+entity Test {
+
+  var foo;
+
+  op functions {
+    bla.call(foo: byte[]);
+  }
+
+}
+
+
+rule LENGHTRULE {
+  using Test as t
+  ensure
+    _length(t.foo) == 10
+  onfail LENGHTRULE
+}
+

@@ -19,7 +19,6 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -731,6 +730,25 @@ public class CrymlinQueryWrapper {
 		Iterator<Edge> it = vertex.edges(Direction.OUT, "DFG");
 		if (it.hasNext()) {
 			return Optional.of(it.next().inVertex());
+		}
+		return Optional.empty();
+	}
+
+	public static Optional<Vertex> getInitializerFor(Vertex vertex) {
+		// we first go back to the declaredreference (if any)
+		Iterator<Edge> it = vertex.edges(Direction.IN, "REFERS_TO");
+		if (it.hasNext()) {
+			vertex = it.next().outVertex();
+		}
+
+		// then we go forward to all referenced vars
+		Iterator<Edge> refers_to = vertex.edges(Direction.OUT, "REFERS_TO");
+		while (refers_to.hasNext()) {
+			Vertex referenced = refers_to.next().inVertex();
+			Iterator<Edge> initializer = referenced.edges(Direction.OUT, "INITIALIZER");
+			if (initializer.hasNext()) {
+				return Optional.of(initializer.next().inVertex());
+			}
 		}
 		return Optional.empty();
 	}

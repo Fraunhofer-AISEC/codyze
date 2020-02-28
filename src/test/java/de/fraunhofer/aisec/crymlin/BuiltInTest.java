@@ -77,6 +77,15 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
+	public void dimensionLengthJava() throws Exception {
+		Set<Finding> findings = performTest("mark_java/length.java", "mark_java/length.mark");
+
+		expected(findings,
+			"line 13: MarkRuleEvaluationFinding: Rule LENGHTRULE violated",
+			"line 10: MarkRuleEvaluationFinding: Rule LENGHTRULE verified");
+	}
+
+	@Test
 	public void extractResponsibleVertices() {
 
 		ListValue lv = new ListValue();

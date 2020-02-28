@@ -156,18 +156,12 @@ class WpdsTest extends AbstractMarkTest {
 					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(startLineNumbers.containsKey(10)); //
-		assertFalse(startLineNumbers.get(10));
-		assertTrue(startLineNumbers.containsKey(17)); //
-		assertFalse(startLineNumbers.get(17));
-		assertTrue(startLineNumbers.containsKey(21)); // process
-		assertFalse(startLineNumbers.get(21));
-		assertTrue(startLineNumbers.containsKey(22)); // process
-		assertFalse(startLineNumbers.get(22));
+		assertTrue(startLineNumbers.containsKey(22)); // start
+		assertTrue(startLineNumbers.get(22));
 		assertTrue(startLineNumbers.containsKey(24)); // start
 		assertTrue(startLineNumbers.get(24));
-		assertTrue(startLineNumbers.containsKey(25));
-		assertTrue(startLineNumbers.get(25));
+//		assertTrue(startLineNumbers.containsKey(29)); // start
+//		assertTrue(startLineNumbers.get(29));
 	}
 
 	@Test

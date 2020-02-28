@@ -84,7 +84,7 @@ public class Weight extends Semiring {
 				}
 			}
 			if (!validTsTransition) {
-				resultSet.add(new NFATransition(my.getSource(), NFA.ERROR, my.getLabel()));
+//				resultSet.add(new NFATransition(my.getSource(), NFA.ERROR, my.getLabel()));
 			}
 		}
 		if (resultSet.isEmpty()) {
@@ -172,8 +172,9 @@ public class Weight extends Semiring {
 			return false;
 		if (this.fixedElement == null && other.fixedElement != null)
 			return false;
-		if (this.fixedElement != null && !this.fixedElement.equals(other.fixedElement))
-			return false;
+		if (this.fixedElement != null) {
+			return this.fixedElement.equals(other.fixedElement);
+		}
 
 		return this.value.equals(other.value);
 	}

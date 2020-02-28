@@ -17,7 +17,7 @@
     // Aliasing: Operations on p3 are now equal to p2
     //Botan2 p3 = p2;
 
-    p2.init(test);
+    p2.init();
     p2.start();
 
     p2.process();

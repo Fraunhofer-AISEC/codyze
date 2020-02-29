@@ -6,19 +6,17 @@ import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * This builtin checks if the markvar hava a cpg-node
+ * This builtin checks if the markvar has a cpg-node
  */
 public class HasValue implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(HasValue.class);

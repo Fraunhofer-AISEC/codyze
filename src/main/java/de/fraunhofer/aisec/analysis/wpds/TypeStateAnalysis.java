@@ -37,6 +37,7 @@ import org.eclipse.lsp4j.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,6 +67,7 @@ public class TypeStateAnalysis {
 	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
 	private MRule rule;
 	private final MarkContextHolder markContextHolder;
+	private CPGInstanceContext instanceContext;
 
 	public TypeStateAnalysis(MarkContextHolder markContextHolder) {
 		this.markContextHolder = markContextHolder;
@@ -76,12 +78,8 @@ public class TypeStateAnalysis {
 			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for {} and {}", ctx, crymlinTraversal);
 
-		CPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
-
+		instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 		this.rule = rule;
-
-		// Remember map from MARK ops to Vertices
-		Map<MOp, Set<Vertex>> verticeMap = getVerticesOfRule(rule);
 
 		// Remember the order expression we are analyzing
 		de.fraunhofer.aisec.mark.markDsl.Expression expr = this.rule.getStatement().getEnsure().getExp();
@@ -96,60 +94,44 @@ public class TypeStateAnalysis {
 			return ErrorValue.newErrorValue(String.format("OrderExpression does not refer to a Mark instance: %s. Will not run TS analysis", orderExpr.toString()));
 		}
 
-		// Creating a WPDS from CPG, starting at seeds. Note that this will neglect alias which have been defined before the seed.
-		HashSet<Node> seedExpression = null; // TODO Seeds must be vertices with calls which MAY be followed by a typestate violation
-
 		/* Create typestate NFA, representing the regular expression of a MARK typestate rule. */
 		NFA tsNFA = NFA.of(orderExpr.getExp());
 		log.debug("Initial typestate NFA:\n{}", tsNFA);
 
 		// Create a weighted pushdown system
-		CpgWpds wpds = createWpds(seedExpression, verticeMap, crymlinTraversal, tsNFA);
+		CpgWpds wpds = createWpds(crymlinTraversal, tsNFA);
 
 		/*
-		 * Create a weighted automaton (= a weighted NFA) that describes the initial configurations. We use the whole current function as an initial configuration. The
-		 * "current function" is the function containing the declaration of the program variable (e.g., "x = Botan2()") that corresponds to the current Mark instance
+		 * Create a weighted automaton (= a weighted NFA) that describes the initial configurations. The initial configuration is the statement containing the declaration
+		 * of the program variable (e.g., "x = Botan2()") that corresponds to the current Mark instance.
+		 *
 		 * (e.g., "b").
 		 */
-		Vertex v = instanceContext.getVertex(markInstance);
-		if (v == null) {
-			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
-			return ErrorValue.newErrorValue(String.format("No vertex found for Mark instance: %s. Will not run TS analysis", markInstance));
-		}
-
-		// Find the function in which the vertex is located, so we can use the first statement in function as a start
-		Optional<Vertex> containingFunctionOpt = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal);
-		if (containingFunctionOpt.isEmpty()) {
-			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule);
-			return ErrorValue.newErrorValue(String.format("Vertex %s not located within a function. Cannot start TS analysis for rule %s", v.property("code").orElse(""),
-				rule.toString()));
-		}
-
-		// Turn function vertex into a FunctionDeclaration so we can work with it
-		FunctionDeclaration funcDecl = (FunctionDeclaration) OverflowDatabase.getInstance()
-				.vertexToNode(containingFunctionOpt.get());
-		if (funcDecl == null) {
-			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
-				containingFunctionOpt.get().property("name").orElse(""), rule);
-			return ErrorValue.newErrorValue(String.format("Function %s could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule %s",
-				containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
+		File currentFile = getFileFromMarkInstance(markInstance, crymlinTraversal);
+		if (currentFile == null) {
+			currentFile = new File("FIXME");
 		}
 
 		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(wpds);
 
 		// For debugging only: Print WPDS rules
-		for (Rule r : wpds.getAllRules()
-				.stream()
-				.sorted(Comparator.comparing(r -> r.getL1().getRegion().getStartLine()))
-				.sorted(Comparator.comparing(r -> r.getL1().getRegion().getStartColumn()))
-				.collect(Collectors.toList())) {
-			log.debug("rule: {}", r);
+		if (log.isDebugEnabled()) {
+			for (Rule r : wpds.getAllRules()
+							  .stream()
+							  .sorted(Comparator.comparing(r -> r.getL1()
+																 .getRegion()
+																 .getStartLine()))
+							  .sorted(Comparator.comparing(r -> r.getL1()
+																 .getRegion()
+																 .getStartColumn()))
+							  .collect(Collectors.toList())) {
+				log.debug("rule: {}", r);
+			}
+
+			// For debugging only: Print the non-saturated NFA
+			log.debug("Non saturated NFA {}", wnfa);
+			log.debug(wnfa.toDotString());
 		}
-
-		// For debugging only: Print the non-saturated NFA
-		log.debug("Non saturated NFA {}", wnfa);
-		log.debug(wnfa.toDotString());
-
 		// Saturate the NFA from the WPDS, using the post-* algorithm.
 		wpds.poststar(wnfa);
 
@@ -158,7 +140,7 @@ public class TypeStateAnalysis {
 		log.debug("Saturated WNFA {}", wnfa.toDotString());
 
 		// Evaluate saturated WNFA for any MARK violations
-		Set<Finding> findings = getFindingsFromWpds(wpds, wnfa, tsNFA, rule, funcDecl.getFile());
+		Set<Finding> findings = getFindingsFromWpds(wpds, wnfa, currentFile.getName());
 
 		if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 			ctx.getFindings().addAll(findings);
@@ -169,6 +151,37 @@ public class TypeStateAnalysis {
 			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
 		}
 		return of;
+	}
+
+	@Nullable
+	private File getFileFromMarkInstance(String markInstance, CrymlinTraversalSource crymlinTraversal) {
+		Vertex v = instanceContext.getVertex(markInstance);
+		if (v == null) {
+			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
+			return null;
+//			return ErrorValue.newErrorValue(String.format("No vertex found for Mark instance: %s. Will not run TS analysis", markInstance));
+		}
+
+		// Find the function in which the vertex is located, so we can use the first statement in function as a start
+		Optional<Vertex> containingFunctionOpt = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal);
+		if (containingFunctionOpt.isEmpty()) {
+			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule);
+			return null;
+//			return ErrorValue.newErrorValue(String.format("Vertex %s not located within a function. Cannot start TS analysis for rule %s", v.property("code").orElse(""),
+//														  rule.toString()));
+		}
+
+		// Turn function vertex into a FunctionDeclaration so we can work with it
+		FunctionDeclaration funcDecl = (FunctionDeclaration) OverflowDatabase.getInstance()
+																			 .vertexToNode(containingFunctionOpt.get());
+		if (funcDecl == null) {
+			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
+					  containingFunctionOpt.get().property("name").orElse(""), rule);
+			return null;
+//			return ErrorValue.newErrorValue(String.format("Function %s could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule %s",
+//														  containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
+		}
+		return new File(funcDecl.getFile());
 	}
 
 	@Nullable
@@ -197,14 +210,12 @@ public class TypeStateAnalysis {
 	 *
 	 * @param wpds
 	 * @param wnfa Weighted NFA, representing a set of configurations of the WPDS
-	 * @param tsNFA The typestate NFA
-	 * @param rule The MARK rule to check
 	 * @param currentFile
 	 * @return
 	 */
 	@NonNull
-	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa, NFA tsNFA, MRule rule,
-			String currentFile) {
+	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa,
+											 String currentFile) {
 		// Final findings
 		Set<Finding> findings = new HashSet<>();
 		// We collect good findings first, but add them only if TS machine reaches END state
@@ -302,14 +313,12 @@ public class TypeStateAnalysis {
 	 * <p>
 	 * When populating the WPDS using post-* algorithm, the result will be an automaton capturing the reachable type states.
 	 *
-	 * @param seedExpressions
-	 * @param verticeMap
 	 * @param crymlinTraversal
 	 * @param tsNfa
 	 * @return
 	 * @throws IllegalTransitionException
 	 */
-	private CpgWpds createWpds(@Nullable HashSet<Node> seedExpressions, Map<MOp, Set<Vertex>> verticeMap, CrymlinTraversalSource crymlinTraversal, NFA tsNfa) {
+	private CpgWpds createWpds(CrymlinTraversalSource crymlinTraversal, NFA tsNfa) {
 		log.info("-----  Creating WPDS ----------");
 		HashSet<Vertex> alreadySeen = new HashSet<>();
 		/**
@@ -474,7 +483,7 @@ public class TypeStateAnalysis {
 								for (Val valInScope : valsInScope) {
 									Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt,
 										Weight.one());
-									if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
+									if (!skipTheseValsAtStmt.containsKey(normalRule.getL2())) {
 										Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
 										if (!normalRule.getS1().equals(forbiddenVal)) {
 											log.debug("Adding normal rule {}", normalRule);
@@ -916,14 +925,13 @@ public class TypeStateAnalysis {
 	 * @return
 	 */
 	private WeightedAutomaton createInitialConfiguration(WPDS wpds) {
-		// Follow funcDecl EOG nodes until we find a call of an OP
+		// Get START state from WPDS
 		Val initialState = null;
 		Stmt stmt = null;
 		Set<NormalRule<Stmt, Val, Weight>> normalRules = wpds.getNormalRules();
 		for (NormalRule<Stmt, Val, Weight> nr : normalRules) {
 			if (nr.getWeight().value() instanceof Set) {
 				Set<NFATransition> weight = (Set<NFATransition>) nr.getWeight().value();
-				Val target = nr.getS2();
 
 				for (NFATransition<Node> t : weight) {
 					if (t.getSource().getName().equals("START.START")) {
@@ -936,8 +944,9 @@ public class TypeStateAnalysis {
 			}
 		}
 
-		if (initialState == null) {
-			log.error("Did not find initial configuration for typestate analysis");
+		if (initialState == null || stmt == null) {
+			log.error("Did not find initial configuration for typestate analysis. Using artificial configuration from WPDS rules");
+			//			wpds.getNormalRules().stream().findFirst(rul -> rul.getS1().equals());
 		}
 
 		// Create statement for start configuration and create start CONFIG

@@ -1,0 +1,295 @@
+package bsi.tr_02102_1
+
+/**
+ * 
+ * 
+ * BouncyCastle/JCA uses underscore in the security standard names.
+ */
+rule ID_2_01 {
+    using
+        Cipher as c
+    ensure
+    	/* BSI TR-02102-1, ID 2.01  */
+        _split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"] /* don't allow plain `AES`, because it is unclear which one it maps to */
+//        || _split(c.transform, "/", 0) in ["AES", "AES_128", "AES_192", "AES_256"]
+    onfail
+        Invalid_TR21021_Cipher
+}
+
+/**
+ * 
+ */
+rule ID_2_1_01 {
+    using
+        Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    ensure
+    	/* BSI TR-02102-1, ID 2.1.01 */
+        _split(c.transform, "/", 1) in ["CCM", "GCM", "CBC", "CTR"]
+    onfail
+        InvalidCipherModeforAESBlockCipher
+}
+
+/**
+ * TODO non-repeated IV, independent vector for encryption and authentication
+ */
+rule ID_2_1_2_1_01 {
+    using
+        Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["CCM"]
+    ensure
+    	false // TODO - only bouncycastle; how implemented?
+    onfail
+        InvalidCCMIV
+}
+
+/**
+ * TODO tag length
+ */
+rule ID_2_1_2_1_02 {
+    using
+        Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["CCM"]
+    ensure
+    	false // TODO - only bouncycastle; how implemented?
+    onfail
+        InsufficientCCMTagLength
+}
+
+
+/**
+ * TODO non-repeated IV, independent vector for encryption and authentication
+ */
+rule ID_2_1_2_2_01 {
+    using
+        Cipher as c,
+        GCMParameterSpec as gcm
+    when
+    	/* Allowed block cipher in CCM cipher mode */
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["GCM"]
+    ensure
+    	false // TODO IV
+    onfail
+        InvalidGCMIV
+}
+
+/**
+ * 
+ */
+rule ID_2_1_2_2_02 {
+    using
+        Cipher as c,
+        GCMParameterSpec as gcm
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["GCM"]
+    ensure
+    	_is_instance(c.paramspec, "javax.crypto.spec.GCMParameterSpec")
+    	&& _is(c.paramspec, gcm) /* Now, c.paramspec should become become another MARK entity */
+    	&& (
+    		_length(gcm.src) == 12 /* in bytes */
+    		|| gcm.len == 12
+    		)
+    onfail
+        InvalidGCMAuthtenticationNonce
+}
+
+/**
+ * 
+ */
+rule ID_2_1_2_2_03 {
+    using
+        Cipher as c,
+        GCMParameterSpec as gcm
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["GCM"]
+    ensure
+    	_is_instance(c.paramspec, "javax.crypto.spec.GCMParameterSpec")
+    	&& _becomes(c.paramspec, gcm) /* Now, c.paramspec should become become another MARK entity */
+    	&& gcm.tLen >= 96 /* apparently, there are fixed sizes 96, 104, 112, 120 and 128 */
+    onfail
+        InsufficientGCMTagLength
+}
+
+
+/**
+ * 
+ */
+rule ID_2_1_2_3_01 {
+    using
+        Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["CBC"]
+    ensure
+    	false // TODO unpredictable IV 
+    onfail
+        InvalidCBCIV
+}
+
+/**
+ * 
+ */
+rule ID_2_1_3_01 {
+    using
+        Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["CBC"]
+    ensure
+    	_split(c.transform, "/", 2) in ["Foobar"] // TODO matching paddings between Java and TR 
+    onfail
+        InvalidCBCPadding
+}
+
+
+/**
+ * 
+ */
+rule ID_2_1_2_4_01 {
+    using
+        Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["CTR"]
+    ensure
+    	false // TODO non-repeating counter for same key  
+    onfail
+        InvalidCBCPadding
+}
+
+
+
+/**
+ * TODO how is the integrity protected with stream ciphers?
+ */
+rule ID_2_2_01 {
+    using
+        Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in [""] // TODO possible modes to get a stream cipher?
+    ensure
+    	false // TODO protect integrity!
+    onfail
+        InvalidCBCPadding
+}
+
+/**
+ * TODO use MAC and verify MAC
+ */
+rule ID_2_2_02 {
+    using
+        Cipher as c
+    when
+    	_split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"]
+    	&& _split(c.transform, "/", 1) in ["CTR"]
+    ensure
+    	false // TODO need a MAC here!
+    onfail
+        InvalidCBCPadding
+}
+
+
+/**
+ * TODO ECIES supplied by bouncycastle 
+ */
+rule ID_3_3_01 {
+	using
+		Cipher as c
+	when
+		false
+	ensure
+		false
+	onfail
+		InvalidECIESOperationOrder
+}
+
+/**
+ * TODO ECIES supplied by bouncycastle 
+ */
+rule ID_3_3_02 {
+	using
+		Cipher as c
+	when
+		false
+	ensure
+		false
+	onfail
+		InvalidECIESCurveParameter
+}
+
+/**
+ * TODO ECIES supplied by bouncycastle 
+ */
+rule ID_3_3_03 {
+	using
+		Cipher as c
+	when
+		false
+	ensure
+		false
+	onfail
+		InvalidECIESSymmetricKeyDerivation
+}
+
+/**
+ * TODO ECIES supplied by bouncycastle 
+ */
+rule ID_3_3_04 {
+	using
+		Cipher as c
+	when
+		false
+	ensure
+		false
+	onfail
+		InsufficientECIESBasePointOrder
+}
+
+/**
+ * TODO DLIES
+ */
+
+
+
+/**
+ * TODO Encryption with RSA -- padding
+ */
+rule ID_3_5_01 {
+	using
+		Cipher as c
+	when
+		_split(c.transform, "/", 0) == "RSA"
+		&& c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
+	ensure
+		false // TODO map padding between java and tr
+	onfail
+		InvalidRSAPadding
+}
+
+/**
+ * TODO Encryption with RSA -- keylength
+ */
+rule ID_3_5_02 {
+	using
+		Cipher as c
+	when
+		_split(c.transform, "/", 0) == "RSA"
+		&& c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
+	ensure
+		false // TODO map padding between java and tr
+	onfail
+		InsufficientRSAKeylength // FIXME valid until 2022
+}
+
+
+
+

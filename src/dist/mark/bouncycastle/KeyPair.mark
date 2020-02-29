@@ -1,0 +1,14 @@
+package java.jca
+
+entity KeyPair {
+    
+    var publicKey;
+    var privateKey;
+    
+    op instantiate {
+        java.security.KeyPair(
+            publicKey : java.security.PublicKey,
+            privateKey : java.security.PrivateKey
+        );
+    }
+}

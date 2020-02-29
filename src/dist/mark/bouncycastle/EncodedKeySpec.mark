@@ -1,0 +1,18 @@
+package java.jca
+
+entity EncodedKeySpec {
+	
+	var encodedKey;
+	var algorithm;
+	
+	
+	op instantiate {
+		java.security.spec.EncodedKeySpec(
+			encodedKey : byte[]
+		);
+		java.security.spec.EncodedKeySpec(
+			encodedKey : byte[],
+			algorithm : java.lang.String
+		);
+	}
+}

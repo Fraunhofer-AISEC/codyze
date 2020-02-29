@@ -38,7 +38,7 @@ void do_crypt()
     b.start_msg(nonce); // not recognized yet (* missing)
     b.start_msg(nonce, iv, b); // not recognized yet (* missing)
 
-    b.set_key(nonce, iv); //ERRORBEGONE-ALL
+    b.set_key(nonce, iv); //CODYZE-IGNORE-ALL
 
 // the following are not forbidden. These match a forbidden rule, but also a non-forbidden rule
 

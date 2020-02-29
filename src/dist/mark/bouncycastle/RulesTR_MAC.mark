@@ -1,0 +1,59 @@
+package bsi.tr_02102_1
+
+/**
+ * 
+ */
+rule ID_5_3_01 {
+	using
+		Mac as m
+	ensure
+		// TODO CMAC
+		m.algorithm in ["HmacSHA256", "HmacSHA512/256", "HmacSHA384", "HmacSHA512", "HmacSHA3-256", "HmacSHA3-384", "HmacSHA3-512"]
+		// TODO GMAC, 
+	onfail
+		InvalidMACAlgorithm
+}
+
+/**
+ * 
+ */
+rule ID_5_3_02 {
+	using
+		Mac as m
+	ensure
+		false // TODO check key length used for mac
+	onfail
+		InsufficientMACKeyLength
+}
+
+/**
+ * 
+ */
+rule ID_5_3_03 {
+	using
+		Mac as m
+	ensure
+		false // TODO check requested MAC tag length
+	onfail
+		InsufficientMACTagLength
+}
+
+
+/**
+ * 
+ */
+rule ID_5_3_03_HMAC {
+	using
+		Mac as m,
+		HMACParameterSpec as spec
+	when
+		m.algorithm in ["HmacSHA256", "HmacSHA512/256", "HmacSHA384", "HmacSHA512", "HmacSHA3-256", "HmacSHA3-384", "HmacSHA3-512"]
+	ensure
+		_is_instance(m.params, "HMACParameterSpec")
+		&& _is(m.params, spec)
+		&& spec.outputLength >= 96
+	onfail
+		InsufficientMACTagLength
+}
+
+

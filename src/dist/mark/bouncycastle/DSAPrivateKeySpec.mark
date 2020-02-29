@@ -1,0 +1,18 @@
+package java.jca
+
+entity DSAPrivateKeySpec {
+	
+	var x;
+	var p;
+	var q;
+	var g;
+	
+	op instantiate {
+	    java.security.spec.DSAPrivateKeySpec(
+	    	x : java.math.BigInteger,
+	    	p : java.math.BigInteger,
+	    	q : java.math.BigInteger,
+	    	g : java.math.BigInteger
+	    );
+	}
+}

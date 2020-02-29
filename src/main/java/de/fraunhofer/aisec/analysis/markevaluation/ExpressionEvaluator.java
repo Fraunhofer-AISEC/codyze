@@ -744,6 +744,16 @@ public class ExpressionEvaluator {
 			result = evaluateSingleOperand(sb.toString());
 		}
 
+		if (split.length == 1) { // also return the markvar itself, might be needed by a builtin
+			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
+				Vertex vertex = markContextHolder.getContext(entry.getKey()).getInstanceContext().getVertex(operand.getOperand());
+				CPGVertexWithValue vwv = new CPGVertexWithValue(vertex, ConstantValue.newUninitialized());
+				ConstantValue constant = ConstantValue.of(vwv.getValue());
+				constant.addResponsibleVertex(vertex);
+				entry.setValue(constant);
+			}
+		}
+
 		return result;
 	}
 

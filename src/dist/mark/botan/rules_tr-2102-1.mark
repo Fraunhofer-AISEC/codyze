@@ -1,0 +1,160 @@
+package botan
+
+rule _2_1_01_Modes {
+	using Botan.Cipher_Mode as cm
+	ensure
+		_split(cm.algorithm, "/", 1) in ["CCM", "GCM", "CBC", "CTR"]
+	onfail WrongMode
+}
+
+rule BlockCiphers {
+	using Botan.Cipher_Mode as cm
+	ensure
+		(_split(cm.algorithm, "/", 0) == "AES")
+		|| (_split(_split(cm.algorithm, "/", 0), "-", 0) == "AES")
+	onfail WrongBlockCipher
+}
+
+rule UseOfPipe {
+	using Botan.Cipher_Mode as cm,
+		Botan.Pipe as p
+	ensure
+		_receives_value_from(p.filter, cm) ||
+		cm in p.filterList
+	onfail WrongUseOfBotan_CipherMode
+}
+
+
+rule KeyLength {
+	using Botan.Cipher_Mode as cm,
+		Botan.SymmetricKey as sk
+	ensure
+		cm.symkey.length in [16, 24, 32]  // 128, 192, 256 bit
+	onfail BadKeyLength
+}
+
+rule CBCRandomIV  {
+	using Botan.Cipher_Mode as cm,
+		Botan.RNG as rng
+	when 
+		_split(cm.algorithm, "/", 1) == "CBC" 
+		&& cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
+	ensure
+		_receives_value_from(cm.iv, rng.random_data)
+	onfail NoRandomIV	
+}
+
+rule NonRepeatedIV {
+/* Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
+	wird erreicht in dem wir versichern, dass der Wert des IV direkt aus rng.random_data kommt, da das bedeutet, dass damit neue Zufallszahlen generiert werden
+	TODO: ist das wirklich aussreichend?
+*/
+	using Botan.Cipher_Mode as cm,
+		Botan.RNG as rng
+	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
+	ensure
+		_receives_value_directly_from(cm.iv, rng.random_data)
+	onfail RepeatedIV 
+}
+
+rule _2_1_2_1_02_CCM_TagSize {
+	using Botan.Cipher_Mode as cm
+	when _split(cm.algorithm, "/", 1) == "CCM"
+	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 8 // 8 byte = 64 bit
+	onfail  _2_1_2_2_03_GCM_TagSize
+}
+
+rule _2_1_2_2_03_GCM_TagSize {
+	using Botan.Cipher_Mode as cm
+	when _split(cm.algorithm, "/", 1) == "GCM"
+	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 12 // 12 byte = 96 bit
+	onfail  _2_1_2_2_03_GCM_TagSize
+}
+
+rule IVLengthGCM {
+// TODO: Die für den Authentisierungsmechanismus verwendeten Noncen sollen genau 96 Bit lang sein.
+	using Botan.Cipher_Mode as cm
+	when _split(cm.algorithm, "/", 1) == "GCM"
+	ensure
+		1 == 1
+	onfail WrongIVLengthGCM
+}
+
+
+
+rule TR02102_3_3_02_CurveParams {
+	using Botan.ECIES_Encryptor as ee
+	ensure ee.ecies_params.ec_group.param in ["brainpoolP256r1, brainpoolP320r1, brainpoolP384r1, brainpoolP512r1"]
+	onfail TR02102_3_3_02_CurveParams
+}
+
+
+// Botan provides options for combining hash functions in "Parallel" and "Comp4P". This is not covered here.
+rule _4_01_HashFunctions {
+	using Botan.HashFunction as hf
+	ensure hf.alg in ["SHA-256", "SHA-512-256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
+	onfail _01_HashFunctions
+}
+
+
+rule _5_3_01_MAC {
+	using Botan.MAC as mac
+	ensure _split(mac.algorithm, "\(", 0) in ["CMAC", "OMAC", "HMAC", "GMAC"]  // according to botan handbook: CMAC == OMAC
+	onfail _5_3_01_MAC
+}
+
+rule _5_3_02_MAC_KEYLEN {
+	using Botan.MAC as mac
+	ensure mac.key.length >= 16 // 16 Byte = 128 bit
+	onfail _5_3_02_MAC_KEYLEN
+}
+
+rule _5_3_03_MAC_NONCELEN {
+	using Botan.MAC as mac
+	ensure mac.nonce_len >= 12 // 12 Byte = 96 bit
+	onfail _5_3_03_MAC_NONCELEN
+}
+
+rule _5_5_4_1_02_RSA_SIG_Format {
+	using
+		Botan.PK_Verifier as v
+	when
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+	ensure
+		_split(v.emsa, "(", 0) in ["EMSA4", "ISO_9796_DS2", "ISO_9796_DS3"]
+	onfail 
+		_5_5_4_1_02_RSA_SIG_Format
+}
+
+rule SIG_ALGS {
+	using 
+		Botan.PK_Verifier as v
+	ensure
+		_instance_of(v) in ["Botan::RSA_PublicKey", "Botan::ECDSA_PublicKey", "Botan::ECKCDSA_PublicKey", "Botan::ECGDSA_PublicKey"]
+	onfail
+		SIG_ALGS
+}
+
+rule _5_5_4_1_02_RSA_SIG_KeyLen {
+	using
+		Botan.PK_Verifier as v
+	when
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+	ensure
+		v.pub_key.rsa_bits >= 3000
+	onfail 
+		_5_5_4_1_02_RSA_SIG_KeyLen
+}
+
+
+
+rule _5_5_4_1_02_RSA_SIG_KeyLen_2022 {
+	using
+		Botan.PK_Verifier as v
+	when
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+	ensure
+		v.pub_key.rsa_bits >= 2000
+	onfail 
+		_5_5_4_1_02_RSA_SIG_KeyLen_2022
+}

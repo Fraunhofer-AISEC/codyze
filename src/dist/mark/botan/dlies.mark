@@ -1,0 +1,37 @@
+package botan
+
+// Note: I guess we do not need to model the corresponding decryptor class, as the critical operation is the encryption
+entity Botan.DLIES_Encryptor {
+	var pubkey; //TODO which entity? AND: is it really a public key or a private key?
+	var rng: Botan.RNG; //TODO: the RNGs in constructor and encrypt functions can be different instances (which seems to be safe, as long as both are safe RNGs)
+	var kdf;
+	var cipher_mode;
+	var cipher_key_len;
+	var mac;
+	var mac_key_len;
+	var cipher_text;
+	var plain_text;
+	var plain_text_length;
+	
+	op create {
+		/* From Botan Handbook: for DLIES_Encryptor(const DH_PrivateKey &own_priv_key, RandomNumberGenerator &rng, KDF*kdf, MessageAuthenticationCode *mac, size_t mac_key_len = 20)
+		 * "The encryption is performed by XORing the message with a stream of bytes provided by the KDF. "
+		 * TODO: is this secure? Shall we forbid?
+		 * */
+		Botan::	DLIES_Encryptor(pubkey, rng, kdf, mac);
+		Botan::	DLIES_Encryptor(pubkey, rng, kdf, mac, mac_key_len);
+		
+		
+		Botan::	DLIES_Encryptor(pubkey, rng, kdf, cipher_mode, cipher_key_len, mac);
+		Botan::	DLIES_Encryptor(pubkey, rng, kdf, cipher_mode, cipher_key_len, mac, mac_key_len);
+	}
+	
+	// TODO: do we need set_initialization_vector and set_other_key as ops? Do we allow them? Are they safe? - intuition: no
+	
+	op encrypt {
+		cipher_text = Botan::DLIES_Encryptor::encrypt(plain_text, rng);
+		cipher_text = Botan::DLIES_Encryptor::encrypt(plain_text, plain_text_length, rng);
+	}
+}
+
+//TODO: I guess we don't need a rule for the order here, as it is obvious, handled by C++/botan and there is no TR rule

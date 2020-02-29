@@ -282,9 +282,6 @@ public class OverflowDatabase<N> implements Database<N> {
 		// Store node
 		Vertex v = createVertex(node);
 		// printVertex(v);
-
-		// Store edges of this node and mark it as saved
-		createEdges(v, node);
 		saved.add(node);
 
 		if (!Node.class.isAssignableFrom(node.getClass())) {
@@ -409,7 +406,7 @@ public class OverflowDatabase<N> implements Database<N> {
 						}
 						catch (IllegalStateException e) {
 							String c = (String) v.property("code").value();
-							log.error("No type property: {}", c);
+							log.error("Unable to instantiate collection property {} for node {}, no information about actual element type", f.toString(), c);
 							continue;
 						}
 						assert Collection.class.isAssignableFrom(collectionType);
@@ -501,6 +498,8 @@ public class OverflowDatabase<N> implements Database<N> {
 		Vertex result = graph.addVertex(props.toArray());
 		nodeToVertex.put(n, result);
 		vertexToNode.put(result, n);
+
+		createEdges(result, n);
 		return result;
 	}
 
@@ -624,7 +623,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		return null;
 	}
 
-	public void createEdges(Vertex v, N n) {
+	private void createEdges(Vertex v, N n) {
 		for (Field f : getFieldsIncludingSuperclasses(n.getClass())) {
 			if (mapsToRelationship(f)) {
 

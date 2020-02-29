@@ -3,6 +3,12 @@ package de.fraunhofer.aisec.analysis.structures;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+/**
+ * Same as Pair, but with @NonNull annotations for value 0 and value 1.
+ *
+ * @param <A>
+ * @param <B>
+ */
 public class NonNullPair<A, B> extends Pair {
 	@NonNull
 	A a;

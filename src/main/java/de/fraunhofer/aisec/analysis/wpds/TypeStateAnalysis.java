@@ -1,7 +1,6 @@
 
 package de.fraunhofer.aisec.analysis.wpds;
 
-import com.google.common.collect.Sets;
 import de.breakpointsec.pushdown.IllegalTransitionException;
 import de.breakpointsec.pushdown.WPDS;
 import de.breakpointsec.pushdown.fsm.Transition;
@@ -246,18 +245,6 @@ public class TypeStateAnalysis {
 
 		if (endReached && findings.isEmpty()) {
 			findings.addAll(potentialGoodFindings.stream().map(p -> createGoodFinding(p.getValue0(), p.getValue1(), currentFile)).collect(Collectors.toSet()));
-		} else {
-			// Add all uses of the typestate variable which are NOT contained in the saturated wNFA as "bad" findings
-			Set<NonNullPair<Stmt, Val>> wnfaConfigs = wnfa.getTransitions()
-															.stream()
-															.map(t -> new NonNullPair<Stmt, Val>(t.getLabel(), t.getStart()))
-															.collect(Collectors.toSet());
-
-			Sets.SetView<NonNullPair<Stmt, Val>> invalidOperations = Sets.difference(wpdsConfigs, wnfaConfigs);
-
-			for (NonNullPair<Stmt, Val> invalidOp : invalidOperations) {
-				//findings.add(createBadFinding(invalidOp.getValue0(), invalidOp.getValue1(), currentFile,  List.of()));
-			}
 		}
 
 		return findings;
@@ -444,7 +431,7 @@ public class TypeStateAnalysis {
 
 									System.out.println("Is member call");
 									MemberCallExpression call = (MemberCallExpression) OverflowDatabase.getInstance()
-																									   .vertexToNode(rhsVertex);
+											.vertexToNode(rhsVertex);
 									if (call == null) {
 										log.error("Unexpected: null base of MemberCallExpression " + rhsVertex);
 										continue;
@@ -462,7 +449,8 @@ public class TypeStateAnalysis {
 								} else {
 									// Propagate flow from right-hand to left-hand side (variable declaration)
 									Val rhsVal = new Val((String) rhsVertex.property("name")
-																		.value(), currentFunctionName);
+											.value(),
+										currentFunctionName);
 									// Add declVal to set of currently tracked variables
 									valsInScope.add(declVal);
 									Rule<Stmt, Val, Weight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt, Weight.one());
@@ -472,7 +460,8 @@ public class TypeStateAnalysis {
 
 								// Additionally, flow remains at rhs.
 								Val rhsVal = new Val((String) rhsVertex.property("name")
-																	.value(), currentFunctionName);
+										.value(),
+									currentFunctionName);
 								Rule<Stmt, Val, Weight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, Weight.one());
 								log.debug("Adding normal rule {}", normalRuleCopy);
 								wpds.addRule(normalRuleCopy);
@@ -539,7 +528,7 @@ public class TypeStateAnalysis {
 							}
 
 						}
-						// Create normal rule. Flow remains where it is.  // TODO should be outside of dummy, but should avoid cyclic rules
+						// Create normal rule. Flow remains where it is.
 						for (Val valInScope : valsInScope) {
 							Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, Weight.one());
 							boolean skipIt = false;

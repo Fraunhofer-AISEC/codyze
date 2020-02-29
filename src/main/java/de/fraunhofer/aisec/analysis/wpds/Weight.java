@@ -84,7 +84,7 @@ public class Weight extends Semiring {
 				}
 			}
 			if (!validTsTransition) {
-//				resultSet.add(new NFATransition(my.getSource(), NFA.ERROR, my.getLabel()));
+				//				resultSet.add(new NFATransition(my.getSource(), NFA.ERROR, my.getLabel()));
 			}
 		}
 		if (resultSet.isEmpty()) {

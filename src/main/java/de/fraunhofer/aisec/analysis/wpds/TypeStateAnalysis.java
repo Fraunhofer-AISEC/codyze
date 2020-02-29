@@ -136,7 +136,7 @@ public class TypeStateAnalysis {
 				containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
 		}
 
-		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration("EPSILON", funcDecl, tsNFA, wpds);
+		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(wpds);
 
 		// For debugging only: Print WPDS rules
 		for (Rule r : wpds.getAllRules()
@@ -924,25 +924,13 @@ public class TypeStateAnalysis {
 	 * Typically, the initial configuration will refer to a single "trigger" statement from where typestate analysis should start. This statement i
 	 *
 	 *
-	 * @param variable
 	 * @return
 	 */
-	private WeightedAutomaton createInitialConfiguration(String variable, FunctionDeclaration funcDecl, NFA tsNfa, WPDS wpds) {
-		Map<MOp, Set<Vertex>> verticeMap = getVerticesOfRule(rule);
+	private WeightedAutomaton createInitialConfiguration(WPDS wpds) {
 		// Follow funcDecl EOG nodes until we find a call of an OP
-		for (Map.Entry<MOp, Set<Vertex>> entry : verticeMap.entrySet()) {
-			System.out.println("   OP: " + entry.getKey().getName());
-			for (Vertex v : entry.getValue()) {
-				System.out.println("       " + v.property("code").value());
-				System.out.println("        BASE: " + v.property("base").orElse("NONE"));
-			}
-		}
-
 		Val initialState = null;
 		Stmt stmt = null;
-		Weight initialWeight = null;
 		Set<NormalRule<Stmt, Val, Weight>> normalRules = wpds.getNormalRules();
-		System.out.println(normalRules.size() + " normal rules!!");
 		for (NormalRule<Stmt, Val, Weight> nr : normalRules) {
 			if (nr.getWeight().value() instanceof Set) {
 				Set<NFATransition> weight = (Set<NFATransition>) nr.getWeight().value();
@@ -950,21 +938,17 @@ public class TypeStateAnalysis {
 
 				for (NFATransition<Node> t : weight) {
 					if (t.getSource().getName().equals("START.START")) {
-						System.out.println("This is it: " + nr.getS1() + " at " + nr.getL1());
+						log.debug("Found start configuration for typestate analysis: " + nr.getS1() + " at " + nr.getL1());
 
 						initialState = nr.getS1();
 						stmt = nr.getL1();
-						initialWeight = new Weight(Set.of(t));
 					}
 				}
 			}
 		}
 
 		if (initialState == null) {
-			// TODO For debug only. remove later.
-			System.out.println("Null initialstate");
-			initialState = new Val("v", "foo");
-			stmt = new Stmt("Vector v = new Vector();", new Region(250, 5, 250, 29));
+			log.error("Did not find initial configuration for typestate analysis");
 		}
 
 		// Create statement for start configuration and create start CONFIG

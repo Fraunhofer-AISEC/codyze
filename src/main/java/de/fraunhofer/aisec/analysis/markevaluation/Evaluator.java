@@ -337,6 +337,9 @@ public class Evaluator {
 					} else {
 						// Program variable is either the Base of some method call ...
 						ref = CrymlinQueryWrapper.getBaseOfCallExpression(vertex);
+						if (ref.isEmpty()) { // if we did not find a base the "easy way", try to find a base using the simple-DFG
+							ref = CrymlinQueryWrapper.getDFGTarget(vertex);
+						}
 					}
 					ref.ifPresent(instanceVariables::add);
 

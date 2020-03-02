@@ -1,5 +1,21 @@
 package botan
 
+rule _2_01_BlockCiphers {
+	using Botan.Cipher_Mode as cm
+	ensure
+		(_split(cm.algorithm, "/", 0) == "AES")
+		|| (_split(_split(cm.algorithm, "/", 0), "-", 0) == "AES")
+	onfail _2_01_BlockCiphers
+}
+
+rule _2_01_KeyLength {
+	using Botan.Cipher_Mode as cm,
+		Botan.SymmetricKey as sk
+	ensure
+		cm.symkey.length in [16, 24, 32]  // 128, 192, 256 bit
+	onfail _2_01_KeyLength
+}
+
 rule _2_1_01_Modes {
 	using Botan.Cipher_Mode as cm
 	ensure
@@ -7,25 +23,8 @@ rule _2_1_01_Modes {
 	onfail WrongMode
 }
 
-rule BlockCiphers {
-	using Botan.Cipher_Mode as cm
-	ensure
-		(_split(cm.algorithm, "/", 0) == "AES")
-		|| (_split(_split(cm.algorithm, "/", 0), "-", 0) == "AES")
-	onfail WrongBlockCipher
-}
 
-rule UseOfPipe {
-	using Botan.Cipher_Mode as cm,
-		Botan.Pipe as p
-	ensure
-		_receives_value_from(p.filter, cm) ||
-		cm in p.filterList
-	onfail WrongUseOfBotan_CipherMode
-}
-
-
-rule KeyLength {
+rule _2_01_KeyLength {
 	using Botan.Cipher_Mode as cm,
 		Botan.SymmetricKey as sk
 	ensure
@@ -130,7 +129,7 @@ rule SIG_ALGS {
 	using 
 		Botan.PK_Verifier as v
 	ensure
-		_instance_of(v) in ["Botan::RSA_PublicKey", "Botan::ECDSA_PublicKey", "Botan::ECKCDSA_PublicKey", "Botan::ECGDSA_PublicKey"]
+		_instance_of(v.pub_key) in ["Botan::RSA_PublicKey", "Botan::ECDSA_PublicKey", "Botan::ECKCDSA_PublicKey", "Botan::ECGDSA_PublicKey"]
 	onfail
 		SIG_ALGS
 }

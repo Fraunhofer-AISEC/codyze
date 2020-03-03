@@ -45,7 +45,7 @@ rule Order {
 
 
 /*
- * TODO: Botan supports creation of hash functions by inistantiating the respective classes. They are not modelled yet:
+ * TODO: Botan supports creation of hash functions by inistantiating the respective classes. For now we only allow creation through Botan::HashFunction::create().
  * Botan::SHA_3_256, Botan::SHA_3_384, Botan::SHA_3_512, Botan::MDx_HashFunction(Botan::SHA_256, Botan::SHA_384, Botan::SHA_512_256, Botan::SHA_512)
  */
  

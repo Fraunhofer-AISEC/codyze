@@ -63,21 +63,43 @@ entity Botan.Private_Key {
 		Botan::PKCS8::load_key(key_source, _);
 	}
 	
-	//TODO are encoding ops and other necessary to model? Botan::PKCS8 Namespace 
+	op check_key {
+		Botan::RSA_PrivateKey::RSA_PrivateKey::check_key();
+		
+		Botan::DSA_PrivateKey::DSA_PrivateKey::check_key();
+		Botan::DH_PrivateKey::DH_PrivateKey::check_key();
+		Botan::ElGamal_PrivateKey::ElGamal_PrivateKey::check_key();
+		
+		Botan::ECDSA_PrivateKey::ECDSA_PrivateKey::check_key();
+		Botan::ECKCDSA_PrivateKey::ECKCDSA_PrivateKey::check_key();
+		Botan::ECGDSA_PrivateKey::ECGDSA_PrivateKey::check_key();
+		Botan::ECDH_PrivateKey::ECDH_PrivateKey::check_key();
+		Botan::GOST_3410_PrivateKey::GOST_3410_PrivateKey::check_key();
+	}
+	
+	//TODO are encoding-ops and other ops necessary to model? Botan::PKCS8 Namespace 
 }
 
-
-/* TODO: there are other Priv/Pub Key classes. Check the Botan class hierarchy
- * Do we want to model / whitelist them? - Intuition: No. They are not mentioned in Botan's Handbook
- * e.g. Botan::EC_PrivateKey, Botan::Ed25519_PrivateKey, Botan::DL_Scheme_PrivateKey
- */
 
 /*
  * From Botan's Handbook:
 	As key checks are not automatically performed they must be called manually after loading keys from untrusted sources.
 	If a key from an untrusted source is not checked, the implementation might be vulnerable to algorithm specific attacks. 
  * 
- * TODO: include the check_key() function into order rules
  */
+rule Order {
+	using Botan.Private_Key as pk
+	ensure order
+		pk.create() 
+		| (pk.load(), pk.check_key())
+	onfail Order
+}
+
+/* Note: there are other Priv/Pub Key classes. Check the Botan class hierarchy
+ * Do we want to model / whitelist them? - Intuition: No. They are not mentioned in Botan's Handbook
+ * e.g. Botan::EC_PrivateKey, Botan::Ed25519_PrivateKey, Botan::DL_Scheme_PrivateKey
+ */
+
+
  
  

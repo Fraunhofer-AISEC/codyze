@@ -1,11 +1,5 @@
 package botan
 
-
-/*
- * From Botan Handbook:
- * "In general a bare block cipher is not what you should be using. You probably want a cipher mode instead (see Cipher Modes)"
- */
-
 entity Botan.Cipher_Mode {
 	
 	var algorithm;
@@ -28,6 +22,8 @@ entity Botan.Cipher_Mode {
 		Botan::OctetString might be allowed for key and IV, but we will not accept it because Botan::SymmetricKey and Botan::InitializationVector carry more semantics, which should increase safety and maintainability.
 		We allow secure vector because real world examples seem to use it
 		*/
+		
+	/* Note: there is also the possibility to create a cipher from ECIES_System_Params. Maybe forbid that? */
 
 	op create_uninit {
 		Botan::get_cipher_mode(algorithm, direction, ...);
@@ -98,9 +94,13 @@ entity Botan.Cipher_Mode {
 }
 
 
-rule Order {
-	// using Botan.Cipher_Mode as cm TODO MARK: allow fq-names for MARK entities
-    using Botan.Cipher_Mode as cm
-	ensure order cm.a() //TODO order
-	onfail WrongOrder
+rule Cipher_Mode_Order {
+	using Botan.Cipher_Mode as cm
+	ensure order
+		((cm.create_uninit(), cm.set_key()) | cm.create_key_init()), // key is set here
+		((cm.set_iv(), cm.start_no_iv()) |  cm.start_iv()),
+		cm.assoc_data()*,
+		cm.process()*,
+		cm.finish()
+	onfail Cipher_Mode_Order
 }

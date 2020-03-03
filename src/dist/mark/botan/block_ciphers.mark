@@ -1,5 +1,10 @@
 package botan
 
+/*
+ * From Botan Handbook:
+ * "In general a bare block cipher is not what you should be using. You probably want a cipher mode instead (see Cipher Modes)"
+ */
+
 entity Botan.Forbidden.BlockCipher {
 	op forbid {
 		forbidden Botan::get_block_cipher(...);

@@ -9,6 +9,8 @@ entity Botan.MAC {
 	var mac_output;
 	var comparable;
 	
+	/* Note: there is also the possibility to create a MAC from ECIES_System_Params. Maybe forbid that? */
+	
 	op create {
 		Botan::MessageAuthenticationCode::create(algorithm);
 		Botan::MessageAuthenticationCode::create(algorithm, _);
@@ -61,9 +63,23 @@ entity Botan.MAC {
 }
 
 
-/*rule Order {
-	//TODO
-}*/
+rule Order {
+	using Botan.MAC as m
+	ensure order 
+		m.create(), 
+		m.init(), 
+		m.start(), 
+		(
+			(m.update()*, 
+				(
+					m.finalize()
+					| m.verify()
+				)
+			)
+			| m.process()
+		)
+	onfail Order
+}
 
 
 /*

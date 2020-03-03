@@ -63,7 +63,36 @@ entity Botan.Public_Key {
 		Botan::PKCS8::load_key(key_source, _);
 	}
 	
+	op check_key {
+		Botan::RSA_PublicKey::RSA_PublicKey::check_key();
+		
+		Botan::DSA_PublicKey::DSA_PublicKey::check_key();
+		Botan::DH_PublicKey::DH_PublicKey::check_key();
+		Botan::ElGamal_PublicKey::ElGamal_PublicKey::check_key();
+		
+		Botan::ECDSA_PublicKey::ECDSA_PublicKey::check_key();
+		Botan::ECKCDSA_PublicKey::ECKCDSA_PublicKey::check_key();
+		Botan::ECGDSA_PublicKey::ECGDSA_PublicKey::check_key();
+		Botan::ECDH_PublicKey::ECDH_PublicKey::check_key();
+		Botan::GOST_3410_PublicKey::GOST_3410_PublicKey::check_key();
+	}
+	
 	//TODO are encoding ops and other necessary to model? see Botan::PKCS8 Namespace 
+}
+
+
+/*
+ * From Botan's Handbook:
+	As key checks are not automatically performed they must be called manually after loading keys from untrusted sources.
+	If a key from an untrusted source is not checked, the implementation might be vulnerable to algorithm specific attacks. 
+ * 
+ */
+rule Order {
+	using Botan.Public_Key as pk
+	ensure order
+		pk.create() 
+		| (pk.load(), pk.check_key())
+	onfail Order
 }
 
 
@@ -72,12 +101,5 @@ entity Botan.Public_Key {
  * e.g. Botan::EC_PrivateKey, Botan::Ed25519_PrivateKey, Botan::DL_Scheme_PrivateKey
  */
 
-/*
- * From Botan's Handbook:
-	As key checks are not automatically performed they must be called manually after loading keys from untrusted sources.
-	If a key from an untrusted source is not checked, the implementation might be vulnerable to algorithm specific attacks. 
- * 
- * TODO: include the check_key() function into order rules
- */
  
  

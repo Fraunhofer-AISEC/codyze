@@ -43,18 +43,18 @@ rule CBCRandomIV  {
 	onfail NoRandomIV	
 }
 
-rule NonRepeatedIV {
-/* Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
+/*rule NonRepeatedIV {
+ Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
 	wird erreicht in dem wir versichern, dass der Wert des IV direkt aus rng.random_data kommt, da das bedeutet, dass damit neue Zufallszahlen generiert werden
 	TODO: ist das wirklich aussreichend?
-*/
+
 	using Botan.Cipher_Mode as cm,
 		Botan.RNG as rng
 	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
 	ensure
 		_receives_value_directly_from(cm.iv, rng.random_data)
 	onfail RepeatedIV 
-}
+}*/
 
 rule _2_1_2_1_02_CCM_TagSize {
 	using Botan.Cipher_Mode as cm
@@ -69,16 +69,6 @@ rule _2_1_2_2_03_GCM_TagSize {
 	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 12 // 12 byte = 96 bit
 	onfail  _2_1_2_2_03_GCM_TagSize
 }
-
-rule IVLengthGCM {
-// TODO: Die für den Authentisierungsmechanismus verwendeten Noncen sollen genau 96 Bit lang sein.
-	using Botan.Cipher_Mode as cm
-	when _split(cm.algorithm, "/", 1) == "GCM"
-	ensure
-		1 == 1
-	onfail WrongIVLengthGCM
-}
-
 
 
 rule TR02102_3_3_02_CurveParams {

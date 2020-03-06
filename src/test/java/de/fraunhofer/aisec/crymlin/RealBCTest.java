@@ -16,13 +16,7 @@ public class RealBCTest extends AbstractMarkTest {
 		// Just a very simple test to explore the graph
 		Set<Finding> findings = performTest("real-examples/bc/rwedoff.Password-Manager/Main.java", "real-examples/bc/rwedoff.Password-Manager/");
 
-		System.out.println("\n\n\n");
-		findings.stream().filter(f -> f.isProblem()).forEach(System.out::println);
-		System.out.println("\n");
-		findings.stream().filter(f -> !f.isProblem()).forEach(System.out::println);
-		System.out.println("\n\n\n");
-
-		assertEquals(1, findings.stream().filter(Finding::isProblem).count()); // MockWhen1 results in a finding.
+		assertEquals(2, findings.stream().filter(Finding::isProblem).map(Finding::getOnfailIdentifier).distinct().count()); // MockWhen1 results in a finding.
 	}
 
 }

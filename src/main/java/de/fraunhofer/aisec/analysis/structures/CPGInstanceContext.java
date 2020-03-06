@@ -5,6 +5,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +36,10 @@ public class CPGInstanceContext {
 
 	public Set<String> getMarkInstances() {
 		return entityAssignment.keySet();
+	}
+
+	public Collection<Vertex> getMarkInstanceVertives() {
+		return entityAssignment.values();
 	}
 
 	public boolean containsInstance(String instance) {

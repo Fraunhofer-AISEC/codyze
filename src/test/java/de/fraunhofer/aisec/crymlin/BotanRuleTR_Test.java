@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
+@Disabled
 public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
@@ -19,8 +20,9 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 						"line XX : MarkRuleEvaluationFinding: Rule _2_01_KeyLength verified");
 		*/
 
-        /* actually not expected */
-      	expected(findings, "line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
+		/* actually not expected */
+		expected(findings,
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
 	}
 
 	@Test
@@ -32,7 +34,8 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		*/
 
 		/* actually not expected */
-		expected(findings, "line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
+		expected(findings,
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
 	}
 
 	@Disabled
@@ -50,7 +53,8 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		*/
 
 		/* actually not expected */
-		expected(findings, "line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
+		expected(findings,
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
 
 	}
 
@@ -75,7 +79,8 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		*/
 
 		/* actually not expected */
-		expected(findings, "line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
+		expected(findings,
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
 	}
 
 	@Test
@@ -87,32 +92,33 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		*/
 
 		/* actually not expected */
-		expected(findings, "line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
+		expected(findings,
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)");
 
 	}
 
 	@Disabled
 	@Test
 	public void test_rule_2_1_2_4_01() throws Exception {
-      // TODO: there is no sufficient MARK-rule yet
+		// TODO: there is no sufficient MARK-rule yet
 	}
 
 	@Disabled
 	@Test
 	public void test_rule_2_1_3_01() throws Exception {
-      // TODO: there is no sufficient MARK-rule yet
+		// TODO: there is no sufficient MARK-rule yet
 	}
 
 	@Disabled
 	@Test
 	public void test_rule_2_2_01() throws Exception {
-      // TODO: there is no sufficient MARK-rule yet
+		// TODO: there is no sufficient MARK-rule yet
 	}
 
 	@Disabled
 	@Test
 	public void test_rule_2_2_02() throws Exception {
-      // TODO: there is no sufficient MARK-rule yet
+		// TODO: there is no sufficient MARK-rule yet
 	}
 
 	@Disabled
@@ -130,7 +136,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	@Disabled
 	@Test
 	public void test_rule_3_3_03() throws Exception {
-      // TODO: there is no sufficient MARK-rule yet
+		// TODO: there is no sufficient MARK-rule yet
 	}
 
 	@Disabled
@@ -167,9 +173,9 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	public void test_rule_4_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/4_01.cpp", "dist/mark/botan/");
 		expected(findings,
-						"line 7: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",  // this is expected to be verified
-						"line 5: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",	 // This is fine
-						"line 6: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated"); // This is fine
+			"line 7: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated", // TODO this is expected to be verified
+			"line 5: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",
+			"line 6: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated");
 	}
 
 	@Test
@@ -238,11 +244,11 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		Set<Finding> findings = performTest("botan_rule_tr_test/6_2_01.cpp", "dist/mark/botan/");
 	}
 
-    @Disabled
-    @Test
-    public void test_rule_6_3() throws Exception {
-      Set<Finding> findings = performTest("botan_rule_tr_test/6_3.cpp", "dist/mark/botan/");
-    }
+	@Disabled
+	@Test
+	public void test_rule_6_3() throws Exception {
+		Set<Finding> findings = performTest("botan_rule_tr_test/6_3.cpp", "dist/mark/botan/");
+	}
 
 	@Disabled
 	@Test

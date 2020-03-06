@@ -47,7 +47,7 @@ entity Botan.StreamCipher {
     }
 }
 
-rule Order{
+rule StreamCipherOrder{
 	using Botan.StreamCipher as sc
 	ensure order 
 		sc.create()*,
@@ -56,7 +56,7 @@ rule Order{
 			| (sc.set_iv(), sc.set_key())
 		),
 		sc.crypt()
-	onfail Order
+	onfail StreamCipherOrder
 }
 
 /**

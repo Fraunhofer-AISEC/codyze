@@ -86,12 +86,12 @@ entity Botan.Private_Key {
 	If a key from an untrusted source is not checked, the implementation might be vulnerable to algorithm specific attacks. 
  * 
  */
-rule Order {
+rule PrivKeyOrder {
 	using Botan.Private_Key as pk
 	ensure order
 		pk.create() 
 		| (pk.load(), pk.check_key())
-	onfail Order
+	onfail PrivKeyOrder
 }
 
 /* Note: there are other Priv/Pub Key classes. Check the Botan class hierarchy

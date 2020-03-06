@@ -26,6 +26,7 @@ entity Botan.Cipher_Mode {
 	/* Note: there is also the possibility to create a cipher from ECIES_System_Params. Maybe forbid that? */
 
 	op create_uninit {
+	    Botan::get_cipher_mode(algorithm, direction);
 		Botan::get_cipher_mode(algorithm, direction, ...);
 		Botan::get_cipher(algorithm, direction);
 	}

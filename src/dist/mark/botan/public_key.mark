@@ -85,12 +85,12 @@ entity Botan.Public_Key {
 	If a key from an untrusted source is not checked, the implementation might be vulnerable to algorithm specific attacks. 
  * 
  */
-rule Order {
+rule PubKeyOrder {
 	using Botan.Public_Key as pk
 	ensure order
 		pk.create() 
 		| (pk.load(), pk.check_key())
-	onfail Order
+	onfail PubKeyOrder
 }
 
 

@@ -1,0 +1,37 @@
+version: "2.3"
+services:
+  seeder:
+    build:
+      context: ./seeder
+      dockerfile: Dockerfile
+    entrypoint: python3 -u
+    command:  repo_scraper.py
+    environment:
+      - GITHUB_TOKEN
+      - GITHUB_QUERY
+      - CELERY_BROKER_URL
+      - CELERY_RESULT_BACKEND
+      - REPO_LIMIT
+    depends_on:
+      - redis
+  downloader:
+    build:
+      context: ./downloader
+      dockerfile: Dockerfile
+    entrypoint: python3
+    restart: always
+    command:  tasks.py
+    scale: 4
+    environment:
+      - GITHUB_TOKEN
+      - CELERY_BROKER_URL
+      - CELERY_RESULT_BACKEND
+    volumes:
+      - ./download-data:/data
+    depends_on:
+      - redis
+  redis:
+    image: redis
+    restart: always
+    volumes:
+      - ./redis-data:/data

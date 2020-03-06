@@ -38,9 +38,9 @@ public class AbstractMarkTest {
 		ClassLoader classLoader = AbstractMarkTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);
-		assertNotNull(resource);
+		assertNotNull(resource, "Resource " + sourceFileName + " not found");
 		File javaFile = new File(resource.getFile());
-		assertNotNull(javaFile);
+		assertNotNull(javaFile, "File " + sourceFileName + " not found");
 
 		String markDirPath = "";
 		if (markFileName != null) {

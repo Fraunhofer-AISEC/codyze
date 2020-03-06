@@ -31,7 +31,7 @@ rule _2_1_01_Modes {
 
 rule _2_1_2_1_02_CCM_TagSize {
 	using Botan.Cipher_Mode as cm
-	when _split(cm.algorithm, "/", 1) == "CCM"
+	when _starts_with(_split(cm.algorithm, "/", 1), "CCM")
 	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 8 // 8 byte = 64 bit
 	onfail  _2_1_2_2_03_GCM_TagSize
 }
@@ -40,7 +40,7 @@ rule _2_1_2_1_02_CCM_TagSize {
 
 rule _2_1_2_2_03_GCM_TagSize {
 	using Botan.Cipher_Mode as cm
-	when _split(cm.algorithm, "/", 1) == "GCM"
+	when _starts_with(_split(cm.algorithm, "/", 1), "GCM")
 	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 12 // 12 byte = 96 bit
 	onfail  _2_1_2_2_03_GCM_TagSize
 }

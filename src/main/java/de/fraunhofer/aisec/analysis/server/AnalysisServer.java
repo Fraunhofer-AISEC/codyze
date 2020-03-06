@@ -250,12 +250,15 @@ public class AnalysisServer {
 
 		if (markFile.isDirectory()) {
 			log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
-			try (DirectoryStream<Path> fileStream = Files.newDirectoryStream(markFile.toPath())) {
-				for (Path f : fileStream) {
-					if (f.getFileName().toString().endsWith(".mark")) {
-						log.info("  Loading MARK file {}", f.toFile().getAbsolutePath());
-						parser.addMarkFile(f.toFile());
-					}
+			try {
+				File[] files = Files.walk(markFile.toPath(), Integer.MAX_VALUE)
+						.map(Path::toFile)
+						.filter(File::isFile)
+						.filter(f -> f.getName().endsWith(".mark"))
+						.toArray(File[]::new);
+				for (File f : files) {
+					log.info("  Loading MARK file {}", f.getAbsolutePath());
+					parser.addMarkFile(f);
 				}
 			}
 			catch (IOException e) {

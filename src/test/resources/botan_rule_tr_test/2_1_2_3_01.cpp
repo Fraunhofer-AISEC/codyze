@@ -16,7 +16,7 @@ int main() {
    Botan::secure_vector<uint8_t> pt(plaintext.data(), plaintext.data()+plaintext.length());
 
    //generate fresh nonce (IV)
-   enc->start(rng.random_vec(enc->default_nonce_length()));erieren. Die grünen Punkte sind Java-Dateien, blaue sind C++, gelb sind C++-Dateien, die bei der Analyse eine Exce
+   enc->start(rng.random_vec(enc->default_nonce_length()));
    enc->finish(pt);
 
    std::cout << enc->name() << " with iv " << Botan::hex_encode(iv) << " " << Botan::hex_encode(pt) << "\n";

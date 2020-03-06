@@ -77,8 +77,7 @@ public class ExpressionHelper {
 			return inner.getEntity() + "." + inner.getOp() + "()";
 		} else if (expr instanceof OrderExpression) {
 			OrderExpression order = (OrderExpression) expr;
-			SequenceExpression seq = (SequenceExpression) order.getExp();
-			return "order " + exprToString(seq);
+			return "order " + exprToString(order.getExp());
 		}
 		return "UNKNOWN EXPRESSION TYPE: " + expr.getClass();
 	}

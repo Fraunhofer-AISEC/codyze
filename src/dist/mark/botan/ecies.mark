@@ -19,13 +19,12 @@ entity Botan.ECIES_Params {
 	op create {
 		Botan::ECIES_System_Params (ec_group, kdf_spec, block_cipher_algo_spec, block_cipher_key_len, mac_spec, mac_key_len);
 		
-		// crypto-question: is it insecure to use non-default PointGF-Compressions and ECIES-Modes?
+		// crypto-question: is it insecure to use non-default PointGF-Compressions and ECIES-Modes? https://botan.randombit.net/doxygen/classBotan_1_1ECIES__System__Params.html#a66734606597e343808bcf43553005bfb
 		forbidden Botan::ECIES_System_Params (ec_group, kdf_spec, block_cipher_algo_spec, block_cipher_key_len, mac_spec, mac_key_len, _, _);
 	}
 	
 	/*
 	 * TODO: there are other functions. Do we need to model them? 
-	 * Most of them are "read-only" functions, i.e., getting information about the created ECIES Params (e.g. domain(), mac_keylen()),...
 	 * What about create_cipher() and create_mac() which create Cipher/MAC objects according to ECIES params
 	 */
 }

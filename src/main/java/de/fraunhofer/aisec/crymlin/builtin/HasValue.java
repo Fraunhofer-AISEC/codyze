@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * This builtin checks if the markvar has a cpg-node
+ * This builtin checks if the markvar has a cpg-node. The markvar does not nessesarily have a value associated (i.e., the Constant Resolving could have failed). In this case, this builtin will still return true.
  */
 public class HasValue implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(HasValue.class);

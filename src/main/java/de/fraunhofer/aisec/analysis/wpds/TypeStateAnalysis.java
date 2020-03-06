@@ -117,14 +117,14 @@ public class TypeStateAnalysis {
 		// For debugging only: Print WPDS rules
 		if (log.isDebugEnabled()) {
 			for (Rule r : wpds.getAllRules()
-							  .stream()
-							  .sorted(Comparator.comparing(r -> r.getL1()
-																 .getRegion()
-																 .getStartLine()))
-							  .sorted(Comparator.comparing(r -> r.getL1()
-																 .getRegion()
-																 .getStartColumn()))
-							  .collect(Collectors.toList())) {
+					.stream()
+					.sorted(Comparator.comparing(r -> r.getL1()
+							.getRegion()
+							.getStartLine()))
+					.sorted(Comparator.comparing(r -> r.getL1()
+							.getRegion()
+							.getStartColumn()))
+					.collect(Collectors.toList())) {
 				log.debug("rule: {}", r);
 			}
 
@@ -159,7 +159,7 @@ public class TypeStateAnalysis {
 		if (v == null) {
 			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
 			return null;
-//			return ErrorValue.newErrorValue(String.format("No vertex found for Mark instance: %s. Will not run TS analysis", markInstance));
+			//			return ErrorValue.newErrorValue(String.format("No vertex found for Mark instance: %s. Will not run TS analysis", markInstance));
 		}
 
 		// Find the function in which the vertex is located, so we can use the first statement in function as a start
@@ -167,19 +167,19 @@ public class TypeStateAnalysis {
 		if (containingFunctionOpt.isEmpty()) {
 			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule);
 			return null;
-//			return ErrorValue.newErrorValue(String.format("Vertex %s not located within a function. Cannot start TS analysis for rule %s", v.property("code").orElse(""),
-//														  rule.toString()));
+			//			return ErrorValue.newErrorValue(String.format("Vertex %s not located within a function. Cannot start TS analysis for rule %s", v.property("code").orElse(""),
+			//														  rule.toString()));
 		}
 
 		// Turn function vertex into a FunctionDeclaration so we can work with it
 		FunctionDeclaration funcDecl = (FunctionDeclaration) OverflowDatabase.getInstance()
-																			 .vertexToNode(containingFunctionOpt.get());
+				.vertexToNode(containingFunctionOpt.get());
 		if (funcDecl == null) {
 			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
-					  containingFunctionOpt.get().property("name").orElse(""), rule);
+				containingFunctionOpt.get().property("name").orElse(""), rule);
 			return null;
-//			return ErrorValue.newErrorValue(String.format("Function %s could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule %s",
-//														  containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
+			//			return ErrorValue.newErrorValue(String.format("Function %s could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule %s",
+			//														  containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
 		}
 		return new File(funcDecl.getFile());
 	}
@@ -215,7 +215,7 @@ public class TypeStateAnalysis {
 	 */
 	@NonNull
 	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa,
-											 String currentFile) {
+			String currentFile) {
 		// Final findings
 		Set<Finding> findings = new HashSet<>();
 		// We collect good findings first, but add them only if TS machine reaches END state

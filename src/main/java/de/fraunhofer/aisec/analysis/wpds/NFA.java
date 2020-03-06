@@ -127,7 +127,7 @@ public class NFA {
 		populateTransitions();
 
 		// Mark END state as "isEnd()"
-		transitions.stream().filter(t -> t.getLabel()!=null && t.getLabel().equals("END") && t.getSource() != null).forEach(t -> t.getSource().setEnd(true));
+		transitions.stream().filter(t -> t.getLabel() != null && t.getLabel().equals("END") && t.getSource() != null).forEach(t -> t.getSource().setEnd(true));
 
 		// Create transitions from artificial START state into start nodes
 		for (Node startNode : startNodes) {

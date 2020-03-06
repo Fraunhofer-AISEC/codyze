@@ -132,6 +132,7 @@ class WpdsTest extends AbstractMarkTest {
 		assertFalse(startLineNumbers.get(15));
 		assertTrue(startLineNumbers.containsKey(17)); // start
 		assertFalse(startLineNumbers.get(17));
+		assertFalse(startLineNumbers.containsKey(19)); // Does NOT contain irrelevant stmt "cout << 'bla'"
 		assertTrue(startLineNumbers.containsKey(20)); // process
 		assertFalse(startLineNumbers.get(20));
 		assertTrue(startLineNumbers.containsKey(21)); // process
@@ -150,13 +151,13 @@ class WpdsTest extends AbstractMarkTest {
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														 .collect(Collectors.toMap(
-																 f -> f.getRanges().get(0).getStart().getLine(),
-																 f -> f.isProblem(),
-																 (isProblemA, isProblemB) -> {
-																	 System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
-																	 return isProblemA && isProblemB;
-																 }));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.containsKey(10)); // create

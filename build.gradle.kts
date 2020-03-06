@@ -181,6 +181,10 @@ sourceSets.configureEach {
     }
 }
 
+tasks.named("compileJava") {
+    dependsOn(":spotlessApply")
+}
+
 spotless {
     java {
         targetExclude(

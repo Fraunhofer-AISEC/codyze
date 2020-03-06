@@ -378,6 +378,9 @@ public class CrymlinQueryWrapper {
 							baseOfCallExpression = CrymlinQueryWrapper.getDFGTarget(v);
 						} else {
 							baseOfCallExpression = CrymlinQueryWrapper.getBaseOfCallExpression(v);
+							if (baseOfCallExpression.isEmpty()) { // if we did not find a base the "easy way", try to find a base using the simple-DFG
+								baseOfCallExpression = CrymlinQueryWrapper.getDFGTarget(v);
+							}
 						}
 						CPGVertexWithValue cpgVertexWithValue = new CPGVertexWithValue(argumentVertices.get(0), ConstantValue.newUninitialized());
 						cpgVertexWithValue.setBase(baseOfCallExpression.orElse(null));

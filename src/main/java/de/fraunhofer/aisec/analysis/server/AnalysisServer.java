@@ -13,7 +13,8 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
-import de.fraunhofer.aisec.crymlin.builtin.*;
+import de.fraunhofer.aisec.crymlin.builtin.Builtin;
+import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -56,10 +57,12 @@ import java.util.concurrent.CompletableFuture;
  * This is the main CPG analysis server.
  *
  * <p>
- * It accepts input from either an console or from a language server (LSP). As both use stdin/stdout, only one of them can be used at a time.
+ * It accepts input from either an console or from a language server (LSP). As both use stdin/stdout, only one of them
+ * can be used at a time.
  *
  * <p>
- * The {@code analyze} method kicks off the main work: parsing the program, constructing the CPG and evaluating MARK rules against it, with the help of Gremlin queries.
+ * The {@code analyze} method kicks off the main work: parsing the program, constructing the CPG and evaluating MARK
+ * rules against it, with the help of Gremlin queries.
  *
  * @author julian
  */
@@ -114,7 +117,9 @@ public class AnalysisServer {
 		return new Builder();
 	}
 
-	/** Starts the server in a separate threat, returns as soon as the server is ready to operate. */
+	/**
+	 * Starts the server in a separate threat, returns as soon as the server is ready to operate.
+	 */
 	public void start() {
 		if (config.launchLsp) {
 			launchLspServer();
@@ -142,7 +147,9 @@ public class AnalysisServer {
 		interp.spawnInteractiveConsole();
 	}
 
-	/** Launches the LSP server. */
+	/**
+	 * Launches the LSP server.
+	 */
 	private void launchLspServer() {
 		lsp = new CpgLanguageServer();
 
@@ -214,7 +221,10 @@ public class AnalysisServer {
 		if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
 			File markModelLocation = new File(config.markModelFiles);
 			if (!markModelLocation.exists() || !markModelLocation.canRead()) {
-				log.warn("Cannot read MARK model from {}", markModelLocation.getAbsolutePath());
+				log.warn("Cannot read MARK model from {} (does exist: {}) - (can read: {})",
+					markModelLocation.getAbsolutePath(),
+					markModelLocation.exists(),
+					markModelLocation.canRead());
 			} else {
 				loadMarkRules(markModelLocation);
 			}
@@ -370,9 +380,8 @@ public class AnalysisServer {
 	 * It's awful, but this is the only way to import raw data into Neo4J without relying on an OGM.
 	 *
 	 * <p>
-	 * We want to skip the OGM to make that what we see in the database is the actual graph from memory, and not the result of CPG -> OverflowDB-OGM -> OverflowDB ->
-	 * Tinkerpop -> Neo4J-OGM -> Neo4J.
-	 *
+	 * We want to skip the OGM to make that what we see in the database is the actual graph from memory, and not the
+	 * result of CPG -> OverflowDB-OGM -> OverflowDB -> Tinkerpop -> Neo4J-OGM -> Neo4J.
 	 */
 	private void exportToGraphML() {
 		// Export from OverflowDB to file
@@ -393,7 +402,7 @@ public class AnalysisServer {
 
 	/**
 	 * Note that this methods expects neo4j in classpath at runtime.
-	 *
+	 * <p>
 	 * It is used for debugging only.
 	 */
 	private void importIntoNeo4j() {

@@ -1,35 +1,53 @@
 package bsi.tr_02102_1
 
 /**
- * 
+ * MAC algorithms
  */
 rule ID_5_3_01 {
 	using
 		Mac as m
 	ensure
-		// TODO CMAC
-		m.algorithm in ["HmacSHA256", "HmacSHA512/256", "HmacSHA384", "HmacSHA512", "HmacSHA3-256", "HmacSHA3-384", "HmacSHA3-512"]
-		// TODO GMAC, 
+		m.algorithm in ["AESCMAC"]
+		|| m.algorithm in ["HmacSHA256", "HmacSHA512/256", "HmacSHA384", "HmacSHA512", "HmacSHA3-256", "HmacSHA3-384", "HmacSHA3-512"]
+		|| m.algorithm in ["AES-GMAC", "AESGMAC"]
 	onfail
 		InvalidMACAlgorithm
 }
 
+
 /**
- * 
+ * MAC key length for CMAC
  */
-rule ID_5_3_02 {
+rule ID_5_3_02_CMAC {
 	using
 		Mac as m
+	when
+		m.algorithm in ["AESCMAC"]
 	ensure
-		false // TODO check key length used for mac
+		false // TODO m.key must have length >= 128
 	onfail
-		InsufficientMACKeyLength
+		InsufficientMACKeyLength_CMAC
 }
 
 /**
- * 
+ * MAC key length for GMAC
  */
-rule ID_5_3_03 {
+rule ID_5_3_02_GMAC {
+	using
+		Mac as m
+	when
+		m.algorithm in ["AES-GMAC", "AESGMAC"]
+	ensure
+		false // TODO m.key must have length >= 128
+	onfail
+		InsufficientMACKeyLength_GMAC
+}
+
+
+/**
+ * MAC tag length for CMAC
+ */
+rule ID_5_3_03_CMAC {
 	using
 		Mac as m
 	ensure
@@ -37,7 +55,6 @@ rule ID_5_3_03 {
 	onfail
 		InsufficientMACTagLength
 }
-
 
 /**
  * 
@@ -49,11 +66,21 @@ rule ID_5_3_03_HMAC {
 	when
 		m.algorithm in ["HmacSHA256", "HmacSHA512/256", "HmacSHA384", "HmacSHA512", "HmacSHA3-256", "HmacSHA3-384", "HmacSHA3-512"]
 	ensure
-		_is_instance(m.params, "HMACParameterSpec")
-		&& _is(m.params, spec)
+		_is(m.params, spec)
 		&& spec.outputLength >= 96
 	onfail
 		InsufficientMACTagLength
 }
 
+/**
+ * MAC tag length for GMAC
+ */
+rule ID_5_3_03_GMAC {
+	using
+		Mac as m
+	ensure
+		false // TODO check requested MAC tag length
+	onfail
+		InsufficientMACTagLength
+}
 

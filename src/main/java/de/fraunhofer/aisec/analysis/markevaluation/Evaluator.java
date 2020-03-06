@@ -197,10 +197,11 @@ public class Evaluator {
 
 				if (!c.isFindingAlreadyAdded()) {
 					List<Range> ranges = new ArrayList<>();
-					if (((ConstantValue) entry.getValue()).getResponsibleVertices().isEmpty()) {
+					if (((ConstantValue) entry.getValue()).getResponsibleVertices().isEmpty()
+							|| ((ConstantValue) entry.getValue()).getResponsibleVertices().stream().noneMatch(Objects::nonNull)) {
 						// use the line of the instances
 						if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
-							for (Vertex v : c.getInstanceContext().getMarkInstanceVertives()) {
+							for (Vertex v : c.getInstanceContext().getMarkInstanceVertices()) {
 								if (v == null) {
 									continue;
 								}
@@ -213,7 +214,8 @@ public class Evaluator {
 
 								currentFile = CrymlinQueryWrapper.getFileLocation(v);
 							}
-						} else {
+						}
+						if (ranges.isEmpty()) {
 							ranges.add(new Range(new Position(-1, -1),
 								new Position(-1, -1)));
 						}

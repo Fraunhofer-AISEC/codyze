@@ -38,7 +38,7 @@ public class CPGInstanceContext {
 		return entityAssignment.keySet();
 	}
 
-	public Collection<Vertex> getMarkInstanceVertives() {
+	public Collection<Vertex> getMarkInstanceVertices() {
 		return entityAssignment.values();
 	}
 

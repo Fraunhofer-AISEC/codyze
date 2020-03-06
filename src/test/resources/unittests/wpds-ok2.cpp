@@ -19,9 +19,9 @@
 
     cout << "Some irrelevant stmt\n";
     p2.process();
-    p3.process();
+    p2.process();
 
-    p4.process();
+    p2.process();
 
-    p4.finish();  // Finish on p4 alias
+    p2.finish();  // Finish on p4 alias
   }

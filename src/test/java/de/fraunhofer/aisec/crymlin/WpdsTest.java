@@ -8,7 +8,6 @@ import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -143,36 +142,30 @@ class WpdsTest extends AbstractMarkTest {
 	}
 
 	@Test
-	@Disabled // Disabled as if-branches are not yet correctly translated into WPDS rules
+	//@Disabled // Disabled as if-branches are not yet correctly translated into WPDS rules
 	void testWpdsOk3() throws Exception {
 		@NonNull
-		Set<Finding> findings = performTest("unittests/wpds-ok3.cpp", "unittests/wpds-3.mark");
+		Set<Finding> findings = performTest("unittests/wpds-ok4.cpp", "unittests/wpds-3.mark");
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														 .collect(Collectors.toMap(
-																 f -> f.getRanges().get(0).getStart().getLine(),
-																 f -> f.isProblem(),
-																 (isProblemA, isProblemB) -> {
-																	 System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
-																	 return isProblemA && isProblemB;
-																 }));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertTrue(startLineNumbers.containsKey(10)); // create
-		assertFalse(startLineNumbers.get(10));
-		assertTrue(startLineNumbers.containsKey(15)); // init
+		assertTrue(startLineNumbers.containsKey(16));
+		assertFalse(startLineNumbers.get(16));
+		assertTrue(startLineNumbers.containsKey(12));
+		assertFalse(startLineNumbers.get(12));
+		assertTrue(startLineNumbers.containsKey(15));
 		assertFalse(startLineNumbers.get(15));
-		assertTrue(startLineNumbers.containsKey(17)); // start
-		assertFalse(startLineNumbers.get(17));
-		assertTrue(startLineNumbers.containsKey(20)); // process
-		assertFalse(startLineNumbers.get(20));
-		assertTrue(startLineNumbers.containsKey(21)); // process
-		assertFalse(startLineNumbers.get(21));
-		assertTrue(startLineNumbers.containsKey(23)); // process
-		assertFalse(startLineNumbers.get(23));
-		assertTrue(startLineNumbers.containsKey(25)); // finish
-		assertFalse(startLineNumbers.get(25));
+		assertTrue(startLineNumbers.containsKey(13));
+		assertFalse(startLineNumbers.get(13));
 	}
 
 	@Test

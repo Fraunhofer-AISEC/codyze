@@ -50,6 +50,11 @@ entity Cipher {
         javax.crypto.Cipher.init(
             opmode : int,
             key : java.security.Key,
+            params : javax.crypto.spec.GCMParameterSpec
+        );
+        javax.crypto.Cipher.init(
+            opmode : int,
+            key : java.security.Key,
             params : java.security.AlgorithmParameters,
             random : java.security.SecureRandom
         );

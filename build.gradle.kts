@@ -181,6 +181,11 @@ sourceSets.configureEach {
     }
 }
 
+// Added mark files from dist folder to test resources
+sourceSets.getByName("test").resources {
+    srcDir("src/dist")
+}
+
 tasks.named("compileJava") {
     dependsOn(":spotlessApply")
 }

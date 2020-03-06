@@ -13,7 +13,7 @@ public class JCATest extends AbstractMarkTest {
 
 	@Test
 	public void testBlockCipher() throws Exception {
-		Set<Finding> findings = performTest("java/jca/BlockCipher.java", "dist/mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/BlockCipher.java", "mark/bouncycastle/");
 
 		expected(findings,
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
@@ -36,7 +36,7 @@ public class JCATest extends AbstractMarkTest {
 
 	@Test
 	public void testAESGCM() throws Exception {
-		Set<Finding> findings = performTest("java/jca/AESGCM.java", "dist/mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/AESGCM.java", "mark/bouncycastle/");
 
 		expected(findings, "line 22: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 			"line 22: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified", // ok
@@ -47,7 +47,7 @@ public class JCATest extends AbstractMarkTest {
 
 	@Test
 	public void testBCMacs() throws Exception {
-		Set<Finding> findings = performTest("java/jca/BCMacs.java", "dist/mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/BCMacs.java", "mark/bouncycastle/");
 
 		expected(findings, "line 25: MarkRuleEvaluationFinding: Rule ID_5_3_01 verified", // ok
 
@@ -59,7 +59,7 @@ public class JCATest extends AbstractMarkTest {
 
 	@Test
 	public void testMacTest() throws Exception {
-		Set<Finding> findings = performTest("java/jca/MacTest.java", "dist/mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/MacTest.java", "mark/bouncycastle/");
 
 		expected(findings, "line 41: MarkRuleEvaluationFinding: Rule ID_5_3_01 violated", // ok
 			"line 41: MarkRuleEvaluationFinding: Rule ID_5_3_03_CMAC violated", // TODO: rule needs to be improved
@@ -69,7 +69,7 @@ public class JCATest extends AbstractMarkTest {
 
 	@Test
 	public void testRSACipherTest() throws Exception {
-		Set<Finding> findings = performTest("java/jca/RSACipherTest.java", "dist/mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/RSACipherTest.java", "mark/bouncycastle/");
 
 		expected(findings,
 			"line 55: MarkRuleEvaluationFinding: Rule ID_3_5_02 violated", // TODO: rule needs to be improved

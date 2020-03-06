@@ -63,7 +63,7 @@ entity Botan.MAC {
 }
 
 
-rule Order {
+rule MACOrder {
 	using Botan.MAC as m
 	ensure order 
 		m.create(), 
@@ -78,7 +78,7 @@ rule Order {
 			)
 			| m.process()
 		)
-	onfail Order
+	onfail MACOrder
 }
 
 

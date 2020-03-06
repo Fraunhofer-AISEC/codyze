@@ -1,0 +1,19 @@
+package java.jca
+
+entity OAEPParameterSpec {
+	
+	var mdName;
+	var mgfName;
+	var mgfSpec;
+	var pSrc;
+	
+	op instantiate {
+		javax.crypto.spec.OAEPParameterSpec(
+			mdName : java.lang.String,
+			mgfName : java.lang.String,
+			mgfSpec : java.security.spec.AlgorithmParameterSpec,
+			pSrc : javax.crypto.spec.PSource
+		);
+	}
+	
+}

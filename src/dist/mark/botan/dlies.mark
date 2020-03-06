@@ -1,5 +1,12 @@
 package botan
 
+entity Botan.DL_Group {
+	var name;
+	op create {
+		Botan::DL_Group(name: std::string);
+	}
+}
+
 // Note: I guess we do not need to model the corresponding decryptor class, as the critical operation is the encryption
 entity Botan.DLIES_Encryptor {
 	var pubkey: Botan.Private_Key;

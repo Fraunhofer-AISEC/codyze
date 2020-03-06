@@ -10,7 +10,7 @@ import java.util.Set;
 public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
-	public void test_rule_2_01() throws Exception { //FIXME
+	public void test_rule_2_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/2_01.cpp", "dist/mark/botan/");
 
 		/* actually expected
@@ -135,12 +135,6 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Disabled
 	@Test
-	public void test_rule_3_3_04() throws Exception {
-		// Note: this checked by rule _3_3_02_CurveParams
-	}
-
-	@Disabled
-	@Test
 	public void test_rule_3_4_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_01.cpp", "dist/mark/botan/");
 	}
@@ -173,9 +167,9 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	public void test_rule_4_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/4_01.cpp", "dist/mark/botan/");
 		expected(findings,
-						"line 7: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",  // TODO this is expected to be verified
-						"line 5: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",
-						"line 6: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated");
+						"line 7: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",  // this is expected to be verified
+						"line 5: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",	 // This is fine
+						"line 6: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated"); // This is fine
 	}
 
 	@Test
@@ -184,47 +178,52 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		expected(findings, "line 10: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified");
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_5_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "dist/mark/botan/");
-      	expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // TODO
+      	expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // actually expected
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_5_3_03() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_03.cpp", "dist/mark/botan/");
+		expected(findings,
+						"line 16: MarkRuleEvaluationFinding: Rule _5_3_03_MAC_NONCELEN verified",  // actually expected
+						"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",		   // actually expected
+						"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (Order)");  // actually NOT expected
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_5_4_1_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", "dist/mark/botan/");
+		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_1_01_RSA_SIG_Format verified");  // actually expected
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_5_4_1_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_02.cpp", "dist/mark/botan/");
+
+		/* actually expected
+		expected(findings,
+		"line XX : MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen verified",
+		"line XX : MarkRuleEvaluationFinding: Rule _5_5_4_1_02_RSA_SIG_KeyLen_2022 verified");
+		 */
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_5_4_2_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_2_01.cpp", "dist/mark/botan/");
+		/* actually expected
+		expected(findings,
+		"line XX : MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen verified",
+		"line XX : MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen_2022 verified");
+		 */
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_5_4_3_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_3_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_5_4_3_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_3_02.cpp", "dist/mark/botan/");
+		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_3_01_ECDSA_SIG verified");  // actually expected
 	}
 
 	@Disabled

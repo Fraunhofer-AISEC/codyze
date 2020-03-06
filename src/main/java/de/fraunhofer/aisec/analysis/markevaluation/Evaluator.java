@@ -198,8 +198,25 @@ public class Evaluator {
 				if (!c.isFindingAlreadyAdded()) {
 					List<Range> ranges = new ArrayList<>();
 					if (((ConstantValue) entry.getValue()).getResponsibleVertices().isEmpty()) {
-						ranges.add(new Range(new Position(-1, -1),
-							new Position(-1, -1)));
+						// use the line of the instances
+						if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
+							for (Vertex v : c.getInstanceContext().getMarkInstanceVertives()) {
+								if (v == null) {
+									continue;
+								}
+								int startLine = toIntExact((Long) v.property("startLine").value()) - 1;
+								int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
+								int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
+								int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
+								ranges.add(new Range(new Position(startLine, startColumn),
+									new Position(endLine, endColumn)));
+
+								currentFile = CrymlinQueryWrapper.getFileLocation(v);
+							}
+						} else {
+							ranges.add(new Range(new Position(-1, -1),
+								new Position(-1, -1)));
+						}
 					} else {
 						// responsible vertices are stored in the result
 						for (Vertex v : ((ConstantValue) entry.getValue()).getResponsibleVertices()) {

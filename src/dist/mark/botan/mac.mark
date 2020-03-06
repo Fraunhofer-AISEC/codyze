@@ -48,18 +48,9 @@ entity Botan.MAC {
 	
 	op verify {
 		// From Botan Handbook: "Finalize the current MAC computation and compare the result to the passed mac. Returns true, if the verification is successful and false otherwise."
-		// => in order rule : alternative to finalize?
 		Botan::MessageAuthenticationCode::verify_mac(comparable);
 		forbidden Botan::MessageAuthenticationCode::verify_mac(_,_);  //forbid because it is safer to use vectors with included length information
 	}
-	
-	/*
-	op clear {
-    	//TODO? do we want to forbid or whitelist? is it safe? is using it good practice?
-    }
-    op clone {
-    	//TODO? do we want to forbid or whitelist? is it safe? is using it good practice?
-    }*/
 }
 
 

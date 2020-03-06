@@ -187,16 +187,16 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	@Test
 	public void test_rule_5_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "dist/mark/botan/");
-      	expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // actually expected
+		expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // actually expected
 	}
 
 	@Test
 	public void test_rule_5_3_03() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_03.cpp", "dist/mark/botan/");
 		expected(findings,
-						"line 16: MarkRuleEvaluationFinding: Rule _5_3_03_MAC_NONCELEN verified",  // actually expected
-						"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",		   // actually expected
-						"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (Order)");  // actually NOT expected
+			"line 16: MarkRuleEvaluationFinding: Rule _5_3_03_MAC_NONCELEN verified", // actually expected
+			"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // actually expected
+			"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (Order)"); // actually NOT expected
 	}
 
 	@Test

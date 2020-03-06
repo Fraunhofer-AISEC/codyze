@@ -6,8 +6,6 @@ int main()
    {
    Botan::AutoSeeded_RNG rng;
    const std::vector<uint8_t> key = Botan::SymmetricKey(rng, 16);
-   uint32
-   uint8_t iv[iv_len],
    const std::vector<uint8_t>s iv = Botan::hex_decode("FFFFFFFFFFFFFFFFFFFFFFFF");
    const std::vector<uint8_t> data = Botan::hex_decode("6BC1BEE22E409F96E93D7E117393172A");
    Botan::MessageAuthenticationCode mac = Botan::MessageAuthenticationCode::create("GMAC(AES-256)");

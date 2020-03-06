@@ -23,16 +23,21 @@ rule _2_1_01_Modes {
 	onfail WrongMode
 }
 
-
-rule _2_01_KeyLength {
-	using Botan.Cipher_Mode as cm,
-		Botan.SymmetricKey as sk
-	ensure
-		cm.symkey.length in [16, 24, 32]  // 128, 192, 256 bit
-	onfail BadKeyLength
+rule _2_1_2_1_02_CCM_TagSize {
+	using Botan.Cipher_Mode as cm
+	when _split(cm.algorithm, "/", 1) == "CCM"
+	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 8 // 8 byte = 64 bit
+	onfail  _2_1_2_2_03_GCM_TagSize
 }
 
-rule CBCRandomIV  {
+rule _2_1_2_2_03_GCM_TagSize {
+	using Botan.Cipher_Mode as cm
+	when _split(cm.algorithm, "/", 1) == "GCM"
+	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 12 // 12 byte = 96 bit
+	onfail  _2_1_2_2_03_GCM_TagSize
+}
+
+rule _2_1_2_3_01_CBC_RandomIV  {
 	using Botan.Cipher_Mode as cm,
 		Botan.RNG as rng
 	when 
@@ -56,24 +61,12 @@ rule CBCRandomIV  {
 	onfail RepeatedIV 
 }*/
 
-rule _2_1_2_1_02_CCM_TagSize {
-	using Botan.Cipher_Mode as cm
-	when _split(cm.algorithm, "/", 1) == "CCM"
-	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 8 // 8 byte = 64 bit
-	onfail  _2_1_2_2_03_GCM_TagSize
-}
-
-rule _2_1_2_2_03_GCM_TagSize {
-	using Botan.Cipher_Mode as cm
-	when _split(cm.algorithm, "/", 1) == "GCM"
-	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 12 // 12 byte = 96 bit
-	onfail  _2_1_2_2_03_GCM_TagSize
-}
 
 
-rule TR02102_3_3_02_CurveParams {
+
+rule _3_3_02_CurveParams {
 	using Botan.ECIES_Encryptor as ee
-	ensure ee.ecies_params.ec_group.param in ["brainpoolP256r1, brainpoolP320r1, brainpoolP384r1, brainpoolP512r1"]
+	ensure ee.ecies_params.ec_group.param in ["brainpoolP256r1", "brainpoolP320r1", "brainpoolP384r1", "brainpoolP512r1"]
 	onfail TR02102_3_3_02_CurveParams
 }
 

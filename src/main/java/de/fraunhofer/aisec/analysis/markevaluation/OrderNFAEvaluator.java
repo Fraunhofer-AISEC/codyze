@@ -172,7 +172,8 @@ public class OrderNFAEvaluator {
 
 					// ... no direct access to the labels TreeSet of Neo4JVertex
 					if ((vertex.label().contains("MemberCallExpression")
-							|| vertex.label().contains("ConstructExpression"))
+							|| vertex.label().contains("ConstructExpression")
+							|| vertex.label().contains("StaticCallExpression"))
 							// is the vertex part of any op of any mentioned entity? If not, ignore
 							&& verticesToOp.get(vertex) != null) {
 
@@ -188,6 +189,19 @@ public class OrderNFAEvaluator {
 							Vertex refNode = null;
 							if (vertex.label().contains("MemberCallExpression")) {
 								Iterator<Edge> it = vertex.edges(Direction.OUT, "BASE");
+								if (it.hasNext()) {
+									Vertex baseVertex = it.next()
+											.inVertex();
+									base = baseVertex.value("name");
+									Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+									if (refIterator.hasNext()) {
+										refNode = refIterator.next()
+												.inVertex();
+										ref = refNode.id().toString();
+									}
+								}
+							} else if (vertex.label().contains("StaticCallExpression")) {
+								Iterator<Edge> it = vertex.edges(Direction.OUT, "DFG");
 								if (it.hasNext()) {
 									Vertex baseVertex = it.next()
 											.inVertex();

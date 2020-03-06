@@ -116,8 +116,6 @@ public class ConstantResolver {
 					}
 					seen.add(tVertex);
 
-					log.debug("Check if is assignment to {}: {}", variableDeclarationVertex.property("code").value(), tVertex.property("code").value());
-
 					boolean isBinaryOperatorVertex = tVertex.label().contains(BinaryOperator.class.getSimpleName());
 
 					Iterator<Vertex> lhsVertices = tVertex.vertices(Direction.OUT, "LHS");

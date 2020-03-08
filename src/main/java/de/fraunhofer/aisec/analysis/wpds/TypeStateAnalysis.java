@@ -74,8 +74,8 @@ public class TypeStateAnalysis {
 	}
 
 	public ConstantValue analyze(OrderExpression orderExpr, Integer contextID, AnalysisContext ctx,
-			CrymlinTraversalSource crymlinTraversal,
-			MRule rule) throws IllegalTransitionException {
+								 CrymlinTraversalSource crymlinTraversal,
+								 MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for {} and {}", ctx, crymlinTraversal);
 
 		instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
@@ -159,7 +159,7 @@ public class TypeStateAnalysis {
 		if (v == null) {
 			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
 			return null;
-//			return ErrorValue.newErrorValue(String.format("No vertex found for Mark instance: %s. Will not run TS analysis", markInstance));
+			//			return ErrorValue.newErrorValue(String.format("No vertex found for Mark instance: %s. Will not run TS analysis", markInstance));
 		}
 
 		// Find the function in which the vertex is located, so we can use the first statement in function as a start
@@ -167,8 +167,8 @@ public class TypeStateAnalysis {
 		if (containingFunctionOpt.isEmpty()) {
 			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule);
 			return null;
-//			return ErrorValue.newErrorValue(String.format("Vertex %s not located within a function. Cannot start TS analysis for rule %s", v.property("code").orElse(""),
-//														  rule.toString()));
+			//			return ErrorValue.newErrorValue(String.format("Vertex %s not located within a function. Cannot start TS analysis for rule %s", v.property("code").orElse(""),
+			//														  rule.toString()));
 		}
 
 		// Turn function vertex into a FunctionDeclaration so we can work with it
@@ -178,8 +178,8 @@ public class TypeStateAnalysis {
 			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
 					  containingFunctionOpt.get().property("name").orElse(""), rule);
 			return null;
-//			return ErrorValue.newErrorValue(String.format("Function %s could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule %s",
-//														  containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
+			//			return ErrorValue.newErrorValue(String.format("Function %s could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule %s",
+			//														  containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
 		}
 		return new File(funcDecl.getFile());
 	}
@@ -305,7 +305,7 @@ public class TypeStateAnalysis {
 		int startColumn = toIntExact(stmt.getRegion().getStartColumn()) - 1;
 		int endColumn = toIntExact(stmt.getRegion().getEndColumn()) - 1;
 		return new Finding("Good: " + val + " at " + stmt, rule.getErrorMessage(), currentFile,
-			List.of(new Range(new Position(startLine, endLine), new Position(startColumn, endColumn))), false);
+						   List.of(new Range(new Position(startLine, endLine), new Position(startColumn, endColumn))), false);
 	}
 
 	/**
@@ -368,12 +368,12 @@ public class TypeStateAnalysis {
 				if (isCallExpression(v) || v.edges(Direction.IN, "STATEMENTS").hasNext()) {
 
 					Stmt currentStmt = new Stmt(
-						v.property("code").orElse("").toString(),
-						new Region(
-							toIntExact((long) v.property("startLine").value()),
-							toIntExact((long) v.property("startColumn").value()),
-							toIntExact((long) v.property("endLine").value()),
-							toIntExact((long) v.property("startColumn").value())));
+							v.property("code").orElse("").toString(),
+							new Region(
+									toIntExact((long) v.property("startLine").value()),
+									toIntExact((long) v.property("startColumn").value()),
+									toIntExact((long) v.property("endLine").value()),
+									toIntExact((long) v.property("startColumn").value())));
 
 					if (isCallExpression(v)) {
 
@@ -387,7 +387,7 @@ public class TypeStateAnalysis {
 								if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
 									Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
 									if (!normalRule.getS1()
-											.equals(forbiddenVal)) {
+												   .equals(forbiddenVal)) {
 										skipIt = true;
 									}
 								}
@@ -403,7 +403,7 @@ public class TypeStateAnalysis {
 								 * "return site" is the statement to which flow returns after the function call.
 								 */
 								Set<PushRule<Stmt, Val, Weight>> pushRules = createPushRules(mce, crymlinTraversal, currentFunctionName, tsNfa, previousStmt, currentStmt,
-									v, worklist);
+																							 v, worklist);
 								for (PushRule<Stmt, Val, Weight> pushRule : pushRules) {
 									log.debug("  Adding push rule: {}", pushRule);
 									wpds.addRule(pushRule);
@@ -440,7 +440,7 @@ public class TypeStateAnalysis {
 
 									System.out.println("Is member call");
 									MemberCallExpression call = (MemberCallExpression) OverflowDatabase.getInstance()
-											.vertexToNode(rhsVertex);
+																									   .vertexToNode(rhsVertex);
 									if (call == null) {
 										log.error("Unexpected: null base of MemberCallExpression " + rhsVertex);
 										continue;
@@ -458,8 +458,8 @@ public class TypeStateAnalysis {
 								} else {
 									// Propagate flow from right-hand to left-hand side (variable declaration)
 									Val rhsVal = new Val((String) rhsVertex.property("name")
-											.value(),
-										currentFunctionName);
+																		   .value(),
+														 currentFunctionName);
 									// Add declVal to set of currently tracked variables
 									valsInScope.add(declVal);
 									Rule<Stmt, Val, Weight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt, Weight.one());
@@ -469,8 +469,8 @@ public class TypeStateAnalysis {
 
 								// Additionally, flow remains at rhs.
 								Val rhsVal = new Val((String) rhsVertex.property("name")
-										.value(),
-									currentFunctionName);
+																	   .value(),
+													 currentFunctionName);
 								Rule<Stmt, Val, Weight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, Weight.one());
 								log.debug("Adding normal rule {}", normalRuleCopy);
 								wpds.addRule(normalRuleCopy);
@@ -482,7 +482,7 @@ public class TypeStateAnalysis {
 								// Normal copy of all values in scope
 								for (Val valInScope : valsInScope) {
 									Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt,
-										Weight.one());
+																						  Weight.one());
 									if (!skipTheseValsAtStmt.containsKey(normalRule.getL2())) {
 										Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
 										if (!normalRule.getS1().equals(forbiddenVal)) {
@@ -497,7 +497,7 @@ public class TypeStateAnalysis {
 
 								// Create normal rule
 								Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt, declVal, currentStmt,
-									Weight.one());
+																					  Weight.one());
 								log.debug("Adding normal rule {}", normalRule);
 								wpds.addRule(normalRule);
 
@@ -513,15 +513,15 @@ public class TypeStateAnalysis {
 
 							for (Val returnedVal : returnedVals) {
 								Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
-										.stream()
-										.filter(
-											tran -> tran.getTarget().getOp().equals(returnedVal.getVariable()))
-										.collect(Collectors.toSet());
+																					   .stream()
+																					   .filter(
+																							   tran -> tran.getTarget().getOp().equals(returnedVal.getVariable()))
+																					   .collect(Collectors.toSet());
 								Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 								// Pop Rule for actually returned value
 								PopRule<Stmt, Val, Weight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue().getName(), currentFunctionName),
-									currentStmt, returnedVal, weight);
+																						 currentStmt, returnedVal, weight);
 								wpds.addRule(returnPopRule);
 								log.debug("Adding pop rule {}", returnPopRule);
 							}
@@ -588,13 +588,13 @@ public class TypeStateAnalysis {
 	}
 
 	private Set<NormalRule<Stmt, Val, Weight>> createNormalRules(final NFA tsNfa, final CallExpression mce, final Stmt previousStmt, final Stmt currentStmt,
-			final Set<Val> valsInScope) {
+																 final Set<Val> valsInScope) {
 		Set<NormalRule<Stmt, Val, Weight>> result = new HashSet<>();
 		Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
-				.stream()
-				.filter(
-					tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
-				.collect(Collectors.toSet());
+															   .stream()
+															   .filter(
+																	   tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
+															   .collect(Collectors.toSet());
 		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 		// Create normal rule. Flow remains where it is.
@@ -663,7 +663,7 @@ public class TypeStateAnalysis {
 	 */
 	@NonNull
 	private Map<String, Set<Pair<Val, Val>>> findParamToValues(Vertex functionDeclaration, Vertex returnV,
-			OverflowDatabase<de.fraunhofer.aisec.cpg.graph.Node> odb, CrymlinTraversalSource crymlinTraversalSource) {
+															   OverflowDatabase<de.fraunhofer.aisec.cpg.graph.Node> odb, CrymlinTraversalSource crymlinTraversalSource) {
 		Map<String, Set<Pair<Val, Val>>> result = new HashMap<>();
 		try {
 			FunctionDeclaration calleeFD = (FunctionDeclaration) odb.vertexToNode(functionDeclaration);
@@ -674,11 +674,11 @@ public class TypeStateAnalysis {
 			String calleeName = calleeFD.getName();
 
 			List<Vertex> calls = crymlinTraversalSource.byID((long) returnV.id())
-					.repeat(__().out("DFG"))
-					.until(
-						__().hasLabel(CallExpression.class.getSimpleName()))
-					.limit(5)
-					.toList();
+													   .repeat(__().out("DFG"))
+													   .until(
+															   __().hasLabel(CallExpression.class.getSimpleName()))
+													   .limit(5)
+													   .toList();
 
 			for (Vertex call : calls) {
 				CallExpression ce = (CallExpression) odb.vertexToNode(call);
@@ -691,11 +691,11 @@ public class TypeStateAnalysis {
 				 * edges.
 				 */
 				List<Vertex> callers = crymlinTraversalSource.byID((long) call.id())
-						.repeat(__().in("EOG"))
-						.until(
-							__().hasLabel(FunctionDeclaration.class.getSimpleName()))
-						.limit(50)
-						.toList();
+															 .repeat(__().in("EOG"))
+															 .until(
+																	 __().hasLabel(FunctionDeclaration.class.getSimpleName()))
+															 .limit(50)
+															 .toList();
 
 				for (Vertex callerV : callers) {
 					FunctionDeclaration caller = (FunctionDeclaration) odb.vertexToNode(callerV);
@@ -705,8 +705,8 @@ public class TypeStateAnalysis {
 					}
 					List<Expression> args = ce.getArguments();
 					FunctionDeclaration callee = ce.getInvokes()
-							.get(
-								0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
+												   .get(
+														   0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
 					List<ParamVariableDeclaration> params = callee.getParameters();
 
 					Set<Pair<Val, Val>> pToA = new HashSet<>();
@@ -743,11 +743,11 @@ public class TypeStateAnalysis {
 		 */
 		Set<Val> returnedVals = new HashSet<>();
 		List<Vertex> calls = crymlinTraversalSource.byID((long) v.id())
-				.repeat(__().out("DFG"))
-				.until(__().hasLabel(CallExpression.class.getSimpleName()))
-				.limit(
-					5)
-				.toList();
+												   .repeat(__().out("DFG"))
+												   .until(__().hasLabel(CallExpression.class.getSimpleName()))
+												   .limit(
+														   5)
+												   .toList();
 
 		for (Vertex call : calls) {
 			// We found the call site into our method. Now see if the return value is used.
@@ -762,11 +762,11 @@ public class TypeStateAnalysis {
 				// Finally we need to find out in which function the call site actually is
 				String callerFunctionName = null;
 				CrymlinTraversal<Vertex, Vertex> traversal = crymlinTraversalSource.byID((long) call.id())
-						.repeat(__().out("EOG"))
-						.until(__().in("STATEMENTS"))
-						//					.limit(10)
-						.in("STATEMENTS")
-						.in("BODY");
+																				   .repeat(__().out("EOG"))
+																				   .until(__().in("STATEMENTS"))
+																				   //					.limit(10)
+																				   .in("STATEMENTS")
+																				   .in("BODY");
 				//					.outV()
 				if (traversal.hasNext()) {
 					Vertex callerFunction = traversal.next();
@@ -800,12 +800,12 @@ public class TypeStateAnalysis {
 	 * @return
 	 */
 	private Set<PushRule<Stmt, Val, Weight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
-			NFA nfa, Stmt previousStmt, Stmt currentStmt, Vertex v, ArrayDeque<Vertex> worklist) {
+															 NFA nfa, Stmt previousStmt, Stmt currentStmt, Vertex v, ArrayDeque<Vertex> worklist) {
 		Set<NFATransition<Node>> relevantNFATransitions = nfa.getTransitions()
-				.stream()
-				.filter(
-					tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
-				.collect(Collectors.toSet());
+															 .stream()
+															 .filter(
+																	 tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
+															 .collect(Collectors.toSet());
 		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
@@ -819,7 +819,7 @@ public class TypeStateAnalysis {
 			// Parameters of function
 			if (potentialCallee.getParameters().size() != argVals.size()) {
 				log.warn("Skipping call from {} to {} due different argument/parameter counts.", currentFunctionName,
-					potentialCallee.getSignature());
+						 potentialCallee.getSignature());
 				continue;
 			}
 			List<Val> parmVals = parametersToVals(potentialCallee);
@@ -831,20 +831,20 @@ public class TypeStateAnalysis {
 				for (int i = 0; i < argVals.size(); i++) {
 					for (Vertex returnSiteVertex : returnSites) {
 						Stmt returnSite = new Stmt(
-							returnSiteVertex.property("code").orElse("").toString(),
-							new Region(
-								toIntExact((long) returnSiteVertex.property("startLine").value()),
-								toIntExact((long) returnSiteVertex.property("startColumn").value()),
-								toIntExact((long) returnSiteVertex.property("endLine").value()),
-								toIntExact((long) returnSiteVertex.property("endColumn").value())));
+								returnSiteVertex.property("code").orElse("").toString(),
+								new Region(
+										toIntExact((long) returnSiteVertex.property("startLine").value()),
+										toIntExact((long) returnSiteVertex.property("startColumn").value()),
+										toIntExact((long) returnSiteVertex.property("endLine").value()),
+										toIntExact((long) returnSiteVertex.property("endColumn").value())));
 
 						PushRule<Stmt, Val, Weight> pushRule = new PushRule<Stmt, Val, Weight>(
-							argVals.get(i),
-							currentStmt,
-							parmVals.get(i),
-							new Stmt(potentialCallee.getName(), potentialCallee.getRegion()),
-							returnSite,
-							weight);
+								argVals.get(i),
+								currentStmt,
+								parmVals.get(i),
+								new Stmt(potentialCallee.getName(), potentialCallee.getRegion()),
+								returnSite,
+								weight);
 						pushRules.add(pushRule);
 					}
 				}
@@ -860,9 +860,9 @@ public class TypeStateAnalysis {
 	private Vertex getFirstVertexInFunctionBody(CrymlinTraversalSource crymlinTraversalSource, FunctionDeclaration function) {
 		Benchmark query = new Benchmark(this.getClass(), "query");
 		Optional<Vertex> vOpt = crymlinTraversalSource.byID(function.getId())
-				.outE("BODY")
-				.inV()
-				.tryNext();
+													  .outE("BODY")
+													  .inV()
+													  .tryNext();
 		query.stop();
 		return vOpt.orElse(null);
 	}

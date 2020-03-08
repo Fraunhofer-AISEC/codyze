@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * This builtin checks if two mark vars are equal
  */
-public class 	Is implements Builtin {
+public class Is implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(Is.class);
 
 	@Override

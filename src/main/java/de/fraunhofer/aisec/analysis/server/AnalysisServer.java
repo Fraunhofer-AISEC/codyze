@@ -12,8 +12,9 @@ import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.Pass;
-import de.fraunhofer.aisec.crymlin.builtin.*;
+import de.fraunhofer.aisec.cpg.passes.*;
+import de.fraunhofer.aisec.crymlin.builtin.Builtin;
+import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -456,8 +457,7 @@ public class AnalysisServer {
 							.failOnError(false)
 							.codeInNodes(true)
 							.defaultPasses()
-							.sourceLocations(
-								files.toArray(new File[0]))
+							.sourceLocations(files.toArray(new File[0]))
 							.build())
 				.build();
 		return analyze(translationManager);

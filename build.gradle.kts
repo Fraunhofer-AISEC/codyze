@@ -103,7 +103,7 @@ val versions = mapOf(
         "tinkerpop" to "3.4.3",
         "neo4j-gremlin-bolt" to "0.3.1",
         "xml.bind" to "2.3.1",
-        "cpg" to "1.3.2",
+        "cpg" to "1.3.4-SNAPSHOT",
         "json" to "20190722"        
 )
 

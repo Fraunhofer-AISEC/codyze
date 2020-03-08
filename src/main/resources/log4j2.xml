@@ -12,8 +12,8 @@
         </Async>
     </Appenders>
     <Loggers>
-        <Logger level="DEBUG" name="de.fraunhofer.aisec"/>
-        <Root level="INFO">
+        <logger level="debug" name="de.fraunhofer.aisec"/>
+        <Root level="DEBUG">
             <AppenderRef ref="STDOUT"/>
             <AppenderRef ref="FILEOUT"/>
         </Root>

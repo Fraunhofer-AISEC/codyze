@@ -12,7 +12,6 @@ import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
-import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
@@ -141,14 +140,12 @@ public class TypeStateAnalysis {
 
 			// For debugging only: Print the non-saturated NFA
 			log.debug("Non saturated NFA {}", wnfa);
-			log.debug(wnfa.toDotString());
 		}
 		// Saturate the NFA from the WPDS, using the post-* algorithm.
 		wpds.poststar(wnfa);
 
 		// For debugging only: Print the post-*-saturated NFA
 		log.debug("Saturated WNFA {}", wnfa);
-		log.debug("Saturated WNFA {}", wnfa.toDotString());
 
 		// Evaluate saturated WNFA for any MARK violations
 		Set<Finding> findings = getFindingsFromWpds(wpds, wnfa, currentFile.getName());
@@ -378,22 +375,16 @@ public class TypeStateAnalysis {
 				NonNullPair<Vertex, Set<Stmt>> currentPair = worklist.pop();
 				Vertex v = currentPair.getValue0();
 				for (Stmt previousStmt : currentPair.getValue1()) {
-					log.debug("TYPE: {}", v.property("labels")
-										   .value());
-					String code = (String) v.property("code")
-											.orElse("");
-					log.debug("CODE: {}", code);
-
 					// We consider only "Statements" and CallExpressions in the EOG
 					if (isRelevantStmt(v)) {
 
 						Stmt currentStmt = vertexToStmt(v);
 						predecessors.put(v, previousStmt);
 
-						if (isRelevantStmt(v)) {
-							Statement callExpr = (Statement) odb.vertexToNode(v);
+						Statement stmtNode = (Statement) odb.vertexToNode(v);
+						if (stmtNode != null) {
 							/* First we create a normal rule from previous stmt to the current (=the call) */
-							Set<NormalRule<Stmt, Val, Weight>> normalRules = createNormalRules(tsNfa, callExpr, previousStmt, currentStmt, valsInScope);
+							Set<NormalRule<Stmt, Val, Weight>> normalRules = createNormalRules(tsNfa, stmtNode, previousStmt, currentStmt, valsInScope);
 							for (NormalRule<Stmt, Val, Weight> normalRule : normalRules) {
 								boolean skipIt = false;
 								if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
@@ -408,32 +399,29 @@ public class TypeStateAnalysis {
 								}
 							}
 
-							if (callExpr != null) {
-								if (isCallExpression(v) && !isPhantom((CallExpression) callExpr)) {
-									CallExpression callE = (CallExpression) callExpr;
-									/*
-									 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
-									 * "return site" is the statement to which flow returns after the function call.
-									 */
-									Set<PushRule<Stmt, Val, Weight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa, previousStmt,
-																								 currentStmt,
-																								 v, worklist);
-									for (PushRule<Stmt, Val, Weight> pushRule : pushRules) {
-										log.debug("  Adding push rule: {}", pushRule);
-										wpds.addRule(pushRule);
+							if (isCallExpression(v) && !isPhantom((CallExpression) stmtNode)) {
+								CallExpression callE = (CallExpression) stmtNode;
+								/*
+								 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
+								 * "return site" is the statement to which flow returns after the function call.
+								 */
+								Set<PushRule<Stmt, Val, Weight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa, previousStmt,
+																							 currentStmt,
+																							 v, worklist);
+								for (PushRule<Stmt, Val, Weight> pushRule : pushRules) {
+									log.debug("  Adding push rule: {}", pushRule);
+									wpds.addRule(pushRule);
 
-										// Remember that arguments flow only into callee and do not bypass it.
-										skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
-										predecessors.put(v, pushRule.getCallSite());
-										//previousStmt = pushRule.getCallSite(); // Previous stmt is return location
-									}
+									// Remember that arguments flow only into callee and do not bypass it.
+									skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
+									predecessors.put(v, pushRule.getCallSite());
 								}
-
 							}
-							/* "DeclarationStatements" result in a normal rule, assigning rhs to lhs. */
-						}
 
-						// TODO Be a bit more gracious here. Non-declared variable will be a BinaryOperator
+						}
+						/* "DeclarationStatements" result in a normal rule, assigning rhs to lhs. */
+
+						// TODO We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a BinaryOperator.
 						Iterator<Edge> declarations = v.edges(Direction.OUT, "DECLARATIONS");
 						if (isDeclarationStatement(v) && declarations.hasNext()) {
 							log.debug("Found variable declaration {}", v.property("code")
@@ -617,7 +605,7 @@ public class TypeStateAnalysis {
 		}
 
 		/*
-		 * Typestate analysis is finished. The results are as follows: 1) Transitions in WNFA with *empty weights* or weights into an ERROR type state indicate an error.
+		 * Typestate analysis is finished. The results are as follows: 1) Transitions in WNFA with *empty weights* or weights into an ZERO type state indicate an error.
 		 * Type state requirements are violated at this point. 2) If there is a path through the automaton leading to the END state, the type state specification is
 		 * completely covered by this path 3) If all transitions have proper type state weights but none of them leads to END, the type state is correct but incomplete.
 		 */
@@ -628,23 +616,13 @@ public class TypeStateAnalysis {
 	/**
 	 * Returns a set of Vertices which are successors of <code>v</code> in the EOG and are not contained in <code>alreadySeen</code>.
 	 *
-	 * Note: Because of https://github.com/Fraunhofer-AISEC/cpg/issues/64 we need to do jump through some hoops...
-	 *
 	 * @param v
 	 * @param alreadySeen
 	 * @return
 	 */
 	@NonNull
 	private Collection<? extends Vertex> getSuccessors(@NonNull final Vertex v, @NonNull final HashSet<Vertex> alreadySeen) {
-		int numberOfOutgoingEogs = 0;
-		Iterator<Edge> eogs = v.edges(Direction.OUT, "EOG");
-		while (eogs.hasNext()) {
-			numberOfOutgoingEogs++;
-			eogs.next();
-		}
-
 		Set<Vertex> unseenSuccessors = new HashSet<>();
-		// This is the ACTUAL code for this method
 		Vertex vertex = v;
 		Iterator<Edge> eogSuccessors = vertex.edges(Direction.OUT, "EOG");
 		while (eogSuccessors.hasNext()) {
@@ -682,13 +660,13 @@ public class TypeStateAnalysis {
 		return v.label().equals(DeclarationStatement.class.getSimpleName());
 	}
 
-	private Set<NormalRule<Stmt, Val, Weight>> createNormalRules(final NFA tsNfa, final Statement mce, final Stmt previousStmt, final Stmt currentStmt,
+	private Set<NormalRule<Stmt, Val, Weight>> createNormalRules(final NFA tsNfa, final Statement currentStmtNode, final Stmt previousStmt, final Stmt currentStmt,
 																 final Set<Val> valsInScope) {
 		Set<NormalRule<Stmt, Val, Weight>> result = new HashSet<>();
 		Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
 															   .stream()
 															   .filter(
-																	   tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
+																	   tran -> belongsToOp(currentStmtNode.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
 															   .collect(Collectors.toSet());
 		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
 
@@ -854,6 +832,7 @@ public class TypeStateAnalysis {
 					// return value is used. Remember variable name.
 					returnVar = nextDfgAftercall.get().property("name").value().toString();
 				}
+
 				// Finally we need to find out in which function the call site actually is
 				String callerFunctionName = null;
 				CrymlinTraversal<Vertex, Vertex> traversal = crymlinTraversalSource.byID((long) call.id())
@@ -862,7 +841,6 @@ public class TypeStateAnalysis {
 																				   //					.limit(10)
 																				   .in("STATEMENTS")
 																				   .in("BODY");
-				//					.outV()
 				if (traversal.hasNext()) {
 					Vertex callerFunction = traversal.next();
 					if (callerFunction != null) {
@@ -920,7 +898,7 @@ public class TypeStateAnalysis {
 			List<Val> parmVals = parametersToVals(potentialCallee);
 
 			// Get first statement of callee. This is the jump target of our Push Rule.
-			Statement firstStmt = getFirstStmtOfMethod(crymlinTraversal, potentialCallee);
+			Statement firstStmt = getFirstStmtOfMethod(potentialCallee);
 
 			if (firstStmt != null && firstStmt.getCode() != null) {
 				for (int i = 0; i < argVals.size(); i++) {
@@ -941,23 +919,13 @@ public class TypeStateAnalysis {
 				log.error("Unexpected: Found a method with body, but no first statement relevant for WPDS: {}", potentialCallee.getName());
 			}
 		}
+
 		return pushRules;
-
 	}
 
-	@Nullable
-	private Vertex getFirstVertexInFunctionBody(CrymlinTraversalSource crymlinTraversalSource, FunctionDeclaration function) {
-		Benchmark query = new Benchmark(this.getClass(), "query");
-		Optional<Vertex> vOpt = crymlinTraversalSource.byID(function.getId())
-													  .outE("BODY")
-													  .inV()
-													  .tryNext();
-		query.stop();
-		return vOpt.orElse(null);
-	}
 
 	@Nullable
-	private Statement getFirstStmtOfMethod(@NonNull CrymlinTraversalSource crymlinTraversalSource, @NonNull FunctionDeclaration potentialCallee) {
+	private Statement getFirstStmtOfMethod(@NonNull FunctionDeclaration potentialCallee) {
 		if (potentialCallee.getBody() != null) {
 			Statement firstStmt = potentialCallee.getBody();
 			while (firstStmt instanceof CompoundStatement) {
@@ -985,21 +953,6 @@ public class TypeStateAnalysis {
 			argVals.add(new Val(arg.getName(), currentFunctionName));
 		}
 		return argVals;
-	}
-
-	private Map<MOp, Set<Vertex>> getVerticesOfRule(MRule rule) {
-		Map<MOp, Set<Vertex>> opToVertex = new HashMap<>();
-		for (Map.Entry<String, Pair<String, MEntity>> entry : rule.getEntityReferences().entrySet()) {
-			MEntity ent = entry.getValue().getValue1();
-			if (ent == null) {
-				continue;
-			}
-			for (MOp op : ent.getOps()) {
-				Set<Vertex> vertices = op.getAllVertices();
-				opToVertex.put(op, vertices);
-			}
-		}
-		return opToVertex;
 	}
 
 	/**
@@ -1038,7 +991,7 @@ public class TypeStateAnalysis {
 		}
 
 		// Create statement for start configuration and create start CONFIG
-		WeightedAutomaton<Stmt, Val, Weight> wnfa = new WeightedAutomaton<Stmt, Val, Weight>(initialState) {
+		WeightedAutomaton<Stmt, Val, Weight> wnfa = new WeightedAutomaton<>(initialState) {
 			@Override
 			public Val createState(Val val, Stmt stmt) {
 				return val;

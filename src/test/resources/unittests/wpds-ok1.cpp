@@ -11,20 +11,22 @@
     p2.create();
 
     // Aliasing: Operations on p3 are now equal to p2
-    Botan2 p3 = p2;
+    //Botan2 p3 = p2;
 
     p2.init();
 
     // Continue in other function + alias to p4
-    Botan2 p4 = someFunction(p2);
+    p2.start();
 
     cout << "Some irrelevant stmt\n";
-    p3.process();
+    p2.process();
     p2.process();
 
     p2.process();
 
-    p4.finish();  // Finish on p4 alias
+    p2.finish();  // Finish on p4 alias
+
+    cout << "Worked.\n";
   }
 
   Botan2 someFunction(Botan2 x) {

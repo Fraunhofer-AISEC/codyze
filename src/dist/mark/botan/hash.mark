@@ -30,7 +30,7 @@ entity Botan.HashFunction {
 	}
 }
 
-rule Order {
+rule HashOrder {
 	using Botan.HashFunction as hf
 	ensure order 
 		hf.create(),
@@ -38,17 +38,10 @@ rule Order {
 			(hf.update()*, hf.finalize())
 			| hf.process()
 		)
-	onfail Order
+	onfail HashOrder
 		
 }
 
-
-
-/*
- * TODO: Botan supports creation of hash functions by inistantiating the respective classes. They are not modelled yet:
- * Botan::SHA_3_256, Botan::SHA_3_384, Botan::SHA_3_512, Botan::MDx_HashFunction(Botan::SHA_256, Botan::SHA_384, Botan::SHA_512_256, Botan::SHA_512)
- */
- 
  
  
  /*
@@ -69,7 +62,7 @@ rule Order {
  
  rule _4_01_HashFilter {
 	using Botan.Hash_Filter as hf
-	when _has_value(hf.request)   // TODO: Builtin _has_value
+	when _has_value(hf.request)
 	ensure hf.request in ["SHA-256", "SHA-512-256", "SHA-384", "SHA-512", "SHA3-256", "SHA3-384", "SHA3-512"]
 	onfail _01_HashFilter
 }

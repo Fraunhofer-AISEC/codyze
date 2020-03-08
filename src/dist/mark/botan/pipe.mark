@@ -85,3 +85,13 @@ rule PipeOrder {
 	onfail PipeOrder_Fail
 }
 
+
+rule UseOfPipe {
+	using Botan.Cipher_Mode as cm,
+		Botan.Pipe as p
+	ensure
+		_receives_value_from(p.filter, cm) ||
+		cm in p.filterList
+	onfail WrongUseOfBotan_CipherMode
+}
+

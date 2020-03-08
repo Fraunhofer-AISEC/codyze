@@ -8,7 +8,6 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TypestateMode;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.passes.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -74,18 +73,13 @@ public class AbstractMarkTest {
 		translationManager = TranslationManager.builder()
 				.config(
 					TranslationConfiguration.builder()
-											.debugParser(true)
-											.failOnError(false)
-											.codeInNodes(true)
-											.registerPass(new FilenameMapper())
-											.registerPass(new TypeHierarchyResolver())
-											.registerPass(new ImportResolver())
-											.registerPass(new VariableUsageResolver())
-											.registerPass(new CallResolver()) // creates CG
-											.registerPass(new BranchSemanticEOGPass()) // creates EOG
-											.loadIncludes(true)
-											.sourceLocations(javaFile)
-											.build())
+							.debugParser(true)
+							.failOnError(false)
+							.codeInNodes(true)
+							.defaultPasses()
+							.loadIncludes(true)
+							.sourceLocations(javaFile)
+							.build())
 				.build();
 		CompletableFuture<AnalysisContext> analyze = server.analyze(translationManager);
 		try {

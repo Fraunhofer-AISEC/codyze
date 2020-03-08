@@ -97,12 +97,12 @@ class WpdsTest extends AbstractMarkTest {
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.containsKey(10)); // create
 		assertFalse(startLineNumbers.get(10));
-		assertTrue(startLineNumbers.containsKey(13)); // init
-		assertFalse(startLineNumbers.get(13));
-		assertTrue(startLineNumbers.containsKey(29)); // start
-		assertFalse(startLineNumbers.get(29));
-		assertTrue(startLineNumbers.containsKey(31)); // process
-		assertFalse(startLineNumbers.get(31));
+		assertTrue(startLineNumbers.containsKey(15)); // init
+		assertFalse(startLineNumbers.get(15));
+		assertTrue(startLineNumbers.containsKey(21)); // start
+		assertFalse(startLineNumbers.get(21));
+		assertTrue(startLineNumbers.containsKey(22)); // process
+		assertFalse(startLineNumbers.get(22));
 		assertTrue(startLineNumbers.containsKey(24)); // process
 		assertFalse(startLineNumbers.get(24));
 		assertTrue(startLineNumbers.containsKey(26)); // finish
@@ -145,7 +145,7 @@ class WpdsTest extends AbstractMarkTest {
 	//@Disabled // Disabled as if-branches are not yet correctly translated into WPDS rules
 	void testWpdsOk3() throws Exception {
 		@NonNull
-		Set<Finding> findings = performTest("unittests/wpds-ok4.cpp", "unittests/wpds-3.mark");
+		Set<Finding> findings = performTest("unittests/wpds-ok3.cpp", "unittests/wpds-3.mark");
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
@@ -156,6 +156,31 @@ class WpdsTest extends AbstractMarkTest {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
 					}));
+
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		assertTrue(startLineNumbers.containsKey(9));
+		assertFalse(startLineNumbers.get(9));
+		assertTrue(startLineNumbers.containsKey(21));
+		assertFalse(startLineNumbers.get(21));
+		assertTrue(startLineNumbers.containsKey(24));
+		assertFalse(startLineNumbers.get(24));
+	}
+
+	@Test
+		//@Disabled // Disabled as if-branches are not yet correctly translated into WPDS rules
+	void testWpdsOk4() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("unittests/wpds-ok4.cpp", "unittests/wpds-4.mark");
+
+		// Extract <line nr, isProblem> from findings
+		Map<Integer, Boolean> startLineNumbers = findings.stream()
+														 .collect(Collectors.toMap(
+																 f -> f.getRanges().get(0).getStart().getLine(),
+																 f -> f.isProblem(),
+																 (isProblemA, isProblemB) -> {
+																	 System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+																	 return isProblemA && isProblemB;
+																 }));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.containsKey(16));

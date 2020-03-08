@@ -95,87 +95,109 @@ public class ConstantResolver {
 
 			// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
 			// one of them must have more information on the value of the operand
-			CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) vDeclaredReferenceExpr.id())
-					.repeat(in("EOG"))
-					.until(
-						is(variableDeclarationVertex))
-					.emit();
+			// this does not work, as a loop in the eog will result in an endless traversal here.
+			//			CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) vDeclaredReferenceExpr.id())
+			//					.repeat(in("EOG"))
+			//					.until(
+			//						is(variableDeclarationVertex))
+			//					.dedup();
 
-			while (traversal.hasNext()) {
-				Vertex tVertex = traversal.next();
-				log.debug("Check if is assignment to {}: {}", variableDeclarationVertex.property("code").value(), tVertex.property("code").value());
+			HashSet<Vertex> workList = new HashSet<>();
+			HashSet<Vertex> seen = new HashSet<>();
 
-				boolean isBinaryOperatorVertex = tVertex.label().contains(BinaryOperator.class.getSimpleName());
+			workList.add(vDeclaredReferenceExpr);
 
-				Iterator<Vertex> lhsVertices = tVertex.vertices(Direction.OUT, "LHS");
+			while (!workList.isEmpty()) {
+				HashSet<Vertex> nextWorklist = new HashSet<>();
 
-				if (isBinaryOperatorVertex
-						&& "=".equals(tVertex.property("operatorCode").value())
-						&& lhsVertices.hasNext()) {
-					// this is an assignment that may set the value of our operand
-					Vertex lhs = lhsVertices.next();
+				for (Vertex tVertex : workList) {
+					if (seen.contains(tVertex)) {
+						continue;
+					}
+					seen.add(tVertex);
 
-					Iterator<Vertex> assignees = lhs.vertices(Direction.OUT, "REFERS_TO");
-					if (assignees.hasNext() && assignees
-							.next()
-							.id()
-							.equals(variableDeclarationVertex.id())) {
-						log.debug("   LHS of this node is interesting. Will evaluate RHS: {}", tVertex.property("code").value());
-						Vertex rhs = tVertex.vertices(Direction.OUT, "RHS")
-								.next();
+					boolean isBinaryOperatorVertex = tVertex.label().contains(BinaryOperator.class.getSimpleName());
 
-						boolean isRhsLiteral = rhs.label().equals(Literal.class.getSimpleName());
-						boolean isRhsExpressionList = rhs.label().equals(ExpressionList.class.getSimpleName());
+					Iterator<Vertex> lhsVertices = tVertex.vertices(Direction.OUT, "LHS");
 
-						if (isRhsLiteral) {
-							Object literalValue = rhs.property("value").value();
+					if (isBinaryOperatorVertex
+							&& "=".equals(tVertex.property("operatorCode").value())
+							&& lhsVertices.hasNext()) {
+						// this is an assignment that may set the value of our operand
+						Vertex lhs = lhsVertices.next();
 
-							Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
-							if (constantValue.isPresent()) {
-								return constantValue;
-							}
+						Iterator<Vertex> assignees = lhs.vertices(Direction.OUT, "REFERS_TO");
+						if (assignees.hasNext() && assignees
+								.next()
+								.id()
+								.equals(variableDeclarationVertex.id())) {
+							log.debug("   LHS of this node is interesting. Will evaluate RHS: {}", tVertex.property("code").value());
+							Vertex rhs = tVertex.vertices(Direction.OUT, "RHS")
+									.next();
 
-							log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
-						} else if (isRhsExpressionList
-								&& rhs.edges(Direction.IN, "EOG").hasNext()) {
-							// C/C++ assigns last expression in list.
-							Vertex lastExpressionInList = rhs.edges(Direction.IN, "EOG")
-									.next()
-									.outVertex();
+							boolean isRhsLiteral = rhs.label().equals(Literal.class.getSimpleName());
+							boolean isRhsExpressionList = rhs.label().equals(ExpressionList.class.getSimpleName());
 
-							if (Utils.hasLabel(lastExpressionInList, Literal.class)) {
-								// If last expression is Literal --> assign its value immediately.
-								Object literalValue = lastExpressionInList.property("value").value();
+							if (isRhsLiteral) {
+								Object literalValue = rhs.property("value").value();
+
 								Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
 								if (constantValue.isPresent()) {
 									return constantValue;
 								}
+
 								log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
-							} else if (lastExpressionInList.label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
-								// Get declaration of the variable used as last item in expression list
-								Iterator<Edge> refersTo = lastExpressionInList.edges(Direction.IN, "DFG");
-								if (refersTo.hasNext()) {
-									Vertex v = refersTo.next().outVertex();
-									if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
-										ConstantResolver resolver = new ConstantResolver(this.dbType);
-										Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(v, lastExpressionInList);
-										if (constantValue.isPresent()) {
-											return constantValue;
+							} else if (isRhsExpressionList
+									&& rhs.edges(Direction.IN, "EOG").hasNext()) {
+								// C/C++ assigns last expression in list.
+								Vertex lastExpressionInList = rhs.edges(Direction.IN, "EOG")
+										.next()
+										.outVertex();
+
+								if (Utils.hasLabel(lastExpressionInList, Literal.class)) {
+									// If last expression is Literal --> assign its value immediately.
+									Object literalValue = lastExpressionInList.property("value").value();
+									Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
+									if (constantValue.isPresent()) {
+										return constantValue;
+									}
+									log.warn("Unknown literal type encountered: {} (value: {})", literalValue.getClass(), literalValue);
+								} else if (lastExpressionInList.label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
+									// Get declaration of the variable used as last item in expression list
+									Iterator<Edge> refersTo = lastExpressionInList.edges(Direction.IN, "DFG");
+									if (refersTo.hasNext()) {
+										Vertex v = refersTo.next().outVertex();
+										if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
+											ConstantResolver resolver = new ConstantResolver(this.dbType);
+											Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(v, lastExpressionInList);
+											if (constantValue.isPresent()) {
+												return constantValue;
+											}
+										} else {
+											log.warn("Last expression in ExpressionList does not have a VariableDeclaration. Cannot resolve its value: {}",
+												lastExpressionInList.property("code").value());
 										}
 									} else {
-										log.warn("Last expression in ExpressionList does not have a VariableDeclaration. Cannot resolve its value: {}",
+										log.warn("Last expression in ExpressionList has no incoming DFG. Cannot resolve its value: {}",
 											lastExpressionInList.property("code").value());
 									}
-								} else {
-									log.warn("Last expression in ExpressionList has no incoming DFG. Cannot resolve its value: {}",
-										lastExpressionInList.property("code").value());
 								}
 							}
+							log.error("Value of operand set in assignment expression");
+							return Optional.empty();
 						}
-						log.error("Value of operand set in assignment expression");
-						return Optional.empty();
+					}
+					if (tVertex != variableDeclarationVertex) { // stop once we are at the declaration
+						Iterator<Edge> eog = tVertex.edges(Direction.IN, "EOG");
+						while (eog.hasNext()) {
+							Vertex vertex = eog.next().outVertex();
+							if (!seen.contains(vertex)) {
+								nextWorklist.add(vertex);
+							}
+						}
 					}
 				}
+				workList = nextWorklist;
 			}
 
 			// we arrived at the declaration of the variable

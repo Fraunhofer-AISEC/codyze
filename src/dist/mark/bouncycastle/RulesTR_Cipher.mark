@@ -6,12 +6,12 @@ package bsi.tr_02102_1
  * BouncyCastle/JCA uses underscore in the security standard names.
  */
 rule ID_2_01 {
-    using
+	using
         Cipher as c
     ensure
     	/* BSI TR-02102-1, ID 2.01  */
         _split(c.transform, "/", 0) in ["AES_128", "AES_192", "AES_256"] /* don't allow plain `AES`, because it is unclear which one it maps to */
-//        || _split(c.transform, "/", 0) in ["AES", "AES_128", "AES_192", "AES_256"]
+        || _split(c.transform, "/", 0) in ["RSA"]
     onfail
         Invalid_TR21021_Cipher
 }
@@ -261,31 +261,44 @@ rule ID_3_3_04 {
 
 
 /**
- * TODO Encryption with RSA -- padding
+ * RSA with EME-OAEP encoding method
  */
 rule ID_3_5_01 {
 	using
 		Cipher as c
 	when
 		_split(c.transform, "/", 0) == "RSA"
-		&& c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
+		&& (
+			c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
+			|| c.opmode == "javax.crypto.Cipher.DECRYPT_MODE"
+			)
 	ensure
-		false // TODO map padding between java and tr
+		_split(c.transform, "/", 2) in [
+				// "OAEPWITHSHA1ANDMGF1PADDING", "OAEPWITHSHA-1ANDMGF1PADDING" // recommended by referenced RFC 8017, but not a recommended hash function by BSI
+				// "OAEPWITHSHA224ANDMGF1PADDING", "OAEPWITHSHA-224ANDMGF1PADDING", // recommended by referenced RFC 8017, but not a recommended hash function by BSI
+				"OAEPWITHSHA256ANDMGF1PADDING", "OAEPWITHSHA-256ANDMGF1PADDING",
+				"OAEPWITHSHA384ANDMGF1PlADDING", "OAEPWITHSHA-384ANDMGF1PADDING",
+				"OAEPWITHSHA512ANDMGF1PADDING", "OAEPWITHSHA-512ANDMGF1PADDING"//,
+				// "OAEPWITHSHA3-256ANDMGF1PADDING", // not listed by referenced RFC 8017, but recommended hash function by BSI
+				// "OAEPWITHSHA3-384ANDMGF1PADDING", // not listed by referenced RFC 8017, but recommended hash function by BSI
+				// "OAEPWITHSHA3-512ANDMGF1PADDING" // not listed by referenced RFC 8017, but recommended hash function by BSI
+			]
 	onfail
 		InvalidRSAPadding
 }
 
 /**
- * TODO Encryption with RSA -- keylength
+ * RSA key length (length of modulus)
  */
 rule ID_3_5_02 {
 	using
-		Cipher as c
+		Cipher as c,
+		RSAPublicKeySpec as pubKey
 	when
 		_split(c.transform, "/", 0) == "RSA"
 		&& c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
 	ensure
-		false // TODO map padding between java and tr
+		false // TODO
 	onfail
 		InsufficientRSAKeylength // FIXME valid until 2022
 }

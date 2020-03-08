@@ -11,34 +11,71 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JCATest extends AbstractMarkTest {
 
-	@Disabled
 	@Test
-	public void testSimpleBlockCipher() throws Exception {
-		// Just a very simple test to explore the graph
-		Set<Finding> findings = performTest("java/jca/BlockCipher.java", "dist/mark/bouncycastle/");
+	public void testBlockCipher() throws Exception {
+		Set<Finding> findings = performTest("java/jca/BlockCipher.java", "mark/bouncycastle/");
 
-		System.out.println("\n\n\n");
-		findings.stream().filter(f -> f.isProblem()).forEach(System.out::println);
-		System.out.println("\n");
-		findings.stream().filter(f -> !f.isProblem()).forEach(System.out::println);
-		System.out.println("\n\n\n");
+		expected(findings,
+			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
+			"line 32: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
+			"line 41: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 
-		//assertEquals(1, findings.stream().filter(Finding::isProblem).count()); // MockWhen1 results in a finding.
+			"line 23: MarkRuleEvaluationFinding: Rule ID_2_2_01 violated", // todo: rule broken, might also be a problem in the analysis
+			"line 32: MarkRuleEvaluationFinding: Rule ID_2_2_01 violated", // todo: rule broken, might also be a problem in the analysis
+			"line 41: MarkRuleEvaluationFinding: Rule ID_2_2_01 violated", // todo: rule broken, might also be a problem in the analysis
+			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok
+			"line 32: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok
+			"line 41: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok
+			"line 14: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
+			"line 50: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
+			"line 59: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
+			"line 68: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
+			"line 77: MarkRuleEvaluationFinding: Rule ID_2_01 violated" // ok
+		);
 	}
 
-	@Disabled
 	@Test
-	public void testGCMCipherMode() throws Exception {
-		// Just a very simple test to explore the graph
-		Set<Finding> findings = performTest("java/jca/AESGCM.java", "dist/mark/bouncycastle/");
+	public void testAESGCM() throws Exception {
+		Set<Finding> findings = performTest("java/jca/AESGCM.java", "mark/bouncycastle/");
 
-		for (Finding f : findings) {
-			System.out.printf("%s\t", f.isProblem() ? "PROBLEM" : "NORMAL");
-			System.out.printf("%s\t", f.getOnfailIdentifier());
-			System.out.print(f.getRanges());
-			System.out.printf("\t%s", f.getLogMsg());
-		}
-		//assertEquals(1, findings.stream().filter(Finding::isProblem).count()); // MockWhen1 results in a finding.
+		expected(findings, "line 22: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
+			"line 22: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified", // ok
+
+			"line [22, 30]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated" // todo rule needs to be improved
+		);
+	}
+
+	@Test
+	public void testBCMacs() throws Exception {
+		Set<Finding> findings = performTest("java/jca/BCMacs.java", "mark/bouncycastle/");
+
+		expected(findings, "line 25: MarkRuleEvaluationFinding: Rule ID_5_3_01 verified", // ok
+
+			"line 25: MarkRuleEvaluationFinding: Rule ID_5_3_03_CMAC violated", // todo rule needs to be improved
+			"line 25: MarkRuleEvaluationFinding: Rule ID_5_3_02_GMAC violated", // todo rule needs to be improved
+			"line 25: MarkRuleEvaluationFinding: Rule ID_5_3_03_GMAC violated" // todo rule needs to be improved
+		);
+	}
+
+	@Test
+	public void testMacTest() throws Exception {
+		Set<Finding> findings = performTest("java/jca/MacTest.java", "mark/bouncycastle/");
+
+		expected(findings, "line 41: MarkRuleEvaluationFinding: Rule ID_5_3_01 violated", // ok
+			"line 41: MarkRuleEvaluationFinding: Rule ID_5_3_03_CMAC violated", // TODO: rule needs to be improved
+			"line 41: MarkRuleEvaluationFinding: Rule ID_5_3_03_GMAC violated" // TODO: rule needs to be improved
+		);
+	}
+
+	@Test
+	public void testRSACipherTest() throws Exception {
+		Set<Finding> findings = performTest("java/jca/RSACipherTest.java", "mark/bouncycastle/");
+
+		expected(findings,
+			"line 55: MarkRuleEvaluationFinding: Rule ID_3_5_02 violated", // TODO: rule needs to be improved
+			"line 55: MarkRuleEvaluationFinding: Rule ID_3_5_01 violated", // ok, unknown parameter
+			"line 55: MarkRuleEvaluationFinding: Rule ID_2_01 violated" // ok, unknown parameter
+		);
 	}
 
 }

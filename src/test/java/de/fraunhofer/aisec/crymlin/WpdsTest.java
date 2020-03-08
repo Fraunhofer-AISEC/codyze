@@ -167,20 +167,20 @@ class WpdsTest extends AbstractMarkTest {
 	}
 
 	@Test
-		//@Disabled // Disabled as if-branches are not yet correctly translated into WPDS rules
+	//@Disabled // Disabled as if-branches are not yet correctly translated into WPDS rules
 	void testWpdsOk4() throws Exception {
 		@NonNull
 		Set<Finding> findings = performTest("unittests/wpds-ok4.cpp", "unittests/wpds-4.mark");
 
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
-														 .collect(Collectors.toMap(
-																 f -> f.getRanges().get(0).getStart().getLine(),
-																 f -> f.isProblem(),
-																 (isProblemA, isProblemB) -> {
-																	 System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
-																	 return isProblemA && isProblemB;
-																 }));
+				.collect(Collectors.toMap(
+					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.containsKey(16));

@@ -456,12 +456,7 @@ public class AnalysisServer {
 							.debugParser(true)
 							.failOnError(false)
 							.codeInNodes(true)
-							.registerPass(new FilenameMapper())
-							.registerPass(new TypeHierarchyResolver())
-							.registerPass(new ImportResolver())
-							.registerPass(new VariableUsageResolver())
-							.registerPass(new CallResolver()) // creates CG
-							.registerPass(new BranchSemanticEOGPass()) // creates EOG
+							.defaultPasses()
 							.sourceLocations(files.toArray(new File[0]))
 							.build())
 				.build();

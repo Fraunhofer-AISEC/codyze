@@ -182,7 +182,7 @@ public class OGMTest {
 		assertEquals(1, lhsEdges.size());
 
 		ArrayList<Edge> oegEdges = Lists.newArrayList(conditionExpr.edges(Direction.OUT, "EOG"));
-		assertEquals(1, oegEdges.size());
+		assertEquals(2, oegEdges.size());
 	}
 
 	@Test

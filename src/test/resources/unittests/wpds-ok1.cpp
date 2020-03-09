@@ -1,7 +1,3 @@
-
-// DOES NOT COMPILE
-// DOES NOT MAKE REAL SENSE
-
 // EXAMPLES FOR CORRECT INTERPROCEDURAL TYPESTATE.
 
 // allowed:
@@ -15,20 +11,24 @@
     p2.create();
 
     // Aliasing: Operations on p3 are now equal to p2
-    //Botan2 p3 = p2;
+    Botan2 p3 = p2;
 
     p2.init();
-    p2.start();
 
-    p2.process();
-    p2.process();
+    // Continue in other function + alias to p4
+    Botan2 p4 = someFunction(p2);
 
-    p2.process();
-
-    p2.finish();
-
-    //NOT OK: Calling process() again
+    cout << "Some irrelevant stmt\n";
+    p3.process();
     p2.process();
 
-    printf("%s", "Blubb");
+    p2.process();
+
+    p4.finish();  // Finish on p4 alias
+  }
+
+  Botan2 someFunction(Botan2 x) {
+    // The missing start() is here
+    x.start();
+    return x;
   }

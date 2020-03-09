@@ -9,7 +9,7 @@ description: >
 
 Codyze is a static analysis tool to support developers in correctly using cryptographic libraries. 
 
-Cryptography is hard and implementing it correctly is even harder. Luckily, there are well-established and battle-proved libraries available that do the heavy lifting of efficient and side-channel resilient implementation of cryptographic primitives. But even when using these libraries in application code, developers run the risk of making subtle errors that may undermine the security of their application. This is where {{< param product >}} helps. It integrates into the IDE or CI pipeline, analyses source code and tells developers if they are using cryptographic libraries in a correct or in an insecure way.
+Cryptography is hard and implementing it correctly is even harder. Luckily, there are well-established and battle-proven libraries available that do the heavy lifting of efficient and side-channel resilient implementation of cryptographic primitives. But even when using these libraries in application code, developers run the risk of making subtle errors that may undermine the security of their application. This is where {{< param product >}} helps. It integrates into the IDE or CI pipeline, analyses source code and tells developers if they are using cryptographic libraries in a correct or in an insecure way.
 
 
 ## How does it work?

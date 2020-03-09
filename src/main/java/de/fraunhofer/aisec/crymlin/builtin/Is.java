@@ -7,16 +7,12 @@ import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * This builtin checks if two mark vars are equal

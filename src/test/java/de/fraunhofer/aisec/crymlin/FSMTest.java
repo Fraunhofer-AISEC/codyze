@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -114,15 +113,15 @@ class FSMTest {
 					+ "\t-> cm.finish(3)\n"
 					+ "\t-> cm.process(4)\n"
 					+ "cm.finish (3)\n"
-					+ "\t-> END(5)\n"
+					+ "\t-> END (E)(5)\n"
 					+ "\t-> cm.reset(6)\n"
 					+ "\t-> cm.start(2)\n"
 					+ "cm.process (4)\n"
 					+ "\t-> cm.finish(3)\n"
 					+ "\t-> cm.process(4)\n"
-					+ "END (5)\n"
+					+ "END (E) (5)\n"
 					+ "cm.reset (6)\n"
-					+ "\t-> END(5)\n",
+					+ "\t-> END (E)(5)\n",
 			fsm.toString());
 	}
 
@@ -137,11 +136,11 @@ class FSMTest {
 					+ "\t-> cm.finish(2)\n"
 					+ "\t-> cm.start(3)\n"
 					+ "cm.finish (2)\n"
-					+ "\t-> END(4)\n"
+					+ "\t-> END (E)(4)\n"
 					+ "cm.start (3)\n"
 					+ "\t-> cm.finish(2)\n"
 					+ "\t-> cm.start(3)\n"
-					+ "END (4)\n",
+					+ "END (E) (4)\n",
 			fsm.toString());
 	}
 
@@ -158,8 +157,8 @@ class FSMTest {
 					+ "\t-> cm.finish(3)\n"
 					+ "\t-> cm.start(2)\n"
 					+ "cm.finish (3)\n"
-					+ "\t-> END(4)\n"
-					+ "END (4)\n",
+					+ "\t-> END (E)(4)\n"
+					+ "END (E) (4)\n",
 			fsm.toString());
 	}
 

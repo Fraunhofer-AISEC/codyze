@@ -1,0 +1,12 @@
+package rules.bsi.tr_02102_1.v2019_01
+
+rule ID_5_4_01 {
+    using 
+        Signature as s
+    ensure 
+        s.algorithm in [
+            ""
+        ]
+    onfail
+        InvalidSignatureAlgorithm
+}

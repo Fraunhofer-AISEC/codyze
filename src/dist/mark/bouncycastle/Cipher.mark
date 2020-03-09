@@ -24,7 +24,11 @@ entity Cipher {
         javax.crypto.Cipher.getInstance(transform : java.lang.String);
         javax.crypto.Cipher.getInstance(
             transform : java.lang.String,
-            provider : java.lang.String | java.security.Provider
+            provider : java.lang.String
+        );
+        javax.crypto.Cipher.getInstance(
+            transform : java.lang.String,
+            provider : java.security.Provider
         );
     }
     
@@ -50,24 +54,22 @@ entity Cipher {
         javax.crypto.Cipher.init(
             opmode : int,
             key : java.security.Key,
-            params : javax.crypto.spec.GCMParameterSpec
-        );
-        javax.crypto.Cipher.init(
-            opmode : int,
-            key : java.security.Key,
             params : java.security.AlgorithmParameters,
             random : java.security.SecureRandom
         );
         javax.crypto.Cipher.init(
             opmode : int,
+            key : java.security.Key,
             random : java.security.SecureRandom
         );
         javax.crypto.Cipher.init(
             opmode : int,
+            key : java.security.Key,
             paramspec : java.security.spec.AlgorithmParameterSpec
         );
         javax.crypto.Cipher.init(
             opmode : int,
+            key : java.security.Key,
             paramspec : java.security.spec.AlgorithmParameterSpec,
             random : java.security.SecureRandom
         );

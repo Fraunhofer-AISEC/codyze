@@ -7,13 +7,18 @@ entity Mac {
     
     var algorithm;
     var provider;
+    
     var key;
     var params;
+    
     var input;
     var output;
     
+    
     op instantiate {
-        javax.crypto.Mac.getInstance(algorithm : java.lang.String);
+        javax.crypto.Mac.getInstance(
+            algorithm : java.lang.String
+        );
         javax.crypto.Mac.getInstance(
             algorithm : java.lang.String,
             provider : java.lang.String | java.security.Provider

@@ -5,15 +5,17 @@
 #include <botan/auto_rng.h>
 #include <botan/rng.h>
 #include <iostream>
+#include <botan/ec_group.h>
+#include <botan/ecies.h>
 int main (int argc, char* argv[]) {
   if(argc!=2)
      return 1;
   std::string plaintext("Your great-grandfather gave this watch to your granddad for good luck. Unfortunately, Dane's luck wasn't as good as his old man's.");
   std::vector<uint8_t> pt(plaintext.data(),plaintext.data()+plaintext.length());
-  Botan::AutoSeeded_RNG rng();
+  Botan::AutoSeeded_RNG rng;
 
   //load keypair
-  Botan::Private_Key kp(Botan::PKCS8::load_key(argv[1], rng));
+  Botan::Private_Key* kp(Botan::PKCS8::load_key(argv[1], rng));
 
   Botan::EC_Group ec_group("brainpoolP256r1");
 

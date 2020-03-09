@@ -205,6 +205,7 @@ rule ID_2_2_02 {
         _split(c.transform, "/", 0) in ["AES"]
         && _split(c.transform, "/", 1) in ["CTR"]
     ensure
+        // TODO insufficient application of MAC; MAC over complete stream required
         _is(c.output, m.input)
     onfail
         InsufficientAESCTRIntegrityProtection

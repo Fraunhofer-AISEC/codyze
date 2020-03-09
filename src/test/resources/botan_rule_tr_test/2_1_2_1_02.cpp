@@ -19,6 +19,5 @@ int main() {
    enc->start(rng.random_vec(enc->default_nonce_length()));
    enc->finish(pt);
 
-   std::cout << enc->name() << " with iv " << Botan::hex_encode(iv) << " " << Botan::hex_encode(pt) << "\n";
    return 0;
 }

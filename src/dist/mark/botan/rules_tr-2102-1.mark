@@ -23,16 +23,24 @@ rule _2_1_01_Modes {
 	onfail WrongMode
 }
 
+// NOTE: rule 2.1.2.1.01 seems to be not checkable.
+
+
+// TODO rule 2.1.2.2.02
+
+
 rule _2_1_2_1_02_CCM_TagSize {
 	using Botan.Cipher_Mode as cm
-	when _split(cm.algorithm, "/", 1) == "CCM"
+	when _starts_with(_split(cm.algorithm, "/", 1), "CCM")
 	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 8 // 8 byte = 64 bit
 	onfail  _2_1_2_2_03_GCM_TagSize
 }
 
+// NOTE: rule 2.1.2.2.01 seems to be not checkable
+
 rule _2_1_2_2_03_GCM_TagSize {
 	using Botan.Cipher_Mode as cm
-	when _split(cm.algorithm, "/", 1) == "GCM"
+	when _starts_with(_split(cm.algorithm, "/", 1), "GCM")
 	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 12 // 12 byte = 96 bit
 	onfail  _2_1_2_2_03_GCM_TagSize
 }
@@ -42,24 +50,24 @@ rule _2_1_2_3_01_CBC_RandomIV  {
 		Botan.RNG as rng
 	when 
 		_split(cm.algorithm, "/", 1) == "CBC" 
-		&& cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
+		// && cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
 	ensure
 		_receives_value_from(cm.iv, rng.random_data)
 	onfail NoRandomIV	
 }
 
-/*rule NonRepeatedIV {
- Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
-	wird erreicht in dem wir versichern, dass der Wert des IV direkt aus rng.random_data kommt, da das bedeutet, dass damit neue Zufallszahlen generiert werden
-	TODO: ist das wirklich aussreichend?
+// TODO 2.1.2.4.01
 
-	using Botan.Cipher_Mode as cm,
-		Botan.RNG as rng
-	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
-	ensure
-		_receives_value_directly_from(cm.iv, rng.random_data)
-	onfail RepeatedIV 
-}*/
+
+// TODO 2.1.3.01
+
+
+// TODO 2.2.01
+
+// TODO 2.2.02
+
+
+// Note: this seems internally guarenteed by Botan's ECIES_Encryptor
 
 
 
@@ -71,6 +79,25 @@ rule _3_3_02_CurveParams {
 	onfail TR02102_3_3_02_CurveParams
 }
 
+// TODO 3.3.03
+
+
+// NOTE: Rule 3.3.04 is included in checking rule _3_3_02_CurveParams
+
+
+// TODO 3.4.01
+
+
+// TODO 3.4.02
+
+
+// TODO 3.4.03
+
+
+// TODO 3.5.01
+
+
+// TODO 3.5.02
 
 // Botan provides options for combining hash functions in "Parallel" and "Comp4P". This is not covered here.
 rule _4_01_HashFunctions {
@@ -163,3 +190,8 @@ rule _5_4_3_01_ECDSA_SIG {
 	onfail
 		_5_4_3_01_ECDSA_SIG
 }
+
+
+// NOTE: Rule 5.4.3.02 is included in checking rule _3_3_02_CurveParams
+
+

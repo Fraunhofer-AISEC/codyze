@@ -7,7 +7,7 @@ because ‘bare’ public key operations are very insecure. The only purpose of 
 interface that higher level operations can be built on. So really the only thing you need to know is that when a function
 takes a reference to a Public_Key, it can take any public key or private key, and similiarly for Private_Key."
 * 
-* TODO: shall we forbid these ops?
+* Note: maybe forbid these ops?
  */
 
 
@@ -34,12 +34,11 @@ entity Botan.Private_Key {
 		
 		
 		/* 
-		 * From Botan Handbook The optional x parameter to each of these constructors is a private key value. This allows you to create keys
+		 * From Botan Handbook: The optional x parameter to each of these constructors is a private key value. This allows you to create keys
 			where the private key is formed by some special technique; for instance you can use the hash of a password (see
 			PBKDF Algorithms for how to do that) as a private key value. Normally, you would leave the value as zero,
 			letting the class generate a new random key. 
-		 * TODO: Is this optional parameter safe to use?  - Forbid it for now
-		 * We would probably have to check some other conditions to see if the key was generated sanely (e.g., from a RNG, or using a password hash)
+		 * NOTE: We do not see a safe use case for x here - Forbid it for now
 		*/
 		
 		forbidden Botan::DSA_PrivateKey::DSA_PrivateKey(rng, dl_group, _);
@@ -53,14 +52,14 @@ entity Botan.Private_Key {
 	}
 	
 	op load {
-		// TODO: mark cannot parse the template parameter function: Botan::PKCS8::load_key(key_source, get_pass_function: std::function< std::string()>);
+		// NOTE: there is another function 'Botan::PKCS8::load_key(key_source, get_pass_function: std::function< std::string()>);' but MARK cannot parse the template parameter function
 		Botan::PKCS8::load_key(key_source, password: std::string);
 		Botan::PKCS8::load_key(key_source);
 		
-		// Ignored parameter is an rng (see botan docs: "rng	ignored for compatability"
-		// TODO: mark cannot parse the template parameter function: Botan::PKCS8::load_key(key_source, _, get_pass_function: std::function< std::string()>);
-		Botan::PKCS8::load_key(key_source, _, password: std::string);
-		Botan::PKCS8::load_key(key_source, _);
+		
+		// NOTE: there is another function 'Botan::PKCS8::load_key(key_source, _, get_pass_function: std::function< std::string()>);' but mark cannot parse the template parameter function: 
+		Botan::PKCS8::load_key(key_source, _, password: std::string); // Ignored parameter is an rng (see botan docs: "rng	ignored for compatability)"
+		Botan::PKCS8::load_key(key_source, _); // Ignored parameter is an rng (see botan docs: "rng	ignored for compatability)"
 	}
 	
 	op check_key {
@@ -77,7 +76,7 @@ entity Botan.Private_Key {
 		Botan::GOST_3410_PrivateKey::GOST_3410_PrivateKey::check_key();
 	}
 	
-	//TODO are encoding-ops and other ops necessary to model? Botan::PKCS8 Namespace 
+	//Note maybe model Botan::PKCS8::BER_encode and Botan::PKCS8::PEM_encode if needed
 }
 
 
@@ -87,12 +86,12 @@ entity Botan.Private_Key {
 	If a key from an untrusted source is not checked, the implementation might be vulnerable to algorithm specific attacks. 
  * 
  */
-rule Order {
+rule PrivKeyOrder {
 	using Botan.Private_Key as pk
 	ensure order
 		pk.create() 
 		| (pk.load(), pk.check_key())
-	onfail Order
+	onfail PrivKeyOrder
 }
 
 /* Note: there are other Priv/Pub Key classes. Check the Botan class hierarchy

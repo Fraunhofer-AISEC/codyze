@@ -67,7 +67,7 @@ rule _2_1_2_3_01_CBC_RandomIV  {
 // TODO 2.2.02
 
 
-// Note: this seems internally guarenteed by Botan's ECIES_Encryptor
+// Note: rule 3.3.01 seems internally guarenteed by Botan's ECIES_Encryptor
 
 
 
@@ -85,7 +85,11 @@ rule _3_3_02_CurveParams {
 // NOTE: Rule 3.3.04 is included in checking rule _3_3_02_CurveParams
 
 
-// TODO 3.4.01
+rule _3_4_01_DLIES_KDF {
+	using Botan.DLIES_Encryptor as de
+	ensure de.kdf.algorithm in ["SP800-56C"]
+	onfail _3_4_01_DLIES_KDF
+}
 
 
 // TODO 3.4.02

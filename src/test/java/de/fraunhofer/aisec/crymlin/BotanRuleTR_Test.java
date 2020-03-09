@@ -134,12 +134,6 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		// TODO: there is no sufficient MARK-rule yet
 	}
 
-	@Disabled
-	@Test
-	public void test_rule_3_3_01() throws Exception {
-		// Note: will not be checked. Is part of Botan
-	}
-
 	@Test
 	public void test_rule_3_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/3_3_02.cpp", "dist/mark/botan/");

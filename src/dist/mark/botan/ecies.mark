@@ -10,7 +10,7 @@ entity Botan.EC_Group {
 
 entity Botan.ECIES_Params {
 	var ec_group: Botan.EC_Group;
-	var kdf_spec;
+	var kdf_spec: Botan.KDF;
 	var block_cipher_algo_spec;
 	var block_cipher_key_len;
 	var mac_spec;

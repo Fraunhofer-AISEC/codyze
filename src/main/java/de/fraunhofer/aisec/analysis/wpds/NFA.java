@@ -19,6 +19,11 @@ public class NFA {
 	private Set<Node> startNodes = null;
 
 	final private Node START = new Node("START", "START");
+	final static public Node ERROR;
+	static {
+		ERROR = new Node("ERROR", "ERROR");
+		ERROR.setError(true);
+	}
 
 	/* Set of transitions between states */
 	private Set<NFATransition<Node>> transitions = new HashSet<>();
@@ -47,13 +52,21 @@ public class NFA {
 		return Set.copyOf(this.transitions);
 	}
 
-	public boolean handleEvent(String event) {
+	public void clear() {
+		this.transitions.clear();
+	}
+
+	public void addTransition(NFATransition<Node> t) {
+		this.transitions.add(t);
+	}
+
+	public boolean handleEvent(NFATransition<Node> event) {
 		boolean didTransition = false;
 		Iterator<Node> it = currentConfiguration.iterator();
 		while (it.hasNext()) {
 			Node currentConfig = it.next();
 			List<Node> possibleTargets = this.transitions.stream()
-					.filter(t -> t.getSource().equals(currentConfig) && t.getLabel().equals(event))
+					.filter(t -> t.getSource().equals(currentConfig) && t.getSource().equals(event.getSource()) && t.getLabel().equals(event.getLabel()))
 					.map(
 						NFATransition::getTarget)
 					.collect(Collectors.toList());
@@ -94,7 +107,7 @@ public class NFA {
 		Node start = new Node(null, "BEGIN");
 		start.setStart(true);
 
-		HashSet<Node> currentNodes = new HashSet<>();
+		Set<Node> currentNodes = new HashSet<>();
 		currentNodes.add(start);
 		addExpr(seq, currentNodes);
 
@@ -113,6 +126,9 @@ public class NFA {
 		// make transitions explicit
 		populateTransitions();
 
+		// Mark END state as "isEnd()"
+		transitions.stream().filter(t -> t.getLabel() != null && t.getLabel().equals("END") && t.getSource() != null).forEach(t -> t.getSource().setEnd(true));
+
 		// Create transitions from artificial START state into start nodes
 		for (Node startNode : startNodes) {
 			NFATransition initialTransition = new NFATransition(START, startNode, startNode.getOp());
@@ -129,31 +145,36 @@ public class NFA {
 		HashSet<Node> seen = new HashSet<>();
 		ArrayList<Node> current = new ArrayList<>(startNodes);
 		HashMap<Node, Integer> nodeToId = new HashMap<>();
-		int node_counter = 0;
+		int nodeCounter = 0;
+		int cnt = 0;
 		while (!current.isEmpty()) {
 			ArrayList<Node> newWork = new ArrayList<>();
 			for (Node n : current) {
 				if (!seen.contains(n)) {
 					Integer id = nodeToId.get(n);
 					if (id == null) {
-						id = node_counter++;
+						id = nodeCounter++;
 						nodeToId.put(n, id);
 					}
-					TreeMap<String, Node> sorted = new TreeMap<>();
-					for (Node s : n.getSuccessors()) {
-						sorted.put(s.getName(), s);
-					}
-					for (Map.Entry<String, Node> entry : sorted.entrySet()) {
-						Node s = entry.getValue();
-						Integer id_succ = nodeToId.get(s);
-						if (id_succ == null) {
-							id_succ = node_counter++;
-							nodeToId.put(s, id_succ);
+
+					// Get all successor nodes of n and sort them
+					List<Node> sortedSuccessors = n.getSuccessors()
+							.stream()
+							.sorted(Comparator.comparing(node -> node.getName()))
+							.collect(Collectors.toList());
+
+					for (Node s : sortedSuccessors) {
+						Integer idSucc = nodeToId.get(s);
+						if (idSucc == null) {
+							idSucc = nodeCounter++;
+							nodeToId.put(s, idSucc);
 						}
+
+						// Any successor which has not be handled before gets added to work list.
 						if (!seen.contains(s)) {
 							newWork.add(s);
 						}
-						transitions.add(new NFATransition(n, s, n.getOp()));
+						transitions.add(new NFATransition(n, s, s.getOp()));
 					}
 					seen.add(n);
 				}
@@ -163,7 +184,7 @@ public class NFA {
 	}
 
 	@Nullable
-	private HashSet<Node> addExpr(final Expression expr, final HashSet<Node> currentNodes) {
+	private Set<Node> addExpr(final Expression expr, final Set<Node> currentNodes) {
 		if (expr instanceof Terminal) {
 			Terminal inner = (Terminal) expr;
 			Node n = new Node(inner.getEntity(), inner.getOp());
@@ -208,7 +229,7 @@ public class NFA {
 	}
 
 	/**
-	 * Returns the (aritifial) START state.
+	 * Returns the (artificial) START state.
 	 *
 	 * @return
 	 */

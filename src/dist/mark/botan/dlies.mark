@@ -12,8 +12,6 @@ entity Botan.DLIES_Encryptor {
 	var privkey: Botan.Private_Key;
 	var rng: Botan.RNG; //Note: the RNGs in constructor and encrypt functions can be different instances (which seems to be safe, as long as both are safe RNGs)
 	var kdf: Botan.KDF;
-	var cipher_mode;
-	var cipher_key_len;
 	var mac;
 	var mac_key_len;
 	var cipher_text;

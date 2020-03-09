@@ -20,17 +20,17 @@ entity Botan.Private_Key {
 	var password;
 	
 	op create {
-		Botan::RSA_PrivateKey::RSA_PrivateKey(rng, rsa_bits);
+		Botan::RSA_PrivateKey(rng, rsa_bits);
 		
-		Botan::DSA_PrivateKey::DSA_PrivateKey(rng, dl_group);
-		Botan::DH_PrivateKey::DH_PrivateKey(rng, dl_group);
-		Botan::ElGamal_PrivateKey::ElGamal_PrivateKey(rng, dl_group);
+		Botan::DSA_PrivateKey(rng, dl_group);
+		Botan::DH_PrivateKey(rng, dl_group);
+		Botan::ElGamal_PrivateKey(rng, dl_group);
 		
-		Botan::ECDSA_PrivateKey::ECDSA_PrivateKey(rng, ec_group);
-		Botan::ECKCDSA_PrivateKey::ECKCDSA_PrivateKey(rng, ec_group);
-		Botan::ECGDSA_PrivateKey::ECGDSA_PrivateKey(rng, ec_group);
-		Botan::ECDH_PrivateKey::ECDH_PrivateKey(rng, ec_group);
-		Botan::GOST_3410_PrivateKey::GOST_3410_PrivateKey(rng, ec_group);
+		Botan::ECDSA_PrivateKey(rng, ec_group);
+		Botan::ECKCDSA_PrivateKey(rng, ec_group);
+		Botan::ECGDSA_PrivateKey(rng, ec_group);
+		Botan::ECDH_PrivateKey(rng, ec_group);
+		Botan::GOST_3410_PrivateKey(rng, ec_group);
 		
 		
 		/* 
@@ -41,14 +41,14 @@ entity Botan.Private_Key {
 		 * NOTE: We do not see a safe use case for x here - Forbid it for now
 		*/
 		
-		forbidden Botan::DSA_PrivateKey::DSA_PrivateKey(rng, dl_group, _);
-		forbidden Botan::DH_PrivateKey::DH_PrivateKey(rng, dl_group, _);
-		forbidden Botan::ElGamal_PrivateKey::ElGamal_PrivateKey(rng, dl_group, _);
-		forbidden Botan::ECDSA_PrivateKey::ECDSA_PrivateKey(rng, ec_group, _);
-		forbidden Botan::ECKCDSA_PrivateKey::ECKCDSA_PrivateKey(rng, ec_group, _);
-		forbidden Botan::ECGDSA_PrivateKey::ECGDSA_PrivateKey(rng, ec_group, _);
-		forbidden Botan::ECDH_PrivateKey::ECDH_PrivateKey(rng, ec_group, _);
-		forbidden Botan::GOST_3410_PrivateKey::GOST_3410_PrivateKey(rng, ec_group, _);
+		forbidden Botan::DSA_PrivateKey(rng, dl_group, _);
+		forbidden Botan::DH_PrivateKey(rng, dl_group, _);
+		forbidden Botan::ElGamal_PrivateKey(rng, dl_group, _);
+		forbidden Botan::ECDSA_PrivateKey(rng, ec_group, _);
+		forbidden Botan::ECKCDSA_PrivateKey(rng, ec_group, _);
+		forbidden Botan::ECGDSA_PrivateKey(rng, ec_group, _);
+		forbidden Botan::ECDH_PrivateKey(rng, ec_group, _);
+		forbidden Botan::GOST_3410_PrivateKey(rng, ec_group, _);
 	}
 	
 	op load {
@@ -63,17 +63,17 @@ entity Botan.Private_Key {
 	}
 	
 	op check_key {
-		Botan::RSA_PrivateKey::RSA_PrivateKey::check_key();
+		Botan::RSA_PrivateKey::check_key();
 		
-		Botan::DSA_PrivateKey::DSA_PrivateKey::check_key();
-		Botan::DH_PrivateKey::DH_PrivateKey::check_key();
-		Botan::ElGamal_PrivateKey::ElGamal_PrivateKey::check_key();
+		Botan::DSA_PrivateKey::check_key();
+		Botan::DH_PrivateKey::check_key();
+		Botan::ElGamal_PrivateKey::check_key();
 		
-		Botan::ECDSA_PrivateKey::ECDSA_PrivateKey::check_key();
-		Botan::ECKCDSA_PrivateKey::ECKCDSA_PrivateKey::check_key();
-		Botan::ECGDSA_PrivateKey::ECGDSA_PrivateKey::check_key();
-		Botan::ECDH_PrivateKey::ECDH_PrivateKey::check_key();
-		Botan::GOST_3410_PrivateKey::GOST_3410_PrivateKey::check_key();
+		Botan::ECDSA_PrivateKey::check_key();
+		Botan::ECKCDSA_PrivateKey::check_key();
+		Botan::ECGDSA_PrivateKey::check_key();
+		Botan::ECDH_PrivateKey::check_key();
+		Botan::GOST_3410_PrivateKey::check_key();
 	}
 	
 	//Note maybe model Botan::PKCS8::BER_encode and Botan::PKCS8::PEM_encode if needed

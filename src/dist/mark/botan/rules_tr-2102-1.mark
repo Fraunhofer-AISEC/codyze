@@ -75,11 +75,18 @@ rule _2_1_2_3_01_CBC_RandomIV  {
 rule _3_3_02_CurveParams {
 // This rule also includes 3.3.04 and 5.4.3.02
 	using Botan.ECIES_Encryptor as ee
-	ensure ee.ecies_params.ec_group.param in ["brainpoolP256r1", "brainpoolP320r1", "brainpoolP384r1", "brainpoolP512r1"]
+	ensure ee.ecies_params.ec_group.param in ["brainpool256r1", "brainpool320r1", "brainpool384r1", "brainpool512r1"]
 	onfail TR02102_3_3_02_CurveParams
 }
 
-// TODO 3.3.03
+rule _3_3_03_ECIES_KDF {
+	using Botan.ECIES_Encryptor as ee
+	ensure
+		ee.ecies_params.kdf_spec == "SP800-56C" ||
+		_starts_with(ee.ecies_params.kdf_spec, "HKDF") 
+			&& _between(ee.ecies_params.kdf_spec, "(", ")") in ["HMAC(SHA-256)", "HMAC(SHA-512-256)", "HMAC(SHA-384)", "HMAC(SHA-512)", "HMAC(SHA3-256)", "HMAC(SHA3-384)", "HMAC(SHA3-512)"]
+		onfail _3_3_03_ECIES_KDF
+}
 
 
 // NOTE: Rule 3.3.04 is included in checking rule _3_3_02_CurveParams
@@ -94,7 +101,19 @@ rule _3_4_01_DLIES_KDF {
 }
 
 
-// TODO 3.4.02
+rule _3_4_02_DLIES_KEYLEN {
+	using Botan.DLIES_Encryptor as de
+	ensure
+		_split(de.privkey.dl_group.name, "/", 2) >= 3000
+	onfail _3_4_02_DLIES_KEYLEN
+}
+
+rule _3_4_02_DLIES_KEYLEN_2022 {
+	using Botan.DLIES_Encryptor as de
+	ensure
+		_split(de.privkey.dl_group.name, "/", 2) >= 2000
+	onfail _3_4_02_DLIES_KEYLEN_2022
+}
 
 
 // TODO 3.4.03

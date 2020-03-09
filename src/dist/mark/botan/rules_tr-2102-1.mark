@@ -87,7 +87,9 @@ rule _3_3_02_CurveParams {
 
 rule _3_4_01_DLIES_KDF {
 	using Botan.DLIES_Encryptor as de
-	ensure de.kdf.algorithm in ["SP800-56C"]
+	ensure 
+		_starts_with(de.kdf.alg, "HKDF") 
+		&& _between(de.kdf.alg, "(", ")") in ["HMAC(SHA-256)", "HMAC(SHA-512-256)", "HMAC(SHA-384)", "HMAC(SHA-512)", "HMAC(SHA3-256)", "HMAC(SHA3-384)", "HMAC(SHA3-512)"]
 	onfail _3_4_01_DLIES_KDF
 }
 

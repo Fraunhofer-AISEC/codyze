@@ -31,8 +31,7 @@ public class AESGCM extends BCBase {
 		GCMParameterSpec gcmParamSpec = new GCMParameterSpec(96, iv);
 
 		c.init(Cipher.ENCRYPT_MODE, k, gcmParamSpec);
-		c.update(plaintext);
-		return c.doFinal();
+		return c.doFinal(plaintext);
 	}
 
 	public byte[] encryptAESGCM2(Key k, byte[] plaintext)
@@ -50,8 +49,7 @@ public class AESGCM extends BCBase {
 		GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
 
 		c.init(Cipher.ENCRYPT_MODE, k, gcmParamSpec);
-		c.update(plaintext);
-		return c.doFinal();
+		return c.doFinal(plaintext);
 	}
 	
 	public static void main(String[] args)

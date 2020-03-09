@@ -28,15 +28,18 @@ public class JCATest extends AbstractMarkTest {
 			"line 19: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 			"line 22: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // fixme not recognized by analysis
 			"line 27: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 			"line 28: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 
 			// rule allowed block cipher modes
-			"line 19: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated",
-			"line 22: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated",
-			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated",
-			"line 27: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated",
-			"line 28: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated");
+			"line 19: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
+			"line 22: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
+			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
+			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test; fixme not recognized by analysis
+			"line 27: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
+			"line 28: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated" // ok, minimal test
+		);
 	}
 
 	@Test
@@ -53,13 +56,14 @@ public class JCATest extends AbstractMarkTest {
 
 			// rules allowed block cipher
 			"line 10: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-			"line 14: MarkRuleEvaluationFinding: Rule ID_2_01 violated",
-			"line 18: MarkRuleEvaluationFinding: Rule ID_2_01 violated",
-			"line 22: MarkRuleEvaluationFinding: Rule ID_2_01 violated",
-			"line 26: MarkRuleEvaluationFinding: Rule ID_2_01 violated",
+			"line 14: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
+			"line 18: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
+			"line 22: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
+			"line 26: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
 
 			// rules allowed cipher modes
-			"line 10: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated");
+			"line 10: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated" // ok, minimal test
+		);
 	}
 
 	@Test
@@ -69,14 +73,15 @@ public class JCATest extends AbstractMarkTest {
 		expected(findings,
 			// rule bouncy castle as provider
 			"line 18: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-			"line 32: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom violated",
+			"line 30: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom verified",
 
 			// rules ccm block cipher mode
 			"line 18: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 			"line 18: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
-			"line 18: MarkRuleEvaluationFinding: Rule ID_2_1_2_1_01 violated",
+			"line 18: MarkRuleEvaluationFinding: Rule ID_2_1_2_1_01 violated", // fixme incomplete rule
 
-			"line 20: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)");
+			"line 18: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)" // ok, minimal test
+		);
 	}
 
 	@Test
@@ -87,27 +92,27 @@ public class JCATest extends AbstractMarkTest {
 			// rule bouncy castle as provider
 			"line 23: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
 			"line 28: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom verified",
-			"line 42: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-			"line 47: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom verified",
+			"line 41: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+			"line 46: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom verified",
 
 			// rule block cipher
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-			"line 42: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			"line 41: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 
 			// rule block cipher mode
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
-			"line 42: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
+			"line 41: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
 
 			// rule gcm iv
-			"line [23, 31]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated",
-			"line [23, 50]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated",
-			"line [31, 42]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated",
-			"line [42, 50]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated",
+			"line [23, 31]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated", // fixme incomplete rule
+			"line [23, 49]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated", // fixme incomplete rule
+			"line [31, 41]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated", // fixme incomplete rule
+			"line [41, 49]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated", // fixme incomplete rule
 
 			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)",
-			"line 34: Violation against Order: c.update(plaintext); (update) is not allowed. Expected one of: c.instantiate (InvalidOrderforAEAD)",
-			"line 42: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)",
-			"line 53: Violation against Order: c.update(plaintext); (update) is not allowed. Expected one of: c.instantiate (InvalidOrderforAEAD)");
+			"line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.instantiate (InvalidOrderforAEAD)",
+			"line 41: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)",
+			"line 52: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.instantiate (InvalidOrderforAEAD)");
 	}
 
 	@Test

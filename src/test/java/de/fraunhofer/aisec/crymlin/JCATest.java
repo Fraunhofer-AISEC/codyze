@@ -19,8 +19,8 @@ public class JCATest extends AbstractMarkTest {
 			// rule bouncy castle as provider
 			"line 19: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated",
 			"line 22: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-			"line 23: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // fixme broken missing type resolution for BouncyCastleProvider class
-			//"line 24: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // fixme missing type resolution for BouncyCastleProvider class
+			"line 23: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // improv type resolution for BouncyCastleProvider class
+			//"line 24: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // improv type resolution for BouncyCastleProvider class
 			"line 27: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated",
 			"line 28: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated",
 
@@ -28,7 +28,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 19: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 			"line 22: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // fixme not recognized by analysis
+			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // improv analyis
 			"line 27: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 			"line 28: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 
@@ -36,7 +36,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 19: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 22: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
-			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test; fixme not recognized by analysis
+			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test; improv analysis
 			"line 27: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 28: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated" // ok, minimal test
 		);
@@ -78,7 +78,6 @@ public class JCATest extends AbstractMarkTest {
 			// rules ccm block cipher mode
 			"line 18: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 			"line 18: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
-			"line 18: MarkRuleEvaluationFinding: Rule ID_2_1_2_1_01 violated", // fixme incomplete rule
 
 			"line 18: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)" // ok, minimal test
 		);
@@ -102,12 +101,6 @@ public class JCATest extends AbstractMarkTest {
 			// rule block cipher mode
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
 			"line 41: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
-
-			// rule gcm iv
-			"line [23, 31]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated", // fixme incomplete rule
-			"line [23, 49]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated", // fixme incomplete rule
-			"line [31, 41]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated", // fixme incomplete rule
-			"line [41, 49]: MarkRuleEvaluationFinding: Rule ID_2_1_2_2_01 violated", // fixme incomplete rule
 
 			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)",
 			"line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.instantiate (InvalidOrderforAEAD)",
@@ -138,12 +131,6 @@ public class JCATest extends AbstractMarkTest {
 			"line 14: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
 			"line 16: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
 
-			// rule iv for block ciphers
-			"line 11: MarkRuleEvaluationFinding: Rule ID_2_1_2_3_01 violated",
-			"line 13: MarkRuleEvaluationFinding: Rule ID_2_1_2_3_01 violated",
-			"line 14: MarkRuleEvaluationFinding: Rule ID_2_1_2_3_01 violated",
-			"line 16: MarkRuleEvaluationFinding: Rule ID_2_1_2_3_01 violated",
-
 			// rule cbc padding
 			"line 11: MarkRuleEvaluationFinding: Rule ID_2_1_3_01 violated",
 			"line 13: MarkRuleEvaluationFinding: Rule ID_2_1_3_01 verified",
@@ -173,20 +160,17 @@ public class JCATest extends AbstractMarkTest {
 			// rule block cipher mode
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified",
 
-			// rule ctr counter
-			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_2_4_01 violated", // fixme
-
 			// rule aes/ctr with mac
-			"line [47, 51]: MarkRuleEvaluationFinding: Rule ID_2_2_02 violated", // fixme
-			"line [47, 61]: MarkRuleEvaluationFinding: Rule ID_2_2_02 violated", // fixme
-			"line [51, 59]: MarkRuleEvaluationFinding: Rule ID_2_2_02 violated", // fixme
-			"line [59, 61]: MarkRuleEvaluationFinding: Rule ID_2_2_02 violated", // fixme
+			"line [47, 51]: MarkRuleEvaluationFinding: Rule ID_2_2_02 violated", // improv rule
+			"line [47, 61]: MarkRuleEvaluationFinding: Rule ID_2_2_02 violated", // improv rule
+			"line [51, 59]: MarkRuleEvaluationFinding: Rule ID_2_2_02 violated", // improv rule
+			"line [59, 61]: MarkRuleEvaluationFinding: Rule ID_2_2_02 violated", // improv rule
 
 			// rule mac
 			"line 37: MarkRuleEvaluationFinding: Rule ID_5_3_01 verified",
 
 			// rule mac key length
-			//"line 37: MarkRuleEvaluationFinding: Rule ID_5_3_02_HMAC verified", // fixme
+			//"line 37: MarkRuleEvaluationFinding: Rule ID_5_3_02_HMAC verified", // improv rule
 
 			// rule order basic cipher
 			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderOfCipherOperations)",
@@ -226,34 +210,40 @@ public class JCATest extends AbstractMarkTest {
 			"line 23: MarkRuleEvaluationFinding: Rule ID_5_3_01 violated", // ok
 			"line 24: MarkRuleEvaluationFinding: Rule ID_5_3_01 violated", // ok
 
-			// rule mac key length
-			"line 10: MarkRuleEvaluationFinding: Rule ID_5_3_02_CMAC violated", // ok
-			"line 20: MarkRuleEvaluationFinding: Rule ID_5_3_02_GMAC violated", // ok
-
 			// rule mac tag length
-			"line 10: MarkRuleEvaluationFinding: Rule ID_5_3_03_CMAC violated", // ok
-			"line 20: MarkRuleEvaluationFinding: Rule ID_5_3_03_GMAC violated" // ok
-		);
-	}
-
-	@Test
-	public void testMacTest() throws Exception {
-		Set<Finding> findings = performTest("java/jca/MacTest.java", "mark/bouncycastle/");
-
-		expected(findings, "line 41: MarkRuleEvaluationFinding: Rule ID_5_3_01 violated", // ok
-			"line 41: MarkRuleEvaluationFinding: Rule ID_5_3_03_CMAC violated", // TODO: rule needs to be improved
-			"line 41: MarkRuleEvaluationFinding: Rule ID_5_3_03_GMAC violated" // TODO: rule needs to be improved
+			"line 10: MarkRuleEvaluationFinding: Rule ID_5_3_03_CMAC verified", // ok
+			"line 20: MarkRuleEvaluationFinding: Rule ID_5_3_03_GMAC verified" // ok
 		);
 	}
 
 	@Test
 	public void testRSACipherTest() throws Exception {
-		Set<Finding> findings = performTest("java/jca/RSACipherTest.java", "mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/BCRSACipher.java", "mark/bouncycastle/");
 
 		expected(findings,
-			"line 55: MarkRuleEvaluationFinding: Rule ID_3_5_02 violated", // TODO: rule needs to be improved
-			"line 55: MarkRuleEvaluationFinding: Rule ID_3_5_01 violated", // ok, unknown parameter
-			"line 55: MarkRuleEvaluationFinding: Rule ID_2_01 violated" // ok, unknown parameter
+				"line 6: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+				"line 8: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+				"line 7: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+				"line 9: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+				"line 10: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+				"line 11: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+				"line 13: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+
+				"line 6: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+				"line 8: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+				"line 7: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+				"line 9: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+				"line 10: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+				"line 11: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+				"line 13: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+
+				"line 6: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+				"line 7: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+				"line 8: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+				"line 9: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+				"line 10: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+				"line 11: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+				"line 13: MarkRuleEvaluationFinding: Rule ID_3_5_01 violated" // ok
 		);
 	}
 

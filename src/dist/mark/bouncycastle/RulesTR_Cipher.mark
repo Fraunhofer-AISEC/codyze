@@ -324,7 +324,7 @@ rule ID_3_5_01 {
                 // "OAEPWITHSHA1ANDMGF1PADDING", "OAEPWITHSHA-1ANDMGF1PADDING" // recommended by referenced RFC 8017, but not a recommended hash function by BSI
                 // "OAEPWITHSHA224ANDMGF1PADDING", "OAEPWITHSHA-224ANDMGF1PADDING", // recommended by referenced RFC 8017, but not a recommended hash function by BSI
                 "OAEPWITHSHA256ANDMGF1PADDING", "OAEPWITHSHA-256ANDMGF1PADDING",
-                "OAEPWITHSHA384ANDMGF1PlADDING", "OAEPWITHSHA-384ANDMGF1PADDING",
+                "OAEPWITHSHA384ANDMGF1PADDING", "OAEPWITHSHA-384ANDMGF1PADDING",
                 "OAEPWITHSHA512ANDMGF1PADDING", "OAEPWITHSHA-512ANDMGF1PADDING"//,
                 // "OAEPWITHSHA3-256ANDMGF1PADDING", // not listed by referenced RFC 8017, but recommended hash function by BSI
                 // "OAEPWITHSHA3-384ANDMGF1PADDING", // not listed by referenced RFC 8017, but recommended hash function by BSI

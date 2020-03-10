@@ -25,6 +25,12 @@ entity SecureRandom {
             provider : java.lang.String | java.security.Provider
         );
         java.security.SecureRandom.getInstanceStrong();
+        
+        // forbidden calls because they don't respect BC as provider
+        forbidden java.security.SecureRandom();
+        forbidden java.security.SecureRandom(
+            seed : byte[]
+        );
     }
     
     op seed {

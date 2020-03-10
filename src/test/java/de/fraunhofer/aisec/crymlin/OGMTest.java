@@ -113,7 +113,7 @@ public class OGMTest {
 			if (v.label().equals("RecordDeclaration")) {
 				// We expect properties that were created by a Converter to be converted back into property
 				// object
-				assertTrue(n.getRegion().getStartLine() > -1);
+				assertTrue(n.getLocation().getRegion().getStartLine() > -1);
 			}
 			vertices++;
 		}

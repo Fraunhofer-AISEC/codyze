@@ -12,6 +12,8 @@ import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
+import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
@@ -358,7 +360,7 @@ public class TypeStateAnalysis {
 
 			// Work list of following EOG nodes. Not all EOG nodes will result in a WPDS rule, though.
 			ArrayDeque<NonNullPair<Vertex, Set<Stmt>>> worklist = new ArrayDeque<>();
-			worklist.add(new NonNullPair<>(functionDeclaration, Set.of(new Stmt(fd.getName(), fd.getRegion()))));
+			worklist.add(new NonNullPair<>(functionDeclaration, Set.of(new Stmt(fd.getName(), getRegion(fd)))));
 			//			predecessors.put(functionDeclaration, new Stmt(fd.getName(), fd.getRegion()));
 
 			Map<Stmt, Val> skipTheseValsAtStmt = new HashMap<>();
@@ -611,6 +613,16 @@ public class TypeStateAnalysis {
 		 */
 
 		return wpds;
+	}
+
+	@NonNull
+	private Region getRegion(@NonNull FunctionDeclaration fd) {
+		Region region = new Region(-1, -1, -1, -1);
+		PhysicalLocation loc = fd.getLocation();
+		if (loc != null) {
+			return loc.getRegion();
+		}
+		return region;
 	}
 
 	/**
@@ -909,7 +921,7 @@ public class TypeStateAnalysis {
 							argVals.get(i),
 							currentStmt,
 							parmVals.get(i),
-							new Stmt(potentialCallee.getName(), potentialCallee.getRegion()),
+							new Stmt(potentialCallee.getName(), potentialCallee.getLocation().getRegion()),
 							returnSite,
 							weight);
 						pushRules.add(pushRule);
@@ -1027,11 +1039,12 @@ public class TypeStateAnalysis {
 
 	@NonNull
 	private Stmt vertexToStmt(@NonNull Vertex v) {
-		Stmt stmt = new Stmt(
-			v.property("code")
-					.orElse("")
-					.toString(),
-			new Region(
+		Region region = new Region(-1, -1, -1, -1);
+		if (v.property("startLine").isPresent() &&
+				v.property("startColumn").isPresent() &&
+				v.property("endLine").isPresent() &&
+				v.property("startColumn").isPresent()) {
+			region = new Region(
 				toIntExact((long) v.property("startLine")
 						.value()),
 				toIntExact((long) v.property("startColumn")
@@ -1039,7 +1052,13 @@ public class TypeStateAnalysis {
 				toIntExact((long) v.property("endLine")
 						.value()),
 				toIntExact((long) v.property("startColumn")
-						.value())));
+						.value()));
+		}
+		Stmt stmt = new Stmt(
+			v.property("code")
+					.orElse("")
+					.toString(),
+			region);
 		return stmt;
 	}
 }

@@ -5,21 +5,31 @@
 #include <botan/auto_rng.h>
 #include <botan/rng.h>
 #include <iostream>
-#include <botan/ec_group.h>
-#include <botan/ecies.h>
+#include <botan/dl_group.h>
+#include <botan/dlies.h>
+#include <assert.h>
+
 int main (int argc, char* argv[]) {
   std::string plaintext("Your great-grandfather gave this watch to your granddad for good luck. Unfortunately, Dane's luck wasn't as good as his old man's.");
   std::vector<uint8_t> pt(plaintext.data(),plaintext.data()+plaintext.length());
   Botan::AutoSeeded_RNG rng;
 
-  Botan::EC_Group ec_group("brainpool320r1");
+  Botan::DL_Group dl_group("dsa/botan/3072");
 
-  Botan::ECDH_PrivateKey ecdh_own_priv_key(rng, ec_group);
+  Botan::DH_PrivateKey own_key(rng, dl_group);
+  Botan::DH_PublicKey other_key(dl_group, Botan::BigInt(15));
 
-  Botan::ECIES_System_Params ecies_params(ec_group, "SP800-56C", "AES-256", 32, "HMAC", 16);
+
+  assert(own_key.check_key(rng, false));
+
+  Botan::KDF* kdf = Botan::get_kdf("HKDF(HMAC(SHA-256))");
+
+
+  Botan::MAC mac = Botan::MessageAuthenticationCode::create("HMAC(SHA-256)");
 
   //encrypt with pk
-  Botan::ECIES_Encryptor enc( rng, ecies_params);
+  Botan::DLIES_Encryptor enc(own_key, rng, kdf, mac);
+
   std::vector<uint8_t> ct = enc.encrypt(pt, rng);
 
   return 0;

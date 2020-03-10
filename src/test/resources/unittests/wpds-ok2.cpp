@@ -23,5 +23,5 @@
 
     p2.process();
 
-    p2.finish();  // Finish on p4 alias
+    p3.finish();  // Finish on p4 alias
   }

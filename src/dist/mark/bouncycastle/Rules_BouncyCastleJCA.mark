@@ -1,0 +1,40 @@
+package java.bcjca
+
+rule BouncyCastleProvider_SecureRandom {
+    using
+        SecureRandom as sr
+    ensure 
+        _has_value(sr.provider)
+        && (
+            sr.provider == "BC"
+            || _is_instance(sr.provider, "org.bouncycastle.jce.provider.BouncyCastleProvider")
+        )
+    onfail
+        InvalidProvider_SecureRandom
+}
+
+rule BouncyCastleProvider_Cipher {
+    using
+        Cipher as c
+    ensure 
+        _has_value(c.provider)
+        && (
+            c.provider == "BC"
+            || _is_instance(c.provider, "org.bouncycastle.jce.provider.BouncyCastleProvider")
+        )
+    onfail
+        InvalidProvider_Cipher
+}
+
+rule BouncyCastleProvider_Mac {
+    using
+        Mac as m
+    ensure 
+        _has_value(m.provider)
+        && (
+            m.provider == "BC"
+            || _is_instance(m.provider, "org.bouncycastle.jce.provider.BouncyCastleProvider")
+        )
+    onfail
+        InvalidProvider_Mac
+}

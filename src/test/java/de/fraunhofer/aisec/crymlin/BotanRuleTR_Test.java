@@ -7,18 +7,17 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-@Disabled
 public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	public void test_rule_2_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/2_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/2_01.cpp", "mark/botan/");
 
 		expected(findings,
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
@@ -28,32 +27,26 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	public void test_rule_2_1_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_01.cpp", "mark/botan/");
 
 		expected(findings,
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
 		);
 	}
 
-	@Disabled
-	@Test
-	public void test_rule_2_1_2_1_01() throws Exception {
-		// TODO: there is no sufficient MARK-rule yet
-	}
-
 	@Test
 	public void test_rule_2_1_2_1_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_1_02.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_1_02.cpp", "mark/botan/");
 
 		expected(findings,
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes violated", // ok
@@ -63,25 +56,13 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	}
 
-	@Disabled
-	@Test
-	public void test_rule_2_1_2_2_01() throws Exception {
-		// TODO: there is no sufficient MARK-rule yet
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_2_1_2_2_02() throws Exception {
-		// TODO: there is no sufficient MARK-rule yet
-	}
-
 	@Test
 	public void test_rule_2_1_2_2_03() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_2_03.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_2_03.cpp", "mark/botan/");
 
 		expected(findings,
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes violated", // ok
@@ -92,7 +73,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	public void test_rule_2_1_2_3_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_3_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_3_01.cpp", "mark/botan/");
 
 		/* missing
 			"line XX: MarkRuleEvaluationFinding: Rule _2_1_2_3_01_CBC_RandomIV verified"
@@ -102,7 +83,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
@@ -110,84 +91,57 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	}
 
-	@Disabled
-	@Test
-	public void test_rule_2_1_2_4_01() throws Exception {
-		// TODO: there is no sufficient MARK-rule yet
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_2_1_3_01() throws Exception {
-		// TODO: there is no sufficient MARK-rule yet
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_2_2_01() throws Exception {
-		// TODO: there is no sufficient MARK-rule yet
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_2_2_02() throws Exception {
-		// TODO: there is no sufficient MARK-rule yet
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_3_3_01() throws Exception {
-		// Note: will not be checked. Is part of Botan
-	}
-
 	@Test
 	public void test_rule_3_3_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/3_3_02.cpp", "dist/mark/botan/");
-		expected(findings, "line 18: MarkRuleEvaluationFinding: Rule _3_3_02_CurveParams verified", // ok
-			"line 16: Violation against Order: Base kp is not correctly terminated. Expected one of [pk.check_key] to follow the correct last call on this base. (PrivKeyOrder)", // ok
-			"line 16: Violation against Order: Base kp is not correctly terminated. Expected one of [pk.check_key] to follow the correct last call on this base. (PubKeyOrder)" // ok
-		);
+		Set<Finding> findings = performTest("botan_rule_tr_test/3_3_02.cpp", "mark/botan/");
+		expected(findings,
+			"line 19: MarkRuleEvaluationFinding: Rule _3_3_03_ECIES_KDF verified", // ok
+			"line 15: MarkRuleEvaluationFinding: Rule _3_3_02_CurveParams verified", // ok
+			"line 17: Verified Order: PrivKeyOrder"); // ok
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_3_3_03() throws Exception {
-		// TODO: there is no sufficient MARK-rule yet
+		Set<Finding> findings = performTest("botan_rule_tr_test/3_3_03.cpp", "mark/botan/");
+		expected(findings,
+			"line 19: MarkRuleEvaluationFinding: Rule _3_3_03_ECIES_KDF verified", // ok
+			"line 15: MarkRuleEvaluationFinding: Rule _3_3_02_CurveParams verified", // ok
+			"line 17: Verified Order: PrivKeyOrder"); // ok
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_3_4_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_01.cpp", "mark/botan/");
+		expected(findings,
+			"line 28: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)",
+			"line 25: MarkRuleEvaluationFinding: Rule _3_4_01_DLIES_KDF verified", // ok
+			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN_2022 verified",
+			"line 20: Verified Order: PubKeyOrder",
+			"line 19: Verified Order: PrivKeyOrder",
+			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN violated",
+			"line 28: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified",
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated");
 	}
 
-	@Disabled
 	@Test
 	public void test_rule_3_4_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_02.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_3_4_03() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_03.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_3_5_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/3_5_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_3_5_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/3_5_02.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_02.cpp", "mark/botan/");
+		expected(findings,
+			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN_2022 verified", // ok
+			"line 19: Verified Order: PrivKeyOrder", // ok
+			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN violated", // expected verified
+			"line 27: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
+			"line 27: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // look at this again
+			"line 24: MarkRuleEvaluationFinding: Rule _3_4_01_DLIES_KDF verified", // ok
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified",
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated" // expected to be verified
+		);
 	}
 
 	@Test
 	public void test_rule_4_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/4_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/4_01.cpp", "mark/botan/");
 		expected(findings,
 			"line 15: Violation against Order: hash1->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)",
 			"line 16: Violation against Order: hash2->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)",
@@ -205,7 +159,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	public void test_rule_5_3_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_01.cpp", "mark/botan/");
 		expected(findings, "line 13: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)",
 			"line 10: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)",
 			"line 10: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified");
@@ -213,16 +167,16 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	public void test_rule_5_3_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "mark/botan/");
 		//expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // actually expected
-		expected(findings, "line 11: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",
-			"line 14: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)",
-			"line 11: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)");
+		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",
+			"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)",
+			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)");
 	}
 
 	@Test
 	public void test_rule_5_3_03() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_03.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_03.cpp", "mark/botan/");
 		expected(findings,
 			"line 16: MarkRuleEvaluationFinding: Rule _5_3_03_MAC_NONCELEN verified",
 			"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",
@@ -232,13 +186,16 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	public void test_rule_5_4_1_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", "mark/botan/");
+		expected(findings);
+
 		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_1_01_RSA_SIG_Format verified");  // actually expected
 	}
 
 	@Test
 	public void test_rule_5_4_1_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_02.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_02.cpp", "mark/botan/");
+		expected(findings);
 
 		/* actually expected
 		expected(findings,
@@ -249,7 +206,9 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	public void test_rule_5_4_2_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_2_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_2_01.cpp", "mark/botan/");
+		expected(findings);
+
 		/* actually expected
 		expected(findings,
 		"line XX : MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen verified",
@@ -259,92 +218,18 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	public void test_rule_5_4_3_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_3_01.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_3_01.cpp", "mark/botan/");
+		expected(findings);
+
 		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_3_01_ECDSA_SIG verified");  // actually expected
 	}
 
-	@Disabled
-	@Test
-	public void test_rule_6_1_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/6_1_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_6_2_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/6_2_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_6_3() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/6_3.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_7_1_1_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/7_1_1_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_7_1_1_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/7_1_1_02.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_7_1_1_03() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/7_1_1_03.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_7_1_2_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/7_1_2_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_7_2_1_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/7_2_1_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
 	@Test
 	public void test_rule_7_2_2_1_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/7_2_2_1_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_7_2_2_2_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/7_2_2_2_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_9_2_1_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/9_2_1_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_9_2_2_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/9_2_2_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_9_5_1_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/9_5_1_01.cpp", "dist/mark/botan/");
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_9_5_2_1() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/9_5_2_1.cpp", "dist/mark/botan/");
+		Set<Finding> findings = performTest("botan_rule_tr_test/7_2_2_1_01.cpp", "mark/botan/");
+		expected(findings,
+			"line 11: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated", // expected to be verified
+			"line 11: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified"); // ok
 	}
 
 }

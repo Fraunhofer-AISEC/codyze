@@ -131,6 +131,7 @@ class WpdsTest extends AbstractMarkTest {
 		assertFalse(startLineNumbers.get(15));
 		assertTrue(startLineNumbers.containsKey(17)); // start
 		assertFalse(startLineNumbers.get(17));
+		assertFalse(startLineNumbers.containsKey(19)); // Does NOT contain irrelevant stmt "cout << 'bla'"
 		assertTrue(startLineNumbers.containsKey(20)); // process
 		assertFalse(startLineNumbers.get(20));
 		assertTrue(startLineNumbers.containsKey(21)); // process

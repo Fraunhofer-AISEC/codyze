@@ -1,0 +1,8 @@
+package botan
+
+entity Botan.KDF {
+	var alg;
+	op create {
+		Botan::get_kdf(alg);
+	}
+}

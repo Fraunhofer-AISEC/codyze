@@ -361,7 +361,6 @@ public class TypeStateAnalysis {
 			// Work list of following EOG nodes. Not all EOG nodes will result in a WPDS rule, though.
 			ArrayDeque<NonNullPair<Vertex, Set<Stmt>>> worklist = new ArrayDeque<>();
 			worklist.add(new NonNullPair<>(functionDeclaration, Set.of(new Stmt(fd.getName(), getRegion(fd)))));
-			//			predecessors.put(functionDeclaration, new Stmt(fd.getName(), fd.getRegion()));
 
 			Map<Stmt, Val> skipTheseValsAtStmt = new HashMap<>();
 			Set<Val> valsInScope = new HashSet<>();
@@ -921,7 +920,7 @@ public class TypeStateAnalysis {
 							argVals.get(i),
 							currentStmt,
 							parmVals.get(i),
-							new Stmt(potentialCallee.getName(), potentialCallee.getLocation().getRegion()),
+							new Stmt(potentialCallee.getName(), getRegion(potentialCallee)),
 							returnSite,
 							weight);
 						pushRules.add(pushRule);

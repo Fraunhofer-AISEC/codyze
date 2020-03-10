@@ -246,7 +246,7 @@ public class Evaluator {
 						isRuleViolated));
 				}
 			} else if (value == null) {
-				log.warn("Unable to evaluate rule {}, resultwas null, this should not happen.", rule.getName());
+				log.warn("Unable to evaluate rule {}, result was null, this should not happen.", rule.getName());
 			} else if (ConstantValue.isError(entry.getValue())) {
 				log.warn("Unable to evaluate rule {}, result had an error: \n\t{}", rule.getName(),
 					((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));

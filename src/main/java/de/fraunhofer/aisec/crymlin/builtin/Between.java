@@ -52,7 +52,7 @@ public class Between implements Builtin {
 			String ret;
 			try {
 				ret = s.substring(s.indexOf(start) + 1);
-				ret = ret.substring(0, ret.indexOf(end));
+				ret = ret.substring(0, ret.lastIndexOf(end));
 			}
 			catch (StringIndexOutOfBoundsException se) {
 				log.warn("start or end not found in string");

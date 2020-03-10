@@ -1,0 +1,28 @@
+package java.jca
+
+entity CertPathValidator {
+	
+	var algorithm;
+	var provider;
+	
+	var certPath;
+	var params;
+	
+	
+	op instantiate {
+		java.security.cert.CertPathValidator.getInstance(
+			algorithm : java.lang.String
+		);
+		java.security.cert.CertPathValidator.getInstance(
+			algorithm : java.lang.String,
+			provider : java.lang.String | java.securiy.Provider
+		);
+	}
+	
+	op validate {
+		java.security.cert.CertPathValidator.validate(
+			certPath : java.security.cert.CertPath,
+			params : java.security.cert.CertPathParameters
+		);
+	}
+}

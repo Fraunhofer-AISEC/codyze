@@ -17,7 +17,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
@@ -33,7 +33,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
@@ -46,7 +46,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 		expected(findings,
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes violated", // ok
@@ -62,7 +62,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 
 		expected(findings,
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes violated", // ok
@@ -83,7 +83,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
-			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // TODO default ctor-problem in CPG
+			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
 			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
@@ -137,18 +137,6 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified",
 			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated" // expected to be verified
 		);
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_3_5_01() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/3_5_01.cpp", "dist/mark/botan/"); // TODO
-	}
-
-	@Disabled
-	@Test
-	public void test_rule_3_5_02() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/3_5_02.cpp", "dist/mark/botan/"); // TODO
 	}
 
 	@Test

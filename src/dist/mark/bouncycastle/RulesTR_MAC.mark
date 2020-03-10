@@ -24,11 +24,26 @@ rule ID_5_3_01 {
  */
 rule ID_5_3_02_CMAC {
     using
-        Mac as m
+        Mac as m,
+        KeyGenerator as kg,
+        SecretKeySpec as sks,
+        SecretKeyFactory as kf
     when
         m.algorithm in ["AESCMAC"]
     ensure
-        false // TODO m.key must have length >= 128
+        // find a keygenerator of sufficient size
+        (
+            _is(m.key, kg.key)
+            && kg.keysize >= 128
+        )
+        || (
+            _is(m.key, kf.outkey)
+            && _is(kf.keyspec, sks)
+            && (
+                (_has_value(sks.len) && sks.len >= 128)
+                || (!(_has_value(sks.len)) && _has_value(sks.key) && _length(sks.key) >= 16)
+            )
+        )
     onfail
         InsufficientCMACKeyLength
 }
@@ -59,7 +74,6 @@ rule ID_5_3_02_HMAC {
                 || (!(_has_value(sks.len)) && _has_value(sks.key) && _length(sks.key) >= 16)
             )
         )
-        
     onfail
         InsufficientHMACKeyLength
 }
@@ -70,11 +84,26 @@ rule ID_5_3_02_HMAC {
  */
 rule ID_5_3_02_GMAC {
     using
-        Mac as m
+        Mac as m,
+        KeyGenerator as kg,
+        SecretKeySpec as sks,
+        SecretKeyFactory as kf
     when
         m.algorithm in ["AES-GMAC"]
     ensure
-        false // TODO m.key must have length >= 128
+        // find a keygenerator of sufficient size
+        (
+            _is(m.key, kg.key)
+            && kg.keysize >= 128
+        )
+        || (
+            _is(m.key, kf.outkey)
+            && _is(kf.keyspec, sks)
+            && (
+                (_has_value(sks.len) && sks.len >= 128)
+                || (!(_has_value(sks.len)) && _has_value(sks.key) && _length(sks.key) >= 16)
+            )
+        )
     onfail
         InsufficientGMACKeyLength
 }
@@ -90,7 +119,8 @@ rule ID_5_3_03_CMAC {
     when
         m.algorithm in ["AESCMAC"]
     ensure
-        false // TODO check requested MAC tag length
+        // TODO check in future releases of Bouncy Castle
+        true // Bouncy Castle implementation uses block size of AES in bits (128) by default
     onfail
         InsufficientCMACTagLength
 }
@@ -122,7 +152,8 @@ rule ID_5_3_03_GMAC {
     when
         m.algorithm in ["AES-GMAC"]
     ensure
-        false // TODO check requested MAC tag length
+        // TODO check in future releases of Bouncy Castle
+        true // Bouncy Castle uses 128 bits by default
     onfail
         InsufficientGMACTagLength
 }

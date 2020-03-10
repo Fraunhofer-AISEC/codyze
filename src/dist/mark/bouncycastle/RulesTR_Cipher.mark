@@ -33,18 +33,21 @@ rule ID_2_1_01 {
 /**
  * BSI TR-02102-1 (Version 2019-01), 2.1.2. Betriebsbedingungen
  * - CCM non-repeated IV during key period
+ * 
+ * Note:
+ * - seems to be not checkable. We cannot sufficiently reason about the dynamic behaviour of the program to check this rule.
  */
-rule ID_2_1_2_1_01 {
-    using
-        Cipher as c
-    when
-        _split(c.transform, "/", 0) in ["AES"]
-        && _split(c.transform, "/", 1) in ["CCM"]
-    ensure
-        false // TODO how to check?
-    onfail
-        InsufficientCCMIVRenewal
-}
+//rule ID_2_1_2_1_01 {
+//    using
+//        Cipher as c
+//    when
+//        _split(c.transform, "/", 0) in ["AES"]
+//        && _split(c.transform, "/", 1) in ["CCM"]
+//    ensure
+//        false // TODO how to check?
+//    onfail
+//        InsufficientCCMIVRenewal
+//}
 
 /**
  * BSI TR-02102-1 (Version 2019-01), 2.1.2. Betriebsbedingungen
@@ -71,19 +74,22 @@ rule ID_2_1_2_1_02 {
 /**
  * BSI TR-02102-1 (Version 2019-01), 2.1.2. Betriebsbedingungen
  * - GCM non-repeated IV during key period
+ * 
+ * Note:
+ * - seems to be not checkable. We cannot sufficiently reason about the dynamic behaviour of the program to check this rule.
  */
-rule ID_2_1_2_2_01 {
-    using
-        Cipher as c,
-        GCMParameterSpec as gcm
-    when
-        _split(c.transform, "/", 0) in ["AES"]
-        && _split(c.transform, "/", 1) in ["GCM"]
-    ensure
-        false // TODO IV
-    onfail
-        InvalidGCMIV
-}
+//rule ID_2_1_2_2_01 {
+//    using
+//        Cipher as c,
+//        GCMParameterSpec as gcm
+//    when
+//        _split(c.transform, "/", 0) in ["AES"]
+//        && _split(c.transform, "/", 1) in ["GCM"]
+//    ensure
+//        false // TODO IV
+//    onfail
+//        InvalidGCMIV
+//}
 
 /**
  * BSI TR-02102-1 (Version 2019-01), 2.1.2. Betriebsbedingungen
@@ -131,12 +137,16 @@ rule ID_2_1_2_2_03 {
  */
 rule ID_2_1_2_3_01 {
     using
-        Cipher as c
+        Cipher as c,
+        IvParameterSpec as ivspec,
+        SecureRandom as sr
     when
         _split(c.transform, "/", 0) in ["AES"]
         && _split(c.transform, "/", 1) in ["CBC"]
     ensure
-        false // TODO unpredictable IV 
+        // IMPROV not just random IV
+        _is(c.paramspec, ivspec)
+        && _is(ivspec.iv, sr.randomBytes)
     onfail
         InvalidCBCIV
 }
@@ -144,18 +154,21 @@ rule ID_2_1_2_3_01 {
 /**
  * BSI TR-02102-1 (Version 2019-01), 2.1.2. Betriebsbedingungen
  * - CTR non-repeated counter during key period
+ * 
+ * Note:
+ * - seems to be not checkable. We cannot sufficiently reason about the dynamic behaviour of the program to check this rule.
  */
-rule ID_2_1_2_4_01 {
-    using
-        Cipher as c
-    when
-        _split(c.transform, "/", 0) in ["AES"]
-        && _split(c.transform, "/", 1) in ["CTR"]
-    ensure
-        false // TODO non-repeated counter
-    onfail
-        InvalidCTRCounter
-}
+//rule ID_2_1_2_4_01 {
+//    using
+//        Cipher as c
+//    when
+//        _split(c.transform, "/", 0) in ["AES"]
+//        && _split(c.transform, "/", 1) in ["CTR"]
+//    ensure
+//        false // TODO non-repeated counter
+//    onfail
+//        InvalidCTRCounter
+//}
 
 /**
  * BSI TR-02102-1 (Version 2019-01), 2.1.3. Paddingverfahren
@@ -182,7 +195,7 @@ rule ID_2_1_3_01 {
  * - Integrity protection (e.g MAC)
  * 
  * Note:
- * Include in rule ID_2_2_02
+ * - included in rule ID_2_2_02
  */
 //rule ID_2_2_01 {
 //    using
@@ -205,7 +218,7 @@ rule ID_2_2_02 {
         _split(c.transform, "/", 0) in ["AES"]
         && _split(c.transform, "/", 1) in ["CTR"]
     ensure
-        // TODO insufficient application of MAC; MAC over complete stream required
+        // IMPROV insufficient application of MAC; MAC over complete stream required
         _is(c.output, m.input)
     onfail
         InsufficientAESCTRIntegrityProtection
@@ -255,27 +268,34 @@ rule ID_3_3_03 {
 }
 
 /**
- * TODO ECIES supplied by bouncycastle 
+ * BSI TR-02102-1 (Version 2019-01), 3.3. ECIES-Verschlüsselungsverfahren
+ * 
+ * Note:
+ * - seems to be not checkable. We cannot sufficiently reason about the supplied order of an EC base point
  */
-rule ID_3_3_04 {
-    using
-        Cipher as c
-    when
-        false
-    ensure
-        false
-    onfail
-        InsufficientECIESBasePointOrder
-}
+//rule ID_3_3_04 {
+//    using
+//        Cipher as c
+//    when
+//        false
+//    ensure
+//        false
+//    onfail
+//        InsufficientECIESBasePointOrder
+//}
 
 /**
- * TODO DLIES
+ * BSI TR-02102-1 (Version 2019-01), 3.4. DLIES-Verschlüsselungsverfahren
+ * 
+ * Note:
+ * - implementation not provided by Bouncy Castle. Implementation by user likely to be error prone and should not be encouraged.
+ * - applies to requirements ID 3.4.01, ID 3.4.02 and ID 3.4.03
  */
 
 
-
 /**
- * RSA with EME-OAEP encoding method
+ * BSI TR-02102-1 (Version 2019-01), 3.5. RSA
+ * - RSA EME-OAEP formatting scheme
  */
 rule ID_3_5_01 {
     using
@@ -302,21 +322,21 @@ rule ID_3_5_01 {
 }
 
 /**
- * RSA key length (length of modulus)
+ * BSI TR-02102-1 (Version 2019-01), 3.5. RSA
+ * - RSA minimum length of modulus
+ * 
+ * Note:
+ * - seems to be not checkable. We cannot sufficiently reason about the supplied RSA public key.
  */
-rule ID_3_5_02 {
-    using
-        Cipher as c,
-        RSAPublicKeySpec as pubKey
-    when
-        _split(c.transform, "/", 0) == "RSA"
-        && c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
-    ensure
-        false // TODO
-    onfail
-        InsufficientRSAKeylength // FIXME valid until 2022
-}
-
-
-
-
+//rule ID_3_5_02 {
+//    using
+//        Cipher as c,
+//        RSAPublicKeySpec as pubKey
+//    when
+//        _split(c.transform, "/", 0) == "RSA"
+//        && c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
+//    ensure
+//        false // TODO
+//    onfail
+//        InsufficientRSAKeylength // FIXME valid until 2022
+//}

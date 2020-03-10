@@ -8,18 +8,15 @@
 #include <botan/ec_group.h>
 #include <botan/ecies.h>
 int main (int argc, char* argv[]) {
-  if(argc!=2)
-     return 1;
   std::string plaintext("Your great-grandfather gave this watch to your granddad for good luck. Unfortunately, Dane's luck wasn't as good as his old man's.");
   std::vector<uint8_t> pt(plaintext.data(),plaintext.data()+plaintext.length());
   Botan::AutoSeeded_RNG rng;
 
-  //load keypair
-  Botan::Private_Key* kp(Botan::PKCS8::load_key(argv[1], rng));
+  Botan::EC_Group ec_group("brainpool320r1");
 
-  Botan::EC_Group ec_group("brainpoolP256r1");
+  Botan::ECDH_PrivateKey ecdh_own_priv_key(rng, ec_group);
 
-  Botan::ECIES_System_Params ecies_params(ec_group, "KDF2(SHA-256)", "AES-256", 32, "HMAC", 16);
+  Botan::ECIES_System_Params ecies_params(ec_group, "SP800-56C", "AES-256", 32, "HMAC", 16);
 
   //encrypt with pk
   Botan::ECIES_Encryptor enc( rng, ecies_params);

@@ -1,12 +1,37 @@
 package rules.bsi.tr_02102_1.v2019_01
 
-rule ID_5_4_01 {
+/**
+ * BSI TR-02102-1 (Version 2019-01), 5.4.1. RSA und 5.4.2. Digital Signature Algorithm (DSA) und 5.4.3 DSA-Varianten basierend auf elliptischen Kurven
+ * - signature algorithms
+ */
+rule ID_5_4_01__ID_5_4_3_01 {
     using 
         Signature as s
     ensure 
         s.algorithm in [
-            ""
+            "SHA256WITHRSAANDMGF1", "SHA512(256)WITHRSAANDMGF1", "SHA384WITHRSAANDMGF1", "SHA512WITHRSAANDMGF1", "SHA3-256WITHRSAANDMGF1", "SHA3-384WITHRSAANDMGF1", "SHA3-512WITHRSAANDMGF1", // RSA, EMSA-PSS
+            "SHA256WITHRSA/ISO9796-2", "SHA512(256)WITHRSA/ISO9796-2", "SHA384WITHRSA/ISO9796-2", "SHA512WITHRSA/ISO9796-2", // RSA, Digital Signature Scheme (DS) 2 und 3
+            "SHA256WITHDSA", "SHA384WITHDSA", "SHA512WITHDSA", "SHA3-256WITHDSA", "SHA3-384WITHDSA", "SHA3-512WITHDSA", // DSA
+            "SHA256WITHECDSA", "SHA384WITHECDSA", "SHA512WITHECDSA", "SHA3-256WITHECDSA", "SHA3-384WITHECDSA", "SHA3-512WITHECDSA" // ECDSA
         ]
     onfail
         InvalidSignatureAlgorithm
 }
+
+/**
+ * BSI TR-02102-1 (Version 2019-01), 5.4.1. RSA
+ * - RSA modulus length of key in bits
+ */
+//rule ID_5_4_1_02 {
+//    using 
+//        Signature as s,
+//        KeyFactory as kf,
+//        RSAPrivateKeySpec as rsaprivkey
+//    ensure 
+//        // TODO valid until 2022
+//        _is(s.privateKey, kf.prikey)
+//        && _is(kf.keyspec, rsaprivkey)
+//        && _bit_length(rsaprivkey.modulus) >= 2000
+//    onfail
+//        InsufficientRSAKeyLength
+//}

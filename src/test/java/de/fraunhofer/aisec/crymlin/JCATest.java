@@ -221,29 +221,29 @@ public class JCATest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("java/jca/BCRSACipher.java", "mark/bouncycastle/");
 
 		expected(findings,
-				"line 6: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-				"line 8: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-				"line 7: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-				"line 9: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-				"line 10: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-				"line 11: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
-				"line 13: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+			"line 6: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+			"line 8: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+			"line 7: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+			"line 9: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+			"line 10: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+			"line 11: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
+			"line 13: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified",
 
-				"line 6: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-				"line 8: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-				"line 7: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-				"line 9: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-				"line 10: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-				"line 11: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
-				"line 13: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			"line 6: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			"line 8: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			"line 7: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			"line 9: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			"line 10: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			"line 11: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
+			"line 13: MarkRuleEvaluationFinding: Rule ID_2_01 verified",
 
-				"line 6: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
-				"line 7: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
-				"line 8: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
-				"line 9: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
-				"line 10: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
-				"line 11: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
-				"line 13: MarkRuleEvaluationFinding: Rule ID_3_5_01 violated" // ok
+			"line 6: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+			"line 7: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+			"line 8: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+			"line 9: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+			"line 10: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+			"line 11: MarkRuleEvaluationFinding: Rule ID_3_5_01 verified",
+			"line 13: MarkRuleEvaluationFinding: Rule ID_3_5_01 violated" // ok
 		);
 	}
 

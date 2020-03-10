@@ -70,13 +70,4 @@ rule MACOrder {
 			| m.process()
 		)
 	onfail MACOrder
-}
-
-
-/*
-  * For use of hashes in Filter/Pipes
-  * correct order is defined in pipe.mark
-  */
- entity Botan.MAC_Filter {
-	//TODO
- } 
+} 

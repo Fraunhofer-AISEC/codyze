@@ -37,7 +37,7 @@ rule _2_1_2_1_02_CCM_TagSize {
 // NOTE: rule 2.1.2.2.01 seems to be not checkable. We cannot sufficiently reason about the dynamic behaviour of the program to check this rule.
 
 
-// TODO rule 2.1.2.2.02
+// TODO 2.1.2.2.02
 
 
 
@@ -126,10 +126,10 @@ rule _3_4_02_DLIES_KEYLEN_2022 {
  */
 
 
-// TODO 3.5.01
+// TODO for rule 3.5.01, Botan's EME Scheme must be specified as MARK-Entity
 
 
-// TODO 3.5.02
+// TODO for rule 3.5.02, Botan's EME Scheme must be specified as MARK-Entity
 
 // Botan provides options for combining hash functions in "Parallel" and "Comp4P". This is not covered here.
 rule _4_01_HashFunctions {

@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.wpds;
 
-import de.fraunhofer.aisec.cpg.graph.Region;
+import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 

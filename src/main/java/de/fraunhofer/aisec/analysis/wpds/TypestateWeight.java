@@ -12,13 +12,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A "weight domain" for a weighted pushdown system.
+ * A "weight domain" for Typestate analyses with weighted pushdown systems.
  *
  * <p>
  * A weight domain is a bounded idempotent semiring. In our case, the semiring's operations "combine" and "extend" are linked to a nondeterministic finite automaton
  * (FSM), created from the typedef definition in a Mark file (=a regular expression).
  */
-public class Weight extends Semiring {
+public class TypestateWeight extends Semiring {
 	private @NonNull Set<NFATransition<Node>> value = new HashSet<>();
 	@Nullable
 	private NFA nfa = null;
@@ -30,24 +30,24 @@ public class Weight extends Semiring {
 		ONE
 	}
 
-	public Weight(@NonNull NFA nfa) {
+	public TypestateWeight(@NonNull NFA nfa) {
 		this.nfa = nfa;
 	}
 
-	public Weight(@NonNull Set<NFATransition<Node>> typestateTransitions) {
+	public TypestateWeight(@NonNull Set<NFATransition<Node>> typestateTransitions) {
 		this.value = typestateTransitions;
 	}
 
-	public Weight(@NonNull Element fixedEle) {
+	public TypestateWeight(@NonNull Element fixedEle) {
 		this.fixedElement = fixedEle;
 	}
 
-	public static Weight one() {
-		return new Weight(Element.ONE);
+	public static TypestateWeight one() {
+		return new TypestateWeight(Element.ONE);
 	}
 
-	public static Weight zero() {
-		return new Weight(Element.ZERO);
+	public static TypestateWeight zero() {
+		return new TypestateWeight(Element.ZERO);
 	}
 
 	/**
@@ -66,11 +66,11 @@ public class Weight extends Semiring {
 			return zero();
 		}
 
-		if (!(other instanceof Weight)) {
+		if (!(other instanceof TypestateWeight)) {
 			throw new IllegalArgumentException("Expected Weight but got " + other.getClass());
 		}
 
-		Weight otherW = (Weight) other;
+		TypestateWeight otherW = (TypestateWeight) other;
 
 		Set<NFATransition<Node>> resultSet = new HashSet<>();
 		for (NFATransition<Node> my : this.value) {
@@ -88,9 +88,9 @@ public class Weight extends Semiring {
 			}
 		}
 		if (resultSet.isEmpty()) {
-			return Weight.zero();
+			return TypestateWeight.zero();
 		}
-		return new Weight(resultSet);
+		return new TypestateWeight(resultSet);
 	}
 
 	/**
@@ -109,16 +109,12 @@ public class Weight extends Semiring {
 			return zero();
 		}
 
-		if (other instanceof Weight) {
-			Set<NFATransition<Node>> union = Sets.union(this.value, ((Weight) other).value);
-			if (union.isEmpty()) {
-				System.out.println("EMPTY UNION OF " + this + " and " + other);
-			}
-			return new Weight(union);
+		if (other instanceof TypestateWeight) {
+			Set<NFATransition<Node>> union = Sets.union(this.value, ((TypestateWeight) other).value);
+			return new TypestateWeight(union);
 		}
 
-		return new Weight(Set.of());
-		//throw new IllegalArgumentException("Expected Weight but got " + other.getClass().getName());
+		return new TypestateWeight(Set.of());
 	}
 
 	@Override
@@ -165,9 +161,9 @@ public class Weight extends Semiring {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Weight))
+		if (!(obj instanceof TypestateWeight))
 			return false;
-		Weight other = (Weight) obj;
+		TypestateWeight other = (TypestateWeight) obj;
 		if (this.fixedElement != null && other.fixedElement == null)
 			return false;
 		if (this.fixedElement == null && other.fixedElement != null)

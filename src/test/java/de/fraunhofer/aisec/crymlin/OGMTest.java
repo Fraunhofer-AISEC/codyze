@@ -9,6 +9,7 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -113,7 +114,10 @@ public class OGMTest {
 			if (v.label().equals("RecordDeclaration")) {
 				// We expect properties that were created by a Converter to be converted back into property
 				// object
-				assertTrue(n.getLocation().getRegion().getStartLine() > -1);
+				PhysicalLocation location = n.getLocation();
+
+				assertNotNull(location);
+				assertTrue(location.getRegion().getStartLine() > -1);
 			}
 			vertices++;
 		}

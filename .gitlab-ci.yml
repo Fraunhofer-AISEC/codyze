@@ -7,6 +7,11 @@ stages:
   - build
   - push
   - deploy
+  
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .gradle/  
 
 variables:
   DOCKER_REGISTRY_URL: "registry.netsec.aisec.fraunhofer.de"
@@ -18,22 +23,21 @@ variables:
   # for the cpg tests to find the neo4j service
   NEO4J_URI: bolt://neo4j
 
+  # we can only cache directories within our project directory
+  GRADLE_USER_HOME: ".gradle"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  
 build:
-  cache: {}
   stage: build
-  variables:
-    GRADLE_USER_HOME: "/cache/.gradle"
-    GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-    PIP_CACHE_DIR: "/cache/.pip"
   tags:
     - netsec
   before_script:
+    # make sure the cached gradle directory exists
+    - mkdir -p .gradle  
     - cp netsec.crt /usr/local/share/ca-certificates/netsec.crt
     - update-ca-certificates
     - keytool -import -trustcacerts -cacerts -storepass changeit -file netsec.crt -alias netsec -noprompt-
   script:
-    # make sure the cached gradle directory exists
-    - mkdir -p /cache/.gradle
     # build
     - echo $GRADLE_PROPERTIES > gradle.properties
     # Note that "sonarqube" already implies "build"

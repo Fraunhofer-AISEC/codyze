@@ -7,7 +7,7 @@ import de.fraunhofer.aisec.cpg.sarif.Region;
 /**
  * Simply a concrete child of the abstract <code>WPDS</code> class.
  */
-public class CpgWpds extends WPDS<Stmt, Val, Weight> {
+public class CpgWpds extends WPDS<Stmt, Val, TypestateWeight> {
 
 	@Override
 	public Stmt epsilon() {

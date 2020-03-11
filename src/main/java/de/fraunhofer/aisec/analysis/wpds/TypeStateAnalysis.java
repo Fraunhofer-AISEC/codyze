@@ -47,7 +47,7 @@ import static de.fraunhofer.aisec.crymlin.dsl.__.__;
 import static java.lang.Math.toIntExact;
 
 /**
- * Implementation of a WPDS-based typestate analysis using the code property graph.
+ * Implementation of a WPDS-based typestate analysis using the code property graph (CPG).
  * <p>
  * Legal typestates are given by a regular expression as of the MARK "order" construct. This class will convert this regular expression into a "typestate NFA". The
  * transitions of the typestate NFA are then represented as "weights" for a weighted pushdown system (WPDS). The WPDS is an abstraction of the data flows in the program
@@ -124,7 +124,7 @@ public class TypeStateAnalysis {
 			currentFile = new File("FIXME");
 		}
 
-		WeightedAutomaton<Stmt, Val, Weight> wnfa = createInitialConfiguration(wpds);
+		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = createInitialConfiguration(wpds);
 
 		// For debugging only: Print WPDS rules
 		if (log.isDebugEnabled()) {
@@ -169,7 +169,6 @@ public class TypeStateAnalysis {
 		if (v == null) {
 			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
 			return null;
-			//			return ErrorValue.newErrorValue(String.format("No vertex found for Mark instance: %s. Will not run TS analysis", markInstance));
 		}
 
 		// Find the function in which the vertex is located, so we can use the first statement in function as a start
@@ -177,8 +176,6 @@ public class TypeStateAnalysis {
 		if (containingFunctionOpt.isEmpty()) {
 			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule);
 			return null;
-			//			return ErrorValue.newErrorValue(String.format("Vertex %s not located within a function. Cannot start TS analysis for rule %s", v.property("code").orElse(""),
-			//														  rule.toString()));
 		}
 
 		// Turn function vertex into a FunctionDeclaration so we can work with it
@@ -188,8 +185,6 @@ public class TypeStateAnalysis {
 			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
 				containingFunctionOpt.get().property("name").orElse(""), rule);
 			return null;
-			//			return ErrorValue.newErrorValue(String.format("Function %s could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule %s",
-			//														  containingFunctionOpt.get().property("name").orElse(""), rule.toString()));
 		}
 		return new File(funcDecl.getFile());
 	}
@@ -224,7 +219,7 @@ public class TypeStateAnalysis {
 	 * @return
 	 */
 	@NonNull
-	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, Weight> wnfa,
+	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa,
 			String currentFile) {
 		// Final findings
 		Set<Finding> findings = new HashSet<>();
@@ -234,8 +229,8 @@ public class TypeStateAnalysis {
 
 		// All configurations for which we have rules. Ignoring Weight.ONE
 		Set<NonNullPair<Stmt, Val>> wpdsConfigs = new HashSet<>();
-		for (Rule<Stmt, Val, Weight> r : wpds.getAllRules()) {
-			if (!r.getWeight().equals(Weight.one())) {
+		for (Rule<Stmt, Val, TypestateWeight> r : wpds.getAllRules()) {
+			if (!r.getWeight().equals(TypestateWeight.one())) {
 				wpdsConfigs.add(new NonNullPair<Stmt, Val>(r.getL1(), r.getS1()));
 				wpdsConfigs.add(new NonNullPair<Stmt, Val>(r.getL2(), r.getS2()));
 			}
@@ -243,7 +238,7 @@ public class TypeStateAnalysis {
 		}
 
 		for (Transition<Stmt, Val> tran : wnfa.getTransitions()) {
-			Weight w = wnfa.getWeightFor(tran);
+			TypestateWeight w = wnfa.getWeightFor(tran);
 			if (w.value() instanceof Set) {
 				Set<NFATransition<Node>> reachableTypestates = (Set<NFATransition<Node>>) w.value();
 				for (NFATransition<Node> reachableTypestate : reachableTypestates) {
@@ -255,7 +250,7 @@ public class TypeStateAnalysis {
 
 					endReached |= reachableTypestate.getTarget().isEnd();
 				}
-			} else if (w.equals(Weight.zero())) {
+			} else if (w.equals(TypestateWeight.zero())) {
 				// Check if this is actually a feasible configuration
 				NonNullPair<Stmt, Val> conf = new NonNullPair<>(tran.getLabel(), tran.getStart());
 				if (wpdsConfigs.stream().anyMatch(c -> c.getValue0().equals(conf.getValue0()) && c.getValue1().equals(conf.getValue1()))) {
@@ -341,8 +336,6 @@ public class TypeStateAnalysis {
 
 		// TODO Optimization: WPDS can be limited to the slicing for the relevant statements. Currently we transform whole functions into a WPDS.
 
-		PredecessorMap<Vertex, Stmt> predecessors = new PredecessorMap<>();
-
 		/**
 		 * For each function, create a WPDS
 		 *
@@ -380,13 +373,12 @@ public class TypeStateAnalysis {
 					if (isRelevantStmt(v)) {
 
 						Stmt currentStmt = vertexToStmt(v);
-						predecessors.put(v, previousStmt);
 
 						Statement stmtNode = (Statement) odb.vertexToNode(v);
 						if (stmtNode != null) {
 							/* First we create a normal rule from previous stmt to the current (=the call) */
-							Set<NormalRule<Stmt, Val, Weight>> normalRules = createNormalRules(tsNfa, stmtNode, previousStmt, currentStmt, valsInScope);
-							for (NormalRule<Stmt, Val, Weight> normalRule : normalRules) {
+							Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(tsNfa, stmtNode, previousStmt, currentStmt, valsInScope);
+							for (NormalRule<Stmt, Val, TypestateWeight> normalRule : normalRules) {
 								boolean skipIt = false;
 								if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
 									Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
@@ -406,16 +398,15 @@ public class TypeStateAnalysis {
 								 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
 								 * "return site" is the statement to which flow returns after the function call.
 								 */
-								Set<PushRule<Stmt, Val, Weight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa, previousStmt,
+								Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa, previousStmt,
 									currentStmt,
 									v, worklist);
-								for (PushRule<Stmt, Val, Weight> pushRule : pushRules) {
+								for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
 									log.debug("  Adding push rule: {}", pushRule);
 									wpds.addRule(pushRule);
 
 									// Remember that arguments flow only into callee and do not bypass it.
 									skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
-									predecessors.put(v, pushRule.getCallSite());
 								}
 							}
 
@@ -465,7 +456,8 @@ public class TypeStateAnalysis {
 										// Add declVal to set of currently tracked variables
 										valsInScope.add(declVal);
 
-										Rule<Stmt, Val, Weight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, Weight.one());
+										Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt,
+											TypestateWeight.one());
 										log.debug("Adding normal rule for member call {}", normalRuleSelf);
 										wpds.addRule(normalRuleSelf);
 									} else if (Utils.hasLabel(rhsVertex, CallExpression.class)) {
@@ -480,7 +472,8 @@ public class TypeStateAnalysis {
 										valsInScope.add(declVal);
 
 										for (Val val : valsInScope) {
-											Rule<Stmt, Val, Weight> normalRuleSelf = new NormalRule<>(val, previousStmt, val, currentStmt, Weight.one());
+											Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val, currentStmt,
+												TypestateWeight.one());
 											log.debug("Adding normal rule for function call {}", normalRuleSelf);
 											wpds.addRule(normalRuleSelf);
 										}
@@ -491,7 +484,8 @@ public class TypeStateAnalysis {
 											currentFunctionName);
 										// Add declVal to set of currently tracked variables
 										valsInScope.add(declVal);
-										Rule<Stmt, Val, Weight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt, Weight.one());
+										Rule<Stmt, Val, TypestateWeight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt,
+											TypestateWeight.one());
 										log.debug("Adding normal rule for assignment {}", normalRulePropagate);
 										wpds.addRule(normalRulePropagate);
 									}
@@ -500,7 +494,7 @@ public class TypeStateAnalysis {
 									Val rhsVal = new Val((String) rhsVertex.property("name")
 											.value(),
 										currentFunctionName);
-									Rule<Stmt, Val, Weight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, Weight.one());
+									Rule<Stmt, Val, TypestateWeight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, TypestateWeight.one());
 									log.debug("Adding normal rule, propagating unchanged values {}", normalRuleCopy);
 									wpds.addRule(normalRuleCopy);
 
@@ -511,8 +505,8 @@ public class TypeStateAnalysis {
 
 									// Normal copy of all values in scope
 									for (Val valInScope : valsInScope) {
-										Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt,
-											Weight.one());
+										Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt,
+											TypestateWeight.one());
 										if (!skipTheseValsAtStmt.containsKey(normalRule.getL2())) {
 											Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
 											if (!normalRule.getS1()
@@ -527,8 +521,9 @@ public class TypeStateAnalysis {
 									valsInScope.add(declVal);
 
 									// Create normal rule
-									Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt, declVal, currentStmt,
-										Weight.one());
+									Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt, declVal,
+										currentStmt,
+										TypestateWeight.one());
 									log.debug("Adding normal rule for epsilon {}", normalRule);
 									wpds.addRule(normalRule);
 
@@ -536,7 +531,6 @@ public class TypeStateAnalysis {
 							}
 						} else if (isReturnStatement(v)) {
 							/* Return statements result in pop rules */
-							// TODO Proper handling of variables in scope
 							ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(v);
 							if (returnV != null && !returnV.isDummy()) {
 								Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
@@ -549,10 +543,10 @@ public class TypeStateAnalysis {
 														.getOp()
 														.equals(returnedVal.getVariable()))
 											.collect(Collectors.toSet());
-									Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
+									TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
 									// Pop Rule for actually returned value
-									PopRule<Stmt, Val, Weight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue()
+									PopRule<Stmt, Val, TypestateWeight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue()
 											.getName(),
 										currentFunctionName),
 										currentStmt, returnedVal, weight);
@@ -564,7 +558,8 @@ public class TypeStateAnalysis {
 								Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionDeclaration, v, odb, crymlinTraversal);
 								if (paramToValueMap.containsKey(currentFunctionName)) {
 									for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
-										PopRule<Stmt, Val, Weight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(), Weight.one());
+										PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(),
+											TypestateWeight.one());
 										wpds.addRule(popRule);
 										log.debug("Adding pop rule {}", popRule);
 									}
@@ -573,7 +568,7 @@ public class TypeStateAnalysis {
 							}
 							// Create normal rule. Flow remains where it is.
 							for (Val valInScope : valsInScope) {
-								Rule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, Weight.one());
+								Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, TypestateWeight.one());
 								boolean skipIt = false;
 								if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
 									Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
@@ -589,7 +584,6 @@ public class TypeStateAnalysis {
 							}
 
 						}
-						predecessors.put(v, previousStmt);
 					} // End isRelevantStmt()
 				}
 
@@ -671,19 +665,20 @@ public class TypeStateAnalysis {
 		return v.label().equals(DeclarationStatement.class.getSimpleName());
 	}
 
-	private Set<NormalRule<Stmt, Val, Weight>> createNormalRules(final NFA tsNfa, final Statement currentStmtNode, final Stmt previousStmt, final Stmt currentStmt,
+	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final NFA tsNfa, final Statement currentStmtNode, final Stmt previousStmt,
+			final Stmt currentStmt,
 			final Set<Val> valsInScope) {
-		Set<NormalRule<Stmt, Val, Weight>> result = new HashSet<>();
+		Set<NormalRule<Stmt, Val, TypestateWeight>> result = new HashSet<>();
 		Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
 				.stream()
 				.filter(
 					tran -> belongsToOp(currentStmtNode.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
 				.collect(Collectors.toSet());
-		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
+		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
 		// Create normal rule. Flow remains where it is.
 		for (Val valInScope : valsInScope) {
-			NormalRule<Stmt, Val, Weight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, weight);
+			NormalRule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, weight);
 			log.debug("Adding normal rule {}", normalRule);
 			result.add(normalRule);
 		}
@@ -883,14 +878,14 @@ public class TypeStateAnalysis {
 	 * @param v
 	 * @return
 	 */
-	private Set<PushRule<Stmt, Val, Weight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
+	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
 			NFA nfa, Stmt previousStmt, Stmt currentStmt, Vertex v, ArrayDeque<NonNullPair<Vertex, Set<Stmt>>> worklist) {
 		Set<NFATransition<Node>> relevantNFATransitions = nfa.getTransitions()
 				.stream()
 				.filter(
 					tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
 				.collect(Collectors.toSet());
-		Weight weight = relevantNFATransitions.isEmpty() ? Weight.one() : new Weight(relevantNFATransitions);
+		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
 		List<Vertex> returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) v.id());
@@ -898,7 +893,7 @@ public class TypeStateAnalysis {
 		// Arguments of function call
 		List<Val> argVals = argumentsToVals(mce, currentFunctionName);
 
-		Set<PushRule<Stmt, Val, Weight>> pushRules = new HashSet<>();
+		Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = new HashSet<>();
 		for (FunctionDeclaration potentialCallee : mce.getInvokes()) {
 			// Parameters of function
 			if (potentialCallee.getParameters().size() != argVals.size()) {
@@ -916,7 +911,7 @@ public class TypeStateAnalysis {
 					for (Vertex returnSiteVertex : returnSites) {
 						Stmt returnSite = vertexToStmt(returnSiteVertex);
 
-						PushRule<Stmt, Val, Weight> pushRule = new PushRule<Stmt, Val, Weight>(
+						PushRule<Stmt, Val, TypestateWeight> pushRule = new PushRule<Stmt, Val, TypestateWeight>(
 							argVals.get(i),
 							currentStmt,
 							parmVals.get(i),
@@ -948,10 +943,17 @@ public class TypeStateAnalysis {
 		return null;
 	}
 
-	private List<Val> parametersToVals(FunctionDeclaration potentialCallee) {
+	/**
+	 * Returns a (mutable) list of the function parameters of <code>func</code>, each wrapped as a <code>Val</code>.
+	 *
+	 * @param func
+	 * @return
+	 */
+	@NonNull
+	private List<Val> parametersToVals(@NonNull FunctionDeclaration func) {
 		List<Val> parmVals = new ArrayList<>();
-		for (ParamVariableDeclaration p : potentialCallee.getParameters()) {
-			parmVals.add(new Val(p.getName(), potentialCallee.getName()));
+		for (ParamVariableDeclaration p : func.getParameters()) {
+			parmVals.add(new Val(p.getName(), func.getName()));
 		}
 		return parmVals;
 	}
@@ -976,12 +978,13 @@ public class TypeStateAnalysis {
 	 *
 	 * @return
 	 */
-	private WeightedAutomaton createInitialConfiguration(WPDS wpds) {
+	@NonNull
+	private WeightedAutomaton createInitialConfiguration(@NonNull WPDS wpds) {
 		// Get START state from WPDS
 		Val initialState = null;
 		Stmt stmt = null;
-		Set<NormalRule<Stmt, Val, Weight>> normalRules = wpds.getNormalRules();
-		for (NormalRule<Stmt, Val, Weight> nr : normalRules) {
+		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = wpds.getNormalRules();
+		for (NormalRule<Stmt, Val, TypestateWeight> nr : normalRules) {
 			if (nr.getWeight().value() instanceof Set) {
 				Set<NFATransition> weight = (Set<NFATransition>) nr.getWeight().value();
 
@@ -1001,7 +1004,7 @@ public class TypeStateAnalysis {
 		}
 
 		// Create statement for start configuration and create start CONFIG
-		WeightedAutomaton<Stmt, Val, Weight> wnfa = new WeightedAutomaton<>(initialState) {
+		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
 			@Override
 			public Val createState(Val val, Stmt stmt) {
 				return val;
@@ -1018,24 +1021,30 @@ public class TypeStateAnalysis {
 			}
 
 			@Override
-			public Weight getZero() {
-				return Weight.zero();
+			public TypestateWeight getZero() {
+				return TypestateWeight.zero();
 			}
 
 			@Override
-			public Weight getOne() {
-				return Weight.one();
+			public TypestateWeight getOne() {
+				return TypestateWeight.one();
 			}
 		};
 		Val ACCEPTING = new Val("ACCEPT", "ACCEPT");
 		// Create an automaton for the initial configuration from where post* will start.
-		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING), Weight.one());
+		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING), TypestateWeight.one());
 		// Add final ("accepting") states to NFA.
 		wnfa.addFinalState(ACCEPTING);
 
 		return wnfa;
 	}
 
+	/**
+	 * Convert a CPG vertex into a <code>Stmt</code> in context of the WPDS.
+	 *
+	 * @param v CPG vertex
+	 * @return A <code>Stmt</code>, holding the "code" and "location->region" properties of <code>v</code>>.
+	 */
 	@NonNull
 	private Stmt vertexToStmt(@NonNull Vertex v) {
 		Region region = new Region(-1, -1, -1, -1);

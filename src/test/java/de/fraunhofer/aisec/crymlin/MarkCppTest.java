@@ -1,37 +1,16 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.mark.XtextParser;
-import de.fraunhofer.aisec.mark.markDsl.MarkModel;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class MarkCppTest extends AbstractMarkTest {
@@ -78,7 +57,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	@Disabled // requires Dataflow analysis
+	@Disabled // requires interprocedural context-insensitive dataflow analysis for constant resolution.
 	public void _01_assign() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/01_assign.cpp", "mark_cpp/01_assign.mark");
 		System.out.println("All findings:");
@@ -98,7 +77,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	@Disabled // requires Dataflow analysis
+	@Disabled // requires interprocedural context-insensitive dataflow analysis of function argument for constant resolution.
 	public void _03_arg_as_param() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/03_arg_as_param.cpp", "mark_cpp/03_arg_as_param.mark");
 		System.out.println("All findings:");
@@ -150,19 +129,6 @@ public class MarkCppTest extends AbstractMarkTest {
 
 		expected(findings, "line 13: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 
-	}
-
-	@Disabled // TODO currently unsupported feature
-	@Test
-	public void arg_prevassignop_int() throws Exception {
-		Set<Finding> findings = performTest("mark_cpp/arg_prevassignop_int.cpp", "mark_cpp/");
-
-		System.out.println("All findings:");
-		for (Finding f : findings) {
-			System.out.println(f.toString());
-		}
-
-		assertFalse(true); // new tests!
 	}
 
 	@Test

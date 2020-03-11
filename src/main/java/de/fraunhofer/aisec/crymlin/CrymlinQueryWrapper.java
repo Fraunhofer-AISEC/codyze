@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.analysis.scp.ConstantResolver;
+import de.fraunhofer.aisec.analysis.scp.SimpleConstantResolver;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
@@ -27,7 +27,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
 public class CrymlinQueryWrapper {
 
@@ -435,7 +436,7 @@ public class CrymlinQueryWrapper {
 				ret.add(add);
 			} else if (Utils.hasLabel(v.getArgumentVertex(), DeclaredReferenceExpression.class)) {
 				// Otherwise we use ConstantResolver to find concrete values of a DeclaredReferenceExpression.
-				ConstantResolver cResolver = new ConstantResolver(TraversalConnection.Type.OVERFLOWDB);
+				ConstantResolver cResolver = new SimpleConstantResolver(TraversalConnection.Type.OVERFLOWDB);
 				DeclaredReferenceExpression declExpr = (DeclaredReferenceExpression) OverflowDatabase.getInstance()
 						.vertexToNode(v.getArgumentVertex());
 				if (declExpr == null) {

@@ -4,9 +4,9 @@ package de.fraunhofer.aisec.analysis.scp;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.crymlin.ConstantResolver;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -21,17 +21,14 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.in;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.is;
-
 /**
- * Resolves constant values of variables, if possible.
+ * A simple intraprocedural resolution of constant values.
  */
-public class ConstantResolver {
-	private static final Logger log = LoggerFactory.getLogger(ConstantResolver.class);
+public class SimpleConstantResolver implements ConstantResolver {
+	private static final Logger log = LoggerFactory.getLogger(SimpleConstantResolver.class);
 	private final TraversalConnection.Type dbType;
 
-	public ConstantResolver(TraversalConnection.Type dbType) {
+	public SimpleConstantResolver(TraversalConnection.Type dbType) {
 		this.dbType = dbType;
 	}
 
@@ -60,6 +57,7 @@ public class ConstantResolver {
 	 *
 	 * @param declRefExpr The DeclaredReferenceExpression that will be resolved.
 	 */
+	@NonNull
 	public Set<ConstantValue> resolveConstantValues(@NonNull DeclaredReferenceExpression declRefExpr) {
 		Set<ConstantValue> result = new HashSet<>();
 		Set<ValueDeclaration> declarations = CrymlinQueryWrapper.getDeclarationSites(declRefExpr);
@@ -168,7 +166,7 @@ public class ConstantResolver {
 									if (refersTo.hasNext()) {
 										Vertex v = refersTo.next().outVertex();
 										if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
-											ConstantResolver resolver = new ConstantResolver(this.dbType);
+											SimpleConstantResolver resolver = new SimpleConstantResolver(this.dbType);
 											Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(v, lastExpressionInList);
 											if (constantValue.isPresent()) {
 												return constantValue;

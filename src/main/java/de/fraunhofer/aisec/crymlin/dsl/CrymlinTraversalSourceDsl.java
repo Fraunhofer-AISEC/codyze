@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin.dsl;
 
+import de.fraunhofer.aisec.analysis.ShellCommand;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
@@ -45,6 +46,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 * 
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
+	@ShellCommand("All callees (i.e., functions/methods called from the current traversal's nodes)")
 	public GraphTraversal<Vertex, Vertex> calls() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -60,6 +62,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 * @param calleeName name of the called function/method
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
+	@ShellCommand("Calls to functions/methods with given (fully qualified) name")
 	public GraphTraversal<Vertex, Vertex> calls(String calleeName) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -76,6 +79,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 * @param type of the ctor
 	 * @return traversal of matched {@code ConstructExpression} vertices
 	 */
+	@ShellCommand("Constructors of given type")
 	public GraphTraversal<Vertex, Vertex> ctor(String type) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -104,6 +108,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
+	@ShellCommand("Class methods")
 	public GraphTraversal<Vertex, Vertex> methods() {
 		return this.clone()
 				.V()
@@ -112,18 +117,12 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 					OverflowDatabase.getSubclasses(MethodDeclaration.class));
 	}
 
-	//  @Deprecated
-	//  public GraphTraversal<Vertex, Vertex> cipherListSetterCalls() {
-	//    GraphTraversalSource traversal = this.clone();
-	//
-	//    return this.calls().has(NAME, "SSL_CTX_set_cipher_list");
-	//  }
-
 	/**
 	 * Returns all TranslationUnitDeclaration nodes.
 	 *
 	 * @return
 	 */
+	@ShellCommand("Translation Units (=Source code files)")
 	public GraphTraversal<Vertex, Vertex> translationunits() {
 		return this.clone()
 				.V()
@@ -164,6 +163,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
+	@ShellCommand("Functions")
 	public GraphTraversal<Vertex, Vertex> functiondeclarations() {
 
 		// NOTE We can query for multiple labels like this:
@@ -178,8 +178,6 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 				.hasLabel(
 					FunctionDeclaration.class.getSimpleName(),
 					OverflowDatabase.getSubclasses(FunctionDeclaration.class));
-		//    return this.clone().V().hasLabel(FunctionDeclaration.class.getSimpleName());
-		//    return traversal.has(T.label, LabelP.of(FunctionDeclaration.class.getSimpleName()));
 	}
 
 	/**
@@ -187,6 +185,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
+	@ShellCommand("Functions matching the given name")
 	public GraphTraversal<Vertex, Vertex> functiondeclaration(String functionname) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -200,6 +199,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
+	@ShellCommand("All declarations (field, variables, records, ...)")
 	public GraphTraversal<Vertex, Vertex> declarations() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -208,10 +208,37 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	}
 
 	/**
+	 * Returns all Variable declarations.
+	 *
+	 * @return
+	 */
+	@ShellCommand("Variable declarations")
+	public GraphTraversal<Vertex, Vertex> vars() {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.hasLabel(
+			VariableDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(VariableDeclaration.class));
+	}
+
+	/**
+	 * Returns all Field declarations.
+	 *
+	 * @return
+	 */
+	@ShellCommand("Field declarations")
+	public GraphTraversal<Vertex, Vertex> fields() {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.hasLabel(
+			FieldDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(FieldDeclaration.class));
+	}
+
+	/**
 	 * Returns the node by ID
 	 *
 	 * @return
 	 */
+	@ShellCommand("Node from id")
 	public GraphTraversal<Vertex, Vertex> byID(long id) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -223,14 +250,8 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
+	@ShellCommand("Next node in evaluation order (from node by given id)")
 	public GraphTraversal<Vertex, Vertex> nextEOGFromID(long id) {
-
-		//    this.clone().V().has(T.id, id)
-		//            .repeat(out("EOG").simplePath().store("x"))
-		//            .cap("x")
-		//            .unfold()
-		//            .dedup()
-
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.has(T.id, id)
@@ -243,5 +264,29 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 					hasLabel(
 						MemberCallExpression.class.getSimpleName(),
 						OverflowDatabase.getSubclasses(MemberCallExpression.class)));
+	}
+
+	/**
+	 * Returns nodes connected via outgoing DFG edges.
+	 *
+	 * @return
+	 */
+	@ShellCommand("Data flow into a node")
+	public GraphTraversal<Vertex, Vertex> flowTo() {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.out("EOG").inV();
+	}
+
+	/**
+	 * Returns nodes connected via incoming DFG edges.
+	 *
+	 * @return
+	 */
+	@ShellCommand("Data flow from a node")
+	public GraphTraversal<Vertex, Vertex> flowFrom() {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.in("EOG").outV();
 	}
 }

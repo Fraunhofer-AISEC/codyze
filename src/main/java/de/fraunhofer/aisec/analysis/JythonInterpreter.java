@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.analysis;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
@@ -11,9 +12,8 @@ import org.python.util.InteractiveConsole;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * Main class for the interactive Codyze console.
@@ -90,6 +90,15 @@ public class JythonInterpreter implements AutoCloseable {
 			// Overwrite Jython help() builtin with our help
 			c.push("import " + Commands.class.getName());
 			c.push("help = " + Commands.class.getName() + ".help");
+
+			// Create all @ShellCommand-annotated methods in Command as builtins
+			for (Method m : Utils.getMethodsAnnotatedWith(Commands.class, ShellCommand.class)) {
+				String msg = m.getAnnotation(ShellCommand.class).value();
+				String cmd = m.getName();
+				// Register as a builtin function in Jython console
+				c.push(cmd + " = " + Commands.class.getName() + "." + cmd);
+			}
+
 			c.interact();
 		}
 	}
@@ -121,4 +130,5 @@ public class JythonInterpreter implements AutoCloseable {
 	public Set<Finding> getFindings() {
 		return this.findings;
 	}
+
 }

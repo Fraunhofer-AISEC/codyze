@@ -4,12 +4,17 @@ package de.fraunhofer.aisec.analysis;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.utils.Utils;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +32,7 @@ public class Commands {
 	// backref
 	private final JythonInterpreter jythonInterpreter;
 
-	public Commands(JythonInterpreter jythonInterpreter) {
+	public Commands(@NonNull JythonInterpreter jythonInterpreter) {
 		this.jythonInterpreter = jythonInterpreter;
 	}
 
@@ -36,6 +41,7 @@ public class Commands {
 	 *
 	 * @param url
 	 */
+	@ShellCommand("Starts analysis of a single file or all files in a given directory")
 	public void analyze(String url) {
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
@@ -66,6 +72,7 @@ public class Commands {
 	 *
 	 * @param fileName
 	 */
+	@ShellCommand("Load MARK rules from given file or directory. Rules must be loaded before starting analysis.")
 	public void load_rules(String fileName) {
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
@@ -76,6 +83,7 @@ public class Commands {
 		server.loadMarkRules(new File(fileName));
 	}
 
+	@ShellCommand("Show active MARK rules")
 	public void list_rules() {
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
@@ -89,6 +97,7 @@ public class Commands {
 		}
 	}
 
+	@ShellCommand("Show findings after analysis")
 	public void show_findings() {
 		for (Finding fi : jythonInterpreter.getFindings()) {
 			System.out.println(fi);
@@ -96,6 +105,7 @@ public class Commands {
 	}
 
 	/** Prints help to stdout. */
+	@ShellCommand("Display this help")
 	public static void help() {
 		System.out.println(
 			"Use the \"server\" object to control the analysis server.\n"
@@ -137,5 +147,31 @@ public class Commands {
 					+ "\n"
 					+ "   dir(crymlin.translationunits())\n"
 					+ "          Good ol' Python dir() to find out what properties/methods are available.\n");
+		List<Method> annotatedMethods = Utils.getMethodsAnnotatedWith(Commands.class, ShellCommand.class);
+		List<Method> queryMethods = (Utils.getMethodsAnnotatedWith(CrymlinTraversalSourceDsl.class, ShellCommand.class));
+		print(annotatedMethods);
+		System.out.println("\n ---------------- Graph traversals ------------- \n");
+		print(queryMethods);
+	}
+
+	/**
+	 * Prints methods annotated with @ShellCommand to stdout.
+	 *
+	 * @param methods
+	 */
+	private static void print(List<Method> methods) {
+		for (Method m : methods) {
+			String entry = m.getName() + "(";
+			for (int i = 0; i < m.getParameterTypes().length; i++) {
+				entry += m.getParameterTypes()[i].getSimpleName();
+				if (i < m.getParameterTypes().length - 1) {
+					entry += ", ";
+				}
+			}
+			entry += ")";
+			entry = String.format("%-30s", entry);
+			entry += "-\t" + m.getAnnotation(ShellCommand.class).value();
+			System.out.println(entry);
+		}
 	}
 }

@@ -738,6 +738,15 @@ public class CrymlinQueryWrapper {
 		return Optional.empty();
 	}
 
+	public static Set<Vertex> getDFGSources(Vertex vertex) {
+		Set<Vertex> result = new HashSet<>();
+		Iterator<Edge> it = vertex.edges(Direction.IN, "DFG");
+		while (it.hasNext()) {
+			result.add(it.next().outVertex());
+		}
+		return result;
+	}
+
 	public static Optional<Vertex> refersTo(Vertex vertex) {
 		Iterator<Edge> it = vertex.edges(Direction.IN, "REFERS_TO");
 		if (it.hasNext()) {

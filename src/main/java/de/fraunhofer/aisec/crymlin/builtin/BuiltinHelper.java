@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
@@ -55,7 +56,7 @@ public class BuiltinHelper {
 		}
 
 		for (int i = 0; i < arguments.size(); i++) {
-			if (!arguments.get(i).getClass().equals(expectedClasses[i])) {
+			if (!arguments.get(i).getClass().equals(expectedClasses[i]) && !arguments.get(i).getClass().equals(ErrorValue.class)) {
 				throw new InvalidArgumentException(
 					String.format("Argument %d is not the correct type. Expected: %s, was: %s", i, expectedClasses[i].getName(), arguments.get(i).getClass().getName()));
 			}

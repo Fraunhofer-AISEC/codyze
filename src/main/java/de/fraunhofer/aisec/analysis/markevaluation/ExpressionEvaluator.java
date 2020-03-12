@@ -207,7 +207,7 @@ public class ExpressionEvaluator {
 							(!leftHasError && left.equals(false))) {
 						combinedResult.put(key, ConstantValue.of(false));
 					} else {
-						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical and, left is %s, right is %s",
+						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical AND, left is %s, right is %s",
 							leftHasError ? "error" : left.toString(),
 							rightHasError ? "error" : right.toString())));
 					}
@@ -460,7 +460,6 @@ public class ExpressionEvaluator {
 		Map<Integer, MarkIntermediateResult> arguments = evaluateArgs(expr.getArgs());
 
 		if (builtin.isPresent()) {
-
 			Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
 

@@ -9,16 +9,13 @@ import de.fraunhofer.aisec.crymlin.builtin.BuiltinHelper;
 import de.fraunhofer.aisec.crymlin.builtin.InvalidArgumentException;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedVertex;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class BuiltInTest extends AbstractMarkTest {
@@ -202,14 +199,8 @@ public class BuiltInTest extends AbstractMarkTest {
 			// ok
 		}
 
-		try {
-			// we expect this to throw as there is one argument too many
-			BuiltinHelper.verifyArgumentTypesOrThrow(lv, ConstantValue.class, ConstantValue.class, ConstantValue.class);
-			fail();
-		}
-		catch (InvalidArgumentException e) {
-			// ok
-		}
+		// This is actually okay. We are expecting 3 arguments and receive two Constants and an Error.
+		BuiltinHelper.verifyArgumentTypesOrThrow(lv, ConstantValue.class, ConstantValue.class, ConstantValue.class);
 
 		// we expect this to be ok
 		BuiltinHelper.verifyArgumentTypesOrThrow(lv, ConstantValue.class, ConstantValue.class, ErrorValue.class);

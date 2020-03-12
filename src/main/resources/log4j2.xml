@@ -1,4 +1,4 @@
-<Configuration status="WARN">
+<Configuration status="DEBUG">
     <Appenders>
         <Console name="STDOUT" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss,SSS} %-5p %C{1} %m%n"/>
@@ -12,8 +12,8 @@
         </Async>
     </Appenders>
     <Loggers>
-        <logger level="debug" name="de.fraunhofer.aisec"/>
-        <Root level="DEBUG">
+        <logger level="DEBUG" name="de.fraunhofer.aisec"/>
+        <Root level="WARN">
             <AppenderRef ref="STDOUT"/>
             <AppenderRef ref="FILEOUT"/>
         </Root>

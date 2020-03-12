@@ -87,6 +87,9 @@ public class JythonInterpreter implements AutoCloseable {
 				c.set(kv.getKey(), kv.getValue());
 			}
 			c.set("server", commands);
+			// Overwrite Jython help() builtin with our help
+			c.push("import " + Commands.class.getName());
+			c.push("help = " + Commands.class.getName() + ".help");
 			c.interact();
 		}
 	}

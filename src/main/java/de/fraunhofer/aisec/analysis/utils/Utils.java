@@ -159,14 +159,14 @@ public class Utils {
 						uniMark = uniMark.substring(uniMark.lastIndexOf('.') + 1);
 					}
 
-					// TODO We do not consider type hierarchies here but simply match for equality plus a few manual mappings
+					// We do not consider type hierarchies here but simply match for equality plus a few manual mappings
 					result = uniSource.equals(uniMark);
 					// There are various representations of "string" and we map them manually here.
 					if (uniMark.equals("string")) {
-						if (uniSource.equals("QString")) {
+						if (uniSource.equals("QString") || uniSource.equals("string") || uniSource.equals("String") || uniSource.equals("char*")) {
 							result = true;
 						} else {
-							log.warn("comparing string from MARK against {} from Sourcefile. Does currently not match", uniSource);
+							log.trace("comparing string from MARK against {} from Sourcefile. Does currently not match", uniSource);
 						}
 					}
 

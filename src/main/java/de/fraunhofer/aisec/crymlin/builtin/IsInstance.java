@@ -24,8 +24,8 @@ import java.util.Set;
  * In case of an error or an empty result, this Builtin returns an Optional.empty.
  *
  */
-public class IsInstanceBuiltin implements Builtin {
-	private static final Logger log = LoggerFactory.getLogger(IsInstanceBuiltin.class);
+public class IsInstance implements Builtin {
+	private static final Logger log = LoggerFactory.getLogger(IsInstance.class);
 
 	@Override
 	public @NonNull String getName() {

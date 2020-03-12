@@ -18,8 +18,8 @@ import org.slf4j.LoggerFactory;
  *
  * In case of an error, this Builtin returns an ErrorValue;
  */
-public class SplitBuiltin implements Builtin {
-	private static final Logger log = LoggerFactory.getLogger(SplitBuiltin.class);
+public class Split implements Builtin {
+	private static final Logger log = LoggerFactory.getLogger(Split.class);
 
 	@NonNull
 	@Override

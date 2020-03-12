@@ -96,7 +96,7 @@ public class Commands {
 	}
 
 	/** Prints help to stdout. */
-	public void help() {
+	public static void help() {
 		System.out.println(
 			"Use the \"server\" object to control the analysis server.\n"
 					+ "\n"

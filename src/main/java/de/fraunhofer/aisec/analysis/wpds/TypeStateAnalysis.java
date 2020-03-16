@@ -1051,7 +1051,7 @@ public class TypeStateAnalysis {
 		if (v.property("startLine").isPresent() &&
 				v.property("startColumn").isPresent() &&
 				v.property("endLine").isPresent() &&
-				v.property("startColumn").isPresent()) {
+				v.property("endColumn").isPresent()) {
 			region = new Region(
 				toIntExact((long) v.property("startLine")
 						.value()),
@@ -1059,7 +1059,7 @@ public class TypeStateAnalysis {
 						.value()),
 				toIntExact((long) v.property("endLine")
 						.value()),
-				toIntExact((long) v.property("startColumn")
+				toIntExact((long) v.property("endColumn")
 						.value()));
 		}
 		Stmt stmt = new Stmt(

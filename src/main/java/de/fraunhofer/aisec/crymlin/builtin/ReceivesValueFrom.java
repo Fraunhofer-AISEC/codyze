@@ -62,7 +62,7 @@ public class ReceivesValueFrom implements Builtin {
 			}
 		}
 		catch (InvalidArgumentException e) {
-			e.printStackTrace();
+			log.warn(e.getMessage());
 			return ErrorValue.newErrorValue(e.getMessage() + " in _receives_value_from");
 		}
 		return ErrorValue.newErrorValue("Error in _receives_value_from");

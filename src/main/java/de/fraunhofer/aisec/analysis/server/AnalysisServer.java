@@ -52,6 +52,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 /**
  * This is the main CPG analysis server.
@@ -250,9 +251,8 @@ public class AnalysisServer {
 
 		if (markFile.isDirectory()) {
 			log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
-			try {
-				File[] files = Files.walk(markFile.toPath(), Integer.MAX_VALUE)
-						.map(Path::toFile)
+			try (Stream<Path> walk = Files.walk(markFile.toPath(), Integer.MAX_VALUE);) {
+				File[] files = walk.map(Path::toFile)
 						.filter(File::isFile)
 						.filter(f -> f.getName().endsWith(".mark"))
 						.toArray(File[]::new);

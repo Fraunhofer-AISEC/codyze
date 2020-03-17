@@ -52,7 +52,7 @@ public class Split implements Builtin {
 				return ErrorValue.newErrorValue("One of the arguments for _split was not the expected type, or not initialized/resolved", argResultList.getAll());
 			}
 
-			log.warn("args are: {}; {}; {}", s, regex, index);
+			log.info("args are: {}; {}; {}", s, regex, index);
 			String ret;
 			try {
 				String[] splitted = s.split(regex);

@@ -2,7 +2,7 @@ package botan
 
 entity Botan.MAC {
 	var algorithm;
-	var key: SymmetricKey;
+	var key: Botan.SymmetricKey;
 	var data;
 	var nonce;
 	var nonce_len;

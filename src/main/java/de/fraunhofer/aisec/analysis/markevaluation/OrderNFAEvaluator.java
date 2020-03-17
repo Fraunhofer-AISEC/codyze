@@ -213,11 +213,17 @@ public class OrderNFAEvaluator {
 											base = baseVertex.value("name");
 										}
 									}
-									Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
-									if (refIterator.hasNext()) {
-										refNode = refIterator.next()
-												.inVertex();
+									if (baseVertex.label().equals("VariableDeclaration")) {
+										// this is already the reference
+										refNode = baseVertex;
 										ref = refNode.id().toString();
+									} else {
+										Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+										if (refIterator.hasNext()) {
+											refNode = refIterator.next()
+													.inVertex();
+											ref = refNode.id().toString();
+										}
 									}
 								}
 							} else { // ctor
@@ -323,15 +329,14 @@ public class OrderNFAEvaluator {
 											log.info("Finding: {}", f);
 											disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
 										} else {
-											String baseLocal = prefixedBase.split("\\.")[1]; // remove eogpath
-											Vertex vertex1 = lastBaseUsage.get(baseLocal);
+											Vertex vertex1 = lastBaseUsage.get(prefixedBase);
 											long prevMaxLine = 0;
 											if (vertex1 != null) {
 												prevMaxLine = vertex1.value("startLine");
 											}
 											long newLine = vertex.value("startLine");
 											if (prevMaxLine <= newLine) {
-												lastBaseUsage.put(baseLocal, vertex);
+												lastBaseUsage.put(prefixedBase, vertex);
 											}
 											baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
 										}
@@ -372,6 +377,7 @@ public class OrderNFAEvaluator {
 							if (seenStates.contains(stateOfNext)) {
 								log.debug("node/FSM state already visited: {}. Do not split into this.", stateOfNext);
 								outVertices.remove(i);
+								newBases.forEach((k, v) -> baseToFSMNodes.remove(newEOGPath + k));
 							} else {
 								// update the eogpath directly in the vertices for the next step
 								nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(i).id(),
@@ -412,8 +418,7 @@ public class OrderNFAEvaluator {
 			}
 			if (!hasEnd) {
 				// extract the real base name from eogpath.base
-				HashSet<String> next = nonterminatedBases.computeIfAbsent(entry.getKey()
-						.substring(entry.getKey().indexOf('.') + 1),
+				HashSet<String> next = nonterminatedBases.computeIfAbsent(entry.getKey(),
 					x -> new HashSet<>());
 				next.addAll(notEnded);
 			}
@@ -421,7 +426,37 @@ public class OrderNFAEvaluator {
 		for (Map.Entry<String, HashSet<String>> entry : nonterminatedBases.entrySet()) {
 			isOrderValid = false;
 			Vertex vertex = lastBaseUsage.get(entry.getKey());
+			if (vertex == null) {
+				String[] split = entry.getKey().split("\\.");
+				if (split.length != 2) {
+					log.warn("Invalid eogpath");
+				} else {
+					if (split[0].length() <= 1) {
+						log.warn("Invalid eogpath length");
+					} else {
+						while (vertex == null || split[0].length() > 2) { // remove a number of branches until we find a last usage
+							split[0] = split[0].substring(0, split[0].length() - 1);
+							vertex = lastBaseUsage.get(split[0] + "." + split[1]);
+						}
+					}
+				}
+			}
 			String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
+			if (base.contains(".")) {
+				base = base.substring(base.indexOf(".") + 1); // remove eogpath
+			}
+			String file = "unknown";
+			int startLine = -1;
+			int endLine = -1;
+			int startCol = -1;
+			int endCol = -1;
+			if (vertex != null) {
+				file = CrymlinQueryWrapper.getFileLocation(vertex);
+				startLine = toIntExact(vertex.value("startLine")) - 1;
+				endLine = toIntExact(vertex.value("endLine")) - 1;
+				startCol = toIntExact(vertex.value("startColumn")) - 1;
+				endCol = toIntExact(vertex.value("endColumn")) - 1;
+			}
 			Finding f = new Finding(
 				"Violation against Order: Base "
 						+ base
@@ -435,11 +470,11 @@ public class OrderNFAEvaluator {
 						+ rule.getErrorMessage()
 						+ ")",
 				rule.getErrorMessage(),
-				CrymlinQueryWrapper.getFileLocation(vertex),
-				toIntExact(vertex.value("startLine")) - 1,
-				toIntExact(vertex.value("endLine")) - 1,
-				toIntExact(vertex.value("startColumn")) - 1,
-				toIntExact(vertex.value("endColumn")) - 1);
+				file,
+				startLine,
+				endLine,
+				startCol,
+				endCol);
 			if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 				ctx.getFindings()
 						.add(f);

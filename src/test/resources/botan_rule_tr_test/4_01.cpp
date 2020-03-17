@@ -4,7 +4,7 @@
 int main () {
     Botan::HashFunction* hash1 = Botan::HashFunction::create("SHA-1");
     Botan::HashFunction* hash2 = Botan::HashFunction::create("SHA-3");
-    Botan::HashFunction* hash3 = Botan::HashFunction::create("SHA3-356");
+    Botan::HashFunction* hash3 = Botan::HashFunction::create("SHA3-256");
     std::vector<uint8_t> buf(2048);
     while(std::cin.good())
     {

@@ -113,15 +113,16 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	public void test_rule_3_4_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_01.cpp", "mark/botan/");
 		expected(findings,
-			"line 28: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)",
+			"line 28: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
 			"line 25: MarkRuleEvaluationFinding: Rule _3_4_01_DLIES_KDF verified", // ok
-			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN_2022 verified",
+			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN_2022 verified", // ok
 			"line 20: Verified Order: PubKeyOrder",
 			"line 19: Verified Order: PrivKeyOrder",
-			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN violated",
-			"line 28: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",
-			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified",
-			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated");
+			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN violated", // expected verified
+			"line 28: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified", // ok
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated" // expected verified
+		);
 	}
 
 	@Test
@@ -132,10 +133,10 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 19: Verified Order: PrivKeyOrder", // ok
 			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN violated", // expected verified
 			"line 27: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
-			"line 27: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // look at this again
+			"line 27: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
 			"line 24: MarkRuleEvaluationFinding: Rule _3_4_01_DLIES_KDF verified", // ok
-			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified",
-			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated" // expected to be verified
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified", // ok
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated" // expected verified
 		);
 	}
 
@@ -143,45 +144,51 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	public void test_rule_4_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/4_01.cpp", "mark/botan/");
 		expected(findings,
-			"line 15: Violation against Order: hash1->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)",
-			"line 16: Violation against Order: hash2->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)",
-			"line 17: Violation against Order: hash3->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)",
-			"line 19: Violation against Order: hash1->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)",
-			"line 20: Violation against Order: hash2->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)",
-			"line 21: Violation against Order: hash3->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)",
-			"line 7: Violation against Order: Base hash3 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)",
-			"line 6: Violation against Order: Base hash2 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)",
-			"line 5: Violation against Order: Base hash1 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)",
-			"line 5: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",
-			"line 6: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated",
-			"line 7: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated");
+			"line 15: Violation against Order: hash1->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)", // FN
+			"line 16: Violation against Order: hash2->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)", // FN
+			"line 17: Violation against Order: hash3->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)", // FN
+			"line 19: Violation against Order: hash1->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)", // FN
+			"line 20: Violation against Order: hash2->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)", // FN
+			"line 21: Violation against Order: hash3->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)", // FN
+			"line 7: Violation against Order: Base hash3 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)", // FN
+			"line 6: Violation against Order: Base hash2 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)", // FN
+			"line 5: Violation against Order: Base hash1 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)", // FN
+			"line 5: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated", // ok
+			"line 6: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated", // ok
+			"line 7: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions verified" // ok
+		);
 	}
 
 	@Test
 	public void test_rule_5_3_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_01.cpp", "mark/botan/");
-		expected(findings, "line 13: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)",
-			"line 10: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)",
-			"line 10: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified");
+		// expected a order-fail in line 22, mac is reused, but not allowed in order
+		expected(findings, "line 13: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)", // FP
+			"line 10: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // FP
+			"line 10: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified" // ok
+		);
 	}
 
 	@Test
 	public void test_rule_5_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "mark/botan/");
-		//expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // actually expected
-		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",
-			"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)",
-			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)");
+		//expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // FN mac.key.length
+		// expected a order-fail in line 22, mac is reused, but not allowed in order
+		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
+			"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)", // FP
+			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)" // FP
+		);
 	}
 
 	@Test
 	public void test_rule_5_3_03() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_03.cpp", "mark/botan/");
 		expected(findings,
-			"line 16: MarkRuleEvaluationFinding: Rule _5_3_03_MAC_NONCELEN verified",
-			"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified",
-			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)",
-			"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)");
+			"line 16: MarkRuleEvaluationFinding: Rule _5_3_03_MAC_NONCELEN verified", // ok
+			"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
+			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // FP
+			"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)" // FP
+		);
 	}
 
 	@Test
@@ -189,7 +196,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", "mark/botan/");
 		expected(findings);
 
-		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_1_01_RSA_SIG_Format verified");  // actually expected
+		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_1_01_RSA_SIG_Format verified");  // missing
 	}
 
 	@Test
@@ -197,7 +204,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_02.cpp", "mark/botan/");
 		expected(findings);
 
-		/* actually expected
+		/* missing
 		expected(findings,
 		"line XX : MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen verified",
 		"line XX : MarkRuleEvaluationFinding: Rule _5_5_4_1_02_RSA_SIG_KeyLen_2022 verified");
@@ -209,7 +216,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_2_01.cpp", "mark/botan/");
 		expected(findings);
 
-		/* actually expected
+		/* missing
 		expected(findings,
 		"line XX : MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen verified",
 		"line XX : MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen_2022 verified");
@@ -221,14 +228,14 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_3_01.cpp", "mark/botan/");
 		expected(findings);
 
-		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_3_01_ECDSA_SIG verified");  // actually expected
+		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_3_01_ECDSA_SIG verified");  // missing
 	}
 
 	@Test
 	public void test_rule_7_2_2_1_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/7_2_2_1_01.cpp", "mark/botan/");
 		expected(findings,
-			"line 11: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated", // expected to be verified
+			"line 11: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated", // expected verified
 			"line 11: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified"); // ok
 	}
 

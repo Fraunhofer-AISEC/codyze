@@ -166,7 +166,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	@Test
 	public void test_rule_5_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "mark/botan/");
-		expected(findings, "line 9: MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified", // missing for now
+		expected(findings, "line 9: MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified", // ok
 			"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
 			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
 			"line 22: Violation against Order: mac->start(iv); (start) is not allowed. Expected one of: END (MACOrder)" // ok
@@ -187,41 +187,46 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	@Test
 	public void test_rule_5_4_1_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", "mark/botan/");
-		expected(findings);
-
-		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_1_01_RSA_SIG_Format verified");  // missing
+		expected(findings,
+			"line 10: Verified Order: PubKeyOrder",
+			"line 10: MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen verified", // ok
+			"line 11: Verified Order: SignatureOrder", // ok
+			"line 11: MarkRuleEvaluationFinding: Rule _5_4_1_01_RSA_SIG_Format verified", // ok
+			"line 10: MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen_2022 verified" // ok
+		);
 	}
 
 	@Test
 	public void test_rule_5_4_1_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_02.cpp", "mark/botan/");
-		expected(findings);
-
-		/* missing
 		expected(findings,
-		"line XX : MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen verified",
-		"line XX : MarkRuleEvaluationFinding: Rule _5_5_4_1_02_RSA_SIG_KeyLen_2022 verified");
-		 */
+			"line 5: MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen_2022 verified", // ok
+			"line 5: MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen verified", // ok
+			"line 6: MarkRuleEvaluationFinding: Rule _5_4_1_01_RSA_SIG_Format verified", // ok
+			"line 6: Verified Order: SignatureOrder", // ok
+			"line 5: Verified Order: PubKeyOrder" // ok
+		);
 	}
 
 	@Test
 	public void test_rule_5_4_2_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_2_01.cpp", "mark/botan/");
-		expected(findings);
-
-		/* missing
 		expected(findings,
-		"line XX : MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen verified",
-		"line XX : MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen_2022 verified");
-		 */
+			"line 7: Verified Order: SignatureOrder", // ok
+			"line 6: Verified Order: PubKeyOrder", // ok
+			"line 5: MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen verified", // ok
+			"line 5: MarkRuleEvaluationFinding: Rule _5_4_2_01_DSA_SIG_KeyLen_2022 verified" // ok
+		);
 	}
 
 	@Test
 	public void test_rule_5_4_3_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_3_01.cpp", "mark/botan/");
-		expected(findings);
-
-		//expected("line XX : MarkRuleEvaluationFinding: Rule _5_4_3_01_ECDSA_SIG verified");  // missing
+		expected(findings,
+			"line 7: Verified Order: SignatureOrder", // ok
+			"line 6: Verified Order: PubKeyOrder", // ok
+			"line 7: MarkRuleEvaluationFinding: Rule _5_4_3_01_ECDSA_SIG verified" // ok
+		);
 	}
 
 	@Test

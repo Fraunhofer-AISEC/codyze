@@ -3,7 +3,7 @@ int main() {
     const std::vector<uint8_t> test_sig = Botan::hex_decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     Botan::AutoSeeded_RNG rng;
     Botan::DL_Group dl_group("dsa/botan/3072");
-    Botan::DSA_PublicKey::DSA_PublicKey(rng, dl_group);
+    Botan::DSA_PublicKey pub_key(rng, dl_group);
     Botan::PK_Verifier sig_verifier(Botan::PK_Verifier(pub_key, "EMSA4(SHA-256)"));
     sig_verifier.verify_message(data, test_sig);
 }

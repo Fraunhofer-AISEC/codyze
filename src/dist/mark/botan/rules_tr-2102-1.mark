@@ -162,7 +162,7 @@ rule _5_4_1_01_RSA_SIG_Format {
 	when
 		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
 	ensure
-		_split(v.emsa, "(", 0) in ["EMSA4", "ISO_9796_DS2", "ISO_9796_DS3"]
+		_split(v.emsa, "\(", 0) in ["EMSA4", "ISO_9796_DS2", "ISO_9796_DS3"]
 	onfail 
 		_5_4_1_01_RSA_SIG_Format
 }
@@ -215,9 +215,11 @@ rule _5_4_3_01_ECDSA_SIG {
 	using 
 		Botan.PK_Verifier as v
 	when
-		!(_most_specific_type(v.pub_key) in ["Botan::RSA_PublicKey", "Botan::DSA_PublicKey"])
+	    !(_is_instance(v.pub_key, "Botan::RSA_PublicKey") || _is_instance(v.pub_key, "Botan::DSA_PublicKey"])
+		// should be replaced with _most_specific_type
 	ensure
-		_most_specific_type(v.pub_key) in ["Botan::ECDSA_PublicKey", "Botan::ECKCDSA_PublicKey", "Botan::ECGDSA_PublicKey"]
+		_is_instance(v.pub_key, "Botan::ECDSA_PublicKey") || _is_instance(v.pub_key, "Botan::ECKCDSA_PublicKey") || _is_instance(v.pub_key, "Botan::ECGDSA_PublicKey")
+		// should be replaced with _most_specific_type
 	onfail
 		_5_4_3_01_ECDSA_SIG
 }
@@ -233,14 +235,18 @@ rule _5_4_3_01_ECDSA_SIG {
 
 rule _7_2_2_1_01_DH_KEYLEN {
 	using Botan.Private_Key as pk
-	when _most_specific_type(pk) == "Botan::DH_PrivateKey"
+	when
+	    _is_instance(pk, "Botan::DH_PrivateKey")
+	    // should be replaced with _most_specific_type
 	ensure _split(pk.dl_group.name, "/", 2) >= 3000
 	onfail _7_2_2_1_01_DH_KEYLEN
 }
 
 rule _7_2_2_1_01_DH_KEYLEN_2022 {
 	using Botan.Private_Key as pk
-	when _most_specific_type(pk) == "Botan::DH_PrivateKey"
+	when
+	    _is_instance(pk, "Botan::DH_PrivateKey")
+	    // should be replaced with _most_specific_type
 	ensure _split(pk.dl_group.name, "/", 2) >= 2000
 	onfail _7_2_2_1_01_DH_KEYLEN_2022
 }

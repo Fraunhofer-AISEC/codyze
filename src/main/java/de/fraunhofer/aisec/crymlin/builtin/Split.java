@@ -11,6 +11,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.regex.PatternSyntaxException;
+
 /**
  * Method signature: _split(String str, String splitter, int position)
  *
@@ -50,14 +52,21 @@ public class Split implements Builtin {
 				return ErrorValue.newErrorValue("One of the arguments for _split was not the expected type, or not initialized/resolved", argResultList.getAll());
 			}
 
-			log.debug("args are: {}; {}; {}", s, regex, index);
+			log.warn("args are: {}; {}; {}", s, regex, index);
 			String ret;
-			String[] splitted = s.split(regex);
-			if (index.intValue() < splitted.length) {
-				ret = splitted[index.intValue()];
-			} else {
-				log.warn("{} did not have an {}-th element when split by '{}'", s, index, regex);
-				return ErrorValue.newErrorValue(String.format("%s did not have an %s-th element when split by '%s'", s, index.toString(), regex), argResultList.getAll());
+			try {
+				String[] splitted = s.split(regex);
+				if (index.intValue() < splitted.length) {
+					ret = splitted[index.intValue()];
+				} else {
+					log.warn("{} did not have an {}-th element when split by '{}'", s, index, regex);
+					return ErrorValue.newErrorValue(String.format("%s did not have an %s-th element when split by '%s'", s, index.toString(), regex),
+						argResultList.getAll());
+				}
+			}
+			catch (PatternSyntaxException e) {
+				log.warn("Pattern for _split wrong: '{}': {}", regex, e.getMessage());
+				return ErrorValue.newErrorValue(String.format("Pattern for _split wrong: '%s': %s", regex, e.getMessage()), argResultList.getAll());
 			}
 
 			ConstantValue cv = ConstantValue.of(ret);

@@ -291,6 +291,7 @@ public class ExpressionHelper {
 			NumberFormat df = NumberFormat.getInstance(Locale.ENGLISH);
 			df.setMinimumFractionDigits(1);
 			df.setMaximumFractionDigits(8);
+			df.setGroupingUsed(false);
 
 			return df.format(bd);
 		}

@@ -118,10 +118,10 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN_2022 verified", // ok
 			"line 20: Verified Order: PubKeyOrder",
 			"line 19: Verified Order: PrivKeyOrder",
-			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN violated", // expected verified
+			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN verified", // ok
 			"line 28: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
 			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified", // ok
-			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated" // expected verified
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN verified" // ok
 		);
 	}
 
@@ -131,12 +131,12 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		expected(findings,
 			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN_2022 verified", // ok
 			"line 19: Verified Order: PrivKeyOrder", // ok
-			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN violated", // expected verified
+			"line 17: MarkRuleEvaluationFinding: Rule _3_4_02_DLIES_KEYLEN verified", // ok
 			"line 27: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
 			"line 27: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
 			"line 24: MarkRuleEvaluationFinding: Rule _3_4_01_DLIES_KDF verified", // ok
 			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified", // ok
-			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated" // expected verified
+			"line 17: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN verified" // ok
 		);
 	}
 
@@ -227,7 +227,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	public void test_rule_7_2_2_1_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/7_2_2_1_01.cpp", "mark/botan/");
 		expected(findings,
-			"line 11: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN violated", // expected verified
+			"line 11: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN verified", // ok
 			"line 11: MarkRuleEvaluationFinding: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified"); // ok
 	}
 

@@ -166,8 +166,8 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	@Test
 	public void test_rule_5_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "mark/botan/");
-		//expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // FN mac.key.length
-		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
+		expected(findings, "line 9: MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified", // missing for now
+			"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
 			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
 			"line 22: Violation against Order: mac->start(iv); (start) is not allowed. Expected one of: END (MACOrder)" // ok
 		);
@@ -177,6 +177,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	public void test_rule_5_3_03() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_03.cpp", "mark/botan/");
 		expected(findings,
+			"line 8: MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified", // ok
 			"line 16: MarkRuleEvaluationFinding: Rule _5_3_03_MAC_NONCELEN verified", // ok
 			"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
 			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)" // ok

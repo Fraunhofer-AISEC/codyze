@@ -103,10 +103,10 @@ public class JCATest extends AbstractMarkTest {
 			"line 41: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified", // ok
 
 			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
-			"line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.instantiate (InvalidOrderforAEAD)", // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
+			"line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)", // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
 
 			"line 41: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
-			"line 52: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.instantiate (InvalidOrderforAEAD)"); // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
+			"line 52: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)"); // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
 	}
 
 	@Test
@@ -176,8 +176,8 @@ public class JCATest extends AbstractMarkTest {
 
 			// rule order basic cipher
 			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderOfCipherOperations)", // FP, Type hierarchy not available for javax.crypto.spec.IvParameterSpec, Type system improv in CPG needed
-			"line 47: Violation against Order: c.update(input, i * 16, 16) (update) is not allowed. Expected one of: c.instantiate (InvalidOrderOfCipherOperations)", // FP, Type hierarchy not available for javax.crypto.spec.IvParameterSpec, Type system improv in CPG needed
-			"line 59: Violation against Order: c.doFinal(input, i * 16, (input.length % 16 == 0) ? 16 : input.length % 16) (finalize) is not allowed. Expected one of: c.instantiate (InvalidOrderOfCipherOperations)" // FP, Type hierarchy not available for javax.crypto.spec.IvParameterSpec, Type system improv in CPG needed
+			"line 47: Violation against Order: c.update(input, i * 16, 16) (update) is not allowed. Expected one of: c.init (InvalidOrderOfCipherOperations)", // FP, Type hierarchy not available for javax.crypto.spec.IvParameterSpec, Type system improv in CPG needed
+			"line 59: Violation against Order: c.doFinal(input, i * 16, (input.length % 16 == 0) ? 16 : input.length % 16) (finalize) is not allowed. Expected one of: c.init (InvalidOrderOfCipherOperations)" // FP, Type hierarchy not available for javax.crypto.spec.IvParameterSpec, Type system improv in CPG needed
 		);
 	}
 

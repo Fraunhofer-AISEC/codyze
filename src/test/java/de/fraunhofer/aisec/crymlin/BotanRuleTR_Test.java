@@ -18,7 +18,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
 			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
-			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
+			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.set_key (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
 
@@ -34,7 +34,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
 			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
-			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
+			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.set_key (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
 		);
@@ -47,7 +47,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		expected(findings,
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
 			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
-			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
+			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.set_key (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes violated", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated", // ok
@@ -63,7 +63,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		expected(findings,
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_BlockCiphers verified", // ok
 			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
-			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
+			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.set_key (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes violated", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated", // ok
@@ -84,7 +84,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 			"line 13: MarkRuleEvaluationFinding: Rule _2_1_01_Modes verified", // ok
 
 			"line 19: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", //default ctor-problem in CPG
-			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.create_key_init, cm.create_uninit (Cipher_Mode_Order)", // ok
+			"line 19: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.set_key (Cipher_Mode_Order)", // ok
 			"line 13: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
 			"line 13: MarkRuleEvaluationFinding: Rule _2_01_KeyLength violated" // ok
 		);
@@ -144,15 +144,9 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	public void test_rule_4_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/4_01.cpp", "mark/botan/");
 		expected(findings,
-			"line 15: Violation against Order: hash1->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)", // FN
-			"line 16: Violation against Order: hash2->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)", // FN
-			"line 17: Violation against Order: hash3->update(buf.data(),readcount); (update) is not allowed. Expected one of: hf.create (HashOrder)", // FN
-			"line 19: Violation against Order: hash1->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)", // FN
-			"line 20: Violation against Order: hash2->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)", // FN
-			"line 21: Violation against Order: hash3->final() (finalize) is not allowed. Expected one of: hf.create (HashOrder)", // FN
-			"line 7: Violation against Order: Base hash3 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)", // FN
-			"line 6: Violation against Order: Base hash2 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)", // FN
-			"line 5: Violation against Order: Base hash1 is not correctly terminated. Expected one of [hf.finalize, hf.process, hf.update] to follow the correct last call on this base. (HashOrder)", // FN
+			"line 6: Verified Order: HashOrder", // ok
+			"line 5: Verified Order: HashOrder", // ok
+			"line 7: Verified Order: HashOrder", // ok
 			"line 5: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated", // ok
 			"line 6: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions violated", // ok
 			"line 7: MarkRuleEvaluationFinding: Rule _4_01_HashFunctions verified" // ok
@@ -162,9 +156,9 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	@Test
 	public void test_rule_5_3_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_01.cpp", "mark/botan/");
-		// expected a order-fail in line 22, mac is reused, but not allowed in order
-		expected(findings, "line 13: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)", // FP
-			"line 10: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // FP
+		expected(findings,
+			"line 10: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
+			"line 20: Violation against Order: mac->start(iv); (start) is not allowed. Expected one of: END (MACOrder)", // ok
 			"line 10: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified" // ok
 		);
 	}
@@ -173,10 +167,9 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	public void test_rule_5_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "mark/botan/");
 		//expected(findings, "line XX : MarkRuleEvaluationFinding: Rule _5_3_02_MAC_KEYLEN verified"); // FN mac.key.length
-		// expected a order-fail in line 22, mac is reused, but not allowed in order
 		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
-			"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)", // FP
-			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)" // FP
+			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
+			"line 22: Violation against Order: mac->start(iv); (start) is not allowed. Expected one of: END (MACOrder)" // ok
 		);
 	}
 
@@ -186,8 +179,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		expected(findings,
 			"line 16: MarkRuleEvaluationFinding: Rule _5_3_03_MAC_NONCELEN verified", // ok
 			"line 12: MarkRuleEvaluationFinding: Rule _5_3_01_MAC verified", // ok
-			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // FP
-			"line 15: Violation against Order: mac->set_key(key); (init) is not allowed. Expected one of: m.create (MACOrder)" // FP
+			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)" // ok
 		);
 	}
 

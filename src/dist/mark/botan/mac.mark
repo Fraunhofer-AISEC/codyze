@@ -14,8 +14,8 @@ entity Botan.MAC {
 	op create {
 		Botan::MessageAuthenticationCode::create(algorithm);
 		Botan::MessageAuthenticationCode::create(algorithm, _);
-		Botan::MessageAuthenticationCode::create_or_throw(algorith);
-		Botan::MessageAuthenticationCode::create_or_throw(algorith, _);
+		Botan::MessageAuthenticationCode::create_or_throw(algorithm);
+		Botan::MessageAuthenticationCode::create_or_throw(algorithm, _);
 	}
 	
 	op init {

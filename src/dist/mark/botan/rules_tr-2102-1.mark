@@ -9,8 +9,7 @@ rule _2_01_BlockCiphers {
 }
 
 rule _2_01_KeyLength {
-	using Botan.Cipher_Mode as cm,
-		Botan.SymmetricKey as sk
+	using Botan.Cipher_Mode as cm
 	ensure
 		cm.symkey.length in [16, 24, 32]  // 128, 192, 256 bit
 	onfail _2_01_KeyLength

@@ -15,17 +15,17 @@ entity Botan.InitializationVector {
 	var length;
 
 	op create {
-		Botan::OctetString(bytes: Botan::secure_vector);
-        Botan::OctetString(rng: Botan::RandomNumberGenerator, length);
+		Botan::InitializationVector(bytes: Botan::secure_vector);
+        Botan::InitializationVector(rng, length);
 	}
 	
 	op get {
-		Botan::OctetString::bits_of();
-        Botan::OctetString::as_string();
+		Botan::InitializationVector::bits_of();
+        Botan::InitializationVector::as_string();
 
         // because it's hard for us to analyze?
-        forbidden Botan::OctetString::begin();
-        forbidden Botan::OctetString::end();
+        forbidden Botan::InitializationVector::begin();
+        forbidden Botan::InitializationVector::end();
 	}
 
 }
@@ -37,17 +37,17 @@ entity Botan.SymmetricKey {
 	var length;
 
 	op create {
-		Botan::OctetString(bytes: Botan::secure_vector);
-        Botan::OctetString(rng: Botan::RandomNumberGenerator, length);
+		Botan::SymmetricKey(bytes: Botan::secure_vector);
+        Botan::SymmetricKey(rng, length);
 	}
 	
 	op get {
-		Botan::OctetString::bits_of();
-        Botan::OctetString::as_string();
+		Botan::SymmetricKey::bits_of();
+        Botan::SymmetricKey::as_string();
 
         // Note: because it's hard for us to analyze?
-        forbidden Botan::OctetString::begin();
-        forbidden Botan::OctetString::end();
+        forbidden Botan::SymmetricKey::begin();
+        forbidden Botan::SymmetricKey::end();
 	}
 
 }

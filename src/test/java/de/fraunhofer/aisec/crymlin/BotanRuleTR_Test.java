@@ -76,7 +76,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_3_01.cpp", "mark/botan/");
 
 		/* missing
-			"line XX: MarkRuleEvaluationFinding: Rule _2_1_2_3_01_CBC_RandomIV verified"
+			"line XX: MarkRuleEvaluationFinding: Rule _2_1_2_3_01_CBC_RandomIV verified" // requires _receives_value_from builtin which requires a data flow analysis
 		*/
 
 		expected(findings,

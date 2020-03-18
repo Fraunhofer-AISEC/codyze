@@ -318,9 +318,12 @@ public class CrymlinQueryWrapper {
 					// precalculate base
 					Optional<Vertex> baseOfCallExpression = CrymlinQueryWrapper.getBaseOfCallExpression(v);
 
+					boolean foundTargetVertex = false;
+
 					// check if there was an assignment (i.e., i = call(foo);)
 					List<Vertex> varDeclarations = CrymlinQueryWrapper.lhsVariableOfAssignment(crymlin, (long) v.id());
 					if (!varDeclarations.isEmpty()) {
+						foundTargetVertex = true;
 						log.info("found assignment: {}", varDeclarations);
 						varDeclarations.forEach(vertex -> {
 							CPGVertexWithValue cpgVertexWithValue = new CPGVertexWithValue(vertex, ConstantValue.newUninitialized());
@@ -334,12 +337,19 @@ public class CrymlinQueryWrapper {
 							.initializerVariable()
 							.toList();
 					if (!varDeclarations.isEmpty()) {
+						foundTargetVertex = true;
 						log.info("found direct initialization: {}", varDeclarations);
 						varDeclarations.forEach(vertex -> {
 							CPGVertexWithValue cpgVertexWithValue = new CPGVertexWithValue(vertex, ConstantValue.newUninitialized());
 							cpgVertexWithValue.setBase(baseOfCallExpression.orElse(null));
 							matchingVertices.add(cpgVertexWithValue);
 						});
+					}
+
+					if (!foundTargetVertex) { // this can be a directly used return value from a call
+						CPGVertexWithValue cpgVertexWithValue = new CPGVertexWithValue(v, ConstantValue.newUninitialized());
+						cpgVertexWithValue.setBase(baseOfCallExpression.orElse(null));
+						matchingVertices.add(cpgVertexWithValue);
 					}
 				}
 			}

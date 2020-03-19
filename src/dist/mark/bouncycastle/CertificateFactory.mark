@@ -2,6 +2,16 @@ package java.jca
 
 entity CertificateFactory {
 	
+	var type;
+	var provider;
+	
+	var inStream;
+	var certificate;
+	
+	var encoding;
+	var certificates;
+	var certpath;
+	
 	
 	op instantiate {
 		java.security.cert.CertificateFactory.getInstance(

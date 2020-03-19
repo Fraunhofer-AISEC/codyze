@@ -21,14 +21,12 @@ entity Cipher {
     
     
     op instantiate {
-        javax.crypto.Cipher.getInstance(transform : java.lang.String);
         javax.crypto.Cipher.getInstance(
-            transform : java.lang.String,
-            provider : java.lang.String
+            transform : java.lang.String
         );
         javax.crypto.Cipher.getInstance(
             transform : java.lang.String,
-            provider : java.security.Provider
+            provider : java.lang.String | java.security.Provider
         );
     }
     

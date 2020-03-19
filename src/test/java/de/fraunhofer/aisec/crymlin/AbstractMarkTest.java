@@ -14,6 +14,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -35,12 +36,30 @@ public class AbstractMarkTest {
 
 	@NonNull
 	Set<Finding> performTest(String sourceFileName, @Nullable String markFileName) throws Exception {
+		return performTest(sourceFileName, null, markFileName);
+	}
+
+	@NonNull
+	Set<Finding> performTest(String sourceFileName, String[] additionalFiles, @Nullable String markFileName) throws Exception {
 		ClassLoader classLoader = AbstractMarkTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);
 		assertNotNull(resource, "Resource " + sourceFileName + " not found");
 		File javaFile = new File(resource.getFile());
 		assertNotNull(javaFile, "File " + sourceFileName + " not found");
+
+		ArrayList<File> toAnalyze = new ArrayList<>();
+		toAnalyze.add(javaFile);
+
+		if (additionalFiles != null) {
+			for (String s : additionalFiles) {
+				resource = classLoader.getResource(s);
+				assertNotNull(resource, "Resource " + s + " not found");
+				javaFile = new File(resource.getFile());
+				assertNotNull(javaFile, "File " + s + " not found");
+				toAnalyze.add(javaFile);
+			}
+		}
 
 		String markDirPath = "";
 		if (markFileName != null) {
@@ -78,7 +97,7 @@ public class AbstractMarkTest {
 							.codeInNodes(true)
 							.defaultPasses()
 							.loadIncludes(true)
-							.sourceLocations(javaFile)
+							.sourceLocations(toAnalyze.toArray(new File[0]))
 							.build())
 				.build();
 		CompletableFuture<AnalysisContext> analyze = server.analyze(translationManager);

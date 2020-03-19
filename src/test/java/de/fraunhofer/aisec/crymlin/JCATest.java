@@ -13,7 +13,11 @@ public class JCATest extends AbstractMarkTest {
 
 	@Test
 	public void testBCProviderCipher() throws Exception {
-		Set<Finding> findings = performTest("java/jca/BCProviderCipher.java", "mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/BCProviderCipher.java",
+			new String[] {
+					"java/jca/include/BouncyCastleProvider.java"
+			},
+			"mark/bouncycastle/");
 
 		// possible lines: 19,22,23,24,27,28
 		expected(findings,
@@ -21,7 +25,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 19: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // ok
 			"line 22: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // ok
 			"line 23: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // improv type resolution for BouncyCastleProvider class
-			//"line 24: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // cannot work in this simple test, as the class hierarchy of BouncyCastleProvider is not available
+			//"line 24: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // type hierarchy not available from CPG
 			"line 27: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // ok
 			"line 28: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // ok
 
@@ -29,7 +33,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 19: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 			"line 22: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
-			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // cannot work in this simple test, as the class hierarchy of BouncyCastleProvider is not available
+			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // type hierarchy not available from CPG
 			"line 27: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 			"line 28: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 
@@ -37,7 +41,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 19: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 22: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
-			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // cannot work in this simple test, as the class hierarchy of BouncyCastleProvider is not available
+			// "line 24: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // type hierarchy not available from CPG
 			"line 27: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 28: MarkRuleEvaluationFinding: Rule ID_2_1_01 violated" // ok, minimal test
 		);
@@ -90,7 +94,11 @@ public class JCATest extends AbstractMarkTest {
 
 	@Test
 	public void testAESGCM() throws Exception {
-		Set<Finding> findings = performTest("java/jca/AESGCM.java", "mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/AESGCM.java",
+			new String[] {
+					"java/jca/include/GCMParameterSpec.java"
+			},
+			"mark/bouncycastle/");
 
 		expected(findings,
 			// rule bouncy castle as provider
@@ -107,11 +115,11 @@ public class JCATest extends AbstractMarkTest {
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified", // ok
 			"line 41: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified", // ok
 
-			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
-			"line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)", // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
+			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
+			"line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
 
-			"line 41: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
-			"line 52: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)"); // FP, Type hierarchy not available for javax.crypto.spec.GCMParameterSpec, Type system improv in CPG needed
+			"line 41: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
+			"line 52: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)"); // FP, Type system improv in CPG needed
 	}
 
 	@Test
@@ -153,7 +161,12 @@ public class JCATest extends AbstractMarkTest {
 
 	@Test
 	public void testAESCTR() throws Exception {
-		Set<Finding> findings = performTest("java/jca/AESCTR.java", "mark/bouncycastle/");
+		Set<Finding> findings = performTest("java/jca/AESCTR.java",
+			new String[] {
+					"java/jca/include/IvParameterSpec.java",
+					"java/jca/include/SecretKey.java"
+			},
+			"mark/bouncycastle/");
 
 		expected(findings,
 			// rule bouncy castle as provider
@@ -177,12 +190,12 @@ public class JCATest extends AbstractMarkTest {
 			"line 37: MarkRuleEvaluationFinding: Rule ID_5_3_01 verified", // ok
 
 			// rule mac key length
-			//"line 37: MarkRuleEvaluationFinding: Rule ID_5_3_02_HMAC verified", // improv analysis. `kg2.generateKey()` returns a java.security.Key
+			//"line 37: MarkRuleEvaluationFinding: Rule ID_5_3_02_HMAC verified", // improv analysis. Currently, codyze does not know that `kg2.generateKey()` returns a java.security.Key, this needs to be returned from the CPG
 
 			// rule order basic cipher
-			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderOfCipherOperations)", // FP, Type hierarchy not available for javax.crypto.spec.IvParameterSpec, Type system improv in CPG needed
-			"line 47: Violation against Order: c.update(input, i * 16, 16) (update) is not allowed. Expected one of: c.init (InvalidOrderOfCipherOperations)", // FP, Type hierarchy not available for javax.crypto.spec.IvParameterSpec, Type system improv in CPG needed
-			"line 59: Violation against Order: c.doFinal(input, i * 16, (input.length % 16 == 0) ? 16 : input.length % 16) (finalize) is not allowed. Expected one of: c.init (InvalidOrderOfCipherOperations)" // FP, Type hierarchy not available for javax.crypto.spec.IvParameterSpec, Type system improv in CPG needed
+			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderOfCipherOperations)", // FP, Type system improv in CPG needed
+			"line 47: Violation against Order: c.update(input, i * 16, 16) (update) is not allowed. Expected one of: c.init (InvalidOrderOfCipherOperations)", // FP, Type system improv in CPG needed
+			"line 59: Violation against Order: c.doFinal(input, i * 16, (input.length % 16 == 0) ? 16 : input.length % 16) (finalize) is not allowed. Expected one of: c.init (InvalidOrderOfCipherOperations)" // FP, Type system improv in CPG needed
 		);
 	}
 

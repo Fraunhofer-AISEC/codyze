@@ -106,6 +106,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 28: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom verified", // ok
 			"line 41: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // ok
 			"line 46: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom verified", // ok
+			"line 62: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_KeyGenerator violated",
 
 			// rule block cipher
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
@@ -171,8 +172,10 @@ public class JCATest extends AbstractMarkTest {
 		expected(findings,
 			// rule bouncy castle as provider
 			"line 23: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // ok
+			"line 25: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_KeyGenerator verified",
 			"line 30: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom verified", // ok
 			"line 37: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Mac verified", // ok
+			"line 38: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_KeyGenerator verified",
 
 			// rule block cipher
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok

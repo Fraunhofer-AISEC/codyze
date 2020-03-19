@@ -19,7 +19,7 @@ public class AESCCM extends BCBase {
 		
 		System.out.println(c.getAlgorithm());
 		
-		KeyGenerator kg = KeyGenerator.getInstance("AES");
+		KeyGenerator kg = KeyGenerator.getInstance("AES", "BC");
 		kg.init(128);
 		SecretKey sk = kg.generateKey();
 		

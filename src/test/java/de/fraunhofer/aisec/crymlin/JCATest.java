@@ -15,6 +15,7 @@ public class JCATest extends AbstractMarkTest {
 	public void testBCProviderCipher() throws Exception {
 		Set<Finding> findings = performTest("java/jca/BCProviderCipher.java", "mark/bouncycastle/");
 
+		// possible lines: 19,22,23,24,27,28
 		expected(findings,
 			// rule bouncy castle as provider
 			"line 19: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // ok
@@ -24,7 +25,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 27: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // ok
 			"line 28: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher violated", // ok
 
-			// rule allowed block ciphers
+			// rule allowed ciphers
 			"line 19: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 			"line 22: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 			"line 23: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
@@ -46,6 +47,7 @@ public class JCATest extends AbstractMarkTest {
 	public void testBlockCipher() throws Exception {
 		Set<Finding> findings = performTest("java/jca/BlockCipher.java", "mark/bouncycastle/");
 
+		// possible lines: 10,14,28,22,26
 		expected(findings,
 			// rules for Bouncy Castle as provider
 			"line 10: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // ok
@@ -54,7 +56,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 22: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // ok
 			"line 26: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // ok
 
-			// rules allowed block cipher
+			// rule allowed ciphers
 			"line 10: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 			"line 14: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
 			"line 18: MarkRuleEvaluationFinding: Rule ID_2_01 violated", // ok
@@ -70,15 +72,18 @@ public class JCATest extends AbstractMarkTest {
 	public void testAESCCM() throws Exception {
 		Set<Finding> findings = performTest("java/jca/AESCCM.java", "mark/bouncycastle/");
 
+		// possible lines: 18,22,23,24,28,30,31,36
 		expected(findings,
 			// rule bouncy castle as provider
 			"line 18: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_Cipher verified", // ok
+			"line 22: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_KeyGenerator verified", // ok
 			"line 30: MarkRuleEvaluationFinding: Rule BouncyCastleProvider_SecureRandom verified", // ok
 
 			// rules ccm block cipher mode
 			"line 18: MarkRuleEvaluationFinding: Rule ID_2_01 verified", // ok
 			"line 18: MarkRuleEvaluationFinding: Rule ID_2_1_01 verified", // ok
 
+			// rules order
 			"line 18: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)" // ok, minimal test
 		);
 	}

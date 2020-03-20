@@ -3,8 +3,6 @@ package de.fraunhofer.aisec.analysis.wpds;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.Objects;
-
 public class Val {
 
 	private final String variable;

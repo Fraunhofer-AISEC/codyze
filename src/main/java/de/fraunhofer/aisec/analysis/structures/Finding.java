@@ -1,9 +1,9 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
+import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +44,8 @@ public class Finding {
 		this.logMsg = logMsg;
 		this.onFailIdentifier = onfailIdentifier;
 		this.locations
-				.add(new PhysicalLocation(new ArtifactLocation(URI.create(artifactUri), null),
-					new Range(new Position(startLine, startColumn), new Position(endLine, endColumn))));
+				.add(new PhysicalLocation(URI.create(artifactUri),
+					new Region(startLine, startColumn, endLine, endColumn)));
 	}
 
 	/**
@@ -58,11 +58,11 @@ public class Finding {
 	 * @param ranges List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
 	 * @param isProblem true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
 	 */
-	public Finding(String logMsg, String artifactUri, String onfailIdentifier, List<Range> ranges, boolean isProblem) {
+	public Finding(String logMsg, String artifactUri, String onfailIdentifier, List<Region> ranges, boolean isProblem) {
 		this.logMsg = logMsg;
 		this.onFailIdentifier = onfailIdentifier;
-		for (Range r : ranges) {
-			this.locations.add(new PhysicalLocation(new ArtifactLocation(URI.create(artifactUri), null), r));
+		for (Region r : ranges) {
+			this.locations.add(new PhysicalLocation(URI.create(artifactUri), r));
 		}
 		this.isProblem = isProblem;
 	}
@@ -78,10 +78,10 @@ public class Finding {
 	/**
 	 * Returns an unmodifiable list of the associated LSP "ranges" (~regions).
 	 */
-	public List<Range> getRanges() {
+	public List<Region> getRegions() {
 		return locations
 				.stream()
-				.map(PhysicalLocation::getRange)
+				.map(PhysicalLocation::getRegion)
 				.collect(Collectors.toUnmodifiableList());
 	}
 
@@ -98,9 +98,9 @@ public class Finding {
 		}
 		String lines;
 		if (locations.size() == 1) {
-			lines = (locations.get(0).getRange().getStart().getLine() + 1) + "";
+			lines = (locations.get(0).getRegion().getStartLine() + 1) + "";
 		} else {
-			lines = "[" + locations.stream().map(loc -> "" + (loc.getRange().getStart().getLine() + 1)).sorted().distinct().collect(Collectors.joining(", ")) + "]";
+			lines = "[" + locations.stream().map(loc -> "" + (loc.getRegion().getStartLine() + 1)).sorted().distinct().collect(Collectors.joining(", ")) + "]";
 		}
 		return "line " + lines + ": " + logMsg + addIfExists;
 	}

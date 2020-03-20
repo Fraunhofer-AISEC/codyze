@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
+import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
@@ -121,9 +122,8 @@ public class ExpressionEvaluator {
 						int endLine = toIntExact((Long) operand.property("endLine").value()) - 1;
 						int startColumn = toIntExact((Long) operand.property("startColumn").value()) - 1;
 						int endColumn = toIntExact((Long) operand.property("endColumn").value()) - 1;
-						ArrayList<Range> ranges = new ArrayList<>();
-						ranges.add(new Range(new Position(startLine, startColumn),
-							new Position(endLine, endColumn)));
+						ArrayList<Region> ranges = new ArrayList<>();
+						ranges.add(new Region(startLine, startColumn, endLine, endColumn));
 						Finding f = new Finding(
 							"Verified Order: " + this.markRule.getName(),
 							CrymlinQueryWrapper.getFileLocation(operand),

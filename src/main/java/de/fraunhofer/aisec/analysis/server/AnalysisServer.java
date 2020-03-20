@@ -41,11 +41,7 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -53,6 +49,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * This is the main CPG analysis server.
@@ -233,12 +231,81 @@ public class AnalysisServer {
 	}
 
 	/**
+	 * recursively list all mark files
+	 * @param currentFile
+	 * @param allFiles
+	 * @throws IOException
+	 */
+	private void getMarkFileLocations(File currentFile, List<File> allFiles) throws IOException {
+		try (Stream<Path> walk = Files.walk(currentFile.toPath(), Integer.MAX_VALUE);) {
+			File[] files = walk.map(Path::toFile)
+					.filter(File::isFile)
+					.filter(f -> f.getName().endsWith(".mark"))
+					.toArray(File[]::new);
+			for (File f : files) {
+				log.info("  Loading MARK file {}", f.getAbsolutePath());
+				if (f.isDirectory()) {
+					getMarkFileLocations(f, allFiles);
+				} else if (f.getName().endsWith(".mark")) {
+					allFiles.add(f);
+				}
+			}
+		}
+	}
+
+	/**
+	 * extracts all mark-files and the findingDescription.js from a zip or jar file to a temp-folder (which is cleared by the JVM upon exiting)
+	 * @param zipFilePath
+	 * @return
+	 * @throws IOException
+	 */
+	private ArrayList<File> unzipMarkAndFindingDescription(String zipFilePath) throws IOException {
+		ArrayList<File> ret = new ArrayList<>();
+		Path tempDirWithPrefix = Files.createTempDirectory("mark_extracted_");
+		ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath));
+		ZipEntry entry = null;
+		try {
+			entry = zipIn.getNextEntry();
+			// iterates over entries in the zip file
+			while (entry != null) {
+				String filePath = tempDirWithPrefix.toString() + File.separator + entry.getName();
+				if (!entry.isDirectory()
+						&& (entry.getName().endsWith(".mark") || entry.getName().equals("findingDescription.json"))) {
+					BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+					byte[] bytesIn = new byte[4096];
+					int read = 0;
+					while ((read = zipIn.read(bytesIn)) != -1) {
+						bos.write(bytesIn, 0, read);
+					}
+					bos.close();
+					ret.add(new File(filePath));
+				} else {
+					// if the entry is a directory, make the directory
+					File dir = new File(filePath);
+					if (!dir.mkdir()) {
+						throw new IOException("could not create folder " + dir.getAbsolutePath());
+					}
+				}
+				zipIn.closeEntry();
+				entry = zipIn.getNextEntry();
+			}
+		}
+		catch (IOException e) {
+			if (entry != null) {
+				zipIn.close();
+			}
+			throw e;
+		}
+		return ret;
+	}
+
+	/**
 	 * Loads all MARK rules from a file or a directory.
 	 *
 	 * @param markFile load all mark entities/rules from this file
 	 */
 	public void loadMarkRules(@NonNull File markFile) {
-		File markDescriptionFile;
+		File markDescriptionFile = null;
 
 		log.info("Parsing MARK files");
 		Instant start = Instant.now();
@@ -251,12 +318,10 @@ public class AnalysisServer {
 
 		if (markFile.isDirectory()) {
 			log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
-			try (Stream<Path> walk = Files.walk(markFile.toPath(), Integer.MAX_VALUE);) {
-				File[] files = walk.map(Path::toFile)
-						.filter(File::isFile)
-						.filter(f -> f.getName().endsWith(".mark"))
-						.toArray(File[]::new);
-				for (File f : files) {
+			ArrayList<File> allMarkFiles = new ArrayList<>();
+			try {
+				getMarkFileLocations(markFile, allMarkFiles);
+				for (File f : allMarkFiles) {
 					log.info("  Loading MARK file {}", f.getAbsolutePath());
 					parser.addMarkFile(f);
 				}
@@ -265,7 +330,23 @@ public class AnalysisServer {
 				log.error("Failed to load MARK file", e);
 			}
 			markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + "findingDescription.json");
+		} else if (markFile.getName().endsWith(".jar") || markFile.getName().endsWith(".zip")) {
+			try {
+				ArrayList<File> allMarkFiles = unzipMarkAndFindingDescription(markFile.getAbsolutePath());
+				for (File f : allMarkFiles) {
+					if (f.getName().endsWith(".mark")) {
+						log.info("  Loading MARK file {}", f.getAbsolutePath());
+						parser.addMarkFile(f);
+					} else { // findingDescription.json
+						markDescriptionFile = f;
+					}
+				}
+			}
+			catch (IOException e) {
+				log.error("Failed to load MARK file", e);
+			}
 		} else {
+
 			parser.addMarkFile(markFile);
 			markDescriptionFile = new File(markFile.getParent() + File.separator + "findingDescription.json");
 		}
@@ -293,7 +374,7 @@ public class AnalysisServer {
 			this.markModel.getEntities().size(),
 			this.markModel.getRules().size());
 
-		if (markDescriptionFile.exists()) {
+		if (markDescriptionFile != null && markDescriptionFile.exists()) {
 			FindingDescription.getInstance().init(markDescriptionFile);
 		} else {
 			log.info("MARK description file does not exist");

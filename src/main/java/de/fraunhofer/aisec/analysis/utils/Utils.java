@@ -203,8 +203,8 @@ public class Utils {
 			final List<Method> allMethods = new ArrayList<Method>(Arrays.asList(klass.getDeclaredMethods()));
 			for (final Method method : allMethods) {
 				if (method.isAnnotationPresent(annotation)) {
-					Annotation annotInstance = method.getAnnotation(annotation);
 					// TODO process annotInstance
+					//Annotation annotInstance = method.getAnnotation(annotation);
 					methods.add(method);
 				}
 			}

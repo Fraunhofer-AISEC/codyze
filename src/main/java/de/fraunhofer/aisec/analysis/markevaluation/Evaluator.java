@@ -103,7 +103,7 @@ public class Evaluator {
 				log.debug("Looking for call statements for {}", op.getName());
 				int numMatches = 0;
 				for (OpStatement opStmt : op.getStatements()) {
-					Set<Vertex> temp = CrymlinQueryWrapper.getVerticesForFunctionDeclaration(opStmt.getCall(), ent, crymlinTraversal);
+					Set<Vertex> temp = CrymlinQueryWrapper.getVerticesForFunctionDeclaration(opStmt.getCall(), crymlinTraversal);
 					log.debug(
 						"Call {}({}) of op {} found {} times",
 						opStmt.getCall().getName(),

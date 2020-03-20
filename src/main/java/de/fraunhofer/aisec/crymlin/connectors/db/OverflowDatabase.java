@@ -280,7 +280,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		}
 
 		// Store node
-		Vertex v = createVertex(node);
+		createVertex(node);
 		// printVertex(v);
 		saved.add(node);
 
@@ -406,7 +406,7 @@ public class OverflowDatabase<N> implements Database<N> {
 						}
 						catch (IllegalStateException e) {
 							String c = (String) v.property("code").value();
-							log.error("Unable to instantiate collection property {} for node {}, no information about actual element type", f.toString(), c);
+							log.error("Unable to instantiate collection property {} for node {}, no information about actual element type", f, c);
 							continue;
 						}
 						assert Collection.class.isAssignableFrom(collectionType);

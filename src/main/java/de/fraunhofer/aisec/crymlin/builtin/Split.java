@@ -39,12 +39,13 @@ public class Split implements Builtin {
 		// arguments: String, String, int
 		// example:
 		// _split("ASD/EFG/JKL", "/", 1) returns "EFG"
+		String regex = "";
 
 		try {
 			BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class, ConstantValue.class, ConstantValue.class);
 
 			String s = ExpressionHelper.asString(argResultList.get(0));
-			String regex = ExpressionHelper.asString(argResultList.get(1));
+			regex = ExpressionHelper.asString(argResultList.get(1));
 			Number index = ExpressionHelper.asNumber(argResultList.get(2));
 
 			if (s == null || regex == null || index == null) {
@@ -53,31 +54,28 @@ public class Split implements Builtin {
 			}
 
 			log.info("args are: {}; {}; {}", s, regex, index);
+
 			String ret;
-			try {
-				String[] splitted = s.split(regex);
-				if (index.intValue() < splitted.length) {
-					ret = splitted[index.intValue()];
-				} else {
-					log.warn("{} did not have an {}-th element when split by '{}'", s, index, regex);
-					return ErrorValue.newErrorValue(String.format("%s did not have an %s-th element when split by '%s'", s, index.toString(), regex),
-						argResultList.getAll());
-				}
-			}
-			catch (PatternSyntaxException e) {
-				log.warn("Pattern for _split wrong: '{}': {}", regex, e.getMessage());
-				return ErrorValue.newErrorValue(String.format("Pattern for _split wrong: '%s': %s", regex, e.getMessage()), argResultList.getAll());
+			String[] splitted = s.split(regex);
+			if (index.intValue() < splitted.length) {
+				ret = splitted[index.intValue()];
+			} else {
+				log.warn("{} did not have an {}-th element when split by '{}'", s, index, regex);
+				return ErrorValue.newErrorValue(String.format("%s did not have an %s-th element when split by '%s'", s, index.toString(), regex),
+					argResultList.getAll());
 			}
 
 			ConstantValue cv = ConstantValue.of(ret);
-			// StringLiteral stringResult = new MarkDslFactoryImpl().createStringLiteral();
-			// stringResult.setValue(ret);
 
 			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1),
 				(ConstantValue) argResultList.get(2));
 
 			return cv;
+		}
+		catch (PatternSyntaxException e) {
+			log.warn("Pattern for _split wrong: '{}': {}", regex, e.getMessage());
+			return ErrorValue.newErrorValue(String.format("Pattern for _split wrong: '%s': %s", regex, e.getMessage()), argResultList.getAll());
 		}
 		catch (InvalidArgumentException e) {
 			log.warn(e.getMessage());

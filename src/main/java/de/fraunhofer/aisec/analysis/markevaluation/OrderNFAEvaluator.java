@@ -443,7 +443,7 @@ public class OrderNFAEvaluator {
 			}
 			String base = entry.getKey().split("\\|")[0]; // remove potential refers_to local
 			if (base.contains(".")) {
-				base = base.substring(base.indexOf(".") + 1); // remove eogpath
+				base = base.substring(base.indexOf('.') + 1); // remove eogpath
 			}
 			String file = "unknown";
 			int startLine = -1;

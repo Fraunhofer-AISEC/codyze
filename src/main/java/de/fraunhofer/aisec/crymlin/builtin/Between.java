@@ -49,15 +49,8 @@ public class Between implements Builtin {
 			}
 
 			log.debug("args are: {}; {}; {}", s, start, end);
-			String ret;
-			try {
-				ret = s.substring(s.indexOf(start) + 1);
-				ret = ret.substring(0, ret.lastIndexOf(end));
-			}
-			catch (StringIndexOutOfBoundsException se) {
-				log.warn("start or end not found in string");
-				return ErrorValue.newErrorValue("start or end not found in string", argResultList.getAll());
-			}
+			String ret = s.substring(s.indexOf(start) + 1);
+			ret = ret.substring(0, ret.lastIndexOf(end));
 
 			ConstantValue cv = ConstantValue.of(ret);
 
@@ -66,6 +59,10 @@ public class Between implements Builtin {
 				(ConstantValue) argResultList.get(2));
 
 			return cv;
+		}
+		catch (StringIndexOutOfBoundsException se) {
+			log.warn("start or end not found in string");
+			return ErrorValue.newErrorValue("start or end not found in string", argResultList.getAll());
 		}
 		catch (InvalidArgumentException e) {
 			log.warn(e.getMessage());

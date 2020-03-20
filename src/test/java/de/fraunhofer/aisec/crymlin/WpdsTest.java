@@ -71,7 +71,7 @@ class WpdsTest extends AbstractMarkTest {
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
-					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.getRegions().get(0).getStartLine(),
 					f -> f.isProblem(),
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
@@ -87,7 +87,7 @@ class WpdsTest extends AbstractMarkTest {
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
-					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.getRegions().get(0).getStartLine(),
 					f -> f.isProblem(),
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
@@ -117,7 +117,7 @@ class WpdsTest extends AbstractMarkTest {
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
-					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.getRegions().get(0).getStartLine(),
 					f -> f.isProblem(),
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
@@ -149,7 +149,7 @@ class WpdsTest extends AbstractMarkTest {
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
-					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.getRegions().get(0).getStartLine(),
 					f -> f.isProblem(),
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
@@ -174,7 +174,7 @@ class WpdsTest extends AbstractMarkTest {
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
-					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.getRegions().get(0).getStartLine(),
 					f -> f.isProblem(),
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
@@ -200,7 +200,7 @@ class WpdsTest extends AbstractMarkTest {
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
-					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.getRegions().get(0).getStartLine(),
 					f -> f.isProblem(),
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
@@ -224,7 +224,7 @@ class WpdsTest extends AbstractMarkTest {
 		// Extract <line nr, isProblem> from findings
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
-					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.getRegions().get(0).getStartLine(),
 					f -> f.isProblem(),
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
@@ -247,7 +247,7 @@ class WpdsTest extends AbstractMarkTest {
 
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
-					f -> f.getRanges().get(0).getStart().getLine(),
+					f -> f.getRegions().get(0).getStartLine(),
 					f -> f.isProblem(),
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);

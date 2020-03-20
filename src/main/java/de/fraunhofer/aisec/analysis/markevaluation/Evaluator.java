@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
+import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -196,7 +197,7 @@ public class Evaluator {
 				String currentFile = "";
 
 				if (!c.isFindingAlreadyAdded()) {
-					List<Range> ranges = new ArrayList<>();
+					List<Region> ranges = new ArrayList<>();
 					if (((ConstantValue) entry.getValue()).getResponsibleVertices().isEmpty()
 							|| ((ConstantValue) entry.getValue()).getResponsibleVertices().stream().noneMatch(Objects::nonNull)) {
 						// use the line of the instances
@@ -209,15 +210,13 @@ public class Evaluator {
 								int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
 								int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
 								int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
-								ranges.add(new Range(new Position(startLine, startColumn),
-									new Position(endLine, endColumn)));
+								ranges.add(new Region(startLine, startColumn, endLine, endColumn));
 
 								currentFile = CrymlinQueryWrapper.getFileLocation(v);
 							}
 						}
 						if (ranges.isEmpty()) {
-							ranges.add(new Range(new Position(-1, -1),
-								new Position(-1, -1)));
+							ranges.add(new Region());
 						}
 					} else {
 						// responsible vertices are stored in the result
@@ -229,8 +228,7 @@ public class Evaluator {
 							int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
 							int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
 							int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
-							ranges.add(new Range(new Position(startLine, startColumn),
-								new Position(endLine, endColumn)));
+							ranges.add(new Region(startLine, startColumn, endLine, endColumn));
 
 							currentFile = CrymlinQueryWrapper.getFileLocation(v);
 						}

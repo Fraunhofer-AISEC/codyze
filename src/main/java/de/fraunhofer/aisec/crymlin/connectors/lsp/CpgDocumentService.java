@@ -7,7 +7,9 @@ import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -110,7 +112,7 @@ public class CpgDocumentService implements TextDocumentService {
 
 			ArrayList<Diagnostic> allDiags = new ArrayList<>();
 			for (Finding f : ctx.getFindings()) {
-				for (Range r : f.getRanges()) {
+				for (Region reg : f.getRegions()) {
 					boolean skipWarning = false;
 					Diagnostic diagnostic = new Diagnostic();
 					if (f.isProblem()) {
@@ -122,6 +124,7 @@ public class CpgDocumentService implements TextDocumentService {
 					}
 					diagnostic.setCode(f.getOnfailIdentifier());
 					diagnostic.setMessage(f.getLogMsg());
+					Range r = new Range(new Position(reg.getStartLine(), reg.getStartColumn()), new Position(reg.getEndLine(), reg.getEndColumn()));
 					diagnostic.setRange(r);
 					if (allLines != null) {
 						String line = allLines.get(r.getStart().getLine());

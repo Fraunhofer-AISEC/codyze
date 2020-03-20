@@ -310,7 +310,7 @@ public class TypeStateAnalysis {
 		int startColumn = toIntExact(stmt.getRegion().getStartColumn()) - 1;
 		int endColumn = toIntExact(stmt.getRegion().getEndColumn()) - 1;
 		return new Finding("Good: " + val + " at " + stmt, rule.getErrorMessage(), currentFile,
-			List.of(new Range(new Position(startLine, endLine), new Position(startColumn, endColumn))), false);
+			List.of(new Region(startLine, endLine, startColumn, endColumn)), false);
 	}
 
 	/**

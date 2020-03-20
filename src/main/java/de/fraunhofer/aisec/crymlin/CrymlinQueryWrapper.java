@@ -366,16 +366,15 @@ public class CrymlinQueryWrapper {
 				String fqFunctionName = opstmt.getCall().getName();
 
 				EList<Parameter> params = opstmt.getCall().getParams();
-				IntStream intStream = IntStream.range(0, params.size()).filter(i -> finalAttribute.equals(params.get(i).getVar()));
-				if (intStream.count() > 1) {
+				int[] paramPositions = IntStream.range(0, params.size()).filter(i -> finalAttribute.equals(params.get(i).getVar())).toArray();
+				if (paramPositions.length > 1) {
 					log.warn("Invalid op signature: MarkVar is referenced more than once. Only the first one will be used.");
 				}
-				OptionalInt argumentIndexOptional = intStream.findFirst();
-				if (argumentIndexOptional.isEmpty()) {
+				if (paramPositions.length == 0) {
 					log.error("argument not found in parameters. This should not happen");
 					continue;
 				}
-				int argumentIndex = argumentIndexOptional.getAsInt();
+				int argumentIndex = paramPositions[0];
 
 				log.debug("Checking for call/ctor. fqname: {} - markParams: {}", fqFunctionName, String.join(", ", MOp.paramsToString(params)));
 

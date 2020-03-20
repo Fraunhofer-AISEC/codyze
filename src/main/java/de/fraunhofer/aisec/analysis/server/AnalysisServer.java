@@ -262,22 +262,20 @@ public class AnalysisServer {
 	private ArrayList<File> unzipMarkAndFindingDescription(String zipFilePath) throws IOException {
 		ArrayList<File> ret = new ArrayList<>();
 		Path tempDirWithPrefix = Files.createTempDirectory("mark_extracted_");
-		ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath));
-		ZipEntry entry = null;
-		try {
-			entry = zipIn.getNextEntry();
+		try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath))) {
+			ZipEntry entry = zipIn.getNextEntry();
 			// iterates over entries in the zip file
 			while (entry != null) {
 				String filePath = tempDirWithPrefix.toString() + File.separator + entry.getName();
 				if (!entry.isDirectory()
 						&& (entry.getName().endsWith(".mark") || entry.getName().equals("findingDescription.json"))) {
-					BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
-					byte[] bytesIn = new byte[4096];
-					int read = 0;
-					while ((read = zipIn.read(bytesIn)) != -1) {
-						bos.write(bytesIn, 0, read);
+					try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
+						byte[] bytesIn = new byte[4096];
+						int read;
+						while ((read = zipIn.read(bytesIn)) != -1) {
+							bos.write(bytesIn, 0, read);
+						}
 					}
-					bos.close();
 					ret.add(new File(filePath));
 				} else {
 					// if the entry is a directory, make the directory
@@ -289,12 +287,6 @@ public class AnalysisServer {
 				zipIn.closeEntry();
 				entry = zipIn.getNextEntry();
 			}
-		}
-		catch (IOException e) {
-			if (entry != null) {
-				zipIn.close();
-			}
-			throw e;
 		}
 		return ret;
 	}

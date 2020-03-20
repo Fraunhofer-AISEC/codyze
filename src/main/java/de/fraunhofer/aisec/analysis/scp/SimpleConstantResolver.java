@@ -70,9 +70,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 						.tryNext()
 						.orElseThrow();
 				Optional<ConstantValue> val = resolveConstantValueOfFunctionArgument(vDecl, vExpr);
-				if (val.isPresent()) {
-					result.add(val.get());
-				}
+				val.ifPresent(result::add);
 			}
 		}
 

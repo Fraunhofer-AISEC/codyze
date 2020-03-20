@@ -22,11 +22,13 @@ public class NonNullPair<A, B> extends Pair {
 	}
 
 	@NonNull
+	@Override
 	public A getValue0() {
 		return a;
 	}
 
 	@NonNull
+	@Override
 	public B getValue1() {
 		return b;
 	}

@@ -45,7 +45,7 @@ public class HasValue implements Builtin {
 
 		Set<Vertex> collect = ((ConstantValue) argResultList.get(0)).getResponsibleVertices().stream().filter(Objects::nonNull).collect(Collectors.toSet());
 
-		ConstantValue ret = ConstantValue.of(collect.size() > 0);
+		ConstantValue ret = ConstantValue.of(!collect.isEmpty());
 		ret.addResponsibleVertices(collect);
 		return ret;
 

@@ -33,8 +33,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -278,7 +276,7 @@ public class TypeStateAnalysis {
 	private Finding createBadFinding(Stmt stmt, Val val, @NonNull String currentFile, @NonNull Collection<NFATransition<Node>> expected) {
 		String name = "Invalid typestate of variable " + val + " at statement: " + stmt + " . Violates order of " + rule.getName();
 		if (!expected.isEmpty()) {
-			name += " Expected one of " + String.join(", ", expected.stream().map(tran -> tran.toString()).collect(Collectors.toList()));
+			name += " Expected one of " + expected.stream().map(NFATransition::toString).collect(Collectors.joining(", "));
 		} else {
 			name += " Expected no further operations.";
 		}
@@ -911,7 +909,7 @@ public class TypeStateAnalysis {
 					for (Vertex returnSiteVertex : returnSites) {
 						Stmt returnSite = vertexToStmt(returnSiteVertex);
 
-						PushRule<Stmt, Val, TypestateWeight> pushRule = new PushRule<Stmt, Val, TypestateWeight>(
+						PushRule<Stmt, Val, TypestateWeight> pushRule = new PushRule<>(
 							argVals.get(i),
 							currentStmt,
 							parmVals.get(i),

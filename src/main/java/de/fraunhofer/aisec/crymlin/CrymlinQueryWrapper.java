@@ -480,7 +480,6 @@ public class CrymlinQueryWrapper {
 
 	public static Set<Vertex> getVerticesForFunctionDeclaration(
 			de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration functionDeclaration,
-			MEntity ent,
 			CrymlinTraversalSource crymlinTraversal) {
 
 		// resolve parameters which have a corresponding var part in the entity

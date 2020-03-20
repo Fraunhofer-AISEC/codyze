@@ -18,8 +18,8 @@ public class NFA {
 	private static final Logger log = LoggerFactory.getLogger(NFA.class);
 	private Set<Node> startNodes = null;
 
-	final private Node START = new Node("START", "START");
-	final static public Node ERROR;
+	private final Node START = new Node("START", "START");
+	public static final Node ERROR;
 	static {
 		ERROR = new Node("ERROR", "ERROR");
 		ERROR.setError(true);
@@ -160,7 +160,7 @@ public class NFA {
 					// Get all successor nodes of n and sort them
 					List<Node> sortedSuccessors = n.getSuccessors()
 							.stream()
-							.sorted(Comparator.comparing(node -> node.getName()))
+							.sorted(Comparator.comparing(Node::getName))
 							.collect(Collectors.toList());
 
 					for (Node s : sortedSuccessors) {

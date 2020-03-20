@@ -126,11 +126,11 @@ public class Node {
 				Objects.equals(op, node.op);
 
 		return equal && successors.stream()
-				.sorted(Comparator.comparing(s -> s.getName()))
-				.map(n -> n.getName())
+				.sorted(Comparator.comparing(Node::getName))
+				.map(Node::getName)
 				.collect(Collectors.toList())
 				.equals(
-					node.getSuccessors().stream().sorted(Comparator.comparing(s -> s.getName())).map(n -> n.getName()).collect(Collectors.toList()));
+					node.getSuccessors().stream().sorted(Comparator.comparing(Node::getName)).map(Node::getName).collect(Collectors.toList()));
 	}
 
 	@Override

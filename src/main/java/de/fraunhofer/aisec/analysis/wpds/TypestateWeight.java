@@ -78,7 +78,7 @@ public class TypestateWeight extends Semiring {
 			for (NFATransition<Node> theirs : otherW.value) {
 				// 1-step transitive hull. Note that we check for equality of names, as equality of Node objects includes their successor collection.
 				if (my.getTarget().getName().equals(theirs.getSource().getName())) {
-					NFATransition<Node> newTsTran = new NFATransition<Node>(my.getSource(), theirs.getTarget(), my.getLabel());
+					NFATransition<Node> newTsTran = new NFATransition<>(my.getSource(), theirs.getTarget(), my.getLabel());
 					resultSet.add(newTsTran);
 					validTsTransition = true;
 				}

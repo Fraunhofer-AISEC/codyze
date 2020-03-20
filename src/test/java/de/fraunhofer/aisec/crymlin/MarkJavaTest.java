@@ -70,7 +70,6 @@ public class MarkJavaTest extends AbstractMarkTest {
 		assertEquals(0, findings.size());
 	}
 
-	// fixme disabled until is_instance is implemented
 	@Test
 	public void is_instance_1() throws Exception {
 		Set<Finding> findings = performTest("mark_java/simple_instancestring.java", "mark_java/instancestring.mark");

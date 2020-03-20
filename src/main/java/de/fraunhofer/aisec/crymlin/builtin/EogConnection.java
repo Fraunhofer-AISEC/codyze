@@ -45,12 +45,5 @@ public class EogConnection implements Builtin {
 			log.warn(e.getMessage());
 			return ErrorValue.newErrorValue(e.getMessage(), argResultList.getAll());
 		}
-
-		// TODO FW: needs to be discussed, I am not clear what this should achieve
-		// the example is:
-		/*
-		 * rule UseRandomIV { using Botan::Cipher_Mode as cm, Botan::AutoSeededRNG as rng when _split(cm.algorithm, "/", 1) == "CBC" && cm.direction ==
-		 * Botan::Cipher_Dir::ENCRYPTION ensure _receives_value_from(cm.iv, rng.myValue) onfail NoRandomIV }
-		 */
 	}
 }

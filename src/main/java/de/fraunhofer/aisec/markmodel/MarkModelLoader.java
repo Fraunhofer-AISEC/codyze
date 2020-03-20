@@ -70,7 +70,6 @@ public class MarkModelLoader {
 		 * and likely not needed)
 		 */
 
-		// todo cleanup the following code, or remove if xtext performs this validation already
 		// collect all references to entities
 		for (MRule rule : m.getRules()) {
 			final HashSet<String> entityRefs = new HashSet<>();
@@ -98,7 +97,7 @@ public class MarkModelLoader {
 
 	private MRule parseRule(RuleDeclaration rule, Mark mark, String containedInThisFile) {
 		MRule mRule = new MRule(rule.getName());
-		mRule.setStatement(rule.getStmt()); // todo remove in the long run
+		mRule.setStatement(rule.getStmt());
 		mRule.setErrorMessage(rule.getStmt().getMsg());
 
 		HashMap<String, Pair<String, MEntity>> entityReferences = new HashMap<>();

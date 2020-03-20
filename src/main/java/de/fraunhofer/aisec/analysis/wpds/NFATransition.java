@@ -8,7 +8,7 @@ import java.util.Objects;
  *
  * Transitions may optionally be labeled.
  */
-class NFATransition<N> {
+public class NFATransition<N> {
 	private final N source;
 	private final N target;
 	private final String label;

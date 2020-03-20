@@ -366,9 +366,11 @@ public class CrymlinQueryWrapper {
 				String fqFunctionName = opstmt.getCall().getName();
 
 				EList<Parameter> params = opstmt.getCall().getParams();
-				OptionalInt argumentIndexOptional = IntStream.range(0, params.size())
-						.filter(i -> finalAttribute.equals(params.get(i).getVar()))
-						.findFirst(); // fixme discuss: what if the param is referenced multiple times in the opstatement?
+				IntStream intStream = IntStream.range(0, params.size()).filter(i -> finalAttribute.equals(params.get(i).getVar()));
+				if (intStream.count() > 1) {
+					log.warn("Invalid op signature: MarkVar is referenced more than once. Only the first one will be used.");
+				}
+				OptionalInt argumentIndexOptional = intStream.findFirst();
 				if (argumentIndexOptional.isEmpty()) {
 					log.error("argument not found in parameters. This should not happen");
 					continue;

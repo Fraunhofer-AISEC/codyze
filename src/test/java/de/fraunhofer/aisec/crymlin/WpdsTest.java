@@ -4,13 +4,16 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.TypestateMode;
 import de.fraunhofer.aisec.analysis.wpds.NFA;
+import de.fraunhofer.aisec.analysis.wpds.NFATransition;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.markmodel.fsm.FSM;
+import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,10 +50,38 @@ class WpdsTest extends AbstractMarkTest {
 		FSM fsm = new FSM();
 		fsm.sequenceToFSM(expr);
 
+		Set<Node> worklist = fsm.getStart();
+		Set<String> edgesFSM = new HashSet<>();
+		for (Node n : worklist) {
+			edgesFSM.add("START.START -> " + n.getName()); // artificial node existing in the NFA
+		}
+		Set<Node> seen = new HashSet<>();
+		while (!worklist.isEmpty()) {
+			Set<Node> nextWorkList = new HashSet<>();
+			for (Node n : worklist) {
+				for (Node succ : n.getSuccessors()) {
+					if (!seen.contains(succ)) {
+						seen.add(succ);
+						nextWorkList.add(succ);
+					}
+					edgesFSM.add(n.getName() + " -> " + succ.getName());
+				}
+			}
+			worklist = nextWorkList;
+		}
+
 		// ... and that implementation
 		NFA nfa = NFA.of(expr);
+		Set<String> edgesNFA = new HashSet<>();
+		for (NFATransition<Node> t : nfa.getTransitions()) {
+			edgesNFA.add(t.getSource().getName() + " -> " + t.getTarget().getName());
+		}
 
-		// TODO Compare both. Requires exposing list of transitions for FSM.
+		assertEquals(edgesFSM.size(), edgesNFA.size(), " number of edges in FSM and NFA-FSM differ");
+
+		for (String s : edgesFSM) {
+			assertTrue(edgesNFA.contains(s), s + " found in FSM, but not in NFA-FSM");
+		}
 	}
 
 	@Test

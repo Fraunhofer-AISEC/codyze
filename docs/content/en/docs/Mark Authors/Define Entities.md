@@ -7,15 +7,23 @@ description: >
   Describing the core objects of a library by means of MARK entities
 ---
 
-MARK rules refer to _entities_ - abstract objects that wrap the real object classes of the analyzed programming language. A MARK entity defines three parts:
+MARK rules refer to _entities_ - abstract objects that wrap the real object classes of the analyzed programming language (in case of object oriented languages) and group methods with similar semantics in so-called _op_s. A MARK entity defines three parts:
 
 1. A _name_
 1. A set of _ops_ (operations)
 1. A set of MARK _variables_
 
-## Choosing a name
+Writing MARK rules for a cryptographic library requires a good understanding of the library API and its class hierarchy. We recommend the following approach to writing MARK entities.
 
-The name must reflect the fully qualified name of the class in the programing language.
+1. Model relevant classes as MARK entities
+1. Define _op_s
+1. (Optionally) blacklist some _op_s
+
+## Model relevant classes as MARK entities
+
+It is certainly not necessary to model all classes of the software library as MARK entities. Rather, you need to identify those classes which hold cryptographic relevant data or provide cryptographic functions. Although in many cases, several classes of the programming language can be summarized in one abstract MARK entity, it might be easier to directly map classes to entities in the first iteration.
+
+The name of an entity can be freely chosen. If it refers to a specific class in the programming language, though, it might make sense to name them accordingly.
 
 ## Defining Ops
 

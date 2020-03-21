@@ -16,7 +16,7 @@ MARK rules refer to _entities_ - abstract objects that wrap the real object clas
 Writing MARK rules for a cryptographic library requires a good understanding of the library API and its class hierarchy. We recommend the following approach to writing MARK entities.
 
 1. Model relevant classes as MARK entities
-1. Define _op_s
+1. Define _op_s and variables
 1. (Optionally) blacklist some _op_s
 
 ## Model relevant classes as MARK entities
@@ -25,20 +25,79 @@ It is certainly not necessary to model all classes of the software library as MA
 
 The name of an entity can be freely chosen. If it refers to a specific class in the programming language, though, it might make sense to name them accordingly.
 
-## Defining Ops
+## Define Ops and variables
 
-An `op` wraps one or more methods with same or similar behavior. MARK rules refer to `op`s instead of methods to abstract away overloaded methods and simplify rules.
+The next step is to define _op_s. An _op_ is a group of semantically equal or similar functions, methods, or constructors, given as fully qualified signatures. Especially overloaded functions with the same name but different parameters are candidates for being grouped in an _op_. For cryptographic libraries, typical _op_s are:
 
-## Defining variables
+- `instantiate` - a group of functions for instantiating a class or creating an object of a class
+- `initialize` - a group of functions that initialize a cryptographic algorithms, e.g. by setting a key or initialization vector.
+- `update` - a group of functions that process further data by a cryptographic algorithm
+- `finalize`- a group of functions that terminate a cryptographic algorithm
+- `reset`- a group of functions that reset a cryptographic algorithm and make it ready for further processing. 
 
-Variables must be declared with the `var` keyword and _may_ have a type. Rules use variables to refer to either method arguments or return values.
+The name of an _op_ can be freely chosen. When specifying fully qualified function or method signatures in an _op_, parameters are typed and can be _unnamed_ or _named_. Unnamed parameters are indicated by the name "_" and do not play any role in the definition of rules. Named parameters refer to MARK variables and can be used when writing rules. We recommend to name only those parameters which are required in rules, as named parameters will increase the memory cost and runtime of the analysis.
 
-## Example
+__Example:__ The following `op` _instantiate_ refers to only a single Java method, called `de.example.Crypto.getInstance`. Neither the return type, nor modifiers such as `public`, `static`, `final` etc. are given in MARK. The method signature contains one named parameter of type `java.lang.String` and one unnamed parameter without type restriction. Note that the name of the parameter does not relate to the parameter name in the programming language, but rather to a MARK variable.
+
+<pre>
+op instantiate {
+  de.example.Crypto.getInstance(
+    algorithm : java.lang.String,    // Named typed parameter
+    _                                // Unnamed untyped parameter
+  );
+}
+</pre>
+
+So, this MARK `op` would include the following methods of a class `de.example.Crypto`:
+
+* `public static Crypto getInstance(String x, String y)`
+* `private void getInstance(String x, byte y)`
+
+It would however _not_ include a method `void getInstance(String x)` (wrong number of parameters) or `getInstance(byte x, String y)` (wrong type of 1st parameter).
+
+To make use of named parameters, they must additionally be declared as entity variables using the `var` keyword:
+
+<pre>
+entity Crypto {
+
+  var algorithm;  // this makes parameter "algorithm" available when writing rules.
+
+  op instantiate {
+    de.example.Crypto.getInstance(
+      algorithm : java.lang.String,    // Named typed parameter
+      _                                // Unnamed untyped parameter
+    );
+  }
+}
+</pre>
+
+
+## (Optionally) blacklist some _ops_s
+
+In some cases, groups of functions or methods should not be used at all by a program. This applies e.g. to deprecated functions or functions that are known to be insecure. MARK provides a shortcut to mark any use of such functions as insecure: the `forbidden` keyword.
+
+<pre>
+entity Crypto {
+
+  op instantiate {
+    de.example.Crypto.getInstance(
+      algorithm : java.lang.String,    // Named typed parameter
+      _                                // Unnamed untyped parameter
+    );
+    forbidden de.example.Crypto.getInstanceDeprecated();  // Any use of this function will be flagged
+  }
+}
+</pre>
+
+Any occurrence of `getInstanceDeprecated()` in the program will be marked as insecure, without further evaluation of rules. This is not only a shortcut, removing the need to write separate rules, but also a way to cut down analysis time, as Codyze does not need to find instances of the entity, but will rather indicate the error immediately when it sees a usage of the method.
+
+
+## Complete Example
 
 
 <pre>
 <span style="color:#204a87;font-weight:bold">entity</span> <span style="color:#c4a000">org.bouncycastle.crypto.digests.SHA512Digest</span> 
-           isa org.bouncycastle.crypto.Digest <span style="color:#ce5c00;font-weight:bold">{</span>
+           <span style="color:#c4a000">isa org.bouncycastle.crypto.Digest</span> <span style="color:#ce5c00;font-weight:bold">{</span>
   
   <span style="color:#204a87;font-weight:bold">var</span> instance : org.bouncycastle.crypto.digests.SHA512Digest; // Alternative for `this`
   

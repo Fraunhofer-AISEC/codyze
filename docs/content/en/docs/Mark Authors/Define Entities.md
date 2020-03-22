@@ -40,7 +40,7 @@ The name of an _op_ can be freely chosen. When specifying fully qualified functi
 __Example:__ The following `op` _instantiate_ refers to only a single Java method, called `de.example.Crypto.getInstance`. Neither the return type, nor modifiers such as `public`, `static`, `final` etc. are given in MARK. The method signature contains one named parameter of type `java.lang.String` and one unnamed parameter without type restriction. Note that the name of the parameter does not relate to the parameter name in the programming language, but rather to a MARK variable.
 
 <pre>
-op instantiate {
+<span style="color:#204a87;font-weight:bold">op</span> instantiate {
   de.example.Crypto.getInstance(
     algorithm : java.lang.String,    // Named typed parameter
     _                                // Unnamed untyped parameter
@@ -58,11 +58,11 @@ It would however _not_ include a method `void getInstance(String x)` (wrong numb
 To make use of named parameters, they must additionally be declared as entity variables using the `var` keyword:
 
 <pre>
-entity Crypto {
+<span style="color:#204a87;font-weight:bold">entity</span> Crypto {
 
-  var algorithm;  // this makes parameter "algorithm" available when writing rules.
+  <span style="color:#204a87;font-weight:bold">var</span> algorithm;  // this makes parameter "algorithm" available when writing rules.
 
-  op instantiate {
+  <span style="color:#204a87;font-weight:bold">op</span> instantiate {
     de.example.Crypto.getInstance(
       algorithm : java.lang.String,    // Named typed parameter
       _                                // Unnamed untyped parameter
@@ -77,14 +77,14 @@ entity Crypto {
 In some cases, groups of functions or methods should not be used at all by a program. This applies e.g. to deprecated functions or functions that are known to be insecure. MARK provides a shortcut to mark any use of such functions as insecure: the `forbidden` keyword.
 
 <pre>
-entity Crypto {
+<span style="color:#204a87;font-weight:bold">entity</span> Crypto {
 
-  op instantiate {
+  <span style="color:#204a87;font-weight:bold">op</span> instantiate {
     de.example.Crypto.getInstance(
       algorithm : java.lang.String,    // Named typed parameter
       _                                // Unnamed untyped parameter
     );
-    forbidden de.example.Crypto.getInstanceDeprecated();  // Any use of this function will be flagged
+    <span style="color:#204a87;font-weight:bold">forbidden</span> de.example.Crypto.getInstanceDeprecated();  // Any use of this function will be flagged
   }
 }
 </pre>
@@ -114,26 +114,26 @@ Any occurrence of `getInstanceDeprecated()` in the program will be marked as ins
   <span style="color:#204a87;font-weight:bold">var</span> resultLen : int;
   
   
-  <span style="color:#ce5c00;font-weight:bold">op</span> instantiate <span style="color:#ce5c00;font-weight:bold">{</span>
+  <span style="color:#204a87;font-weight:bold">op</span> instantiate <span style="color:#ce5c00;font-weight:bold">{</span>
         this = org.bouncycastle.crypto.digests.SHA512Digest();
         this = org.bouncycastle.crypto.digests.SHA512Digest(encodedState);
         instance = org.bouncycastle.crypto.digests.SHA512Digest(copy);
     <span style="color:#ce5c00;font-weight:bold">}</span>
   
-  <span style="color:#ce5c00;font-weight:bold">op</span> update <span style="color:#ce5c00;font-weight:bold">{</span>
+  <span style="color:#204a87;font-weight:bold">op</span> update <span style="color:#ce5c00;font-weight:bold">{</span>
     org.bouncycastle.crypto.digests.SHA512Digest.update(inByte);
     org.bouncycastle.crypto.digests.SHA512Digest.update(inByteArray, inByteArrayOff, inByteArrayLen);
   <span style="color:#ce5c00;font-weight:bold">}</span>
   
-  <span style="color:#ce5c00;font-weight:bold">op</span> finish <span style="color:#ce5c00;font-weight:bold">{</span>
+  <span style="color:#204a87;font-weight:bold">op</span> finish <span style="color:#ce5c00;font-weight:bold">{</span>
     org.bouncycastle.crypto.digests.SHA512Digest.finish();
   <span style="color:#ce5c00;font-weight:bold">}</span>
   
-  <span style="color:#ce5c00;font-weight:bold">op</span> finalize <span style="color:#ce5c00;font-weight:bold">{</span>
+  <span style="color:#204a87;font-weight:bold">op</span> finalize <span style="color:#ce5c00;font-weight:bold">{</span>
     resultLen = org.bouncycastle.crypto.digests.SHA512Digest.doFinal(outArray, outArrayOff);
   <span style="color:#ce5c00;font-weight:bold">}</span>
   
-  <span style="color:#ce5c00;font-weight:bold">op</span> reset <span style="color:#ce5c00;font-weight:bold">{</span>
+  <span style="color:#204a87;font-weight:bold">op</span> reset <span style="color:#ce5c00;font-weight:bold">{</span>
     org.bouncycastle.crypto.digests.SHA512Digest.reset();
     org.bouncycastle.crypto.digests.SHA512Digest.reset(_);
   <span style="color:#ce5c00;font-weight:bold">}</span>

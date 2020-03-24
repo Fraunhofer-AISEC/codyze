@@ -31,3 +31,18 @@ jobs:
         echo "New version: ${NEW_VERSION}"
         echo "Github username: ${GITHUB_ACTOR}"
         gradle -Pversion=${NEW_VERSION} publish
+    - name: Checkout code
+      uses: actions/checkout@master
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Release of Codyze.
+        draft: false
+        prerelease: false

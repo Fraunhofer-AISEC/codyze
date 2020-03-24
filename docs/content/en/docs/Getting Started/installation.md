@@ -25,10 +25,10 @@ Download and Install
 
 ## Install Eclipse Plugin
 
-Codyze can be installed from the following Eclipse update site: [https://breakpoint-security.de/update](https://breakpoint-security.de/update). It has been tested against Eclipse 2019-04 and later.
+Codyze can be installed from the following Eclipse update site: [https://update.breakpoint-security.com](https://update.breakpoint-security.com). It has been tested against Eclipse 2019-04 and later.
 
 
-1. Go to _Windows->Preferences->CPG Analysis_ and configure the path the analysis server
+1. Go to _Windows->Preferences->Codyze Code Analysis_ and configure the path to the analysis server binary
 
 <img src="/img/eclipse-plugin-2.png" 
     alt="Configuring Eclipse Plugin"

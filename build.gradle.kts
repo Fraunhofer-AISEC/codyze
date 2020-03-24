@@ -34,15 +34,11 @@ publishing {
 
     repositories {
         maven {
-            val repoUrl = "http://repository.netsec.aisec.fraunhofer.de"
-
-            val releasesRepoUrl = "$repoUrl/repository/releases"
-            val snapshotsRepoUrl = "$repoUrl/repository/snapshots"
-            url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
-
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Fraunhofer-AISEC/codyze")
             credentials {
-                username = deployUsername
-                password = deployPassword
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }

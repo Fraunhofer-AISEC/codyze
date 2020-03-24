@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -148,7 +149,7 @@ public class TypeStateAnalysis {
 		log.debug("Saturated WNFA {}", wnfa);
 
 		// Evaluate saturated WNFA for any MARK violations
-		Set<Finding> findings = getFindingsFromWpds(wpds, wnfa, currentFile.getName());
+		Set<Finding> findings = getFindingsFromWpds(wpds, wnfa, currentFile.toURI());
 
 		if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 			ctx.getFindings().addAll(findings);
@@ -218,7 +219,7 @@ public class TypeStateAnalysis {
 	 */
 	@NonNull
 	private Set<Finding> getFindingsFromWpds(CpgWpds wpds, @NonNull WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa,
-			String currentFile) {
+			URI currentFile) {
 		// Final findings
 		Set<Finding> findings = new HashSet<>();
 		// We collect good findings first, but add them only if TS machine reaches END state
@@ -273,7 +274,7 @@ public class TypeStateAnalysis {
 	 * @param expected
 	 * @return
 	 */
-	private Finding createBadFinding(Stmt stmt, Val val, @NonNull String currentFile, @NonNull Collection<NFATransition<Node>> expected) {
+	private Finding createBadFinding(Stmt stmt, Val val, @NonNull URI currentFile, @NonNull Collection<NFATransition<Node>> expected) {
 		String name = "Invalid typestate of variable " + val + " at statement: " + stmt + " . Violates order of " + rule.getName();
 		if (!expected.isEmpty()) {
 			name += " Expected one of " + expected.stream().map(NFATransition::toString).collect(Collectors.joining(", "));
@@ -289,7 +290,7 @@ public class TypeStateAnalysis {
 		return new Finding(name, rule.getErrorMessage(), currentFile, startLine, endLine, startColumn, endColumn);
 	}
 
-	private Finding createBadFinding(Transition<Stmt, Val> t, String currentFile) {
+	private Finding createBadFinding(Transition<Stmt, Val> t, URI currentFile) {
 		return createBadFinding(t.getLabel(), t.getStart(), currentFile, List.of());
 	}
 
@@ -302,12 +303,12 @@ public class TypeStateAnalysis {
 	 * @param currentFile
 	 * @return
 	 */
-	private Finding createGoodFinding(Stmt stmt, Val val, String currentFile) {
+	private Finding createGoodFinding(Stmt stmt, Val val, URI currentFile) {
 		int startLine = toIntExact(stmt.getRegion().getStartLine()) - 1;
 		int endLine = toIntExact(stmt.getRegion().getEndLine()) - 1;
 		int startColumn = toIntExact(stmt.getRegion().getStartColumn()) - 1;
 		int endColumn = toIntExact(stmt.getRegion().getEndColumn()) - 1;
-		return new Finding("Good: " + val + " at " + stmt, rule.getErrorMessage(), currentFile,
+		return new Finding("Good: " + val + " at " + stmt, currentFile, rule.getErrorMessage(),
 			List.of(new Region(startLine, endLine, startColumn, endColumn)), false);
 	}
 

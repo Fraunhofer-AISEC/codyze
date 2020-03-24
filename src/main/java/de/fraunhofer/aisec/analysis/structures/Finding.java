@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.analysis.structures;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -38,12 +39,13 @@ public class Finding {
 	 * @param startColumn Column in code where the finding begins. Note that LPS start counting at 1.
 	 * @param endColumn Column in code where the finding ends.
 	 */
-	public Finding(String logMsg, String onfailIdentifier, String artifactUri, int startLine, int endLine, int startColumn, int endColumn) {
+	public Finding(String logMsg, String onfailIdentifier, @Nullable URI artifactUri, int startLine, int endLine, int startColumn, int endColumn) {
 		this.logMsg = logMsg;
 		this.onFailIdentifier = onfailIdentifier;
-		this.locations
-				.add(new PhysicalLocation(URI.create(artifactUri),
-					new Region(startLine, startColumn, endLine, endColumn)));
+		if (artifactUri != null) {
+			this.locations
+					.add(new PhysicalLocation(artifactUri, new Region(startLine, startColumn, endLine, endColumn)));
+		}
 	}
 
 	/**
@@ -56,11 +58,13 @@ public class Finding {
 	 * @param ranges List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
 	 * @param isProblem true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
 	 */
-	public Finding(String logMsg, String artifactUri, String onfailIdentifier, List<Region> ranges, boolean isProblem) {
+	public Finding(String logMsg, @Nullable URI artifactUri, String onfailIdentifier, List<Region> ranges, boolean isProblem) {
 		this.logMsg = logMsg;
 		this.onFailIdentifier = onfailIdentifier;
 		for (Region r : ranges) {
-			this.locations.add(new PhysicalLocation(URI.create(artifactUri), r));
+			if (artifactUri != null) {
+				this.locations.add(new PhysicalLocation(artifactUri, r));
+			}
 		}
 		this.isProblem = isProblem;
 	}

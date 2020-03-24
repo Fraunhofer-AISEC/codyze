@@ -23,6 +23,8 @@ import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -700,8 +702,9 @@ public class CrymlinQueryWrapper {
 		return varDecls;
 	}
 
-	public static String getFileLocation(Vertex v) {
-		return v.value("file");
+	public static URI getFileLocation(Vertex v) {
+		String path = v.value("file");
+		return new File(path).toURI();
 	}
 
 	public static boolean eogConnection(Vertex source, Vertex sink, boolean branchesAllowed) {

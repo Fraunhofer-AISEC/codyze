@@ -21,6 +21,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.*;
 
 import static java.lang.Math.toIntExact;
@@ -192,7 +193,7 @@ public class Evaluator {
 
 				MarkContext c = markCtxHolder.getContext(entry.getKey());
 
-				String currentFile = "";
+				URI currentFile = null;
 
 				if (!c.isFindingAlreadyAdded()) {
 					List<Region> ranges = new ArrayList<>();

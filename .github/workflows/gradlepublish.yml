@@ -22,10 +22,15 @@ jobs:
     - name: Build with Gradle
       run: gradle build
 
-    # The USERNAME and PASSWORD need to correspond to the credentials environment variables used in
-    # the publishing section of your build.gradle
-    - name: Publish to GitHub Packages
-      run: gradle publish
+    - name: Publish artifact
       env:
-        USERNAME: ${{ github.actor }}
-        PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      # The GITHUB_REF tag comes in the format 'refs/tags/xxx'.
+      # If we split on '/' and take the 3rd value,
+      # we can get the release name.
+      run: |
+        NEW_VERSION=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
+        echo "New version: ${NEW_VERSION}"
+        echo "Github username: ${GITHUB_ACTOR}"
+        ./gradlew -Pversion=${NEW_VERSION} publish

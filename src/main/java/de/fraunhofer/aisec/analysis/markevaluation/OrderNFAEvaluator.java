@@ -16,15 +16,8 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.net.URI;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.toIntExact;
@@ -445,7 +438,7 @@ public class OrderNFAEvaluator {
 			if (base.contains(".")) {
 				base = base.substring(base.indexOf('.') + 1); // remove eogpath
 			}
-			String file = "unknown";
+			URI file = null;
 			int startLine = -1;
 			int endLine = -1;
 			int startCol = -1;

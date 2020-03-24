@@ -281,6 +281,7 @@ public class Evaluator {
 				} else if (ConstantValue.isError(entry.getValue())) {
 					log.warn("Unable to evaluate when-part of rule {}, result had an error: \n\t{}", rule.getName(),
 						((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
+					// FIXME do we want to evaluate the ensure-part if the when-part had an error?
 					continue;
 				} else if (!(value instanceof Boolean)) {
 					log.error("Unable to evaluate when-part of rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());

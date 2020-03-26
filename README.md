@@ -1,3 +1,5 @@
+![.github/workflows/gradlepublish.yml](https://github.com/Fraunhofer-AISEC/codyze/workflows/.github/workflows/gradlepublish.yml/badge.svg)
+
 # Test manually
 
 First, build a packaged version of the `cpg`:

@@ -14,6 +14,7 @@ import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -782,6 +783,33 @@ public class CrymlinQueryWrapper {
 			Iterator<Edge> initializer = referenced.edges(Direction.OUT, "INITIALIZER");
 			if (initializer.hasNext()) {
 				return Optional.of(initializer.next().inVertex());
+			}
+		}
+		return Optional.empty();
+	}
+
+	public static Optional<Vertex> getField(String fqnClassName, String fieldName, CrymlinTraversalSource traveral) {
+
+		Set<Vertex> vertices = traveral.field(fieldName).toSet();
+		for (Vertex v : vertices) {
+			Iterator<Edge> it = v.edges(Direction.IN, "FIELDS");
+			if (it.hasNext()) {
+				Vertex base = it.next().outVertex();
+				if (base.value("name").equals(fqnClassName)) {
+					return Optional.of(v);
+				}
+			}
+		}
+		return Optional.empty();
+	}
+
+	public static Optional<Object> getInitializerValue(Vertex vertex) {
+
+		Iterator<Edge> dfg = vertex.edges(Direction.OUT, "INITIALIZER");
+		if (dfg.hasNext()) {
+			Vertex vertex1 = dfg.next().inVertex();
+			if (vertex1.label().equals("Literal") && vertex1.property("value") != null) {
+				return Optional.of(vertex1.value("value"));
 			}
 		}
 		return Optional.empty();

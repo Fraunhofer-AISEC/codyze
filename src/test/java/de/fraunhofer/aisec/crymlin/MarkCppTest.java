@@ -169,4 +169,16 @@ public class MarkCppTest extends AbstractMarkTest {
 			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
+	// FIXME reactivate once https://github.com/Fraunhofer-AISEC/cpg/pull/85 is available in a new CPG-release
+	//@Test
+	public void const_value() throws Exception {
+		Set<Finding> findings = performTest("mark_cpp/const.cpp", "mark_cpp/const.mark");
+
+		// todo: missing: Enum is not handled yet
+		expected(findings, "line [13, 32]: MarkRuleEvaluationFinding: Rule Static verified",
+			"line [13, 33]: MarkRuleEvaluationFinding: Rule Static violated",
+			"line [13, 31]: MarkRuleEvaluationFinding: Rule Static verified");
+
+	}
+
 }

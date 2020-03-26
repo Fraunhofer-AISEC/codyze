@@ -233,6 +233,15 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 			FieldDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(FieldDeclaration.class));
 	}
 
+	public GraphTraversal<Vertex, Vertex> field(String fieldName) {
+		return this.clone()
+				.V()
+				.hasLabel(
+					FieldDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(FieldDeclaration.class))
+				.has("name", fieldName);
+	}
+
 	/**
 	 * Returns the node by ID
 	 *
@@ -289,4 +298,5 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
 		return traversal.in("EOG").outV();
 	}
+
 }

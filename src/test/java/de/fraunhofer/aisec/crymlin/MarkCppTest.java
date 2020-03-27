@@ -169,8 +169,7 @@ public class MarkCppTest extends AbstractMarkTest {
 			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
 	}
 
-	// FIXME reactivate once https://github.com/Fraunhofer-AISEC/cpg/pull/85 is available in a new CPG-release
-	//@Test
+	@Test
 	public void const_value() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/const.cpp", "mark_cpp/const.mark");
 

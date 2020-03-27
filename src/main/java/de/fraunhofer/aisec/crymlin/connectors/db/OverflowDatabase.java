@@ -20,6 +20,7 @@ import io.shiftleft.overflowdb.OdbNodeProperty;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -140,11 +141,11 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	// Scan all classes in package
 	private static final Reflections reflections = new Reflections(
-		new ConfigurationBuilder().setScanners(
-			new SubTypesScanner(false /* don't exclude Object.class */),
-			new ResourcesScanner())
-				.setUrls(ClasspathHelper.forPackage(CPG_PACKAGE))
-				.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
+			new ConfigurationBuilder().setScanners(
+					new SubTypesScanner(false /* don't exclude Object.class */),
+					new ResourcesScanner())
+					.setUrls(ClasspathHelper.forPackage(CPG_PACKAGE))
+					.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
 
 	private OverflowDatabase() {
 		// Initialize EhCache to cache some heavyweight reflection
@@ -171,41 +172,41 @@ public class OverflowDatabase<N> implements Database<N> {
 		ResourcePools resourcePools = ResourcePoolsBuilder.newResourcePoolsBuilder().heap(1, MemoryUnit.GB).build();
 		cacheManager = CacheManagerBuilder.newCacheManagerBuilder().with(CacheManagerBuilder.persistence(tmpCacheDir)).build(true);
 		fieldsIncludingSuperclasses = cacheManager.createCache(
-			"fieldsIncludingSuperclasses",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				String.class, List.class, resourcePools).build());
+				"fieldsIncludingSuperclasses",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						String.class, List.class, resourcePools).build());
 		inAndOutFields = cacheManager.createCache(
-			"inAndOutFields",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				String.class, Pair.class, resourcePools).build());
+				"inAndOutFields",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						String.class, Pair.class, resourcePools).build());
 		edgeProperties = cacheManager.createCache(
-			"edgeProperties",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				String.class, Map.class, resourcePools).build());
+				"edgeProperties",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						String.class, Map.class, resourcePools).build());
 		mapsToRelationship = cacheManager.createCache(
-			"mapsToRelationship",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				String.class, Boolean.class, resourcePools).build());
+				"mapsToRelationship",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						String.class, Boolean.class, resourcePools).build());
 		mapsToProperty = cacheManager.createCache(
-			"mapsToProperty",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				String.class, Boolean.class, resourcePools).build());
+				"mapsToProperty",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						String.class, Boolean.class, resourcePools).build());
 		nodesCache = (Cache<Long, N>) cacheManager.createCache(
-			"nodesCache",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				Long.class, Object.class, resourcePools).build());
+				"nodesCache",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						Long.class, Object.class, resourcePools).build());
 		layoutinformation = cacheManager.createCache(
-			"layoutinformation",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				String.class, NodeLayoutInformation.class, resourcePools).build());
+				"layoutinformation",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						String.class, NodeLayoutInformation.class, resourcePools).build());
 		subClasses = cacheManager.createCache(
-			"subClasses",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				String.class, String[].class, resourcePools).build());
+				"subClasses",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						String.class, String[].class, resourcePools).build());
 		superClasses = cacheManager.createCache(
-			"superClasses",
-			CacheConfigurationBuilder.newCacheConfigurationBuilder(
-				String.class, String[].class, resourcePools).build());
+				"superClasses",
+				CacheConfigurationBuilder.newCacheConfigurationBuilder(
+						String.class, String[].class, resourcePools).build());
 
 		// Create factories for nodes and edges of CPG.
 		Pair<List<NodeFactory<OdbNode>>, List<EdgeFactory<OdbEdge>>> factories = getFactories();
@@ -217,9 +218,9 @@ public class OverflowDatabase<N> implements Database<N> {
 				.withStorageLocation("graph-cache-overflow.bin") // Overflow file
 				.withHeapPercentageThreshold(5); // Threshold for mem-to-disk overflow
 		graph = OdbGraph.open(
-			odbConfig,
-			Collections.unmodifiableList(nodeFactories),
-			Collections.unmodifiableList(edgeFactories));
+				odbConfig,
+				Collections.unmodifiableList(nodeFactories),
+				Collections.unmodifiableList(edgeFactories));
 
 		// This is how to create indices. Unused at the moment.
 		// graph.createIndex("EOG", Vertex.class);
@@ -386,8 +387,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					Direction direction = getRelationshipDirection(f);
 					List<N> targets = IteratorUtils.stream(v.vertices(direction, getRelationshipLabel(f)))
 							.filter(distinctByKey(Vertex::id))
-							.map(
-								this::vertexToNode)
+							.map(this::vertexToNode)
 							.collect(Collectors.toList());
 					if (isCollection(f.getType())) {
 						/*
@@ -410,9 +410,7 @@ public class OverflowDatabase<N> implements Database<N> {
 							continue;
 						}
 						assert Collection.class.isAssignableFrom(collectionType);
-						Collection targetCollection = (Collection) collectionType.getDeclaredConstructor().newInstance();
-						targetCollection.addAll(targets);
-						f.set(node, targetCollection);
+						handleCollections(node, f, targets, collectionType);
 					} else if (f.getType().isArray()) {
 						Object targetArray = Array.newInstance(f.getType(), targets.size());
 						for (int i = 0; i < targets.size(); i++) {
@@ -429,13 +427,49 @@ public class OverflowDatabase<N> implements Database<N> {
 			}
 			return node;
 		}
-		catch (NoSuchMethodException e) {
-			log.error("A converter needs to have an empty constructor", e);
-		}
 		catch (Exception e) {
 			log.error("Error creating new {} node", targetClass.getName(), e);
 		}
 		return null;
+	}
+
+	private void handleCollections(N node, Field f, List<N> targets, Class<?> collectionType)
+			throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		Collection targetCollection;
+		if (collectionType.getEnclosingClass() != null && collectionType.getEnclosingClass().getName().equals("java.util.ImmutableCollections")) {
+			// immutable collections have size 1 and 2 as special cases
+			Constructor<?> constructor;
+			switch (targets.size()) {
+				case 0:
+					targetCollection = (Collection) collectionType.getDeclaredConstructor().newInstance();
+					break;
+				case 1:
+					constructor = collectionType.getDeclaredConstructor(Object.class);
+					constructor.setAccessible(true);
+					targetCollection = (Collection) constructor.newInstance(targets.get(0));
+					break;
+				case 2:
+					// not all immutable collections might have a special constructor for 2 elements
+					try {
+						constructor = collectionType.getDeclaredConstructor(Object.class, Object.class);
+						constructor.setAccessible(true);
+						targetCollection = (Collection) constructor.newInstance(targets.get(0), targets.get(1));
+						break;
+					}
+					catch (NoSuchMethodException e) {
+						// fall through
+					}
+				default:
+					constructor = collectionType.getDeclaredConstructor(Object[].class);
+					constructor.setAccessible(true);
+					targetCollection = (Collection) constructor.newInstance(new Object[] { targets.toArray() });
+					break;
+			}
+		} else {
+			targetCollection = (Collection) collectionType.getDeclaredConstructor().newInstance();
+			targetCollection.addAll(targets);
+		}
+		f.set(node, targetCollection);
 	}
 
 	public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
@@ -655,8 +689,7 @@ public class OverflowDatabase<N> implements Database<N> {
 						//              }
 					} else {
 						// Add single edge for non-collections
-						Vertex target = connect(v, relName, edgeProperties, (Node) x,
-							direction.equals(Direction.IN));
+						Vertex target = connect(v, relName, edgeProperties, (Node) x, direction.equals(Direction.IN));
 						assert target.property("hashCode").value().equals(x.hashCode());
 						//              createEdges(target, (Node) x);
 					}
@@ -668,9 +701,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		}
 	}
 
-	private Vertex connect(Vertex sourceVertex, String label, Map<String, Object> edgeProperties,
-			Node targetNode,
-			boolean reverse) {
+	private Vertex connect(Vertex sourceVertex, String label, Map<String, Object> edgeProperties, Node targetNode, boolean reverse) {
 		Vertex targetVertex = null;
 		Vertex targetId = nodeToVertex.get(targetNode);
 		if (targetId != null) {
@@ -699,9 +730,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		return targetVertex;
 	}
 
-	private void connectAll(
-			Vertex sourceVertex, String label, Map<String, Object> edgeTypes, Collection<?> targetNodes,
-			boolean reverse) {
+	private void connectAll(Vertex sourceVertex, String label, Map<String, Object> edgeTypes, Collection<?> targetNodes, boolean reverse) {
 		for (Object entry : targetNodes) {
 			//                  log.info(entry + " " + entry.hashCode());
 			if (Node.class.isAssignableFrom(entry.getClass())) {
@@ -792,8 +821,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
 		Set<String> subclasses = new HashSet<>();
 		subclasses.add(c.getSimpleName());
-		subclasses.addAll(
-			reflections.getSubTypesOf(c).stream().map(Class::getSimpleName).collect(Collectors.toSet()));
+		subclasses.addAll(reflections.getSubTypesOf(c).stream().map(Class::getSimpleName).collect(Collectors.toSet()));
 		String[] result = subclasses.toArray(new String[0]);
 		instance.subClasses.put(c.getName(), result);
 		return result;
@@ -887,8 +915,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * @param allClasses Set of classes to create edge factories for.
 	 * @return a Pair of edge factories and a pre-computed map of classes/IN-Fields.
 	 */
-	private Pair<List<EdgeFactory<OdbEdge>>, Map<Class, Set<MutableEdgeLayout>>> createEdgeFactories(
-			@NonNull Set<Class<? extends Node>> allClasses) {
+	private Pair<List<EdgeFactory<OdbEdge>>, Map<Class, Set<MutableEdgeLayout>>> createEdgeFactories(@NonNull Set<Class<? extends Node>> allClasses) {
 		Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts = new HashMap<>();
 		List<EdgeFactory<OdbEdge>> edgeFactories = new ArrayList<>();
 		for (Class c : allClasses) {
@@ -936,8 +963,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
 					@Override
 					public OdbEdge createEdge(OdbGraph graph, NodeRef outNode, NodeRef inNode) {
-						return new OdbEdge(
-							graph, getRelationshipLabel(field), outNode, inNode, Sets.newHashSet()) {
+						return new OdbEdge(graph, getRelationshipLabel(field), outNode, inNode, Sets.newHashSet()) {
 						};
 					}
 				};
@@ -989,30 +1015,27 @@ public class OverflowDatabase<N> implements Database<N> {
 
 		Map<String, Object> properties = Arrays.stream(f.getAnnotations())
 				.filter(a -> a.annotationType().getAnnotation(EdgeProperty.class) != null)
-				.collect(
-					Collectors.toMap(a -> a.annotationType().getAnnotation(EdgeProperty.class).key(),
-						a -> {
-							try {
-								Method valueMethod = a.getClass().getDeclaredMethod("value");
-								Object value = valueMethod.invoke(a);
-								String result;
-								if (value.getClass().isArray()) {
-									String[] strings = new String[Array.getLength(value)];
-									for (int i = 0; i < Array.getLength(value); i++) {
-										strings[i] = Array.get(value, i).toString();
-									}
-									result = String.join(", ", strings);
-								} else {
-									result = value.toString();
-								}
-								return result;
+				.collect(Collectors.toMap(a -> a.annotationType().getAnnotation(EdgeProperty.class).key(), a -> {
+					try {
+						Method valueMethod = a.getClass().getDeclaredMethod("value");
+						Object value = valueMethod.invoke(a);
+						String result;
+						if (value.getClass().isArray()) {
+							String[] strings = new String[Array.getLength(value)];
+							for (int i = 0; i < Array.getLength(value); i++) {
+								strings[i] = Array.get(value, i).toString();
 							}
-							catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-								log.error("Edge property annotation {} does not provide a 'value' method of type String",
-									a.getClass().getName(), e);
-								return "UNKNOWN_PROPERTY";
-							}
-						}));
+							result = String.join(", ", strings);
+						} else {
+							result = value.toString();
+						}
+						return result;
+					}
+					catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+						log.error("Edge property annotation {} does not provide a 'value' method of type String", a.getClass().getName(), e);
+						return "UNKNOWN_PROPERTY";
+					}
+				}));
 
 		edgeProperties.put(fieldFqn, properties);
 		return properties;
@@ -1025,8 +1048,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * @param allClasses classes to create node factories for.
 	 * @param inEdgeLayouts Map from class names to IN edge layouts which must be supported by that class. Will be collected by <code>createEdgeFactories</code>
 	 */
-	private List<NodeFactory<OdbNode>> createNodeFactories(
-			@NonNull Set<Class<? extends Node>> allClasses, @NonNull Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts) {
+	private List<NodeFactory<OdbNode>> createNodeFactories(@NonNull Set<Class<? extends Node>> allClasses, @NonNull Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts) {
 		List<NodeFactory<OdbNode>> nodeFactories = new ArrayList<>();
 		for (Class<? extends Node> c : allClasses) {
 			nodeFactories.add(createNodeFactory(c, inEdgeLayouts));
@@ -1034,8 +1056,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		return nodeFactories;
 	}
 
-	private NodeFactory<OdbNode> createNodeFactory(
-			@NonNull Class<? extends Node> c, @NonNull Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts) {
+	private NodeFactory<OdbNode> createNodeFactory(@NonNull Class<? extends Node> c, @NonNull Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts) {
 		return new NodeFactory<>() {
 			@Override
 			public String forLabel() {
@@ -1070,8 +1091,7 @@ public class OverflowDatabase<N> implements Database<N> {
 								.stream()
 								.filter(e -> e.label != null)
 								.map(MutableEdgeLayout::makeImmutable)
-								.collect(
-									Collectors.toList()));
+								.collect(Collectors.toList()));
 
 						out = deduplicateEdges(out);
 						in = deduplicateEdges(in);
@@ -1083,8 +1103,7 @@ public class OverflowDatabase<N> implements Database<N> {
 								if (isCollection(f.getType())) {
 									// type hints for exact collection type
 									properties.add(f.getName() + "_type");
-								} else if (Character.class.isAssignableFrom(f.getType())
-										|| String[].class.isAssignableFrom(f.getType())) {
+								} else if (Character.class.isAssignableFrom(f.getType()) || String[].class.isAssignableFrom(f.getType())) {
 									properties.add(f.getName() + "_converted-from");
 								} else if (Integer.class.isAssignableFrom(f.getType())) {
 									properties.add(f.getName() + "_original");
@@ -1111,8 +1130,7 @@ public class OverflowDatabase<N> implements Database<N> {
 							//                    && ((Collection) values).isEmpty())) {
 							return new ArrayList<VertexProperty<V>>(0).iterator();
 						}
-						return IteratorUtils.<VertexProperty<V>> of(
-							new OdbNodeProperty(this, key, this.propertyValues.get(key)));
+						return IteratorUtils.<VertexProperty<V>>of(new OdbNodeProperty(this, key, this.propertyValues.get(key)));
 					}
 
 					@Override
@@ -1121,8 +1139,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					}
 
 					@Override
-					protected <V> VertexProperty<V> updateSpecificProperty(
-							VertexProperty.Cardinality cardinality, String key, V value) {
+					protected <V> VertexProperty<V> updateSpecificProperty(VertexProperty.Cardinality cardinality, String key, V value) {
 						this.propertyValues.put(key, value);
 						return new OdbNodeProperty<>(this, key, value);
 					}
@@ -1152,8 +1169,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		return new ArrayList<>(deduplicated);
 	}
 
-	private Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>> getInAndOutFields(
-			Class c) {
+	private Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>> getInAndOutFields(Class c) {
 		if (inAndOutFields.containsKey(c.getName())) {
 			return inAndOutFields.get(c.getName());
 		}
@@ -1241,8 +1257,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
 		@Override
 		public String toString() {
-			return "MutableEdgeLayout{" + "label='" + label + '\'' + ", propertyKeys=" + propertyKeys
-					+ '}';
+			return "MutableEdgeLayout{" + "label='" + label + '\'' + ", propertyKeys=" + propertyKeys + '}';
 		}
 	}
 }

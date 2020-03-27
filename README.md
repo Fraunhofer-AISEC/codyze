@@ -1,67 +1,50 @@
-![.github/workflows/gradlepublish.yml](https://github.com/Fraunhofer-AISEC/codyze/workflows/.github/workflows/gradlepublish.yml/badge.svg)
+![Gradle Package](https://github.com/Fraunhofer-AISEC/codyze/workflows/Gradle%20Package/badge.svg)
 
-# Test manually
+# Build the project
 
-First, build a packaged version of the `cpg`:
+Build a packaged version of Codyze:
 
-```
-./gradlew installDist
-```
-
-This will provide you with a shell wrapper around `java -jar` called `bin/codyze` in the `build/install/codyze` folder.
-
-You can start the binary without arguments to go into the interactive console, or with -lsp to start the lsp server.
-
-
-## Manual LSP Test
-
-Test LSP. Paste the following into the stdin of the LSP server.
-
-```
-Content-Length: 58
-
-{"jsonrpc":"2.0","id":2,"method":"initialize","params":{}}
+```shell
+$ ./gradlew installDist
 ```
 
-The server should return with a list of capabilities.
+This will provide you with an archive of an executable Codyze installation under `build/distributions/codyze-*.zip`. Unzip the archive and run Codyze:
 
-To follow the examples, copy the `client.cpp` in this folder to `/tmp/client.cpp`. The `file:` URI scheme does not allow relative paths.
-
-To simulate changing a document, the following snippet can be pasted:
-```
-Content-Length: 108
-
-{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///tmp/client.cpp"}}}
+```shell
+$ unzip build/distributions/codyze-1.0-SNAPSHOT.zip -d /opt/
+$ /opt/codyze*/codyze/bin/codyze
 ```
 
-This should trigger the LSP server to translate the document into the graph.
+Without further command line arguments, Codyze will print its command line help:
+
+
+```
+Error: Missing required argument (specify one of these): (-c | -l | -t)
+Usage: codyze (-c | -l | -t) [[--typestate=<NFA|WPDS>] [--interproc]] [-hV] [-m=<path>] [-o=<file>]
+              [-s=<path>] [--timeout=<minutes>]
+Codyze finds security flaws in source code
+  -s, --source=<path>       Source file or folder to analyze.
+  -m, --mark=<path>         Load MARK policy files from folder
+  -o, --output=<file>       Write results to file. Use -- for stdout.
+      --timeout=<minutes>   Terminate analysis after timeout
+                              Default: 120
+  -h, --help                Show this help message and exit.
+  -V, --version             Print version information and exit.
+Execution mode
+  -c                        Start in command line mode.
+  -l                        Start in language server protocol (LSP) mode.
+  -t                        Start interactive console (Text-based User Interface).
+Analysis settings
+      --typestate=<NFA|WPDS>
+                            Typestate analysis mode
+                            NFA:  Non-deterministic finite automaton (faster, intraprocedural)
+                            WPDS: Weighted pushdown system (slower, interprocedural)
+      --interproc           Enables interprocedural data flow analysis (more precise but slower).
+```
+Please refert to http://codyze.io for further usage instructions.
 
 ### Test in IntelliJ
 
-
-1. Download and install the `LSP Support` plugin. Restart IntelliJ.
-2. Goto `Settings` -> `Language Server Protocol` -> `Server Definitions`
-3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `build/install/codyze/bin/codyze` script. 
- 
-![](lsp-settings-intellij.png "IntelliJ LSP Setttings")
-
-If everything works as intended, you should see a green circle in your IntelliJ status bar, indicating that the connection to the language server was successful. Afterwards each time you open a Java file, it should get translated into the neo4j graph, visible in the neo4j browser (http://localhost:7474/browser).
-
-Additionally, the `codyze` program should log debug messages into `logs/debug.log` in the folder of your current IntelliJ project.
- 
-```
-2019-03-01 16:39:39,071 WARN  GenericEndpoint Unsupported notification method: workspace/didChangeWatchedFiles
-2019-03-01 16:39:39,192 WARN  GenericEndpoint Unsupported notification method: workspace/didChangeWatchedFiles
-2019-03-01 16:39:51,175 WARN  GenericEndpoint Unsupported notification method: workspace/didChangeWatchedFiles
-2019-03-01 16:40:05,792 WARN  GenericEndpoint Unsupported notification method: workspace/didChangeWatchedFiles
-2019-03-01 16:40:09,449 INFO  TranslationTextDocumentService Handling didOpen: DidOpenTextDocumentParams [
-  textDocument = TextDocumentItem [
-    uri = "file:///tmp/client.cpp"
-    languageId = "cpp"
-    version = -1
-```
-
-If IntelliJ complains "no connection after 10s" does not necessarily mean that it tried 10 seconds. It can also mean that the server did not start at all.
 To debug what is sent to the LSP-Server, modify the /codyze script and make the last line sth. like:
 
 ```

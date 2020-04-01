@@ -46,10 +46,17 @@ Codyze can be installed from the following Eclipse update site: [https://update.
 2. Goto `Settings` -> `Language Server Protocol` -> `Server Definitions`
 3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `/opt/codyze/codyze-1.0.0/bin/codyze` script. 
  
-![](lsp-settings-intellij.png "IntelliJ LSP Setttings")
+![](lsp-settings-intellij.png "IntelliJ LSP Settings")
 
 If everything works as intended, you should see a green circle in your IntelliJ status bar, indicating that the connection to the language server was successful. Afterwards each time you open a Java file, it should get translated into the neo4j graph, visible in the neo4j browser (http://localhost:7474/browser).
 
-## Integration in Visual Studio
+## Integration in Visual Studio 2019
 
-TODO Wolfgang
+1. Download the zipped extension on the [release page](https://github.com/Fraunhofer-AISEC/codyze-vs-plugin/releases)
+2. Unzip the file
+3. Double-click the VSIX-file to install the extension
+4. Launch Visual Studio
+
+On startup, the plugin will ask you for the path to Codyze and to the mark files you want to use. If everythings checks out, the plugin will automatically start an instance of Codyze when a solution is opened. It will then scan `.cpp` files when opened or saved and highlight potential problems.
+
+If you later want to adjust the path to Codyze, the mark files or change the command line arguments used for Codyze, in Visual Studio goto `Tools` -> `Options...` -> `Codyze Plugin` -> `Codyze Settings`.

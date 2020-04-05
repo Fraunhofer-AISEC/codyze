@@ -141,11 +141,11 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	// Scan all classes in package
 	private static final Reflections reflections = new Reflections(
-			new ConfigurationBuilder().setScanners(
-					new SubTypesScanner(false /* don't exclude Object.class */),
-					new ResourcesScanner())
-					.setUrls(ClasspathHelper.forPackage(CPG_PACKAGE))
-					.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
+		new ConfigurationBuilder().setScanners(
+			new SubTypesScanner(false /* don't exclude Object.class */),
+			new ResourcesScanner())
+				.setUrls(ClasspathHelper.forPackage(CPG_PACKAGE))
+				.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
 
 	private OverflowDatabase() {
 		// Initialize EhCache to cache some heavyweight reflection
@@ -172,41 +172,41 @@ public class OverflowDatabase<N> implements Database<N> {
 		ResourcePools resourcePools = ResourcePoolsBuilder.newResourcePoolsBuilder().heap(1, MemoryUnit.GB).build();
 		cacheManager = CacheManagerBuilder.newCacheManagerBuilder().with(CacheManagerBuilder.persistence(tmpCacheDir)).build(true);
 		fieldsIncludingSuperclasses = cacheManager.createCache(
-				"fieldsIncludingSuperclasses",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						String.class, List.class, resourcePools).build());
+			"fieldsIncludingSuperclasses",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, List.class, resourcePools).build());
 		inAndOutFields = cacheManager.createCache(
-				"inAndOutFields",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						String.class, Pair.class, resourcePools).build());
+			"inAndOutFields",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, Pair.class, resourcePools).build());
 		edgeProperties = cacheManager.createCache(
-				"edgeProperties",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						String.class, Map.class, resourcePools).build());
+			"edgeProperties",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, Map.class, resourcePools).build());
 		mapsToRelationship = cacheManager.createCache(
-				"mapsToRelationship",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						String.class, Boolean.class, resourcePools).build());
+			"mapsToRelationship",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, Boolean.class, resourcePools).build());
 		mapsToProperty = cacheManager.createCache(
-				"mapsToProperty",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						String.class, Boolean.class, resourcePools).build());
+			"mapsToProperty",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, Boolean.class, resourcePools).build());
 		nodesCache = (Cache<Long, N>) cacheManager.createCache(
-				"nodesCache",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						Long.class, Object.class, resourcePools).build());
+			"nodesCache",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				Long.class, Object.class, resourcePools).build());
 		layoutinformation = cacheManager.createCache(
-				"layoutinformation",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						String.class, NodeLayoutInformation.class, resourcePools).build());
+			"layoutinformation",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, NodeLayoutInformation.class, resourcePools).build());
 		subClasses = cacheManager.createCache(
-				"subClasses",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						String.class, String[].class, resourcePools).build());
+			"subClasses",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, String[].class, resourcePools).build());
 		superClasses = cacheManager.createCache(
-				"superClasses",
-				CacheConfigurationBuilder.newCacheConfigurationBuilder(
-						String.class, String[].class, resourcePools).build());
+			"superClasses",
+			CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, String[].class, resourcePools).build());
 
 		// Create factories for nodes and edges of CPG.
 		Pair<List<NodeFactory<OdbNode>>, List<EdgeFactory<OdbEdge>>> factories = getFactories();
@@ -218,9 +218,9 @@ public class OverflowDatabase<N> implements Database<N> {
 				.withStorageLocation("graph-cache-overflow.bin") // Overflow file
 				.withHeapPercentageThreshold(5); // Threshold for mem-to-disk overflow
 		graph = OdbGraph.open(
-				odbConfig,
-				Collections.unmodifiableList(nodeFactories),
-				Collections.unmodifiableList(edgeFactories));
+			odbConfig,
+			Collections.unmodifiableList(nodeFactories),
+			Collections.unmodifiableList(edgeFactories));
 
 		// This is how to create indices. Unused at the moment.
 		// graph.createIndex("EOG", Vertex.class);
@@ -1130,7 +1130,7 @@ public class OverflowDatabase<N> implements Database<N> {
 							//                    && ((Collection) values).isEmpty())) {
 							return new ArrayList<VertexProperty<V>>(0).iterator();
 						}
-						return IteratorUtils.<VertexProperty<V>>of(new OdbNodeProperty(this, key, this.propertyValues.get(key)));
+						return IteratorUtils.<VertexProperty<V>> of(new OdbNodeProperty(this, key, this.propertyValues.get(key)));
 					}
 
 					@Override

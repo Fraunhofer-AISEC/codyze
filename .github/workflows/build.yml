@@ -22,10 +22,10 @@ jobs:
           then
             export VERSION=""
             echo "Building version-less (master or feature branch)"
-            echo "##[set-output name=needs_release;]false"
+            echo "##[set-output name=needs_release;]'false'"
           else
             echo "Building as ${VERSION}"
-            echo "##[set-output name=needs_release;]true"
+            echo "##[set-output name=needs_release;]'true'"
           fi
 
           echo "##[set-output name=version;]$VERSION"
@@ -47,8 +47,8 @@ jobs:
           VERSION: ${{ steps.determine_version.outputs.version }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create Release
-        if: steps.determine_version.outputs.needs_release == true
+      - name: "Create Release (needed: ${{ steps.determine_version.outputs.needs_release }})"
+        if: steps.determine_version.outputs.needs_release == 'true'
         id: create_release
         uses: actions/create-release@latest
         env:
@@ -58,8 +58,8 @@ jobs:
           release_name: ${{ github.ref }}
           draft: false
           prerelease: false
-      - name: Upload Release Asset
-        if: steps.determine_version.outputs.needs_release == true
+      - name: "Upload Release Asset (needed: ${{ steps.determine_version.outputs.needs_release }})"
+        if: steps.determine_version.outputs.needs_release == 'true'
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:

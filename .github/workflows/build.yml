@@ -18,32 +18,25 @@ jobs:
       - name: Build
         if: "!startsWith(github.ref, 'refs/tags')"
         run: |
+          export VERSION=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
+          if [[ $VERSION != v* ]]
+          then
+            export VERSION=""
+          fi
+
           if [ "$SONAR_TOKEN" != "" ]
           then
-            ./gradlew --parallel spotlessCheck build sonarqube \
+            ./gradlew --parallel  -Pversion=$VERSION spotlessCheck build sonarqube \
             -Dsonar.projectKey=Fraunhofer-AISEC_codyze \
             -Dsonar.organization=fraunhofer-aisec \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN
           else
-            ./gradlew --parallel spotlessCheck build
+            ./gradlew --parallel -Pversion=$VERSION spotlessCheck build
           fi
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and Publish (only for tags)
-        if: startsWith(github.ref, 'refs/tags')
-        run: |
-          export VERSION=`expr substr $GITHUB_REF 12 5`
-          export ORG_GRADLE_PROJECT_signingKey=`echo ${{ secrets.GPG_PRIVATE_KEY }} | base64 -d`
-          # disabled until we decide whether we want to publish jars
-          # ./gradlew -Dorg.gradle.internal.publish.checksums.insecure=true --parallel -Pversion=$VERSION build signMavenPublication publish
-          ./gradlew --parallel -Pversion=$VERSION build installDist
-          zip --junk-paths codyze.zip build/distributions/*
-        env:
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSWORD }}
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}        
       - name: Create Release (only for tags)
         if: startsWith(github.ref, 'refs/tags')
         id: create_release
@@ -56,13 +49,13 @@ jobs:
           draft: false
           prerelease: false
       - name: Upload Release Asset
-        if: startsWith(github.ref, 'refs/tags')        
-        id: upload-release-asset 
+        if: startsWith(github.ref, 'refs/tags')
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/distributions/*
-          asset_name: codyze.zip
+          asset_path: codyze-$${{ github.ref }}.zip
+          asset_name: codyze-$${{ github.ref }}.zip
           asset_content_type: application/zip

@@ -17,12 +17,15 @@ jobs:
           java-version: "11"
       - name: Determine Version
         run: |
+          # determine version from tag
           export VERSION=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
           if [[ $VERSION != v* ]]
           then
             export VERSION=""
             echo "Building version-less (master or feature branch)"
           else
+            # make version more Java-friendly by dropping the 'v'
+            export VERSION=${VERSION:1:${#VERSION}}
             echo "Building as ${VERSION}"
           fi
 
@@ -53,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          release_name: ${{ steps.determine_version.outputs.version }}
           draft: false
           prerelease: false
       - name: "Upload Release Asset"

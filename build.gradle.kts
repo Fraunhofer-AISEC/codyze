@@ -16,7 +16,6 @@ plugins {
 }
 
 group = "de.fraunhofer.aisec"
-version = "1.0-SNAPSHOT"
 
 /* License plugin needs a special treatment, as long as the main project does not have a license yet.
    See https://github.com/hierynomus/license-gradle-plugin/issues/155 

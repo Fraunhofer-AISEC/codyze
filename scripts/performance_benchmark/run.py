@@ -3,7 +3,6 @@
 # ##########################################################################################
 #
 # Gets the latest version of the analyzer tool from bitbucket and tests codyze against it:
-# https://***REMOVED***/sas/teaching/2019-cpg-bouncycastle/tree/analysisserver
 #
 # (C) Fraunhofer AISEC 2020, Samuel Hopstock
 #
@@ -67,7 +66,7 @@ def main():
 
     printer("Getting the analyzer from BitBucket")
     system(
-      "git clone git@***REMOVED***:sas/teaching/2019-cpg-bouncycastle.git analyzer")
+      "git clone git@git-int.aisec.fraunhofer.de:sas/teaching/2019-cpg-bouncycastle.git analyzer")
     system("cd analyzer; git checkout analysisserver")
 
     printer("Adding .env file and python scraper")

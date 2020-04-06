@@ -15,15 +15,23 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: "11"
-      - name: Build
-        if: "!startsWith(github.ref, 'refs/tags')"
+      - name: Determine Version
         run: |
           export VERSION=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
           if [[ $VERSION != v* ]]
           then
             export VERSION=""
+            echo "Building version-less (master or feature branch)"
+            echo "##[set-output name=needs_release;]false"
+          else
+            echo "Building as ${VERSION}"
+            echo "##[set-output name=needs_release;]true"
           fi
 
+          echo "##[set-output name=version;]$VERSION"
+        id: determine_version
+      - name: Build
+        run: |
           if [ "$SONAR_TOKEN" != "" ]
           then
             ./gradlew --parallel  -Pversion=$VERSION spotlessCheck build sonarqube \
@@ -34,13 +42,13 @@ jobs:
           else
             ./gradlew --parallel -Pversion=$VERSION spotlessCheck build
           fi
-          echo "##[set-output name=version;]$VERSION"
         id: build
         env:
+          VERSION: ${{ steps.determine_version.outputs.version }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Release (only for tags)
-        if: startsWith(github.ref, 'refs/tags')
+        if: steps.determine_version.outputs.needs_release
         id: create_release
         uses: actions/create-release@latest
         env:
@@ -51,13 +59,13 @@ jobs:
           draft: false
           prerelease: false
       - name: Upload Release Asset
-        if: startsWith(github.ref, 'refs/tags')
+        if: steps.determine_version.outputs.needs_release
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: codyze-${{ steps.build.outputs.version }}.zip
-          asset_name: codyze-${{ steps.build.outputs.version }}.zip
+          asset_path: codyze-${{ steps.determine_version.outputs.version }}.zip
+          asset_name: codyze-${{ steps.determine_version.outputs.version }}.zip
           asset_content_type: application/zip

@@ -133,3 +133,6 @@ public
 
 scripts/owasp_sast_benchmark/owasp_sast
 scripts/owasp_sast_benchmark/master.zip
+
+node_modules
+package-lock.json

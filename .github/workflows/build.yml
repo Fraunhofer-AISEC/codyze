@@ -1,0 +1,54 @@
+name: build
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # only execute if this is coming from a push or from a PR from a forked repository
+    # otherwise this will get executed twice for PR from internal branches
+    if: github.event_name == 'push' || github.event_name == 'pull_request' && (github.event.pull_request.base.repo.full_name != github.event.pull_request.head.repo.full_name)
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "11"
+      - name: Build
+        run: |
+          if [ "$SONAR_TOKEN" != "" ]
+          then
+            ./gradlew --parallel spotlessCheck build sonarqube \
+            -Dsonar.projectKey=Fraunhofer-AISEC_codyze \
+            -Dsonar.organization=fraunhofer-aisec \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=$SONAR_TOKEN
+          else
+            ./gradlew --parallel spotlessCheck build
+          fi
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish (only for tags)
+        if: startsWith(github.ref, 'refs/tags')        
+        run: |
+          export ORG_GRADLE_PROJECT_signingKey=`echo ${{ secrets.GPG_PRIVATE_KEY }} | base64 -d`
+          ./gradlew -Dorg.gradle.internal.publish.checksums.insecure=true --parallel build signMavenPublication publish
+        env:
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}        
+      - name: Create Release (only for tags)
+        if: startsWith(github.ref, 'refs/tags')  
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Release of Codyze.
+          draft: false
+          prerelease: false

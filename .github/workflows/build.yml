@@ -36,7 +36,10 @@ jobs:
         run: |
           export VERSION=`expr substr $GITHUB_REF 12 5`          
           export ORG_GRADLE_PROJECT_signingKey=`echo ${{ secrets.GPG_PRIVATE_KEY }} | base64 -d`
-          ./gradlew -Dorg.gradle.internal.publish.checksums.insecure=true --parallel -Pversion=$VERSION build signMavenPublication publish
+          # disabled until we decide whether we want to publish jars
+          # ./gradlew -Dorg.gradle.internal.publish.checksums.insecure=true --parallel -Pversion=$VERSION build signMavenPublication publish
+          ./gradlew --parallel -Pversion=$VERSION build publish
+          zip --junk-paths codyze.zip build/distributions/*
         env:
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSWORD }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
@@ -49,8 +52,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Release of Codyze.
+          release_name: ${{ github.ref }}
           draft: false
           prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/distributions/*
+          asset_name: codyze.zip
+          asset_content_type: application/zip

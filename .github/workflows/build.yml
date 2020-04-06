@@ -16,7 +16,7 @@ jobs:
         with:
           java-version: "11"
       - name: Build
-        if: !startsWith(github.ref, 'refs/tags')
+        if: "!startsWith(github.ref, 'refs/tags')"
         run: |
           if [ "$SONAR_TOKEN" != "" ]
           then

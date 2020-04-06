@@ -34,6 +34,8 @@ jobs:
           else
             ./gradlew --parallel -Pversion=$VERSION spotlessCheck build
           fi
+          echo "##[set-output name=version;]$VERSION"
+        id: build
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,6 +58,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: codyze-$${{ github.ref }}.zip
-          asset_name: codyze-$${{ github.ref }}.zip
+          asset_path: codyze-${{ steps.build.outputs.version }}.zip
+          asset_name: codyze-${{ steps.build.outputs.version }}.zip
           asset_content_type: application/zip

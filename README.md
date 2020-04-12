@@ -1,4 +1,14 @@
-![Gradle Package](https://github.com/Fraunhofer-AISEC/codyze/workflows/Gradle%20Package/badge.svg)
+<p align="center">
+  <br>
+  <img src="https://github.com/Fraunhofer-AISEC/codyze/workflows/Gradle%20Package/badge.svg">
+  <a href="https://lgtm.com/projects/g/Fraunhofer-AISEC/codyze/context:javascript"><img alt="undefined" src="https://img.shields.io/lgtm/grade/javascript/g/Fraunhofer-AISEC/codyze.svg?logo=lgtm&logoWidth=18"/></a>
+  <img src="https://img.shields.io/github/last-commit/Fraunhofer-AISEC/codyze.svg?style=popout">
+  <a href="https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE"><img alt="undefined" src="https://img.shields.io/github/license/Fraunhofer-AISEC/codyze.svg?style=popout"></a>
+
+  <br><br><br>
+</p>
+
+Codyze is a static code analyzer that focuses on the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
 
 # Build the project
 

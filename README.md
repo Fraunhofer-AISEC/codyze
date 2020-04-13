@@ -1,6 +1,6 @@
 <p align="center">
   <br>
-  <img src="https://github.com/Fraunhofer-AISEC/codyze/workflows/Gradle%20Package/badge.svg">
+  <img src="https://github.com/Fraunhofer-AISEC/codyze/workflows/build/badge.svg">
   <img src="https://img.shields.io/github/last-commit/Fraunhofer-AISEC/codyze.svg?style=popout">
   <a href="https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE"><img alt="undefined" src="https://img.shields.io/github/license/Fraunhofer-AISEC/codyze.svg?style=popout"></a>
 

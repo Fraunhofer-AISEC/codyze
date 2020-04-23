@@ -8,20 +8,19 @@
 </p>
 
 Codyze is a static code analyzer that focuses on the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
-
 # Build the project
 
-Build a packaged version of Codyze:
+Build an executable version of Codyze:
 
 ```shell
 $ ./gradlew installDist
 ```
 
-This will provide you with an archive of an executable Codyze installation under `build/distributions/codyze-*.zip`. Unzip the archive and run Codyze:
+This will provide you with an executable Codyze installation under `build/install/codyze`. Change to that directory and run Codyze:
 
 ```shell
-$ unzip build/distributions/codyze-1.0-SNAPSHOT.zip -d /opt/
-$ /opt/codyze*/codyze/bin/codyze
+$ cd build/install/codyze
+$ ./bin/codyze
 ```
 
 Without further command line arguments, Codyze will print its command line help:

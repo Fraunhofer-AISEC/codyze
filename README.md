@@ -49,7 +49,7 @@ Analysis settings
                             WPDS: Weighted pushdown system (slower, interprocedural)
       --interproc           Enables interprocedural data flow analysis (more precise but slower).
 ```
-Please refert to http://codyze.io for further usage instructions.
+Please refer to http://codyze.io for further usage instructions.
 
 ### Test in IntelliJ
 

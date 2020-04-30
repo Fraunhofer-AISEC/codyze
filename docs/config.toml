@@ -1,4 +1,4 @@
-baseURL = "https://fraunhofer-aisec.github.io/codyze/"
+baseURL = "https://www.breakpointsec.de"
 title = "Codyze"
 
 enableRobotsTXT = true

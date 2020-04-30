@@ -33,7 +33,7 @@ class WpdsTest extends AbstractMarkTest {
 	@Test
 	void testRegexToNFA() throws Exception {
 		XtextParser parser = new XtextParser();
-		parser.addMarkFile(new File("src/test/resources/unittests/order2.mark"));
+		parser.addMarkFile(new File("src/test/resources/unittests/nfa-test.mark"));
 		OrderExpression expr = (OrderExpression) parser
 				.parse()
 				.values()
@@ -70,18 +70,37 @@ class WpdsTest extends AbstractMarkTest {
 			worklist = nextWorkList;
 		}
 
-		// ... and that implementation
+		// ... and that implementation ...
 		NFA nfa = NFA.of(expr);
 		Set<String> edgesNFA = new HashSet<>();
 		for (NFATransition<Node> t : nfa.getTransitions()) {
 			edgesNFA.add(t.getSource().getName() + " -> " + t.getTarget().getName());
 		}
 
-		assertEquals(edgesFSM.size(), edgesNFA.size(), " number of edges in FSM and NFA-FSM differ");
+		System.out.println(fsm.toString());
 
+		System.out.println(nfa.toString());
+		// ... and make sure they deliver same results.
 		for (String s : edgesFSM) {
 			assertTrue(edgesNFA.contains(s), s + " found in FSM, but not in NFA-FSM");
 		}
+		for (String s : edgesNFA) {
+			assertTrue(edgesFSM.contains(s), s + " found in NFA, but not in FSM");
+		}
+	}
+
+	/**
+	 * Test for issue 88.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	void testCppRegression88() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("unittests/regression88.cpp", "../../src/dist/mark/botan");
+
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		assertEquals(5, findings.stream().filter(Finding::isProblem).count());
 	}
 
 	@Test

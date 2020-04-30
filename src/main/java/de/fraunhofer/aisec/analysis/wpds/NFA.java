@@ -1,12 +1,12 @@
 
 package de.fraunhofer.aisec.analysis.wpds;
 
-import de.fraunhofer.aisec.mark.markDsl.Expression;
-import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
-import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
-import de.fraunhofer.aisec.mark.markDsl.Terminal;
+import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
+import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,16 +84,16 @@ public class NFA {
 	 * Order-Statement to FSM
 	 *
 	 * <p>
-	 * Possible classes of the order construct: Terminal SequenceExpression RepetitionExpression (mit ?, *, +)
+	 * Possible classes of the order construct: Terminal SequenceExpression RepetitionExpression (with ?, *, +)
 	 *
 	 * <p>
-	 * Start with a "empty" FSM with only StartNode and EndNode
+	 * Start with an "empty" FSM with only StartNode and EndNode
 	 *
 	 * <p>
 	 * prevPointer = [&StartNode]
 	 *
 	 * <p>
-	 * For each Terminal Add node, connect each last node (= each Node in prevPointer) to the current node, return current node as only new prevPointer
+	 * For each Terminal add node, connect each last node (= each Node in prevPointer) to the current node, return current node as only new prevPointer
 	 *
 	 * <p>
 	 * For each Exp in SequenceExpression: call algo recursively, update (=overwrite) prevPointer-List after each algo-call
@@ -109,7 +109,7 @@ public class NFA {
 
 		Set<Node> currentNodes = new HashSet<>();
 		currentNodes.add(start);
-		addExpr(seq, currentNodes);
+		addExpr(seq, currentNodes, null);
 
 		// not strictly needed, we could simply set end=true for all the returned nodes
 		Node end = new Node(null, "END");
@@ -184,44 +184,69 @@ public class NFA {
 	}
 
 	@Nullable
-	private Set<Node> addExpr(final Expression expr, final Set<Node> currentNodes) {
+	private Set<Node> addExpr(final Expression expr, final Set<Node> currentNodes, Head head) {
 		if (expr instanceof Terminal) {
 			Terminal inner = (Terminal) expr;
 			Node n = new Node(inner.getEntity(), inner.getOp());
 			currentNodes.forEach(x -> x.addSuccessor(n));
 			currentNodes.clear();
 			currentNodes.add(n);
+			if (head != null && head.addNextNode) {
+				head.add(n);
+				head.addNextNode = false;
+			}
 			return currentNodes;
 		} else if (expr instanceof SequenceExpression) {
 			SequenceExpression inner = (SequenceExpression) expr;
-			addExpr(inner.getLeft(), currentNodes);
-			return addExpr(inner.getRight(), currentNodes);
+			addExpr(inner.getLeft(), currentNodes, head);
+			return addExpr(inner.getRight(), currentNodes, head);
 		} else if (expr instanceof RepetitionExpression) {
 			RepetitionExpression inner = (RepetitionExpression) expr;
 			String op = inner.getOp();
 			if ("?".equals(op)) {
 				HashSet<Node> remember = new HashSet<>(currentNodes);
-				addExpr(inner.getExpr(), currentNodes);
+				addExpr(inner.getExpr(), currentNodes, head);
 				currentNodes.addAll(remember);
 				return currentNodes;
 			} else if ("+".equals(op)) {
 				HashSet<Node> remember = new HashSet<>(currentNodes);
-				addExpr(inner.getExpr(), currentNodes);
-				for (Node n : remember) {
-					currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
+				Head innerHead = new Head();
+				innerHead.addNextNode = true;
+				addExpr(inner.getExpr(), currentNodes, innerHead);
+				for (Node j : innerHead.get()) {
+					currentNodes.forEach(x -> x.addSuccessor(j));
+					if (head != null && head.addNextNode) {
+						head.add(j);
+					}
 				}
 				return currentNodes;
 			} else if ("*".equals(op)) {
 				HashSet<Node> remember = new HashSet<>(currentNodes);
-				addExpr(inner.getExpr(), currentNodes);
-				for (Node n : remember) {
-					currentNodes.forEach(x -> x.addSuccessor(n.getSuccessors()));
+				Head innerHead = new Head();
+				innerHead.addNextNode = true;
+				addExpr(inner.getExpr(), currentNodes, innerHead);
+				for (Node j : innerHead.get()) {
+					currentNodes.forEach(x -> x.addSuccessor(j));
+					if (head != null && head.addNextNode) {
+						head.add(j);
+					}
 				}
 				currentNodes.addAll(remember);
 				return currentNodes;
 			}
 			log.error("UNKNOWN OP: {}", inner.getOp());
-			return addExpr(inner.getExpr(), currentNodes);
+			return addExpr(inner.getExpr(), currentNodes, head);
+
+		} else if (expr instanceof AlternativeExpression) {
+			AlternativeExpression inner = (AlternativeExpression) expr;
+			Set<Node> remember = new HashSet<>(currentNodes);
+			addExpr(inner.getLeft(), currentNodes, head);
+			if (head != null) {
+				head.addNextNode = true;
+			}
+			addExpr(inner.getRight(), remember, head);
+			currentNodes.addAll(remember);
+			return currentNodes;
 		}
 
 		log.error("ERROR, unknown Expression: {}", expr.getClass());
@@ -261,4 +286,16 @@ public class NFA {
 		return getTransitions().stream().filter(tr -> tr.getSource().equals(START)).collect(Collectors.toSet());
 	}
 
+	private static class Head {
+		private ArrayList<Node> nodes = new ArrayList<>();
+		private Boolean addNextNode = null;
+
+		void add(Node n) {
+			nodes.add(n);
+		}
+
+		ArrayList<Node> get() {
+			return nodes;
+		}
+	}
 }

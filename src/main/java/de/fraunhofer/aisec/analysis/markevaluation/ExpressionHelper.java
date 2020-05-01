@@ -121,6 +121,7 @@ public class ExpressionHelper {
 	}
 
 	@Nullable
+	@SuppressWarnings("java:S2447")
 	public static Boolean asBoolean(Object opt) {
 		if (opt == null) {
 			return null;

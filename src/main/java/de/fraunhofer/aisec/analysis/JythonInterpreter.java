@@ -70,6 +70,7 @@ public class JythonInterpreter implements AutoCloseable {
 	 * <p>
 	 * This interactive console serves as a rapid experimental interface for testing gremlin/crymlin queries.
 	 */
+	@SuppressWarnings("java:S106")
 	public void spawnInteractiveConsole() {
 
 		System.out.println(
@@ -93,7 +94,6 @@ public class JythonInterpreter implements AutoCloseable {
 
 			// Create all @ShellCommand-annotated methods in Command as builtins
 			for (Method m : Utils.getMethodsAnnotatedWith(Commands.class, ShellCommand.class)) {
-				String msg = m.getAnnotation(ShellCommand.class).value();
 				String cmd = m.getName();
 				// Register as a builtin function in Jython console
 				c.push(cmd + " = " + Commands.class.getName() + "." + cmd);

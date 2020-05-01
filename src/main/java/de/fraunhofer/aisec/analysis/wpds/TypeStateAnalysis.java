@@ -127,7 +127,7 @@ public class TypeStateAnalysis {
 
 		// For debugging only: Print WPDS rules
 		if (log.isDebugEnabled()) {
-			for (Rule r : wpds.getAllRules()
+			for (Rule<Stmt, Val, TypestateWeight> r : wpds.getAllRules()
 					.stream()
 					.sorted(Comparator.comparing(r -> r.getL1()
 							.getRegion()
@@ -244,7 +244,7 @@ public class TypeStateAnalysis {
 					if (reachableTypestate.getTarget().isError()) {
 						findings.add(createBadFinding(tran, currentFile));
 					} else {
-						potentialGoodFindings.add(new NonNullPair(tran.getLabel(), tran.getStart()));
+						potentialGoodFindings.add(new NonNullPair<Stmt, Val>(tran.getLabel(), tran.getStart()));
 					}
 
 					endReached |= reachableTypestate.getTarget().isEnd();
@@ -397,9 +397,9 @@ public class TypeStateAnalysis {
 								 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
 								 * "return site" is the statement to which flow returns after the function call.
 								 */
-								Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa, previousStmt,
+								Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa,
 									currentStmt,
-									v, worklist);
+									v);
 								for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
 									log.debug("  Adding push rule: {}", pushRule);
 									wpds.addRule(pushRule);
@@ -446,7 +446,7 @@ public class TypeStateAnalysis {
 										MemberCallExpression call = (MemberCallExpression) OverflowDatabase.getInstance()
 												.vertexToNode(rhsVertex);
 										if (call == null) {
-											log.error("Unexpected: null base of MemberCallExpression " + rhsVertex);
+											log.error("Unexpected: null base of MemberCallExpression {}", rhsVertex);
 											continue;
 										}
 										de.fraunhofer.aisec.cpg.graph.Node base = call.getBase();
@@ -464,7 +464,7 @@ public class TypeStateAnalysis {
 										CallExpression call = (CallExpression) OverflowDatabase.getInstance()
 												.vertexToNode(rhsVertex);
 										if (call == null) {
-											log.error("Unexpected: null base of CallExpression " + rhsVertex);
+											log.error("Unexpected: null base of CallExpression {}", rhsVertex);
 											continue;
 										}
 
@@ -478,7 +478,8 @@ public class TypeStateAnalysis {
 										}
 
 										// Create new flow for declared variable (declVal)
-										Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt,
+										Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName),
+											previousStmt,
 											declVal,
 											currentStmt,
 											TypestateWeight.one());
@@ -532,7 +533,7 @@ public class TypeStateAnalysis {
 									valsInScope.add(declVal);
 
 									// Create normal rule
-									Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt, declVal,
+									Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName), previousStmt, declVal,
 										currentStmt,
 										TypestateWeight.one());
 									log.debug("Adding normal rule for epsilon {}", normalRule);
@@ -884,13 +885,12 @@ public class TypeStateAnalysis {
 	 * @param crymlinTraversal
 	 * @param currentFunctionName
 	 * @param nfa
-	 * @param previousStmt
 	 * @param currentStmt
 	 * @param v
 	 * @return
 	 */
 	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
-			NFA nfa, Stmt previousStmt, Stmt currentStmt, Vertex v, ArrayDeque<NonNullPair<Vertex, Set<Stmt>>> worklist) {
+			NFA nfa, Stmt currentStmt, Vertex v) {
 		Set<NFATransition<Node>> relevantNFATransitions = nfa.getTransitions()
 				.stream()
 				.filter(
@@ -990,13 +990,13 @@ public class TypeStateAnalysis {
 	 * @return
 	 */
 	@NonNull
-	private WeightedAutomaton createInitialConfiguration(@NonNull WPDS wpds) {
+	private WeightedAutomaton<Stmt, Val, TypestateWeight> createInitialConfiguration(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
 		// Get START state from WPDS
 		Val initialState = null;
 		Stmt stmt = null;
 		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = wpds.getNormalRules();
 		for (NormalRule<Stmt, Val, TypestateWeight> nr : normalRules) {
-			if (nr.getS1().getVariable().equals("EPSILON")) {
+			if (nr.getS1().getVariable().equals(CpgWpds.EPSILON)) {
 				initialState = nr.getS2();
 				stmt = nr.getL2();
 			}
@@ -1020,7 +1020,7 @@ public class TypeStateAnalysis {
 
 			@Override
 			public Stmt epsilon() {
-				return new Stmt("EPSILON", new Region(-1, -1, -1, -1));
+				return new Stmt(CpgWpds.EPSILON, new Region(-1, -1, -1, -1));
 			}
 
 			@Override
@@ -1066,11 +1066,10 @@ public class TypeStateAnalysis {
 				toIntExact((long) v.property("endColumn")
 						.value()));
 		}
-		Stmt stmt = new Stmt(
+		return new Stmt(
 			v.property("code")
 					.orElse("")
 					.toString(),
 			region);
-		return stmt;
 	}
 }

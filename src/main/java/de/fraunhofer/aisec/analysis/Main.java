@@ -23,6 +23,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /** Start point of the standalone analysis server. */
+@SuppressWarnings("java:S106")
 @Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 public class Main implements Callable<Integer> {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);

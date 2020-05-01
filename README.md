@@ -2,8 +2,9 @@
   <br>
   <img src="https://github.com/Fraunhofer-AISEC/codyze/workflows/build/badge.svg">
   <img src="https://img.shields.io/github/last-commit/Fraunhofer-AISEC/codyze.svg?style=popout">
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=codyze&metric=security_rating">
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=codyze&metric=alert_status">
   <a href="https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE"><img alt="undefined" src="https://img.shields.io/github/license/Fraunhofer-AISEC/codyze.svg?style=popout"></a>
-
   <br><br><br>
 </p>
 

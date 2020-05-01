@@ -85,18 +85,8 @@ public class SimpleConstantResolver implements ConstantResolver {
 		Optional<ConstantValue> retVal = Optional.empty();
 
 		try (TraversalConnection conn = new TraversalConnection(this.dbType)) {
-			CrymlinTraversalSource crymlin = conn.getCrymlinTraversal();
 			log.debug("Vertex for function call: {}", vDeclaredReferenceExpr.property("code").value());
 			log.debug("Vertex of variable declaration: {}", variableDeclarationVertex.property("code").value());
-
-			// traverse in reverse along EOG edges from v until variableDeclarationVertex -->
-			// one of them must have more information on the value of the operand
-			// this does not work, as a loop in the eog will result in an endless traversal here.
-			//			CrymlinTraversal<Vertex, Vertex> traversal = crymlin.byID((long) vDeclaredReferenceExpr.id())
-			//					.repeat(in("EOG"))
-			//					.until(
-			//						is(variableDeclarationVertex))
-			//					.dedup();
 
 			HashSet<Vertex> workList = new HashSet<>();
 			HashSet<Vertex> seen = new HashSet<>();
@@ -196,10 +186,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 				workList = nextWorklist;
 			}
 
-			// we arrived at the declaration of the variable
-			//log.info("Checking declaration for a literal initializer");
-
-			// See if we have an initializer
+			// we arrived at the declaration of the variable. See if we have an initializer
 			Iterator<Vertex> itInitializerVertex = variableDeclarationVertex.vertices(Direction.OUT, "INITIALIZER");
 
 			if (itInitializerVertex.hasNext()) {

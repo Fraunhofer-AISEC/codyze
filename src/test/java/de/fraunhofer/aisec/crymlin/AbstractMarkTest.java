@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AbstractMarkTest {
+public abstract class AbstractMarkTest {
 
 	protected TranslationManager translationManager;
 	protected AnalysisServer server;

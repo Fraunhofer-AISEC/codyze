@@ -80,14 +80,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <code>Database</code> implementation for OVerflowDB.
+ * <code>Database</code> implementation for OverflowDB.
  *
  * OverflowDB is Shiftleft's fork of Tinkergraph, which is a more efficient in-memory graph DB overflowing to disk when heap is full.
  */
+@SuppressWarnings("java:S3740")
 public class OverflowDatabase<N> implements Database<N> {
 
 	private static final Logger log = LoggerFactory.getLogger(OverflowDatabase.class);
-	public static final String LabelDelimiter = "::"; // copied from neo4j
 	// persistable property types, taken from Neo4j
 	private static final String PRIMITIVES = "char,byte,short,int,long,float,double,boolean,char[],byte[],short[],int[],long[],float[],double[],boolean[]";
 	private static final String AUTOBOXERS = "java.lang.Object"
@@ -295,30 +295,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	}
 
 	/**
-	 * Dumps a human-readable representation of a Vertex to stdout.
-	 */
-	private void printVertex(Vertex v) {
-		Map<Object, Object> properties = getAllProperties(v);
-
-		String name = "<unknown>";
-		if (properties.containsKey("name")) {
-			name = properties.get("name").toString();
-		}
-
-		log.info("---------");
-		log.info("Node \"{}", name);
-		for (Map.Entry p : properties.entrySet()) {
-			String value = p.getValue().toString();
-			if (p.getValue() instanceof String[]) {
-				value = String.join(", ", (String[]) p.getValue());
-			} else if (p.getValue() instanceof Collection) {
-				value = ((Collection) p.getValue()).stream().collect(Collectors.joining(", ")).toString();
-			}
-			log.info("{} -> {}", p.getKey(), value);
-		}
-	}
-
-	/**
 	 * Returns a map of all properties of a Vertex. This is a copy of the actual map stored in the vertex and can thus be safely modified.
 	 *
 	 * <p>
@@ -358,7 +334,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		Class<?> targetClass;
 		String nodeType = (String) v.property("nodeType").value();
 		try {
-			targetClass = Class.forName((String) nodeType);
+			targetClass = Class.forName(nodeType);
 		}
 		catch (ClassNotFoundException e) {
 			log.error("Class not found (node type): {}", nodeType);
@@ -436,7 +412,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	private void handleCollections(N node, Field f, List<N> targets, Class<?> collectionType)
 			throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		Collection targetCollection;
-		if (collectionType.getEnclosingClass() != null && collectionType.getEnclosingClass().getName().equals("java.util.ImmutableCollections")) {
+		if (collectionType.getEnclosingClass() != null && collectionType.getEnclosingClass().getName().equals("java.util.ImmutableCollections")) { // NOSONAR
 			// immutable collections have size 1 and 2 as special cases
 			Constructor<?> constructor;
 			switch (targets.size()) {
@@ -559,8 +535,6 @@ public class OverflowDatabase<N> implements Database<N> {
 				properties.put(key.toString() + "_original", value);
 			} else if (value instanceof Character) {
 				// related: https://github.com/ShiftLeftSecurity/overflowdb/issues/42
-				// properties.put(key, value.toString());
-				// properties.put(key + "_converted-from", "Character");
 			} else if (value instanceof String[]) {
 				properties.put(key, String.join(", ", (String[]) value));
 				properties.put(key + "_converted-from", "String[]");
@@ -679,19 +653,12 @@ public class OverflowDatabase<N> implements Database<N> {
 					if (isCollection(x.getClass())) {
 						// Add multiple edges for collections
 						connectAll(v, relName, edgeProperties, (Collection) x, direction.equals(Direction.IN));
-						//              for (Object child : (Collection) x) {
-						//                createEdges(nodeToVertex.get((Node) child), (Node) child);
-						//              }
 					} else if (Node[].class.isAssignableFrom(x.getClass())) {
 						connectAll(v, relName, edgeProperties, Arrays.asList(x), direction.equals(Direction.IN));
-						//              for (Object child : (Node[]) x) {
-						//                createEdges(nodeToVertex.get((Node) child), (Node) child);
-						//              }
 					} else {
 						// Add single edge for non-collections
 						Vertex target = connect(v, relName, edgeProperties, (Node) x, direction.equals(Direction.IN));
 						assert target.property("hashCode").value().equals(x.hashCode());
-						//              createEdges(target, (Node) x);
 					}
 				}
 				catch (IllegalAccessException e) {
@@ -732,7 +699,6 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	private void connectAll(Vertex sourceVertex, String label, Map<String, Object> edgeTypes, Collection<?> targetNodes, boolean reverse) {
 		for (Object entry : targetNodes) {
-			//                  log.info(entry + " " + entry.hashCode());
 			if (Node.class.isAssignableFrom(entry.getClass())) {
 				Vertex target = connect(sourceVertex, label, edgeTypes, (Node) entry, reverse);
 				assert target.property("hashCode").value().equals(entry.hashCode());
@@ -1117,6 +1083,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					}
 
 					@Override
+					@SuppressWarnings("java:S125")
 					protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
 						/*
 						 * We filter out null property values here. GraphMLWriter cannot handle these and will die with NPE. Gremlin assumes that property values are

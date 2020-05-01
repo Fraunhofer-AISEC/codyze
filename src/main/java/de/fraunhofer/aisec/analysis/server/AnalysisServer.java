@@ -408,7 +408,7 @@ public class AnalysisServer {
 	 * @param result
 	 * @return
 	 */
-	@Deprecated
+	@Deprecated(forRemoval = true)
 	private TranslationResult persistToNeo4J(TranslationResult result) {
 		Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
 		// Persist the result

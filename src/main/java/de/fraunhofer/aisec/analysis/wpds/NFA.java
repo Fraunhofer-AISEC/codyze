@@ -15,7 +15,7 @@ public class NFA {
 	private static final Logger log = LoggerFactory.getLogger(NFA.class);
 	private Set<Node> startNodes = null;
 
-	private static final Node START = new Node("START", "START");
+	private final Node START = new Node("START", "START");
 	public static final Node ERROR;
 	static {
 		ERROR = new Node("ERROR", "ERROR");

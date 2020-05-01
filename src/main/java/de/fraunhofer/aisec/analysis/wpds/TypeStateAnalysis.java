@@ -467,15 +467,27 @@ public class TypeStateAnalysis {
 											log.error("Unexpected: null base of CallExpression " + rhsVertex);
 											continue;
 										}
-										// Add declVal to set of currently tracked variables
-										valsInScope.add(declVal);
 
+										// Propagate all existing flows
 										for (Val val : valsInScope) {
-											Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val, currentStmt,
+											Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val,
+												currentStmt,
 												TypestateWeight.one());
 											log.debug("Adding normal rule for function call {}", normalRuleSelf);
 											wpds.addRule(normalRuleSelf);
 										}
+
+										// Create new flow for declared variable (declVal)
+										Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val("EPSILON", currentFunctionName), previousStmt,
+											declVal,
+											currentStmt,
+											TypestateWeight.one());
+										log.debug("Adding normal rule for declaration {}", normaleRuleDeclared);
+										wpds.addRule(normaleRuleDeclared);
+
+										// Add declVal to set of currently tracked variables
+										valsInScope.add(declVal);
+
 									} else {
 										// Propagate flow from right-hand to left-hand side (variable declaration)
 										Val rhsVal = new Val((String) rhsVertex.property("name")
@@ -984,17 +996,9 @@ public class TypeStateAnalysis {
 		Stmt stmt = null;
 		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = wpds.getNormalRules();
 		for (NormalRule<Stmt, Val, TypestateWeight> nr : normalRules) {
-			if (nr.getWeight().value() instanceof Set) {
-				Set<NFATransition> weight = (Set<NFATransition>) nr.getWeight().value();
-
-				for (NFATransition<Node> t : weight) {
-					if (t.getSource().getName().equals("START.START")) {
-						log.debug("Found start configuration for typestate analysis: " + nr.getS1() + " at " + nr.getL1());
-
-						initialState = nr.getS1();
-						stmt = nr.getL1();
-					}
-				}
+			if (nr.getS1().getVariable().equals("EPSILON")) {
+				initialState = nr.getS2();
+				stmt = nr.getL2();
 			}
 		}
 
@@ -1031,7 +1035,8 @@ public class TypeStateAnalysis {
 		};
 		Val ACCEPTING = new Val("ACCEPT", "ACCEPT");
 		// Create an automaton for the initial configuration from where post* will start.
-		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING), TypestateWeight.one());
+		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING),
+			new TypestateWeight(Set.of(new NFATransition<Node>(new Node("START", "START"), new Node("START", "START"), "constructor"))));
 		// Add final ("accepting") states to NFA.
 		wnfa.addFinalState(ACCEPTING);
 

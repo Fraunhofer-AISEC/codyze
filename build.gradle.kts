@@ -15,6 +15,7 @@ plugins {
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
+
 group = "de.fraunhofer.aisec"
 
 /* License plugin needs a special treatment, as long as the main project does not have a license yet.
@@ -181,3 +182,13 @@ downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = "compileClasspath"
 }
+
+sonarqube {
+  properties {
+    property("sonar.projectKey", "codyze")
+    property("sonar.organization", "fraunhoferaisec")
+    property("sonar.host.url", "https://sonarcloud.io")
+    property("sonar.login", "e71d38ac5a1229b828043d9af1242b2517f22000")
+  }
+}
+

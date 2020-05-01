@@ -9,7 +9,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * @param <A>
  * @param <B>
  */
-public class NonNullPair<A, B> extends Pair {
+public class NonNullPair<A, B> extends Pair<A, B> {
 	@NonNull
 	A a;
 	@NonNull

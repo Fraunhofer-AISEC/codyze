@@ -1000,18 +1000,6 @@ public class TypeStateAnalysis {
 				initialState = nr.getS2();
 				stmt = nr.getL2();
 			}
-			//			if (nr.getWeight().value() instanceof Set) {
-			//				Set<NFATransition> weight = (Set<NFATransition>) nr.getWeight().value();
-			//
-			//				for (NFATransition<Node> t : weight) {
-			//					if (t.getSource().getName().equals("START.START")) {
-			//						log.debug("Found start configuration for typestate analysis: " + nr.getS1() + " at " + nr.getL1());
-			//
-			//						initialState = nr.getS1();
-			//						stmt = nr.getL1();
-			//					}
-			//				}
-			//			}
 		}
 
 		if (initialState == null || stmt == null) {

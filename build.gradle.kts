@@ -25,6 +25,12 @@ gradle.startParameter.excludedTaskNames += "licenseMain"
 gradle.startParameter.excludedTaskNames += "licenseTest"
 
 
+tasks.jacocoTestReport {
+    reports {
+        xml.isEnabled = true
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -166,6 +172,12 @@ sourceSets.getByName("test").resources {
 tasks.named("compileJava") {
     dependsOn(":spotlessApply")
 }
+
+
+tasks.named("sonarqube") {
+    dependsOn(":jacocoTestReport")
+}
+
 
 spotless {
     java {

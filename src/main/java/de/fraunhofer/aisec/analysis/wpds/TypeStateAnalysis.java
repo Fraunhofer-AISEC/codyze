@@ -992,21 +992,32 @@ public class TypeStateAnalysis {
 	@NonNull
 	private WeightedAutomaton createInitialConfiguration(@NonNull WPDS wpds) {
 		// Get START state from WPDS
-		Val initialState = null;
-		Stmt stmt = null;
+		Set<Pair<Val, Stmt>> initialStates = new HashSet<>();
 		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = wpds.getNormalRules();
 		for (NormalRule<Stmt, Val, TypestateWeight> nr : normalRules) {
 			if (nr.getS1().getVariable().equals("EPSILON")) {
-				initialState = nr.getS2();
-				stmt = nr.getL2();
+				Val initialState = nr.getS2();
+				Stmt stmt = nr.getL2();
+				initialStates.add(new Pair<>(initialState, stmt));
 			}
 		}
 
-		if (initialState == null || stmt == null) {
+		if (initialStates.isEmpty()) {
 			log.error("Did not find initial configuration for typestate analysis. Will fail soon.");
 		}
 
 		// Create statement for start configuration and create start CONFIG
+		// TODO make initialState a set or remove completely
+		int line = Integer.MAX_VALUE;
+		Val initialState = null;
+		Stmt stmt = null;
+		for (Pair<Val, Stmt> s : initialStates) {
+			if (s.getValue1().getRegion().getStartLine() < line) {
+				line = s.getValue1().getRegion().getStartLine();
+				initialState = s.getValue0();
+				stmt = s.getValue1();
+			}
+		}
 		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
 			@Override
 			public Val createState(Val val, Stmt stmt) {
@@ -1035,8 +1046,11 @@ public class TypeStateAnalysis {
 		};
 		Val ACCEPTING = new Val("ACCEPT", "ACCEPT");
 		// Create an automaton for the initial configuration from where post* will start.
+		log.debug("Initial configuration(s):");
+
 		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING),
 			new TypestateWeight(Set.of(new NFATransition<Node>(new Node("START", "START"), new Node("START", "START"), "constructor"))));
+
 		// Add final ("accepting") states to NFA.
 		wnfa.addFinalState(ACCEPTING);
 

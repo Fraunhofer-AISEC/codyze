@@ -104,7 +104,7 @@ public class NFA {
 	 * added to the outer prevPointer List
 	 */
 	private void sequenceToFSM(final Expression seq) {
-		Node start = new Node(null, "BEGIN");
+		Node start = new Node("START", "START");
 		start.setStart(true);
 
 		Set<Node> currentNodes = new HashSet<>();

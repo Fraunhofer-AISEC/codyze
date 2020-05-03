@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
  * A weight domain is a bounded idempotent semiring. In our case, the semiring's operations "combine" and "extend" are linked to a nondeterministic finite automaton
  * (FSM), created from the typedef definition in a Mark file (=a regular expression).
  */
-public class TypestateWeight extends Semiring {
-	private @NonNull Set<NFATransition<Node>> value = new HashSet<>();
+public class TypestateWeight<N> extends Semiring {
+	private @NonNull Set<NFATransition<N>> value = new HashSet<>();
 	@Nullable
 	private NFA nfa = null;
 	@Nullable
@@ -34,7 +34,7 @@ public class TypestateWeight extends Semiring {
 		this.nfa = nfa;
 	}
 
-	public TypestateWeight(@NonNull Set<NFATransition<Node>> typestateTransitions) {
+	public TypestateWeight(@NonNull Set<NFATransition<N>> typestateTransitions) {
 		this.value = typestateTransitions;
 	}
 
@@ -70,21 +70,16 @@ public class TypestateWeight extends Semiring {
 			throw new IllegalArgumentException("Expected Weight but got " + other.getClass());
 		}
 
-		TypestateWeight otherW = (TypestateWeight) other;
+		TypestateWeight<N> otherW = (TypestateWeight<N>) other;
 
-		Set<NFATransition<Node>> resultSet = new HashSet<>();
-		for (NFATransition<Node> my : this.value) {
-			boolean validTsTransition = false;
-			for (NFATransition<Node> theirs : otherW.value) {
+		Set<NFATransition<N>> resultSet = new HashSet<>();
+		for (NFATransition<N> my : this.value) {
+			for (NFATransition<N> theirs : otherW.value) {
 				// 1-step transitive hull. Note that we check for equality of names, as equality of Node objects includes their successor collection.
-				if (my.getTarget().getName().equals(theirs.getSource().getName())) {
-					NFATransition<Node> newTsTran = new NFATransition<>(my.getSource(), theirs.getTarget(), my.getLabel());
+				if (my.getTarget().toString().equals(theirs.getSource().toString())) {
+					NFATransition<N> newTsTran = new NFATransition<N>(my.getSource(), theirs.getTarget(), my.getLabel());
 					resultSet.add(newTsTran);
-					validTsTransition = true;
 				}
-			}
-			if (!validTsTransition) {
-				//				resultSet.add(new NFATransition(my.getSource(), NFA.ERROR, my.getLabel()));
 			}
 		}
 		if (resultSet.isEmpty()) {
@@ -146,7 +141,7 @@ public class TypestateWeight extends Semiring {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		for (NFATransition v : this.value) {
+		for (NFATransition<N> v : this.value) {
 			result = prime * result + v.hashCode();
 		}
 		if (this.fixedElement != null) {

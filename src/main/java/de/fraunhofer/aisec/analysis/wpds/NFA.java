@@ -2,11 +2,8 @@
 package de.fraunhofer.aisec.analysis.wpds;
 
 import de.fraunhofer.aisec.mark.markDsl.*;
-import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
-import de.fraunhofer.aisec.markmodel.fsm.FSM;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +101,7 @@ public class NFA {
 	 * added to the outer prevPointer List
 	 */
 	private void sequenceToFSM(final Expression seq) {
-		Node start = new Node(null, "BEGIN");
+		Node start = new Node("START", "START");
 		start.setStart(true);
 
 		Set<Node> currentNodes = new HashSet<>();
@@ -131,7 +128,7 @@ public class NFA {
 
 		// Create transitions from artificial START state into start nodes
 		for (Node startNode : startNodes) {
-			NFATransition initialTransition = new NFATransition(START, startNode, startNode.getOp());
+			NFATransition<Node> initialTransition = new NFATransition<>(START, startNode, startNode.getOp());
 			this.transitions.add(initialTransition);
 		}
 		// Set NFA to START state
@@ -146,7 +143,6 @@ public class NFA {
 		ArrayList<Node> current = new ArrayList<>(startNodes);
 		HashMap<Node, Integer> nodeToId = new HashMap<>();
 		int nodeCounter = 0;
-		int cnt = 0;
 		while (!current.isEmpty()) {
 			ArrayList<Node> newWork = new ArrayList<>();
 			for (Node n : current) {
@@ -174,7 +170,7 @@ public class NFA {
 						if (!seen.contains(s)) {
 							newWork.add(s);
 						}
-						transitions.add(new NFATransition(n, s, s.getOp()));
+						transitions.add(new NFATransition<>(n, s, s.getOp()));
 					}
 					seen.add(n);
 				}
@@ -209,7 +205,6 @@ public class NFA {
 				currentNodes.addAll(remember);
 				return currentNodes;
 			} else if ("+".equals(op)) {
-				HashSet<Node> remember = new HashSet<>(currentNodes);
 				Head innerHead = new Head();
 				innerHead.addNextNode = true;
 				addExpr(inner.getExpr(), currentNodes, innerHead);
@@ -259,13 +254,13 @@ public class NFA {
 	 * @return
 	 */
 	public Node getStart() {
-		return this.START;
+		return START;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (NFATransition t : transitions) {
+		for (NFATransition<Node> t : transitions) {
 			sb.append("\t");
 			sb.append(t.toString());
 			sb.append("\n");
@@ -282,7 +277,7 @@ public class NFA {
 	 *
 	 * @return
 	 */
-	public Set<NFATransition> getInitialTransitions() {
+	public Set<NFATransition<Node>> getInitialTransitions() {
 		return getTransitions().stream().filter(tr -> tr.getSource().equals(START)).collect(Collectors.toSet());
 	}
 

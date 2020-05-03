@@ -33,6 +33,7 @@ public class OrderNFAEvaluator {
 		this.markContextHolder = markContextHolder;
 	}
 
+	@SuppressWarnings({ "java:S1905", "java:S125" })
 	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext ctx,
 			CrymlinTraversalSource crymlinTraversal) {
 		// We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
@@ -254,22 +255,6 @@ public class OrderNFAEvaluator {
 
 									if (isDisallowedBase(disallowedBases, eogPath, base)) {
 										// we hide base errors for now!
-										//                      Finding f =
-										//                          new Finding(
-										//                              "Violation against Order: "
-										//                                  + vertex.value("code")
-										//                                  + " is not allowed. Base contains errors already."
-										//                                  + " ("
-										//                                  + rule.getErrorMessage()
-										//                                  + ")",
-										//                              vertex.value("startLine"),
-										//                              vertex.value("endLine"),
-										//                              vertex.value("startColumn"),
-										//                              vertex.value("endColumn"));
-										//if (markContextHolder.createFindingsDuringEvaluation()) {
-										// ctx.getFindings().add(f);
-										//}
-										// log.info("Finding: {}", f.toString());
 									} else {
 										Set<Node> nodesInFSM;
 										if (baseToFSMNodes.get(prefixedBase) == null) {

@@ -81,6 +81,7 @@ public class AnalysisServer {
 
 	private Mark markModel = new Mark();
 
+	@SuppressWarnings("java:S3010")
 	private AnalysisServer(ServerConfiguration config) {
 		this.config = config;
 		AnalysisServer.instance = this;
@@ -149,6 +150,7 @@ public class AnalysisServer {
 	/**
 	 * Launches the LSP server.
 	 */
+	@SuppressWarnings("java:S106")
 	private void launchLspServer() {
 		lsp = new CpgLanguageServer();
 
@@ -401,7 +403,12 @@ public class AnalysisServer {
 		return translationResult;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated (Neo4J support will be phased out in the near future)
+	 * @param result
+	 * @return
+	 */
+	@Deprecated(forRemoval = true)
 	private TranslationResult persistToNeo4J(TranslationResult result) {
 		Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
 		// Persist the result

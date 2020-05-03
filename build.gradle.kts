@@ -15,6 +15,7 @@ plugins {
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
+
 group = "de.fraunhofer.aisec"
 
 /* License plugin needs a special treatment, as long as the main project does not have a license yet.
@@ -23,6 +24,12 @@ group = "de.fraunhofer.aisec"
 gradle.startParameter.excludedTaskNames += "licenseMain"
 gradle.startParameter.excludedTaskNames += "licenseTest"
 
+
+tasks.jacocoTestReport {
+    reports {
+        xml.isEnabled = true
+    }
+}
 
 publishing {
     publications {
@@ -166,6 +173,12 @@ tasks.named("compileJava") {
     dependsOn(":spotlessApply")
 }
 
+
+tasks.named("sonarqube") {
+    dependsOn(":jacocoTestReport")
+}
+
+
 spotless {
     java {
         targetExclude(
@@ -181,3 +194,13 @@ downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = "compileClasspath"
 }
+
+sonarqube {
+  properties {
+    property("sonar.projectKey", "codyze")
+    property("sonar.organization", "fraunhoferaisec")
+    property("sonar.host.url", "https://sonarcloud.io")
+    property("sonar.login", "***REMOVED***")
+  }
+}
+

@@ -14,7 +14,6 @@ import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -30,6 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
 
@@ -65,7 +65,7 @@ public class CrymlinQueryWrapper {
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
 		ret.removeIf(
 			v -> {
-				Iterator<Edge> referencedArguments = v.edges(Direction.OUT, "ARGUMENTS");
+				Iterator<Edge> referencedArguments = v.edges(Direction.OUT, ARGUMENTS);
 
 				// Collect all argument Vertices into a list
 				List<Vertex> arguments = new ArrayList<>();
@@ -104,7 +104,7 @@ public class CrymlinQueryWrapper {
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
 		ret.removeIf(
 			v -> {
-				Iterator<Edge> referencedArguments = v.edges(Direction.OUT, "ARGUMENTS");
+				Iterator<Edge> referencedArguments = v.edges(Direction.OUT, ARGUMENTS);
 
 				// Collect all argument Vertices into a list
 				List<Vertex> arguments = new ArrayList<>();
@@ -549,17 +549,17 @@ public class CrymlinQueryWrapper {
 
 	public static Optional<Vertex> getBaseOfInitializerArgument(@NonNull Vertex expr) {
 		Optional<Vertex> base = Optional.empty();
-		Iterator<Edge> refIterator = expr.edges(Direction.IN, "ARGUMENTS");
+		Iterator<Edge> refIterator = expr.edges(Direction.IN, ARGUMENTS);
 		if (refIterator.hasNext()) {
-			Iterator<Edge> it = refIterator.next().outVertex().edges(Direction.IN, "INITIALIZER");
+			Iterator<Edge> it = refIterator.next().outVertex().edges(Direction.IN, INITIALIZER);
 			if (it.hasNext()) {
 				Vertex baseVertex = it.next().outVertex();
 				// for java, an initializer is contained in another
-				it = baseVertex.edges(Direction.IN, "INITIALIZER");
+				it = baseVertex.edges(Direction.IN, INITIALIZER);
 				if (it.hasNext()) {
 					baseVertex = it.next().outVertex();
 				}
-				refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+				refIterator = baseVertex.edges(Direction.OUT, REFERS_TO);
 				if (refIterator.hasNext()) {
 					// if the node refers to another node, return the node it refers to
 					base = Optional.of(refIterator.next().inVertex());
@@ -573,7 +573,7 @@ public class CrymlinQueryWrapper {
 
 	public static Optional<Vertex> getBaseOfCallOfArgumentExpression(@NonNull Vertex expr) {
 		Optional<Vertex> base = Optional.empty();
-		Iterator<Edge> refIterator = expr.edges(Direction.IN, "ARGUMENTS");
+		Iterator<Edge> refIterator = expr.edges(Direction.IN, ARGUMENTS);
 		if (refIterator.hasNext()) {
 			base = getBaseOfCallExpression(refIterator.next().outVertex());
 		}
@@ -581,14 +581,14 @@ public class CrymlinQueryWrapper {
 	}
 
 	public static Optional<Vertex> getAssigneeOfConstructExpression(Vertex vertex) {
-		Iterator<Edge> it = vertex.edges(Direction.IN, "INITIALIZER");
+		Iterator<Edge> it = vertex.edges(Direction.IN, INITIALIZER);
 		if (it.hasNext()) {
 			Vertex variableDeclaration = it.next().outVertex();
-			it = variableDeclaration.edges(Direction.IN, "INITIALIZER");
+			it = variableDeclaration.edges(Direction.IN, INITIALIZER);
 			if (it.hasNext()) {
 				variableDeclaration = it.next().outVertex();
 			}
-			Iterator<Edge> refIterator = variableDeclaration.edges(Direction.OUT, "REFERS_TO");
+			Iterator<Edge> refIterator = variableDeclaration.edges(Direction.OUT, REFERS_TO);
 			if (refIterator.hasNext()) {
 				// if the node refers to another node, return the node it refers to
 				variableDeclaration = refIterator.next().inVertex();
@@ -639,9 +639,9 @@ public class CrymlinQueryWrapper {
 				} else {
 					Vertex vertex = opInstance.getArgumentVertex();
 					// if available, get the variabledeclaration, this declaredreference refers_to
-					Iterator<Edge> refers_to = opInstance.getArgumentVertex().edges(Direction.OUT, "REFERS_TO");
-					if (refers_to.hasNext()) {
-						Edge next = refers_to.next();
+					Iterator<Edge> refersTo = opInstance.getArgumentVertex().edges(Direction.OUT, REFERS_TO);
+					if (refersTo.hasNext()) {
+						Edge next = refersTo.next();
 						vertex = next.inVertex();
 					}
 					List<Integer> contextIDs = nodeIDToContextIDs.computeIfAbsent((Long) vertex.id(), x -> new ArrayList<>());
@@ -694,7 +694,7 @@ public class CrymlinQueryWrapper {
 	 * @return
 	 */
 	public static Set<ValueDeclaration> getDeclarationSites(@NonNull DeclaredReferenceExpression declRefExpr) {
-		Set<Vertex> refersTo = OverflowDatabase.getInstance().getGraph().traversal().V(declRefExpr.getId()).outE("REFERS_TO").inV().toBulkSet();
+		Set<Vertex> refersTo = OverflowDatabase.getInstance().getGraph().traversal().V(declRefExpr.getId()).outE(REFERS_TO).inV().toBulkSet();
 		Set<ValueDeclaration> varDecls = new HashSet<>();
 		for (Vertex v : refersTo) {
 			ValueDeclaration varDecl = (ValueDeclaration) OverflowDatabase.getInstance().vertexToNode(v);
@@ -722,7 +722,7 @@ public class CrymlinQueryWrapper {
 			HashSet<Vertex> newWorkList = new HashSet<>();
 			for (Vertex v : workList) {
 				seen.add(v);
-				Iterator<Edge> eog = v.edges(Direction.OUT, "EOG");
+				Iterator<Edge> eog = v.edges(Direction.OUT, EOG);
 				int numEdges = 0;
 				while (eog.hasNext()) {
 					numEdges++;
@@ -745,7 +745,7 @@ public class CrymlinQueryWrapper {
 	}
 
 	public static Optional<Vertex> getDFGTarget(Vertex vertex) {
-		Iterator<Edge> it = vertex.edges(Direction.OUT, "DFG");
+		Iterator<Edge> it = vertex.edges(Direction.OUT, DFG);
 		if (it.hasNext()) {
 			return Optional.of(it.next().inVertex());
 		}
@@ -754,7 +754,7 @@ public class CrymlinQueryWrapper {
 
 	public static Set<Vertex> getDFGSources(Vertex vertex) {
 		Set<Vertex> result = new HashSet<>();
-		Iterator<Edge> it = vertex.edges(Direction.IN, "DFG");
+		Iterator<Edge> it = vertex.edges(Direction.IN, DFG);
 		while (it.hasNext()) {
 			result.add(it.next().outVertex());
 		}
@@ -762,7 +762,7 @@ public class CrymlinQueryWrapper {
 	}
 
 	public static Optional<Vertex> refersTo(Vertex vertex) {
-		Iterator<Edge> it = vertex.edges(Direction.IN, "REFERS_TO");
+		Iterator<Edge> it = vertex.edges(Direction.IN, REFERS_TO);
 		if (it.hasNext()) {
 			return Optional.of(it.next().outVertex());
 		}
@@ -771,16 +771,16 @@ public class CrymlinQueryWrapper {
 
 	public static Optional<Vertex> getInitializerFor(Vertex vertex) {
 		// we first go back to the declaredreference (if any)
-		Iterator<Edge> it = vertex.edges(Direction.IN, "REFERS_TO");
+		Iterator<Edge> it = vertex.edges(Direction.IN, REFERS_TO);
 		if (it.hasNext()) {
 			vertex = it.next().outVertex();
 		}
 
 		// then we go forward to all referenced vars
-		Iterator<Edge> refers_to = vertex.edges(Direction.OUT, "REFERS_TO");
+		Iterator<Edge> refers_to = vertex.edges(Direction.OUT, REFERS_TO);
 		while (refers_to.hasNext()) {
 			Vertex referenced = refers_to.next().inVertex();
-			Iterator<Edge> initializer = referenced.edges(Direction.OUT, "INITIALIZER");
+			Iterator<Edge> initializer = referenced.edges(Direction.OUT, INITIALIZER);
 			if (initializer.hasNext()) {
 				return Optional.of(initializer.next().inVertex());
 			}
@@ -792,7 +792,7 @@ public class CrymlinQueryWrapper {
 
 		Set<Vertex> vertices = traveral.field(fieldName).toSet();
 		for (Vertex v : vertices) {
-			Iterator<Edge> it = v.edges(Direction.IN, "FIELDS");
+			Iterator<Edge> it = v.edges(Direction.IN, FIELDS);
 			if (it.hasNext()) {
 				Vertex base = it.next().outVertex();
 				if (base.value("name").equals(fqnClassName)) {
@@ -805,10 +805,10 @@ public class CrymlinQueryWrapper {
 
 	public static Optional<Object> getInitializerValue(Vertex vertex) {
 
-		Iterator<Edge> dfg = vertex.edges(Direction.OUT, "INITIALIZER");
+		Iterator<Edge> dfg = vertex.edges(Direction.OUT, INITIALIZER);
 		if (dfg.hasNext()) {
 			Vertex vertex1 = dfg.next().inVertex();
-			if (vertex1.label().equals("Literal") && vertex1.property("value") != null) {
+			if (vertex1.label().equals(Literal.class.getSimpleName()) && vertex1.property("value") != null) {
 				return Optional.of(vertex1.value("value"));
 			}
 		}

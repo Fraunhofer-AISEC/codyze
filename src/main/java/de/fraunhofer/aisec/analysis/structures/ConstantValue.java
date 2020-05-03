@@ -81,7 +81,7 @@ public class ConstantValue extends MarkIntermediateResult {
 		if (o == null) {
 			return Optional.empty();
 		}
-		Class vClass = o.getClass();
+		Class<?> vClass = o.getClass();
 
 		if (vClass.equals(Long.class) || vClass.equals(Integer.class)) {
 			return Optional.of(ConstantValue.of(((Number) o).intValue()));

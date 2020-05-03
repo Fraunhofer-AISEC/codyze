@@ -63,7 +63,7 @@ public class Commands {
 		}
 		catch (TimeoutException e) {
 			analyze.cancel(true);
-			System.out.println("Analysis interrupted after timeout of 10 minutes.");
+			log.warn("Analysis interrupted after timeout of 10 minutes.");
 		}
 	}
 
@@ -76,7 +76,7 @@ public class Commands {
 	public void load_rules(String fileName) {
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
-			System.err.println("Server not initialized");
+			log.error("Server not initialized");
 			return;
 		}
 
@@ -87,7 +87,7 @@ public class Commands {
 	public void list_rules() {
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
-			System.err.println("Server not initialized");
+			log.error("Server not initialized");
 			return;
 		}
 
@@ -159,19 +159,21 @@ public class Commands {
 	 *
 	 * @param methods
 	 */
+	@SuppressWarnings("java:S106")
 	private static void print(List<Method> methods) {
 		for (Method m : methods) {
-			String entry = m.getName() + "(";
+			StringBuilder sbEntry = new StringBuilder(m.getName());
+			sbEntry.append("(");
 			for (int i = 0; i < m.getParameterTypes().length; i++) {
-				entry += m.getParameterTypes()[i].getSimpleName();
+				sbEntry.append(m.getParameterTypes()[i].getSimpleName());
 				if (i < m.getParameterTypes().length - 1) {
-					entry += ", ";
+					sbEntry.append(", ");
 				}
 			}
-			entry += ")";
-			entry = String.format("%-30s", entry);
-			entry += "-\t" + m.getAnnotation(ShellCommand.class).value();
-			System.out.println(entry);
+			sbEntry.append(")");
+			sbEntry = new StringBuilder(String.format("%-30s", sbEntry.toString()));
+			sbEntry.append("-\t" + m.getAnnotation(ShellCommand.class).value());
+			System.out.println(sbEntry.toString());
 		}
 	}
 }

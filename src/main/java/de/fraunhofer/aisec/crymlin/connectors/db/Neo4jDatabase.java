@@ -88,7 +88,7 @@ public class Neo4jDatabase<N> implements Database<N> {
 
 		}
 		catch (ConnectionException ex) {
-			LOGGER.error("Could not connect to database ({}/{}): {}", tries, MAX_TRIES, ex);
+			LOGGER.error("Could not connect to database ({}/{})", tries, MAX_TRIES, ex);
 
 			try {
 				Thread.sleep(tries * 500L);

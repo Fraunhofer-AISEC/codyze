@@ -195,12 +195,3 @@ downloadLicenses {
     dependencyConfiguration = "compileClasspath"
 }
 
-sonarqube {
-  properties {
-    property("sonar.projectKey", "codyze")
-    property("sonar.organization", "fraunhoferaisec")
-    property("sonar.host.url", "https://sonarcloud.io")
-    property("sonar.login", "***REMOVED***")
-  }
-}
-

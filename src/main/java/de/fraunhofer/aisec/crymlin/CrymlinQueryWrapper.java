@@ -65,19 +65,30 @@ public class CrymlinQueryWrapper {
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
 		ret.removeIf(
 			v -> {
-				Iterator<Edge> referencedArguments = v.edges(Direction.OUT, ARGUMENTS);
-
-				// Collect all argument Vertices into a list
-				List<Vertex> arguments = new ArrayList<>();
-				while (referencedArguments.hasNext()) {
-					Edge e = referencedArguments.next();
-					arguments.add(e.inVertex());
+				// ConstructExpression needs a special treatment because the argument of a ConstructExpression is the CallExpression to the constructor and we are interested in its arguments.
+				if (Utils.hasLabel(v, ConstructExpression.class)) {
+					List<Vertex> args = getArguments(v);
+					if (args.size() == 1 && Utils.hasLabel(args.get(0), CallExpression.class)) {
+						return !argumentsMatchParameters(parameters, getArguments(args.get(0)));
+					}
 				}
 
-				return !argumentsMatchParameters(parameters, arguments);
+				return !argumentsMatchParameters(parameters, getArguments(v));
 			});
 
 		return ret;
+	}
+
+	public static List<Vertex> getArguments(@NonNull Vertex v) {
+		Iterator<Edge> referencedArguments = v.edges(Direction.OUT, ARGUMENTS);
+
+		// Collect all argument Vertices into a list
+		List<Vertex> arguments = new ArrayList<>();
+		while (referencedArguments.hasNext()) {
+			Edge e = referencedArguments.next();
+			arguments.add(e.inVertex());
+		}
+		return arguments;
 	}
 
 	/**
@@ -490,7 +501,7 @@ public class CrymlinQueryWrapper {
 		callsAndInitializers.addAll(CrymlinQueryWrapper.getCtors(crymlinTraversal, functionDeclaration.getName(), functionDeclaration.getParams()));
 
 		// fix for Java. In java, a ctor is always accompanied with a newexpression
-		callsAndInitializers.removeIf(c -> c.label().contains("NewExpression"));
+		callsAndInitializers.removeIf(c -> Utils.hasLabel(c, NewExpression.class));
 
 		return callsAndInitializers;
 	}

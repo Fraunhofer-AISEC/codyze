@@ -16,10 +16,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A simple intraprocedural resolution of constant values.
@@ -197,19 +194,22 @@ public class SimpleConstantResolver implements ConstantResolver {
 					retVal = ConstantValue.tryOf(literalValue);
 
 				} else if (Utils.hasLabel(initializerVertex, ConstructExpression.class)) {
-					Iterator<Vertex> initializers = initializerVertex.vertices(Direction.OUT, "ARGUMENTS");
-					if (initializers.hasNext()) {
-						Vertex init = initializers.next();
+					List<Vertex> args = CrymlinQueryWrapper.getArguments(initializerVertex);
+					if (args.size() == 1 && Utils.hasLabel(args.get(0), CallExpression.class)) {
+						// If the single argument of ConstructExpression is a CallExpression, we are interested in its arguments.
+						args = CrymlinQueryWrapper.getArguments(args.get(0));
+					}
+					if (args.size() == 1) {
+						Vertex init = args.get(0);
 						if (Utils.hasLabel(init, Literal.class)) {
 							Object initValue = init.property("value").value();
 							retVal = ConstantValue.tryOf(initValue);
 						} else {
 							log.warn("Cannot evaluate ConstructExpression, it is a {}", init.label());
 						}
-					} else {
+					} else if (args.isEmpty()) {
 						log.warn("No Argument to ConstructExpression");
-					}
-					if (initializers.hasNext()) {
+					} else {
 						log.warn("More than one Arguments to ConstructExpression found, not using one of them.");
 						retVal = Optional.empty();
 					}

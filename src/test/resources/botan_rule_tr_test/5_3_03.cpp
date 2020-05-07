@@ -1,6 +1,10 @@
-#include <botan/mac.h>
-#include <botan/hex.h>
 #include <iostream>
+
+#include <botan/auto_rng.h>
+#include <botan/hex.h>
+#include <botan/mac.h>
+
+
 
 int main()
    {

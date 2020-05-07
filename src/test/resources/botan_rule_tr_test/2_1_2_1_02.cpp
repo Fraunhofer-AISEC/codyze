@@ -1,8 +1,10 @@
-#include <botan/rng.h>
+#include <iostream>
+
 #include <botan/auto_rng.h>
 #include <botan/cipher_mode.h>
 #include <botan/hex.h>
-#include <iostream>
+#include <botan/rng.h>
+
 
 int main() {
    Botan::AutoSeeded_RNG rng;

@@ -160,7 +160,7 @@ rule _5_4_1_01_RSA_SIG_Format {
 	using
 		Botan.PK_Verifier as v
 	when
-		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey") || _is_instance(v.priv_key, "Botan::RSA_PrivateKey") 
 	ensure
 		_split(v.emsa, "\(", 0) in ["EMSA4", "ISO_9796_DS2", "ISO_9796_DS3"]
 	onfail 
@@ -171,9 +171,9 @@ rule _5_4_1_02_RSA_SIG_KeyLen {
 	using
 		Botan.PK_Verifier as v
 	when
-		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey") || _is_instance(v.priv_key, "Botan::RSA_PrivateKey")
 	ensure
-		v.pub_key.rsa_bits >= 3000
+		v.pub_key.rsa_bits >= 3000 || v.priv_key.rsa_bits >= 3000
 	onfail 
 		_5_4_1_02_RSA_SIG_KeyLen
 }
@@ -182,9 +182,9 @@ rule _5_4_1_02_RSA_SIG_KeyLen_2022 {
 	using
 		Botan.PK_Verifier as v
 	when
-		_is_instance(v.pub_key, "Botan::RSA_PublicKey")
+		_is_instance(v.pub_key, "Botan::RSA_PublicKey") || _is_instance(v.priv_key, "Botan::RSA_PrivateKey")
 	ensure
-		v.pub_key.rsa_bits >= 2000
+		v.pub_key.rsa_bits >= 2000 || v.priv_key.rsa_bits >= 2000
 	onfail 
 		_5_4_1_02_RSA_SIG_KeyLen_2022
 }
@@ -193,9 +193,9 @@ rule _5_4_2_01_DSA_SIG_KeyLen {
 	using
 		Botan.PK_Verifier as v
 	when
-		_is_instance(v.pub_key, "Botan::DSA_PublicKey")
+		_is_instance(v.pub_key, "Botan::DSA_PublicKey") || _is_instance(v.priv_key, "Botan::DSA_PrivateKey")
 	ensure
-		_split(v.pub_key.dl_group.name, "/", 2) >= 3000
+		_split(v.pub_key.dl_group.name, "/", 2) >= 3000 || _split(v.priv_key.dl_group.name, "/", 2) >= 3000
 	onfail 
 		_5_4_2_01_DSA_SIG_KeyLen
 }
@@ -204,9 +204,9 @@ rule _5_4_2_01_DSA_SIG_KeyLen_2022 {
 	using
 		Botan.PK_Verifier as v
 	when
-		_is_instance(v.pub_key, "Botan::DSA_PublicKey")
+		_is_instance(v.pub_key, "Botan::DSA_PublicKey") || _is_instance(v.priv_key, "Botan::DSA_PrivateKey")
 	ensure
-		_split(v.pub_key.dl_group.name, "/", 2) >= 2000
+		_split(v.pub_key.dl_group.name, "/", 2) >= 2000 || _split(v.priv_key.dl_group.name, "/", 2) >= 2000
 	onfail 
 		_5_4_2_01_DSA_SIG_KeyLen_2022
 }
@@ -215,10 +215,13 @@ rule _5_4_3_01_ECDSA_SIG {
 	using 
 		Botan.PK_Verifier as v
 	when
-	    !(_is_instance(v.pub_key, "Botan::RSA_PublicKey") || _is_instance(v.pub_key, "Botan::DSA_PublicKey"))
+	    !(_is_instance(v.pub_key, "Botan::RSA_PublicKey") || _is_instance(v.priv_key, "Botan::RSA_PrivateKey")
+	    	|| _is_instance(v.pub_key, "Botan::DSA_PublicKey") || _is_instance(v.priv_key, "Botan::DSA_PrivateKey")
+	    )
 		// should be replaced with _most_specific_type
 	ensure
 		_is_instance(v.pub_key, "Botan::ECDSA_PublicKey") || _is_instance(v.pub_key, "Botan::ECKCDSA_PublicKey") || _is_instance(v.pub_key, "Botan::ECGDSA_PublicKey")
+		|| _is_instance(v.priv_key, "Botan::ECDSA_PrivateKey") || _is_instance(v.priv_key, "Botan::ECKCDSA_PrivateKey") || _is_instance(v.priv_key, "Botan::ECGDSA_PrivateKey")
 		// should be replaced with _most_specific_type
 	onfail
 		_5_4_3_01_ECDSA_SIG

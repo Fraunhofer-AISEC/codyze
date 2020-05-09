@@ -9,10 +9,10 @@ entity Botan.Forbidden.BlockCipher {
 	op forbid {
 		forbidden Botan::get_block_cipher();
 		forbidden Botan::get_block_cipher(...);
-		forbidden Botan::get_block_cipher_providers);
+		forbidden Botan::get_block_cipher_providers();
 		forbidden Botan::get_block_cipher_providers(...);
 		
-		forbidden Botan::BlockCipher::create);
+		forbidden Botan::BlockCipher::create();
 		forbidden Botan::BlockCipher::create(...);
 		forbidden Botan::BlockCipher::create_or_throw();
 		forbidden Botan::BlockCipher::create_or_throw(...);

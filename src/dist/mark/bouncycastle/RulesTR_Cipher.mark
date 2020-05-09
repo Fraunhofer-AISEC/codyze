@@ -353,3 +353,19 @@ rule ID_3_5_01 {
 //    onfail
 //        InsufficientRSAKeylength // FIXME valid until 2022
 //}
+
+/*
+ * Check RSA key length on key generation.
+ * 
+ * Ensures that generated keys have sufficient length in compliance with BSI TR-02102-1 (Version 2019-01).
+ * 
+ */
+rule ID_3_5_02_RSAKeyGenParameterSpec {
+    using
+        RSAKeyGenParameterSpec as rsaKeyGenSpec
+    ensure
+        rsaKeyGenSpec.keysize >= 2000
+    onfail
+        InsufficientRSAKeylength // FIXME valid until 2022
+}
+

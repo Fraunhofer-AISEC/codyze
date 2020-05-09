@@ -215,7 +215,7 @@ rule _5_4_3_01_ECDSA_SIG {
 	using 
 		Botan.PK_Verifier as v
 	when
-	    !(_is_instance(v.pub_key, "Botan::RSA_PublicKey") || _is_instance(v.pub_key, "Botan::DSA_PublicKey"])
+	    !(_is_instance(v.pub_key, "Botan::RSA_PublicKey") || _is_instance(v.pub_key, "Botan::DSA_PublicKey"))
 		// should be replaced with _most_specific_type
 	ensure
 		_is_instance(v.pub_key, "Botan::ECDSA_PublicKey") || _is_instance(v.pub_key, "Botan::ECKCDSA_PublicKey") || _is_instance(v.pub_key, "Botan::ECGDSA_PublicKey")

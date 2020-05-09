@@ -76,7 +76,7 @@ def main():
             break
     if path is None:
         printer("Analyzer container not found! Shutting down containers")
-        system("docker compose down")
+        system("docker-compose down")
         exit(1)
 
     printer("Waiting for analyzer to stop.")

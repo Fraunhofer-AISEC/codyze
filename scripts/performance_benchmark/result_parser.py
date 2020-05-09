@@ -1,3 +1,6 @@
+import matplotlib
+
+matplotlib.use('TkAgg')
 import re
 from argparse import ArgumentParser
 from collections import defaultdict
@@ -71,7 +74,7 @@ def main(report):
                         curr_object].filename = f"{match.group('repo')}/{match.group('path')}"
 
         print(f"Parsed {len(items.values())} items")
-        show_plot(items)
+        show_plot(items, violations, verified_orders)
 
 
 def get_color(item):
@@ -83,11 +86,14 @@ def get_color(item):
         return "black" if item.error else "lightgray"
 
 
-def show_plot(items):
+def show_plot(items, violations, verified_orders):
     sizes, durations, colors = zip(
       *[(i.size, i.duration, get_color(i)) for i in
         items.values()])
     fig, ax = plt.subplots()
+    plt.title(f"{len(items)} files analyzed, "
+              f"{violations} violation{'' if violations == 1 else 's'} and "
+              f"{verified_orders} verified order{'' if violations == 1 else 's'}")
     plt.xlabel("Size (B)")
     plt.ylabel("Duration (ms)")
     sc = plt.scatter(x=sizes, y=durations, c=colors)
@@ -105,9 +111,13 @@ def show_plot(items):
                          items.values())
         if matches:
             item = next(matches)
+            findings = "\n".join([f"{finding}: {count}x" for finding, count in
+                                  item.findings.items()])
+            findings = findings or "No findings"
             text = f"{'ERROR' if item.error else 'Success'}\n" \
                    f"{item.filename}\n" \
-                   f"size: {item.size_human}, duration: {item.duration_human}"
+                   f"size: {item.size_human}, duration: {item.duration_human}\n" \
+                   f"{findings}"
         else:
             text = "unknown item"
         annot.set_text(text)

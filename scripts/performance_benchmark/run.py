@@ -57,37 +57,7 @@ def main():
     printer("Publishing codyze to local maven repo")
     system("cd ../..; ./gradlew publishToMavenLocal")
 
-    if os.path.exists("analyzer"):
-        printer("Removing old analyzer version")
-        try:
-            shutil.rmtree("analyzer")
-        except PermissionError:
-            system("sudo rm -rf analyzer")
-
-    printer("Getting the analyzer from BitBucket")
-    system(
-      "git clone git@git-int.aisec.fraunhofer.de:sas/teaching/2019-cpg-bouncycastle.git analyzer")
-    system("cd analyzer; git checkout analysisserver")
-
-    printer("Adding .env file and python scraper")
-    shutil.rmtree("analyzer/src/main/python/github-downloader")
-    shutil.copytree("github-downloader",
-                    "analyzer/src/main/python/github-downloader")
-    shutil.copy(".env", "analyzer/.env")
-
-    printer("Updating mark mount path")
-    os.chdir("analyzer")
-    docker_compose_yml = ""
-    with open("docker-compose.yml", "r") as f:
-        for line in f:
-            if "- ./src/main/resources/mark:/mark" in line:
-                docker_compose_yml += line.replace("src/main/resources",
-                                                   "../../../src/dist")
-            else:
-                docker_compose_yml += line
-    with open("docker-compose.yml", "w") as f:
-        f.write(docker_compose_yml)
-
+    rmtree_ifexists("analyzer/codyze_m2")
     printer("Getting codyze from local maven repo")
     shutil.copytree(
       os.path.expanduser("~/.m2/repository/de/fraunhofer/aisec/codyze"),
@@ -98,20 +68,21 @@ def main():
 
     printer("Spinning up containers")
     containers = subprocess.getoutput("docker-compose up -d").splitlines()
-    analyzer = None
+    path = None
     for c in containers:
         if "analyzer_1" in c:
-            analyzer = c.split(" ")[1]
-            printer(f"Analyzer container: {analyzer}")
+            path = c.split(" ")[1]
+            printer(f"Analyzer container: {path}")
             break
-    if analyzer is None:
+    if path is None:
         printer("Analyzer container not found! Shutting down containers")
-        system("docker compose down")
+        system("docker-compose down")
         exit(1)
 
     printer("Waiting for analyzer to stop.")
-    print("In the meantime, JVM load can be monitored by connecting to localhost:9010 with visualvm")
-    system(f"docker wait {analyzer}")
+    print(
+        "In the meantime, JVM load can be monitored by connecting to localhost:9010 with visualvm")
+    system(f"docker wait {path}")
     printer("Analyzer done, shutting down redis")
     system("docker-compose down")
 
@@ -120,6 +91,18 @@ def main():
         analyze("logs/results.txt")
     except KeyboardInterrupt:
         pass
+
+
+def rmtree_ifexists(path):
+    if os.path.exists(path):
+        printer(f"Removing old {path} version")
+        try:
+            shutil.rmtree(path)
+        except PermissionError:
+            printer("Need to use sudo for deletion "
+                    "(usually caused by files that were created "
+                    "through docker-compose)")
+            system(f"sudo rm -rf {path}")
 
 
 if __name__ == '__main__':

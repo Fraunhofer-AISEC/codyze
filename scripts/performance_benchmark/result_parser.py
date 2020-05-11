@@ -19,6 +19,13 @@ class Item(object):
         self.error = False
         self.timeout = False
 
+    def __str__(self):
+        return f"File: {self.filename}, " \
+               f"findings: {self.findings}, " \
+               f"size: {self.size}"
+
+    __repr__ = __str__
+
 
 def main(report):
     with open(report) as f:
@@ -75,6 +82,8 @@ def main(report):
 
         print(f"Parsed {len(items.values())} items")
         show_plot(items, violations, verified_orders)
+        show_plot_3d(items, violations, verified_orders)
+        plt.show()
 
 
 def get_color(item):
@@ -111,7 +120,7 @@ def show_plot(items, violations, verified_orders):
                          items.values())
         if matches:
             item = next(matches)
-            findings = "\n".join([f"{finding}: {count}x" for finding, count in
+            findings = ", ".join([f"{finding}: {count}x" for finding, count in
                                   item.findings.items()])
             findings = findings or "No findings"
             text = f"{'ERROR' if item.error else 'Success'}\n" \
@@ -137,7 +146,80 @@ def show_plot(items, violations, verified_orders):
                     fig.canvas.draw_idle()
 
     fig.canvas.mpl_connect("motion_notify_event", hover)
-    plt.show()
+
+
+def show_plot_3d(items, violations, verified_orders):
+    sizes, durations, findings, colors = zip(
+      *[(i.size, i.duration, sum(i.findings.values()), get_color(i)) for i in
+        items.values()])
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_title(f"{len(items)} files analyzed, "
+                 f"{violations} violation{'' if violations == 1 else 's'} and "
+                 f"{verified_orders} verified order{'' if violations == 1 else 's'}\n"
+                 f"(Point labels might be inaccurate due to incorrect 2D to 3D "
+                 f"coordinate transformation!)", y=1.03)
+    ax.set_xlabel("Size (B)")
+    ax.set_ylabel("Duration (ms)")
+    ax.set_zlabel("Findings")
+    sc = ax.scatter(xs=sizes, ys=durations, zs=findings, c=colors)
+    annot = ax.annotate("", xy=(0, 0), xytext=(-0.1, 1.04),
+                        textcoords="axes fraction",
+                        bbox=dict(boxstyle="round", fc="w"),
+                        arrowprops=dict(arrowstyle="->"))
+
+    coord_pattern = re.compile(
+      r"x=(?P<x>[+\-\d.]+)[\s,]*y=(?P<y>[+\-\d.]+)[\s,]*z=(?P<z>[+\-\d.]+)")
+
+    def rel_error(correct, estimate):
+        if correct == 0:
+            return estimate
+        return abs((correct - estimate) / correct)
+
+    def update_annot(ind, x, y, z):
+        pos = sc.get_offsets()[ind["ind"][0]]
+        annot.xy = pos
+        distances = [(rel_error(sum(i.findings.values()), z),
+                      rel_error(i.duration, y),
+                      rel_error(i.size, x),
+                      i)
+                     for i in items.values()]
+        matches = sorted(
+          filter(lambda d: True,
+                 distances), key=lambda d: sum(d[:3]))
+        if matches:
+            item = matches[0][3]
+            curr_findings = ", ".join(
+              [f"{finding}: {count}x" for finding, count in
+               item.findings.items()])
+            curr_findings = curr_findings or "No findings"
+            text = f"{'ERROR' if item.error else 'Success'}\n" \
+                   f"{item.filename}\n" \
+                   f"size: {item.size_human}, " \
+                   f"duration: {item.duration_human}\n" \
+                   f"{curr_findings}"
+        else:
+            text = "unknown item"
+        annot.set_text(text)
+        annot.get_bbox_patch().set_alpha(0.4)
+
+    def hover(event):
+        vis = annot.get_visible()
+        if event.inaxes == ax:
+            cont, ind = sc.contains(event)
+            if cont:
+                guess = ax.format_coord(event.xdata, event.ydata)
+                m = coord_pattern.match(guess)
+                x, y, z = map(float, (m.group("x"), m.group("y"), m.group("z")))
+                update_annot(ind, x, y, z)
+                annot.set_visible(True)
+                fig.canvas.draw_idle()
+            else:
+                if vis:
+                    annot.set_visible(False)
+                    fig.canvas.draw_idle()
+
+    fig.canvas.mpl_connect("motion_notify_event", hover)
 
 
 if __name__ == '__main__':

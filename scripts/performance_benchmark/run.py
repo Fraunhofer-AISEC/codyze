@@ -2,7 +2,8 @@
 
 # ##########################################################################################
 #
-# Gets the latest version of the analyzer tool from bitbucket and tests codyze against it:
+# Automatically gets several crypto-related files from GitHub and evaluates
+# codyze's analysis results in a graphical way
 #
 # (C) Fraunhofer AISEC 2020, Samuel Hopstock
 #

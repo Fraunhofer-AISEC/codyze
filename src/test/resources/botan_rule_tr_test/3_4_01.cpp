@@ -1,17 +1,19 @@
-#include <botan/pkcs8.h>
-#include <botan/hex.h>
-#include <botan/pk_keys.h>
-#include <botan/pubkey.h>
-#include <botan/auto_rng.h>
-#include <botan/rng.h>
+#include <assert.h>
 #include <iostream>
+
+#include <botan/auto_rng.h>
+#include <botan/hex.h>
 #include <botan/dl_group.h>
 #include <botan/dlies.h>
-#include <assert.h>
+#include <botan/pk_keys.h>
+#include <botan/pkcs8.h>
+#include <botan/pubkey.h>
+#include <botan/rng.h>
+
 
 int main (int argc, char* argv[]) {
   std::string plaintext("Your great-grandfather gave this watch to your granddad for good luck. Unfortunately, Dane's luck wasn't as good as his old man's.");
-  std::vector<uint8_t> pt(plaintext.data(),plaintext.data()+plaintext.length());
+  std::vector<uint8_t> pt(plaintext.data(), plaintext.data()+plaintext.length());
   Botan::AutoSeeded_RNG rng;
 
   Botan::DL_Group dl_group("dsa/botan/3072");

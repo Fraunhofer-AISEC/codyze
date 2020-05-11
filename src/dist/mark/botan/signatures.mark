@@ -2,6 +2,7 @@ package botan
 
 entity Botan.PK_Verifier {
 	var pub_key: Botan.Public_Key;
+	var priv_key: Botan.Private_Key;
 	var emsa;
 	var input;
 	var input_length;
@@ -12,6 +13,9 @@ entity Botan.PK_Verifier {
 	op create {
 		Botan::PK_Verifier(pub_key, emsa);
 		Botan::PK_Verifier(pub_key, emsa, ...); // additional params: Signature_Format format=IEEE_1363, const std::string &provider=""
+		// Botan::..._PrivateKey is subclass of Botan::..._PublicKey
+		Botan::PK_Verifier(priv_key, emsa);
+		Botan::PK_Verifier(priv_key, emsa, ...);
 	}
 	
 	op update {

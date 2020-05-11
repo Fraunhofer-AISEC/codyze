@@ -3,7 +3,10 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.graph.ConstructExpression;
+import de.fraunhofer.aisec.cpg.graph.StaticCallExpression;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
@@ -20,6 +23,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.constructor.Construct;
 
 import java.net.URI;
 import java.util.*;
@@ -345,10 +349,9 @@ public class Evaluator {
 				for (Vertex vertex : op.getAllVertices()) {
 					Optional<Vertex> ref;
 
-					if ((vertex.property("initializer_type").isPresent() && vertex.value("initializer_type").equals("de.fraunhofer.aisec.cpg.graph.ConstructExpression"))
-							|| (vertex.property("nodeType").isPresent() && vertex.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.ConstructExpression"))) {
+					if (Utils.hasLabel(vertex, ConstructExpression.class)) {
 						ref = CrymlinQueryWrapper.getAssigneeOfConstructExpression(vertex);
-					} else if (vertex.property("nodeType").isPresent() && vertex.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.StaticCallExpression")) {
+					} else if (Utils.hasLabel(vertex, StaticCallExpression.class)) {
 						// mainly for builder function
 						ref = CrymlinQueryWrapper.getDFGTarget(vertex);
 					} else {

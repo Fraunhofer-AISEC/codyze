@@ -2,7 +2,6 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -187,18 +186,6 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	@Test
 	public void test_rule_5_4_1_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", "mark/botan/");
-		expected(findings,
-			"line 10: Verified Order: PrivKeyOrder",
-			"line 11: MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen verified", // ok
-			"line 11: Verified Order: SignatureOrder", // ok
-			"line 11: MarkRuleEvaluationFinding: Rule _5_4_1_01_RSA_SIG_Format verified", // ok
-			"line 11: MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen_2022 verified" // ok
-		);
-	}
-
-	@Test
-	public void test_rule_5_4_1_01_regression() throws Exception {
-		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_01_regression.cpp", "mark/botan/");
 		expected(findings,
 			"line 10: Verified Order: PrivKeyOrder",
 			"line 11: MarkRuleEvaluationFinding: Rule _5_4_1_02_RSA_SIG_KeyLen verified", // ok

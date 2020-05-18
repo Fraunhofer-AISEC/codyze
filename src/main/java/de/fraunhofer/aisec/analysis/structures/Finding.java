@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.json.JSONPropertyIgnore;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -80,11 +81,24 @@ public class Finding {
 	/**
 	 * Returns an unmodifiable list of the associated LSP "ranges" (~regions).
 	 */
+	@JSONPropertyIgnore
 	public List<Region> getRegions() {
 		return locations
 				.stream()
 				.map(PhysicalLocation::getRegion)
 				.collect(Collectors.toUnmodifiableList());
+	}
+
+	/**
+	 * Returns a non-null, possibly empty list of physical locations of this finding.
+	 *
+	 * This method is required for a proper result JSON.
+	 *
+	 * @return
+	 */
+	@SuppressWarnings("unused")
+	public @NonNull List<PhysicalLocation> getLocations() {
+		return this.locations;
 	}
 
 	public String getOnfailIdentifier() {

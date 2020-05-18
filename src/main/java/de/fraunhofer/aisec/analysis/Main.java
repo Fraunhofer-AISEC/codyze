@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -93,11 +94,17 @@ public class Main implements Callable<Integer> {
 	}
 
 	private void writeFindings(Set<Finding> findings) {
-		StringBuilder sb = new StringBuilder();
-		for (Finding f : findings) {
+		StringBuilder sb = new StringBuilder("[");
+		Iterator<Finding> it = findings.iterator();
+		while (it.hasNext()) {
+			Finding f = it.next();
 			JSONObject jFinding = new JSONObject(f);
 			sb.append(jFinding.toString(2));
+			if (it.hasNext()) {
+				sb.append(",");
+			}
 		}
+		sb.append("]");
 
 		if (outputFile.getName().equals("--")) {
 			System.out.println(sb.toString());

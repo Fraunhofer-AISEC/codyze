@@ -24,7 +24,7 @@ public class ConstantValue extends MarkIntermediateResult {
 	@NonNull
 	protected Object value;
 
-	private Set<Vertex> responsibleVertices = new HashSet<>();
+	private final Set<Vertex> responsibleVertices = new HashSet<>();
 
 	public static boolean isError(Object o) {
 		return o instanceof ErrorValue;
@@ -159,5 +159,10 @@ public class ConstantValue extends MarkIntermediateResult {
 
 	public Set<Vertex> getResponsibleVertices() {
 		return responsibleVertices;
+	}
+
+	@Override
+	public String toString() {
+		return this.value + " (" + this.type + ")";
 	}
 }

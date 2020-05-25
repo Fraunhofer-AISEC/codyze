@@ -1,6 +1,7 @@
 ---
 title: "Using CLI mode"
 linkTitle: "Using CLI mode"
+no_list: true
 weight: 2
 date: 2020-01-30
 description: >

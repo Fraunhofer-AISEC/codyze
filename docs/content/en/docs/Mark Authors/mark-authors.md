@@ -1,6 +1,7 @@
 ---
 title: "MARK Rules"
 linkTitle: "MARK Rules"
+no_list: true
 weight: 3
 date: 2020-02-05
 description: >

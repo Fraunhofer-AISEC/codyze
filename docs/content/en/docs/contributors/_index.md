@@ -1,6 +1,7 @@
 ---
 title: "Contributing to Codyze"
 linkTitle: "Contributing to Codyze"
+no_list: true
 weight: 10
 description: >
   Contributing to Codyze and updating this documentation

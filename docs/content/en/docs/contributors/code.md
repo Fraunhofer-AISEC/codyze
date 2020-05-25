@@ -1,6 +1,7 @@
 ---
 title: "Build the project"
 linkTitle: "Build the project"
+no_list: true
 weight: 1
 date: 2020-01-30
 description: >

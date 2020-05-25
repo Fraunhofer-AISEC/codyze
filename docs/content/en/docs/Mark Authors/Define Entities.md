@@ -2,6 +2,7 @@
 title: "MARK Entities"
 linkTitle: "MARK Entities"
 date: 2019-12-10
+no_list: true
 weight: 2
 description: >
   Describing the core objects of a library by means of MARK entities

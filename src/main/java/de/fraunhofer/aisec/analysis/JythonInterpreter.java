@@ -4,20 +4,32 @@ package de.fraunhofer.aisec.analysis;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.python.core.Console;
+import org.python.core.Py;
+import org.python.core.PyException;
+import org.python.core.PyObject;
+import org.python.jline.Terminal;
+import org.python.jline.TerminalFactory;
+import org.python.jline.console.completer.Completer;
 import org.python.util.InteractiveConsole;
+import org.python.util.JLineConsole;
+import org.python.util.PythonInterpreter;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
 
 /**
  * Main class for the interactive Codyze console.
- *
+ * <p>
  * The console allows interacting with the server and running crymlin queries dynamically from Java.
  *
  * @author julian
@@ -39,14 +51,27 @@ public class JythonInterpreter implements AutoCloseable {
 	@NonNull
 	private Set<Finding> findings = new HashSet<>();
 
+	private InteractiveConsole c;
+
 	/** Connect to the graph database and initialize the internal Jython engine. */
 	public void connect() {
 
 		traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB);
+		System.out.println("Graph connection: " + traversalConnection.getCrymlinTraversal());
 
 		// Make Java objects available in python
-		this.engine.getBindings(ScriptContext.ENGINE_SCOPE).put("graph", traversalConnection.getGraph()); // Generic graph
-		this.engine.getBindings(ScriptContext.ENGINE_SCOPE).put("crymlin", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+		this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
+				.put("graph", traversalConnection.getGraph()); // Generic graph
+		this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
+				.put("crymlin", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+
+		// If we aready have a running console, update bound objects
+		if (this.c != null) {
+			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
+					.entrySet()) {
+				c.set(kv.getKey(), kv.getValue());
+			}
+		}
 	}
 
 	/**
@@ -83,13 +108,32 @@ public class JythonInterpreter implements AutoCloseable {
 		// Print help
 		Commands commands = new Commands(this);
 
+		// Set up Jline
+		try {
+			JLineConsole jCon = new JLineConsole(null);
+			Py.installConsole(jCon);
+			Py.getSystemState()
+					.__setattr__("_jy_console", Py.java2py(Py.getConsole()));
+			jCon.getReader().addCompleter(new CrymlinCompleter());
+		}
+		catch (Exception e) {
+			// If JLine is not available, InteractiveConsole will fall back to PlainConsole.
+		}
+
 		try (InteractiveConsole c = new InteractiveConsole()) {
-			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
+			this.c = c;
+			c.setIn(System.in);
+			c.setOut(System.out);
+			c.setErr(System.err);
+			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
+					.entrySet()) {
 				c.set(kv.getKey(), kv.getValue());
 			}
 			c.set("server", commands);
 			// Overwrite Jython help() builtin with our help
 			c.push("import " + Commands.class.getName());
+			c.push("import readline");
+			c.push("import rlcompleter");
 			c.push("help = " + Commands.class.getName() + ".help");
 
 			// Create all @ShellCommand-annotated methods in Command as builtins
@@ -131,4 +175,12 @@ public class JythonInterpreter implements AutoCloseable {
 		return this.findings;
 	}
 
+	private class CrymlinCompleter implements Completer {
+
+		@Override
+		public int complete(String s, int i, List<CharSequence> list) {
+
+			return 0;
+		}
+	}
 }

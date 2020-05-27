@@ -29,7 +29,7 @@ public class CrymlinConsole extends InteractiveInterpreter {
 			+ "              Welcome to Codyze!                  \n"
 			+ "         To get help, enter 'help()'.             \n";
 
-	public final static String CONSOLE_FILENAME = "<stdin>";
+	public static final String CONSOLE_FILENAME = "<stdin>";
 	private String mood = Mood.HAPPY;
 	private boolean stop = false;
 

@@ -92,12 +92,12 @@ public class ConstantValue extends MarkIntermediateResult {
 		}
 
 		if (vClass.equals(Boolean.class)) {
-			return Optional.of(ConstantValue.of((Boolean) o));
+			return Optional.of(ConstantValue.of(o));
 		}
 
 		if (vClass.equals(String.class)) {
 			// character and string literals both have value of type String
-			return Optional.of(ConstantValue.of((String) o));
+			return Optional.of(ConstantValue.of(o));
 		}
 
 		log.warn("Unknown literal type encountered: {} (value: {})", o.getClass(), o);

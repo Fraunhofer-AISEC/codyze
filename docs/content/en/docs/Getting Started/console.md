@@ -120,5 +120,7 @@ Traversal sources and steps are the main operators of Crymlin queries. They dete
 |---|---|
 |  `.label()`  | Label of CPG node. The node label is the type of the CPG node (e.g., `MethodDeclaration`) |
 |  `.name()`  | Name of the selected nodes as a string |
+|  `.file()`  | Name of the source code file containing the current CPG node |
 |  `.code()`  | Source code of the selected nodes as a string |
+|  `.comment()`  | Any inline comment of the current CPG node |
 |  `.body()`  | Body of a function or method as a node. If the body contains more than one statement, this will typically return a `CompoundStatement` node  |

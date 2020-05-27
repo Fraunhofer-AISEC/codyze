@@ -1,39 +1,29 @@
 
 package de.fraunhofer.aisec.analysis;
 
-import com.google.common.collect.Comparators;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.python.core.*;
-import org.python.jline.Terminal;
-import org.python.jline.TerminalFactory;
+import org.python.core.Py;
+import org.python.core.PyMethod;
 import org.python.jline.console.completer.Completer;
-import org.python.jline.internal.Ansi;
-import org.python.util.InteractiveConsole;
 import org.python.util.JLineConsole;
-import org.python.util.PythonInterpreter;
-import picocli.CommandLine;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.analysis.CrymlinConsole.CONSOLE_FILENAME;
-import static java.util.Comparator.naturalOrder;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.python.jline.internal.Ansi.*;
+import static org.python.jline.internal.Ansi.stripAnsi;
 
 /**
  * Main class for the interactive Codyze console.
@@ -60,6 +50,13 @@ public class JythonInterpreter implements AutoCloseable {
 	public static final String ANSI_PURPLE_BG = "\u001B[45m";
 	public static final String ANSI_CYAN_BG = "\u001B[46m";
 	public static final String ANSI_WHITE_BG = "\u001B[47m";
+	private static final String PY_GRAPH = "graph";
+	private static final String PY_G = "g";
+	private static final String PY_CRYMLIN = "crymlin";
+	private static final String PY_SERVER = "server";
+	private static final String PY_S = "s";
+	private static final String PY_QUERY = "query";
+	private static final String PY_Q = "q";
 
 	/** connection to the database via a traversal */
 	private TraversalConnection traversalConnection = null;
@@ -85,11 +82,11 @@ public class JythonInterpreter implements AutoCloseable {
 
 		// Make Java objects available with a few shorthand aliases in python
 		Bindings bindings = this.engine.getBindings(ScriptContext.ENGINE_SCOPE);
-		bindings.put("graph", traversalConnection.getGraph()); // Generic graph
-		bindings.put("g", traversalConnection.getGraph()); // Generic graph
-		bindings.put("crymlin", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
-		bindings.put("query", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
-		bindings.put("q", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+		bindings.put(PY_GRAPH, traversalConnection.getGraph()); // Generic graph
+		bindings.put(PY_G, traversalConnection.getGraph()); // Generic graph
+		bindings.put(PY_CRYMLIN, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+		bindings.put(PY_QUERY, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+		bindings.put(PY_Q, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
 
 		// If we aready have a running console, update bound objects
 		if (this.c != null) {
@@ -138,30 +135,30 @@ public class JythonInterpreter implements AutoCloseable {
 			// If JLine is not available, we will fall back to PlainConsole.
 		}
 
-		try (CrymlinConsole c = new CrymlinConsole()) {
-			this.c = c;
-			c.setIn(System.in);
-			c.setOut(System.out);
-			c.setErr(System.out);
+		try (CrymlinConsole cons = new CrymlinConsole()) {
+			this.c = cons;
+			cons.setIn(System.in);
+			cons.setOut(System.out);
+			cons.setErr(System.out);
 
 			// Define variables from bindings
 			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
 					.entrySet()) {
-				c.set(kv.getKey(), kv.getValue());
+				cons.set(kv.getKey(), kv.getValue());
 			}
-			c.set("server", commands);
-			c.set("s", commands);
+			cons.set(PY_SERVER, commands);
+			cons.set(PY_S, commands);
 			// Overwrite Jython help() builtin with our help
-			c.push("import " + Commands.class.getName());
-			c.push("help = " + Commands.class.getName() + ".help");
+			cons.push("import " + Commands.class.getName());
+			cons.push("help = " + Commands.class.getName() + ".help");
 
 			// Create all @ShellCommand-annotated methods in Command as builtins
 			for (Method m : Utils.getMethodsAnnotatedWith(Commands.class, ShellCommand.class)) {
 				String cmd = m.getName();
 				// Register as a builtin function in Jython console
-				c.push(cmd + " = " + Commands.class.getName() + "." + cmd);
+				cons.push(cmd + " = " + Commands.class.getName() + "." + cmd);
 			}
-			c.interact(null);
+			cons.interact(null);
 		}
 	}
 
@@ -171,11 +168,11 @@ public class JythonInterpreter implements AutoCloseable {
 			traversalConnection.close();
 		}
 		Bindings bindings = this.engine.getBindings(ScriptContext.ENGINE_SCOPE);
-		bindings.remove("graph");
-		bindings.remove("g");
-		bindings.remove("crymlin");
-		bindings.remove("query");
-		bindings.remove("q");
+		bindings.remove(PY_GRAPH);
+		bindings.remove(PY_G);
+		bindings.remove(PY_CRYMLIN);
+		bindings.remove(PY_QUERY);
+		bindings.remove(PY_Q);
 	}
 
 	public TranslationResult getLastResult() {
@@ -213,27 +210,27 @@ public class JythonInterpreter implements AutoCloseable {
 					prefix = s.length() > 1 ? s.substring(dotPos + 1) : "";
 					items = engine.eval("dir(" + s.substring(0, dotPos) + ")");
 				} else {
-					items = List.of("query", "q", "server", "s", "graph", "g");
+					items = List.of(PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
 				}
 			}
-			catch (Throwable e) {
+			catch (Exception e) {
 				// Nothing to do here.
-				System.out.println(e.getMessage());
+				c.write(e.getMessage() + "\n");
 			}
 
 			// Collect and filter out irrelevant entries
-			if (items != null && items instanceof List) {
+			if (items instanceof List) {
 				for (Object entry : ((List) items)) {
 					if (entry instanceof String) {
 						String str = (String) entry;
 						if (str.startsWith(prefix)) {
-							Class type = null;
+							Class<?> type = Class.class;
 							try {
 								String typeEval = "type(" + s.substring(0, dotPos) + "." + str + ")";
 								type = ((Class) engine.eval(typeEval));
 							}
 							catch (ScriptException e) {
-								System.out.println(e.getMessage());
+								c.write(e.getMessage() + "\n");
 							}
 
 							if (str.startsWith("__")

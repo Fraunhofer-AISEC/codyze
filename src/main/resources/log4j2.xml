@@ -6,8 +6,17 @@
         <Async name="Async">
             <AppenderRef ref="FILEOUT"/>
         </Async>
+
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout   pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
+        </Console>
     </Appenders>
     <Loggers>
-        <logger level="DEBUG" name="de.fraunhofer.aisec"/>
+        <Root level="INFO" additivity="false">
+            <appender-ref ref="FILEOUT" />
+        </Root>
+        <logger level="DEBUG" additivity="false" name="de.fraunhofer.aisec">
+            <appender-ref ref="FILEOUT" />
+        </logger>
     </Loggers>
 </Configuration>

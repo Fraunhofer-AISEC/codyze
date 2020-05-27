@@ -170,6 +170,12 @@ public class JythonInterpreter implements AutoCloseable {
 		if (traversalConnection != null) {
 			traversalConnection.close();
 		}
+		Bindings bindings = this.engine.getBindings(ScriptContext.ENGINE_SCOPE);
+		bindings.remove("graph");
+		bindings.remove("g");
+		bindings.remove("crymlin");
+		bindings.remove("query");
+		bindings.remove("q");
 	}
 
 	public TranslationResult getLastResult() {

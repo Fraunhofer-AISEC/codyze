@@ -5,8 +5,6 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;

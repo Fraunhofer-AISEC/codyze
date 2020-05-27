@@ -72,7 +72,6 @@ public class Main implements Callable<Integer> {
 						.launchConsole(executionMode.tui)
 						.typestateAnalysis(analysisMode.tsMode)
 						.markFiles(markFolderName.getAbsolutePath())
-						.typestateAnalysis(analysisMode.tsMode)
 						.build())
 				.build();
 

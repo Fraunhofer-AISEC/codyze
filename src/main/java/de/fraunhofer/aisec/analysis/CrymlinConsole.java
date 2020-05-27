@@ -19,7 +19,7 @@ import static de.fraunhofer.aisec.analysis.JythonInterpreter.*;
 // Based on CPython-1.5.2's code module
 public class CrymlinConsole extends InteractiveInterpreter {
 
-	public static final String banner = " ██████╗ ██████╗ ██████╗ ██╗   ██╗███████╗███████╗\n"
+	public static final String BANNER = " ██████╗ ██████╗ ██████╗ ██╗   ██╗███████╗███████╗\n"
 			+ "██╔════╝██╔═══██╗██╔══██╗╚██╗ ██╔╝╚══███╔╝██╔════╝\n"
 			+ "██║     ██║   ██║██║  ██║ ╚████╔╝   ███╔╝ █████╗  \n"
 			+ "██║     ██║   ██║██║  ██║  ╚██╔╝   ███╔╝  ██╔══╝  \n"
@@ -30,8 +30,8 @@ public class CrymlinConsole extends InteractiveInterpreter {
 			+ "         To get help, enter 'help()'.             \n";
 
 	public final static String CONSOLE_FILENAME = "<stdin>";
-	public String filename;
 	private String mood = Mood.HAPPY;
+	private boolean stop = false;
 
 	public CrymlinConsole() {
 		this(null, CONSOLE_FILENAME);
@@ -43,17 +43,18 @@ public class CrymlinConsole extends InteractiveInterpreter {
 	}
 
 	public void interact(PyObject file) {
-		PyObject old_ps1 = systemState.ps1;
-		PyObject old_ps2 = systemState.ps2;
+		stop = false;
+		PyObject oldPs1 = systemState.ps1;
+		PyObject oldPs2 = systemState.ps2;
 		systemState.ps2 = new PyString("... ");
 		try {
-			System.out.println(banner);
+			System.out.println(BANNER);
 
 			// Dummy exec in order to speed up response on first command
 			exec("2");
 
 			boolean more = false;
-			while (true) {
+			while (!stop) {
 				systemState.ps1 = new PyString(new PyUnicode(ANSI_CYAN_BG + " " + mood + "  " + ANSI_RESET + ANSI_CYAN + "\uE0B0" + ANSI_RESET).encode("utf-8"));
 				PyObject prompt = more ? systemState.ps2 : systemState.ps1;
 				String line;
@@ -70,7 +71,7 @@ public class CrymlinConsole extends InteractiveInterpreter {
 					}
 					break;
 				}
-				catch (Throwable t) {
+				catch (Exception t) {
 					// catch jline.console.UserInterruptException, rethrow as a KeyboardInterrupt
 					throw Py.JavaError(t);
 				}
@@ -78,10 +79,14 @@ public class CrymlinConsole extends InteractiveInterpreter {
 			}
 		}
 		finally {
-			systemState.ps1 = old_ps1;
-			systemState.ps2 = old_ps2;
+			systemState.ps1 = oldPs1;
+			systemState.ps2 = oldPs2;
 		}
 
+	}
+
+	public void stop() {
+		this.stop = true;
 	}
 
 	/**

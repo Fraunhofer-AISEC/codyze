@@ -67,6 +67,28 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	}
 
 	/**
+	 * Shortcut for {@code .values("file")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
+			methodTypeParameters = { "A" })
+	default CrymlinTraversal<S, Object> file() {
+		return (CrymlinTraversal<S, Object>) values("file");
+	}
+
+	/**
+	 * Shortcut for {@code .values("comment")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
+			methodTypeParameters = { "A" })
+	default CrymlinTraversal<S, Object> comment() {
+		return (CrymlinTraversal<S, Object>) values("comment");
+	}
+
+	/**
 	 * Shortcut for {@code .values("code")}.
 	 *
 	 * @return

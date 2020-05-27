@@ -14,11 +14,13 @@ import org.python.core.*;
 import org.python.jline.Terminal;
 import org.python.jline.TerminalFactory;
 import org.python.jline.console.completer.Completer;
+import org.python.jline.internal.Ansi;
 import org.python.util.InteractiveConsole;
 import org.python.util.JLineConsole;
 import org.python.util.PythonInterpreter;
 import picocli.CommandLine;
 
+import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 import static de.fraunhofer.aisec.analysis.CrymlinConsole.CONSOLE_FILENAME;
 import static java.util.Comparator.naturalOrder;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.python.jline.internal.Ansi.*;
 
 /**
  * Main class for the interactive Codyze console.
@@ -79,13 +82,14 @@ public class JythonInterpreter implements AutoCloseable {
 	public void connect() {
 
 		traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB);
-		System.out.println("Graph connection: " + traversalConnection.getCrymlinTraversal());
 
-		// Make Java objects available in python
-		this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
-				.put("graph", traversalConnection.getGraph()); // Generic graph
-		this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
-				.put("crymlin", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+		// Make Java objects available with a few shorthand aliases in python
+		Bindings bindings = this.engine.getBindings(ScriptContext.ENGINE_SCOPE);
+		bindings.put("graph", traversalConnection.getGraph()); // Generic graph
+		bindings.put("g", traversalConnection.getGraph()); // Generic graph
+		bindings.put("crymlin", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+		bindings.put("query", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+		bindings.put("q", traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
 
 		// If we aready have a running console, update bound objects
 		if (this.c != null) {
@@ -127,8 +131,6 @@ public class JythonInterpreter implements AutoCloseable {
 		try {
 			JLineConsole jCon = new JLineConsole("utf-8");
 			Py.installConsole(jCon);
-			//			Py.getSystemState()
-			//					.__setattr__("_jy_console", Py.java2py(Py.getConsole()));
 			jCon.getReader()
 					.addCompleter(new CrymlinCompleter());
 		}
@@ -148,17 +150,10 @@ public class JythonInterpreter implements AutoCloseable {
 				c.set(kv.getKey(), kv.getValue());
 			}
 			c.set("server", commands);
+			c.set("s", commands);
 			// Overwrite Jython help() builtin with our help
 			c.push("import " + Commands.class.getName());
-			//c.push("import readline");
-			//c.push("import rlcompleter");
 			c.push("help = " + Commands.class.getName() + ".help");
-
-			// Define some shortcuts
-			c.push("query = crymlin");
-			c.push("q = crymlin");
-			c.push("s = server");
-			c.push("g = graph");
 
 			// Create all @ShellCommand-annotated methods in Command as builtins
 			for (Method m : Utils.getMethodsAnnotatedWith(Commands.class, ShellCommand.class)) {
@@ -172,15 +167,9 @@ public class JythonInterpreter implements AutoCloseable {
 
 	@Override
 	public void close() {
-
 		if (traversalConnection != null) {
 			traversalConnection.close();
 		}
-
-		this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
-				.remove("graph"); // Generic graph
-		this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
-				.remove("crymlin"); // Trav. source of crymlin
 	}
 
 	public TranslationResult getLastResult() {
@@ -210,6 +199,7 @@ public class JythonInterpreter implements AutoCloseable {
 		@Override
 		public int complete(String s, int i, List<CharSequence> list) {
 			int dotPos = s.indexOf('.');
+			s = stripAnsi(s);
 			Object items = null;
 			String prefix = "";
 			try {
@@ -222,6 +212,7 @@ public class JythonInterpreter implements AutoCloseable {
 			}
 			catch (Throwable e) {
 				// Nothing to do here.
+				System.out.println(e.getMessage());
 			}
 
 			// Collect and filter out irrelevant entries
@@ -230,16 +221,27 @@ public class JythonInterpreter implements AutoCloseable {
 					if (entry instanceof String) {
 						String str = (String) entry;
 						if (str.startsWith(prefix)) {
+							Class type = null;
+							try {
+								String typeEval = "type(" + s.substring(0, dotPos) + "." + str + ")";
+								type = ((Class) engine.eval(typeEval));
+							}
+							catch (ScriptException e) {
+								System.out.println(e.getMessage());
+							}
+
 							if (str.startsWith("__")
-									|| List.of("toString", "class", "clone", "wait", "equals", "notify", "notifyAll").contains(str)) {
-								list.add(ANSI_BLUE + str + ANSI_RESET);
+									|| List.of("addE", "addV", "hashCode", "toString", "class", "clone", "wait", "equals", "notify", "notifyAll")
+											.contains(str)) {
+								list.add(ANSI_BLUE + str + (type.equals(PyMethod.class) ? "(" : "") + ANSI_RESET);
 							} else {
-								list.add(str);
+								list.add(str + (type.equals(PyMethod.class) ? "(" : ""));
 							}
 						}
 					}
 				}
 			}
+
 			// Sort
 			list.stream()
 					.sorted()

@@ -26,7 +26,8 @@ public class CrymlinConsole extends InteractiveInterpreter {
 			+ "╚██████╗╚██████╔╝██████╔╝   ██║   ███████╗███████╗\n"
 			+ " ╚═════╝ ╚═════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝\n"
 			+ ""
-			+ "              Welcome to Codyze!!                  \n";
+			+ "              Welcome to Codyze!                  \n"
+			+ "         To get help, enter 'help()'.             \n";
 
 	public final static String CONSOLE_FILENAME = "<stdin>";
 	public String filename;

@@ -87,6 +87,7 @@ public class JythonInterpreterTest {
 			crymlin.translationunits().literals().toList();
 			crymlin.recorddeclarations().variables().name().toList();
 			crymlin.methods().code().toList();
+			crymlin.methods().comment().toList();
 		}
 	}
 

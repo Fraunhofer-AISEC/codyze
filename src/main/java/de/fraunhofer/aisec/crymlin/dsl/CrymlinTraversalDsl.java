@@ -73,7 +73,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	 */
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
 			methodTypeParameters = { "A" })
-	default CrymlinTraversal<S, Object> sourcecode() {
+	default CrymlinTraversal<S, Object> code() {
 		return (CrymlinTraversal<S, Object>) values("code");
 	}
 

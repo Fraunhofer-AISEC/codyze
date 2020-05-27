@@ -123,8 +123,6 @@ public class JythonInterpreter implements AutoCloseable {
 		// Print help
 		Commands commands = new Commands(this);
 
-		System.out.println("std out before: " + System.out);
-
 		// Set up Jline
 		try {
 			JLineConsole jCon = new JLineConsole("utf-8");
@@ -161,10 +159,6 @@ public class JythonInterpreter implements AutoCloseable {
 			c.push("q = crymlin");
 			c.push("s = server");
 			c.push("g = graph");
-
-			System.out.println("Py std err" + Py.stderr);
-			System.out.println("std out" + System.out);
-			System.out.println("std err" + System.err);
 
 			// Create all @ShellCommand-annotated methods in Command as builtins
 			for (Method m : Utils.getMethodsAnnotatedWith(Commands.class, ShellCommand.class)) {

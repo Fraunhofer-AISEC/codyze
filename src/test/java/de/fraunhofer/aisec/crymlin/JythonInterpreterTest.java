@@ -83,11 +83,13 @@ public class JythonInterpreterTest {
 			List<Vertex> stmts = crymlin.recorddeclarations().toList();
 			assertNotNull(stmts);
 
+			// Make sure these traversal steps work without exception
 			crymlin.V().literals().toList();
 			crymlin.translationunits().literals().toList();
 			crymlin.recorddeclarations().variables().name().toList();
 			crymlin.methods().code().toList();
 			crymlin.methods().comment().toList();
+			crymlin.methods().file().toList();
 		}
 	}
 

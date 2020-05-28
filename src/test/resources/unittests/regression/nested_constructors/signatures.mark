@@ -6,7 +6,7 @@ entity Botan.Public_Key {
 
 	op create {
 	    // C++
-		Botan::Pub1Key(algo, rsa_bits);
+		Botan::PubKey(algo, rsa_bits);
 
         // Fake Java
 		botan.RSA_PublicKey(algo, rsa_bits);

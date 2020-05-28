@@ -14,11 +14,11 @@ public class CrymlinConsoleTest {
 	public void crymlinConsoleTest() throws Exception {
 		CrymlinConsole con = new CrymlinConsole();
 
-		AtomicBoolean stopped = new AtomicBoolean(false);
+		final boolean[] stopped = { false };
 		new Thread(() -> {
 			// blocks until stop()
 			con.interact(null);
-			stopped.set(true);
+			stopped[0] = true;
 		}).start();
 
 		// Give console time to enter while loop
@@ -29,6 +29,6 @@ public class CrymlinConsoleTest {
 
 		// Give console time to leave while loop
 		Thread.sleep(100);
-		assertTrue(stopped.get());
+		assertTrue(stopped[0]);
 	}
 }

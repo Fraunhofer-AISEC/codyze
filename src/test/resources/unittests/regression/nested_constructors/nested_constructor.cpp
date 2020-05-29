@@ -8,7 +8,7 @@ namespace Botan {
     {
     };
 
-    class PubKey {
+    class RSA_PublicKey {
         public:
         PubKey(AlgorithmIdentifier id, int size)
         {
@@ -18,7 +18,7 @@ namespace Botan {
     class PK_Verifier
     {
         public:
-        PK_Verifier(PubKey ok, std::string algo)
+        PK_Verifier(RSA_PublicKey ok, std::string algo)
         {
        }
     };
@@ -28,5 +28,5 @@ namespace Botan {
 int main()
 {
     Botan::AlgorithmIdentifier id;
-    Botan::PK_Verifier sig_verifier(Botan::PubKey(id, 123), "I AM INCORRECT EMSA4(SHA-256)");
+    Botan::PK_Verifier sig_verifier(Botan::RSA_PublicKey(id, 123), "I AM INCORRECT EMSA4(SHA-256)");
 }

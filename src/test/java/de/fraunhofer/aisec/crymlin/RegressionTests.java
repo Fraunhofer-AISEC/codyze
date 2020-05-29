@@ -29,6 +29,6 @@ public class RegressionTests extends AbstractMarkTest {
 	public void testNestedConstructExpressionsCpp() throws Exception {
 		Set<Finding> findings = performTest("unittests/regression/nested_constructors/nested_constructor.cpp", "unittests/regression/nested_constructors/");
 		expected(findings,
-			"line 11: MarkRuleEvaluationFinding: Rule PublicKeyInstanceOfVerifier violated");
+			"line 31: MarkRuleEvaluationFinding: Rule PublicKeyInstanceOfVerifier violated");
 	}
 }

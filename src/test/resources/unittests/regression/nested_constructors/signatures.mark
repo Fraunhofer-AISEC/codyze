@@ -6,7 +6,7 @@ entity Botan.Public_Key {
 
 	op create {
 	    // C++
-		Botan::PubKey(algo, rsa_bits);
+		Botan::RSA_PublicKey(algo, rsa_bits);
 
         // Fake Java
 		botan.RSA_PublicKey(algo, rsa_bits);
@@ -24,12 +24,12 @@ entity Botan.ALGO {
 }
 
 entity Botan.PK_Verifier {
-	var pub_key: Botan.PubKey;
+	var pub_key: Botan.Public_Key;
 	var emsa;
 
 	op create {
 	    // C++
-		PK_Verifier(pub_key, emsa, ...); // additional params: Signature_Format format=IEEE_1363, const std::string &provider=""
+		Botan::PK_Verifier(pub_key, emsa, ...); // additional params: Signature_Format format=IEEE_1363, const std::string &provider=""
 
         // Fake Java
 		botan.PK_Verifier(pub_key, emsa);

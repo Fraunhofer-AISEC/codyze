@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.cpg.graph.CallExpression;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -60,6 +61,10 @@ public class IsInstance implements Builtin {
 				if (next == null) {
 					log.warn("Vertex is null, cannot check _is_instance");
 					cv = ErrorValue.newErrorValue("Vertex is null, cannot check _is_instance", argResultList.getAll());
+				} else if (Utils.hasLabel(next, CallExpression.class)) {
+					// CallExpressions do not have a "type" property. We rather get their type from the called object.
+					String type = next.value("fqn");
+					cv = ConstantValue.of(type.equals(classname));
 				} else {
 					String type = next.value("type");
 					cv = ConstantValue.of(type.equals(classname));

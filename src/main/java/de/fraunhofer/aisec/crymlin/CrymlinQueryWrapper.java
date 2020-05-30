@@ -143,11 +143,6 @@ public class CrymlinQueryWrapper {
 		while (i < markParameters.size() && i < sourceArguments.size()) {
 			Parameter markParam = markParameters.get(i);
 
-			// ELLIPSIS (...) means we do not care about any further arguments
-			if (Constants.ELLIPSIS.equals(markParam.getVar())) {
-				return true;
-			}
-
 			Set<Type> sourceArgs = new HashSet<>();
 			/* We cannot assume that the position in sourceArgument corresponds with the actual order. Must rather check "argumentIndex" property. */
 			for (Vertex vArg : sourceArguments) {
@@ -165,6 +160,10 @@ public class CrymlinQueryWrapper {
 				log.error("Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argument types: {}",
 					String.join(", ", MOp.paramsToString(markParameters)));
 				return false;
+			}
+
+			if (Constants.ELLIPSIS.equals(markParam.getVar())) {
+				return true;
 			}
 
 			// UNDERSCORE means we do not care about this specific argument at all
@@ -186,7 +185,14 @@ public class CrymlinQueryWrapper {
 			i++;
 		}
 
-		return i == markParameters.size() && i == sourceArguments.size();
+		// If parameter list ends with an ELLIPSIS, we ignore the remaining arguments
+		boolean endsWithEllipsis = false;
+		if (i < markParameters.size()) {
+			List<Parameter> sublist = markParameters.subList(i, markParameters.size());
+			endsWithEllipsis = sublist.stream().allMatch(markParm -> Constants.ELLIPSIS.equals(markParm.getVar()));
+		}
+
+		return (i == markParameters.size() || endsWithEllipsis) && i == sourceArguments.size();
 	}
 
 	public static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {

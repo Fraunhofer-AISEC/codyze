@@ -14,6 +14,7 @@ import de.fraunhofer.aisec.markmodel.Mark;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,12 +117,7 @@ public class ExpressionEvaluator {
 					@Nullable
 					Vertex operand = entry.getValue().getInstanceContext().getVertex(markInstances.iterator().next());
 					if (operand != null) {
-						int startLine = toIntExact((Long) operand.property("startLine").value()) - 1;
-						int endLine = toIntExact((Long) operand.property("endLine").value()) - 1;
-						int startColumn = toIntExact((Long) operand.property("startColumn").value()) - 1;
-						int endColumn = toIntExact((Long) operand.property("endColumn").value()) - 1;
-						ArrayList<Region> ranges = new ArrayList<>();
-						ranges.add(new Region(startLine, startColumn, endLine, endColumn));
+						List<Region> ranges = List.of(Utils.getRegionByVertex(operand));
 						Finding f = new Finding(
 							"Verified Order: " + this.markRule.getName(),
 							CrymlinQueryWrapper.getFileLocation(operand),

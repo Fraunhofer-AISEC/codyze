@@ -122,7 +122,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 							boolean isRhsExpressionList = rhs.label().equals(ExpressionList.class.getSimpleName());
 
 							if (isRhsLiteral) {
-								Object literalValue = rhs.property("value").value();
+								Object literalValue = rhs.property("value").orElse(null);
 
 								Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
 								if (constantValue.isPresent()) {
@@ -139,7 +139,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 
 								if (Utils.hasLabel(lastExpressionInList, Literal.class)) {
 									// If last expression is Literal --> assign its value immediately.
-									Object literalValue = lastExpressionInList.property("value").value();
+									Object literalValue = lastExpressionInList.property("value").orElse(null);
 									Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
 									if (constantValue.isPresent()) {
 										return constantValue;
@@ -190,7 +190,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 				Vertex initializerVertex = itInitializerVertex.next();
 
 				if (Utils.hasLabel(initializerVertex, Literal.class)) {
-					Object literalValue = initializerVertex.property("value").value();
+					Object literalValue = initializerVertex.property("value").orElse(null);
 					retVal = ConstantValue.tryOf(literalValue);
 
 				} else if (Utils.hasLabel(initializerVertex, ConstructExpression.class)) {
@@ -202,7 +202,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 					if (args.size() == 1) {
 						Vertex init = args.get(0);
 						if (Utils.hasLabel(init, Literal.class)) {
-							Object initValue = init.property("value").value();
+							Object initValue = init.property("value").orElse(null);
 							retVal = ConstantValue.tryOf(initValue);
 						} else {
 							log.warn("Cannot evaluate ConstructExpression, it is a {}", init.label());
@@ -219,7 +219,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 					if (initializers.hasNext()) {
 						Vertex init = initializers.next();
 						if (Utils.hasLabel(init, Literal.class)) {
-							Object initValue = init.property("value").value();
+							Object initValue = init.property("value").orElse(null);
 							retVal = ConstantValue.tryOf(initValue);
 
 						} else {
@@ -241,7 +241,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 					}
 					if (init != null) {
 						if (Utils.hasLabel(init, Literal.class)) {
-							Object initValue = init.property("value").value();
+							Object initValue = init.property("value").orElse(null);
 							retVal = ConstantValue.tryOf(initValue);
 
 						} else {

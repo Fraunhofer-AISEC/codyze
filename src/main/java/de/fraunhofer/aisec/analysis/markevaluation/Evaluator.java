@@ -23,12 +23,9 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.constructor.Construct;
 
 import java.net.URI;
 import java.util.*;
-
-import static java.lang.Math.toIntExact;
 
 /**
  * Evaluates all loaded MARK rules against the CPG.
@@ -209,11 +206,7 @@ public class Evaluator {
 								if (v == null) {
 									continue;
 								}
-								int startLine = toIntExact((Long) v.property("startLine").value()) - 1;
-								int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
-								int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
-								int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
-								ranges.add(new Region(startLine, startColumn, endLine, endColumn));
+								ranges.add(Utils.getRegionByVertex(v));
 
 								currentFile = CrymlinQueryWrapper.getFileLocation(v);
 							}
@@ -227,11 +220,7 @@ public class Evaluator {
 							if (v == null) {
 								continue;
 							}
-							int startLine = toIntExact((Long) v.property("startLine").value()) - 1;
-							int endLine = toIntExact((Long) v.property("endLine").value()) - 1;
-							int startColumn = toIntExact((Long) v.property("startColumn").value()) - 1;
-							int endColumn = toIntExact((Long) v.property("endColumn").value()) - 1;
-							ranges.add(new Region(startLine, startColumn, endLine, endColumn));
+							ranges.add(Utils.getRegionByVertex(v));
 
 							currentFile = CrymlinQueryWrapper.getFileLocation(v);
 						}
@@ -281,7 +270,7 @@ public class Evaluator {
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 				Object value = ConstantValue.unbox(entry.getValue());
 				if (value == null) {
-					log.warn("Unable to evaluate rule {}, resultwas null, this should not happen.", rule.getName());
+					log.warn("Unable to evaluate rule {}, result was null, this should not happen.", rule.getName());
 					continue;
 				} else if (ConstantValue.isError(entry.getValue())) {
 					log.warn("Unable to evaluate when-part of rule {}, result had an error: \n\t{}", rule.getName(),

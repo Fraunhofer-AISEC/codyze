@@ -460,10 +460,12 @@ public class CrymlinQueryWrapper {
 		List<CPGVertexWithValue> ret = new ArrayList<>();
 
 		for (CPGVertexWithValue v : vertices) {
-			if (Utils.hasLabel(v.getArgumentVertex(), Literal.class)) {
+			if (Utils.hasLabel(v.getArgumentVertex(), Literal.class) && v.getArgumentVertex().property("value").isPresent()) {
 				// The vertices may already be constants ("Literal"). In that case, immediately add the value.
 				CPGVertexWithValue add = CPGVertexWithValue.of(v);
-				add.setValue(ConstantValue.of(v.getArgumentVertex().property("value").value()));
+				add.setValue(ConstantValue.of(v.getArgumentVertex()
+						.property("value")
+						.value()));
 				ret.add(add);
 			} else if (Utils.hasLabel(v.getArgumentVertex(), DeclaredReferenceExpression.class)) {
 				// Otherwise we use ConstantResolver to find concrete values of a DeclaredReferenceExpression.
@@ -825,8 +827,8 @@ public class CrymlinQueryWrapper {
 		Iterator<Edge> dfg = vertex.edges(Direction.OUT, INITIALIZER);
 		if (dfg.hasNext()) {
 			Vertex vertex1 = dfg.next().inVertex();
-			if (vertex1.label().equals(Literal.class.getSimpleName()) && vertex1.property("value") != null) {
-				return Optional.of(vertex1.value("value"));
+			if (vertex1.label().equals(Literal.class.getSimpleName()) && vertex1.property("value").isPresent()) {
+				return Optional.of(vertex1.property("value").orElse(null));
 			}
 		}
 		return Optional.empty();

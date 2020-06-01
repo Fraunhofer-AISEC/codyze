@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Type;
+import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.Constants;
@@ -18,6 +19,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.lang.Math.toIntExact;
 
 public class Utils {
 	private static final Logger log = LoggerFactory.getLogger(Utils.class);
@@ -212,5 +215,23 @@ public class Utils {
 			klass = klass.getSuperclass();
 		}
 		return methods;
+	}
+
+	/**
+	 * Returns a <code>Region</code> object from a vertex' startLine, endLine, startColumn, endColumn property.
+	 *
+	 * Note that these are not the exact property values but start at 0 rather than by 1.
+	 * If these properties do not exist, returns -1.
+	 *
+	 * @param v
+	 * @return
+	 */
+	@NonNull
+	public static Region getRegionByVertex(@NonNull Vertex v) {
+		int startLine = toIntExact((Long) v.property("startLine").orElse(Long.valueOf(-1))) - 1;
+		int endLine = toIntExact((Long) v.property("endLine").orElse(Long.valueOf(-1))) - 1;
+		int startColumn = toIntExact((Long) v.property("startColumn").orElse(Long.valueOf(-1))) - 1;
+		int endColumn = toIntExact((Long) v.property("endColumn").orElse(Long.valueOf(-1))) - 1;
+		return new Region(startLine, startColumn, endLine, endColumn);
 	}
 }

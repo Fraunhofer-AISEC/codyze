@@ -2,173 +2,142 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
-import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
-import org.apache.tinkerpop.gremlin.process.traversal.step.util.BulkSet;
-import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.python.core.Py;
+import org.python.util.JLineConsole;
 
-import javax.script.ScriptException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Testing the Gremlin-over-Jython interface of the analysis server. */
+/** Testing the Crymlin console. */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JythonInterpreterTest {
 
-	@Test
-	public void jythonClosingTest() throws Exception {
-		Benchmark bench = new Benchmark(this.getClass(), "Opening new Jython interpreter");
-		JythonInterpreter interp = new JythonInterpreter();
-		bench.stop();
+	private static JLineConsole jlineConsole;
+	private static PrintStream originalErr;
+	private static PrintStream originalOut;
+	private static ByteArrayOutputStream outContent;
+	private static ByteArrayOutputStream errContent;
+	private static InputStream oldIn;
+	private static JythonInterpreter interp;
 
-		// Expecting an unconnected engine, throwing exceptions.
-		assertNotNull(interp.getEngine());
-		assertThrows(ScriptException.class, () -> interp.query("graph"));
-		assertThrows(ScriptException.class, () -> interp.query("crymlin"));
+	/**
+	 * The console reads and prints from/to stdin/stdout.
+	 * We redirect these streams to access them from these tests.
+	 *
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	@BeforeAll
+	public static void beforeAll() throws IOException, InterruptedException {
+		// Connect a POS to stdin
+		PipedOutputStream pos = new PipedOutputStream();
+		PipedInputStream pis = new PipedInputStream(pos);
+		oldIn = System.in;
+		System.setIn(pis);
 
-		// Connect engine to DB
-		bench = new Benchmark(this.getClass(), "Connecting to DB");
+		// Redirect stdout, stderr to BOS
+		outContent = new ByteArrayOutputStream();
+		errContent = new ByteArrayOutputStream();
+		originalOut = System.out;
+		originalErr = System.err;
+		System.setOut(new PrintStream(outContent));
+		System.setErr(new PrintStream(errContent));
+
+		// Start console (in thread, because it will block)
+		interp = new JythonInterpreter();
 		interp.connect();
-		bench.stop();
+		new Thread(() -> {
+			interp.spawnInteractiveConsole();
+		}).start();
 
-		// Expect a connected engine w/o exceptions.
-		assertNotNull(interp.getEngine());
-		bench = new Benchmark(this.getClass(), "Sending 2 queries to graph");
-		assertDoesNotThrow(() -> interp.query("graph"));
-		assertDoesNotThrow(() -> interp.query("crymlin"));
-		bench.stop();
+		// Wait until console is up
+		ReentrantLock lock = new ReentrantLock();
+		Condition consoleAvailable = lock.newCondition();
+		new Thread(() -> {
+			lock.lock();
+			while (interp.getConsole() == null) {
+				try {
+					Thread.sleep(50);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread()
+							.interrupt();
+				}
+			}
+			consoleAvailable.signalAll();
+			lock.unlock();
+		}).start();
+		lock.lock();
+		consoleAvailable.await(100, TimeUnit.SECONDS);
+		lock.unlock();
 
-		bench = new Benchmark(this.getClass(), "Closing");
-		interp.close();
-		bench.stop();
+		jlineConsole = (JLineConsole) Py.getConsole();
 
-		// Expecting an empty engine
-		assertNotNull(interp.getEngine());
-		assertThrows(ScriptException.class, () -> interp.query("graph"));
-		assertThrows(ScriptException.class, () -> interp.query("crymlin"));
-	}
-
-	@Test
-	public void simpleJythonTest() throws Exception {
-		try (JythonInterpreter interp = new JythonInterpreter()) {
-
-			/*
-			 * This warning is known to the maintainers of Jython and is currently a non-bug: "An illegal reflective access operation has occurred" See
-			 * https://bugs.jython.org/issue2705
-			 */
-			interp.connect();
-
-			// Just for testing: We can now run normal python code and have access to the Tinkerpop graph
-			interp.query("g = graph.traversal()");
-			interp.query("print(g.V([]).toSet())");
-
-			// Just for testing: We can run normal Gremlin queries like so:
-			Object result = interp.query("g.V([]).toSet()"); // Get all (!) nodes
-			assertEquals(HashSet.class, result.getClass());
-		}
-	}
-
-	@Test
-	public void crymlinTest() throws Exception {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
-
-			// Run crymlin queries directly in Java
-			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
-			List<Vertex> stmts = crymlin.recorddeclarations().toList();
-			assertNotNull(stmts);
-
-			// Make sure these traversal steps work without exception
-			crymlin.V().literals().toList();
-			crymlin.translationunits().literals().toList();
-			crymlin.recorddeclarations().variables().name().toList();
-			crymlin.methods().code().toList();
-			crymlin.methods().comment().toList();
-			crymlin.methods().file().toList();
-		}
-	}
-
-	@Test
-	public void crymlinDslTest() throws Exception {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
-
-			// Run crymlin queries directly in Java
-			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
-			Long count = crymlin.recorddeclarations().count().next();
-			System.out.println(count);
-			assertNotNull(count);
-		}
+		assertNotNull(jlineConsole);
+		assertNotNull(outContent);
+		assertNotNull(errContent);
 	}
 
 	/**
-	 * Adding nodes to the graph. Note that <code>addV</code> will add nodes to the in-memory graph so future queries will see them.
-	 *
-	 * <p>
-	 * Note that we need to use labels which actually exist in our CPG and we must provide them in Tinkerpop's multi-label syntax (<label 1>::<label 2>).
+	 * Test behavior of tab completion if no input exists.
 	 *
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
-	public void gremlinGraphMutationTest() throws Exception {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
-			GraphTraversalSource g = traversalConnection.getGremlinTraversal();
+	@Order(1)
+	public void completionSimpleTest() throws Exception {
+		List<CharSequence> completions = new ArrayList<>();
+		jlineConsole.getReader()
+				.getCompleters()
+				.iterator()
+				.next()
+				.complete("\t", 0, completions);
+		System.out.println(String.join(",", completions));
+		outContent.flush();
+		errContent.flush();
 
-			Long size = g.V().count().next();
-			List<Object> t = g.addV()
-					.property(T.label, "TranslationUnitDeclaration")
-					.property("name", "some_value")
-					.store("one")
-					.addV()
-					.property(T.label,
-						"Declaration")
-					.property("name", "another_value")
-					.store("one")
-					.cap("one")
-					.toList();
-
-			assertNotNull(t);
-
-			List<String> labels = new ArrayList<>();
-			for (Object x : t) {
-				BulkSet<Vertex> v = (BulkSet<Vertex>) x;
-				for (Vertex a : v) {
-					labels.add(a.label());
-				}
-			}
-			assertEquals(2, labels.size());
-			assertEquals("TranslationUnitDeclaration", labels.get(0));
-			assertEquals("Declaration", labels.get(1));
-			Long sizeNew = g.V().count().next();
-
-			// New graph is expected to be +2 nodes larger.
-			assertEquals(2, sizeNew - size);
-
-			// Even with a new traversalConnection object, the graph will remain larger
-			GraphTraversalSource g2 = traversalConnection.getGremlinTraversal();
-			assertNotEquals(g, g2);
-			Long sizeAgain = g2.V().count().next();
-			assertEquals(2, sizeAgain - size);
-		}
+		assertNotEquals("", outContent.toString());
+		System.out.println(outContent.toString());
+		System.out.println(errContent.toString());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
+	@Order(2)
+	public void simpleJythonTest() throws Exception {
+		// Just for testing: We can run normal Gremlin queries:
+		Object result = interp.query("q.V().toSet()"); // Get all (!) nodes
+		assertEquals(HashSet.class, result.getClass());
+	}
+
+	@Test
+	@Order(3)
 	public void crymlinOverJythonTest() throws Exception {
-		try (JythonInterpreter interp = new JythonInterpreter()) {
-			interp.connect();
+		// Run crymlin queries as strings and get back the results as Java objects:
+		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.recorddeclarations().toList()");
+		assertNotNull(classes);
 
-			// Run crymlin queries as strings and get back the results as Java objects:
-			List<Vertex> classes = (List<Vertex>) interp.query("crymlin.recorddeclarations().toList()");
-			assertNotNull(classes);
-
-			List<Vertex> literals = (List<Vertex>) interp.query("crymlin.translationunits().literals().toList()");
-			assertNotNull(literals);
-		}
+		List<Vertex> literals = (List<Vertex>) interp.query("crymlin.translationunits().literals().toList()");
+		assertNotNull(literals);
 	}
+
+	@AfterAll
+	public static void afterAll() {
+		// Restore system streams
+		System.setOut(originalOut);
+		System.setErr(originalErr);
+		System.setIn(oldIn);
+
+		interp.close();
+		jlineConsole.getReader().close();
+	}
+
 }

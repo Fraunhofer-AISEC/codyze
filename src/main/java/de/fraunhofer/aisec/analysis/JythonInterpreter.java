@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.core.Py;
 import org.python.core.PyMethod;
 import org.python.jline.console.completer.Completer;
@@ -106,6 +107,11 @@ public class JythonInterpreter implements AutoCloseable {
 	 */
 	public Object query(String s) throws ScriptException {
 		return this.engine.eval(s);
+	}
+
+	@Nullable
+	public CrymlinConsole getConsole() {
+		return this.c;
 	}
 
 	/**

@@ -74,7 +74,7 @@ configurations.all {
 }
 
 val versions = mapOf(
-        "junit5" to "5.3.1",
+        "junit5" to "5.6.2",
         "log4j" to "2.11.1",
         "slf4j" to "1.8.0-beta4",
         "lsp4j" to "0.6.0",

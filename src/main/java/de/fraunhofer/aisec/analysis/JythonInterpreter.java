@@ -232,7 +232,7 @@ public class JythonInterpreter implements AutoCloseable {
 						if (str.startsWith(prefix)) {
 							Class<?> type = Class.class;
 							try {
-								String typeEval = "type(" + s.substring(0, dotPos) + "." + str + ")";
+								String typeEval = "type(" + s.substring(0, Math.max(dotPos, 0)) + "." + str + ")";
 								type = ((Class) engine.eval(typeEval));
 							}
 							catch (ScriptException e) {

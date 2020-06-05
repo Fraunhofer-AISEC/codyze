@@ -30,8 +30,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
+import static de.fraunhofer.aisec.crymlin.dsl.__.hasLabel;
+import static de.fraunhofer.aisec.crymlin.dsl.__.or;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inE;
 
 public class CrymlinQueryWrapper {
 
@@ -232,9 +236,9 @@ public class CrymlinQueryWrapper {
 	public static List<Vertex> getNextStatements(CrymlinTraversalSource crymlin, long id) {
 		// TODO Needs testing for branches
 		return crymlin.byID(id)
-				.repeat(__().out("EOG")
+				.repeat(out("EOG")
 						.simplePath())
-				.until(__().inE("STATEMENTS"))
+				.until(inE("STATEMENTS"))
 				.toList();
 	}
 
@@ -527,16 +531,13 @@ public class CrymlinQueryWrapper {
 	 */
 	public static Optional<Vertex> getContainingFunction(Vertex v, CrymlinTraversalSource crymlinTraversal) {
 		return crymlinTraversal.byID((long) v.id())
-				.repeat(__.__()
-						.inE()
+				.repeat(inE()
 						.has("sub-graph", "AST")
 						.outV())
-				.until(__.__()
-						.or(
-							__.__()
-									.hasLabel(FunctionDeclaration.class.getSimpleName()),
-							__.__()
-									.hasLabel(MethodDeclaration.class.getSimpleName())))
+				.until(
+					or(
+						hasLabel(FunctionDeclaration.class.getSimpleName()),
+						hasLabel(MethodDeclaration.class.getSimpleName())))
 				.tryNext();
 	}
 

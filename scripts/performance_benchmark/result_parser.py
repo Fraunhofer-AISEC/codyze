@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from statistics import median, variance, pstdev
 
 
 class Item(object):
@@ -38,12 +39,16 @@ def main(report):
         items = defaultdict(lambda: Item())
         verified_orders = 0
         violations = 0
+        verified = 0
         curr_object = None
         for line in f:
             if line.startswith("\t\t\tline"):
                 if "Verified Order" in line:
                     finding = "verified order"
                     verified_orders += 1
+                elif "verified" in line:
+                    finding = "verified"
+                    verified += 1
                 else:
                     finding = "violation"
                     violations += 1
@@ -82,8 +87,18 @@ def main(report):
                         curr_object].filename = f"{match.group('repo')}/{match.group('path')}"
 
         print(f"Parsed {len(items.values())} items")
-        show_plot(items, violations, verified_orders)
-        show_plot_3d(items, violations, verified_orders)
+        show_plot(items, violations, verified, verified_orders)
+        show_plot_3d(items, violations, verified, verified_orders)
+        print("Java results")
+        print("Median: %f" % median([i.duration for i in items.values() if i.filename.endswith("java")]))
+        print("Max:    %f" % max([i.duration for i in items.values() if i.filename.endswith("java")]))
+        print("Min:    %f" % min([i.duration for i in items.values() if i.filename.endswith("java")]))
+        print("Sigma:  %f" % pstdev([i.duration for i in items.values() if i.filename.endswith("java")]))
+        print("\nC++ results")
+        print("Median: %f" % median([i.duration for i in items.values() if i.filename.endswith("cpp")]))
+        print("Max:    %f" % max([i.duration for i in items.values() if i.filename.endswith("cpp")]))
+        print("Min:    %f" % min([i.duration for i in items.values() if i.filename.endswith("cpp")]))
+        print("Sigma:  %f" % pstdev([i.duration for i in items.values() if i.filename.endswith("cpp")]))
         plt.show()
 
 
@@ -96,13 +111,14 @@ def get_color(item):
         return "black" if item.error else "lightgray"
 
 
-def show_plot(items, violations, verified_orders):
+def show_plot(items, violations, verified, verified_orders):
     sizes, durations, colors = zip(
       *[(i.size, i.duration, get_color(i)) for i in
         items.values()])
     fig, ax = plt.subplots()
     plt.title(f"{len(items)} files analyzed, "
               f"{violations} violation{'' if violations == 1 else 's'} and "
+              f"{verified} verified other rule{'' if verified == 1 else 's'} and "
               f"{verified_orders} verified order{'' if violations == 1 else 's'}")
     plt.xlabel("Size (B)")
     plt.ylabel("Duration (ms)")
@@ -149,7 +165,7 @@ def show_plot(items, violations, verified_orders):
     fig.canvas.mpl_connect("motion_notify_event", hover)
 
 
-def show_plot_3d(items, violations, verified_orders):
+def show_plot_3d(items, violations, verified, verified_orders):
     sizes, durations, findings, colors = zip(
       *[(i.size, i.duration, sum(i.findings.values()), get_color(i)) for i in
         items.values()])
@@ -157,6 +173,7 @@ def show_plot_3d(items, violations, verified_orders):
     ax = fig.add_subplot(111, projection='3d')
     ax.set_title(f"{len(items)} files analyzed, "
                  f"{violations} violation{'' if violations == 1 else 's'} and "
+                 f"{verified} verified other rule{'' if verified == 1 else 's'} and "
                  f"{verified_orders} verified order{'' if violations == 1 else 's'}\n"
                  f"(Point labels might be inaccurate due to incorrect 2D to 3D "
                  f"coordinate transformation!)", y=1.03)

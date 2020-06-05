@@ -35,7 +35,7 @@ def main():
         with open(".env", "w") as f:
             f.write(
               "REDIS_HOST=redis\n"
-              "GITHUB_QUERY_JAVA='language:Java \"import javax.crypto\"'\n"
+              "GITHUB_QUERY_JAVA='language:Java \"q=cipher.getinstance+\\\"BC\\\"\"'\n"
               "GITHUB_QUERY_CXX='extension:cpp \"include <botan/botan.h>\"'\n"
               "ANALYSIS_MODE=files\n"
               "MARK_PATH=/mark\n"

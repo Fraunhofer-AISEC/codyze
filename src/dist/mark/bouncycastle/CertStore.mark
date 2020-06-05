@@ -19,7 +19,7 @@ entity CertStore {
 		java.security.cert.CertStore.getInstance(
 			type : java.lang.String,
 			params : java.security.cert.CertStoreParameters,
-			provider : java.lang.String | java.securiy.Provider
+			provider : java.lang.String | java.security.Provider
 		);
 	}
 	

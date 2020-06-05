@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,10 +22,10 @@ public class CrymlinTest {
 		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 			// Run crymlin queries directly in Java
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
-			Long count = crymlin.recorddeclarations()
+			Optional<Long> count = crymlin.recorddeclarations()
 					.count()
-					.next();
-			assertEquals(0, count);
+					.tryNext();
+			assertTrue(count.isPresent());
 		}
 	}
 

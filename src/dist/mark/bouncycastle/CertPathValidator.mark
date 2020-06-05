@@ -15,7 +15,7 @@ entity CertPathValidator {
 		);
 		java.security.cert.CertPathValidator.getInstance(
 			algorithm : java.lang.String,
-			provider : java.lang.String | java.securiy.Provider
+			provider : java.lang.String | java.security.Provider
 		);
 	}
 	

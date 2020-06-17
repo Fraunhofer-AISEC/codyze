@@ -132,15 +132,15 @@ no = 'Sorry to hear that. Please <a href="https://github.com/USERNAME/REPOSITORY
 [params.links]
 # End user relevant links. These will show up on left side of footer and in the community page if you have one.
 [[params.links.user]]
-	name = "Info Mail"
-	url = "mailto:info@codyze.io"
+	name = "Email"
+	url = "mailto:info@aisec.fraunhofer.de"
 	icon = "fa fa-envelope"
         desc = "Send us an email"
 [[params.links.user]]
 	name ="Twitter"
 	url = "https://www.twitter.com/FraunhoferAISEC"
 	icon = "fab fa-twitter"
-        desc = "Follow us on Twitter to get the latest news!"
+        desc = "Follow us on Twitter"
 #[[params.links.user]]
 #	name = "Stack Overflow"
 #	url = "https://example.org/stack"

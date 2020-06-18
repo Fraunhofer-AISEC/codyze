@@ -1,7 +1,7 @@
 ---
 title: "Write MARK Policies"
 linkTitle: "Write MARK Policies"
-weight: 2
+weight: 4
 description: >
   MARK is a policy language to describe the correct and safe use of cryptographic libraries.
 ---

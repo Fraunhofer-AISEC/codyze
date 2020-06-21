@@ -8,12 +8,19 @@ import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.cpg.graph.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import io.netty.util.Constant;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Method signature: _is_instance(var instance, String classname)
@@ -66,9 +73,9 @@ public class IsInstance implements Builtin {
 					String type = next.value("fqn");
 					cv = ConstantValue.of(type.equals(classname));
 				} else {
-					String type = next.value("type");
-					cv = ConstantValue.of(type.equals(classname));
-					// todo we could also check `mostPreciseType` once available
+					// Get list of possible types, including the most specific type.
+					boolean match = Utils.getPossibleSubTypes(next).contains(classname);
+					cv = ConstantValue.of(match);
 				}
 			}
 			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),

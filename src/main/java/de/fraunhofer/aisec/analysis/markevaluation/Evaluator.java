@@ -79,6 +79,10 @@ public class Evaluator {
 
 			return result;
 		}
+		catch (Exception e) {
+			log.debug(e.getMessage(), e);
+			return result;
+		}
 		finally {
 			// reset everything attached to this model
 			this.markModel.reset();

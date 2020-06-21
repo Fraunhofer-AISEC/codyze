@@ -234,4 +234,24 @@ public class Utils {
 		int endColumn = toIntExact((Long) v.property("endColumn").orElse(Long.valueOf(-1))) - 1;
 		return new Region(startLine, startColumn, endLine, endColumn);
 	}
+
+	/**
+	 * Returns an (unmodifiable) possibly empty list of all types this vertex might have.
+	 *
+	 * @param next
+	 * @return
+	 */
+	@NonNull
+	public static List<String> getPossibleSubTypes(@NonNull Vertex next) {
+		if (next.property("possibleSubTypes").isPresent() && next.value("possibleSubTypes") instanceof String) {
+			List<String> possibleTypes = Arrays
+					.asList(
+						((String) next.value("possibleSubTypes")).split(","))
+					.stream()
+					.map(t -> t.trim())
+					.collect(Collectors.toUnmodifiableList());
+			return possibleTypes;
+		}
+		return List.of();
+	}
 }

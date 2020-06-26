@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static java.lang.Math.toIntExact;
 
 public class Utils {
@@ -228,10 +229,10 @@ public class Utils {
 	 */
 	@NonNull
 	public static Region getRegionByVertex(@NonNull Vertex v) {
-		int startLine = toIntExact((Long) v.property("startLine").orElse(Long.valueOf(-1))) - 1;
-		int endLine = toIntExact((Long) v.property("endLine").orElse(Long.valueOf(-1))) - 1;
-		int startColumn = toIntExact((Long) v.property("startColumn").orElse(Long.valueOf(-1))) - 1;
-		int endColumn = toIntExact((Long) v.property("endColumn").orElse(Long.valueOf(-1))) - 1;
+		int startLine = toIntExact((Long) v.property(START_LINE).orElse(Long.valueOf(-1))) - 1;
+		int endLine = toIntExact((Long) v.property(END_LINE).orElse(Long.valueOf(-1))) - 1;
+		int startColumn = toIntExact((Long) v.property(START_COLUMN).orElse(Long.valueOf(-1))) - 1;
+		int endColumn = toIntExact((Long) v.property(END_COLUMN).orElse(Long.valueOf(-1))) - 1;
 		return new Region(startLine, startColumn, endLine, endColumn);
 	}
 
@@ -243,14 +244,13 @@ public class Utils {
 	 */
 	@NonNull
 	public static List<String> getPossibleSubTypes(@NonNull Vertex next) {
-		if (next.property("possibleSubTypes").isPresent() && next.value("possibleSubTypes") instanceof String) {
-			List<String> possibleTypes = Arrays
+		if (next.property(POSSIBLE_SUBTYPES).isPresent() && next.value(POSSIBLE_SUBTYPES) instanceof String) {
+			return Arrays
 					.asList(
-						((String) next.value("possibleSubTypes")).split(","))
+						((String) next.value(POSSIBLE_SUBTYPES)).split(","))
 					.stream()
-					.map(t -> t.trim())
+					.map(String::trim)
 					.collect(Collectors.toUnmodifiableList());
-			return possibleTypes;
 		}
 		return List.of();
 	}

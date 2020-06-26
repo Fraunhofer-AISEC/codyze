@@ -8,8 +8,10 @@ rule Crypt {
         Cipher as c
     when
         _split(c.transform, "/", 1) in ["CBC", "CTR"]
-        && (c.opmode == 1 /* javax.crypto.Cipher.ENCRYPT_MODE */
-            || c.opmode == 2 /* javax.crypto.Cipher.DECRYPT_MODE */
+        && (c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
+            || c.opmode == "javax.crypto.Cipher.DECRYPT_MODE"
+            || c.opmode == "1" /* ENCRYPT_MODE */
+            || c.opmode == "2" /* DECRYPT_MODE */
         )
     ensure
         order c.instantiate(),
@@ -28,8 +30,10 @@ rule AEAD_Crypt {
         Cipher as c
     when
         _split(c.transform, "/", 1) in ["CCM", "GCM"]
-        && (c.opmode == 1 /* javax.crypto.Cipher.ENCRYPT_MODE */
-            || c.opmode == 2 /* javax.crypto.Cipher.DECRYPT_MODE */
+        && (c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
+            || c.opmode == "javax.crypto.Cipher.DECRYPT_MODE"
+            || c.opmode == "1" /* ENCRYPT_MODE */
+            || c.opmode == "2" /* DECRYPT_MODE */
         )
     ensure
         order c.instantiate(),

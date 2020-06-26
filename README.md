@@ -12,9 +12,11 @@ Codyze is a static code analyzer that focuses on the correct use of cryptographi
 
 Documentation: https://www.codyze.io
 
-# Build the project
+# Build & run Codyze
 
-Build an executable version of Codyze:
+Java 11 (OpenSDK) is a prerequisite.
+
+To build an executable version of Codyze, use the `installDist` task:
 
 ```shell
 $ ./gradlew installDist
@@ -54,3 +56,15 @@ Analysis settings
       --interproc           Enables interprocedural data flow analysis (more precise but slower).
 ```
 Please refer to https://www.codyze.io for further usage instructions.
+
+# Research & Student Work
+
+If you are looking for an exciting thesis project or student job in the field of static analysis, we are happy to discuss possible topics.
+
+# Support
+
+We will continue to maintain this project for the foreeable future on a best-effort basis. That is, if you run into any bugs or find the documentation insufficient, we encourage you to open issues or pull requests. If you are interested in support and development for commercial use, please contact us.
+
+# License
+
+[Apache License 2.0](https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE)

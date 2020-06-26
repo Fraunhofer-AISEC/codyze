@@ -8,7 +8,6 @@ import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.crymlin.dsl.__;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.*;
@@ -32,10 +31,7 @@ import java.util.stream.IntStream;
 import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static de.fraunhofer.aisec.crymlin.dsl.__.hasLabel;
 import static de.fraunhofer.aisec.crymlin.dsl.__.or;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.has;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inE;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 public class CrymlinQueryWrapper {
 

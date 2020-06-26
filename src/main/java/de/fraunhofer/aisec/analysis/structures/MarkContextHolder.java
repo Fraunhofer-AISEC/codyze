@@ -5,6 +5,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -140,5 +141,19 @@ public class MarkContextHolder {
 
 	public boolean isCreateFindingsDuringEvaluation() {
 		return createFindingsDuringEvaluation;
+	}
+
+	public void dump(PrintStream out) {
+		out.println("====== Mark Context ========");
+		for (Map.Entry<Integer, MarkContext> ctx : contexts.entrySet()) {
+			int id = ctx.getKey();
+			MarkContext mCtx = ctx.getValue();
+			out.println(id + ":");
+			mCtx.dump(out);
+			for (String op : resolvedOperands) {
+				out.println("   op: " + op + " : " + mCtx.getOperand(op).getValue());
+			}
+		}
+		out.println("===========================");
 	}
 }

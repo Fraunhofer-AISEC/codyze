@@ -1,9 +1,13 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,6 +52,27 @@ public class MarkContext {
 
 	public void setFindingAlreadyAdded(boolean b) {
 		this.findingAlreadyAdded = b;
+	}
+
+	/**
+	 * Dump this {@link MarkContext} to the given {@link PrintStream}.
+	 *
+	 * @param out
+	 */
+	public void dump(@NonNull PrintStream out) {
+		if (instances != null) {
+			for (String instance : instances.getMarkInstances()) {
+				Vertex v = instances.getVertex(instance);
+				if (v != null) {
+					out.println("MARK instance " + instance + " " + v.property("type").orElse(""));
+				} else {
+					out.println("MARK instance " + instance + " <null>");
+				}
+				for (Map.Entry<String, CPGVertexWithValue> op : operands.entrySet()) {
+					out.println("   " + op.getKey() + " : " + op.getValue().getValue());
+				}
+			}
+		}
 	}
 
 }

@@ -34,8 +34,8 @@ public interface Builtin {
 	 * @return
 	 */
 	ConstantValue execute(
-			ListValue argResultList,
-			Integer contextID,
-			MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator);
+			@NonNull ListValue argResultList,
+			@NonNull Integer contextID,
+			@NonNull MarkContextHolder markContextHolder,
+			@NonNull ExpressionEvaluator expressionEvaluator);
 }

@@ -13,7 +13,7 @@ MARK is a simple domain specific language (DSL) that can be written in any text 
 ## Install the MARK Eclipse Plugin
 
 * In Eclipse, click on `Help`->`Install new software`
-* Add the update site: `https://update.breakpoint-security.de`
+* Add the update site: `https://update.breakpoint-security.com`
 * Install (TODO: Name of product in eclipse update site)
 
 ## Start writing MARK policies

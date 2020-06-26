@@ -151,7 +151,7 @@ public class CrymlinQueryWrapper {
 				if (sourceArgPos == i) {
 					String subTypeProperty = (String) vArg.property("possibleSubTypes").value();
 					for (String subType : subTypeProperty.split(",")) {
-						sourceArgs.add(Type.createFrom(subType));
+						sourceArgs.add(Type.createFrom(subType.trim()));
 					}
 				}
 			}

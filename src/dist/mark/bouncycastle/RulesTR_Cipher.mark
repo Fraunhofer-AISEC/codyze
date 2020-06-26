@@ -318,6 +318,8 @@ rule ID_3_5_01 {
         && (
             c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
             || c.opmode == "javax.crypto.Cipher.DECRYPT_MODE"
+            || c.opmode == "1"
+            || c.opmode == "2"
             )
     ensure
         _split(c.transform, "/", 2) in [

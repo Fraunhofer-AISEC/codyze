@@ -68,7 +68,18 @@ entity Cipher {
         javax.crypto.Cipher.init(
             opmode : int,
             key : java.security.Key,
+            paramspec : javax.crypto.spec.IvParameterSpec
+        );
+        javax.crypto.Cipher.init(
+            opmode : int,
+            key : java.security.Key,
             paramspec : java.security.spec.AlgorithmParameterSpec,
+            random : java.security.SecureRandom
+        );
+        javax.crypto.Cipher.init(
+            opmode : int,
+            key : java.security.Key,
+            paramspec : javax.crypto.spec.IvParameterSpec,
             random : java.security.SecureRandom
         );
     }

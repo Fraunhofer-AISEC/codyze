@@ -9,6 +9,9 @@
 </p>
 
 Codyze is a static code analyzer that focuses on the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
+
+Documentation: https://www.codyze.io
+
 # Build the project
 
 Build an executable version of Codyze:
@@ -50,27 +53,4 @@ Analysis settings
                             WPDS: Weighted pushdown system (slower, interprocedural)
       --interproc           Enables interprocedural data flow analysis (more precise but slower).
 ```
-Please refer to http://codyze.io for further usage instructions.
-
-### Test in IntelliJ
-
-To debug what is sent to the LSP-Server, modify the /codyze script and make the last line sth. like:
-
-```
-echo "Starting" > /tmp/bla
-echo "$JAVACMD" "$@" > /tmp/bla
-exec "$JAVACMD" "$@" | tee -a /tmp/bla
-```
-
-automate with:
-
-```
-./gradlew installDist; and sed -i '$ d' build/install/codyze/bin/codyze ; and echo 'exec "$JAVACMD" "$@" | tee -a /tmp/cpgoutput' >> build/install/codyze/bin/codyze
-```
-
-To silence
-```
-java.lang.reflect.InaccessibleObjectException: Unable to make field protected final java.lang.reflect.Field jdk.internal.reflect.UnsafeFieldAccessorImpl.field accessible: module java.base does not "opens jdk.internal.reflect" to unnamed module @5dbd2d01
-```
-
-add `--add-opens java.base/jdk.internal.reflect=ALL-UNNAMED` to the start-command in `build/install/codyze/bin/codyze`
+Please refer to https://www.codyze.io for further usage instructions.

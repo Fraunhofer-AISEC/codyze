@@ -87,7 +87,8 @@ val versions = mapOf(
         "neo4j-gremlin-bolt" to "0.3.1",
         "xml.bind" to "2.3.1",
         "cpg" to "1.4.2",
-        "json" to "20190722"        
+        "json" to "20190722",
+        "json-path" to "2.4.0"
 )
 
 dependencies {
@@ -114,6 +115,9 @@ dependencies {
 
     // JSON parser for generation of results file
     api("org.json", "json", versions["json)"])
+
+    // JsonPath for querying JSON
+    api("com.jayway.jsonpath", "json-path", versions["json-path"])
 
     // Command line interface support
     api("info.picocli", "picocli", "4.1.4")

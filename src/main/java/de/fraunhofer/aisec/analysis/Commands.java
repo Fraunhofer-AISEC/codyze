@@ -101,7 +101,7 @@ public class Commands {
 	@ShellCommand("Show findings after analysis")
 	public void show_findings() {
 		for (Finding fi : jythonInterpreter.getFindings()) {
-			System.out.println(fi);
+			fi.prettyPrintShort(System.out);
 		}
 	}
 

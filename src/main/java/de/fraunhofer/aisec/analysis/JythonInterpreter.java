@@ -10,18 +10,19 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.core.Py;
 import org.python.core.PyMethod;
+import org.python.jline.console.ConsoleReader;
+import org.python.jline.console.CursorBuffer;
 import org.python.jline.console.completer.Completer;
+import org.python.jline.console.completer.CompletionHandler;
 import org.python.util.JLineConsole;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.python.jline.internal.Ansi.stripAnsi;
@@ -136,6 +137,7 @@ public class JythonInterpreter implements AutoCloseable {
 			Py.installConsole(jCon);
 			jCon.getReader()
 					.addCompleter(new CrymlinCompleter());
+			jCon.getReader().setCompletionHandler(new CandidateListCompletionHandler());
 		}
 		catch (Exception e) {
 			// If JLine is not available, we will fall back to PlainConsole.
@@ -242,9 +244,9 @@ public class JythonInterpreter implements AutoCloseable {
 							if (str.startsWith("__")
 									|| List.of("addE", "addV", "hashCode", "toString", "class", "clone", "wait", "equals", "notify", "notifyAll")
 											.contains(str)) {
-								list.add(ANSI_BLUE + str + (type.equals(PyMethod.class) ? "(" : "") + ANSI_RESET);
+								list.add(ANSI_BLUE + str + (type.equals(PyMethod.class) ? "()" : "") + ANSI_RESET);
 							} else {
-								list.add(str + (type.equals(PyMethod.class) ? "(" : ""));
+								list.add(str + (type.equals(PyMethod.class) ? "()" : ""));
 							}
 						}
 					}

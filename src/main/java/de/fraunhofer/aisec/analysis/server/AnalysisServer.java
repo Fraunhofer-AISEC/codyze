@@ -69,6 +69,11 @@ public class AnalysisServer {
 
 	private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
 
+	/**
+	 * Name of file containing human-readable explanations of findings.
+	 */
+	private static final String FINDING_DESCRIPTION_FILE = "findingDescription.json";
+
 	private static AnalysisServer instance;
 
 	private ServerConfiguration config;
@@ -270,7 +275,7 @@ public class AnalysisServer {
 			while (entry != null) {
 				String filePath = tempDirWithPrefix.toString() + File.separator + entry.getName();
 				if (!entry.isDirectory()
-						&& (entry.getName().endsWith(".mark") || entry.getName().equals("findingDescription.json"))) {
+						&& (entry.getName().endsWith(".mark") || entry.getName().equals(FINDING_DESCRIPTION_FILE))) {
 					try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
 						byte[] bytesIn = new byte[4096];
 						int read;
@@ -323,7 +328,7 @@ public class AnalysisServer {
 			catch (IOException e) {
 				log.error("Failed to load MARK file", e);
 			}
-			markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + "findingDescription.json");
+			markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + FINDING_DESCRIPTION_FILE);
 		} else if (markFile.getName().endsWith(".jar") || markFile.getName().endsWith(".zip")) {
 			try {
 				ArrayList<File> allMarkFiles = unzipMarkAndFindingDescription(markFile.getAbsolutePath());
@@ -331,7 +336,7 @@ public class AnalysisServer {
 					if (f.getName().endsWith(".mark")) {
 						log.info("  Loading MARK file {}", f.getAbsolutePath());
 						parser.addMarkFile(f);
-					} else { // findingDescription.json
+					} else if (f.getName().equals(FINDING_DESCRIPTION_FILE)) {
 						markDescriptionFile = f;
 					}
 				}
@@ -340,9 +345,8 @@ public class AnalysisServer {
 				log.error("Failed to load MARK file", e);
 			}
 		} else {
-
 			parser.addMarkFile(markFile);
-			markDescriptionFile = new File(markFile.getParent() + File.separator + "findingDescription.json");
+			markDescriptionFile = new File(markFile.getParent() + File.separator + FINDING_DESCRIPTION_FILE);
 		}
 
 		HashMap<String, MarkModel> markModels = parser.parse();

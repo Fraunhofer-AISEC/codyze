@@ -1,6 +1,18 @@
 {
   "WrongUseOfBotan_CipherMode": {
-    "detailed": "Detailed error message",
-    "brief": "The order of called Botan methods is wrong."
+    "helpUri": "https://www.codyze.io/explanations/10",
+    "fullDescription": {
+      "text": "Full description"
+    },
+    "shortDescription": {
+      "text": "The order of called Botan methods is wrong."
+    },
+    "fixes": [
+      {
+        "description": {
+          "text": "Just fix it!"
+        }
+      }
+    ]
   }
 }

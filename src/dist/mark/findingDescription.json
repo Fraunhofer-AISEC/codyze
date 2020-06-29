@@ -1,0 +1,18 @@
+{
+  "InvalidRSAPadding": {
+    "helpUri": "https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/TechnischeRichtlinien/TR02102/BSI-TR-02102.pdf",
+    "fullDescription": {
+      "text": "The security of RSA is sensitive to the choice of a proper padding scheme. Older schemes such as PKCS#1v1.5 are prone to well-known attacks such as the Bleichenbacher attack"
+    },
+    "shortDescription": {
+      "text": "Insecure or no RSA padding"
+    },
+    "fixes": [
+      {
+        "description": {
+          "text": "Use RSA with EME-OAEP padding."
+        }
+      }
+    ]
+  }
+}

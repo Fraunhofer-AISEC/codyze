@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.json.JSONPropertyIgnore;
 
+import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,9 +109,9 @@ public class Finding {
 	public String toString() {
 		// simple for now
 		String addIfExists = "";
-		String descriptionBrief = FindingDescription.getInstance().getDescriptionBrief(onFailIdentifier);
-		if (!descriptionBrief.equals(onFailIdentifier)) {
-			addIfExists = ": " + descriptionBrief;
+		String descriptionShort = FindingDescription.getInstance().getDescriptionShort(onFailIdentifier);
+		if (descriptionShort != null && !descriptionShort.equals(onFailIdentifier)) {
+			addIfExists = ": " + descriptionShort;
 		}
 		String lines;
 		if (locations.size() == 1) {
@@ -130,5 +131,26 @@ public class Finding {
 
 	public int hashCode() {
 		return toString().hashCode();
+	}
+
+	/**
+	 * Prints the finding formatted as a single line of text.
+	 *
+	 * @param out
+	 */
+	public void prettyPrintShort(@NonNull PrintStream out) {
+		String shortMsg = FindingDescription.getInstance().getDescriptionShort(onFailIdentifier);
+		if (shortMsg == null) {
+			shortMsg = onFailIdentifier;
+		}
+
+		String lines;
+		if (locations.size() == 1) {
+			lines = (locations.get(0).getRegion().getStartLine() + 1) + "";
+		} else {
+			lines = "[" + locations.stream().map(loc -> "" + (loc.getRegion().getStartLine() + 1)).sorted().distinct().collect(Collectors.joining(", ")) + "]";
+		}
+
+		out.println(lines + ": " + (isProblem ? "(BAD)  " : "(GOOD) ") + shortMsg);
 	}
 }

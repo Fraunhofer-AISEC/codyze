@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.crymlin.connectors.lsp;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.FindingDescription;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
@@ -107,7 +108,7 @@ public class CpgDocumentService implements TextDocumentService {
 				allLines = Files.readAllLines(Paths.get(file.getAbsolutePath()));
 			}
 			catch (IOException e) {
-				log.error("Error reading source file for messge disabling", e);
+				log.error("Error reading source file for message disabling", e);
 			}
 
 			ArrayList<Diagnostic> allDiags = new ArrayList<>();
@@ -122,8 +123,15 @@ public class CpgDocumentService implements TextDocumentService {
 						// Positive finding: Good code
 						diagnostic.setSeverity(DiagnosticSeverity.Hint);
 					}
+
+					// Get human readable description, if available
+					String msg = FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier());
+					if (msg == null) {
+						msg = f.getLogMsg();
+					}
+
 					diagnostic.setCode(f.getOnfailIdentifier());
-					diagnostic.setMessage(f.getLogMsg());
+					diagnostic.setMessage(msg);
 					Range r = new Range(new Position(reg.getStartLine(), reg.getStartColumn()), new Position(reg.getEndLine(), reg.getEndColumn()));
 					diagnostic.setRange(r);
 					if (allLines != null) {

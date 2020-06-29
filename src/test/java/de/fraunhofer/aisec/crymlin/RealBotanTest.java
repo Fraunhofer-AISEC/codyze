@@ -112,7 +112,7 @@ class RealBotanTest extends AbstractMarkTest {
 				.collect(Collectors.toList());
 		assertEquals(2, keyLengths.size());
 
-		assertTrue(keyLengths.get(0).getRegions().stream().anyMatch(r -> r.getStartLine() == 15));
-		assertTrue(keyLengths.get(1).getRegions().stream().anyMatch(r -> r.getStartLine() == 21));
+		assertTrue(keyLengths.stream().anyMatch(l -> l.getRegions().get(0).getStartLine() == 15));
+		assertTrue(keyLengths.stream().anyMatch(l -> l.getRegions().get(0).getStartLine() == 21));
 	}
 }

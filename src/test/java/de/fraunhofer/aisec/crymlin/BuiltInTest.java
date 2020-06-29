@@ -39,10 +39,10 @@ public class BuiltInTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/simplesplit_splitstring.cpp", "mark_cpp/splitstring.mark");
 
 		expected(findings,
-			"line 26: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES violated",
-			"line 17: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES verified",
-			"line 17: MarkRuleEvaluationFinding: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST violated",
-			"line 26: MarkRuleEvaluationFinding: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST verified");
+			"line 26: Rule SPLIT_FIRSTELEMENT_EQUALS_AES violated",
+			"line 17: Rule SPLIT_FIRSTELEMENT_EQUALS_AES verified",
+			"line 17: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST violated",
+			"line 26: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST verified");
 	}
 
 	@Test
@@ -50,7 +50,7 @@ public class BuiltInTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/simple_instancestring.cpp", "mark_cpp/instancestring.mark");
 
 		expected(findings,
-			"line 17: MarkRuleEvaluationFinding: Rule HasBeenCalled verified");
+			"line 17: Rule HasBeenCalled verified");
 	}
 
 	@Test
@@ -58,9 +58,9 @@ public class BuiltInTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/simple_eog_connection.cpp", "mark_cpp/eog_connection.mark");
 
 		expected(findings,
-			"line [22, 24]: MarkRuleEvaluationFinding: Rule ControlFlow violated",
-			"line [33, 37]: MarkRuleEvaluationFinding: Rule ControlFlow verified",
-			"line [45, 46]: MarkRuleEvaluationFinding: Rule ControlFlow verified");
+			"line [22, 24]: Rule ControlFlow violated",
+			"line [33, 37]: Rule ControlFlow verified",
+			"line [45, 46]: Rule ControlFlow verified");
 	}
 
 	@Test
@@ -68,9 +68,9 @@ public class BuiltInTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/simple_eog_connection.cpp", "mark_cpp/direct_eog_connection.mark");
 
 		expected(findings,
-			"line [22, 24]: MarkRuleEvaluationFinding: Rule ControlFlow violated",
-			"line [33, 37]: MarkRuleEvaluationFinding: Rule ControlFlow violated",
-			"line [45, 46]: MarkRuleEvaluationFinding: Rule ControlFlow verified");
+			"line [22, 24]: Rule ControlFlow violated",
+			"line [33, 37]: Rule ControlFlow violated",
+			"line [45, 46]: Rule ControlFlow verified");
 	}
 
 	@Test
@@ -78,8 +78,8 @@ public class BuiltInTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_java/length.java", "mark_java/length.mark");
 
 		expected(findings,
-			"line 13: MarkRuleEvaluationFinding: Rule LENGHTRULE violated",
-			"line 10: MarkRuleEvaluationFinding: Rule LENGHTRULE verified");
+			"line 13: Rule LENGHTRULE violated",
+			"line 10: Rule LENGHTRULE verified");
 	}
 
 	@Test
@@ -87,8 +87,8 @@ public class BuiltInTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_java/is.java", "mark_java/is.mark");
 
 		expected(findings,
-			"line 22: MarkRuleEvaluationFinding: Rule FooBar violated",
-			"line 17: MarkRuleEvaluationFinding: Rule FooBar verified");
+			"line 22: Rule FooBar violated",
+			"line 17: Rule FooBar verified");
 	}
 
 	@Test
@@ -96,8 +96,8 @@ public class BuiltInTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_java/has_value.java", "mark_java/has_value.mark");
 
 		expected(findings,
-			"line 17: MarkRuleEvaluationFinding: Rule Bar violated",
-			"line 21: MarkRuleEvaluationFinding: Rule Foo verified");
+			"line 17: Rule Bar violated",
+			"line 21: Rule Foo verified");
 	}
 
 	@Test

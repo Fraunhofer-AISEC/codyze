@@ -12,6 +12,7 @@
  *
  * It removes the trailing space after tab completions.
  */
+
 package de.fraunhofer.aisec.analysis;
 
 import org.checkerframework.checker.nullness.qual.Nullable;

@@ -37,10 +37,10 @@ public class MarkJavaTest extends AbstractMarkTest {
 		}
 
 		String[] expectedFindings = new String[] {
-				"line 23: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES violated",
-				"line 14: MarkRuleEvaluationFinding: Rule SPLIT_FIRSTELEMENT_EQUALS_AES verified",
-				"line 14: MarkRuleEvaluationFinding: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST violated",
-				"line 23: MarkRuleEvaluationFinding: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST verified"
+				"line 23: Rule SPLIT_FIRSTELEMENT_EQUALS_AES violated",
+				"line 14: Rule SPLIT_FIRSTELEMENT_EQUALS_AES verified",
+				"line 14: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST violated",
+				"line 23: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST verified"
 		};
 
 		for (String expected : expectedFindings) {
@@ -68,8 +68,8 @@ public class MarkJavaTest extends AbstractMarkTest {
 		}
 
 		String[] expectedFindings = new String[] {
-				"line 12: MarkRuleEvaluationFinding: Rule HasBeenCalled verified",
-				"line 15: MarkRuleEvaluationFinding: Rule HasBeenCalled verified",
+				"line 12: Rule HasBeenCalled verified",
+				"line 15: Rule HasBeenCalled verified",
 		};
 
 		for (String expected : expectedFindings) {
@@ -92,8 +92,8 @@ public class MarkJavaTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_java/const.java", "mark_java/const.mark");
 
 		// todo: missing: Enum is not handled yet
-		expected(findings, "line [17, 3]: MarkRuleEvaluationFinding: Rule Static verified",
-			"line [15, 3]: MarkRuleEvaluationFinding: Rule Static violated" // TODO false positive, Constant not correctly resolved
+		expected(findings, "line [17, 3]: Rule Static verified",
+			"line [15, 3]: Rule Static violated" // TODO false positive, Constant not correctly resolved
 		);
 
 	}

@@ -44,7 +44,7 @@ public class FindingDescription {
 		try {
 			return json.read("$['" + onFailId + "']['fullDescription']['text']");
 		}
-		catch (PathNotFoundException e) {
+		catch (PathNotFoundException | NullPointerException e) {
 			return null;
 		}
 	}
@@ -54,7 +54,7 @@ public class FindingDescription {
 		try {
 			return json.read("$['" + onFailId + "']['shortDescription']['text']");
 		}
-		catch (PathNotFoundException e) {
+		catch (PathNotFoundException | NullPointerException e) {
 			return null;
 		}
 	}
@@ -64,7 +64,7 @@ public class FindingDescription {
 		try {
 			return json.read("$['" + onFailId + "']['helpUri']");
 		}
-		catch (PathNotFoundException e) {
+		catch (PathNotFoundException | NullPointerException e) {
 			return null;
 		}
 	}
@@ -74,7 +74,7 @@ public class FindingDescription {
 		try {
 			return json.read("$['" + onFailId + "']['fixes'][*]['description']['text']");
 		}
-		catch (PathNotFoundException e) {
+		catch (PathNotFoundException | NullPointerException e) {
 			return null;
 		}
 	}

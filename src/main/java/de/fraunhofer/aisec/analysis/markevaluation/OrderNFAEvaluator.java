@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static java.lang.Math.toIntExact;
 
 public class OrderNFAEvaluator {
@@ -297,10 +298,10 @@ public class OrderNFAEvaluator {
 														+ ")",
 												rule.getErrorMessage(),
 												CrymlinQueryWrapper.getFileLocation(vertex),
-												toIntExact(vertex.value("startLine")) - 1,
-												toIntExact(vertex.value("endLine")) - 1,
-												toIntExact(vertex.value("startColumn")) - 1,
-												toIntExact(vertex.value("endColumn")) - 1);
+												toIntExact(vertex.value(START_LINE)) - 1,
+												toIntExact(vertex.value(END_LINE)) - 1,
+												toIntExact(vertex.value(START_COLUMN)) - 1,
+												toIntExact(vertex.value(END_COLUMN)) - 1);
 											if (markContextHolder.isCreateFindingsDuringEvaluation()) {
 												ctx.getFindings().add(f);
 											}
@@ -310,9 +311,9 @@ public class OrderNFAEvaluator {
 											Vertex vertex1 = lastBaseUsage.get(prefixedBase);
 											long prevMaxLine = 0;
 											if (vertex1 != null) {
-												prevMaxLine = vertex1.value("startLine");
+												prevMaxLine = vertex1.value(START_LINE);
 											}
-											long newLine = vertex.value("startLine");
+											long newLine = vertex.value(START_LINE);
 											if (prevMaxLine <= newLine) {
 												lastBaseUsage.put(prefixedBase, vertex);
 											}
@@ -324,7 +325,7 @@ public class OrderNFAEvaluator {
 						}
 					}
 					ArrayList<Vertex> outVertices = new ArrayList<>();
-					vertex.edges(Direction.OUT, "EOG")
+					vertex.edges(Direction.OUT, EOG)
 							.forEachRemaining(edge -> outVertices.add(edge.inVertex()));
 
 					// if more than one vertex follows the curreant one, we need to branch the eogPath
@@ -430,10 +431,10 @@ public class OrderNFAEvaluator {
 			int endCol = -1;
 			if (vertex != null) {
 				file = CrymlinQueryWrapper.getFileLocation(vertex);
-				startLine = toIntExact(vertex.value("startLine")) - 1;
-				endLine = toIntExact(vertex.value("endLine")) - 1;
-				startCol = toIntExact(vertex.value("startColumn")) - 1;
-				endCol = toIntExact(vertex.value("endColumn")) - 1;
+				startLine = toIntExact(vertex.value(START_LINE)) - 1;
+				endLine = toIntExact(vertex.value(END_LINE)) - 1;
+				startCol = toIntExact(vertex.value(START_COLUMN)) - 1;
+				endCol = toIntExact(vertex.value(END_COLUMN)) - 1;
 			}
 			Finding f = new Finding(
 				"Violation against Order: Base "

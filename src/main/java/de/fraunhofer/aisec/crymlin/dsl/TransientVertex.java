@@ -38,12 +38,12 @@ public class TransientVertex extends DetachedVertex {
 					"Expecting even number of properties for key/value pairs");
 			}
 			for (int i = 0; i < properties.length - 1; i = i + 2) {
-				Map props = new HashMap<>();
+				Map<String, Object> props = new HashMap<>();
 				String key = (String) properties[i];
 				Object value = properties[i + 1];
 				props.put(key, value);
 				List<Property> p = Collections.singletonList(
-					new DetachedVertexProperty(this.id, this.label, value, props));
+					new DetachedVertexProperty<>(this.id, this.label, value, props));
 				this.properties.put(key, p);
 			}
 		}

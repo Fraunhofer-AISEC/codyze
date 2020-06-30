@@ -8,9 +8,10 @@ import de.fraunhofer.aisec.analysis.structures.FindingDescription;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import org.apache.tinkerpop.gremlin.process.traversal.P;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -22,15 +23,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import static de.fraunhofer.aisec.crymlin.dsl.__.filter;
 
 /**
  * Implementation of a {@link TextDocumentService}, which handles certain notifications from a Language Client, such as opening or changing files.
@@ -75,7 +74,7 @@ public class CpgDocumentService implements TextDocumentService {
 
 		markWholeFile(text, uriString);
 
-		Instant start = Instant.now();
+		Benchmark bm = new Benchmark(CpgDocumentService.class, "Analysis finished");
 
 		OverflowDatabase.getInstance().connect();
 		OverflowDatabase.getInstance().purgeDatabase();
@@ -97,55 +96,16 @@ public class CpgDocumentService implements TextDocumentService {
 			AnalysisContext ctx = analyze.get(5, TimeUnit.MINUTES);
 
 			log.info(
-				"Analysis for {} done. Returning {} findings. Took {} ms\n-------------------------------------------------------------------",
+				"Analysis for {} done. Returning {} findings.",
 				uriString,
-				ctx.getFindings().size(),
-				Duration.between(start, Instant.now()).toMillis());
+				ctx.getFindings().size());
+			bm.stop();
 
 			// check if there are disabled findings
-			List<String> allLines = null;
-			try {
-				allLines = Files.readAllLines(Paths.get(file.getAbsolutePath()));
-			}
-			catch (IOException e) {
-				log.error("Error reading source file for message disabling", e);
-			}
+			@NonNull
+			Map<Integer, String> ignoredLines = getIgnoredLines(file);
 
-			ArrayList<Diagnostic> allDiags = new ArrayList<>();
-			for (Finding f : ctx.getFindings()) {
-				for (Region reg : f.getRegions()) {
-					boolean skipWarning = false;
-					Diagnostic diagnostic = new Diagnostic();
-					if (f.isProblem()) {
-						// Negative finding: Bad code
-						diagnostic.setSeverity(DiagnosticSeverity.Error);
-					} else {
-						// Positive finding: Good code
-						diagnostic.setSeverity(DiagnosticSeverity.Hint);
-					}
-
-					// Get human readable description, if available
-					String msg = FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier());
-					if (msg == null) {
-						msg = f.getLogMsg();
-					}
-
-					diagnostic.setCode(f.getOnfailIdentifier());
-					diagnostic.setMessage(msg);
-					Range r = new Range(new Position(reg.getStartLine(), reg.getStartColumn()), new Position(reg.getEndLine(), reg.getEndColumn()));
-					diagnostic.setRange(r);
-					if (allLines != null) {
-						String line = allLines.get(r.getStart().getLine());
-						if (line.contains(DISABLE_FINDING_ALL) || line.contains(DISABLE_FINDING_PREFIX + f.getOnfailIdentifier())) {
-							log.warn("Skipping finding {}, disabled via comment", f);
-							skipWarning = true;
-						}
-					}
-					if (!skipWarning) {
-						allDiags.add(diagnostic);
-					}
-				}
-			}
+			List<Diagnostic> allDiags = findingsToDiagnostics(ctx.getFindings(), ignoredLines);
 
 			PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
 			diagnostics.setDiagnostics(allDiags);
@@ -166,6 +126,63 @@ public class CpgDocumentService implements TextDocumentService {
 		}
 	}
 
+	/**
+	 * Returns a map of line number to actual line content for all source
+	 * code lines that contain a <code>DISABLE_FINDING</code> comment.
+	 *
+	 * @param file The file to read.
+	 * @return A non-null but possibly empty map. Keys indicate line numbers, starting at 0.
+	 */
+	@NonNull
+	private Map<Integer, String> getIgnoredLines(@NonNull File file) {
+		Map<Integer, String> ignoredLines = new HashMap<>();
+		try {
+			List<String> allLines = Files.readAllLines(Paths.get(file.getAbsolutePath()));
+			for (int i = 0; i < allLines.size(); i++) {
+				String line = allLines.get(i);
+				if (line.contains(DISABLE_FINDING_ALL) || line.contains(DISABLE_FINDING_PREFIX)) {
+					ignoredLines.put(i, line);
+				}
+			}
+		}
+		catch (IOException e) {
+			log.error("Error reading source file for message disabling", e);
+		}
+
+		return ignoredLines;
+	}
+
+	@NonNull
+	private List<Diagnostic> findingsToDiagnostics(@NonNull Set<Finding> findings, @NonNull Map<Integer, String> ignoredLines) {
+		List<Diagnostic> allDiags = new ArrayList<>();
+		for (Finding f : findings) {
+			for (Region reg : f.getRegions()) {
+				Diagnostic diagnostic = new Diagnostic();
+				diagnostic.setSeverity(f.isProblem() ? DiagnosticSeverity.Error : DiagnosticSeverity.Hint);
+
+				// Get human readable description, if available
+				String msg = FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier());
+				if (msg == null) {
+					msg = f.getLogMsg();
+				}
+
+				diagnostic.setCode(f.getOnfailIdentifier());
+				diagnostic.setMessage(msg);
+				Range r = new Range(new Position(reg.getStartLine(), reg.getStartColumn()), new Position(reg.getEndLine(), reg.getEndColumn()));
+				diagnostic.setRange(r);
+
+				String line = ignoredLines.get(r.getStart().getLine());
+				if (line == null || (!line.contains(DISABLE_FINDING_ALL) && !line.contains(DISABLE_FINDING_PREFIX + f.getOnfailIdentifier()))) {
+					allDiags.add(diagnostic);
+				} else {
+					log.warn("Skipping finding {}, disabled via comment", f);
+				}
+			}
+		}
+
+		return allDiags;
+	}
+
 	@Override
 	public void didOpen(DidOpenTextDocumentParams params) {
 		log.info("Handling didOpen for file: {}", params.getTextDocument().getUri());
@@ -174,10 +191,12 @@ public class CpgDocumentService implements TextDocumentService {
 
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
+		// Nothing to do.
 	}
 
 	@Override
 	public void didClose(DidCloseTextDocumentParams params) {
+		// Nothing to do.
 	}
 
 	@Override

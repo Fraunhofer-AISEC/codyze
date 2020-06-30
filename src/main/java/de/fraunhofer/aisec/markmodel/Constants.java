@@ -1,6 +1,9 @@
 
 package de.fraunhofer.aisec.markmodel;
 
+/**
+ * Constants for the MARK DSL.
+ */
 public class Constants {
 
 	private Constants() {

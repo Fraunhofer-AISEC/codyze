@@ -17,10 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Tests the SARIF-like format for Finding outputs.
  */
-public class FindingDescriptionTest {
+class FindingDescriptionTest {
 
 	@Test
-	public void testFindingDescription() throws URISyntaxException {
+	void testFindingDescription() throws URISyntaxException {
 		// Create some Finding object
 		String logMsg = "Variable cm not initialized";
 		URI artifactUri = URI.create("file:///tmp/test.cpp");

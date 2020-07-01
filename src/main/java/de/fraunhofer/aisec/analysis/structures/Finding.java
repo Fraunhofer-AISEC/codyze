@@ -151,6 +151,6 @@ public class Finding {
 			lines = "[" + locations.stream().map(loc -> "" + (loc.getRegion().getStartLine() + 1)).sorted().distinct().collect(Collectors.joining(", ")) + "]";
 		}
 
-		out.println(lines + ": " + (isProblem ? "(BAD)  " : "(GOOD) ") + shortMsg);
+		out.println(lines + ": " + (isProblem ? "(BAD)  " : "(GOOD) ") + shortMsg + ": " + logMsg);
 	}
 }

@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Testing the Crymlin console. */
@@ -51,6 +52,9 @@ public class JythonInterpreterTest {
 		originalErr = System.err;
 		System.setOut(new PrintStream(outContent));
 		System.setErr(new PrintStream(errContent));
+
+		// Trick to make InputStreamReader for stdin blocking to avoid exception when reading from pis.
+		System.setProperty("org.python.jline.esc.timeout", "0");
 
 		// Start console (in thread, because it will block)
 		interp = new JythonInterpreter();
@@ -101,17 +105,43 @@ public class JythonInterpreterTest {
 				.iterator()
 				.next()
 				.complete("\t", 0, completions);
-		System.out.println(String.join(",", completions));
 		outContent.flush();
 		errContent.flush();
 
-		assertNotEquals("", outContent.toString());
-		System.out.println(outContent.toString());
-		System.out.println(errContent.toString());
+		assertTrue(completions.contains(PY_QUERY));
+		assertTrue(completions.contains(PY_Q));
+		assertTrue(completions.contains(PY_SERVER));
+		assertTrue(completions.contains(PY_S));
+		assertTrue(completions.contains(PY_GRAPH));
+		assertTrue(completions.contains(PY_G));
+	}
+
+	/**
+	 * Test behavior of tab completion for "server.<TAB>"
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	@Order(2)
+	public void completionServerObjectTest() throws Exception {
+		List<CharSequence> completions = new ArrayList<>();
+		jlineConsole.getReader()
+				.getCompleters()
+				.iterator()
+				.next()
+				.complete("server.\t", 0, completions);
+		outContent.flush();
+		errContent.flush();
+
+		assertTrue(completions.contains("help()"));
+		assertTrue(completions.contains("show_findings()"));
+		assertTrue(completions.contains("load_rules()"));
+		assertTrue(completions.contains("list_rules()"));
+		assertTrue(completions.contains("analyze()"));
 	}
 
 	@Test
-	@Order(2)
+	@Order(3)
 	public void simpleJythonTest() throws Exception {
 		// Just for testing: We can run normal Gremlin queries:
 		Object result = interp.query("q.V().toSet()"); // Get all (!) nodes
@@ -119,7 +149,7 @@ public class JythonInterpreterTest {
 	}
 
 	@Test
-	@Order(3)
+	@Order(4)
 	public void crymlinOverJythonTest() throws Exception {
 		// Run crymlin queries as strings and get back the results as Java objects:
 		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.recorddeclarations().toList()");

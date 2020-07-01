@@ -66,6 +66,7 @@ public class JythonInterpreterTest {
 			lock.lock();
 			while (interp.getConsole() == null) {
 				try {
+					//noinspection BusyWait
 					Thread.sleep(50);
 				}
 				catch (InterruptedException e) {

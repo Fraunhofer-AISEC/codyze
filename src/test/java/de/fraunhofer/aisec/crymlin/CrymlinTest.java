@@ -15,10 +15,10 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CrymlinTest {
+class CrymlinTest {
 
 	@Test
-	public void crymlinDslTest() throws Exception {
+	void crymlinDslTest() throws Exception {
 		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 			// Run crymlin queries directly in Java
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
@@ -39,7 +39,7 @@ public class CrymlinTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void gremlinGraphMutationTest() throws Exception {
+	void gremlinGraphMutationTest() throws Exception {
 		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 			GraphTraversalSource g = traversalConnection.getGremlinTraversal();
 

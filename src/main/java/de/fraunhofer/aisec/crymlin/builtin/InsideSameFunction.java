@@ -28,10 +28,10 @@ public class InsideSameFunction implements Builtin {
 
 	@Override
 	public ConstantValue execute(
-			ListValue argResultList,
-			Integer contextID,
-			MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull ListValue argResultList,
+			@NonNull Integer contextID,
+			@NonNull MarkContextHolder markContextHolder,
+			@NonNull ExpressionEvaluator expressionEvaluator) {
 
 		try {
 			// could be extended to a variable number of arguments quite easile

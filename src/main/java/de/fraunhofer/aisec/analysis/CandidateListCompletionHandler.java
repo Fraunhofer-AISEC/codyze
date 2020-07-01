@@ -159,7 +159,7 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 	 */
 	private boolean startsWith(final CharSequence starts, final CharSequence[] candidates) {
 		for (CharSequence candidate : candidates) {
-			if (!candidate.toString().startsWith(starts.toString())) {  // TODO: beautify: Compare subsequence()
+			if (!candidate.toString().startsWith(starts.toString())) { // TODO: beautify: Compare subsequence()
 				return false;
 			}
 		}

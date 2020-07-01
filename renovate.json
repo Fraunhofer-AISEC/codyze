@@ -9,7 +9,7 @@
                   "org.apache.tinkerpop:gremlin-driver",
                   "org.apache.tinkerpop:gremlin-python",
                   "org.apache.tinkerpop:neo4j-gremlin",
-                  "org.apache.tinkerpop:tinkergraph-gremlin"
+                  "org.apache.tinkerpop:tinkergraph-gremlin",
                   "com.steelbridgelabs.oss:neo4j-gremlin-bolt"
                  ],
    "ignorePaths": ["scripts", "docs"]

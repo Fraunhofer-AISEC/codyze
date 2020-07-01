@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class BuiltinRegistry {
 
-	private static BuiltinRegistry INSTANCE = null;
+	private static BuiltinRegistry instance = null;
 	private final Set<Builtin> builtins = new HashSet<>();
 
 	private BuiltinRegistry() {
@@ -19,10 +19,10 @@ public class BuiltinRegistry {
 
 	@NonNull
 	public static BuiltinRegistry getInstance() {
-		if (INSTANCE == null) {
-			INSTANCE = new BuiltinRegistry();
+		if (instance == null) {
+			instance = new BuiltinRegistry();
 		}
-		return INSTANCE;
+		return instance;
 	}
 
 	public void register(Builtin builtin) {

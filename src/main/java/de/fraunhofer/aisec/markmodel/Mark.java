@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,6 +26,7 @@ public class Mark {
 		return this.entityByName.values();
 	}
 
+	@Nullable
 	public MEntity getEntity(EntityDeclaration e) {
 		if (e == null) {
 			return null;

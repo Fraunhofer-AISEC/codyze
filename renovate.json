@@ -2,6 +2,6 @@
   "extends": [
     "config:base"
   ],
-   "ignoreDeps": ["de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark"],
-   "ignorePaths": ["scripts/*", "docs/*"]
+   "ignoreDeps": ["de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark", "de.fraunhofer.aisec:cpg"],
+   "ignorePaths": ["scripts", "docs"]
 }

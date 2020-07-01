@@ -83,7 +83,6 @@ public class FSM {
 
 		Set<Node> endNodes = new HashSet<>();
 		endNodes.add(start);
-		// System.out.println(MarkInterpreter.exprToString(seq));
 		expressionToNodes(seq, endNodes, null);
 
 		// not strictly needed, we could simply set end=true for all the returned nodes

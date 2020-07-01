@@ -75,7 +75,7 @@ public class FindingDescription {
 			return json.read("$['" + onFailId + "']['fixes'][*]['description']['text']");
 		}
 		catch (PathNotFoundException | NullPointerException e) {
-			return null;
+			return List.of();
 		}
 	}
 

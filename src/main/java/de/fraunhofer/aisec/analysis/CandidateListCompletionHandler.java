@@ -5,9 +5,7 @@
  * BSD license in the documentation provided with this software.
  *
  * http://www.opensource.org/licenses/bsd-license.php
- */
-
-/**
+ *
  * This class is a c/p backport of JLine 2.14.6 (commit a27f3bdd6df899224a3dc9d9f3a6511c6230c0b3).
  *
  * It removes the trailing space after tab completions.
@@ -15,7 +13,7 @@
 
 package de.fraunhofer.aisec.analysis;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.python.jline.console.ConsoleReader;
 import org.python.jline.console.CursorBuffer;
 import org.python.jline.console.completer.CompletionHandler;
@@ -34,15 +32,6 @@ import java.util.*;
  * @since 2.3
  */
 public class CandidateListCompletionHandler implements CompletionHandler {
-	private boolean printSpaceAfterFullCompletion = true;
-
-	public boolean getPrintSpaceAfterFullCompletion() {
-		return printSpaceAfterFullCompletion;
-	}
-
-	public void setPrintSpaceAfterFullCompletion(boolean printSpaceAfterFullCompletion) {
-		this.printSpaceAfterFullCompletion = printSpaceAfterFullCompletion;
-	}
 
 	@Override
 	public boolean complete(final ConsoleReader reader, final List<CharSequence> candidates, final int pos) throws IOException {
@@ -74,6 +63,7 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 	}
 
 	public static void setBuffer(final ConsoleReader reader, final CharSequence value, final int offset) throws IOException {
+		//noinspection StatementWithEmptyBody
 		while ((reader.getCursorBuffer().cursor > offset) && reader.backspace()) {
 			// empty
 		}
@@ -89,7 +79,7 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 	 * @param candidates the list of candidates to print
 	 */
 	public static void printCandidates(final ConsoleReader reader, Collection<CharSequence> candidates) throws IOException {
-		Set<CharSequence> distinct = new HashSet<CharSequence>(candidates);
+		Set<CharSequence> distinct = new HashSet<>(candidates);
 
 		if (distinct.size() > reader.getAutoprintThreshold()) {
 			//noinspection StringConcatenation
@@ -119,7 +109,7 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 
 		// copy the values and make them distinct, without otherwise affecting the ordering. Only do it if the sizes differ.
 		if (distinct.size() != candidates.size()) {
-			Collection<CharSequence> copy = new ArrayList<CharSequence>();
+			Collection<CharSequence> copy = new ArrayList<>();
 
 			for (CharSequence next : candidates) {
 				if (!copy.contains(next)) {
@@ -139,19 +129,20 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 	 * or null if there are no commonalities. For example, if the list contains
 	 * <i>foobar</i>, <i>foobaz</i>, <i>foobuz</i>, the method will return <i>foob</i>.
 	 */
-	private @Nullable String getUnambiguousCompletions(final List<CharSequence> candidates) {
-		if (candidates == null || candidates.isEmpty()) {
-			return null;
+	private @NonNull String getUnambiguousCompletions(@NonNull final List<CharSequence> candidates) {
+		if (candidates.isEmpty()) {
+			return "";
 		}
 
 		// convert to an array for speed
-		String[] strings = candidates.toArray(new String[candidates.size()]);
+		// noinspection ToArrayCallWithZeroLengthArrayArgument
+		CharSequence[] strings = candidates.toArray(new CharSequence[candidates.size()]);
 
-		String first = strings[0];
+		CharSequence first = strings[0];
 		StringBuilder candidate = new StringBuilder();
 
 		for (int i = 0; i < first.length(); i++) {
-			if (startsWith(first.substring(0, i + 1), strings)) {
+			if (startsWith(first.subSequence(0, i + 1), strings)) {
 				candidate.append(first.charAt(i));
 			} else {
 				break;
@@ -163,10 +154,12 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 
 	/**
 	 * @return true is all the elements of <i>candidates</i> start with <i>starts</i>
+	 * @param starts
+	 * @param candidates
 	 */
-	private boolean startsWith(final String starts, final String[] candidates) {
-		for (String candidate : candidates) {
-			if (!candidate.startsWith(starts)) {
+	private boolean startsWith(final CharSequence starts, final CharSequence[] candidates) {
+		for (CharSequence candidate : candidates) {
+			if (!candidate.toString().startsWith(starts.toString())) { // TODO: beautify: Compare subsequence()
 				return false;
 			}
 		}

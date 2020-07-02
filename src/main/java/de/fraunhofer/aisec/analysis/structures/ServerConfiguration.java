@@ -22,8 +22,8 @@ public class ServerConfiguration {
 	@NonNull
 	public final TypestateMode typestateAnalysis;
 
-	// should we export the data to neo4j
-	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = true;
+	// should we export the data to neo4j, if Neo4J DB is available?
+	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = false;
 
 	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode) {
 		this.launchConsole = launchConsole;

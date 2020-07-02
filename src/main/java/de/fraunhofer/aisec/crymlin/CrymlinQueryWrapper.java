@@ -801,9 +801,9 @@ public class CrymlinQueryWrapper {
 		}
 
 		// then we go forward to all referenced vars
-		Iterator<Edge> refers_to = vertex.edges(Direction.OUT, REFERS_TO);
-		while (refers_to.hasNext()) {
-			Vertex referenced = refers_to.next().inVertex();
+		Iterator<Edge> refersTo = vertex.edges(Direction.OUT, REFERS_TO);
+		while (refersTo.hasNext()) {
+			Vertex referenced = refersTo.next().inVertex();
 			Iterator<Edge> initializer = referenced.edges(Direction.OUT, INITIALIZER);
 			if (initializer.hasNext()) {
 				return Optional.of(initializer.next().inVertex());

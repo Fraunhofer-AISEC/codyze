@@ -1,6 +1,8 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,7 +31,7 @@ public class ListValue extends MarkIntermediateResult implements Iterable<MarkIn
 	}
 
 	@Override
-	public Iterator<MarkIntermediateResult> iterator() {
+	public @NonNull Iterator<MarkIntermediateResult> iterator() {
 		return values.iterator();
 	}
 

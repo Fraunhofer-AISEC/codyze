@@ -81,7 +81,7 @@ dependencies {
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
     api("org.slf4j:slf4j-api:1.8.0-beta4")
 
-    api("com.github.javaparser:javaparser-symbol-solver-core:3.11.0")
+    api("com.github.javaparser:javaparser-symbol-solver-core:3.16.1")
 
     // Code Property Graph
     api("de.fraunhofer.aisec:cpg:1.4.2")

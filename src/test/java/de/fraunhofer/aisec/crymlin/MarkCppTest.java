@@ -32,28 +32,28 @@ public class MarkCppTest extends AbstractMarkTest {
 	@Test
 	public void nested_markvars() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/nested_markvars.cpp", "mark_cpp/nested_markvars.mark");
-		expected(findings, "line 27: MarkRuleEvaluationFinding: Rule SomethingSomething verified");
+		expected(findings, "line 27: Rule SomethingSomething verified");
 	}
 
 	@Test
 	public void functioncall() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/functioncall.cpp", "mark_cpp/functioncall.mark");
-		expected(findings, "line 9: MarkRuleEvaluationFinding: Rule HasBeenCalled violated",
-			"line 7: MarkRuleEvaluationFinding: Rule HasBeenCalled verified");
+		expected(findings, "line 9: Rule HasBeenCalled violated",
+			"line 7: Rule HasBeenCalled verified");
 	}
 
 	@Test
 	public void functioncallComplex() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/functioncall_complex.cpp", "mark_cpp/functioncall_complex.mark");
 		expected(findings,
-			"line [11, 12]: MarkRuleEvaluationFinding: Rule Local verified",
-			"line [17, 18]: MarkRuleEvaluationFinding: Rule Local violated",
+			"line [11, 12]: Rule Local verified",
+			"line [17, 18]: Rule Local violated",
 
-			"line [11, 12]: MarkRuleEvaluationFinding: Rule Global verified",
+			"line [11, 12]: Rule Global verified",
 
-			"line [12, 17]: MarkRuleEvaluationFinding: Rule Global violated",
-			"line [11, 18]: MarkRuleEvaluationFinding: Rule Global violated",
-			"line [17, 18]: MarkRuleEvaluationFinding: Rule Global violated");
+			"line [12, 17]: Rule Global violated",
+			"line [11, 18]: Rule Global violated",
+			"line [17, 18]: Rule Global violated");
 	}
 
 	@Test
@@ -72,8 +72,8 @@ public class MarkCppTest extends AbstractMarkTest {
 	public void _02_arg() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/02_arg.cpp", "mark_cpp/02_arg.mark");
 		expected(findings,
-			"line 13: MarkRuleEvaluationFinding: Rule NotThree violated",
-			"line 13: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 13: Rule NotThree violated",
+			"line 13: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
@@ -92,42 +92,42 @@ public class MarkCppTest extends AbstractMarkTest {
 	public void arg_prevassign_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_prevassign_int.cpp", "mark_cpp/int.mark");
 
-		expected(findings, "line 14: MarkRuleEvaluationFinding: Rule SomethingAboutFoo violated");
+		expected(findings, "line 14: Rule SomethingAboutFoo violated");
 	}
 
 	@Test
 	public void arg_prevassign_bool() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_prevassign_bool.cpp", "mark_cpp/bool.mark");
 
-		expected(findings, "line 14: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+		expected(findings, "line 14: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_prevassign_string() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_prevassign_string.cpp", "mark_cpp/string.mark");
 
-		expected(findings, "line 15: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+		expected(findings, "line 15: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_vardecl_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_vardecl_int.cpp", "mark_cpp/int.mark");
 
-		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+		expected(findings, "line 12: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_vardecl_bool() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_vardecl_bool.cpp", "mark_cpp/bool.mark");
 
-		expected(findings, "line 12: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+		expected(findings, "line 12: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
 	public void arg_vardecl_string() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_vardecl_string.cpp", "mark_cpp/string.mark");
 
-		expected(findings, "line 13: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+		expected(findings, "line 13: Rule SomethingAboutFoo verified");
 
 	}
 
@@ -136,7 +136,7 @@ public class MarkCppTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/arg_assignconstructor_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings,
-			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 16: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
@@ -149,8 +149,8 @@ public class MarkCppTest extends AbstractMarkTest {
 		}
 
 		expected(findings,
-			"line 19: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified",
-			"line 28: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 19: Rule SomethingAboutFoo verified",
+			"line 28: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
@@ -158,7 +158,7 @@ public class MarkCppTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/arg_initializerparenthesisexpr_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings,
-			"line 19: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 19: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
@@ -166,7 +166,7 @@ public class MarkCppTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/arg_uniforminitializer_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings,
-			"line 16: MarkRuleEvaluationFinding: Rule SomethingAboutFoo verified");
+			"line 16: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
@@ -174,9 +174,9 @@ public class MarkCppTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("mark_cpp/const.cpp", "mark_cpp/const.mark");
 
 		// todo: missing: Enum is not handled yet
-		expected(findings, "line [13, 32]: MarkRuleEvaluationFinding: Rule Static verified",
-			"line [13, 33]: MarkRuleEvaluationFinding: Rule Static violated",
-			"line [13, 31]: MarkRuleEvaluationFinding: Rule Static verified");
+		expected(findings, "line [13, 32]: Rule Static verified",
+			"line [13, 33]: Rule Static violated",
+			"line [13, 31]: Rule Static verified");
 
 	}
 

@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * this Builtin checks if there is a _direct_ EOG-connection (i.e., without branches) between the two given vertices (responsible for the markvars given as parameters)
+ * This Builtin checks if there is a <i>direct</i> EOG-connection (i.e., without branches)
+ * between the two given vertices.
  */
-
 public class DirectEogConnection implements Builtin {
 	private static final Logger log = LoggerFactory.getLogger(DirectEogConnection.class);
 
@@ -28,10 +28,10 @@ public class DirectEogConnection implements Builtin {
 
 	@Override
 	public ConstantValue execute(
-			ListValue argResultList,
-			Integer contextID,
-			MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull ListValue argResultList,
+			@NonNull Integer contextID,
+			@NonNull MarkContextHolder markContextHolder,
+			@NonNull ExpressionEvaluator expressionEvaluator) {
 
 		try {
 			List<Vertex> vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);

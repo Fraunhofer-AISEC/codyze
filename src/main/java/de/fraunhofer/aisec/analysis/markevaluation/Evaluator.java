@@ -231,7 +231,7 @@ public class Evaluator {
 					}
 					boolean isRuleViolated = !(Boolean) value;
 					findings.add(new Finding(
-						"MarkRuleEvaluationFinding: Rule "
+						"Rule "
 								+ rule.getName()
 								+ (isRuleViolated ? " violated" : " verified"),
 						currentFile,

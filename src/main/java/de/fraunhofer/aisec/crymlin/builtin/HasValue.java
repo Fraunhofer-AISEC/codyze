@@ -28,10 +28,10 @@ public class HasValue implements Builtin {
 
 	@Override
 	public ConstantValue execute(
-			ListValue argResultList,
-			Integer contextID,
-			MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull ListValue argResultList,
+			@NonNull Integer contextID,
+			@NonNull MarkContextHolder markContextHolder,
+			@NonNull ExpressionEvaluator expressionEvaluator) {
 
 		if (argResultList.size() != 1) {
 			log.warn("Invalid number of arguments: {}", argResultList.size());

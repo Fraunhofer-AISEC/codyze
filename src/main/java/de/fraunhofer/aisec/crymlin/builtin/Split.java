@@ -31,10 +31,10 @@ public class Split implements Builtin {
 
 	@Override
 	public ConstantValue execute(
-			ListValue argResultList,
-			Integer contextID,
-			MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull ListValue argResultList,
+			@NonNull Integer contextID,
+			@NonNull MarkContextHolder markContextHolder,
+			@NonNull ExpressionEvaluator expressionEvaluator) {
 
 		// arguments: String, String, int
 		// example:

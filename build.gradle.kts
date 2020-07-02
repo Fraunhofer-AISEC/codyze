@@ -11,7 +11,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "2.8"
-    id("com.diffplug.gradle.spotless") version "3.26.0"
+    id("com.diffplug.gradle.spotless") version "3.30.0"
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
@@ -73,81 +73,63 @@ configurations.all {
     }
 }
 
-val versions = mapOf(
-        "junit5" to "5.6.2",
-        "log4j" to "2.11.1",
-        "slf4j" to "1.8.0-beta4",
-        "lsp4j" to "0.6.0",
-        "jersey" to "2.28",
-        "javaparser" to "3.11.0",
-        "json" to "20190722",
-        "commons-lang3" to "3.8.1",
-        "jython" to "2.7.2",
-        "tinkerpop" to "3.4.3",
-        "neo4j-gremlin-bolt" to "0.3.1",
-        "xml.bind" to "2.3.1",
-        "cpg" to "1.4.2",
-        "json" to "20190722",
-        "json-path" to "2.4.0"
-)
-
 dependencies {
-    api("org.json", "json", versions["json"])
+    api("org.json:json:20190722")
 
-    api("org.apache.logging.log4j", "log4j-slf4j18-impl", versions["log4j"])
-    api("org.apache.logging.log4j", "log4j-core", versions["log4j"])
-    api("org.slf4j", "log4j-over-slf4j", versions["slf4j"]) // needed for xtext.parser.antlr
-    api("org.slf4j", "slf4j-api", versions["slf4j"])
+    api("org.apache.logging.log4j:log4j-slf4j18-impl:2.11.1")
+    api("org.apache.logging.log4j:log4j-core:2.11.1")
+    api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
+    api("org.slf4j:slf4j-api:1.8.0-beta4")
 
-    api("com.github.javaparser", "javaparser-symbol-solver-core", versions["javaparser"])
+    api("com.github.javaparser:javaparser-symbol-solver-core:3.16.1")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec", "cpg", versions["cpg"])
+    api("de.fraunhofer.aisec:cpg:1.4.2")
 
     // Ehcache is used to cache heavyweight reflection operations
-    api("org.ehcache", "ehcache", "3.8.0")
+    api("org.ehcache:ehcache:3.8.0")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.3.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // LSP
-    api("org.eclipse.lsp4j", "org.eclipse.lsp4j", versions["lsp4j"])
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.6.0")
 
     // JSON parser for generation of results file
-    api("org.json", "json", versions["json)"])
+    api("org.json:json:20190722")
 
     // JsonPath for querying JSON
-    api("com.jayway.jsonpath", "json-path", versions["json-path"])
+    api("com.jayway.jsonpath:json-path:2.4.0")
 
     // Command line interface support
-    api("info.picocli", "picocli", "4.1.4")
-    annotationProcessor("info.picocli", "picocli-codegen", "4.1.4")
+    api("info.picocli:picocli:4.1.4")
+    annotationProcessor("info.picocli:picocli-codegen:4.1.4")
 
     // Gremlin
-    api("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"])
-    annotationProcessor("org.apache.tinkerpop", "gremlin-core", versions["tinkerpop"]) {
+    api("org.apache.tinkerpop:gremlin-core:3.4.3")
+    annotationProcessor("org.apache.tinkerpop:gremlin-core:3.4.3") {
         exclude(group = "org.slf4j", module = "slf4j-api")
         exclude(group = "org.slf4j", module = "jcl-over-slf4j")
     }      // Newer Gradle versions require specific classpath for annotatation processors
-    api("org.apache.tinkerpop", "gremlin-python", versions["tinkerpop"])
-    api("org.apache.tinkerpop", "tinkergraph-gremlin", versions["tinkerpop"])
-    api("org.apache.tinkerpop", "gremlin-driver", versions["tinkerpop"])
-    api("org.apache.tinkerpop", "neo4j-gremlin", versions["tinkerpop"])     // Neo4j multi-label support for gremlin
-    api("com.steelbridgelabs.oss", "neo4j-gremlin-bolt", versions["neo4j-gremlin-bolt"])   // For fast bolt:    // access to Neo4J
+    api("org.apache.tinkerpop:gremlin-python:3.4.3")
+    api("org.apache.tinkerpop:tinkergraph-gremlin:3.4.3")
+    api("org.apache.tinkerpop:gremlin-driver:3.4.3")
+    api("org.apache.tinkerpop:neo4j-gremlin:3.4.3")     // Neo4j multi-label support for gremlin
+    api("com.steelbridgelabs.oss:neo4j-gremlin-bolt:0.3.1")   // For fast bolt:    // access to Neo4J
 
     // Fast in-memory graph DB (alternative to Neo4J)
-    api("io.shiftleft", "overflowdb-tinkerpop3", "0.33")
+    api("io.shiftleft:overflowdb-tinkerpop3:0.33")
     api("org.reflections", "reflections", "0.9.11")
 
     // Pushdown Systems
-    api("de.breakpointsec", "pushdown", "1.1")
+    api("de.breakpointsec:pushdown:1.1")
 
     // Jython (Scripting engine)
-    api("org.python", "jython-standalone", versions["jython"])
+    api("org.python:jython-standalone:2.7.2")
 
-    testImplementation("org.junit.jupiter", "junit-jupiter-api", versions["junit5"])
-    testImplementation("org.junit.jupiter", "junit-jupiter-params", versions["junit5"])
-    testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", versions["junit5"])
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.6.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
 }
 
 application {

@@ -18,10 +18,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.python.jline.internal.Ansi.stripAnsi;
@@ -51,13 +48,13 @@ public class JythonInterpreter implements AutoCloseable {
 	public static final String ANSI_PURPLE_BG = "\u001B[45m";
 	public static final String ANSI_CYAN_BG = "\u001B[46m";
 	public static final String ANSI_WHITE_BG = "\u001B[47m";
-	private static final String PY_GRAPH = "graph";
-	private static final String PY_G = "g";
-	private static final String PY_CRYMLIN = "crymlin";
-	private static final String PY_SERVER = "server";
-	private static final String PY_S = "s";
-	private static final String PY_QUERY = "query";
-	private static final String PY_Q = "q";
+	public static final String PY_GRAPH = "graph";
+	public static final String PY_G = "g";
+	public static final String PY_CRYMLIN = "crymlin";
+	public static final String PY_SERVER = "server";
+	public static final String PY_S = "s";
+	public static final String PY_QUERY = "query";
+	public static final String PY_Q = "q";
 
 	/** connection to the database via a traversal */
 	private TraversalConnection traversalConnection = null;
@@ -136,6 +133,8 @@ public class JythonInterpreter implements AutoCloseable {
 			Py.installConsole(jCon);
 			jCon.getReader()
 					.addCompleter(new CrymlinCompleter());
+			jCon.getReader()
+					.setCompletionHandler(new CandidateListCompletionHandler());
 		}
 		catch (Exception e) {
 			// If JLine is not available, we will fall back to PlainConsole.
@@ -154,6 +153,7 @@ public class JythonInterpreter implements AutoCloseable {
 			}
 			cons.set(PY_SERVER, commands);
 			cons.set(PY_S, commands);
+
 			// Overwrite Jython help() builtin with our help
 			cons.push("import " + Commands.class.getName());
 			cons.push("help = " + Commands.class.getName() + ".help");
@@ -185,14 +185,30 @@ public class JythonInterpreter implements AutoCloseable {
 		return lastTranslationResult;
 	}
 
+	/**
+	 * Returns the Jython engine (Python for Java).
+	 *
+	 * @return
+	 */
 	public ScriptEngine getEngine() {
 		return engine;
 	}
 
+	/**
+	 * Sets Codyze findings that the "show_findings()" command will show.
+	 *
+	 *
+	 * @param findings
+	 */
 	public void setFindings(@NonNull Set<Finding> findings) {
 		this.findings = findings;
 	}
 
+	/**
+	 * Returns all analysis findings, as shown by the "show_findings()" command.
+	 *
+	 * @return
+	 */
 	@NonNull
 	public Set<Finding> getFindings() {
 		return this.findings;
@@ -209,47 +225,10 @@ public class JythonInterpreter implements AutoCloseable {
 		public int complete(String s, int i, List<CharSequence> list) {
 			int dotPos = s.indexOf('.');
 			s = stripAnsi(s);
-			Object items = null;
 			String prefix = "";
-			try {
-				if (dotPos > -1) {
-					prefix = s.length() > 1 ? s.substring(dotPos + 1) : "";
-					items = engine.eval("dir(" + s.substring(0, dotPos) + ")");
-				} else {
-					items = List.of(PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
-				}
-			}
-			catch (Exception e) {
-				// Nothing to do here.
-				c.write(e.getMessage() + "\n");
-			}
 
 			// Collect and filter out irrelevant entries
-			if (items instanceof List) {
-				for (Object entry : ((List) items)) {
-					if (entry instanceof String) {
-						String str = (String) entry;
-						if (str.startsWith(prefix)) {
-							Class<?> type = Class.class;
-							try {
-								String typeEval = "type(" + s.substring(0, Math.max(dotPos, 0)) + "." + str + ")";
-								type = ((Class) engine.eval(typeEval));
-							}
-							catch (ScriptException e) {
-								c.write(e.getMessage() + "\n");
-							}
-
-							if (str.startsWith("__")
-									|| List.of("addE", "addV", "hashCode", "toString", "class", "clone", "wait", "equals", "notify", "notifyAll")
-											.contains(str)) {
-								list.add(ANSI_BLUE + str + (type.equals(PyMethod.class) ? "(" : "") + ANSI_RESET);
-							} else {
-								list.add(str + (type.equals(PyMethod.class) ? "(" : ""));
-							}
-						}
-					}
-				}
-			}
+			fillSuggestionList(prefix, s, dotPos, list);
 
 			// Sort
 			list.stream()
@@ -262,6 +241,109 @@ public class JythonInterpreter implements AutoCloseable {
 			c.setErr(System.out);
 
 			return dotPos == -1 ? 0 : dotPos + 1;
+		}
+
+		/**
+		 * Given a list of possible python attributes ({@code items}, the current prefix and string ({@code s})
+		 * entered in the console with cursor at position {@code }, fill {@code list} with the suggestions to display.
+		 *
+		 * @param prefix
+		 * @param s
+		 * @param dotPos
+		 * @param list
+		 */
+		private void fillSuggestionList(@NonNull String prefix, @NonNull String s, int dotPos, @NonNull List<CharSequence> list) {
+			// See if we are given a "server" object and return Commands.
+			fillDefaultSuggestions(prefix, s, dotPos, list);
+
+			// See if we can treat s as a Python object and call dir(s)
+			fillPythonSuggestions(prefix, s, dotPos, list);
+		}
+
+		/**
+		 * Fill list with available python objects whose name starts with string s.
+		 *
+		 * @param prefix
+		 * @param s
+		 * @param dotPos
+		 * @param list
+		 */
+		private void fillPythonSuggestions(String prefix, String s, int dotPos, List<CharSequence> list) {
+			String withoutDot = dotPos > -1 ? s.substring(0, dotPos) : s;
+			List<String> items;
+			try {
+				if (dotPos > -1) {
+					prefix = s.length() > 1 ? s.substring(dotPos + 1) : "";
+					items = (List<String>) engine.eval("dir(" + withoutDot + ")");
+				} else {
+					items = List.of(PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
+				}
+
+				for (String str : items) {
+					if (str.startsWith(prefix)) {
+						Class<?> type = getTypeOfPythonObject(withoutDot + "." + str);
+
+						if (isDiscouraged(str)) {
+							list.add(ANSI_BLUE + asMethodString(str, type) + ANSI_RESET);
+						} else {
+							list.add(asMethodString(str, type));
+						}
+					}
+				}
+			}
+			catch (Exception e) {
+				// Nothing to do here.
+			}
+		}
+
+		/**
+		 * Returns the corresponding Java type of a given Python object.
+		 *
+		 * @param s
+		 * @return
+		 */
+		@NonNull
+		private Class<?> getTypeOfPythonObject(@NonNull String s) {
+			Class<?> type = Class.class;
+			try {
+				String typeEval = "type(" + s + ")";
+				type = ((Class) engine.eval(typeEval));
+			}
+			catch (ScriptException e) {
+				// Nothing to do
+			}
+			return type;
+		}
+
+		private void fillDefaultSuggestions(@NonNull String prefix, @NonNull String s, int dotPos, @NonNull List<CharSequence> list) {
+			String withoutDot = dotPos > -1 ? s.substring(0, dotPos) : s;
+			if (List.of(PY_SERVER, PY_S)
+					.contains(withoutDot)) {
+				for (Method m : Commands.class.getMethods()) {
+					if (m.getAnnotationsByType(ShellCommand.class).length > 0) {
+						list.add(m.getName() + "()");
+					}
+				}
+			}
+		}
+
+		@NonNull
+		private String asMethodString(@NonNull String str, @NonNull Class<?> type) {
+			return str + (type.equals(PyMethod.class) ? "()" : "");
+		}
+
+		/**
+		 * Returns a set of completions which are typically not desired by the user.
+		 *
+		 * This includes methods of java.lang.Object and unneeded graph traversal steps.
+		 *
+		 * @param str
+		 * @return
+		 */
+		private boolean isDiscouraged(String str) {
+			return str.startsWith("__")
+					|| List.of("addE", "addV", "hashCode", "toString", "class", "clone", "wait", "equals", "notify", "notifyAll")
+							.contains(str);
 		}
 	}
 }

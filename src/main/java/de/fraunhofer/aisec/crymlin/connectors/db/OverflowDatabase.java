@@ -342,7 +342,9 @@ public class OverflowDatabase<N> implements Database<N> {
 		}
 
 		try {
-			N node = (N) targetClass.getDeclaredConstructor().newInstance();
+			Constructor<?> defaultConstructor = targetClass.getDeclaredConstructor();
+			defaultConstructor.setAccessible(true);
+			N node = (N) defaultConstructor.newInstance();
 			nodesCache.put((Long) v.id(), node);
 
 			for (Field f : getFieldsIncludingSuperclasses(targetClass)) {

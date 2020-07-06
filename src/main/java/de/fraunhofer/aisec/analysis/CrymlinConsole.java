@@ -19,7 +19,8 @@ import static de.fraunhofer.aisec.analysis.JythonInterpreter.*;
 // Based on CPython-1.5.2's code module
 public class CrymlinConsole extends InteractiveInterpreter {
 
-	public static final String BANNER = " ██████╗ ██████╗ ██████╗ ██╗   ██╗███████╗███████╗\n"
+	public static final String BANNER = "\n\n\n\n"
+			+ " ██████╗ ██████╗ ██████╗ ██╗   ██╗███████╗███████╗\n"
 			+ "██╔════╝██╔═══██╗██╔══██╗╚██╗ ██╔╝╚══███╔╝██╔════╝\n"
 			+ "██║     ██║   ██║██║  ██║ ╚████╔╝   ███╔╝ █████╗  \n"
 			+ "██║     ██║   ██║██║  ██║  ╚██╔╝   ███╔╝  ██╔══╝  \n"
@@ -27,7 +28,8 @@ public class CrymlinConsole extends InteractiveInterpreter {
 			+ " ╚═════╝ ╚═════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝\n"
 			+ ""
 			+ "              Welcome to Codyze!                  \n"
-			+ "         To get help, enter 'help()'.             \n";
+			+ "         To get help, enter 'help()'.             \n"
+			+ "\n\n";
 
 	public static final String CONSOLE_FILENAME = "<stdin>";
 	private String mood = Mood.HAPPY;

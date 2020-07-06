@@ -38,3 +38,5 @@ Analysis settings
 ```
 
 `-c` enters command line mode. It will parse all files given by the `-s` argument, analyze them against the MARK policies given by `-m`, and write the findings in JSON format to the file given by `-o`. If `--` is given as the output name, the results will be dumped to stdout.
+
+Note that line numbers of findings in JSON output start by 0 and are thus off by one compared to the `server.show_findings()` command in the interactive console.

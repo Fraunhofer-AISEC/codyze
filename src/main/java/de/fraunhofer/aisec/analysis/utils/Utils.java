@@ -4,12 +4,16 @@ package de.fraunhofer.aisec.analysis.utils;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Type;
+import de.fraunhofer.aisec.cpg.graph.type.Type;
+import de.fraunhofer.aisec.cpg.graph.type.TypeParser;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.Constants;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -243,15 +247,21 @@ public class Utils {
 	 * @return
 	 */
 	@NonNull
-	public static List<String> getPossibleSubTypes(@NonNull Vertex next) {
-		if (next.property(POSSIBLE_SUBTYPES).isPresent() && next.value(POSSIBLE_SUBTYPES) instanceof String) {
-			return Arrays
-					.asList(
-						((String) next.value(POSSIBLE_SUBTYPES)).split(","))
-					.stream()
-					.map(String::trim)
-					.collect(Collectors.toUnmodifiableList());
+	public static List<Type> getPossibleSubTypes(@NonNull Vertex next) {
+		List<Type> types = new ArrayList<>();
+
+		Iterator<Edge> e = next.edges(Direction.OUT, POSSIBLE_SUB_TYPES);
+		while (e.hasNext()) {
+			Vertex v = e.next()
+					.inVertex();
+			if (v.property("name").isPresent()) {
+				Type type = TypeParser.createFrom((String) v.property("name")
+						.value(),
+					false);
+				types.add(type);
+			}
 		}
-		return List.of();
+
+		return types;
 	}
 }

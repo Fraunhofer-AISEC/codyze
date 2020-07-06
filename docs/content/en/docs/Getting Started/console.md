@@ -64,7 +64,7 @@ The `server` object controls the Codyze analysis server. Use it to load source c
 | Command | Description |
 |---|---|
 |  `s.analyze(path)`  | Starts the analysis for the given folder or source file. |
-|  `s.show_findings()`  | List all findings, including correct and incorrect uses of cryptography. Make sure to call `analyze` before. |
+|  `s.show_findings()`  | List all findings, including correct and incorrect uses of cryptography. Make sure to call `analyze` before. Note that the line numbers displayed by `show_findings()` start counting at 1, as your editor does. |
 |  `s.list_rules()`  | List all MARK rules which are currently active. |
 |  `s.load_rules(path)`  | Load additional MARK rules from the given folder or file. Make sure to load rules before calling `analyze` |
 

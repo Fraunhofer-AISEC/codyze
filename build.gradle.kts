@@ -84,7 +84,7 @@ dependencies {
     api("com.github.javaparser:javaparser-symbol-solver-core:3.16.1")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:1.4.2")
+    api("de.fraunhofer.aisec:cpg:unspecified")
 
     // Ehcache is used to cache heavyweight reflection operations
     api("org.ehcache:ehcache:3.8.0")

@@ -14,6 +14,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static de.fraunhofer.aisec.crymlin.dsl.__.hasLabel;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.outE;
 
 /**
  * This class adds new functions to the traversal to START from

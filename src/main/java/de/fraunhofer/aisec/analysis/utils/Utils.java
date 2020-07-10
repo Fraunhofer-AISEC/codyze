@@ -64,19 +64,6 @@ public class Utils {
 		return opName;
 	}
 
-	public static String extractType(String opName) {
-		if (opName.contains("::")) {
-			opName = opName.substring(0, opName.lastIndexOf("::"));
-		} else if (opName.contains("->")) {
-			opName = opName.substring(0, opName.lastIndexOf("->"));
-		} else if (opName.contains(".")) {
-			opName = opName.substring(0, opName.lastIndexOf('.'));
-		} else {
-			opName = "";
-		}
-		return opName;
-	}
-
 	public static String stripQuotedString(String s) {
 		if (s.startsWith("\"") && s.endsWith("\"")) {
 			s = s.substring(1, s.length() - 1);

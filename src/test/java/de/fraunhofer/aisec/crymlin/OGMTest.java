@@ -216,7 +216,6 @@ public class OGMTest {
 				.hasLabel(
 					RecordDeclaration.class.getSimpleName(),
 					OverflowDatabase.getSubclasses(RecordDeclaration.class));
-		System.out.println(traversal.values("name").toList());
 		long rdCount = traversal.count().next();
 		assertEquals(2, rdCount, "Expected exactly 2 RecordDeclarations");
 	}

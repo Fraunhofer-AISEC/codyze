@@ -2,12 +2,25 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.utils.Utils;
+import de.fraunhofer.aisec.cpg.graph.TypeManager;
+import de.fraunhofer.aisec.cpg.graph.type.ObjectType;
+import de.fraunhofer.aisec.cpg.graph.type.Type;
+import de.fraunhofer.aisec.cpg.graph.type.TypeParser;
+import de.fraunhofer.aisec.mark.markDsl.MarkDslFactory;
+import de.fraunhofer.aisec.mark.markDsl.Parameter;
+import de.fraunhofer.aisec.mark.markDsl.impl.MarkDslFactoryImpl;
+import de.fraunhofer.aisec.mark.markDsl.impl.ParameterImpl;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JCATest extends AbstractMarkTest {
 
@@ -87,9 +100,37 @@ public class JCATest extends AbstractMarkTest {
 			"line 18: Rule ID_2_01 verified", // ok
 			"line 18: Rule ID_2_1_01 verified", // ok
 
+			"line [36]: Rule ID_2_1_2_1_02 verified", // ok
+
 			// rules order
-			"line 18: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)" // ok, minimal test
+			"line 36: Violation against Order: Base c is not correctly terminated. Expected one of [c.aad, c.finalize, c.update] to follow the correct last call on this base. (InvalidOrderforAEAD)" // ok, minimal test
 		);
+	}
+
+	@Test
+	public void testSubTypesOf() throws Exception {
+		// Load some source code that uses GCMParameterSpec
+		Set<Finding> findings = performTest("java/jca/AESGCM.java",
+			new String[] {
+					"java/jca/include/GCMParameterSpec.java"
+			},
+			"mark/bouncycastle/");
+
+		// Get the GCMParameterSpec type from TypeManager
+		Set<Type> type = TypeManager.getInstance()
+				.getFirstOrderTypes()
+				.stream()
+				.filter(t -> t.getTypeName().equals("javax.crypto.spec.GCMParameterSpec"))
+				.collect(Collectors.toSet());
+
+		// Create a Mark type matching a supertype.
+		MarkDslFactory factory = new MarkDslFactoryImpl();
+		Parameter markType = factory.createParameter();
+		markType.setVar("x");
+		markType.getTypes().add("java.security.spec.AlgorithmParameterSpec");
+
+		// Make sure super types are matched.
+		assertTrue(Utils.isSubTypeOf(type, markType));
 	}
 
 	@Test
@@ -195,11 +236,7 @@ public class JCATest extends AbstractMarkTest {
 			// rule mac key length
 			//"line 37: Rule ID_5_3_02_HMAC verified", // improv analysis. Currently, codyze does not know that `kg2.generateKey()` returns a java.security.Key, this needs to be returned from the CPG
 
-			// rule order basic cipher
-			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderOfCipherOperations)", // FP, Type system improv in CPG needed
-			"line 47: Violation against Order: c.update(input, i * 16, 16) (update) is not allowed. Expected one of: c.init (InvalidOrderOfCipherOperations)", // FP, Type system improv in CPG needed
-			"line 59: Violation against Order: c.doFinal(input, i * 16, (input.length % 16 == 0) ? 16 : input.length % 16) (finalize) is not allowed. Expected one of: c.init (InvalidOrderOfCipherOperations)" // FP, Type system improv in CPG needed
-		);
+			"line 23: Verified Order: Crypt");
 	}
 
 	@Test
@@ -221,18 +258,6 @@ public class JCATest extends AbstractMarkTest {
 			"line 24: Rule BouncyCastleProvider_Mac verified", // ok
 
 			// rule mac
-			"line 10: Rule ID_5_3_01 verified", // ok
-			"line 12: Rule ID_5_3_01 verified", // ok
-			"line 13: Rule ID_5_3_01 verified", // ok
-			"line 14: Rule ID_5_3_01 verified", // ok
-			"line 15: Rule ID_5_3_01 verified", // ok
-			"line 16: Rule ID_5_3_01 verified", // ok
-			"line 17: Rule ID_5_3_01 verified", // ok
-			"line 18: Rule ID_5_3_01 verified", // ok
-			"line 20: Rule ID_5_3_01 verified", // ok
-			"line 22: Rule ID_5_3_01 violated", // ok
-			"line 23: Rule ID_5_3_01 violated", // ok
-			"line 24: Rule ID_5_3_01 violated", // ok
 
 			// rule mac tag length
 			"line 10: Rule ID_5_3_03_CMAC verified", // ok

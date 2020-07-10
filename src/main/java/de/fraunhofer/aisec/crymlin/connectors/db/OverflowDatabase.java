@@ -397,7 +397,7 @@ public class OverflowDatabase<N> implements Database<N> {
 						f.set(node, targetArray);
 					} else {
 						// single edge
-						if (!targets.isEmpty()) {
+						if (!targets.isEmpty() && !Modifier.isFinal(f.getModifiers())) {
 							f.set(node, targets.get(0));
 						}
 					}

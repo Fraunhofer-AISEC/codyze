@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Evaluates all loaded MARK rules against the CPG.
@@ -178,7 +179,7 @@ public class Evaluator {
 			/* Get findings from "result" */
 			Collection<Finding> findings = getFindings(result, markCtxHolder, rule);
 
-			log.info("Got {} findings", findings.size());
+			log.info("Got {} findings: {}", findings.size(), findings.stream().map(f -> f.getLogMsg()).collect(Collectors.toList()));
 			ctx.getFindings().addAll(findings);
 		}
 	}
@@ -287,7 +288,7 @@ public class Evaluator {
 				}
 
 				if (value.equals(false)) {
-					log.info("Precondition is false, do not evaluate ensure.");
+					log.info("Precondition is false, do not evaluate ensure for this combination of instances.");
 					markCtxHolder.removeContext(entry.getKey());
 				} else {
 					log.debug("Precondition is true, we will evaluate this context in the following.");

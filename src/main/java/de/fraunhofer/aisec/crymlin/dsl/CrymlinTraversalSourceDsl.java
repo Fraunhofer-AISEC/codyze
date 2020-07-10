@@ -11,6 +11,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static de.fraunhofer.aisec.crymlin.dsl.__.hasLabel;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
 
@@ -31,12 +32,6 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
 	public CrymlinTraversalSourceDsl(final Graph graph) {
 		super(graph);
-	}
-
-	public GraphTraversal<Vertex, Vertex> variableDeclarations() {
-		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
-
-		return traversal.has("type", VariableDeclaration.class.getSimpleName());
 	}
 
 	/**
@@ -74,18 +69,20 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	/**
 	 * Returns the vertices representing the construct site of a object with the given fully qualified type.
 	 *
-	 * This traversal step will return vertices of type ConstructExpression (or its subclasses).
+	 * This traversal step will return vertices of type ConstructExpression (or its subclasses) which
+	 * match the given type, i.e. which have a TYPE edge to any Type node with a name that equals
+	 * the given {@code type}.
 	 *
-	 * @param type of the ctor
+	 * @param type Fully qualified name of the constructed type.
 	 * @return traversal of matched {@code ConstructExpression} vertices
 	 */
 	@ShellCommand("Constructors of given type")
 	public GraphTraversal<Vertex, Vertex> ctor(String type) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-		return traversal.hasLabel(
-			ConstructExpression.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(ConstructExpression.class)).has("possibleSubTypes", type);
+		return traversal.hasLabel(ConstructExpression.class.getSimpleName(), OverflowDatabase.getSubclasses(ConstructExpression.class))
+				.where(out(CrymlinConstants.TYPE)
+						.has(NAME, type));
 	}
 
 	/**
@@ -100,7 +97,9 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
 		return traversal.hasLabel(
 			CallExpression.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(CallExpression.class)).has("fqn", calleeName).where(out("BASE").has("type", baseType));
+			OverflowDatabase.getSubclasses(CallExpression.class))
+				.has("fqn", calleeName)
+				.where(out(BASE).out(CrymlinConstants.TYPE).has(NAME, baseType));
 	}
 
 	/**
@@ -264,7 +263,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.has(T.id, id)
-				.repeat(out("EOG"))
+				.repeat(out(EOG))
 				.until(
 					hasLabel(
 						MemberCallExpression.class.getSimpleName(),
@@ -284,7 +283,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	public GraphTraversal<Vertex, Vertex> flowTo() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-		return traversal.out("EOG").inV();
+		return traversal.out(EOG).inV();
 	}
 
 	/**
@@ -296,7 +295,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	public GraphTraversal<Vertex, Vertex> flowFrom() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-		return traversal.in("EOG").outV();
+		return traversal.in(EOG).outV();
 	}
 
 }

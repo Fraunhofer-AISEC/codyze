@@ -244,7 +244,8 @@ public class Utils {
 	 * @param typeStr
 	 * @return
 	 */
-	private static String toNonQualifiedName(@NonNull String typeStr) {
+	@NonNull
+	public static String toNonQualifiedName(@NonNull String typeStr) {
 		int posDot = typeStr.lastIndexOf('.');
 		int posColon = typeStr.lastIndexOf(':');
 		int pos = Math.max(posDot, posColon);

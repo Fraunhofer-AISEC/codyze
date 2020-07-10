@@ -157,8 +157,9 @@ public class JCATest extends AbstractMarkTest {
 			"line 23: Rule ID_2_1_01 verified", // ok
 			"line 41: Rule ID_2_1_01 verified", // ok
 
-			"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
-			"line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
+			//"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
+			// "line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
+			"line 23: Verified Order: AEAD_Crypt",
 
 			"line 41: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
 			"line 52: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)"); // FP, Type system improv in CPG needed
@@ -258,6 +259,18 @@ public class JCATest extends AbstractMarkTest {
 			"line 24: Rule BouncyCastleProvider_Mac verified", // ok
 
 			// rule mac
+			"line 10: Rule ID_5_3_01 verified", // ok
+			"line 12: Rule ID_5_3_01 verified", // ok
+			"line 13: Rule ID_5_3_01 verified", // ok
+			"line 14: Rule ID_5_3_01 verified", // ok
+			"line 15: Rule ID_5_3_01 verified", // ok
+			"line 16: Rule ID_5_3_01 verified", // ok
+			"line 17: Rule ID_5_3_01 verified", // ok
+			"line 18: Rule ID_5_3_01 verified", // ok
+			"line 20: Rule ID_5_3_01 verified", // ok
+			"line 22: Rule ID_5_3_01 violated", // ok
+			"line 23: Rule ID_5_3_01 violated", // ok
+			"line 24: Rule ID_5_3_01 violated", // ok
 
 			// rule mac tag length
 			"line 10: Rule ID_5_3_03_CMAC verified", // ok

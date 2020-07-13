@@ -157,12 +157,17 @@ public class JCATest extends AbstractMarkTest {
 			"line 23: Rule ID_2_1_01 verified", // ok
 			"line 41: Rule ID_2_1_01 verified", // ok
 
-			//"line 23: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
-			// "line 34: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
-			"line 23: Verified Order: AEAD_Crypt",
+			// GCM nonce length for authentication tag
+			"line 31: Rule ID_2_1_2_2_02 verified", // ok
+			"line 49: Rule ID_2_1_2_2_02 verified", // ok
 
-			"line 41: Violation against Order: Base c is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderforAEAD)", // FP, Type system improv in CPG needed
-			"line 52: Violation against Order: c.doFinal(plaintext) (finalize) is not allowed. Expected one of: c.init (InvalidOrderforAEAD)"); // FP, Type system improv in CPG needed
+			// GCM minimum length of authentication tag
+			"line 31: Rule ID_2_1_2_2_03 verified", // ok
+			"line 49: Rule ID_2_1_2_2_03 verified", // ok
+
+			"line 23: Verified Order: AEAD_Crypt", // ok
+
+			"line 41: Verified Order: AEAD_Crypt"); // ok
 	}
 
 	@Test

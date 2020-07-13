@@ -240,7 +240,8 @@ public class JCATest extends AbstractMarkTest {
 			"line 37: Rule ID_5_3_01 verified", // ok
 
 			// rule mac key length
-			//"line 37: Rule ID_5_3_02_HMAC verified", // improv analysis. Currently, codyze does not know that `kg2.generateKey()` returns a java.security.Key, this needs to be returned from the CPG
+			"line 26: Rule ID_5_3_02_HMAC verified",
+			//"line 37: Rule ID_5_3_02_HMAC verified", // improv analysis. Currently, codyze does not know that `kg2.generateKey()` returns a 128 bit java.security.Key
 
 			"line 23: Verified Order: Crypt");
 	}

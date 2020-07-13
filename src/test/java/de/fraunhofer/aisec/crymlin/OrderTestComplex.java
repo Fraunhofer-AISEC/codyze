@@ -36,8 +36,6 @@ class OrderTestComplex extends AbstractMarkTest {
 		assertTrue(
 			findings.contains(
 				"line 74: Violation against Order: p6.create(); (createOp) is not allowed. Expected one of: END, cm.resetOp, cm.startOp (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
-
-		server.stop();
 	}
 
 	@Test

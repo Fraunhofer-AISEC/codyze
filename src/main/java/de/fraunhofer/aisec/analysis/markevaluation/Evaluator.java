@@ -287,11 +287,11 @@ public class Evaluator {
 					continue;
 				}
 
-				if (value.equals(false)) {
-					log.info("Precondition is false, do not evaluate ensure for this combination of instances.");
+				if (value.equals(false) || ConstantValue.isError(entry.getValue())) {
+					log.info("Precondition of {} is false or error, do not evaluate ensure for this combination of instances.", rule.getName());
 					markCtxHolder.removeContext(entry.getKey());
 				} else {
-					log.debug("Precondition is true, we will evaluate this context in the following.");
+					log.debug("Precondition of {} is true, we will evaluate this context in the following.", rule.getName());
 				}
 			}
 		}

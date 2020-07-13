@@ -60,20 +60,13 @@ rule ID_5_3_02_HMAC {
         SecretKeyFactory as kf
     when
         m.algorithm in ["HMACSHA256", "HMACSHA512/256", "HMACSHA384", "HMACSHA512", "HMACSHA3-256", "HMACSHA3-384", "HMACSHA3-512"]
+        && (_is(m.key, kg.key) || _is(m.key, kf.outkey))
     ensure
         // find a keygenerator of sufficient size
-        (
-            _is(m.key, kg.key)
-            && kg.keysize >= 128
-        )
-        || (
-            _is(m.key, kf.outkey)
-            && _is(kf.keyspec, sks)
-            && (
-                (_has_value(sks.len) && sks.len >= 128)
-                || (!(_has_value(sks.len)) && _has_value(sks.key) && _length(sks.key) >= 16)
-            )
-        )
+        kg.keysize >= 128
+        || (_has_value(sks.len) && sks.len >= 128)
+            || (!(_has_value(sks.len)) && _has_value(sks.key) && _length(sks.key) >= 16)
+
     onfail
         InsufficientHMACKeyLength
 }
@@ -89,21 +82,13 @@ rule ID_5_3_02_GMAC {
         SecretKeySpec as sks,
         SecretKeyFactory as kf
     when
-        m.algorithm in ["AES-GMAC"]
+        m.algorithm in ["AES-GMAC"] && ( _is(m.key, kg.key)
+        || ( _is(m.key, kf.outkey) && _is(kf.keyspec, sks) ) )
     ensure
         // find a keygenerator of sufficient size
-        (
-            _is(m.key, kg.key)
-            && kg.keysize >= 128
-        )
-        || (
-            _is(m.key, kf.outkey)
-            && _is(kf.keyspec, sks)
-            && (
-                (_has_value(sks.len) && sks.len >= 128)
-                || (!(_has_value(sks.len)) && _has_value(sks.key) && _length(sks.key) >= 16)
-            )
-        )
+        && kg.keysize >= 128
+        || (_has_value(sks.len) && sks.len >= 128)
+        || (!(_has_value(sks.len)) && _has_value(sks.key) && _length(sks.key) >= 16)
     onfail
         InsufficientGMACKeyLength
 }

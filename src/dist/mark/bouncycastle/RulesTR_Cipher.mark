@@ -102,12 +102,10 @@ rule ID_2_1_2_2_02 {
     when
         _split(c.transform, "/", 0) in ["AES"]
         && _split(c.transform, "/", 1) in ["GCM"]
+        && _is(c.paramspec, gcm)
     ensure
-        _is(c.paramspec, gcm)
-        && (
-            (_has_value(gcm.src) && _length(gcm.src) == 12) /* in bytes */
-            || (_has_value(gcm.len) && gcm.len == 12)
-        )
+        (_has_value(gcm.src) && _length(gcm.src) == 12) /* in bytes */
+        || (_has_value(gcm.len) && gcm.len == 12)
     onfail
         InvalidGCMAuthtenticationNonceLength
 }
@@ -123,9 +121,9 @@ rule ID_2_1_2_2_03 {
     when
         _split(c.transform, "/", 0) in ["AES"]
         && _split(c.transform, "/", 1) in ["GCM"]
+        && _is(c.paramspec, gcm)
     ensure
-        _is(c.paramspec, gcm)
-        && gcm.tLen >= 96 /* apparently, there are fixed sizes 96, 104, 112, 120 and 128 */
+        gcm.tLen >= 96 /* apparently, there are fixed sizes 96, 104, 112, 120 and 128 */
     onfail
         InsufficientGCMTagLength
 }

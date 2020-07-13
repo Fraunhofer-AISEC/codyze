@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import de.fraunhofer.aisec.analysis.utils.Utils;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -65,10 +66,11 @@ public class MarkContext {
 				if (v != null) {
 					out.println("MARK instance " + instance + " " + v.property("type").orElse(""));
 				} else {
-					out.println("MARK instance " + instance + " <null>");
+					out.println("  MARK instance " + instance + " <null>");
 				}
 				for (Map.Entry<String, CPGVertexWithValue> op : operands.entrySet()) {
-					out.println("   " + op.getKey() + " : " + op.getValue().getValue());
+					out.println("     " + op.getKey() + " : " + op.getValue().getValue() + " base: " + Utils.prettyPrint(op.getValue().getBase()) + " resp. vertices: "
+							+ Utils.prettyPrint(op.getValue().getValue().getResponsibleVertices()));
 				}
 			}
 		}

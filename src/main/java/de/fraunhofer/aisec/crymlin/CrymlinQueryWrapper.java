@@ -438,7 +438,8 @@ public class CrymlinQueryWrapper {
 				}
 			}
 		}
-		log.debug("GETMATCHINGVERTICES returns {}",
+		log.debug("GETMATCHINGVERTICES for {} returns {}",
+			markVar,
 			matchingVertices.stream()
 					.map(v -> v.getArgumentVertex().label() + ": " + v.getArgumentVertex().property("code").value())
 					.collect(Collectors.joining(", ")));

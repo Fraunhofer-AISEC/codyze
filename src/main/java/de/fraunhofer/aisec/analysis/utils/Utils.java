@@ -320,4 +320,48 @@ public class Utils {
 
 		return types;
 	}
+
+	/**
+	 * Returns a brief human-readable representation of a vertex as a string.
+	 *
+	 * @param base The vertex. If null, this method will return the string "null".
+	 * @return A brief representation of the vertex.
+	 */
+	@NonNull
+	public static String prettyPrint(@Nullable Vertex base) {
+		if (base == null) {
+			return "null";
+		}
+
+		StringBuilder sb = new StringBuilder();
+		if (base.property("labels").isPresent()) {
+			Object labels = base.property("labels").value();
+			String label;
+			if (labels instanceof List) {
+				label = (String) ((List) labels).get(0);
+			} else {
+				label = labels.toString();
+			}
+			sb.append(label);
+		}
+		sb.append("  [");
+		if (base.property("code").isPresent()) {
+			sb.append(base.property("code").value());
+		}
+		sb.append("]");
+		return sb.toString();
+	}
+
+	public static String prettyPrint(Set<Vertex> responsibleVertices) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<Vertex> it = responsibleVertices.iterator();
+		while (it.hasNext()) {
+			Vertex v = it.next();
+			sb.append(prettyPrint(v));
+			if (it.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		return sb.toString();
+	}
 }

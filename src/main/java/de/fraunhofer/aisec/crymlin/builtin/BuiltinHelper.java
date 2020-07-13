@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class BuiltinHelper {
 		// do not call
 	}
 
-	public static List<Vertex> extractResponsibleVertices(ListValue argumentList, int numberOfExpectedArguments) throws InvalidArgumentException {
+	public static List<Vertex> extractResponsibleVertices(@NonNull ListValue argumentList, int numberOfExpectedArguments) throws InvalidArgumentException {
 
 		if (argumentList.size() != numberOfExpectedArguments) {
 			throw new InvalidArgumentException(String.format("Invalid number of arguments: %s", argumentList.size()));
@@ -42,7 +43,6 @@ public class BuiltinHelper {
 			if (arg == null) {
 				throw new InvalidArgumentException("Vertices for arguments are invalid");
 			}
-
 			ret.add(arg);
 		}
 

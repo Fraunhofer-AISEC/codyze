@@ -18,6 +18,7 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,9 +148,14 @@ public class Utils {
 		sourceSuperTypes.addAll(sourceTypes);
 		while (!sourceSuperTypes.isEmpty()) {
 			Type sourceType = sourceSuperTypes.pop();
+
+			/* Note:
+			Java frontend is able to resolve imports and will provide fully qualified names.
+			C++ frontend is not able to resolve namespaces and we must thus compare "nonQualifiedName"s.
+			 */
 			boolean match = markParameter.getTypes()
 					.stream()
-					.anyMatch(markType -> markType.equals(sourceType.getTypeName()));
+					.anyMatch(markType -> Utils.toNonQualifiedName(markType).equals(Utils.toNonQualifiedName(sourceType.getTypeName())));
 			if (match) {
 				log.debug(logMsg, "true");
 				return true;

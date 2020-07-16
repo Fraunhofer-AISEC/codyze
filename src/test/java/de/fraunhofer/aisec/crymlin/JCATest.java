@@ -173,6 +173,12 @@ public class JCATest extends AbstractMarkTest {
 			"line 14: Rule ID_2_1_3_01 verified", // ok
 			"line 16: Rule ID_2_1_3_01 verified", // ok
 
+			// CBC unpredictable IV
+			"line 11: Rule ID_2_1_2_3_01 violated", // ok
+			"line 13: Rule ID_2_1_2_3_01 violated", // ok
+			"line 14: Rule ID_2_1_2_3_01 violated", // ok
+			"line 16: Rule ID_2_1_2_3_01 violated", // ok
+
 			// rule order basic cipher
 			"line 11: Violation against Order: Base c1 is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderOfCipherOperations)", // ok, minimal test
 			"line 13: Violation against Order: Base c2 is not correctly terminated. Expected one of [c.init] to follow the correct last call on this base. (InvalidOrderOfCipherOperations)", // ok, minimal test
@@ -214,8 +220,7 @@ public class JCATest extends AbstractMarkTest {
 			"line 37: Rule ID_5_3_01 verified", // ok
 
 			// rule mac key length
-			"line 26: Rule ID_5_3_02_HMAC verified",
-			//"line 37: Rule ID_5_3_02_HMAC verified", // improv analysis. Currently, codyze does not know that `kg2.generateKey()` returns a 128 bit java.security.Key
+			"line [37, 38]: Rule ID_5_3_02_HMAC_Keygen verified", // ok
 
 			"line 23: Verified Order: Crypt");
 	}

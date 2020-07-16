@@ -304,6 +304,7 @@ public class Utils {
 	 */
 	@NonNull
 	public static Region getRegionByVertex(@NonNull Vertex v) {
+		//TODO May return -2, must be -1.
 		int startLine = toIntExact((Long) v.property(START_LINE).orElse(Long.valueOf(-1))) - 1;
 		int endLine = toIntExact((Long) v.property(END_LINE).orElse(Long.valueOf(-1))) - 1;
 		int startColumn = toIntExact((Long) v.property(START_COLUMN).orElse(Long.valueOf(-1))) - 1;

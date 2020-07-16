@@ -5,54 +5,12 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.cpg.graph.EdgeProperty;
 import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import io.shiftleft.overflowdb.EdgeFactory;
-import io.shiftleft.overflowdb.EdgeLayoutInformation;
-import io.shiftleft.overflowdb.NodeFactory;
-import io.shiftleft.overflowdb.NodeLayoutInformation;
-import io.shiftleft.overflowdb.NodeRef;
-import io.shiftleft.overflowdb.OdbConfig;
-import io.shiftleft.overflowdb.OdbEdge;
-import io.shiftleft.overflowdb.OdbGraph;
-import io.shiftleft.overflowdb.OdbNode;
-import io.shiftleft.overflowdb.OdbNodeProperty;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
+import io.shiftleft.overflowdb.*;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -63,6 +21,7 @@ import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.units.MemoryUnit;
+import org.ehcache.spi.resilience.StoreAccessException;
 import org.javatuples.Pair;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Relationship;
@@ -78,6 +37,16 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.*;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * <code>Database</code> implementation for OverflowDB.
@@ -824,16 +793,23 @@ public class OverflowDatabase<N> implements Database<N> {
 		// do not save database on close
 		this.odbConfig.withStorageLocation(null);
 
-		// Close cache
+		// Clear saved nodes.
+		this.saved.clear();
+
+		// Close caches
 		this.cacheManager.close();
 
 		// Close graph
 		try {
+			this.graph.traversal().V().drop();
+			this.graph.traversal().E().drop();
 			this.graph.close();
 		}
 		catch (Exception e) {
 			log.error("Closing graph", e);
 		}
+		this.vertexToNode.clear();
+		this.nodeToVertex.clear();
 
 		// delete tmp folder
 		if (tmpCacheDir != null) {
@@ -845,6 +821,8 @@ public class OverflowDatabase<N> implements Database<N> {
 				log.error("Failed to delete", e);
 			}
 		}
+
+		INSTANCE = null;
 	}
 
 	@Override

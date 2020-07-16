@@ -64,7 +64,7 @@ public class MarkContext {
 			for (String instance : instances.getMarkInstances()) {
 				Vertex v = instances.getVertex(instance);
 				if (v != null) {
-					out.println("MARK instance " + instance + " " + v.property("type").orElse(""));
+					out.println("  MARK instance " + instance + " " + v.property("type").orElse(""));
 				} else {
 					out.println("  MARK instance " + instance + " <null>");
 				}

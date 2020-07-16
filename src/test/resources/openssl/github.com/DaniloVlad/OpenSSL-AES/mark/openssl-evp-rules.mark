@@ -1,0 +1,30 @@
+package openssl.evp.rules
+
+rule AESwithCBC {
+	using
+		OpenSSL.EVP_Encrypt as enc,
+		AES128_CBC as aes128cbc,
+		AES192_CBC as aes192cbc,
+		AES256_CBC as aes256cbc
+	ensure
+		_is(enc.type, aes128cbc)
+		|| _is(enc.type, aes192cbc)
+		|| _is(enc.type, aes256cbc)
+	onfail
+		NoAESwithCBC
+}
+
+rule EVP_Encrypt_Order {
+	using
+		OpenSSL.EVP_Encrypt as enc
+	ensure
+		order 
+			enc.create(), 
+			(
+				enc.update()*, 
+				enc.finalize()
+			)?, 
+			enc.cleanup()
+	onfail
+		WrongEVP_EncryptOrder
+}

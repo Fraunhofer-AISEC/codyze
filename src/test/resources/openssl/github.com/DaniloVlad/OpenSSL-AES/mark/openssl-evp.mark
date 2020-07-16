@@ -1,0 +1,52 @@
+package openssl.evp
+
+entity OpenSSL.EVP_Encrypt {
+	
+	var ctx;
+	var type;
+	var key;
+	var iv;
+	
+	var ct_out;
+	var ct_outl;
+	var pt_in;
+	var pt_inl;
+	
+	
+	op create {
+		ctx = EVP_CIPHER_CTX_new();
+	}
+	
+	op init {
+		EVP_EncryptInit(
+			ctx, 
+			type, 
+			key, 
+			iv
+		);
+	}
+	
+	op update {
+		EVP_EncryptUpdate(
+			ctx, 
+			ct_out, 
+			ct_outl, 
+			pt_in, 
+			pt_inl
+		);
+	}
+	
+	op finalize {
+		EVP_EncryptFinal_ex(
+			ctx, 
+			ct_out, 
+			ct_outl
+		);
+	}
+	
+	op cleanup {
+		EVP_CIPHER_CTX_cleanup(
+			ctx
+		);
+	}
+}

@@ -16,15 +16,15 @@ rule AESwithCBC {
 
 rule EVP_Encrypt_Order {
 	using
-		OpenSSL.EVP_Encrypt as enc
+		OpenSSL.EVP_Encrypt as enc,
+		EVP_Cipher_Ctx as ctx
 	ensure
-		order 
-			enc.create(), 
-			(
-				enc.update()*, 
-				enc.finalize()
-			)?, 
-			enc.cleanup()
+		order
+		    ctx.create(),
+			enc.init(),
+			enc.update()*,
+			enc.finalize()?,
+			ctx.cleanup()
 	onfail
 		WrongEVP_EncryptOrder
 }

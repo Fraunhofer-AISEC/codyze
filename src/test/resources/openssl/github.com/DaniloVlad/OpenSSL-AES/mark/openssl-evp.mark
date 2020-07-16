@@ -1,8 +1,24 @@
 package openssl.evp
 
+entity EVP_Cipher_Ctx {
+
+    var ctx;
+
+    op create {
+        ctx = EVP_CIPHER_CTX_new();
+    }
+
+	op cleanup {
+		EVP_CIPHER_CTX_cleanup(
+			ctx
+		);
+	}
+
+}
+
 entity OpenSSL.EVP_Encrypt {
 	
-	var ctx;
+	var ctx : EVP_Cipher_Ctx;
 	var type;
 	var key;
 	var iv;
@@ -12,11 +28,7 @@ entity OpenSSL.EVP_Encrypt {
 	var pt_in;
 	var pt_inl;
 	
-	
-	op create {
-		ctx = EVP_CIPHER_CTX_new();
-	}
-	
+
 	op init {
 		EVP_EncryptInit(
 			ctx, 
@@ -43,10 +55,5 @@ entity OpenSSL.EVP_Encrypt {
 			ct_outl
 		);
 	}
-	
-	op cleanup {
-		EVP_CIPHER_CTX_cleanup(
-			ctx
-		);
-	}
+
 }

@@ -43,8 +43,10 @@ public class Is implements Builtin {
 			return ret;
 		}
 		catch (InvalidArgumentException e) {
-			log.warn(e.getMessage());
-			return ErrorValue.newErrorValue(e.getMessage(), argResultList.getAll());
+			// Expected: Did not find a matching vertex v1 or v2. Return false
+			log.info("_is({}, {}) returns false", argResultList.get(0), argResultList.get(1), e.getMessage());
+			ConstantValue retFalse = ConstantValue.of(false);
+			return retFalse;
 		}
 
 	}

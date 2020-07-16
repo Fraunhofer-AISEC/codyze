@@ -397,6 +397,15 @@ public class AnalysisServer {
 			lsp.shutdown();
 		}
 
+		// Close in-memory graph and evict caches
+		OverflowDatabase.getInstance().close();
+
+		this.config = null;
+		this.markModel = null;
+		this.interp = null;
+		this.lsp = null;
+		this.translationResult = null;
+		this.instance = null;
 		log.info("stop.");
 	}
 

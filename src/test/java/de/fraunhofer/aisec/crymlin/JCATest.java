@@ -108,32 +108,6 @@ public class JCATest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void testSubTypesOf() throws Exception {
-		// Load some source code that uses GCMParameterSpec
-		Set<Finding> findings = performTest("java/jca/AESGCM.java",
-			new String[] {
-					"java/jca/include/GCMParameterSpec.java"
-			},
-			"mark/bouncycastle/");
-
-		// Get the GCMParameterSpec type from TypeManager
-		Set<Type> type = TypeManager.getInstance()
-				.getFirstOrderTypes()
-				.stream()
-				.filter(t -> t.getTypeName().equals("javax.crypto.spec.GCMParameterSpec"))
-				.collect(Collectors.toSet());
-
-		// Create a Mark type matching a supertype.
-		MarkDslFactory factory = new MarkDslFactoryImpl();
-		Parameter markType = factory.createParameter();
-		markType.setVar("x");
-		markType.getTypes().add("java.security.spec.AlgorithmParameterSpec");
-
-		// Make sure super types are matched.
-		assertTrue(Utils.isSubTypeOf(type, markType));
-	}
-
-	@Test
 	public void testAESGCM() throws Exception {
 		Set<Finding> findings = performTest("java/jca/AESGCM.java",
 			new String[] {

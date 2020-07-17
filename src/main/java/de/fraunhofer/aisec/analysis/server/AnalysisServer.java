@@ -181,14 +181,15 @@ public class AnalysisServer {
 		 * Create analysis context and register at all passes supporting contexts. An analysis context is an in-memory data structure that can be used to exchange data
 		 * across passes outside of the actual CPG.
 		 */
-
-		AnalysisContext ctx = new AnalysisContext(analyzer.getConfig().getSourceLocations().get(0)); // NOTE: We currently operate on a single source file.
+		File srcLocation = analyzer.getConfig()
+				.getSourceLocations()
+				.get(0);
+		AnalysisContext ctx = new AnalysisContext(srcLocation); // NOTE: We currently operate on a single source file.
 		for (Pass p : analyzer.getPasses()) {
 			if (p instanceof PassWithContext) {
 				((PassWithContext) p).setContext(ctx);
 			}
 		}
-
 		// Run all passes and persist the result
 		return analyzer.analyze() // Run analysis
 				.thenApply(
@@ -396,6 +397,15 @@ public class AnalysisServer {
 			lsp.shutdown();
 		}
 
+		// Close in-memory graph and evict caches
+		OverflowDatabase.getInstance().close();
+
+		this.config = null;
+		this.markModel = null;
+		this.interp = null;
+		this.lsp = null;
+		this.translationResult = null;
+		this.instance = null;
 		log.info("stop.");
 	}
 

@@ -32,7 +32,9 @@ public class ExpressionHelper {
 			return " null ";
 		}
 
-		if (expr instanceof LogicalOrExpression) {
+		if (expr instanceof UnaryExpression) {
+			return ((UnaryExpression) expr).getOp() + exprToString(((UnaryExpression) expr).getExp());
+		} else if (expr instanceof LogicalOrExpression) {
 			return exprToString(((LogicalOrExpression) expr).getLeft())
 					+ " || "
 					+ exprToString(((LogicalOrExpression) expr).getRight());

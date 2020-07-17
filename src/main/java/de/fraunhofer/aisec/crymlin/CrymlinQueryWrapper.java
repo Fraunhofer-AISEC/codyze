@@ -5,6 +5,8 @@ import de.fraunhofer.aisec.analysis.scp.SimpleConstantResolver;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.cpg.graph.type.Type;
+import de.fraunhofer.aisec.cpg.graph.type.TypeParser;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -149,10 +151,7 @@ public class CrymlinQueryWrapper {
 				long sourceArgPos = (long) vArg.property("argumentIndex")
 						.orElse(-1);
 				if (sourceArgPos == i) {
-					String subTypeProperty = (String) vArg.property("possibleSubTypes").value();
-					for (String subType : subTypeProperty.split(",")) {
-						sourceArgs.add(Type.createFrom(subType.trim()));
-					}
+					sourceArgs.addAll(Utils.getPossibleSubTypes(vArg));
 				}
 			}
 
@@ -439,7 +438,8 @@ public class CrymlinQueryWrapper {
 				}
 			}
 		}
-		log.debug("GETMATCHINGVERTICES returns {}",
+		log.debug("GETMATCHINGVERTICES for {} returns {}",
+			markVar,
 			matchingVertices.stream()
 					.map(v -> v.getArgumentVertex().label() + ": " + v.getArgumentVertex().property("code").value())
 					.collect(Collectors.joining(", ")));

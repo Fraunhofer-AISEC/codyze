@@ -150,9 +150,6 @@ public class MarkContextHolder {
 			MarkContext mCtx = ctx.getValue();
 			out.println(id + ":");
 			mCtx.dump(out);
-			for (String op : resolvedOperands) {
-				out.println("   op: " + op + " : " + mCtx.getOperand(op).getValue());
-			}
 		}
 		out.println("===========================");
 	}

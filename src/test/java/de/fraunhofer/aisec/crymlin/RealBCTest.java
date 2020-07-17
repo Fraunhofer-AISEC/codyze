@@ -30,11 +30,11 @@ public class RealBCTest extends AbstractMarkTest {
 		assertEquals(3, wrongAlgorithmsFindings.size()); // 3 in total
 		assertEquals(0, wrongAlgorithmsFindings.stream().filter(Finding::isProblem).collect(Collectors.toSet()).size()); // None is a violation
 
-		// We expect four correct usages of SecureRandom
+		// We expect three correct usages of SecureRandom
 		Set<Finding> correctOrderSecureRandom = findings.stream()
 				.filter(f -> f.getLogMsg().equals("Verified Order: SecureRandomOrder"))
 				.collect(Collectors.toSet());
-		assertEquals(4, correctOrderSecureRandom.size()); // 4 in total
+		assertEquals(3, correctOrderSecureRandom.size()); // 3 in total
 		assertEquals(0, correctOrderSecureRandom.stream().filter(Finding::isProblem).collect(Collectors.toSet()).size()); // None is a violation
 
 		// We expect three correct usages of SHA 512

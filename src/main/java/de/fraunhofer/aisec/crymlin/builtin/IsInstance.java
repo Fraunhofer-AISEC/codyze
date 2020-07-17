@@ -67,7 +67,10 @@ public class IsInstance implements Builtin {
 					cv = ConstantValue.of(type.equals(classname));
 				} else {
 					// Get list of possible types, including the most specific type.
-					boolean match = Utils.getPossibleSubTypes(next).contains(classname);
+					boolean match = Utils.getPossibleSubTypes(next)
+							.stream()
+							.map(type -> type.getTypeName())
+							.anyMatch(typeName -> classname.equals(typeName));
 					cv = ConstantValue.of(match);
 				}
 			}

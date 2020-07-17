@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import io.netty.util.Constant;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Evaluates all loaded MARK rules against the CPG.
@@ -178,7 +180,7 @@ public class Evaluator {
 			/* Get findings from "result" */
 			Collection<Finding> findings = getFindings(result, markCtxHolder, rule);
 
-			log.info("Got {} findings", findings.size());
+			log.info("Got {} findings: {}", findings.size(), findings.stream().map(f -> f.getLogMsg()).collect(Collectors.toList()));
 			ctx.getFindings().addAll(findings);
 		}
 	}
@@ -189,21 +191,22 @@ public class Evaluator {
 
 		for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
 			// the value of the result should always be boolean, as this should be the result of the topmost expression
-			Object value = ConstantValue.unbox(entry.getValue());
-			if (value instanceof Boolean) {
+			int markCtx = entry.getKey();
+			Object evaluationResultUb = ConstantValue.unbox(entry.getValue());
+			if (evaluationResultUb instanceof Boolean) {
+				ConstantValue evalResult = (ConstantValue) entry.getValue();
 				/*
 				 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
 				 * responsible vertices.
 				 */
 
-				MarkContext c = markCtxHolder.getContext(entry.getKey());
+				MarkContext c = markCtxHolder.getContext(markCtx);
 
 				URI currentFile = null;
 
 				if (!c.isFindingAlreadyAdded()) {
 					List<Region> ranges = new ArrayList<>();
-					if (((ConstantValue) entry.getValue()).getResponsibleVertices().isEmpty()
-							|| ((ConstantValue) entry.getValue()).getResponsibleVertices().stream().noneMatch(Objects::nonNull)) {
+					if (evalResult.getResponsibleVertices().isEmpty() || evalResult.getResponsibleVertices().stream().noneMatch(Objects::nonNull)) {
 						// use the line of the instances
 						if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
 							for (Vertex v : c.getInstanceContext().getMarkInstanceVertices()) {
@@ -220,7 +223,7 @@ public class Evaluator {
 						}
 					} else {
 						// responsible vertices are stored in the result
-						for (Vertex v : ((ConstantValue) entry.getValue()).getResponsibleVertices()) {
+						for (Vertex v : evalResult.getResponsibleVertices()) {
 							if (v == null) {
 								continue;
 							}
@@ -229,7 +232,7 @@ public class Evaluator {
 							currentFile = CrymlinQueryWrapper.getFileLocation(v);
 						}
 					}
-					boolean isRuleViolated = !(Boolean) value;
+					boolean isRuleViolated = !(Boolean) evaluationResultUb;
 					findings.add(new Finding(
 						"Rule "
 								+ rule.getName()
@@ -239,13 +242,18 @@ public class Evaluator {
 						ranges,
 						isRuleViolated));
 				}
-			} else if (value == null) {
-				log.warn("Unable to evaluate rule {}, result was null, this should not happen.", rule.getName());
+			} else if (evaluationResultUb == null) {
+				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size()
+						+ ", result was null, this should not happen.",
+					rule.getName());
 			} else if (ConstantValue.isError(entry.getValue())) {
-				log.warn("Unable to evaluate rule {}, result had an error: \n\t{}", rule.getName(),
+				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result had an error: \n\t{}",
+					rule.getName(),
 					((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
 			} else {
-				log.error("Unable to evaluate rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
+				log.error(
+					"Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result is not a boolean, but {}",
+					rule.getName(), evaluationResultUb.getClass().getSimpleName());
 			}
 		}
 		return findings;
@@ -286,11 +294,11 @@ public class Evaluator {
 					continue;
 				}
 
-				if (value.equals(false)) {
-					log.info("Precondition is false, do not evaluate ensure.");
+				if (value.equals(false) || ConstantValue.isError(entry.getValue())) {
+					log.info("Precondition of {} is false or error, do not evaluate ensure for this combination of instances.", rule.getName());
 					markCtxHolder.removeContext(entry.getKey());
 				} else {
-					log.debug("Precondition is true, we will evaluate this context in the following.");
+					log.debug("Precondition of {} is true, we will evaluate this context in the following.", rule.getName());
 				}
 			}
 		}

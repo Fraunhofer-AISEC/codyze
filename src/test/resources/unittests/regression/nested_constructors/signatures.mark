@@ -29,6 +29,7 @@ entity Botan.PK_Verifier {
 
 	op create {
 	    // C++
+	    Botan::PK_Verifier(pub_key, emsa);
 		Botan::PK_Verifier(pub_key, emsa, ...); // additional params: Signature_Format format=IEEE_1363, const std::string &provider=""
 
         // Fake Java

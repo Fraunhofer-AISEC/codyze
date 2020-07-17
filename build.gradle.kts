@@ -52,7 +52,7 @@ repositories {
     }
 
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/9.10/cdt-9.10.0/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/9.11/cdt-9.11.1/plugins")
         metadataSources {
             artifact()
         }
@@ -84,7 +84,7 @@ dependencies {
     api("com.github.javaparser:javaparser-symbol-solver-core:3.16.1")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:1.4.2")
+    api("de.fraunhofer.aisec:cpg:2.1.1")
 
     // Ehcache is used to cache heavyweight reflection operations
     api("org.ehcache:ehcache:3.8.0")

@@ -1,10 +1,13 @@
 #!/bin/sh
 
-if [ "`git status -s`" ]
-then
-    echo "The working directory is dirty. Please commit any pending changes."
-    exit 1;
-fi
+#if [ "`git status -s`" ]
+#then
+#    echo "The working directory is dirty. Please commit any pending changes."
+#    exit 1;
+#fi
+
+echo "Saving CNAME file"
+mv public/CNAME ./CNAME
 
 echo "Deleting old publication"
 rm -rf public
@@ -20,6 +23,9 @@ rm -rf public/*
 
 echo "Generating site"
 hugo -s ./docs/ -d ../public
+
+echo "Recreating CNAME file"
+mv ./CNAME public/CNAME
 
 echo "Updating gh-pages branch"
 cd public && git add --all && git commit -m "Publishing to gh-pages"

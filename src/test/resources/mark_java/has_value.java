@@ -18,6 +18,6 @@ class bla {
     }
 
     public void fun () {
-        Foo f = new Foo(11); // `_is` links reference `b directly to parameter of `Foo(...)`
+        Foo f = new Foo(11); // `_has_value` links reference `b directly to parameter of `Foo(...)`
     }
 }

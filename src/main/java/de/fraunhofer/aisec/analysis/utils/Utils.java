@@ -1,17 +1,24 @@
 
 package de.fraunhofer.aisec.analysis.utils;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableIterator;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Type;
+import de.fraunhofer.aisec.cpg.graph.type.PointerType;
+import de.fraunhofer.aisec.cpg.graph.type.Type;
+import de.fraunhofer.aisec.cpg.graph.type.UnknownType;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.Constants;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +45,7 @@ public class Utils {
 	}
 
 	/**
-	 * Return a unified type String (i.e. changeing cpp-type-separators to Java-type-separators)
+	 * Return a unified type String (i.e. changing cpp-type-separators to Java-type-separators)
 	 *
 	 * @param name input type
 	 * @return a type string which is separated via "."
@@ -54,19 +61,6 @@ public class Utils {
 			opName = opName.substring(opName.lastIndexOf("->") + 2);
 		} else if (opName.contains(".")) {
 			opName = opName.substring(opName.lastIndexOf('.') + 1);
-		}
-		return opName;
-	}
-
-	public static String extractType(String opName) {
-		if (opName.contains("::")) {
-			opName = opName.substring(0, opName.lastIndexOf("::"));
-		} else if (opName.contains("->")) {
-			opName = opName.substring(0, opName.lastIndexOf("->"));
-		} else if (opName.contains(".")) {
-			opName = opName.substring(0, opName.lastIndexOf('.'));
-		} else {
-			opName = "";
 		}
 		return opName;
 	}
@@ -138,72 +132,153 @@ public class Utils {
 	 * @return
 	 */
 	public static boolean isSubTypeOf(@NonNull Set<Type> sourceTypes, Parameter markParameter) {
-		boolean result = false;
+		String logMsg = "Any of " + sourceTypes.stream().map(Type::getTypeName).collect(Collectors.joining(",")) + "  is a subtype of "
+				+ String.join(",", markParameter.getTypes()) + ": {}";
 
 		if (markParameter.getVar().equals(Constants.ANY_TYPE)) {
-			log.debug("Any of {} is a subtype of {}: true", sourceTypes.stream().map(Type::getTypeName).collect(Collectors.joining(",")), markParameter);
+			log.debug(logMsg, "true");
 			return true;
 		}
 
-		anymatch: for (Type sourceType : sourceTypes) {
-			String uniSource = unifyType(sourceType.getTypeName());
-			if (uniSource.contains(".") && !uniSource.endsWith(".")) {
-				uniSource = uniSource.substring(uniSource.lastIndexOf('.') + 1);
+		if (markParameter.getTypes().isEmpty()) {
+			log.debug(logMsg, "true");
+			return true;
+		}
+		Deque<Type> sourceSuperTypes = new ArrayDeque<>();
+		sourceSuperTypes.addAll(sourceTypes);
+		while (!sourceSuperTypes.isEmpty()) {
+			Type sourceType = sourceSuperTypes.pop();
+
+			/* Note:
+			Java frontend is able to resolve imports and will provide fully qualified names.
+			C++ frontend is not able to resolve namespaces and we must thus compare "nonQualifiedName"s.
+			 */
+			boolean match = markParameter.getTypes()
+					.stream()
+					.anyMatch(markType -> Utils.toNonQualifiedName(markType).equals(Utils.toNonQualifiedName(sourceType.getTypeName())));
+			if (match) {
+				log.debug(logMsg, "true");
+				return true;
 			}
-			// TODO Currently, the "type" property may contain modifiers such as "const", so we must remove them here. Will change in CPG.
-			if (uniSource.contains(" ") && !uniSource.endsWith(" ")) {
-				uniSource = uniSource.substring(uniSource.lastIndexOf(' ') + 1);
-			}
 
-			if (markParameter.getTypes().isEmpty()) {
-				return true; // match all
-			} else {
-				for (String type : markParameter.getTypes()) {
-					String uniMark = unifyType(type);
-					if (uniMark.contains(".") && !uniMark.endsWith(".")) {
-						uniMark = uniMark.substring(uniMark.lastIndexOf('.') + 1);
-					}
-
-					// We do not consider type hierarchies here but simply match for equality plus a few manual mappings
-					result = uniSource.equals(uniMark);
-					// There are various representations of "string" and we map them manually here.
-					if (uniMark.equals("string")) {
-						if (uniSource.equals("QString") || uniSource.equals("string") || uniSource.equals("String") || uniSource.equals("char*")) {
-							result = true;
-						} else {
-							log.trace("comparing string from MARK against {} from Sourcefile. Does currently not match", uniSource);
-						}
-					}
-
-					// If type could not be determined, we err on the false positive side.
-					if (sourceType.getTypeName().equals("UNKNOWN")) {
-						result = true;
-					}
-
-					// If any of the subtypes match, we can return.
-					if (result) {
-						break anymatch;
-					}
+			// There are various representations of "string" and we map them manually here.
+			if (markParameter.getTypes()
+					.stream()
+					.map(Utils::toNonQualifiedName)
+					.anyMatch(t -> t.equalsIgnoreCase("string"))) {
+				if (isStringType(sourceType)) {
+					log.debug(logMsg, "true");
+					return true;
 				}
 			}
+
+			// If type could not be determined, we err on the false positive side.
+			if (sourceType instanceof UnknownType) {
+				log.debug(logMsg, "true");
+				return true;
+			}
+
+			sourceSuperTypes.addAll(sourceType.getSuperTypes());
+		}
+		log.debug(logMsg, "false");
+
+		return false;
+
+		//		anymatch: for (Type sourceType : sourceSuperTypes) {
+		//			String uniSource = unifyType(sourceType.getTypeName());
+		//			if (uniSource.contains(".") && !uniSource.endsWith(".")) {
+		//				uniSource = uniSource.substring(uniSource.lastIndexOf('.') + 1);
+		//			}
+		//			// TODO Currently, the "type" property may contain modifiers such as "const", so we must remove them here. Will change in CPG.
+		//			if (uniSource.contains(" ") && !uniSource.endsWith(" ")) {
+		//				uniSource = uniSource.substring(uniSource.lastIndexOf(' ') + 1);
+		//			}
+		//
+		//			if (markParameter.getTypes().isEmpty()) {
+		//				return true; // match all
+		//			} else {
+		//				for (String type : markParameter.getTypes()) {
+		//					String uniMark = unifyType(type);
+		//					if (uniMark.contains(".") && !uniMark.endsWith(".")) {
+		//						uniMark = uniMark.substring(uniMark.lastIndexOf('.') + 1);
+		//					}
+		//
+		//					// We do not consider type hierarchies here but simply match for equality plus a few manual mappings
+		//					result = uniSource.equals(uniMark);
+		//					// There are various representations of "string" and we map them manually here.
+		//					if (uniMark.equals("string")) {
+		//						if (uniSource.equals("QString") || uniSource.equals("string") || uniSource.equals("String") || uniSource.equals("char*")) {
+		//							result = true;
+		//						} else {
+		//							log.trace("comparing string from MARK against {} from Sourcefile. Does currently not match", uniSource);
+		//						}
+		//					}
+		//
+		//					// If type could not be determined, we err on the false positive side.
+		//					if (sourceType.getTypeName().equals("UNKNOWN")) {
+		//						result = true;
+		//					}
+		//
+		//					// If any of the subtypes match, we can return.
+		//					if (result) {
+		//						break anymatch;
+		//					}
+		//				}
+		//			}
+		//		}
+		//
+		//		if (sourceSuperTypes.isEmpty()) {
+		//			// TODO Empty "possibleSubTypes" means that the type could not be resolved from source code. This is ok. It is however unclear/undefined how this should be handled if MARK requires a type.
+		//			log.warn("CHECK ME: Cannot compare empty argument type in source code to MARK type {}. Will assume it matches.", String.join(",", markParameter.getTypes()));
+		//			result = true;
+		//		}
+		//
+		//		log.debug("Any of {} is a subtype of {}: {}", sourceSuperTypes.stream().map(Type::getTypeName).collect(Collectors.joining(",")),
+		//			String.join(",", markParameter.getTypes()), result);
+		//
+		//		return result;
+	}
+
+	/**
+	 * Strips off the leading part of a (possibly fully qualified) type.
+	 *
+	 * str.string       -> string
+	 * std::string      -> string
+	 * string           -> string
+	 * java.lang.String -> String
+	 *
+	 * @param typeStr
+	 * @return
+	 */
+	@NonNull
+	public static String toNonQualifiedName(@NonNull String typeStr) {
+		int posDot = typeStr.lastIndexOf('.');
+		int posColon = typeStr.lastIndexOf(':');
+		int pos = Math.max(posDot, posColon);
+		if (pos > -1 && pos < typeStr.length() - 1) {
+			typeStr = typeStr.substring(pos + 1);
+		}
+		return typeStr;
+	}
+
+	private static boolean isStringType(Type sourceType) {
+		while (sourceType instanceof PointerType) {
+			sourceType = ((PointerType) sourceType).getElementType();
 		}
 
-		if (sourceTypes.stream().map(Type::getTypeName).collect(Collectors.joining(",")).trim().equals("")) {
-			// TODO Empty "possibleSubTypes" means that the type could not be resolved from source code. This is ok. It is however unclear/undefined how this should be handled if MARK requires a type.
-			log.warn("CHECK ME: Cannot compare empty argument type in source code to MARK type {}. Will assume it matches.", markParameter);
-			result = true;
+		String uniSource = unifyType(sourceType.getTypeName());
+		if (uniSource.contains(".") && !uniSource.endsWith(".")) {
+			uniSource = uniSource.substring(uniSource.lastIndexOf('.') + 1);
 		}
 
-		log.debug("Any of {} is a subtype of {}: {}", sourceTypes.stream().map(Type::getTypeName).collect(Collectors.joining(",")), markParameter, result);
-
-		return result;
+		return uniSource.equals("QString") || uniSource.equals("string") || uniSource.equals("String") || uniSource.equals("char");
 	}
 
 	public static List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends Annotation> annotation) {
 		final List<Method> methods = new ArrayList<>();
 		Class<?> klass = type;
 		while (klass != Object.class) { // need to iterated thought hierarchy in order to retrieve methods from above the current instance
-			// iterate though the list of methods declared in the class represented by klass variable, and add those annotated with the specified annotation
+			// iterate though the list of methods declared in the class represented by class variable, and add those annotated with the specified annotation
 			final List<Method> allMethods = new ArrayList<>(Arrays.asList(klass.getDeclaredMethods()));
 			for (final Method method : allMethods) {
 				if (method.isAnnotationPresent(annotation)) {
@@ -229,6 +304,7 @@ public class Utils {
 	 */
 	@NonNull
 	public static Region getRegionByVertex(@NonNull Vertex v) {
+		//TODO May return -2, must be -1.
 		int startLine = toIntExact((Long) v.property(START_LINE).orElse(Long.valueOf(-1))) - 1;
 		int endLine = toIntExact((Long) v.property(END_LINE).orElse(Long.valueOf(-1))) - 1;
 		int startColumn = toIntExact((Long) v.property(START_COLUMN).orElse(Long.valueOf(-1))) - 1;
@@ -243,15 +319,56 @@ public class Utils {
 	 * @return
 	 */
 	@NonNull
-	public static List<String> getPossibleSubTypes(@NonNull Vertex next) {
-		if (next.property(POSSIBLE_SUBTYPES).isPresent() && next.value(POSSIBLE_SUBTYPES) instanceof String) {
-			return Arrays
-					.asList(
-						((String) next.value(POSSIBLE_SUBTYPES)).split(","))
-					.stream()
-					.map(String::trim)
-					.collect(Collectors.toUnmodifiableList());
+	public static Set<Type> getPossibleSubTypes(@NonNull Vertex next) {
+
+		Set<Type> types = new HashSet<>();
+		UnmodifiableIterator<Edge> it = Iterators.filter(next.edges(Direction.OUT, TYPE, POSSIBLE_SUB_TYPES), v -> Utils.hasLabel(v.inVertex(), Type.class));
+		it.forEachRemaining(e -> types.add((Type) OverflowDatabase.getInstance().vertexToNode(e.inVertex())));
+
+		return types;
+	}
+
+	/**
+	 * Returns a brief human-readable representation of a vertex as a string.
+	 *
+	 * @param base The vertex. If null, this method will return the string "null".
+	 * @return A brief representation of the vertex.
+	 */
+	@NonNull
+	public static String prettyPrint(@Nullable Vertex base) {
+		if (base == null) {
+			return "null";
 		}
-		return List.of();
+
+		StringBuilder sb = new StringBuilder();
+		if (base.property("labels").isPresent()) {
+			Object labels = base.property("labels").value();
+			String label;
+			if (labels instanceof List) {
+				label = (String) ((List) labels).get(0);
+			} else {
+				label = labels.toString();
+			}
+			sb.append(label);
+		}
+		sb.append("  [");
+		if (base.property("code").isPresent()) {
+			sb.append(base.property("code").value());
+		}
+		sb.append("]");
+		return sb.toString();
+	}
+
+	public static String prettyPrint(Set<Vertex> responsibleVertices) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<Vertex> it = responsibleVertices.iterator();
+		while (it.hasNext()) {
+			Vertex v = it.next();
+			sb.append(prettyPrint(v));
+			if (it.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		return sb.toString();
 	}
 }

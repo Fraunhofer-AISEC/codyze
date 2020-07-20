@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -137,7 +138,7 @@ public abstract class AbstractMarkTest {
 			}
 		}
 
-		assertEquals(0, findings.size());
+		assertEquals(0, findings.size(), findings.stream().map(f -> f.toString()).collect(Collectors.joining()));
 	}
 
 }

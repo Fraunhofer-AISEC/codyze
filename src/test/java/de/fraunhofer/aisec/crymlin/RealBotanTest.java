@@ -82,9 +82,9 @@ class RealBotanTest extends AbstractMarkTest {
 				.stream()
 				.filter(f -> !f.isProblem())
 				.collect(Collectors.toList());
-		assertEquals(2, correctKeySizes.size());
 		assertTrue(correctKeySizes.stream().anyMatch(f -> f.getRegions().get(0).getStartLine() == 249));
 		assertTrue(correctKeySizes.stream().anyMatch(f -> f.getRegions().get(0).getStartLine() == 354));
+		assertEquals(2, correctKeySizes.size());
 
 	}
 
@@ -100,9 +100,9 @@ class RealBotanTest extends AbstractMarkTest {
 				.filter(f -> f.getOnfailIdentifier().equals("WrongBlockCipher"))
 				.filter(f -> !f.isProblem())
 				.collect(Collectors.toList());
-		assertEquals(2, blockCiphers.size());
 		assertTrue(blockCiphers.stream().anyMatch(f -> f.getRegions().get(0).getStartLine() == 15));
 		assertTrue(blockCiphers.stream().anyMatch(f -> f.getRegions().get(0).getStartLine() == 21));
+		assertEquals(2, blockCiphers.size());
 
 		// We expect an incorrect key size at line 16 and 22 because it is not explicitly set.
 		List<Finding> keyLengths = findings

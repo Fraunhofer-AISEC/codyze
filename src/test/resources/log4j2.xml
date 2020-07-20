@@ -13,7 +13,7 @@
   </Appenders>
   <Loggers>
     <Logger level="DEBUG" name="de.fraunhofer.aisec.analysis.wpds"/>
-    <Root level="WARN">
+    <Root level="DEBUG">
       <AppenderRef ref="STDOUT"/>
       <AppenderRef ref="FILEOUT"/>
     </Root>

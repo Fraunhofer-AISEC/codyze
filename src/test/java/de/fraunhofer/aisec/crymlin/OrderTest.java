@@ -29,7 +29,6 @@ class OrderTest extends AbstractMarkTest {
 	}
 
 	private void check(Set<String> findings) {
-		assertEquals(7, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 
 		assertTrue(
 			findings.contains(
@@ -53,5 +52,6 @@ class OrderTest extends AbstractMarkTest {
 			findings.contains(
 				"line 66: Violation against Order: Base p2 is not correctly terminated. Expected one of [cm.finish] to follow the correct last call on this base. (WrongUseOfBotan_CipherMode): The order of called Botan methods is wrong."));
 
+		assertEquals(7, findings.stream().filter(s -> s.contains("Violation against Order")).count());
 	}
 }

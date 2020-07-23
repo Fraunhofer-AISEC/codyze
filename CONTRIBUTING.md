@@ -33,7 +33,6 @@ In case you have several Java versions installed, you may want to force an SDK v
 ./gradlew clean spotlessApply build publishToMavenLocal -Dorg.gradle.java.home=/usr/lib/jvm/java-12-openjdk-amd64
 ```
 
-
 # Pull Requests
 
 Before we can accept a pull request from you, you'll need to sign a Contributor License Agreement (CLA). It is an automated process and you only need to do it once.
@@ -46,3 +45,7 @@ Pull requests should contain tests whenever possible.
 # Language
 
 Please stick to English for all discussions and comments. This helps to make the project accessible for a larger audience.
+
+# Publishing
+
+To publish a release, push a tag that contains the version number beginning with `v`, i.e. `v2.0.0`. The GitHub Actions workflow will then automatically build a release zip and create a GitHub release. Afterwards it would be good to adjust the release text to include a minimal changelog.

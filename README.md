@@ -53,13 +53,12 @@ Analysis settings
                             Typestate analysis mode
                             NFA:  Non-deterministic finite automaton (faster, intraprocedural)
                             WPDS: Weighted pushdown system (slower, interprocedural)
-      --interproc           Enables interprocedural data flow analysis (more precise but slower).
 ```
 Please refer to https://www.codyze.io for further usage instructions.
 
 # Research & Student Work
 
-If you are looking for an exciting thesis project or student job in the field of static analysis, we are happy to discuss possible topics.
+If you are looking for an exciting thesis project or student job in the field of static analysis, we are happy to discuss possible topics. Please contact us at _codyze [at] aisec.fraunhofer.de_.
 
 # Support
 

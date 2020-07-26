@@ -442,134 +442,77 @@ public class TypeStateAnalysis {
 					*/
 
 					// TODO We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a BinaryOperator.
-					Iterator<Edge> declarations = v.edges(Direction.OUT, "DECLARATIONS");
-					if (isDeclarationStatement(v) && declarations.hasNext()) {
+					//					Iterator<Edge> declarations = v.edges(Direction.OUT, "DECLARATIONS");
+					if (isDeclarationStatement(v)) {
+						//					if (isDeclarationStatement(v) && declarations.hasNext()) {
 						log.debug("Found variable declaration {}", v.property("code")
 								.orElse(""));
+						DeclarationStatement ds = (DeclarationStatement) odb.vertexToNode(v);
+						for (Declaration decl : ds.getDeclarations()) {
+							if (!(decl instanceof VariableDeclaration)) {
+								continue;
+							}
+							Val declVal = new Val(decl.getName(), currentFunctionName);
+							Expression rhs = ((VariableDeclaration) decl).getInitializer();
 
-						Vertex decl = declarations.next()
-								.inVertex();
-						Val declVal = new Val((String) decl.property("name")
-								.value(),
-							currentFunctionName);
-
-						Optional<Vertex> rhs = Optional.empty();
-						if (decl.edges(Direction.OUT, "INITIALIZER")
-								.hasNext()) {
-							// TODO Do not simply assume that the target of an INITIALIZER edge is a variable
-							rhs = Optional.of(decl.edges(Direction.OUT, "INITIALIZER")
-									.next()
-									.inVertex());
-						}
-
-						if (rhs.isPresent()) {
-							Vertex rhsVertex = rhs.get();
-							if (rhsVertex.property("name")
-									.isPresent()
-									&& !"".equals(rhsVertex.property("name")
-											.value())) {
-								log.debug("  Has name on right hand side {}", rhsVertex.property("name")
-										.value());
-								if (Utils.hasLabel(rhsVertex, MemberCallExpression.class)) {
-									// handle member calls
-									MemberCallExpression call = (MemberCallExpression) OverflowDatabase.getInstance()
-											.vertexToNode(rhsVertex);
-									if (call == null) {
-										log.error("Unexpected: null base of MemberCallExpression {}", rhsVertex);
-										continue;
-									}
-									de.fraunhofer.aisec.cpg.graph.Node base = call.getBase();
-									Val rhsVal = new Val(base.getName(), currentFunctionName);
-
-									// Add declVal to set of currently tracked variables
-									valsInScope.add(declVal);
-
-									Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt,
-										TypestateWeight.one());
-									log.debug("Adding normal rule for member call {}", normalRuleSelf);
-									wpds.addRule(normalRuleSelf);
-								} else if (Utils.hasLabel(rhsVertex, CallExpression.class)) {
-									// handle function calls
-									CallExpression call = (CallExpression) OverflowDatabase.getInstance()
-											.vertexToNode(rhsVertex);
-									if (call == null) {
-										log.error("Unexpected: null base of CallExpression {}", rhsVertex);
-										continue;
-									}
-
-									// Propagate all existing flows
-									for (Val val : valsInScope) {
-										Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val,
-											currentStmt,
-											TypestateWeight.one());
-										log.debug("Adding normal rule for function call {}", normalRuleSelf);
-										wpds.addRule(normalRuleSelf);
-									}
-
-									// Create new flow for declared variable (declVal)
-									Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName),
-										previousStmt,
-										declVal,
-										currentStmt,
-										TypestateWeight.one());
-									log.debug("Adding normal rule for declaration {}", normaleRuleDeclared);
-									wpds.addRule(normaleRuleDeclared);
-
-									// Add declVal to set of currently tracked variables
-									valsInScope.add(declVal);
-
-								} else {
-									// Propagate flow from right-hand to left-hand side (variable declaration)
-									Val rhsVal = new Val((String) rhsVertex.property("name")
-											.value(),
-										currentFunctionName);
-									// Add declVal to set of currently tracked variables
-									valsInScope.add(declVal);
-									Rule<Stmt, Val, TypestateWeight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt,
-										TypestateWeight.one());
-									log.debug("Adding normal rule for assignment {}", normalRulePropagate);
-									wpds.addRule(normalRulePropagate);
+							if (rhs instanceof MemberCallExpression) {
+								// handle member calls
+								MemberCallExpression call = (MemberCallExpression) rhs;
+								if (call == null) {
+									log.error("Unexpected: null base of MemberCallExpression {}", rhs);
+									continue;
 								}
-
-								// Additionally, flow remains at rhs.
-								Val rhsVal = new Val((String) rhsVertex.property("name")
-										.value(),
-									currentFunctionName);
-								Rule<Stmt, Val, TypestateWeight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, TypestateWeight.one());
-								log.debug("Adding normal rule, propagating unchanged values {}", normalRuleCopy);
-								wpds.addRule(normalRuleCopy);
-
-							} else {
-								// handle new instantiations of objects
-								log.debug("  Has no name on right hand side: {}", v.property("code")
-										.orElse(""));
-
-								// Normal copy of all values in scope
-								for (Val valInScope : valsInScope) {
-									Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt,
-										TypestateWeight.one());
-									if (!skipTheseValsAtStmt.containsKey(normalRule.getL2())) {
-										Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
-										if (!normalRule.getS1()
-												.equals(forbiddenVal)) {
-											log.debug("Adding normal rule, propagating vars {}", normalRule);
-											wpds.addRule(normalRule);
-										}
-									}
-								}
+								de.fraunhofer.aisec.cpg.graph.Node base = call.getBase();
+								Val rhsVal = new Val(base.getName(), currentFunctionName);
 
 								// Add declVal to set of currently tracked variables
 								valsInScope.add(declVal);
 
-								// Create normal rule
-								Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName), previousStmt, declVal,
+								Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt,
+									TypestateWeight.one());
+								log.debug("Adding normal rule for member call {}", normalRuleSelf);
+								wpds.addRule(normalRuleSelf);
+							} else if (rhs instanceof CallExpression) {
+								// handle function calls
+								CallExpression call = (CallExpression) rhs;
+								if (call == null) {
+									log.error("Unexpected: null base of CallExpression {}", rhs);
+									continue;
+								}
+
+								// Propagate all existing flows
+								for (Val val : valsInScope) {
+									Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val,
+										currentStmt,
+										TypestateWeight.one());
+									log.debug("Adding normal rule for function call {}", normalRuleSelf);
+									wpds.addRule(normalRuleSelf);
+								}
+
+								// Create new flow for declared variable (declVal)
+								Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName),
+									previousStmt,
+									declVal,
 									currentStmt,
 									TypestateWeight.one());
-								log.debug("Adding normal rule for epsilon {}", normalRule);
-								wpds.addRule(normalRule);
+								log.debug("Adding normal rule for declaration {}", normaleRuleDeclared);
+								wpds.addRule(normaleRuleDeclared);
 
+								// Add declVal to set of currently tracked variables
+								valsInScope.add(declVal);
+
+							} else if (rhs != null) {
+								// Propagate flow from right-hand to left-hand side (variable declaration)
+								Val rhsVal = new Val(rhs.getName(), currentFunctionName);
+								// Add declVal to set of currently tracked variables
+								valsInScope.add(declVal);
+								Rule<Stmt, Val, TypestateWeight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt,
+									TypestateWeight.one());
+								log.debug("Adding normal rule for assignment {}", normalRulePropagate);
+								wpds.addRule(normalRulePropagate);
 							}
 						}
+
 					} else if (isReturnStatement(v)) {
 						/* Return statements result in pop rules */
 						ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(v);
@@ -624,7 +567,7 @@ public class TypeStateAnalysis {
 							}
 						}
 
-					}
+					} // End isReturnStatement
 				} // End isRelevantStmt()
 			}
 
@@ -708,7 +651,7 @@ public class TypeStateAnalysis {
 	}
 
 	private boolean isDeclarationStatement(Vertex v) {
-		return v.label().equals(DeclarationStatement.class.getSimpleName());
+		return Utils.hasLabel(v, DeclarationStatement.class);
 	}
 
 	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final NFA tsNfa, final Vertex v, final Stmt previousStmt,

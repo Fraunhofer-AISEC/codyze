@@ -47,7 +47,7 @@ Codyze can be installed from the following Eclipse update site: [https://update.
 2. Goto `Settings` -> `Language Server Protocol` -> `Server Definitions`
 3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `/opt/codyze/codyze-1.0.0/bin/codyze` script. 
  
-<img src="img/lsp-settings-intellij.png" 
+<img src="/img/lsp-settings-intellij.png" 
 alt="IntelliJ LSP Settings" 
 class="mt-3 mb-3 border border-info rounded">
 
@@ -57,7 +57,7 @@ If everything works as intended, you should see a green circle in your IntelliJ 
 
 The Codyze eclipse can be installed from the Visual Studio 2019 Marketplace
 
-<img src="img/vs-plugin.jpg" 
+<img src="/img/vs-plugin.jpg" 
 alt="Installation from Visual Studio Market" 
 class="mt-3 mb-3 border border-info rounded">
 

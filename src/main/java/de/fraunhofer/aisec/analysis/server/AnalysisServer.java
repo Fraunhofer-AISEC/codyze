@@ -561,6 +561,7 @@ public class AnalysisServer {
 							.debugParser(true)
 							.failOnError(false)
 							.codeInNodes(true)
+							.loadIncludes(config.loadIncludes)
 							.defaultPasses()
 							.sourceLocations(files.toArray(new File[0]))
 							.build())

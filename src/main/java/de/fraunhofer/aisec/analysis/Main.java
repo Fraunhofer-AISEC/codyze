@@ -35,6 +35,9 @@ public class Main implements Callable<Integer> {
 	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
 	private AnalysisMode analysisMode;
 
+	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
+	private TranslationSettings translationSettings;
+
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File analysisInput;
 
@@ -71,6 +74,7 @@ public class Main implements Callable<Integer> {
 						.launchLsp(executionMode.lsp)
 						.launchConsole(executionMode.tui)
 						.typestateAnalysis(analysisMode.tsMode)
+						.loadIncludes(translationSettings.loadIncludes)
 						.markFiles(markFolderName.getAbsolutePath())
 						.build())
 				.build();
@@ -147,4 +151,9 @@ class AnalysisMode {
 	@Option(names = { "--interproc" }, description = "Enables interprocedural data flow analysis (more precise but slower).")
 	protected boolean interproc = false;
 
+}
+
+class TranslationSettings {
+	@Option(names = { "--load-includes" }, description = "Enables loading of include files")
+	protected boolean loadIncludes = false;
 }

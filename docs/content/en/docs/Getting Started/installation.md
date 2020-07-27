@@ -57,7 +57,7 @@ If everything works as intended, you should see a green circle in your IntelliJ 
 
 The Codyze eclipse can be installed from the Visual Studio 2019 Marketplace
 
-<img src="img/vs-plugin.png" 
+<img src="img/vs-plugin.jpg" 
 alt="Installation from Visual Studio Market" 
 class="mt-3 mb-3 border border-info rounded">
 

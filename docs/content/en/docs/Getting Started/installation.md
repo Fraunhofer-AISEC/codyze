@@ -26,8 +26,23 @@ Download and Install
 
 ## Integration in Eclipse
 
-Codyze can be installed from the following Eclipse update site: [https://update.breakpoint-security.com](https://update.breakpoint-security.com). It has been tested against Eclipse 2019-04 and later.
+Codyze can be installed from an Eclipse update site. It has been tested against Eclipse 2019-04 and later.
 
+1. In Eclipse, click on `Help`->`Install New Software...`
+2. Click `Add...` to add a new update site
+3. Choose a name and enter the location [https://update.breakpoint-security.com](https://update.breakpoint-security.com) (note this is an Eclipse update site URL and not suited to open with a web browser)
+
+<img src="/img/eclipse-update-site.png" 
+    alt="Adding Eclipse Update Site"
+    class="mt-3 mb-3 border border-info rounded">
+
+4. Choose and install `Codyze Code Analyzer`
+
+<img src="/img/eclipse-plugin-installation.png" 
+    alt="Adding Eclipse Update Site"
+    class="mt-3 mb-3 border border-info rounded">
+
+Once installed, configure the Eclipse plugin to use the local LSP server:
 
 1. Go to _Windows->Preferences->Codyze Code Analysis_ and configure the path to the analysis server binary
 

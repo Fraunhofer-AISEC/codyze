@@ -181,3 +181,9 @@ downloadLicenses {
     dependencyConfiguration = "compileClasspath"
 }
 
+tasks.named<CreateStartScripts>("startScripts") {
+    doLast {
+        // workaround for https://github.com/gradle/gradle/issues/1989
+        windowsScript.writeText(windowsScript.readText().replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*"))
+    }
+}

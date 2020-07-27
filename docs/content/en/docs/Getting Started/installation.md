@@ -21,7 +21,7 @@ Download and Install
 
 * Download the zipped analysis server from the [release page](https://github.com/Fraunhofer-AISEC/codyze/releases)
 * Unzip the file
-* Run `server.bat -l` (Windows) or `server.sh -l` (Mac, Linux) from the unzipped folder to start the analysis server in LSP mode
+* Run `bin\codyze.bat -l` (Windows) or `bin/codyze -l` (Mac, Linux) from the unzipped folder to start the analysis server in LSP mode
 
 
 ## Integration in Eclipse

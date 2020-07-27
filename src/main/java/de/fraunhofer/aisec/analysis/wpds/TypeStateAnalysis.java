@@ -416,6 +416,7 @@ public class TypeStateAnalysis {
 		return wpds;
 	}
 
+	@java.lang.SuppressWarnings("squid:S107")
 	private void createRulesForStmt(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds,
 			@NonNull Vertex functionVertex,
 			@NonNull Stmt previousStmt,
@@ -439,35 +440,33 @@ public class TypeStateAnalysis {
 			if (!skipIt) {
 				wpds.addRule(normalRule);
 			}
-
-			/*
-			  Handle calls into known methods (not a "phantom" method) by creating push rule.
-			 */
-			if (isCallExpression(currentStmtVertex) && !isPhantom((CallExpression) stmtNode)) {
-				CallExpression callE = (CallExpression) stmtNode;
-				/*
-				 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
-				 * "return site" is the statement to which flow returns after the function call.
-				 */
-				Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa,
-					currentStmt,
-					currentStmtVertex);
-				for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
-					log.debug("  Adding push rule: {}", pushRule);
-					wpds.addRule(pushRule);
-
-					// Remember that arguments flow only into callee and do not bypass it.
-					skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
-				}
-			}
-
 		}
-		/* Handle declaration of new variables.
-		 "DeclarationStatements" result in a normal rule, assigning rhs to lhs.
-		*/
 
-		// Note: We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a "BinaryOperator".
-		if (isDeclarationStatement(currentStmtVertex)) {
+		/*
+		  Handle calls into known methods (not a "phantom" method) by creating push rule.
+		 */
+		if (isCallExpression(currentStmtVertex) && !isPhantom((CallExpression) stmtNode)) {
+			CallExpression callE = (CallExpression) stmtNode;
+			/*
+			 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
+			 * "return site" is the statement to which flow returns after the function call.
+			 */
+			Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa,
+				currentStmt,
+				currentStmtVertex);
+			for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
+				log.debug("  Adding push rule: {}", pushRule);
+				wpds.addRule(pushRule);
+
+				// Remember that arguments flow only into callee and do not bypass it.
+				skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
+			}
+		} else if (isDeclarationStatement(currentStmtVertex)) {
+			/* Handle declaration of new variables.
+			 "DeclarationStatements" result in a normal rule, assigning rhs to lhs.
+			*/
+
+			// Note: We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a "BinaryOperator".
 			log.debug("Found variable declaration {}", currentStmtVertex.property("code")
 					.orElse(""));
 			DeclarationStatement ds = (DeclarationStatement) odb.vertexToNode(currentStmtVertex);
@@ -480,11 +479,8 @@ public class TypeStateAnalysis {
 
 				if (rhs instanceof CallExpression) {
 					/* Handle function/method calls whose return value is assigned to a declared variable.
-					   A new data flow for the declared variable is introduced.
+					   A new data flow for the declared variable (declVal) is introduced.
 					 */
-					CallExpression call = (CallExpression) rhs;
-
-					// Create new flow for declared variable (declVal)
 					Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName),
 						previousStmt,
 						declVal,
@@ -511,16 +507,6 @@ public class TypeStateAnalysis {
 					wpds.addRule(normalRulePropagate);
 				}
 			}
-
-			// Propagate all existing flows
-			for (Val val : valsInScope) {
-				Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val,
-					currentStmt,
-					TypestateWeight.one());
-				log.debug("Adding normal rule for function call {}", normalRuleSelf);
-				wpds.addRule(normalRuleSelf);
-			}
-
 		} else if (isReturnStatement(currentStmtVertex)) {
 			/* Return statements result in pop rules */
 			ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(currentStmtVertex);
@@ -690,7 +676,7 @@ public class TypeStateAnalysis {
 			return false;
 		}
 
-		// TODO this method is called a few times and repeats some work. Potential for caching/optimization.
+		// Note: this method is called a few times and repeats some work. Potential for caching/optimization.
 
 		for (MOp o : mEntity.getValue1().getOps()) {
 			if (!op.equals(o.getName())) {

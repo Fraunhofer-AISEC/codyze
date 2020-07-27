@@ -33,10 +33,10 @@ public class Main implements Callable<Integer> {
 	private ExecutionMode executionMode;
 
 	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-	private AnalysisMode analysisMode;
+	private final AnalysisMode analysisMode = new AnalysisMode();
 
 	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
-	private TranslationSettings translationSettings;
+	private final TranslationSettings translationSettings = new TranslationSettings();
 
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File analysisInput;
@@ -62,9 +62,6 @@ public class Main implements Callable<Integer> {
 	public Integer call() throws Exception {
 		Instant start = Instant.now();
 
-		if (analysisMode == null) {
-			analysisMode = new AnalysisMode();
-		}
 		if (analysisMode.tsMode == null) {
 			analysisMode.tsMode = TypestateMode.NFA;
 		}

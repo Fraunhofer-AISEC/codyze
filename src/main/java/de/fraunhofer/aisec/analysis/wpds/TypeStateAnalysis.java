@@ -43,7 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper.isCallExpression;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.NAME;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static de.fraunhofer.aisec.crymlin.dsl.__.__;
 import static java.lang.Math.toIntExact;
 
@@ -416,20 +416,24 @@ public class TypeStateAnalysis {
 		return wpds;
 	}
 
-	private void createRulesForStmt(WPDS<Stmt, Val, TypestateWeight> wpds,
-			Vertex fdVertex, Stmt previousStmt, Vertex v, Set<Val> valsInScope,
-			Map<Stmt, Val> skipTheseValsAtStmt, NFA tsNfa, CrymlinTraversalSource crymlinTraversal) {
+	private void createRulesForStmt(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds,
+			@NonNull Vertex functionVertex,
+			@NonNull Stmt previousStmt,
+			@NonNull Vertex currentStmtVertex,
+			@NonNull Set<Val> valsInScope,
+			@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
+			@NonNull NFA tsNfa,
+			@NonNull CrymlinTraversalSource crymlinTraversal) {
 
-		String currentFunctionName = (String) fdVertex.property(NAME).orElse("UNKNOWN");
-		Stmt currentStmt = vertexToStmt(v);
-		Statement stmtNode = (Statement) odb.vertexToNode(v);
+		String currentFunctionName = (String) functionVertex.property(NAME).orElse("UNKNOWN");
+		Stmt currentStmt = vertexToStmt(currentStmtVertex);
+		Statement stmtNode = (Statement) odb.vertexToNode(currentStmtVertex);
 
 		/* First we create normal rules from previous stmt to the current stmt, simply propagating existing values. */
-		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(tsNfa, v, previousStmt, valsInScope);
+		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(previousStmt, currentStmtVertex, valsInScope, tsNfa);
 		for (NormalRule<Stmt, Val, TypestateWeight> normalRule : normalRules) {
-
 			/*
-			  If this is a call into a known method, we skip immediate propagation.
+			  If this is a call into a known method, we skip immediate propagation. In that case, data flows *into* the method.
 			 */
 			boolean skipIt = shouldBeSkipped(normalRule, skipTheseValsAtStmt);
 			if (!skipIt) {
@@ -439,7 +443,7 @@ public class TypeStateAnalysis {
 			/*
 			  Handle calls into known methods (not a "phantom" method) by creating push rule.
 			 */
-			if (isCallExpression(v) && !isPhantom((CallExpression) stmtNode)) {
+			if (isCallExpression(currentStmtVertex) && !isPhantom((CallExpression) stmtNode)) {
 				CallExpression callE = (CallExpression) stmtNode;
 				/*
 				 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
@@ -447,7 +451,7 @@ public class TypeStateAnalysis {
 				 */
 				Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa,
 					currentStmt,
-					v);
+					currentStmtVertex);
 				for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
 					log.debug("  Adding push rule: {}", pushRule);
 					wpds.addRule(pushRule);
@@ -463,11 +467,10 @@ public class TypeStateAnalysis {
 		*/
 
 		// Note: We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a "BinaryOperator".
-		if (isDeclarationStatement(v)) {
-			//					if (isDeclarationStatement(v) && declarations.hasNext()) {
-			log.debug("Found variable declaration {}", v.property("code")
+		if (isDeclarationStatement(currentStmtVertex)) {
+			log.debug("Found variable declaration {}", currentStmtVertex.property("code")
 					.orElse(""));
-			DeclarationStatement ds = (DeclarationStatement) odb.vertexToNode(v);
+			DeclarationStatement ds = (DeclarationStatement) odb.vertexToNode(currentStmtVertex);
 			for (Declaration decl : ds.getDeclarations()) {
 				if (!(decl instanceof VariableDeclaration)) {
 					continue;
@@ -475,39 +478,11 @@ public class TypeStateAnalysis {
 				Val declVal = new Val(decl.getName(), currentFunctionName);
 				Expression rhs = ((VariableDeclaration) decl).getInitializer();
 
-				if (rhs instanceof MemberCallExpression) {
-					// handle member calls
-					MemberCallExpression call = (MemberCallExpression) rhs;
-					if (call == null) {
-						log.error("Unexpected: null base of MemberCallExpression {}", rhs);
-						continue;
-					}
-					de.fraunhofer.aisec.cpg.graph.Node base = call.getBase();
-					Val rhsVal = new Val(base.getName(), currentFunctionName);
-
-					// Add declVal to set of currently tracked variables
-					valsInScope.add(declVal);
-
-					Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt,
-						TypestateWeight.one());
-					log.debug("Adding normal rule for member call {}", normalRuleSelf);
-					wpds.addRule(normalRuleSelf);
-				} else if (rhs instanceof CallExpression) {
-					// handle function calls
+				if (rhs instanceof CallExpression) {
+					/* Handle function/method calls whose return value is assigned to a declared variable.
+					   A new data flow for the declared variable is introduced.
+					 */
 					CallExpression call = (CallExpression) rhs;
-					if (call == null) {
-						log.error("Unexpected: null base of CallExpression {}", rhs);
-						continue;
-					}
-
-					// Propagate all existing flows
-					for (Val val : valsInScope) {
-						Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val,
-							currentStmt,
-							TypestateWeight.one());
-						log.debug("Adding normal rule for function call {}", normalRuleSelf);
-						wpds.addRule(normalRuleSelf);
-					}
 
 					// Create new flow for declared variable (declVal)
 					Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName),
@@ -520,10 +495,14 @@ public class TypeStateAnalysis {
 
 					// Add declVal to set of currently tracked variables
 					valsInScope.add(declVal);
-
 				} else if (rhs != null) {
-					// Propagate flow from right-hand to left-hand side (variable declaration)
+					/**
+					 * Handle assignment from right side (rhs) to left side (lhs).
+					 *
+					 * We simply take rhs.getName() as a data source. This might be imprecise and need further differentiation. For instance, if rhs is an expression (other than CallExpression), we might want to recursively handle data flows within that expression. This is currently not implemented as it is not needed for our use case and would add unneeded complexity.
+					 */
 					Val rhsVal = new Val(rhs.getName(), currentFunctionName);
+
 					// Add declVal to set of currently tracked variables
 					valsInScope.add(declVal);
 					Rule<Stmt, Val, TypestateWeight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt,
@@ -533,11 +512,20 @@ public class TypeStateAnalysis {
 				}
 			}
 
-		} else if (isReturnStatement(v)) {
+			// Propagate all existing flows
+			for (Val val : valsInScope) {
+				Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val,
+					currentStmt,
+					TypestateWeight.one());
+				log.debug("Adding normal rule for function call {}", normalRuleSelf);
+				wpds.addRule(normalRuleSelf);
+			}
+
+		} else if (isReturnStatement(currentStmtVertex)) {
 			/* Return statements result in pop rules */
-			ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(v);
+			ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(currentStmtVertex);
 			if (returnV != null && !returnV.isDummy()) {
-				Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
+				Set<Val> returnedVals = findReturnedVals(crymlinTraversal, currentStmtVertex);
 
 				for (Val returnedVal : returnedVals) {
 					Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
@@ -559,7 +547,7 @@ public class TypeStateAnalysis {
 				}
 
 				// Pop Rules for side effects on parameters
-				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(fdVertex, v, odb, crymlinTraversal);
+				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex, currentStmtVertex, odb, crymlinTraversal);
 				if (paramToValueMap.containsKey(currentFunctionName)) {
 					for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
 						PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(),
@@ -660,8 +648,7 @@ public class TypeStateAnalysis {
 		return Utils.hasLabel(v, DeclarationStatement.class);
 	}
 
-	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final NFA tsNfa, final Vertex v, final Stmt previousStmt,
-			final Set<Val> valsInScope) {
+	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final Stmt previousStmt, final Vertex v, final Set<Val> valsInScope, final NFA tsNfa) {
 		Stmt currentStmt = vertexToStmt(v);
 
 		Statement currentStmtNode = (Statement) odb.vertexToNode(v);
@@ -872,11 +859,11 @@ public class TypeStateAnalysis {
 	 * @param currentFunctionName
 	 * @param nfa
 	 * @param currentStmt
-	 * @param v
+	 * @param currentStmtVertex
 	 * @return
 	 */
 	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
-			NFA nfa, Stmt currentStmt, Vertex v) {
+			NFA nfa, Stmt currentStmt, Vertex currentStmtVertex) {
 		Set<NFATransition<Node>> relevantNFATransitions = nfa.getTransitions()
 				.stream()
 				.filter(
@@ -885,7 +872,7 @@ public class TypeStateAnalysis {
 		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
-		List<Vertex> returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) v.id());
+		List<Vertex> returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) currentStmtVertex.id());
 
 		// Arguments of function call
 		List<Val> argVals = argumentsToVals(mce, currentFunctionName);
@@ -973,18 +960,18 @@ public class TypeStateAnalysis {
 	@NonNull
 	private Stmt vertexToStmt(@NonNull Vertex v) {
 		Region region = new Region(-1, -1, -1, -1);
-		if (v.property("startLine").isPresent() &&
-				v.property("startColumn").isPresent() &&
-				v.property("endLine").isPresent() &&
-				v.property("endColumn").isPresent()) {
+		if (v.property(START_LINE).isPresent() &&
+				v.property(START_COLUMN).isPresent() &&
+				v.property(END_LINE).isPresent() &&
+				v.property(END_COLUMN).isPresent()) {
 			region = new Region(
-				toIntExact((long) v.property("startLine")
+				toIntExact((long) v.property(START_LINE)
 						.value()),
-				toIntExact((long) v.property("startColumn")
+				toIntExact((long) v.property(START_COLUMN)
 						.value()),
-				toIntExact((long) v.property("endLine")
+				toIntExact((long) v.property(END_LINE)
 						.value()),
-				toIntExact((long) v.property("endColumn")
+				toIntExact((long) v.property(END_COLUMN)
 						.value()));
 		}
 		return new Stmt(

@@ -308,4 +308,27 @@ class WpdsTest extends AbstractMarkTest {
 		assertTrue(startLineNumbers.containsKey(30));
 		assertTrue(startLineNumbers.get(30)); // isProblem
 	}
+
+	@Test
+	void testWpdsOpensslSimplified() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("openssl/github.com/DaniloVlad/OpenSSL-AES/aes-simplified.c", "openssl/github.com/DaniloVlad/OpenSSL-AES/mark");
+
+		// Extract <line nr, isProblem> from findings
+		Map<Integer, Boolean> startLineNumbers = findings.stream()
+				.collect(Collectors.toMap(
+					f -> f.getRegions().isEmpty() ? -1 : f.getRegions().get(0).getStartLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA && isProblemB;
+					}));
+
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		assertFalse(startLineNumbers.get(10)); // EVP_CIPHER_CTX_new
+		assertFalse(startLineNumbers.get(12)); // EVP_EncryptInit
+		assertFalse(startLineNumbers.get(15)); // EVP_EncryptUpdate
+		assertFalse(startLineNumbers.get(18)); // EVP_EncryptFinal
+	}
+
 }

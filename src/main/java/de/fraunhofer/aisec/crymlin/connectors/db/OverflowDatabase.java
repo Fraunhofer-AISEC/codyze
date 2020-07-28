@@ -349,8 +349,7 @@ public class OverflowDatabase<N> implements Database<N> {
 							continue;
 						}
 						catch (IllegalStateException e) {
-							String c = (String) v.property("code").value();
-							log.error("Unable to instantiate collection property {} for node {}, no information about actual element type", f, c);
+							log.error("Unable to instantiate collection property {} for node, no information about actual element type", f);
 							continue;
 						}
 						assert Collection.class.isAssignableFrom(collectionType);

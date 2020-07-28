@@ -21,13 +21,28 @@ Download and Install
 
 * Download the zipped analysis server from the [release page](https://github.com/Fraunhofer-AISEC/codyze/releases)
 * Unzip the file
-* Run `server.bat -l` (Windows) or `server.sh -l` (Mac, Linux) from the unzipped folder to start the analysis server in LSP mode
+* Run `bin\codyze.bat -l` (Windows) or `bin/codyze -l` (Mac, Linux) from the unzipped folder to start the analysis server in LSP mode
 
 
 ## Integration in Eclipse
 
-Codyze can be installed from the following Eclipse update site: [https://update.breakpoint-security.com](https://update.breakpoint-security.com). It has been tested against Eclipse 2019-04 and later.
+Codyze can be installed from an Eclipse update site. It has been tested against Eclipse 2019-04 and later.
 
+1. In Eclipse, click on `Help`->`Install New Software...`
+2. Click `Add...` to add a new update site
+3. Choose a name and enter the location [https://update.breakpoint-security.com](https://update.breakpoint-security.com) (note this is an Eclipse update site URL and not suited to open with a web browser)
+
+<img src="/img/eclipse-update-site.png" 
+    alt="Adding Eclipse Update Site"
+    class="mt-3 mb-3 border border-info rounded">
+
+4. Choose and install `Codyze Code Analyzer`
+
+<img src="/img/eclipse-plugin-installation.png" 
+    alt="Adding Eclipse Update Site"
+    class="mt-3 mb-3 border border-info rounded">
+
+Once installed, configure the Eclipse plugin to use the local LSP server:
 
 1. Go to _Windows->Preferences->Codyze Code Analysis_ and configure the path to the analysis server binary
 
@@ -47,7 +62,7 @@ Codyze can be installed from the following Eclipse update site: [https://update.
 2. Goto `Settings` -> `Language Server Protocol` -> `Server Definitions`
 3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `/opt/codyze/codyze-1.0.0/bin/codyze` script. 
  
-<img src="img/lsp-settings-intellij.png" 
+<img src="/img/lsp-settings-intellij.png" 
 alt="IntelliJ LSP Settings" 
 class="mt-3 mb-3 border border-info rounded">
 
@@ -57,7 +72,7 @@ If everything works as intended, you should see a green circle in your IntelliJ 
 
 The Codyze eclipse can be installed from the Visual Studio 2019 Marketplace
 
-<img src="img/vs-plugin.png" 
+<img src="/img/vs-plugin.jpg" 
 alt="Installation from Visual Studio Market" 
 class="mt-3 mb-3 border border-info rounded">
 

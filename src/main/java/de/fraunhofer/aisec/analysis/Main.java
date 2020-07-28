@@ -143,11 +143,6 @@ class AnalysisMode {
 	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", defaultValue = "NFA", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
 	protected TypestateMode tsMode = TypestateMode.NFA;
-
-	// fixme unused!
-	@Option(names = { "--interproc" }, description = "Enables interprocedural data flow analysis (more precise but slower).")
-	protected boolean interproc = false;
-
 }
 
 class TranslationSettings {

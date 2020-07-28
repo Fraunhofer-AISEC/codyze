@@ -50,6 +50,10 @@ public class Main implements Callable<Integer> {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
 	private long timeout;
 
+	@Option(names = {
+			"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+	private boolean disableGoodFindings;
+
 	public static void main(String... args) {
 		int exitCode = new CommandLine(new Main()).execute(args);
 		System.exit(exitCode);
@@ -76,6 +80,7 @@ public class Main implements Callable<Integer> {
 						.launchLsp(executionMode.lsp)
 						.launchConsole(executionMode.tui)
 						.typestateAnalysis(analysisMode.tsMode)
+						.disableGoodFindings(disableGoodFindings)
 						.markFiles(markFolderName.getAbsolutePath())
 						.build())
 				.build();
@@ -147,9 +152,4 @@ class AnalysisMode {
 	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", defaultValue = "NFA", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
 	protected TypestateMode tsMode = TypestateMode.NFA;
-
-	// fixme unused!
-	@Option(names = { "--interproc" }, description = "Enables interprocedural data flow analysis (more precise but slower).")
-	protected boolean interproc = false;
-
 }

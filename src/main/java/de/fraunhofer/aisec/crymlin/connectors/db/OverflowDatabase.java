@@ -5,7 +5,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.cpg.graph.EdgeProperty;
 import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import io.shiftleft.overflowdb.*;
@@ -21,7 +20,6 @@ import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.units.MemoryUnit;
-import org.ehcache.spi.resilience.StoreAccessException;
 import org.javatuples.Pair;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Relationship;
@@ -251,7 +249,6 @@ public class OverflowDatabase<N> implements Database<N> {
 
 		// Store node
 		createVertex(node);
-		// printVertex(v);
 		saved.add(node);
 
 		if (!Node.class.isAssignableFrom(node.getClass())) {

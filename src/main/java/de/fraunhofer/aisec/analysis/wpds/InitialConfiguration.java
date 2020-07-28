@@ -47,7 +47,14 @@ public class InitialConfiguration {
 		return creator.create(wpds);
 	}
 
-	static WeightedAutomaton<Stmt, Val, TypestateWeight> FIRST_TYPESTATE_EVENT(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
+	/**
+	 * Create initial WPDS configuration corresponding to the first statement that creates a typestate transition.
+	 *
+	 * @param wpds
+	 * @return
+	 */
+	@java.lang.SuppressWarnings({"squid:S100", "squid:S1905"})
+	static final WeightedAutomaton<Stmt, Val, TypestateWeight> FIRST_TYPESTATE_EVENT(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
 		return ((IInitialConfig) myWpds -> {
 			// Get all WPDS rules have a type state transition originating in a START state.
 			Set<Rule<Stmt, Val, TypestateWeight>> startRules = getTypestateStartRules(myWpds);
@@ -71,76 +78,19 @@ public class InitialConfiguration {
 				log.error("Did not find initial configuration for typestate analysis. Will fail soon.");
 			}
 
-			// Create statement for start configuration and create start CONFIG
-			// TODO make initialState a set or remove completely
-			int line = Integer.MAX_VALUE;
-			Val initialState = null;
-			Stmt stmt = null;
-			for (Pair<Val, Stmt> s : initialStates) {
-				if (s.getValue1()
-						.getRegion()
-						.getStartLine() < line) {
-					line = s.getValue1()
-							.getRegion()
-							.getStartLine();
-					initialState = s.getValue0();
-					stmt = s.getValue1();
-				}
-			}
-			WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
-				@Override
-				public Val createState(Val val, Stmt stmt) {
-					return val;
-				}
-
-				@Override
-				public boolean isGeneratedState(Val val) {
-					return false;
-				}
-
-				@Override
-				public Stmt epsilon() {
-					return new Stmt(CpgWpds.EPSILON, new Region(-1, -1, -1, -1));
-				}
-
-				@Override
-				public TypestateWeight getZero() {
-					return TypestateWeight.zero();
-				}
-
-				@Override
-				public TypestateWeight getOne() {
-					return TypestateWeight.one();
-				}
-			};
-			Val accepting = new Val(ACCEPT, ACCEPT);
-			// Create an automaton for the initial configuration from where post* will start.
-			dumpInitialConfigurations(initialStates);
-
-			wnfa.addTransition(new Transition<>(initialState, stmt, accepting),
-				new TypestateWeight(Set.of(new NFATransition<Node>(new Node(START, START), new Node(START, START), "constructor"))));
-
-			// Add final ("accepting") states to NFA.
-			wnfa.addFinalState(accepting);
-
-			return wnfa;
-
+			return createInitialWNFA(initialStates);
 		}).create(wpds);
 	}
 
 	/**
-	 * Creates an initial configuration of a WPDS from where post* runs.
-	 * <p>
-	 * The initial configuration comprises the set of states (i.e. statements and variables on the stack) which are relevant for following typestate analysis and is given
-	 * in form of a weighted automaton P.
-	 * <p>
-	 * Typically, the initial configuration will refer to a single "trigger" statement from where typestate analysis should start. This statement i
+	 * Create initial WPDS configuration corresponding to the statements declaring variables within a function.
 	 *
-	 *
+	 * @param wpds
 	 * @return
 	 */
 	@NonNull
-	static WeightedAutomaton<Stmt, Val, TypestateWeight> VAR_DECLARATIONS(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
+	@java.lang.SuppressWarnings({"squid:S100", "squid:S1905"})
+	static final WeightedAutomaton<Stmt, Val, TypestateWeight> VAR_DECLARATIONS(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
 		return ((IInitialConfig) myWpds -> {
 			// Get START state from WPDS
 			Set<Pair<Val, Stmt>> initialStates = new HashSet<>();
@@ -159,8 +109,13 @@ public class InitialConfiguration {
 				log.error("Did not find initial configuration for typestate analysis. Will fail soon.");
 			}
 
-			// Create statement for start configuration and create start CONFIG
-			// TODO make initialState a set or remove completely
+			return createInitialWNFA(initialStates);
+		}).create(wpds);
+	}
+
+	private static WeightedAutomaton<Stmt, Val, TypestateWeight> createInitialWNFA(Set<Pair<Val, Stmt>> initialStates) {
+		// Create statement for start configuration and create start CONFIG
+		// TODO make initialState a set or remove completely
 			int line = Integer.MAX_VALUE;
 			Val initialState = null;
 			Stmt stmt = null;
@@ -172,11 +127,12 @@ public class InitialConfiguration {
 							.getRegion()
 							.getStartLine();
 					initialState = s.getValue0();
-					stmt = s.getValue1();
-				}
+				stmt = s.getValue1();
 			}
-			WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
-				@Override
+		}
+
+		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
+			@Override
 				public Val createState(Val val, Stmt stmt) {
 					return val;
 				}
@@ -209,10 +165,9 @@ public class InitialConfiguration {
 				new TypestateWeight(Set.of(new NFATransition<Node>(new Node(START, START), new Node(START, START), "constructor"))));
 
 			// Add final ("accepting") states to NFA.
-			wnfa.addFinalState(accepting);
+		wnfa.addFinalState(accepting);
 
-			return wnfa;
-		}).create(wpds);
+		return wnfa;
 	}
 
 	private static void dumpInitialConfigurations(Set<Pair<Val, Stmt>> initialStates) {

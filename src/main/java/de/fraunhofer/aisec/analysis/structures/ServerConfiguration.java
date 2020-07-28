@@ -32,13 +32,12 @@ public class ServerConfiguration {
 	@NonNull
 	public final TypestateMode typestateAnalysis;
 
-	// should we export the data to neo4j, if Neo4J DB is available?
+	// For debugging: should we export the data to neo4j, if Neo4J DB is available?
 	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = false;
 
 	/**
 	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether or not to load includes
 	 */
-	public boolean loadIncludes = false;
 
 	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode, boolean loadIncludes) {
 		this.launchConsole = launchConsole;
@@ -57,6 +56,7 @@ public class ServerConfiguration {
 		private boolean launchLsp = true;
 		@Nullable
 		private String markModelFiles = ""; // Path of a file or directory
+		@NonNull
 		private TypestateMode typestateAnalysis = TypestateMode.NFA;
 		private boolean loadIncludes;
 

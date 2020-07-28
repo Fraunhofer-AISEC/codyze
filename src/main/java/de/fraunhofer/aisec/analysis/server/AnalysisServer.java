@@ -555,16 +555,19 @@ public class AnalysisServer {
 		OverflowDatabase.getInstance().connect(); // simply returns if already connected
 		OverflowDatabase.getInstance().purgeDatabase();
 
+		TranslationConfiguration.Builder tConfig = TranslationConfiguration.builder()
+																		   .debugParser(true)
+																		   .failOnError(false)
+																		   .codeInNodes(true)
+																		   .loadIncludes(config.analyzeIncludes)
+																		   .defaultPasses()
+																		   .sourceLocations(files.toArray(new File[0]));
+		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
+		for (File includePath : config.includePath) {
+			tConfig.includePath(includePath.getAbsolutePath());
+		}
 		TranslationManager translationManager = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder()
-							.debugParser(true)
-							.failOnError(false)
-							.codeInNodes(true)
-							.loadIncludes(config.loadIncludes)
-							.defaultPasses()
-							.sourceLocations(files.toArray(new File[0]))
-							.build())
+				.config(tConfig.build())
 				.build();
 		return analyze(translationManager);
 	}

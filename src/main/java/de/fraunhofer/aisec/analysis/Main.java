@@ -71,7 +71,8 @@ public class Main implements Callable<Integer> {
 						.launchLsp(executionMode.lsp)
 						.launchConsole(executionMode.tui)
 						.typestateAnalysis(analysisMode.tsMode)
-						.loadIncludes(translationSettings.loadIncludes)
+						.analyzeIncludes(translationSettings.analyzeIncludes)
+						.includePath(translationSettings.includesPath)
 						.markFiles(markFolderName.getAbsolutePath())
 						.build())
 				.build();
@@ -146,6 +147,9 @@ class AnalysisMode {
 }
 
 class TranslationSettings {
-	@Option(names = { "--load-includes" }, description = "Enables loading of include files")
-	protected boolean loadIncludes = false;
+	@Option(names = { "--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree.")
+	protected boolean analyzeIncludes = false;
+
+	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
+	protected File[] includesPath;
 }

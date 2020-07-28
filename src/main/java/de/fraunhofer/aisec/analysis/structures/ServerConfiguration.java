@@ -5,6 +5,8 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.io.File;
+
 /**
  * The configuration for the {@link AnalysisServer} holds all values used by the server.
  */
@@ -36,15 +38,25 @@ public class ServerConfiguration {
 	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = false;
 
 	/**
-	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether or not to load includes
+	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether or not to parse include files.
 	 */
+	public boolean analyzeIncludes;
 
-	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode, boolean loadIncludes) {
+	/**
+	 * Path(s) containing include files.
+	 *
+	 * Paths must be separated by File.pathSeparator (: or ;).
+	 */
+	@NonNull
+	public File[] includePath;
+
+	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode, boolean analyzeIncludes, @NonNull File[] includePath) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
 		this.typestateAnalysis = typestateMode;
-		this.loadIncludes = loadIncludes;
+		this.analyzeIncludes = analyzeIncludes;
+		this.includePath = includePath;
 	}
 
 	public static Builder builder() {
@@ -58,7 +70,8 @@ public class ServerConfiguration {
 		private String markModelFiles = ""; // Path of a file or directory
 		@NonNull
 		private TypestateMode typestateAnalysis = TypestateMode.NFA;
-		private boolean loadIncludes;
+		private boolean analyzeIncludes;
+		private File[] includePath = new File[0];
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -80,13 +93,22 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder loadIncludes(boolean loadIncludes) {
-			this.loadIncludes = loadIncludes;
+		public Builder analyzeIncludes(boolean analyzeIncludes) {
+			this.analyzeIncludes = analyzeIncludes;
+			return this;
+		}
+
+		public Builder includePath(File[] includePath) {
+			if (includePath == null) {
+				this.includePath = new File[0];
+			} else {
+				this.includePath = includePath;
+			}
 			return this;
 		}
 
 		public ServerConfiguration build() {
-			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles, typestateAnalysis, loadIncludes);
+			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles, typestateAnalysis, analyzeIncludes, includePath);
 		}
 
 	}

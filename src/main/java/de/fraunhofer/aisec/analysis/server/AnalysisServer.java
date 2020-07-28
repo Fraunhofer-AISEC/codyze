@@ -226,6 +226,16 @@ public class AnalysisServer {
 						mi.evaluate(result, ctx);
 						bench.stop();
 						return ctx;
+					})
+				.thenApply(
+					analysisContext -> {
+						Benchmark bench = new Benchmark(AnalysisServer.class, "  Filtering results");
+						if (config.disableGoodFindings) {
+							// Filter out "positive" results
+							analysisContext.getFindings().removeIf(finding -> !finding.isProblem());
+						}
+						bench.stop();
+						return analysisContext;
 					});
 	}
 

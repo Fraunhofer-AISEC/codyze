@@ -25,11 +25,18 @@ public class ServerConfiguration {
 	// should we export the data to neo4j, if Neo4J DB is available?
 	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = false;
 
-	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode) {
+	/**
+	 * If true, no "positive" findings will be returned from the analysis.
+	 */
+	public final boolean disableGoodFindings;
+
+	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode,
+			boolean disableGoodFindings) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
 		this.typestateAnalysis = typestateMode;
+		this.disableGoodFindings = disableGoodFindings;
 	}
 
 	public static Builder builder() {
@@ -42,6 +49,7 @@ public class ServerConfiguration {
 		@Nullable
 		private String markModelFiles = ""; // Path of a file or directory
 		private TypestateMode typestateAnalysis = TypestateMode.NFA;
+		private boolean disableGoodFindings;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -63,8 +71,14 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public ServerConfiguration build() {
-			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles, typestateAnalysis);
+		public Builder disableGoodFindings(boolean disableGoodFindings) {
+			this.disableGoodFindings = disableGoodFindings;
+			return this;
 		}
+
+		public ServerConfiguration build() {
+			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles, typestateAnalysis, disableGoodFindings);
+		}
+
 	}
 }

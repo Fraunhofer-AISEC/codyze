@@ -268,12 +268,7 @@ public class JythonInterpreter implements AutoCloseable {
 			List<String> items = new ArrayList<>();
 			try {
 				if (dotPos > -1) {
-					try {
-						items = (List<String>) engine.eval("dir(" + withoutDot.strip() + ")");
-					}
-					catch (Exception e) {
-						e.printStackTrace();
-					}
+					items = (List<String>) engine.eval("dir(" + withoutDot.strip() + ")");
 				} else {
 					items = List.of(PY_HELP, PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
 				}

@@ -141,6 +141,68 @@ public class JythonInterpreterTest {
 		assertTrue(completions.contains("analyze()"));
 	}
 
+	/**
+	 * Test behavior of tab completion for "server.sho<TAB>"
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	@Order(2)
+	public void completionServerObjectTest2() throws Exception {
+		List<CharSequence> completions = new ArrayList<>();
+		jlineConsole.getReader()
+				.getCompleters()
+				.iterator()
+				.next()
+				.complete("server.sho\t", 0, completions);
+		outContent.flush();
+		errContent.flush();
+
+		assertTrue(completions.contains("show_findings()"));
+		assertEquals(1, completions.size());
+	}
+
+	/**
+	 * Test behavior of tab completion for "server.sho<TAB>"
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	@Order(2)
+	public void completionQueryObjectTest() throws Exception {
+		List<CharSequence> completions = new ArrayList<>();
+		jlineConsole.getReader()
+				.getCompleters()
+				.iterator()
+				.next()
+				.complete("query.cal\t", 0, completions);
+		outContent.flush();
+		errContent.flush();
+
+		assertTrue(completions.contains("calls()"));
+		assertEquals(1, completions.size());
+	}
+
+	/**
+	 * Test behavior of tab completion for "server.sho<TAB>"
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	@Order(2)
+	public void completionQueryObjectTest2() throws Exception {
+		List<CharSequence> completions = new ArrayList<>();
+		jlineConsole.getReader()
+				.getCompleters()
+				.iterator()
+				.next()
+				.complete("query.calls().\t", 0, completions);
+		outContent.flush();
+		errContent.flush();
+
+		assertTrue(completions.contains("name()"));
+	}
+
 	@Test
 	@Order(3)
 	public void simpleJythonTest() throws Exception {

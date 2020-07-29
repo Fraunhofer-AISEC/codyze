@@ -223,12 +223,11 @@ public class JythonInterpreter implements AutoCloseable {
 
 		@Override
 		public int complete(String s, int i, List<CharSequence> list) {
-			int dotPos = s.indexOf('.');
+			int dotPos = s.lastIndexOf('.');
 			s = stripAnsi(s);
-			String prefix = "";
 
 			// Collect and filter out irrelevant entries
-			fillSuggestionList(prefix, s, dotPos, list);
+			fillSuggestionList(s, dotPos, list);
 
 			// Sort
 			list.stream()
@@ -247,33 +246,31 @@ public class JythonInterpreter implements AutoCloseable {
 		 * Given a list of possible python attributes ({@code items}, the current prefix and string ({@code s})
 		 * entered in the console with cursor at position {@code }, fill {@code list} with the suggestions to display.
 		 *
-		 * @param prefix
 		 * @param s
 		 * @param dotPos
 		 * @param list
 		 */
-		private void fillSuggestionList(@NonNull String prefix, @NonNull String s, int dotPos, @NonNull List<CharSequence> list) {
+		private void fillSuggestionList(@NonNull String s, int dotPos, @NonNull List<CharSequence> list) {
 			// See if we are given a "server" object and return Commands.
-			fillDefaultSuggestions(prefix, s, dotPos, list);
+			fillDefaultSuggestions(s, dotPos, list);
 
 			// See if we can treat s as a Python object and call dir(s)
-			fillPythonSuggestions(prefix, s, dotPos, list);
+			fillPythonSuggestions(s, dotPos, list);
 		}
 
 		/**
 		 * Fill list with available python objects whose name starts with string s.
 		 *
-		 * @param prefix
 		 * @param s
 		 * @param dotPos
 		 * @param list
 		 */
-		private void fillPythonSuggestions(String prefix, String s, int dotPos, List<CharSequence> list) {
+		private void fillPythonSuggestions(String s, int dotPos, List<CharSequence> list) {
 			String withoutDot = dotPos > -1 ? s.substring(0, dotPos) : s;
+			String prefix = dotPos > -1 && dotPos < s.length() - 1 ? s.substring(dotPos + 1).strip() : "";
 			List<String> items;
 			try {
 				if (dotPos > -1) {
-					prefix = s.length() > 1 ? s.substring(dotPos + 1) : "";
 					items = (List<String>) engine.eval("dir(" + withoutDot + ")");
 				} else {
 					items = List.of(PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
@@ -315,12 +312,14 @@ public class JythonInterpreter implements AutoCloseable {
 			return type;
 		}
 
-		private void fillDefaultSuggestions(@NonNull String prefix, @NonNull String s, int dotPos, @NonNull List<CharSequence> list) {
+		private void fillDefaultSuggestions(@NonNull String s, int dotPos, @NonNull List<CharSequence> list) {
 			String withoutDot = dotPos > -1 ? s.substring(0, dotPos) : s;
+			String partAfterDot = dotPos > -1 && dotPos < s.length() - 1 ? s.substring(dotPos + 1).strip() : "";
 			if (List.of(PY_SERVER, PY_S)
 					.contains(withoutDot)) {
 				for (Method m : Commands.class.getMethods()) {
-					if (m.getAnnotationsByType(ShellCommand.class).length > 0) {
+					if (m.getName().startsWith(partAfterDot) &&
+							m.getAnnotationsByType(ShellCommand.class).length > 0) {
 						list.add(m.getName() + "()");
 					}
 				}

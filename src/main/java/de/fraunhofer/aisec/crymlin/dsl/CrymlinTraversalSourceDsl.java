@@ -247,7 +247,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
-	@ShellCommand("Node from id")
+	@ShellCommand("Node by its ID")
 	public GraphTraversal<Vertex, Vertex> byID(long id) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 

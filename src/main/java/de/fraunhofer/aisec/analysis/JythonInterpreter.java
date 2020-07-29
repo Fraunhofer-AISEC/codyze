@@ -13,10 +13,7 @@ import org.python.core.PyMethod;
 import org.python.jline.console.completer.Completer;
 import org.python.util.JLineConsole;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+import javax.script.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -269,12 +266,17 @@ public class JythonInterpreter implements AutoCloseable {
 		private void fillPythonSuggestions(String s, int dotPos, List<CharSequence> list) {
 			String withoutDot = dotPos > -1 ? s.substring(0, dotPos) : s;
 			String prefix = dotPos > -1 && dotPos < s.length() - 1 ? s.substring(dotPos + 1).strip() : "";
-			List<String> items;
+			List<String> items = new ArrayList<>();
 			try {
 				if (dotPos > -1) {
-					items = (List<String>) engine.eval("dir(" + withoutDot + ")");
+					try {
+						items = (List<String>) engine.eval("dir(" + withoutDot.strip() + ")");
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
 				} else {
-					items = List.of(PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
+					items = List.of(PY_HELP, PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
 				}
 
 				for (String str : items) {

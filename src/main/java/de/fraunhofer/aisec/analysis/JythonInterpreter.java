@@ -55,6 +55,7 @@ public class JythonInterpreter implements AutoCloseable {
 	public static final String PY_S = "s";
 	public static final String PY_QUERY = "query";
 	public static final String PY_Q = "q";
+	public static final String PY_HELP = "help()";
 
 	/** connection to the database via a traversal */
 	private TraversalConnection traversalConnection = null;
@@ -86,7 +87,7 @@ public class JythonInterpreter implements AutoCloseable {
 		bindings.put(PY_QUERY, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
 		bindings.put(PY_Q, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
 
-		// If we aready have a running console, update bound objects
+		// If we already have a running console, update bound objects
 		if (this.c != null) {
 			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
 					.entrySet()) {

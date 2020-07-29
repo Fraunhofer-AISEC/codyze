@@ -5,7 +5,10 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalDsl;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
+import de.fraunhofer.aisec.crymlin.dsl.DefaultCrymlinTraversal;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -14,11 +17,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_QUERY;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_SERVER;
 
 /**
  * These commands are only used by the Jython console.
@@ -74,6 +82,7 @@ public class Commands {
 	 * @param fileName
 	 */
 	@ShellCommand("Load MARK rules from given file or directory. Rules must be loaded before starting analysis.")
+	@SuppressWarnings("squid:S100")
 	public void load_rules(String fileName) {
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
@@ -85,6 +94,7 @@ public class Commands {
 	}
 
 	@ShellCommand("Show active MARK rules")
+	@SuppressWarnings("squid:S100")
 	public void list_rules() {
 		AnalysisServer server = AnalysisServer.getInstance();
 		if (server == null) {
@@ -99,6 +109,7 @@ public class Commands {
 	}
 
 	@ShellCommand("Show findings after analysis")
+	@SuppressWarnings("squid:S100")
 	public void show_findings() {
 		for (Finding fi : jythonInterpreter.getFindings()) {
 			fi.prettyPrintShort(System.out);
@@ -128,31 +139,36 @@ public class Commands {
 					+ "          Analyze all source files in a directory. Remember to load MARK rules before analyzing.\n"
 					+ "\n"
 					+ "\n"
-					+ "You may then start writing crymlin queries using the \"crymlin\" object.\n"
+					+ "You may then start writing Crymlin queries using the \"query\" object (or \"q\" for short).\n"
 					+ "\n"
 					+ "Examples: \n"
-					+ "   crymlin.recorddeclarations().toList()\n"
+					+ "   q.recorddeclarations().toList()\n"
 					+ "          Returns array of vertices representing RecordDeclarations.\n"
 					+ "\n"
-					+ "   crymlin.recorddeclaration(\"good.Bouncycastle\").next()\n"
+					+ "   q.recorddeclaration(\"good.Bouncycastle\").next()\n"
 					+ "          Returns vertex representing the RecordDeclarations of \"good.Bouncycastle\".\n"
 					+ "\n"
-					+ "   crymlin.recorddeclaration(\"good.Bouncycastle\").sourcecode().next()\n"
+					+ "   q.recorddeclaration(\"good.Bouncycastle\").sourcecode().next()\n"
 					+ "          Returns source code of \"good.Bouncycastle\".\n"
 					+ "\n"
-					+ "   crymlin.translationunits().name().toList()\n"
+					+ "   q.translationunits().name().toList()\n"
 					+ "          Returns array of strings representing the names of TranslationUnits.\n"
 					+ "\n"
-					+ "   crymlin.translationunits().next()\n"
+					+ "   q.translationunits().next()\n"
 					+ "          Returns the first TranslationUnit vertex (or null if none exists).\n"
 					+ "\n"
 					+ "   dir(crymlin.translationunits())\n"
 					+ "          Good ol' Python dir() to find out what properties/methods are available.\n");
 		List<Method> annotatedMethods = Utils.getMethodsAnnotatedWith(Commands.class, ShellCommand.class);
-		List<Method> queryMethods = (Utils.getMethodsAnnotatedWith(CrymlinTraversalSourceDsl.class, ShellCommand.class));
+		List<Method> traversalSourceMethods = (Utils.getMethodsAnnotatedWith(CrymlinTraversalSourceDsl.class, ShellCommand.class));
+		List<Method> traversalStepMethods = (Utils.getMethodsAnnotatedWith(CrymlinTraversalDsl.class, ShellCommand.class));
 		print(annotatedMethods);
-		System.out.println("\n ---------------- Graph traversals ------------- \n");
-		print(queryMethods);
+		System.out.println("\n ------ Crymlin Traversal Sources (queries must start with these) ------- \n");
+		print(traversalSourceMethods);
+		System.out.println("\n -------- Crymlin Traversal Steps (queries may use any of these) -------- \n");
+		print(traversalStepMethods);
+		System.out.println("\n -------- Crymlin Traversal Terminates (queries end with these) -------- \n");
+		printQueryTerminators();
 	}
 
 	/**
@@ -162,8 +178,22 @@ public class Commands {
 	 */
 	@SuppressWarnings("java:S106")
 	private static void print(List<Method> methods) {
+		methods.sort(Comparator.comparing(Method::getName));
 		for (Method m : methods) {
-			StringBuilder sbEntry = new StringBuilder(m.getName());
+			StringBuilder sbEntry = new StringBuilder();
+			// Prefixes for different types of commands in help().
+			if (m.getDeclaringClass().equals(Commands.class)) {
+				// Server/console commands
+				sbEntry.append(PY_SERVER);
+				sbEntry.append(".");
+			} else if (m.getDeclaringClass().equals(CrymlinTraversalSourceDsl.class)) {
+				// Traversal sources
+				sbEntry.append(PY_QUERY);
+				sbEntry.append(".");
+			} else if (m.getDeclaringClass().equals(CrymlinTraversalDsl.class)) {
+				// Traversal steps (do not show any prefix)
+			}
+			sbEntry.append(m.getName());
 			sbEntry.append("(");
 			for (int i = 0; i < m.getParameterTypes().length; i++) {
 				sbEntry.append(m.getParameterTypes()[i].getSimpleName());
@@ -172,9 +202,22 @@ public class Commands {
 				}
 			}
 			sbEntry.append(")");
-			sbEntry = new StringBuilder(String.format("%-30s", sbEntry.toString()));
+			sbEntry = new StringBuilder(String.format("%-38s", sbEntry));
 			sbEntry.append("-\t" + m.getAnnotation(ShellCommand.class).value());
-			System.out.println(sbEntry.toString());
+
+			System.out.println(sbEntry);
 		}
 	}
+
+	private static void printQueryTerminators() {
+		StringBuilder sbEntry = new StringBuilder();
+		sbEntry.append(String.format("%-38s - %s\n", "toList()", "Collect results in a list"));
+		sbEntry.append(String.format("%-38s - %s\n", "toSet()", "Collect results in a set (removing duplicates)"));
+		sbEntry.append(String.format("%-38s - %s\n", "next()",
+			"Return one result. The returned result is non-deterministically selected. If the result set is empty, an error will be thrown"));
+		sbEntry.append(String.format("%-38s - %s\n", "tryNext()",
+			"Returns an \"Optional\" of one result. The returned result is non-deterministically selected. If the result set is empty, the Optional is empty"));
+		System.out.println(sbEntry);
+	}
+
 }

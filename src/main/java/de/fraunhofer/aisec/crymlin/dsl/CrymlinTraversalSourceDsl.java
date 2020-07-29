@@ -13,10 +13,10 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.EOG;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.NAME;
 import static de.fraunhofer.aisec.crymlin.dsl.__.hasLabel;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.outE;
 
 /**
  * This class adds new functions to the traversal to START from
@@ -85,7 +85,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
 	@ShellCommand("Calls to functions/methods whose (fully qualified) name contains the argument.")
-	public GraphTraversal<Vertex, Vertex> calls(String calleeName) {
+	public GraphTraversal<Vertex, Vertex> call(String calleeName) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal

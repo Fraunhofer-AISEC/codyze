@@ -211,11 +211,11 @@ public class Commands {
 
 	private static void printQueryTerminators() {
 		StringBuilder sbEntry = new StringBuilder();
-		sbEntry.append(String.format("%-38s - %s\n", "toList()", "Collect results in a list"));
-		sbEntry.append(String.format("%-38s - %s\n", "toSet()", "Collect results in a set (removing duplicates)"));
-		sbEntry.append(String.format("%-38s - %s\n", "next()",
+		sbEntry.append(String.format("%-38s - %s%n", "toList()", "Collect results in a list"));
+		sbEntry.append(String.format("%-38s - %s%n", "toSet()", "Collect results in a set (removing duplicates)"));
+		sbEntry.append(String.format("%-38s - %s%n", "next()",
 			"Return one result. The returned result is non-deterministically selected. If the result set is empty, an error will be thrown"));
-		sbEntry.append(String.format("%-38s - %s\n", "tryNext()",
+		sbEntry.append(String.format("%-38s - %s%n", "tryNext()",
 			"Returns an \"Optional\" of one result. The returned result is non-deterministically selected. If the result set is empty, the Optional is empty"));
 		System.out.println(sbEntry);
 	}

@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin.dsl;
 
+import de.fraunhofer.aisec.analysis.ShellCommand;
 import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
 import de.fraunhofer.aisec.cpg.graph.Literal;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
@@ -62,6 +63,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	 */
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
 			methodTypeParameters = { "A" })
+	@ShellCommand("Name of the selected node(s) (as a string)")
 	default CrymlinTraversal<S, Object> name() {
 		return (CrymlinTraversal<S, Object>) values("name");
 	}
@@ -84,6 +86,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	 */
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
 			methodTypeParameters = { "A" })
+	@ShellCommand("Comments attached to the selected node(s) (as a string)")
 	default CrymlinTraversal<S, Object> comment() {
 		return (CrymlinTraversal<S, Object>) values("comment");
 	}
@@ -95,6 +98,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	 */
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
 			methodTypeParameters = { "A" })
+	@ShellCommand("Original source code of the selected node(s) (as a string)")
 	default CrymlinTraversal<S, Object> code() {
 		return (CrymlinTraversal<S, Object>) values("code");
 	}
@@ -105,8 +109,42 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	 * @return
 	 */
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
-	default CrymlinTraversal<S, Vertex> cfg() {
+	@ShellCommand("Next node(s) in Control Flow Graph")
+	default CrymlinTraversal<S, Vertex> nextCfg() {
 		return (CrymlinTraversal<S, Vertex>) out("CFG");
+	}
+
+	/**
+	 * Shortcut for {@code .in("CFG")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
+	@ShellCommand("Previous node(s) in Control Flow Graph")
+	default CrymlinTraversal<S, Vertex> prevCfg() {
+		return (CrymlinTraversal<S, Vertex>) in("CFG");
+	}
+
+	/**
+	 * Shortcut for {@code .out("EOG")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
+	@ShellCommand("Next node(s) in Evaluation Order Graph")
+	default CrymlinTraversal<S, Vertex> nextEog() {
+		return (CrymlinTraversal<S, Vertex>) out(CrymlinConstants.EOG);
+	}
+
+	/**
+	 * Shortcut for {@code .in("EOG")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
+	@ShellCommand("Previous node(s) in Evaluation Order Graph")
+	default CrymlinTraversal<S, Vertex> prevEog() {
+		return (CrymlinTraversal<S, Vertex>) in(CrymlinConstants.EOG);
 	}
 
 	/**

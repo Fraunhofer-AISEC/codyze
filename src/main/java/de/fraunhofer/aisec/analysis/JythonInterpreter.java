@@ -64,7 +64,7 @@ public class JythonInterpreter implements AutoCloseable {
 	 * gremlin-jython engine. We use an interpreted language like Python (or Groovy) so we can easily evaluate Crymlin queries that are entered by the user at runtime and
 	 * handled as mere strings.
 	 */
-	final ScriptEngine engine = new DefaultGremlinScriptEngineManager().getEngineByName("gremlin-jython");
+	final ScriptEngine engine = new ScriptEngineManager().getEngineByName("jython");
 
 	// store last result
 	private TranslationResult lastTranslationResult = null;

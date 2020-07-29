@@ -40,20 +40,26 @@ Every query must begin with a traversal *source* which retrieves an initial iter
 
 | Traversal Source | Description |
 |---|---|
-|  `.byID(int id)`  | Node with the give id. The id of a node can be retrieved by the `.id()` step. |
-|  `.calls()`  | Calls to methods or functions (`CallExpression`) |
-|  `.calls(String calleeName)`  | Calls to methods or functions matching this name (`CallExpression`) |
+|  `.allCalls()`  | All function/method calls) |
+|  `.byID(int id)`  | Node with the given ID. The ID of a node can be retrieved by the `.id()` step. |
+|  `.calls(String subString)`  | Calls to functions/methods (`CallExpression`) whose (fully qualified) name _contains_ the argument. |
+|  `.callsFqn(String fqn)`  | Calls to functions/methods (`CallExpression`) whose (fully qualified) name _matches exactly_ the argument. |
 |  `.ctor(String type)`  | Constructors of the given fully qualified type (`ConstructExpression`) |
 |  `.declarations()`  | All declarations (of fields, variables, records, etc. (any of `FieldDeclaration`, `VariableDeclaration`, `RecordDeclaration`, etc.) |
 |  `.fields()`  |  Declarations of fields (`FieldDeclaration`) |
 |  `.field(String fieldName)`  |  Declarations of fields with the given name (`FieldDeclaration`) |
-|  `.functions()`  | Class methods and functions (`FunctionDeclaration`) |
+|  `.functiondeclaration(String subString)`  | Class methods and functions (`FunctionDeclaration`) whose name _contains_ the argument |
+|  `.functiondeclarations()`  | All class methods and functions (`FunctionDeclaration`) |
 |  `.methods()`  | Class methods (`MethodDeclaration`) |
+|  `.namespaces()`  | Namespace declarations (`NamespaceDeclaration`) |
 |  `.records()`  | Records are classes, enums, structs (`RecordDeclaration`) |
 |  `.records(String name)`  | Records such as classes, enums, structs that match the given name (`RecordDeclaration`) |
+|  `.statements()`  | All statements (`Statement`) |
 |  `.translationunits()`  | File names of matching source code (`TranslationUnit`) |
 |  `.vars()`  | Declarations of variables (`VariableDeclaration`) |
 |  `.V()`  | All nodes in the graph |
+
+
 
 
 ### Traversal Steps

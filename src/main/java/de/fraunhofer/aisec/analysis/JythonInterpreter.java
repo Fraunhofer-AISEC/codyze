@@ -5,7 +5,6 @@ import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import org.apache.tinkerpop.gremlin.jsr223.DefaultGremlinScriptEngineManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.core.Py;
@@ -13,10 +12,7 @@ import org.python.core.PyMethod;
 import org.python.jline.console.completer.Completer;
 import org.python.util.JLineConsole;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+import javax.script.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -55,6 +51,7 @@ public class JythonInterpreter implements AutoCloseable {
 	public static final String PY_S = "s";
 	public static final String PY_QUERY = "query";
 	public static final String PY_Q = "q";
+	public static final String PY_HELP = "help()";
 
 	/** connection to the database via a traversal */
 	private TraversalConnection traversalConnection = null;
@@ -63,7 +60,7 @@ public class JythonInterpreter implements AutoCloseable {
 	 * gremlin-jython engine. We use an interpreted language like Python (or Groovy) so we can easily evaluate Crymlin queries that are entered by the user at runtime and
 	 * handled as mere strings.
 	 */
-	final ScriptEngine engine = new DefaultGremlinScriptEngineManager().getEngineByName("gremlin-jython");
+	final ScriptEngine engine = new ScriptEngineManager().getEngineByName("jython");
 
 	// store last result
 	private TranslationResult lastTranslationResult = null;
@@ -86,7 +83,7 @@ public class JythonInterpreter implements AutoCloseable {
 		bindings.put(PY_QUERY, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
 		bindings.put(PY_Q, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
 
-		// If we aready have a running console, update bound objects
+		// If we already have a running console, update bound objects
 		if (this.c != null) {
 			for (Map.Entry<String, Object> kv : this.engine.getBindings(ScriptContext.ENGINE_SCOPE)
 					.entrySet()) {
@@ -268,12 +265,12 @@ public class JythonInterpreter implements AutoCloseable {
 		private void fillPythonSuggestions(String s, int dotPos, List<CharSequence> list) {
 			String withoutDot = dotPos > -1 ? s.substring(0, dotPos) : s;
 			String prefix = dotPos > -1 && dotPos < s.length() - 1 ? s.substring(dotPos + 1).strip() : "";
-			List<String> items;
+			List<String> items = new ArrayList<>();
 			try {
 				if (dotPos > -1) {
-					items = (List<String>) engine.eval("dir(" + withoutDot + ")");
+					items = (List<String>) engine.eval("dir(" + withoutDot.strip() + ")");
 				} else {
-					items = List.of(PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
+					items = List.of(PY_HELP, PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
 				}
 
 				for (String str : items) {

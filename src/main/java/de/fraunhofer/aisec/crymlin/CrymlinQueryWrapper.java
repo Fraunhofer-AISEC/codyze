@@ -112,7 +112,7 @@ public class CrymlinQueryWrapper {
 		fqnName = Utils.unifyType(fqnName);
 
 		// since fqn is a fully qualified name, this includes method calls on an instance, static calls, and functioncalls
-		Set<Vertex> ret = new HashSet<>(crymlinTraversal.calls(fqnName).toSet());
+		Set<Vertex> ret = new HashSet<>(crymlinTraversal.callsFqn(fqnName).toSet());
 
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
 		ret.removeIf(

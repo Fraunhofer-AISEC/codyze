@@ -91,15 +91,15 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 
 			String noOpt = Messages.DISPLAY_CANDIDATES_NO.format();
 			String yesOpt = Messages.DISPLAY_CANDIDATES_YES.format();
-			char[] allowed = { yesOpt.charAt(0), noOpt.charAt(0) };
+			char[] allowed = { yesOpt.toLowerCase().charAt(0), yesOpt.toUpperCase().charAt(0), noOpt.toLowerCase().charAt(0), noOpt.toUpperCase().charAt(0) };
 
 			while ((c = reader.readCharacter(allowed)) != -1) {
 				String tmp = new String(new char[] { (char) c });
 
-				if (noOpt.startsWith(tmp)) {
+				if (noOpt.toUpperCase().startsWith(tmp.toUpperCase())) {
 					reader.println();
 					return;
-				} else if (yesOpt.startsWith(tmp)) {
+				} else if (yesOpt.toUpperCase().startsWith(tmp.toUpperCase())) {
 					break;
 				} else {
 					reader.beep();
@@ -169,17 +169,17 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 }
 
 enum Messages {
-	DISPLAY_CANDIDATES,
-	DISPLAY_CANDIDATES_YES,
-	DISPLAY_CANDIDATES_NO,
+	DISPLAY_CANDIDATES("Display all methods? (Y/N)"),
+	DISPLAY_CANDIDATES_YES("y"),
+	DISPLAY_CANDIDATES_NO("n"),
 	;
 
-	private static final ResourceBundle bundle = ResourceBundle.getBundle(CandidateListCompletionHandler.class.getName(), Locale.getDefault());
+	String msg;
+	Messages(String msg) {
+		this.msg = msg;
+	}
 
 	public String format(final Object... args) {
-		if (bundle == null)
-			return "";
-		else
-			return String.format(bundle.getString(name()), args);
+		return String.format(this.msg, args);
 	}
 }

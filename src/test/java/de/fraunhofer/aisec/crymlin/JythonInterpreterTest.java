@@ -147,7 +147,7 @@ public class JythonInterpreterTest {
 	 * @throws Exception
 	 */
 	@Test
-	@Order(2)
+	@Order(3)
 	public void completionServerObjectTest2() throws Exception {
 		List<CharSequence> completions = new ArrayList<>();
 		jlineConsole.getReader()
@@ -168,51 +168,51 @@ public class JythonInterpreterTest {
 	 * @throws Exception
 	 */
 	@Test
-	@Order(2)
+	@Order(4)
 	public void completionQueryObjectTest() throws Exception {
 		List<CharSequence> completions = new ArrayList<>();
 		jlineConsole.getReader()
 				.getCompleters()
 				.iterator()
 				.next()
-				.complete("query.cal\t", 0, completions);
+				.complete("query.allCal\t", 0, completions);
 		outContent.flush();
 		errContent.flush();
 
-		assertTrue(completions.contains("calls()"));
+		assertTrue(completions.contains("allCalls()"));
 		assertEquals(1, completions.size());
 	}
 
 	/**
-	 * Test behavior of tab completion for "server.sho<TAB>"
+	 * Test behavior of tab completion for "query.allCalls().<TAB>"
 	 *
 	 * @throws Exception
 	 */
 	@Test
-	@Order(2)
+	@Order(5)
 	public void completionQueryObjectTest2() throws Exception {
 		List<CharSequence> completions = new ArrayList<>();
 		jlineConsole.getReader()
 				.getCompleters()
 				.iterator()
 				.next()
-				.complete("query.calls().\t", 0, completions);
+				.complete("q.allCalls().\t", 0, completions);
 		outContent.flush();
 		errContent.flush();
 
-		assertTrue(completions.contains("name()"));
+		assertTrue(completions.contains("next()"));
 	}
 
 	@Test
-	@Order(3)
+	@Order(6)
 	public void simpleJythonTest() throws Exception {
 		// Just for testing: We can run normal Gremlin queries:
-		Object result = interp.query("q.V().toSet()"); // Get all (!) nodes
+		Object result = interp.query("q.V([]).toSet()"); // Get all (!) nodes
 		assertEquals(HashSet.class, result.getClass());
 	}
 
 	@Test
-	@Order(4)
+	@Order(7)
 	public void crymlinOverJythonTest() throws Exception {
 		// Run crymlin queries as strings and get back the results as Java objects:
 		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.recorddeclarations().toList()");

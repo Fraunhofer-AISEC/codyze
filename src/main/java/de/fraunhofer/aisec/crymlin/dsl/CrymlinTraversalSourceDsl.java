@@ -4,6 +4,8 @@ package de.fraunhofer.aisec.crymlin.dsl;
 import de.fraunhofer.aisec.analysis.ShellCommand;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection;
+import org.apache.tinkerpop.gremlin.process.traversal.TextP;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -22,7 +24,9 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.outE;
  * <p>
  * The DSL definition must be a class that extends {@code GraphTraversalSource} and should be referenced in the {@code GremlinDsl} annotation on the
  * {@code GraphTraversal} extension - in this example {@link CrymlinTraversalDsl}. The methods on this class will be exposed with the other traversal start steps on
- * {@code GraphTraversalSource}.
+ * {@code GraphTraversalSource}.</p>
+ *
+ * Note: Overloading methods is of course possible at Java level, but might lead to undesired effects at Jython level.
  */
 public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
@@ -35,15 +39,19 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 		super(graph);
 	}
 
+	public CrymlinTraversalSourceDsl(final RemoteConnection connection) {
+		super(connection);
+	}
+
 	/**
 	 * Returns function and method calls.
 	 *
 	 * This traversal step will return vertices of type CallExpression (or its subclasses).
-	 * 
+	 *
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
-	@ShellCommand("All callees (i.e., functions/methods called from the current traversal's nodes)")
-	public GraphTraversal<Vertex, Vertex> calls() {
+	@ShellCommand("All function/method calls)")
+	public GraphTraversal<Vertex, Vertex> allCalls() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(
@@ -58,13 +66,33 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 * @param calleeName name of the called function/method
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
-	@ShellCommand("Calls to functions/methods with given (fully qualified) name")
+	public GraphTraversal<Vertex, Vertex> callsFqn(String calleeName) {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal
+				.hasLabel(
+					CallExpression.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(CallExpression.class))
+				.has("fqn", TextP.eq(calleeName));
+	}
+
+	/**
+	 * Returns the vertices representing the call site of a function whose given fully qualified name contains the argument.
+	 *
+	 * This traversal step will return vertices of type CallExpression (or its subclasses).
+	 *
+	 * @param calleeName name of the called function/method
+	 * @return traversal of matched {@code CallExpression} vertices
+	 */
+	@ShellCommand("Calls to functions/methods whose (fully qualified) name contains the argument.")
 	public GraphTraversal<Vertex, Vertex> calls(String calleeName) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-		return traversal.hasLabel(
-			CallExpression.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(CallExpression.class)).has("fqn", calleeName);
+		return traversal
+				.hasLabel(
+					CallExpression.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(CallExpression.class))
+				.has("fqn", TextP.containing(calleeName));
 	}
 
 	/**
@@ -87,20 +115,31 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	}
 
 	/**
-	 * Returns method calls on an instance (object) with the given name and where the instance has the specified type.
+	 * Returns nodes with a label {@code NamepaceDeclaration}.
 	 *
-	 * @param calleeName name of the called method
-	 * @param baseType type of the instance (object)
-	 * @return traversal of matched {@code CallExpression} vertices
+	 * @return
 	 */
-	public GraphTraversal<Vertex, Vertex> calls(String calleeName, String baseType) {
-		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+	@ShellCommand("Namespaces")
+	public GraphTraversal<Vertex, Vertex> namespaces() {
+		return this.clone()
+				.V()
+				.hasLabel(
+					NamespaceDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(NamespaceDeclaration.class));
+	}
 
-		return traversal.hasLabel(
-			CallExpression.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(CallExpression.class))
-				.has("fqn", calleeName)
-				.where(out(BASE).out(CrymlinConstants.TYPE).has(NAME, baseType));
+	/**
+	 * Returns nodes with a label {@code Statement}.
+	 *
+	 * @return
+	 */
+	@ShellCommand("Statements")
+	public GraphTraversal<Vertex, Vertex> statements() {
+		return this.clone()
+				.V()
+				.hasLabel(
+					Statement.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(Statement.class));
 	}
 
 	/**

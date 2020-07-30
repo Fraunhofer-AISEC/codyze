@@ -345,7 +345,7 @@ public class TypeStateAnalysis {
 		 * The (normal, push, pop) rules of the WPDS reflect the data flow, similar to a static taint analysis.
 		 *
 		 */
-		for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations().toList()) {
+		for (Vertex functionDeclaration : crymlinTraversal.functions().toList()) {
 			WPDS<Stmt, Val, TypestateWeight> funcWpds = createWpds(functionDeclaration, tsNfa, crymlinTraversal);
 			for (Rule<Stmt, Val, TypestateWeight> r : funcWpds.getAllRules()) {
 				wpds.addRule(r);

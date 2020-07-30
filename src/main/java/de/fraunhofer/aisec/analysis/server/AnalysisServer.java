@@ -92,6 +92,7 @@ public class AnalysisServer {
 		AnalysisServer.instance = this;
 
 		// Register built-in functions
+		Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of builtins");
 		Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.builtin");
 		int i = 0;
 		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
@@ -105,6 +106,7 @@ public class AnalysisServer {
 			}
 			i++;
 		}
+		bench.stop();
 		log.info("Registered {} builtins", i);
 	}
 
@@ -191,9 +193,11 @@ public class AnalysisServer {
 			}
 		}
 		// Run all passes and persist the result
+		final Benchmark benchParsing = new Benchmark(AnalysisServer.class, "  Parsing source and creating CPG for " + srcLocation.getName());
 		return analyzer.analyze() // Run analysis
 				.thenApply(
 					result -> {
+						benchParsing.stop();
 						// Attach analysis context to result
 						result.getScratch().put("ctx", ctx);
 						translationResult = result;
@@ -201,15 +205,18 @@ public class AnalysisServer {
 					})
 				.thenApply(
 					result -> {
+						Benchmark bench = new Benchmark(AnalysisServer.class, "  Export to GraphML (or debugging)");
 						if (ServerConfiguration.EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J) {
 							exportToGraphML();
 							// Optional, only if neo4j is available in classpath: re-import into Neo4J
 							importIntoNeo4j();
 						}
+						bench.stop();
 						return result;
 					})
 				.thenApply(
 					result -> {
+						Benchmark bench = new Benchmark(AnalysisServer.class, "  Evaluation of MARK");
 						log.info(
 							"Evaluating mark: {} entities, {} rules",
 							this.markModel.getEntities().size(),
@@ -217,7 +224,18 @@ public class AnalysisServer {
 						// Evaluate all MARK rules
 						Evaluator mi = new Evaluator(this.markModel, this.config);
 						mi.evaluate(result, ctx);
+						bench.stop();
 						return ctx;
+					})
+				.thenApply(
+					analysisContext -> {
+						Benchmark bench = new Benchmark(AnalysisServer.class, "  Filtering results");
+						if (config.disableGoodFindings) {
+							// Filter out "positive" results
+							analysisContext.getFindings().removeIf(finding -> !finding.isProblem());
+						}
+						bench.stop();
+						return analysisContext;
 					});
 	}
 
@@ -448,12 +466,12 @@ public class AnalysisServer {
 	}
 
 	private TranslationResult persistToODB(TranslationResult result) {
-		Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
+		Benchmark bench = new Benchmark(this.getClass(), " Serializing into OverflowDB");
 		// Persist the result
 		OverflowDatabase.getInstance().purgeDatabase();
 		OverflowDatabase<Node> db = OverflowDatabase.getInstance();
 		db.saveAll(result.getTranslationUnits());
-		long duration = b.stop();
+		long duration = bench.stop();
 		// connect to DB
 		try (TraversalConnection t = new TraversalConnection(Type.OVERFLOWDB)) {
 			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();

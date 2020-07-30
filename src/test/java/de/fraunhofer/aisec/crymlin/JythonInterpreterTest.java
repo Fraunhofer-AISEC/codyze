@@ -141,22 +141,84 @@ public class JythonInterpreterTest {
 		assertTrue(completions.contains("analyze()"));
 	}
 
+	/**
+	 * Test behavior of tab completion for "server.sho<TAB>"
+	 *
+	 * @throws Exception
+	 */
 	@Test
 	@Order(3)
+	public void completionServerObjectTest2() throws Exception {
+		List<CharSequence> completions = new ArrayList<>();
+		jlineConsole.getReader()
+				.getCompleters()
+				.iterator()
+				.next()
+				.complete("server.sho\t", 0, completions);
+		outContent.flush();
+		errContent.flush();
+
+		assertTrue(completions.contains("show_findings()"));
+		assertEquals(1, completions.size());
+	}
+
+	/**
+	 * Test behavior of tab completion for "server.sho<TAB>"
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	@Order(4)
+	public void completionQueryObjectTest() throws Exception {
+		List<CharSequence> completions = new ArrayList<>();
+		jlineConsole.getReader()
+				.getCompleters()
+				.iterator()
+				.next()
+				.complete("query.cal\t", 0, completions);
+		outContent.flush();
+		errContent.flush();
+
+		assertTrue(completions.contains("calls()"));
+		assertEquals(2, completions.size());
+	}
+
+	/**
+	 * Test behavior of tab completion for "query.allCalls().<TAB>"
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	@Order(5)
+	public void completionQueryObjectTest2() throws Exception {
+		List<CharSequence> completions = new ArrayList<>();
+		jlineConsole.getReader()
+				.getCompleters()
+				.iterator()
+				.next()
+				.complete("q.calls().\t", 0, completions);
+		outContent.flush();
+		errContent.flush();
+
+		assertTrue(completions.contains("next()"));
+	}
+
+	@Test
+	@Order(6)
 	public void simpleJythonTest() throws Exception {
 		// Just for testing: We can run normal Gremlin queries:
-		Object result = interp.query("q.V().toSet()"); // Get all (!) nodes
+		Object result = interp.query("q.V([]).toSet()"); // Get all (!) nodes
 		assertEquals(HashSet.class, result.getClass());
 	}
 
 	@Test
-	@Order(4)
+	@Order(7)
 	public void crymlinOverJythonTest() throws Exception {
 		// Run crymlin queries as strings and get back the results as Java objects:
-		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.recorddeclarations().toList()");
+		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.records().toList()");
 		assertNotNull(classes);
 
-		List<Vertex> literals = (List<Vertex>) interp.query("crymlin.translationunits().literals().toList()");
+		List<Vertex> literals = (List<Vertex>) interp.query("crymlin.sourcefiles().literals().toList()");
 		assertNotNull(literals);
 	}
 

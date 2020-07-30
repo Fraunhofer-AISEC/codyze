@@ -6,7 +6,6 @@ import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.cpg.graph.type.Type;
-import de.fraunhofer.aisec.cpg.graph.type.TypeParser;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -62,7 +61,7 @@ public class CrymlinQueryWrapper {
 		fqnName = Utils.unifyType(fqnName);
 
 		// In case of constructors, "functionName" holds the name of the constructed type.
-		Set<Vertex> ret = new HashSet<>(crymlinTraversal.ctor(fqnName).toSet());
+		Set<Vertex> ret = new HashSet<>(crymlinTraversal.ctors(fqnName).toSet());
 
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
 		ret.removeIf(
@@ -112,7 +111,7 @@ public class CrymlinQueryWrapper {
 		fqnName = Utils.unifyType(fqnName);
 
 		// since fqn is a fully qualified name, this includes method calls on an instance, static calls, and functioncalls
-		Set<Vertex> ret = new HashSet<>(crymlinTraversal.calls(fqnName).toSet());
+		Set<Vertex> ret = new HashSet<>(crymlinTraversal.callsFqn(fqnName).toSet());
 
 		// now, ret contains possible candidates --> need to filter out calls where params don't match
 		ret.removeIf(
@@ -814,7 +813,7 @@ public class CrymlinQueryWrapper {
 
 	public static Optional<Vertex> getField(String fqnClassName, String fieldName, CrymlinTraversalSource traveral) {
 
-		Set<Vertex> vertices = traveral.field(fieldName).toSet();
+		Set<Vertex> vertices = traveral.fields(fieldName).toSet();
 		for (Vertex v : vertices) {
 			Iterator<Edge> it = v.edges(Direction.IN, FIELDS);
 			if (it.hasNext()) {

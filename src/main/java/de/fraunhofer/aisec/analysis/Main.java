@@ -6,6 +6,7 @@ import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TypestateMode;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +21,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /** Start point of the standalone analysis server. */
 @SuppressWarnings("java:S106")
@@ -53,6 +53,10 @@ public class Main implements Callable<Integer> {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
 	private long timeout;
 
+	@Option(names = {
+			"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+	private boolean disableGoodFindings;
+
 	public static void main(String... args) {
 		int exitCode = new CommandLine(new Main()).execute(args);
 		System.exit(exitCode);
@@ -66,11 +70,17 @@ public class Main implements Callable<Integer> {
 			analysisMode.tsMode = TypestateMode.NFA;
 		}
 
+		// Warm up OverflowDB in parallel (esp. creating edge factories by reflection takes a few ms)
+		Executors.newSingleThreadExecutor().submit(() -> {
+			OverflowDatabase.getInstance();
+		}).get();
+
 		AnalysisServer server = AnalysisServer.builder()
 				.config(ServerConfiguration.builder()
 						.launchLsp(executionMode.lsp)
 						.launchConsole(executionMode.tui)
 						.typestateAnalysis(analysisMode.tsMode)
+						.disableGoodFindings(disableGoodFindings)
 						.analyzeIncludes(translationSettings.analyzeIncludes)
 						.includePath(translationSettings.includesPath)
 						.markFiles(markFolderName.getAbsolutePath())
@@ -147,7 +157,8 @@ class AnalysisMode {
 }
 
 class TranslationSettings {
-	@Option(names = { "--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree.")
+	@Option(names = {
+			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree.")
 	protected boolean analyzeIncludes = false;
 
 	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")

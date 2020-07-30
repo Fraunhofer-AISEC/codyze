@@ -93,7 +93,7 @@ dependencies {
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.3.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // LSP
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.6.0")
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.9.0")
 
     // JSON parser for generation of results file
     api("org.json:json:20190722")

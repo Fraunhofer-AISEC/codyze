@@ -63,7 +63,7 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	 */
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
 			methodTypeParameters = { "A" })
-	@ShellCommand("Name of the selected node(s) (as a string)")
+	@ShellCommand("Name of the selected node(s)")
 	default CrymlinTraversal<S, Object> name() {
 		return (CrymlinTraversal<S, Object>) values("name");
 	}
@@ -80,13 +80,25 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	}
 
 	/**
+	 * Shortcut for {@code .values("startLine")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
+			methodTypeParameters = { "A" })
+	@ShellCommand("Source code line of the selected node(s)")
+	default CrymlinTraversal<S, Object> line() {
+		return (CrymlinTraversal<S, Object>) this.values("startLine");
+	}
+
+	/**
 	 * Shortcut for {@code .values("comment")}.
 	 *
 	 * @return
 	 */
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
 			methodTypeParameters = { "A" })
-	@ShellCommand("Comments attached to the selected node(s) (as a string)")
+	@ShellCommand("Comments attached to the selected node(s)")
 	default CrymlinTraversal<S, Object> comment() {
 		return (CrymlinTraversal<S, Object>) values("comment");
 	}
@@ -98,9 +110,65 @@ public interface CrymlinTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> {
 	 */
 	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Object" }, // c/p from example, unclear.
 			methodTypeParameters = { "A" })
-	@ShellCommand("Original source code of the selected node(s) (as a string)")
+	@ShellCommand("Original source code of the selected node(s)")
 	default CrymlinTraversal<S, Object> code() {
 		return (CrymlinTraversal<S, Object>) values("code");
+	}
+
+	/**
+	 * Shortcut for {@code .out("CONDITION")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
+	@ShellCommand("Condition (of an IfStatement)")
+	default CrymlinTraversal<S, Vertex> condition() {
+		return (CrymlinTraversal<S, Vertex>) out("CONDITION");
+	}
+
+	/**
+	 * Shortcut for {@code .out("CONDITION")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
+	@ShellCommand("Condition (of an IfStatement) containing the given substring")
+	default CrymlinTraversal<S, Vertex> condition(String subcode) {
+
+		return (CrymlinTraversal<S, Vertex>) out("CONDITION").has("code");
+	}
+
+	/**
+	 * Shortcut for {@code .out("THEN_STATEMENT")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
+	@ShellCommand("'then' block (of an IfStatement)")
+	default CrymlinTraversal<S, Vertex> thenStmt() {
+		return (CrymlinTraversal<S, Vertex>) out("THEN_STATEMENT");
+	}
+
+	/**
+	 * Shortcut for {@code .out("ELSE_STATEMENT")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
+	@ShellCommand("'else' block (of an IfStatement)")
+	default CrymlinTraversal<S, Vertex> elseStmt() {
+		return (CrymlinTraversal<S, Vertex>) out("ELSE_STATEMENT");
+	}
+
+	/**
+	 * Shortcut for {@code .out("TYPE")}.
+	 *
+	 * @return
+	 */
+	@GremlinDsl.AnonymousMethod(returnTypeParameters = { "A", "Vertex" }, methodTypeParameters = { "A" })
+	@ShellCommand("Type of the node(s)")
+	default CrymlinTraversal<S, Vertex> type() {
+		return (CrymlinTraversal<S, Vertex>) out(CrymlinConstants.TYPE);
 	}
 
 	/**

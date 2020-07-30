@@ -16,6 +16,7 @@ import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
@@ -42,6 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper.isCallExpression;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static de.fraunhofer.aisec.crymlin.dsl.__.__;
 import static java.lang.Math.toIntExact;
 
@@ -66,10 +68,14 @@ import static java.lang.Math.toIntExact;
 public class TypeStateAnalysis {
 	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
 	private MRule rule;
+	@NonNull
 	private final MarkContextHolder markContextHolder;
 	private CPGInstanceContext instanceContext;
 
-	public TypeStateAnalysis(MarkContextHolder markContextHolder) {
+	@NonNull
+	private OverflowDatabase<de.fraunhofer.aisec.cpg.graph.Node> odb = OverflowDatabase.getInstance();
+
+	public TypeStateAnalysis(@NonNull MarkContextHolder markContextHolder) {
 		this.markContextHolder = markContextHolder;
 	}
 
@@ -88,6 +94,8 @@ public class TypeStateAnalysis {
 			CrymlinTraversalSource crymlinTraversal,
 			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for {} and {}", ctx, crymlinTraversal);
+
+		odb = OverflowDatabase.getInstance();
 
 		instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 		this.rule = rule;
@@ -123,7 +131,10 @@ public class TypeStateAnalysis {
 			currentFile = new File("FIXME");
 		}
 
-		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = createInitialConfiguration(wpds);
+		/* Create an initial automaton corresponding to the start configurations of the data flow analysis.
+		   In this case, we are starting with all statements that initiate a type state transition.
+		 */
+		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = InitialConfiguration.create(InitialConfiguration::FIRST_TYPESTATE_EVENT, wpds);
 
 		// For debugging only: Print WPDS rules
 		if (log.isDebugEnabled()) {
@@ -230,8 +241,8 @@ public class TypeStateAnalysis {
 		Set<NonNullPair<Stmt, Val>> wpdsConfigs = new HashSet<>();
 		for (Rule<Stmt, Val, TypestateWeight> r : wpds.getAllRules()) {
 			if (!r.getWeight().equals(TypestateWeight.one())) {
-				wpdsConfigs.add(new NonNullPair<Stmt, Val>(r.getL1(), r.getS1()));
-				wpdsConfigs.add(new NonNullPair<Stmt, Val>(r.getL2(), r.getS2()));
+				wpdsConfigs.add(new NonNullPair<>(r.getL1(), r.getS1()));
+				wpdsConfigs.add(new NonNullPair<>(r.getL2(), r.getS2()));
 			}
 
 		}
@@ -244,7 +255,7 @@ public class TypeStateAnalysis {
 					if (reachableTypestate.getTarget().isError()) {
 						findings.add(createBadFinding(tran, currentFile));
 					} else {
-						potentialGoodFindings.add(new NonNullPair<Stmt, Val>(tran.getLabel(), tran.getStart()));
+						potentialGoodFindings.add(new NonNullPair<>(tran.getLabel(), tran.getStart()));
 					}
 
 					endReached |= reachableTypestate.getTarget().isEnd();
@@ -324,290 +335,20 @@ public class TypeStateAnalysis {
 	 */
 	private CpgWpds createWpds(CrymlinTraversalSource crymlinTraversal, NFA tsNfa) {
 		log.info("-----  Creating WPDS ----------");
-		HashSet<Vertex> alreadySeen = new HashSet<>();
-		/**
-		 * We need OverflowDB to convert vertices back to CPG nodes.
-		 */
-		OverflowDatabase<de.fraunhofer.aisec.cpg.graph.Node> odb = OverflowDatabase.getInstance();
 
 		/* Create empty WPDS */
 		CpgWpds wpds = new CpgWpds();
 
-		// TODO Optimization: WPDS can be limited to the slicing for the relevant statements. Currently we transform whole functions into a WPDS.
-
 		/**
-		 * For each function, create a WPDS
+		 * For each function, create a WPDS.
 		 *
 		 * The (normal, push, pop) rules of the WPDS reflect the data flow, similar to a static taint analysis.
 		 *
 		 */
-		for (Vertex functionDeclaration : crymlinTraversal.functiondeclarations().toList()) {
-			FunctionDeclaration fd = (FunctionDeclaration) odb.vertexToNode(functionDeclaration);
-			if (fd == null) {
-				log.error("Unexpected: Got FunctionDeclaration vertex but could not convert to Node object: {}", functionDeclaration);
-				continue;
-			}
-			String currentFunctionName = fd.getName();
-			log.info("Processing function {}", currentFunctionName);
-
-			// Work list of following EOG nodes. Not all EOG nodes will result in a WPDS rule, though.
-			ArrayDeque<NonNullPair<Vertex, Set<Stmt>>> worklist = new ArrayDeque<>();
-			worklist.add(new NonNullPair<>(functionDeclaration, Set.of(new Stmt(fd.getName(), getRegion(fd)))));
-
-			Map<Stmt, Val> skipTheseValsAtStmt = new HashMap<>();
-			Set<Val> valsInScope = new HashSet<>();
-
-			// Make sure we track all parameters inside this function
-			List<ParamVariableDeclaration> params = fd.getParameters();
-			for (ParamVariableDeclaration p : params) {
-				valsInScope.add(new Val(p.getName(), currentFunctionName));
-			}
-
-			// Start creation of WPDS rules by traversing the EOG
-			while (!worklist.isEmpty()) {
-				NonNullPair<Vertex, Set<Stmt>> currentPair = worklist.pop();
-				Vertex v = currentPair.getValue0();
-				for (Stmt previousStmt : currentPair.getValue1()) {
-					// We consider only "Statements" and CallExpressions in the EOG
-					if (isRelevantStmt(v)) {
-
-						Stmt currentStmt = vertexToStmt(v);
-
-						Statement stmtNode = (Statement) odb.vertexToNode(v);
-						if (stmtNode != null) {
-							/* First we create a normal rule from previous stmt to the current (=the call) */
-							Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(tsNfa, stmtNode, previousStmt, currentStmt, valsInScope);
-							for (NormalRule<Stmt, Val, TypestateWeight> normalRule : normalRules) {
-								boolean skipIt = false;
-								if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
-									Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
-									if (!normalRule.getS1()
-											.equals(forbiddenVal)) {
-										skipIt = true;
-									}
-								}
-								if (!skipIt) {
-									wpds.addRule(normalRule);
-								}
-							}
-
-							if (isCallExpression(v) && !isPhantom((CallExpression) stmtNode)) {
-								CallExpression callE = (CallExpression) stmtNode;
-								/*
-								 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
-								 * "return site" is the statement to which flow returns after the function call.
-								 */
-								Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa,
-									currentStmt,
-									v);
-								for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
-									log.debug("  Adding push rule: {}", pushRule);
-									wpds.addRule(pushRule);
-
-									// Remember that arguments flow only into callee and do not bypass it.
-									skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
-								}
-							}
-
-						}
-						/* "DeclarationStatements" result in a normal rule, assigning rhs to lhs. */
-
-						// TODO We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a BinaryOperator.
-						Iterator<Edge> declarations = v.edges(Direction.OUT, "DECLARATIONS");
-						if (isDeclarationStatement(v) && declarations.hasNext()) {
-							log.debug("Found variable declaration {}", v.property("code")
-									.orElse(""));
-
-							Vertex decl = declarations.next()
-									.inVertex();
-							Val declVal = new Val((String) decl.property("name")
-									.value(),
-								currentFunctionName);
-
-							Optional<Vertex> rhs = Optional.empty();
-							if (decl.edges(Direction.OUT, "INITIALIZER")
-									.hasNext()) {
-								// TODO Do not simply assume that the target of an INITIALIZER edge is a variable
-								rhs = Optional.of(decl.edges(Direction.OUT, "INITIALIZER")
-										.next()
-										.inVertex());
-							}
-
-							if (rhs.isPresent()) {
-								Vertex rhsVertex = rhs.get();
-								if (rhsVertex.property("name")
-										.isPresent()
-										&& !"".equals(rhsVertex.property("name")
-												.value())) {
-									log.debug("  Has name on right hand side {}", rhsVertex.property("name")
-											.value());
-									if (Utils.hasLabel(rhsVertex, MemberCallExpression.class)) {
-										// handle member calls
-										MemberCallExpression call = (MemberCallExpression) OverflowDatabase.getInstance()
-												.vertexToNode(rhsVertex);
-										if (call == null) {
-											log.error("Unexpected: null base of MemberCallExpression {}", rhsVertex);
-											continue;
-										}
-										de.fraunhofer.aisec.cpg.graph.Node base = call.getBase();
-										Val rhsVal = new Val(base.getName(), currentFunctionName);
-
-										// Add declVal to set of currently tracked variables
-										valsInScope.add(declVal);
-
-										Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt,
-											TypestateWeight.one());
-										log.debug("Adding normal rule for member call {}", normalRuleSelf);
-										wpds.addRule(normalRuleSelf);
-									} else if (Utils.hasLabel(rhsVertex, CallExpression.class)) {
-										// handle function calls
-										CallExpression call = (CallExpression) OverflowDatabase.getInstance()
-												.vertexToNode(rhsVertex);
-										if (call == null) {
-											log.error("Unexpected: null base of CallExpression {}", rhsVertex);
-											continue;
-										}
-
-										// Propagate all existing flows
-										for (Val val : valsInScope) {
-											Rule<Stmt, Val, TypestateWeight> normalRuleSelf = new NormalRule<>(val, previousStmt, val,
-												currentStmt,
-												TypestateWeight.one());
-											log.debug("Adding normal rule for function call {}", normalRuleSelf);
-											wpds.addRule(normalRuleSelf);
-										}
-
-										// Create new flow for declared variable (declVal)
-										Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName),
-											previousStmt,
-											declVal,
-											currentStmt,
-											TypestateWeight.one());
-										log.debug("Adding normal rule for declaration {}", normaleRuleDeclared);
-										wpds.addRule(normaleRuleDeclared);
-
-										// Add declVal to set of currently tracked variables
-										valsInScope.add(declVal);
-
-									} else {
-										// Propagate flow from right-hand to left-hand side (variable declaration)
-										Val rhsVal = new Val((String) rhsVertex.property("name")
-												.value(),
-											currentFunctionName);
-										// Add declVal to set of currently tracked variables
-										valsInScope.add(declVal);
-										Rule<Stmt, Val, TypestateWeight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt,
-											TypestateWeight.one());
-										log.debug("Adding normal rule for assignment {}", normalRulePropagate);
-										wpds.addRule(normalRulePropagate);
-									}
-
-									// Additionally, flow remains at rhs.
-									Val rhsVal = new Val((String) rhsVertex.property("name")
-											.value(),
-										currentFunctionName);
-									Rule<Stmt, Val, TypestateWeight> normalRuleCopy = new NormalRule<>(rhsVal, previousStmt, rhsVal, currentStmt, TypestateWeight.one());
-									log.debug("Adding normal rule, propagating unchanged values {}", normalRuleCopy);
-									wpds.addRule(normalRuleCopy);
-
-								} else {
-									// handle new instantiations of objects
-									log.debug("  Has no name on right hand side: {}", v.property("code")
-											.orElse(""));
-
-									// Normal copy of all values in scope
-									for (Val valInScope : valsInScope) {
-										Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt,
-											TypestateWeight.one());
-										if (!skipTheseValsAtStmt.containsKey(normalRule.getL2())) {
-											Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
-											if (!normalRule.getS1()
-													.equals(forbiddenVal)) {
-												log.debug("Adding normal rule, propagating vars {}", normalRule);
-												wpds.addRule(normalRule);
-											}
-										}
-									}
-
-									// Add declVal to set of currently tracked variables
-									valsInScope.add(declVal);
-
-									// Create normal rule
-									Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName), previousStmt, declVal,
-										currentStmt,
-										TypestateWeight.one());
-									log.debug("Adding normal rule for epsilon {}", normalRule);
-									wpds.addRule(normalRule);
-
-								}
-							}
-						} else if (isReturnStatement(v)) {
-							/* Return statements result in pop rules */
-							ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(v);
-							if (returnV != null && !returnV.isDummy()) {
-								Set<Val> returnedVals = findReturnedVals(crymlinTraversal, v);
-
-								for (Val returnedVal : returnedVals) {
-									Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
-											.stream()
-											.filter(
-												tran -> tran.getTarget()
-														.getOp()
-														.equals(returnedVal.getVariable()))
-											.collect(Collectors.toSet());
-									TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
-
-									// Pop Rule for actually returned value
-									PopRule<Stmt, Val, TypestateWeight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue()
-											.getName(),
-										currentFunctionName),
-										currentStmt, returnedVal, weight);
-									wpds.addRule(returnPopRule);
-									log.debug("Adding pop rule {}", returnPopRule);
-								}
-
-								// Pop Rules for side effects on parameters
-								Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionDeclaration, v, odb, crymlinTraversal);
-								if (paramToValueMap.containsKey(currentFunctionName)) {
-									for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
-										PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(),
-											TypestateWeight.one());
-										wpds.addRule(popRule);
-										log.debug("Adding pop rule {}", popRule);
-									}
-								}
-
-							}
-							// Create normal rule. Flow remains where it is.
-							for (Val valInScope : valsInScope) {
-								Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, TypestateWeight.one());
-								boolean skipIt = false;
-								if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
-									Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
-									if (!normalRule.getS1()
-											.equals(forbiddenVal)) {
-										skipIt = true;
-									}
-								}
-								if (!skipIt) {
-									log.debug("Adding normal rule!!! {}", normalRule);
-									wpds.addRule(normalRule);
-								}
-							}
-
-						}
-					} // End isRelevantStmt()
-				}
-
-				// Add successors to work list
-				Collection<? extends Vertex> successors = getSuccessors(v, alreadySeen);
-				for (Vertex succ : successors) {
-					if (isRelevantStmt(v)) {
-						worklist.add(new NonNullPair<>(succ, Set.of(vertexToStmt(v))));
-					} else {
-						worklist.add(new NonNullPair<>(succ, currentPair.getValue1()));
-					}
-				}
+		for (Vertex functionDeclaration : crymlinTraversal.functions().toList()) {
+			WPDS<Stmt, Val, TypestateWeight> funcWpds = createWpds(functionDeclaration, tsNfa, crymlinTraversal);
+			for (Rule<Stmt, Val, TypestateWeight> r : funcWpds.getAllRules()) {
+				wpds.addRule(r);
 			}
 		}
 
@@ -618,6 +359,222 @@ public class TypeStateAnalysis {
 		 */
 
 		return wpds;
+	}
+
+	/**
+	 * Turns a single function into a WPDS.
+	 *
+	 * @param tsNfa
+	 * @param crymlinTraversal
+	 * @return
+	 */
+	private WPDS<Stmt, Val, TypestateWeight> createWpds(@NonNull Vertex fdVertex, NFA tsNfa, CrymlinTraversalSource crymlinTraversal) {
+		// To remember already visited nodes and avoid endless iteration
+		HashSet<Vertex> alreadySeen = new HashSet<>();
+
+		// the WPDS we are creating here
+		CpgWpds wpds = new CpgWpds();
+
+		FunctionDeclaration fd = (FunctionDeclaration) odb.vertexToNode(fdVertex);
+		log.info("Processing function {}", fdVertex.property(NAME).orElse(""));
+
+		// Work list of following EOG nodes. Not all EOG nodes will result in a WPDS rule, though.
+		ArrayDeque<NonNullPair<Vertex, Set<Stmt>>> worklist = new ArrayDeque<>();
+		worklist.add(new NonNullPair<>(fdVertex, Set.of(new Stmt(fd.getName(), getRegion(fd)))));
+
+		Map<Stmt, Val> skipTheseValsAtStmt = new HashMap<>();
+		Set<Val> valsInScope = new HashSet<>();
+
+		// Make sure we track all parameters inside this function
+		List<ParamVariableDeclaration> params = fd.getParameters();
+		for (ParamVariableDeclaration p : params) {
+			valsInScope.add(new Val(p.getName(), fd.getName()));
+		}
+
+		// Start creation of WPDS rules by traversing the EOG
+		while (!worklist.isEmpty()) {
+			NonNullPair<Vertex, Set<Stmt>> currentPair = worklist.pop();
+			Vertex v = currentPair.getValue0();
+
+			for (Stmt previousStmt : currentPair.getValue1()) {
+				// We consider only "Statements" and CallExpressions in the EOG
+				if (isRelevantStmt(v)) {
+					createRulesForStmt(wpds, fdVertex, previousStmt, v, valsInScope, skipTheseValsAtStmt, tsNfa, crymlinTraversal);
+				} // End isRelevantStmt()
+			}
+
+			// Add successors to work list
+			Collection<? extends Vertex> successors = getSuccessors(v, alreadySeen);
+			for (Vertex succ : successors) {
+				if (isRelevantStmt(v)) {
+					worklist.add(new NonNullPair<>(succ, Set.of(vertexToStmt(v))));
+				} else {
+					worklist.add(new NonNullPair<>(succ, currentPair.getValue1()));
+				}
+			}
+		}
+		return wpds;
+	}
+
+	@java.lang.SuppressWarnings("squid:S107")
+	private void createRulesForStmt(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds,
+			@NonNull Vertex functionVertex,
+			@NonNull Stmt previousStmt,
+			@NonNull Vertex currentStmtVertex,
+			@NonNull Set<Val> valsInScope,
+			@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
+			@NonNull NFA tsNfa,
+			@NonNull CrymlinTraversalSource crymlinTraversal) {
+
+		String currentFunctionName = (String) functionVertex.property(NAME).orElse("UNKNOWN");
+		Stmt currentStmt = vertexToStmt(currentStmtVertex);
+		Statement stmtNode = (Statement) odb.vertexToNode(currentStmtVertex);
+
+		/* First we create normal rules from previous stmt to the current stmt, simply propagating existing values. */
+		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(previousStmt, currentStmtVertex, valsInScope, tsNfa);
+		for (NormalRule<Stmt, Val, TypestateWeight> normalRule : normalRules) {
+			/*
+			  If this is a call into a known method, we skip immediate propagation. In that case, data flows *into* the method.
+			 */
+			boolean skipIt = shouldBeSkipped(normalRule, skipTheseValsAtStmt);
+			if (!skipIt) {
+				wpds.addRule(normalRule);
+			}
+		}
+
+		/*
+		  Handle calls into known methods (not a "phantom" method) by creating push rule.
+		 */
+		if (isCallExpression(currentStmtVertex) && !isPhantom((CallExpression) stmtNode)) {
+			CallExpression callE = (CallExpression) stmtNode;
+			/*
+			 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
+			 * "return site" is the statement to which flow returns after the function call.
+			 */
+			Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa,
+				currentStmt,
+				currentStmtVertex);
+			for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
+				log.debug("  Adding push rule: {}", pushRule);
+				wpds.addRule(pushRule);
+
+				// Remember that arguments flow only into callee and do not bypass it.
+				skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
+			}
+		} else if (isDeclarationStatement(currentStmtVertex)) {
+			/* Handle declaration of new variables.
+			 "DeclarationStatements" result in a normal rule, assigning rhs to lhs.
+			*/
+
+			// Note: We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a "BinaryOperator".
+			log.debug("Found variable declaration {}", currentStmtVertex.property("code")
+					.orElse(""));
+			DeclarationStatement ds = (DeclarationStatement) odb.vertexToNode(currentStmtVertex);
+			for (Declaration decl : ds.getDeclarations()) {
+				if (!(decl instanceof VariableDeclaration)) {
+					continue;
+				}
+				Val declVal = new Val(decl.getName(), currentFunctionName);
+				Expression rhs = ((VariableDeclaration) decl).getInitializer();
+
+				if (rhs instanceof CallExpression) {
+					/* Handle function/method calls whose return value is assigned to a declared variable.
+					   A new data flow for the declared variable (declVal) is introduced.
+					 */
+					Rule<Stmt, Val, TypestateWeight> normaleRuleDeclared = new NormalRule<>(new Val(CpgWpds.EPSILON, currentFunctionName),
+						previousStmt,
+						declVal,
+						currentStmt,
+						TypestateWeight.one());
+					log.debug("Adding normal rule for declaration {}", normaleRuleDeclared);
+					wpds.addRule(normaleRuleDeclared);
+
+					// Add declVal to set of currently tracked variables
+					valsInScope.add(declVal);
+				} else if (rhs != null) {
+					/**
+					 * Handle assignment from right side (rhs) to left side (lhs).
+					 *
+					 * We simply take rhs.getName() as a data source. This might be imprecise and need further differentiation. For instance, if rhs is an expression (other than CallExpression), we might want to recursively handle data flows within that expression. This is currently not implemented as it is not needed for our use case and would add unneeded complexity.
+					 */
+					Val rhsVal = new Val(rhs.getName(), currentFunctionName);
+
+					// Add declVal to set of currently tracked variables
+					valsInScope.add(declVal);
+					Rule<Stmt, Val, TypestateWeight> normalRulePropagate = new NormalRule<>(rhsVal, previousStmt, declVal, currentStmt,
+						TypestateWeight.one());
+					log.debug("Adding normal rule for assignment {}", normalRulePropagate);
+					wpds.addRule(normalRulePropagate);
+				}
+			}
+		} else if (isReturnStatement(currentStmtVertex)) {
+			/* Return statements result in pop rules */
+			ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(currentStmtVertex);
+			if (returnV != null && !returnV.isDummy()) {
+				Set<Val> returnedVals = findReturnedVals(crymlinTraversal, currentStmtVertex);
+
+				for (Val returnedVal : returnedVals) {
+					Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
+							.stream()
+							.filter(
+								tran -> tran.getTarget()
+										.getOp()
+										.equals(returnedVal.getVariable()))
+							.collect(Collectors.toSet());
+					TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
+
+					// Pop Rule for actually returned value
+					PopRule<Stmt, Val, TypestateWeight> returnPopRule = new PopRule<>(new Val(returnV.getReturnValue()
+							.getName(),
+						currentFunctionName),
+						currentStmt, returnedVal, weight);
+					wpds.addRule(returnPopRule);
+					log.debug("Adding pop rule {}", returnPopRule);
+				}
+
+				// Pop Rules for side effects on parameters
+				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex, currentStmtVertex, odb, crymlinTraversal);
+				if (paramToValueMap.containsKey(currentFunctionName)) {
+					for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
+						PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(),
+							TypestateWeight.one());
+						wpds.addRule(popRule);
+						log.debug("Adding pop rule {}", popRule);
+					}
+				}
+
+			}
+			// Create normal rule. Flow remains where it is.
+			for (Val valInScope : valsInScope) {
+				Rule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, TypestateWeight.one());
+				boolean skipIt = false;
+				if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
+					Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
+					if (!normalRule.getS1()
+							.equals(forbiddenVal)) {
+						skipIt = true;
+					}
+				}
+				if (!skipIt) {
+					log.debug("Adding normal rule!!! {}", normalRule);
+					wpds.addRule(normalRule);
+				}
+			}
+
+		} // End isReturnStatement
+	}
+
+	private boolean shouldBeSkipped(NormalRule<Stmt, Val, TypestateWeight> normalRule,
+			Map<Stmt, Val> skipTheseValsAtStmt) {
+		boolean skipIt = false;
+		if (skipTheseValsAtStmt.get(normalRule.getL2()) != null) {
+			Val forbiddenVal = skipTheseValsAtStmt.get(normalRule.getL2());
+			if (!normalRule.getS1()
+					.equals(forbiddenVal)) {
+				skipIt = true;
+			}
+		}
+		return skipIt;
 	}
 
 	@NonNull
@@ -666,7 +623,7 @@ public class TypeStateAnalysis {
 			numberOfOutgoingEogs++;
 			eogs.next();
 		}
-		return isCallExpression(v) || Utils.hasLabel(v, IfStatement.class) || v.edges(Direction.IN, "STATEMENTS").hasNext() || numberOfOutgoingEogs >= 2;
+		return isCallExpression(v) || Utils.hasLabel(v, IfStatement.class) || v.edges(Direction.IN, CrymlinConstants.STATEMENTS).hasNext() || numberOfOutgoingEogs >= 2;
 	}
 
 	private boolean isReturnStatement(Vertex v) {
@@ -674,12 +631,14 @@ public class TypeStateAnalysis {
 	}
 
 	private boolean isDeclarationStatement(Vertex v) {
-		return v.label().equals(DeclarationStatement.class.getSimpleName());
+		return Utils.hasLabel(v, DeclarationStatement.class);
 	}
 
-	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final NFA tsNfa, final Statement currentStmtNode, final Stmt previousStmt,
-			final Stmt currentStmt,
-			final Set<Val> valsInScope) {
+	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final Stmt previousStmt, final Vertex v, final Set<Val> valsInScope, final NFA tsNfa) {
+		Stmt currentStmt = vertexToStmt(v);
+
+		Statement currentStmtNode = (Statement) odb.vertexToNode(v);
+
 		Set<NormalRule<Stmt, Val, TypestateWeight>> result = new HashSet<>();
 		Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
 				.stream()
@@ -717,7 +676,7 @@ public class TypeStateAnalysis {
 			return false;
 		}
 
-		// TODO this method is called a few times and repeats some work. Potential for caching/optimization.
+		// Note: this method is called a few times and repeats some work. Potential for caching/optimization.
 
 		for (MOp o : mEntity.getValue1().getOps()) {
 			if (!op.equals(o.getName())) {
@@ -855,10 +814,10 @@ public class TypeStateAnalysis {
 				String callerFunctionName = null;
 				CrymlinTraversal<Vertex, Vertex> traversal = crymlinTraversalSource.byID((long) call.id())
 						.repeat(__().out("EOG"))
-						.until(__().in("STATEMENTS"))
+						.until(__().in(CrymlinConstants.STATEMENTS))
 						//					.limit(10)
-						.in("STATEMENTS")
-						.in("BODY");
+						.in(CrymlinConstants.STATEMENTS)
+						.in(CrymlinConstants.BODY);
 				if (traversal.hasNext()) {
 					Vertex callerFunction = traversal.next();
 					if (callerFunction != null) {
@@ -886,11 +845,11 @@ public class TypeStateAnalysis {
 	 * @param currentFunctionName
 	 * @param nfa
 	 * @param currentStmt
-	 * @param v
+	 * @param currentStmtVertex
 	 * @return
 	 */
 	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
-			NFA nfa, Stmt currentStmt, Vertex v) {
+			NFA nfa, Stmt currentStmt, Vertex currentStmtVertex) {
 		Set<NFATransition<Node>> relevantNFATransitions = nfa.getTransitions()
 				.stream()
 				.filter(
@@ -899,7 +858,7 @@ public class TypeStateAnalysis {
 		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
-		List<Vertex> returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) v.id());
+		List<Vertex> returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) currentStmtVertex.id());
 
 		// Arguments of function call
 		List<Val> argVals = argumentsToVals(mce, currentFunctionName);
@@ -979,85 +938,6 @@ public class TypeStateAnalysis {
 	}
 
 	/**
-	 * Creates an initial configuration of a WPDS from where post* runs.
-	 * <p>
-	 * The initial configuration comprises the set of states (i.e. statements and variables on the stack) which are relevant for following typestate analysis and is given
-	 * in form of a weighted automaton P.
-	 * <p>
-	 * Typically, the initial configuration will refer to a single "trigger" statement from where typestate analysis should start. This statement i
-	 *
-	 *
-	 * @return
-	 */
-	@NonNull
-	private WeightedAutomaton<Stmt, Val, TypestateWeight> createInitialConfiguration(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
-		// Get START state from WPDS
-		Set<Pair<Val, Stmt>> initialStates = new HashSet<>();
-		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = wpds.getNormalRules();
-		for (NormalRule<Stmt, Val, TypestateWeight> nr : normalRules) {
-			if (nr.getS1().getVariable().equals(CpgWpds.EPSILON)) {
-				Val initialState = nr.getS2();
-				Stmt stmt = nr.getL2();
-				initialStates.add(new Pair<>(initialState, stmt));
-			}
-		}
-
-		if (initialStates.isEmpty()) {
-			log.error("Did not find initial configuration for typestate analysis. Will fail soon.");
-		}
-
-		// Create statement for start configuration and create start CONFIG
-		// TODO make initialState a set or remove completely
-		int line = Integer.MAX_VALUE;
-		Val initialState = null;
-		Stmt stmt = null;
-		for (Pair<Val, Stmt> s : initialStates) {
-			if (s.getValue1().getRegion().getStartLine() < line) {
-				line = s.getValue1().getRegion().getStartLine();
-				initialState = s.getValue0();
-				stmt = s.getValue1();
-			}
-		}
-		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
-			@Override
-			public Val createState(Val val, Stmt stmt) {
-				return val;
-			}
-
-			@Override
-			public boolean isGeneratedState(Val val) {
-				return false;
-			}
-
-			@Override
-			public Stmt epsilon() {
-				return new Stmt(CpgWpds.EPSILON, new Region(-1, -1, -1, -1));
-			}
-
-			@Override
-			public TypestateWeight getZero() {
-				return TypestateWeight.zero();
-			}
-
-			@Override
-			public TypestateWeight getOne() {
-				return TypestateWeight.one();
-			}
-		};
-		Val ACCEPTING = new Val("ACCEPT", "ACCEPT");
-		// Create an automaton for the initial configuration from where post* will start.
-		log.debug("Initial configuration(s):");
-
-		wnfa.addTransition(new Transition<>(initialState, stmt, ACCEPTING),
-			new TypestateWeight(Set.of(new NFATransition<Node>(new Node("START", "START"), new Node("START", "START"), "constructor"))));
-
-		// Add final ("accepting") states to NFA.
-		wnfa.addFinalState(ACCEPTING);
-
-		return wnfa;
-	}
-
-	/**
 	 * Convert a CPG vertex into a <code>Stmt</code> in context of the WPDS.
 	 *
 	 * @param v CPG vertex
@@ -1066,18 +946,18 @@ public class TypeStateAnalysis {
 	@NonNull
 	private Stmt vertexToStmt(@NonNull Vertex v) {
 		Region region = new Region(-1, -1, -1, -1);
-		if (v.property("startLine").isPresent() &&
-				v.property("startColumn").isPresent() &&
-				v.property("endLine").isPresent() &&
-				v.property("endColumn").isPresent()) {
+		if (v.property(START_LINE).isPresent() &&
+				v.property(START_COLUMN).isPresent() &&
+				v.property(END_LINE).isPresent() &&
+				v.property(END_COLUMN).isPresent()) {
 			region = new Region(
-				toIntExact((long) v.property("startLine")
+				toIntExact((long) v.property(START_LINE)
 						.value()),
-				toIntExact((long) v.property("startColumn")
+				toIntExact((long) v.property(START_COLUMN)
 						.value()),
-				toIntExact((long) v.property("endLine")
+				toIntExact((long) v.property(END_LINE)
 						.value()),
-				toIntExact((long) v.property("endColumn")
+				toIntExact((long) v.property(END_COLUMN)
 						.value()));
 		}
 		return new Stmt(

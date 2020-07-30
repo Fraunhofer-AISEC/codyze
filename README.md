@@ -33,15 +33,16 @@ Without further command line arguments, Codyze will print its command line help:
 
 
 ```
-Error: Missing required argument (specify one of these): (-c | -l | -t)
-Usage: codyze (-c | -l | -t) [[--typestate=<NFA|WPDS>] [--interproc]] [-hV] [-m=<path>] [-o=<file>]
-              [-s=<path>] [--timeout=<minutes>]
+Usage: codyze (-c | -l | -t) [[--typestate=<NFA|WPDS>]] [-hV] [--no-good-findings] [-m=<path>]
+              [-o=<file>] [-s=<path>] [--timeout=<minutes>]
 Codyze finds security flaws in source code
   -s, --source=<path>       Source file or folder to analyze.
   -m, --mark=<path>         Load MARK policy files from folder
   -o, --output=<file>       Write results to file. Use -- for stdout.
       --timeout=<minutes>   Terminate analysis after timeout
                               Default: 120
+      --no-good-findings    Disable output of "positive" findings which indicate correct
+                              implementations
   -h, --help                Show this help message and exit.
   -V, --version             Print version information and exit.
 Execution mode

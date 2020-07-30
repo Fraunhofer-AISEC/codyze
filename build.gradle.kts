@@ -93,7 +93,7 @@ dependencies {
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.3.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // LSP
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.6.0")
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.9.0")
 
     // JSON parser for generation of results file
     api("org.json:json:20190722")
@@ -135,7 +135,7 @@ dependencies {
 application {
     mainClassName = "de.fraunhofer.aisec.analysis.Main"
     // Required to give Ehcache deep reflective access to fields to correctly esitmate the cache size.
-    applicationDefaultJvmArgs = listOf("--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED", "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED")
+    applicationDefaultJvmArgs = listOf("--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED", "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED", "-Xss10M")
 }
 tasks.named<Test>("test") {
     useJUnitPlatform()
@@ -181,3 +181,9 @@ downloadLicenses {
     dependencyConfiguration = "compileClasspath"
 }
 
+tasks.named<CreateStartScripts>("startScripts") {
+    doLast {
+        // workaround for https://github.com/gradle/gradle/issues/1989
+        windowsScript.writeText(windowsScript.readText().replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*"))
+    }
+}

@@ -40,7 +40,7 @@ public class ServerConfiguration {
 	/**
 	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether or not to parse include files.
 	 */
-	public boolean analyzeIncludes;
+	public final boolean analyzeIncludes;
 
 	/**
 	 * Path(s) containing include files.
@@ -48,15 +48,23 @@ public class ServerConfiguration {
 	 * Paths must be separated by File.pathSeparator (: or ;).
 	 */
 	@NonNull
-	public File[] includePath;
+	public final File[] includePath;
 
-	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode, boolean analyzeIncludes, @NonNull File[] includePath) {
+	/**
+	 * If true, no "positive" findings will be returned from the analysis.
+	 */
+	public final boolean disableGoodFindings;
+
+	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode, boolean analyzeIncludes,
+			@NonNull File[] includePath,
+			boolean disableGoodFindings) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
 		this.typestateAnalysis = typestateMode;
 		this.analyzeIncludes = analyzeIncludes;
 		this.includePath = includePath;
+		this.disableGoodFindings = disableGoodFindings;
 	}
 
 	public static Builder builder() {
@@ -72,6 +80,7 @@ public class ServerConfiguration {
 		private TypestateMode typestateAnalysis = TypestateMode.NFA;
 		private boolean analyzeIncludes;
 		private File[] includePath = new File[0];
+		private boolean disableGoodFindings;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -107,8 +116,13 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder disableGoodFindings(boolean disableGoodFindings) {
+			this.disableGoodFindings = disableGoodFindings;
+			return this;
+		}
+
 		public ServerConfiguration build() {
-			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles, typestateAnalysis, analyzeIncludes, includePath);
+			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles, typestateAnalysis, analyzeIncludes, includePath, disableGoodFindings);
 		}
 
 	}

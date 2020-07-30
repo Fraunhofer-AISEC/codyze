@@ -175,12 +175,12 @@ public class JythonInterpreterTest {
 				.getCompleters()
 				.iterator()
 				.next()
-				.complete("query.allCal\t", 0, completions);
+				.complete("query.cal\t", 0, completions);
 		outContent.flush();
 		errContent.flush();
 
-		assertTrue(completions.contains("allCalls()"));
-		assertEquals(1, completions.size());
+		assertTrue(completions.contains("calls()"));
+		assertEquals(2, completions.size());
 	}
 
 	/**
@@ -196,7 +196,7 @@ public class JythonInterpreterTest {
 				.getCompleters()
 				.iterator()
 				.next()
-				.complete("q.allCalls().\t", 0, completions);
+				.complete("q.calls().\t", 0, completions);
 		outContent.flush();
 		errContent.flush();
 
@@ -215,10 +215,10 @@ public class JythonInterpreterTest {
 	@Order(7)
 	public void crymlinOverJythonTest() throws Exception {
 		// Run crymlin queries as strings and get back the results as Java objects:
-		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.recorddeclarations().toList()");
+		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.records().toList()");
 		assertNotNull(classes);
 
-		List<Vertex> literals = (List<Vertex>) interp.query("crymlin.translationunits().literals().toList()");
+		List<Vertex> literals = (List<Vertex>) interp.query("crymlin.sourcefiles().literals().toList()");
 		assertNotNull(literals);
 	}
 

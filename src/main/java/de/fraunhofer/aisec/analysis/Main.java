@@ -33,7 +33,10 @@ public class Main implements Callable<Integer> {
 	private ExecutionMode executionMode;
 
 	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-	private AnalysisMode analysisMode;
+	private final AnalysisMode analysisMode = new AnalysisMode();
+
+	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
+	private final TranslationSettings translationSettings = new TranslationSettings();
 
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File analysisInput;
@@ -63,9 +66,6 @@ public class Main implements Callable<Integer> {
 	public Integer call() throws Exception {
 		Instant start = Instant.now();
 
-		if (analysisMode == null) {
-			analysisMode = new AnalysisMode();
-		}
 		if (analysisMode.tsMode == null) {
 			analysisMode.tsMode = TypestateMode.NFA;
 		}
@@ -81,6 +81,8 @@ public class Main implements Callable<Integer> {
 						.launchConsole(executionMode.tui)
 						.typestateAnalysis(analysisMode.tsMode)
 						.disableGoodFindings(disableGoodFindings)
+						.analyzeIncludes(translationSettings.analyzeIncludes)
+						.includePath(translationSettings.includesPath)
 						.markFiles(markFolderName.getAbsolutePath())
 						.build())
 				.build();
@@ -152,4 +154,13 @@ class AnalysisMode {
 	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", defaultValue = "NFA", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
 	protected TypestateMode tsMode = TypestateMode.NFA;
+}
+
+class TranslationSettings {
+	@Option(names = {
+			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree.")
+	protected boolean analyzeIncludes = false;
+
+	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
+	protected File[] includesPath;
 }

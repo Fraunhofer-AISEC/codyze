@@ -22,7 +22,7 @@ class CrymlinTest {
 		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
 			// Run crymlin queries directly in Java
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
-			Optional<Long> count = crymlin.recorddeclarations()
+			Optional<Long> count = crymlin.records()
 					.count()
 					.tryNext();
 			assertTrue(count.isPresent());

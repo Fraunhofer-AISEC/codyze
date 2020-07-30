@@ -12,10 +12,11 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.eclipse.xtend.lib.macro.declaration.ParameterDeclaration;
 
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.EOG;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.NAME;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
 import static de.fraunhofer.aisec.crymlin.dsl.__.hasLabel;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.in;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
 
 /**
@@ -50,8 +51,8 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
-	@ShellCommand("All function/method calls)")
-	public GraphTraversal<Vertex, Vertex> allCalls() {
+	@ShellCommand("All function/method calls")
+	public GraphTraversal<Vertex, Vertex> calls() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(
@@ -85,7 +86,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
 	@ShellCommand("Calls to functions/methods whose (fully qualified) name contains the argument.")
-	public GraphTraversal<Vertex, Vertex> call(String calleeName) {
+	public GraphTraversal<Vertex, Vertex> calls(String calleeName) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal
@@ -105,13 +106,13 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 * @param type Fully qualified name of the constructed type.
 	 * @return traversal of matched {@code ConstructExpression} vertices
 	 */
-	@ShellCommand("Constructors of given type")
-	public GraphTraversal<Vertex, Vertex> ctor(String type) {
+	@ShellCommand("Constructors containing a given type")
+	public GraphTraversal<Vertex, Vertex> ctors(String type) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(ConstructExpression.class.getSimpleName(), OverflowDatabase.getSubclasses(ConstructExpression.class))
 				.where(out(CrymlinConstants.TYPE)
-						.has(NAME, type));
+						.has(NAME, TextP.containing(type)));
 	}
 
 	/**
@@ -126,6 +127,21 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 				.hasLabel(
 					NamespaceDeclaration.class.getSimpleName(),
 					OverflowDatabase.getSubclasses(NamespaceDeclaration.class));
+	}
+
+	/**
+	 * Returns nodes with a label {@code NamepaceDeclaration}.
+	 *
+	 * @return
+	 */
+	@ShellCommand("Namespaces containing the given substring")
+	public GraphTraversal<Vertex, Vertex> namespaces(String substring) {
+		return this.clone()
+				.V()
+				.hasLabel(
+					NamespaceDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(NamespaceDeclaration.class))
+				.has("name", TextP.containing(substring));
 	}
 
 	/**
@@ -147,7 +163,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
-	@ShellCommand("Class methods")
+	@ShellCommand("All class methods (Note: rather use 'functions()' to include C/C++ functions)")
 	public GraphTraversal<Vertex, Vertex> methods() {
 		return this.clone()
 				.V()
@@ -157,12 +173,27 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	}
 
 	/**
+	 * Returns nodes with a label {@code MethodDeclaration} whose name contains the given substring.
+	 *
+	 * @return
+	 */
+	@ShellCommand("Class methods containing the given name (Note: rather use 'functions()' to include C/C++ functions)")
+	public GraphTraversal<Vertex, Vertex> methods(String substring) {
+		return this.clone()
+				.V()
+				.hasLabel(
+					MethodDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(MethodDeclaration.class))
+				.has("name", TextP.containing(substring));
+	}
+
+	/**
 	 * Returns all TranslationUnitDeclaration nodes.
 	 *
 	 * @return
 	 */
-	@ShellCommand("Translation Units (=Source code files)")
-	public GraphTraversal<Vertex, Vertex> translationunits() {
+	@ShellCommand("All TranslationUnits (=Source code files)")
+	public GraphTraversal<Vertex, Vertex> sourcefiles() {
 		return this.clone()
 				.V()
 				.hasLabel(
@@ -171,11 +202,56 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	}
 
 	/**
+	 * Returns all TranslationUnitDeclaration nodes.
+	 *
+	 * @return
+	 */
+	@ShellCommand("TranslationUnits (=Source code files) containing the given name")
+	public GraphTraversal<Vertex, Vertex> sourcefiles(String substring) {
+		return this.clone()
+				.V()
+				.hasLabel(
+					TranslationUnitDeclaration.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(TranslationUnitDeclaration.class))
+				.has("name", TextP.containing(substring));
+	}
+
+	/**
+	 * Returns all IfStatements (e.g., Java classes).
+	 *
+	 * @return
+	 */
+	@ShellCommand("All IfStatements")
+	public GraphTraversal<Vertex, Vertex> ifstmts() {
+		return this.clone()
+				.V()
+				.hasLabel(
+					IfStatement.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(IfStatement.class));
+	}
+
+	/**
+	 * Returns all IfStatements (e.g., Java classes).
+	 *
+	 * @return
+	 */
+	@ShellCommand("IfStatements whose code contains the given substring")
+	public GraphTraversal<Vertex, Vertex> ifstmts(String subcode) {
+		return this.clone()
+				.V()
+				.hasLabel(
+					IfStatement.class.getSimpleName(),
+					OverflowDatabase.getSubclasses(IfStatement.class))
+				.has("code", TextP.containing(subcode));
+	}
+
+	/**
 	 * Returns all RecordDeclarations (e.g., Java classes).
 	 *
 	 * @return
 	 */
-	public GraphTraversal<Vertex, Vertex> recorddeclarations() {
+	@ShellCommand("All RecordDeclarations (Java classes, enums, C/C++ structs)")
+	public GraphTraversal<Vertex, Vertex> records() {
 		return this.clone()
 				.V()
 				.hasLabel(
@@ -184,39 +260,18 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	}
 
 	/**
-	 * Returns the RecordDeclarations with a given name.
+	 * Returns all RecordDeclarations (e.g., Java classes) whose name contains the given substring.
 	 *
 	 * @return
 	 */
-	public GraphTraversal<Vertex, Vertex> recorddeclaration(String recordname) {
+	@ShellCommand("RecordDeclarations (Java classes, enums, C/C++ structs) containing the given name")
+	public GraphTraversal<Vertex, Vertex> records(String substring) {
 		return this.clone()
 				.V()
 				.hasLabel(
 					RecordDeclaration.class.getSimpleName(),
 					OverflowDatabase.getSubclasses(RecordDeclaration.class))
-				.has("name", recordname);
-	}
-
-	/**
-	 * Returns all RecordDeclarations (e.g., Java classes).
-	 *
-	 * @return
-	 */
-	@ShellCommand("Functions")
-	public GraphTraversal<Vertex, Vertex> functiondeclarations() {
-
-		// NOTE We can query for multiple labels like this:
-		// graph.traversal().V().where(hasLabel("VariableDeclaration").or().hasLabel("DeclaredReferenceExpression")).label().toList()
-		//
-		// or, much simpler:
-		//
-		// graph.traversal().V().hasLabel("VariableDeclaration", "DeclaredReferenceExpression").toList()
-
-		return this.clone()
-				.V()
-				.hasLabel(
-					FunctionDeclaration.class.getSimpleName(),
-					OverflowDatabase.getSubclasses(FunctionDeclaration.class));
+				.has("name", TextP.containing(substring));
 	}
 
 	/**
@@ -224,26 +279,60 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
-	@ShellCommand("Functions matching the given name")
-	public GraphTraversal<Vertex, Vertex> functiondeclaration(String functionname) {
+	@ShellCommand("All functions/methods")
+	public GraphTraversal<Vertex, Vertex> functions() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(
 			FunctionDeclaration.class.getSimpleName(),
-			OverflowDatabase.getSubclasses(FunctionDeclaration.class)).has("name", functionname);
+			OverflowDatabase.getSubclasses(FunctionDeclaration.class));
 	}
 
 	/**
-	 * Returns all Declarations (e.g., variables).
+	 * Returns the FunctionDeclarations with a given name.
 	 *
 	 * @return
 	 */
-	@ShellCommand("All declarations (field, variables, records, ...)")
-	public GraphTraversal<Vertex, Vertex> declarations() {
+	@ShellCommand("Functions/methods containing the given name")
+	public GraphTraversal<Vertex, Vertex> functions(String functionname) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(
-			Declaration.class.getSimpleName(), OverflowDatabase.getSubclasses(Declaration.class));
+			FunctionDeclaration.class.getSimpleName(),
+			OverflowDatabase.getSubclasses(FunctionDeclaration.class)).has("name", TextP.containing(functionname));
+	}
+
+	/**
+	 * Returns immediate childs of ValueDeclaration.
+	 *
+	 * @return
+	 */
+	@ShellCommand("All declarations of values (parameters, variables, fields, enums constants)")
+	public GraphTraversal<Vertex, Vertex> valdecl() {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.hasLabel(
+			ParameterDeclaration.class.getSimpleName(),
+			VariableDeclaration.class.getSimpleName(),
+			FieldDeclaration.class.getSimpleName(),
+			EnumConstantDeclaration.class.getSimpleName());
+	}
+
+	/**
+	 * Returns all Declarations (e.g., variables) containing the given substring.
+	 *
+	 * @return
+	 */
+	@ShellCommand("All declarations of values (parameters, variables, fields, enums constants) containing the given name")
+	public GraphTraversal<Vertex, Vertex> valdecl(String substring) {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.hasLabel(
+			ParameterDeclaration.class.getSimpleName(),
+			VariableDeclaration.class.getSimpleName(),
+			FieldDeclaration.class.getSimpleName(),
+			EnumConstantDeclaration.class.getSimpleName())
+				.has("name", TextP.containing(substring));
 	}
 
 	/**
@@ -251,7 +340,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
-	@ShellCommand("Variable declarations")
+	@ShellCommand("Variable declarations. Use valdecl() instead to include parameters, fields, and enums")
 	public GraphTraversal<Vertex, Vertex> vars() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -272,7 +361,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 			FieldDeclaration.class.getSimpleName(), OverflowDatabase.getSubclasses(FieldDeclaration.class));
 	}
 
-	public GraphTraversal<Vertex, Vertex> field(String fieldName) {
+	public GraphTraversal<Vertex, Vertex> fields(String fieldName) {
 		return this.clone()
 				.V()
 				.hasLabel(
@@ -298,8 +387,8 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
-	@ShellCommand("Next node in evaluation order (from node by given id)")
-	public GraphTraversal<Vertex, Vertex> nextEOGFromID(long id) {
+	@ShellCommand("Next call statement following node by ID")
+	public GraphTraversal<Vertex, Vertex> nextCallByID(long id) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.has(T.id, id)
@@ -315,27 +404,66 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	}
 
 	/**
-	 * Returns nodes connected via outgoing DFG edges.
+	 * Returns the next nodes connected via EOG
 	 *
 	 * @return
 	 */
-	@ShellCommand("Data flow into a node")
-	public GraphTraversal<Vertex, Vertex> flowTo() {
+	@ShellCommand("Next call statement following node by ID")
+	public GraphTraversal<Vertex, Vertex> prevCallByID(long id) {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-		return traversal.out(EOG).inV();
+		return traversal.has(T.id, id)
+				.repeat(in(EOG))
+				.until(
+					hasLabel(
+						MemberCallExpression.class.getSimpleName(),
+						OverflowDatabase.getSubclasses(MemberCallExpression.class)))
+				.emit(
+					hasLabel(
+						MemberCallExpression.class.getSimpleName(),
+						OverflowDatabase.getSubclasses(MemberCallExpression.class)));
 	}
 
 	/**
-	 * Returns nodes connected via incoming DFG edges.
+	 * Returns the FunctionDeclarations with a given name.
 	 *
 	 * @return
 	 */
-	@ShellCommand("Data flow from a node")
-	public GraphTraversal<Vertex, Vertex> flowFrom() {
+	@ShellCommand("All return statements")
+	public GraphTraversal<Vertex, Vertex> returns() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
-		return traversal.in(EOG).outV();
+		return traversal.hasLabel(
+			FunctionDeclaration.class.getSimpleName(),
+			OverflowDatabase.getSubclasses(ReturnStatement.class));
+	}
+
+	/**
+	 * Returns all TypedefDeclarations.
+	 *
+	 * @return
+	 */
+	@ShellCommand("All typedefs")
+	public GraphTraversal<Vertex, Vertex> typedefs() {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.hasLabel(
+			FunctionDeclaration.class.getSimpleName(),
+			OverflowDatabase.getSubclasses(TypedefDeclaration.class));
+	}
+
+	/**
+	 * Returns all TypedefDeclarations containing the given name.
+	 *
+	 * @return
+	 */
+	@ShellCommand("All typedefs containing the given name")
+	public GraphTraversal<Vertex, Vertex> typedefs(String substring) {
+		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
+
+		return traversal.hasLabel(
+			FunctionDeclaration.class.getSimpleName(),
+			OverflowDatabase.getSubclasses(TypedefDeclaration.class)).has("name", TextP.containing(substring));
 	}
 
 }

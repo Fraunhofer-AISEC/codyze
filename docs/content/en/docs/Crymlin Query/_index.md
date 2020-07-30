@@ -20,18 +20,10 @@ A graph traversal is an iterator over elements of the graph (nodes, edges, label
 
 In this example, `methods()` is a *traversal source* that starts iterating the graph at all nodes representing a method. `name()` is a *traversal step* that retrieves the `name` property of these nodes and `toList()` is a *terminator* that collects all names in a list. Every graph traversal needs a terminator to produce meaningful output. Until the console encounters a terminator, it will treat the graph traversal as an iterator that can be modified by further traversal steps.
 
-### Query terminators
-
-The most used terminators are:
-
-| Terminator | Description |
-|---|---|
-|  `.next()`  | Returns the first element that matches the query or `NoSuchElementException` if the query result is empty. |
-|  `.tryNext()`  | Returns the first element that matches the query or an empty `Optional` if the query result is empty. |
-|  `.toList()`  | Collects all query results in a list and returns it. Not that for queries returning very large result sets, this terminator will consume more memory and CPU time. |
-|  `.toSet()`  | Collects all query results in a set (removing duplicates) and returns it. Note that for queries returning very large result sets, this terminator will consume more memory and CPU time. |
-|  `.count()`  | Returns the number of elements matches by the query. |
-
+So, the general structure of a Crymlin query is
+```
+ q.<traversal source>.<traversal steps>. ... .<terminator>
+```
 
 ### Traversal Sources
 
@@ -74,7 +66,7 @@ Every query must begin with a traversal *source* which retrieves an initial iter
 
 ### Traversal Steps
 
-Traversal sources and steps are the main operators of Crymlin queries. They determine which nodes and properties are retrieved from the graph. The Crymlin query language accepts all traversal steps supported by Apache Gremlin, plus the following steps which are specific to the exploration of the code property graph.
+Traversal sources and steps are the main operators of Crymlin queries. They determine which nodes and properties are retrieved from the graph. The Crymlin query language accepts all traversal steps supported by Apache Gremlin, plus the following steps which are specific to the exploration of the code property graph. Please refer to the [Apache Gremlin Specification](https://tinkerpop.apache.org/gremlin.html) for further supported traversal steps.
 
 | Traversal Step &nbsp; &nbsp;| Description |
 |-----------------------|---|
@@ -92,3 +84,16 @@ Traversal sources and steps are the main operators of Crymlin queries. They dete
 | `prevEog()`                         |	Previous node(s) in Evaluation Order Graph |
 | `thenStmt()`                        |	'then' block (of an IfStatement) |
 | `type()`                            |	Type of the node(s) |
+
+### Query terminators
+
+The most used terminators are:
+
+| Terminator | Description |
+|---|---|
+|  `.next()`  | Returns the first element that matches the query or `NoSuchElementException` if the query result is empty. |
+|  `.tryNext()`  | Returns the first element that matches the query or an empty `Optional` if the query result is empty. |
+|  `.toList()`  | Collects all query results in a list and returns it. Not that for queries returning very large result sets, this terminator will consume more memory and CPU time. |
+|  `.toSet()`  | Collects all query results in a set (removing duplicates) and returns it. Note that for queries returning very large result sets, this terminator will consume more memory and CPU time. |
+|  `.count()`  | Returns the number of elements matches by the query. |
+

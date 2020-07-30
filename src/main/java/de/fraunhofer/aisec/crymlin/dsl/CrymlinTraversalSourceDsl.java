@@ -51,7 +51,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return traversal of matched {@code CallExpression} vertices
 	 */
-	@ShellCommand("All function/method calls)")
+	@ShellCommand("All function/method calls")
 	public GraphTraversal<Vertex, Vertex> calls() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -340,7 +340,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 	 *
 	 * @return
 	 */
-	@ShellCommand("Variable declarations. Use")
+	@ShellCommand("Variable declarations. Use valdecl() instead to include parameters, fields, and enums")
 	public GraphTraversal<Vertex, Vertex> vars() {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
@@ -422,30 +422,6 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 					hasLabel(
 						MemberCallExpression.class.getSimpleName(),
 						OverflowDatabase.getSubclasses(MemberCallExpression.class)));
-	}
-
-	/**
-	 * Returns nodes connected via outgoing DFG edges.
-	 *
-	 * @return
-	 */
-	@ShellCommand("Data flow into a node")
-	public GraphTraversal<Vertex, Vertex> flowTo() {
-		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
-
-		return traversal.out(DFG).inV();
-	}
-
-	/**
-	 * Returns nodes connected via incoming DFG edges.
-	 *
-	 * @return
-	 */
-	@ShellCommand("Data flow from a node")
-	public GraphTraversal<Vertex, Vertex> flowFrom() {
-		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
-
-		return traversal.in(DFG).outV();
 	}
 
 	/**

@@ -14,8 +14,10 @@ description: >
 When running in command line interface (CLI) mode, Codyze can be used to automatically check a code base against a set of MARK rules. Run `codyze` to see the supported command line flags:
 
 ```r
-Usage: codyze (-c | -l | -t) [[--typestate=<NFA|WPDS>]] [-hV] [--no-good-findings] [-m=<path>]
-              [-o=<file>] [-s=<path>] [--timeout=<minutes>]
+Usage: codyze (-c | -l | -t) [[--typestate=<NFA|WPDS>]] [[--analyze-includes]
+              [--includes=<includesPath>[:|;<includesPath>...]] [--includes=<includesPath>[:|;
+              <includesPath>...]]...] [-hV] [--no-good-findings] [-m=<path>] [-o=<file>]
+              [-s=<path>] [--timeout=<minutes>]
 Codyze finds security flaws in source code
   -s, --source=<path>       Source file or folder to analyze.
   -m, --mark=<path>         Load MARK policy files from folder
@@ -35,6 +37,13 @@ Analysis settings
                             Typestate analysis mode
                             NFA:  Non-deterministic finite automaton (faster, intraprocedural)
                             WPDS: Weighted pushdown system (slower, interprocedural)
+Translation settings
+      --analyze-includes    Enables parsing of include files. By default, if --includes are given,
+                              the parser will resolve symbols/templates from these include, but not
+                              load their parse tree.
+      --includes=<includesPath>[:|;<includesPath>...]
+                            Path(s) containing include files. Path must be separated by :
+                              (Mac/Linux) or ; (Windows)
 ```
 
 `-c` enters command line mode. It will parse all files given by the `-s` argument, analyze them against the MARK policies given by `-m`, and write the findings in JSON format to the file given by `-o`. If `--` is given as the output name, the results will be dumped to stdout.

@@ -1,6 +1,46 @@
 
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.eclipse.lsp4j.CodeAction;
+import org.eclipse.lsp4j.CodeActionKind;
+import org.eclipse.lsp4j.CodeActionParams;
+import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.eclipse.lsp4j.DidChangeTextDocumentParams;
+import org.eclipse.lsp4j.DidCloseTextDocumentParams;
+import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextDocumentEdit;
+import org.eclipse.lsp4j.TextDocumentItem;
+import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
+import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.services.TextDocumentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -11,25 +51,6 @@ import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.eclipse.lsp4j.services.TextDocumentService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static de.fraunhofer.aisec.crymlin.dsl.__.filter;
 
 /**
  * Implementation of a {@link TextDocumentService}, which handles certain notifications from a Language Client, such as opening or changing files.
@@ -158,6 +179,7 @@ public class CpgDocumentService implements TextDocumentService {
 		for (Finding f : findings) {
 			for (Region reg : f.getRegions()) {
 				Diagnostic diagnostic = new Diagnostic();
+				// TODO Replace HINT for verified findings with Code Lens
 				diagnostic.setSeverity(f.isProblem() ? DiagnosticSeverity.Error : DiagnosticSeverity.Hint);
 
 				// Get human readable description, if available
@@ -166,7 +188,8 @@ public class CpgDocumentService implements TextDocumentService {
 					msg = f.getLogMsg();
 				}
 
-				diagnostic.setCode(f.getOnfailIdentifier());
+				diagnostic.setCode(Either.forLeft(f.getOnfailIdentifier()));
+				diagnostic.setSource("Codyze");
 				diagnostic.setMessage(msg);
 				Range r = new Range(new Position(reg.getStartLine(), reg.getStartColumn()), new Position(reg.getEndLine(), reg.getEndColumn()));
 				diagnostic.setRange(r);
@@ -205,7 +228,64 @@ public class CpgDocumentService implements TextDocumentService {
 		analyze(params.getTextDocument().getUri(), params.getText());
 	}
 
+	@Override
+	public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
+		return CompletableFuture.supplyAsync(
+			() -> {
+				List<Either<Command, CodeAction>> list = new ArrayList<>();
+				for (Diagnostic diag : params.getContext().getDiagnostics()) {
+					if (!diag.getSource().equals("Codyze") || diag.getSeverity().equals(DiagnosticSeverity.Hint)) {
+						// Skip non-Codyze and "verified" findings
+						continue;
+					}
+
+					CodeAction comWf = new CodeAction();
+					comWf.setKind(CodeActionKind.QuickFix);
+					comWf.setDiagnostics(List.of(diag));
+					
+					TextDocumentItem textDocItem = new TextDocumentItem();
+					textDocItem.setUri(params.getTextDocument().getUri());
+					textDocItem.setVersion(1);
+					VersionedTextDocumentIdentifier textDoc = new VersionedTextDocumentIdentifier(
+						textDocItem.getUri(), textDocItem.getVersion());
+					TextDocumentEdit textDocChange = new TextDocumentEdit();
+					textDocChange.setTextDocument(textDoc);
+
+					Position pos = new Position(params.getRange().getStart().getLine() + 1, -1);
+					if (diag.getCode() != null && diag.getCode().isLeft()) {
+						comWf.setTitle("Resolve as ignored");
+						comWf.setEdit(
+								new WorkspaceEdit(
+									List.of(Either.forLeft(new TextDocumentEdit(
+										textDoc,
+										List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_PREFIX + diag.getCode().getLeft())))))));
+					} else {
+						comWf.setTitle("Resolve all as ignored");
+						comWf.setEdit(
+								new WorkspaceEdit(
+									List.of(Either.forLeft(new TextDocumentEdit(
+										textDoc,
+										List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_ALL)))))));
+					}
+					list.add(Either.forRight(comWf));
+
+					CodeAction comFp = new CodeAction("Resolve as false positive");
+					comFp.setKind(CodeActionKind.QuickFix);
+					comFp.setDiagnostics(List.of(diag));
+					comFp.setEdit(
+						new WorkspaceEdit(
+							List.of(Either.forLeft(new TextDocumentEdit(
+								textDoc,
+								List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_PREFIX + diag.getCode().getLeft() + " (false positive)")))))));
+					list.add(Either.forRight(comFp));
+
+				}
+				return list;
+			});
+	}
+
 	void setClient(LanguageClient client) {
 		this.client = client;
 	}
+
 }

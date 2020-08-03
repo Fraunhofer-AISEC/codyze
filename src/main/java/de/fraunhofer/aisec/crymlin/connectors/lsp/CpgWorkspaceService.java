@@ -28,11 +28,6 @@ public class CpgWorkspaceService implements WorkspaceService {
 	public CompletableFuture<Object> executeCommand(ExecuteCommandParams params) {
 		return CompletableFuture.supplyAsync(
 			() -> {
-				System.out.println("Command " + params);
-				System.out.println("   cmd: " + params.getCommand());
-				for (Object arg : params.getArguments()) {
-					System.out.println("  " + arg);
-				}
 				MessageParams mp = new MessageParams();
 				mp.setMessage("Received command " + params.getCommand());
 				client.showMessage(mp);

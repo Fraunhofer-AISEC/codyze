@@ -139,6 +139,7 @@ public class CpgDocumentService implements TextDocumentService {
 		}
 		catch (InterruptedException e) {
 			log.error("Analysis error: ", e);
+			analyze.cancel(true);
 			Thread.currentThread().interrupt();
 		}
 		catch (ExecutionException | TimeoutException e) {
@@ -242,7 +243,7 @@ public class CpgDocumentService implements TextDocumentService {
 					CodeAction comWf = new CodeAction();
 					comWf.setKind(CodeActionKind.QuickFix);
 					comWf.setDiagnostics(List.of(diag));
-					
+
 					TextDocumentItem textDocItem = new TextDocumentItem();
 					textDocItem.setUri(params.getTextDocument().getUri());
 					textDocItem.setVersion(1);
@@ -255,17 +256,17 @@ public class CpgDocumentService implements TextDocumentService {
 					if (diag.getCode() != null && diag.getCode().isLeft()) {
 						comWf.setTitle("Resolve as ignored");
 						comWf.setEdit(
-								new WorkspaceEdit(
-									List.of(Either.forLeft(new TextDocumentEdit(
-										textDoc,
-										List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_PREFIX + diag.getCode().getLeft())))))));
+							new WorkspaceEdit(
+								List.of(Either.forLeft(new TextDocumentEdit(
+									textDoc,
+									List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_PREFIX + diag.getCode().getLeft())))))));
 					} else {
 						comWf.setTitle("Resolve all as ignored");
 						comWf.setEdit(
-								new WorkspaceEdit(
-									List.of(Either.forLeft(new TextDocumentEdit(
-										textDoc,
-										List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_ALL)))))));
+							new WorkspaceEdit(
+								List.of(Either.forLeft(new TextDocumentEdit(
+									textDoc,
+									List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_ALL)))))));
 					}
 					list.add(Either.forRight(comWf));
 

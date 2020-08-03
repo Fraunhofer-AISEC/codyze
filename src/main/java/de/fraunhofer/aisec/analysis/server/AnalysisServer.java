@@ -245,14 +245,7 @@ public class AnalysisServer {
 		 */
 		if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
 			File markModelLocation = new File(config.markModelFiles);
-			if (!markModelLocation.exists() || !markModelLocation.canRead()) {
-				log.warn("Cannot read MARK model from {} (does exist: {}) - (can read: {})",
-					markModelLocation.getAbsolutePath(),
-					markModelLocation.exists(),
-					markModelLocation.canRead());
-			} else {
-				loadMarkRules(markModelLocation);
-			}
+			loadMarkRules(markModelLocation);
 		}
 	}
 

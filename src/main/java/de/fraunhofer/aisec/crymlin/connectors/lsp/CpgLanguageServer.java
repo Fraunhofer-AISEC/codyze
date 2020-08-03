@@ -40,18 +40,12 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 	public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
 		start = Instant.now();
 
-		ClientCapabilities clientCaps = params.getCapabilities();
-		List<String> hoverFormats = clientCaps.getTextDocument().getHover().getContentFormat();
-		for (String hoverFormat : hoverFormats) {
-			log.info("Hover format: " + hoverFormat);
-		}
 		InitializeResult result = new InitializeResult();
 
 		ServerCapabilities capabilities = new ServerCapabilities();
 		capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
 		List<String> commands = Arrays
-				.asList(new String[] { "textDocument/documentHighlight", "textDocument/documentSymbol", "textDocument/hover", "textDocument/codeAction", "resolve/wf",
-						"resolve/fp" });
+				.asList(new String[] { "textDocument/documentHighlight", "textDocument/documentSymbol", "textDocument/codeAction" });
 		ExecuteCommandOptions exep = new ExecuteCommandOptions(commands);
 		capabilities.setExecuteCommandProvider(exep);
 		capabilities.setHoverProvider(false);

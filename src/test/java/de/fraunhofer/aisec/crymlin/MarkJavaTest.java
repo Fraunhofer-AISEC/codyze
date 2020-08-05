@@ -19,7 +19,7 @@ public class MarkJavaTest extends AbstractMarkTest {
 	public void clearDatabase() {
 		// Make sure we start with a clean (and connected) db
 		try {
-			OverflowDatabase.getInstance().purgeDatabase();
+			OverflowDatabase.getInstance().clearDatabase();
 		}
 		catch (Throwable e) {
 			e.printStackTrace();

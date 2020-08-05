@@ -21,7 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +52,7 @@ class GraphTest {
 		try {
 			Database db = OverflowDatabase.getInstance();
 			db.connect();
-			db.purgeDatabase();
+			db.clearDatabase();
 		}
 		catch (Throwable e) {
 			e.printStackTrace();

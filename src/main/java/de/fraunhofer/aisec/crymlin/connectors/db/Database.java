@@ -14,7 +14,7 @@ public interface Database<N> {
 
 	public void saveAll(Collection<? extends N> list);
 
-	public void purgeDatabase();
+	public void clearDatabase();
 
 	public void close();
 

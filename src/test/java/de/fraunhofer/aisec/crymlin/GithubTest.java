@@ -144,7 +144,7 @@ class GithubTest {
 
 		// Make sure we start with a clean (and connected) db
 		// if this does not work, just throw
-		OverflowDatabase.getInstance().purgeDatabase();
+		OverflowDatabase.getInstance().clearDatabase();
 
 		TranslationManager tm = TranslationManager.builder()
 				.config(
@@ -221,7 +221,7 @@ class GithubTest {
 
 	@Test
 	void specificTest() throws Exception {
-		OverflowDatabase.getInstance().purgeDatabase();
+		OverflowDatabase.getInstance().clearDatabase();
 
 		//		performTest("p059.java");
 

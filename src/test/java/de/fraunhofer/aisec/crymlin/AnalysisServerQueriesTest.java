@@ -35,7 +35,7 @@ public class AnalysisServerQueriesTest {
 		try {
 			Database db = OverflowDatabase.getInstance();
 			db.connect();
-			db.purgeDatabase();
+			db.clearDatabase();
 		}
 		catch (Throwable e) {
 			e.printStackTrace();

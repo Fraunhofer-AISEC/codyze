@@ -164,7 +164,7 @@ public class Neo4jDatabase<N> implements Database<N> {
 		}
 	}
 
-	public void purgeDatabase() {
+	public void clearDatabase() {
 		if (isConnected()) {
 			session.purgeDatabase();
 			session.clear();

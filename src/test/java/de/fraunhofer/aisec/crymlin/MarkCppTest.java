@@ -21,7 +21,7 @@ public class MarkCppTest extends AbstractMarkTest {
 		try {
 			Database db = OverflowDatabase.getInstance();
 			db.connect();
-			db.purgeDatabase();
+			db.clearDatabase();
 		}
 		catch (Throwable e) {
 			e.printStackTrace();

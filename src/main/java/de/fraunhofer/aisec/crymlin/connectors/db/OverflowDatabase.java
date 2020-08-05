@@ -778,7 +778,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	}
 
 	@Override
-	public void purgeDatabase() {
+	public void clearDatabase() {
 		// The way to fully delete an OverflowDB is to simply close the graph. A new instance will be
 		// created at next call to getInstance()
 		close();
@@ -817,7 +817,10 @@ public class OverflowDatabase<N> implements Database<N> {
 				log.error("Failed to delete", e);
 			}
 		}
+	}
 
+	public void destroy() {
+		close();
 		INSTANCE = null;
 	}
 

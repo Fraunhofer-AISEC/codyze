@@ -98,7 +98,7 @@ public class CpgDocumentService implements TextDocumentService {
 		Benchmark bm = new Benchmark(CpgDocumentService.class, "Analysis finished");
 
 		OverflowDatabase.getInstance().connect();
-		OverflowDatabase.getInstance().purgeDatabase();
+		OverflowDatabase.getInstance().clearDatabase();
 
 		File file = new File(URI.create(uriString));
 		AnalysisServer instance = AnalysisServer.getInstance();

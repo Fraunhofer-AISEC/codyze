@@ -439,7 +439,7 @@ public class AnalysisServer {
 		Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
 		// Persist the result
 		Neo4jDatabase.getInstance().connect(); // this does not connect again if we are already connected
-		Neo4jDatabase.getInstance().purgeDatabase();
+		Neo4jDatabase.getInstance().clearDatabase();
 		Neo4jDatabase<Node> db = Neo4jDatabase.getInstance();
 		db.saveAll(result.getTranslationUnits());
 		long duration = b.stop();
@@ -462,7 +462,7 @@ public class AnalysisServer {
 	private TranslationResult persistToODB(TranslationResult result) {
 		Benchmark bench = new Benchmark(this.getClass(), " Serializing into OverflowDB");
 		// Persist the result
-		OverflowDatabase.getInstance().purgeDatabase();
+		OverflowDatabase.getInstance().clearDatabase();
 		OverflowDatabase<Node> db = OverflowDatabase.getInstance();
 		db.saveAll(result.getTranslationUnits());
 		long duration = bench.stop();
@@ -565,15 +565,15 @@ public class AnalysisServer {
 		}
 
 		OverflowDatabase.getInstance().connect(); // simply returns if already connected
-		OverflowDatabase.getInstance().purgeDatabase();
+		OverflowDatabase.getInstance().clearDatabase();
 
 		TranslationConfiguration.Builder tConfig = TranslationConfiguration.builder()
-																		   .debugParser(true)
-																		   .failOnError(false)
-																		   .codeInNodes(true)
-																		   .loadIncludes(config.analyzeIncludes)
-																		   .defaultPasses()
-																		   .sourceLocations(files.toArray(new File[0]));
+				.debugParser(true)
+				.failOnError(false)
+				.codeInNodes(true)
+				.loadIncludes(config.analyzeIncludes)
+				.defaultPasses()
+				.sourceLocations(files.toArray(new File[0]));
 		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
 		for (File includePath : config.includePath) {
 			tConfig.includePath(includePath.getAbsolutePath());

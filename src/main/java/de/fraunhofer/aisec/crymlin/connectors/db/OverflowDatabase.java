@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.crymlin.connectors.db;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Sets;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.cpg.graph.EdgeProperty;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
@@ -866,6 +867,8 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * @return a Pair of edge factories and a pre-computed map of classes/IN-Fields.
 	 */
 	private Pair<List<EdgeFactory<OdbEdge>>, Map<Class, Set<MutableEdgeLayout>>> createEdgeFactories(@NonNull Set<Class<? extends Node>> allClasses) {
+		System.out.println("Creating edge factories");
+		final HashMap<Class, Set<Class>> subclassCache = new HashMap<>();
 		Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts = new HashMap<>();
 		List<EdgeFactory<OdbEdge>> edgeFactories = new ArrayList<>();
 		for (Class c : allClasses) {
@@ -901,7 +904,12 @@ public class OverflowDatabase<N> implements Database<N> {
 							inEdgeLayouts.get(subclass).add(newLayout);
 						}
 
-						classesWithIncomingEdge.addAll(reflections.getSubTypesOf(subclass));
+						Set<Class> targets = subclassCache.get(subclass);
+						if (targets == null) {
+							targets = reflections.getSubTypesOf(subclass);
+							subclassCache.put(subclass, targets);
+						}
+						classesWithIncomingEdge.addAll(targets);
 					}
 				}
 

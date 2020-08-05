@@ -64,7 +64,7 @@ public abstract class Handler {
     // Make sure we start with a clean (and connected) db
     Database<?> db = OverflowDatabase.getInstance();
     db.connect();
-    db.purgeDatabase();
+    db.clearDatabase();
 
     // Start an analysis server
     AnalysisServer server = AnalysisServer.builder()

@@ -194,8 +194,13 @@ public class OverflowDatabase<N> implements Database<N> {
 	}
 
 	public static <N> OverflowDatabase<N> getInstance() {
+		// Intentional double checking for performance+thread safety
 		if (INSTANCE == null || INSTANCE.graph.isClosed()) {
-			INSTANCE = new OverflowDatabase();
+			synchronized (OverflowDatabase.class) {
+				if (INSTANCE == null || INSTANCE.graph.isClosed()) {
+					INSTANCE = new OverflowDatabase();
+				}
+			}
 		}
 		return INSTANCE;
 	}

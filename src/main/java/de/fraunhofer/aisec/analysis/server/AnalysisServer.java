@@ -245,14 +245,7 @@ public class AnalysisServer {
 		 */
 		if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
 			File markModelLocation = new File(config.markModelFiles);
-			if (!markModelLocation.exists() || !markModelLocation.canRead()) {
-				log.warn("Cannot read MARK model from {} (does exist: {}) - (can read: {})",
-					markModelLocation.getAbsolutePath(),
-					markModelLocation.exists(),
-					markModelLocation.canRead());
-			} else {
-				loadMarkRules(markModelLocation);
-			}
+			loadMarkRules(markModelLocation);
 		}
 	}
 
@@ -325,7 +318,7 @@ public class AnalysisServer {
 	public void loadMarkRules(@NonNull File markFile) {
 		File markDescriptionFile = null;
 
-		log.info("Parsing MARK files");
+		log.info("Parsing MARK files in {}", markFile.getAbsolutePath());
 		Instant start = Instant.now();
 
 		XtextParser parser = new XtextParser();
@@ -360,10 +353,11 @@ public class AnalysisServer {
 					}
 				}
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 				log.error("Failed to load MARK file", e);
 			}
 		} else {
+			log.info("Loading MARK from file {}", markFile.getAbsolutePath());
 			parser.addMarkFile(markFile);
 			markDescriptionFile = new File(markFile.getParent() + File.separator + FINDING_DESCRIPTION_FILE);
 		}

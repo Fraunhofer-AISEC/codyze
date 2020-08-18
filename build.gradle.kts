@@ -74,7 +74,7 @@ configurations.all {
 }
 
 dependencies {
-    api("org.json:json:20190722")
+    api("org.json:json:20200518")
 
     api("org.apache.logging.log4j:log4j-slf4j18-impl:2.13.3")
     api("org.apache.logging.log4j:log4j-core:2.13.3")

@@ -1,46 +1,6 @@
 
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.eclipse.lsp4j.CodeAction;
-import org.eclipse.lsp4j.CodeActionKind;
-import org.eclipse.lsp4j.CodeActionParams;
-import org.eclipse.lsp4j.Command;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.eclipse.lsp4j.DidChangeTextDocumentParams;
-import org.eclipse.lsp4j.DidCloseTextDocumentParams;
-import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.DidSaveTextDocumentParams;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.TextDocumentEdit;
-import org.eclipse.lsp4j.TextDocumentItem;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
-import org.eclipse.lsp4j.WorkspaceEdit;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.eclipse.lsp4j.services.TextDocumentService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -51,9 +11,28 @@ import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.services.TextDocumentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
- * Implementation of a {@link TextDocumentService}, which handles certain notifications from a Language Client, such as opening or changing files.
+ * Implementation of a {@link TextDocumentService}, which handles certain notifications from a
+ * Language Client, such as opening or changing files.
  */
 public class CpgDocumentService implements TextDocumentService {
 
@@ -75,8 +54,7 @@ public class CpgDocumentService implements TextDocumentService {
 		String[] split = text.split("\n");
 		diagnostic.setRange(
 			new Range(
-				new Position(0, 0),
-				new Position(split.length - 1, split[split.length - 1].length())));
+				new Position(0, 0), new Position(split.length - 1, split[split.length - 1].length())));
 		allDiags.add(diagnostic);
 		PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
 		diagnostics.setDiagnostics(allDiags);
@@ -85,15 +63,23 @@ public class CpgDocumentService implements TextDocumentService {
 	}
 
 	private void analyze(String uriString, String text) {
-		String sanitizedText = text.replaceAll("[\\n ]", "");
-		if (lastScan.get(uriString) != null
-				&& lastScan.get(uriString).getValue0().equals(sanitizedText)) {
-			log.info("Same file already scanned, ignoring");
-			client.publishDiagnostics(lastScan.get(uriString).getValue1());
-			return;
+		log.debug("Starting analysis of file {}", uriString);
+
+		String sanitizedText = null;
+
+		if (text != null) {
+			sanitizedText = text.replaceAll("[\\n ]", "");
+			if (lastScan.get(uriString) != null
+					&& lastScan.get(uriString).getValue0().equals(sanitizedText)) {
+				log.info("Same file already scanned, ignoring");
+				client.publishDiagnostics(lastScan.get(uriString).getValue1());
+				return;
+			}
 		}
 
-		markWholeFile(text, uriString);
+		log.debug("Really starting analysis of file {}", uriString);
+
+		// markWholeFile(text, uriString);
 
 		Benchmark bm = new Benchmark(CpgDocumentService.class, "Analysis finished");
 
@@ -108,7 +94,13 @@ public class CpgDocumentService implements TextDocumentService {
 		}
 		TranslationManager tm = TranslationManager.builder()
 				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).codeInNodes(true).defaultPasses().sourceLocations(file).build())
+					TranslationConfiguration.builder()
+							.debugParser(false)
+							.failOnError(false)
+							.codeInNodes(true)
+							.defaultPasses()
+							.sourceLocations(file)
+							.build())
 				.build();
 
 		CompletableFuture<AnalysisContext> analyze = instance.analyze(tm);
@@ -116,10 +108,7 @@ public class CpgDocumentService implements TextDocumentService {
 		try {
 			AnalysisContext ctx = analyze.get(5, TimeUnit.MINUTES);
 
-			log.info(
-				"Analysis for {} done. Returning {} findings.",
-				uriString,
-				ctx.getFindings().size());
+			log.info("Analysis for {} done. Returning {} findings.", uriString, ctx.getFindings().size());
 			bm.stop();
 
 			// check if there are disabled findings
@@ -132,7 +121,9 @@ public class CpgDocumentService implements TextDocumentService {
 			diagnostics.setDiagnostics(allDiags);
 			diagnostics.setUri(uriString);
 
-			lastScan.put(uriString, new Pair<>(sanitizedText, diagnostics));
+			if (sanitizedText != null) {
+				lastScan.put(uriString, new Pair<>(sanitizedText, diagnostics));
+			}
 
 			// sending diagnostics
 			client.publishDiagnostics(diagnostics);
@@ -149,8 +140,8 @@ public class CpgDocumentService implements TextDocumentService {
 	}
 
 	/**
-	 * Returns a map of line number to actual line content for all source
-	 * code lines that contain a <code>DISABLE_FINDING</code> comment.
+	 * Returns a map of line number to actual line content for all source code lines that contain a
+	 * <code>DISABLE_FINDING</code> comment.
 	 *
 	 * @param file The file to read.
 	 * @return A non-null but possibly empty map. Keys indicate line numbers, starting at 0.
@@ -175,13 +166,14 @@ public class CpgDocumentService implements TextDocumentService {
 	}
 
 	@NonNull
-	private List<Diagnostic> findingsToDiagnostics(@NonNull Set<Finding> findings, @NonNull Map<Integer, String> ignoredLines) {
+	private List<Diagnostic> findingsToDiagnostics(
+			@NonNull Set<Finding> findings, @NonNull Map<Integer, String> ignoredLines) {
 		List<Diagnostic> allDiags = new ArrayList<>();
 		for (Finding f : findings) {
 			for (Region reg : f.getRegions()) {
 				Diagnostic diagnostic = new Diagnostic();
 				// TODO Replace HINT for verified findings with Code Lens
-				diagnostic.setSeverity(f.isProblem() ? DiagnosticSeverity.Error : DiagnosticSeverity.Hint);
+				diagnostic.setSeverity(f.isProblem() ? DiagnosticSeverity.Error : DiagnosticSeverity.Information);
 
 				// Get human readable description, if available
 				String msg = FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier());
@@ -189,14 +181,23 @@ public class CpgDocumentService implements TextDocumentService {
 					msg = f.getLogMsg();
 				}
 
+				String longDesc = FindingDescription.getInstance().getDescriptionFull(f.getOnfailIdentifier());
+				if (longDesc != null) {
+					msg += ": " + longDesc;
+				}
+
 				diagnostic.setCode(Either.forLeft(f.getOnfailIdentifier()));
 				diagnostic.setSource("Codyze");
 				diagnostic.setMessage(msg);
-				Range r = new Range(new Position(reg.getStartLine(), reg.getStartColumn()), new Position(reg.getEndLine(), reg.getEndColumn()));
+				Range r = new Range(
+					new Position(reg.getStartLine(), reg.getStartColumn()),
+					new Position(reg.getEndLine(), reg.getEndColumn()));
 				diagnostic.setRange(r);
 
 				String line = ignoredLines.get(r.getStart().getLine());
-				if (line == null || (!line.contains(DISABLE_FINDING_ALL) && !line.contains(DISABLE_FINDING_PREFIX + f.getOnfailIdentifier()))) {
+				if (line == null
+						|| (!line.contains(DISABLE_FINDING_ALL)
+								&& !line.contains(DISABLE_FINDING_PREFIX + f.getOnfailIdentifier()))) {
 					allDiags.add(diagnostic);
 				} else {
 					log.warn("Skipping finding {}, disabled via comment", f);
@@ -235,7 +236,8 @@ public class CpgDocumentService implements TextDocumentService {
 			() -> {
 				List<Either<Command, CodeAction>> list = new ArrayList<>();
 				for (Diagnostic diag : params.getContext().getDiagnostics()) {
-					if (!diag.getSource().equals("Codyze") || diag.getSeverity().equals(DiagnosticSeverity.Hint)) {
+					if (!diag.getSource().equals("Codyze")
+							|| diag.getSeverity().equals(DiagnosticSeverity.Hint)) {
 						// Skip non-Codyze and "verified" findings
 						continue;
 					}
@@ -247,8 +249,7 @@ public class CpgDocumentService implements TextDocumentService {
 					TextDocumentItem textDocItem = new TextDocumentItem();
 					textDocItem.setUri(params.getTextDocument().getUri());
 					textDocItem.setVersion(1);
-					VersionedTextDocumentIdentifier textDoc = new VersionedTextDocumentIdentifier(
-						textDocItem.getUri(), textDocItem.getVersion());
+					VersionedTextDocumentIdentifier textDoc = new VersionedTextDocumentIdentifier(textDocItem.getUri(), textDocItem.getVersion());
 					TextDocumentEdit textDocChange = new TextDocumentEdit();
 					textDocChange.setTextDocument(textDoc);
 
@@ -257,16 +258,27 @@ public class CpgDocumentService implements TextDocumentService {
 						comWf.setTitle("Resolve as ignored");
 						comWf.setEdit(
 							new WorkspaceEdit(
-								List.of(Either.forLeft(new TextDocumentEdit(
-									textDoc,
-									List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_PREFIX + diag.getCode().getLeft())))))));
+								List.of(
+									Either.forLeft(
+										new TextDocumentEdit(
+											textDoc,
+											List.of(
+												new TextEdit(
+													new Range(pos, pos),
+													"  // "
+															+ DISABLE_FINDING_PREFIX
+															+ diag.getCode().getLeft())))))));
 					} else {
 						comWf.setTitle("Resolve all as ignored");
 						comWf.setEdit(
 							new WorkspaceEdit(
-								List.of(Either.forLeft(new TextDocumentEdit(
-									textDoc,
-									List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_ALL)))))));
+								List.of(
+									Either.forLeft(
+										new TextDocumentEdit(
+											textDoc,
+											List.of(
+												new TextEdit(
+													new Range(pos, pos), "  // " + DISABLE_FINDING_ALL)))))));
 					}
 					list.add(Either.forRight(comWf));
 
@@ -275,11 +287,18 @@ public class CpgDocumentService implements TextDocumentService {
 					comFp.setDiagnostics(List.of(diag));
 					comFp.setEdit(
 						new WorkspaceEdit(
-							List.of(Either.forLeft(new TextDocumentEdit(
-								textDoc,
-								List.of(new TextEdit(new Range(pos, pos), "  // " + DISABLE_FINDING_PREFIX + diag.getCode().getLeft() + " (false positive)")))))));
+							List.of(
+								Either.forLeft(
+									new TextDocumentEdit(
+										textDoc,
+										List.of(
+											new TextEdit(
+												new Range(pos, pos),
+												"  // "
+														+ DISABLE_FINDING_PREFIX
+														+ diag.getCode().getLeft()
+														+ " (false positive)")))))));
 					list.add(Either.forRight(comFp));
-
 				}
 				return list;
 			});
@@ -288,5 +307,4 @@ public class CpgDocumentService implements TextDocumentService {
 	void setClient(LanguageClient client) {
 		this.client = client;
 	}
-
 }

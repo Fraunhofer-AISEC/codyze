@@ -53,7 +53,7 @@ public class InitialConfiguration {
 	 * @param wpds
 	 * @return
 	 */
-	@java.lang.SuppressWarnings({"squid:S100", "squid:S1905"})
+	@java.lang.SuppressWarnings({ "squid:S100", "squid:S1905" })
 	static final WeightedAutomaton<Stmt, Val, TypestateWeight> FIRST_TYPESTATE_EVENT(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
 		return ((IInitialConfig) myWpds -> {
 			// Get all WPDS rules have a type state transition originating in a START state.
@@ -89,7 +89,7 @@ public class InitialConfiguration {
 	 * @return
 	 */
 	@NonNull
-	@java.lang.SuppressWarnings({"squid:S100", "squid:S1905"})
+	@java.lang.SuppressWarnings({ "squid:S100", "squid:S1905" })
 	static final WeightedAutomaton<Stmt, Val, TypestateWeight> VAR_DECLARATIONS(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
 		return ((IInitialConfig) myWpds -> {
 			// Get START state from WPDS
@@ -116,55 +116,55 @@ public class InitialConfiguration {
 	private static WeightedAutomaton<Stmt, Val, TypestateWeight> createInitialWNFA(Set<Pair<Val, Stmt>> initialStates) {
 		// Create statement for start configuration and create start CONFIG
 		// TODO make initialState a set or remove completely
-			int line = Integer.MAX_VALUE;
-			Val initialState = null;
-			Stmt stmt = null;
-			for (Pair<Val, Stmt> s : initialStates) {
-				if (s.getValue1()
+		int line = Integer.MAX_VALUE;
+		Val initialState = null;
+		Stmt stmt = null;
+		for (Pair<Val, Stmt> s : initialStates) {
+			if (s.getValue1()
+					.getRegion()
+					.getStartLine() < line) {
+				line = s.getValue1()
 						.getRegion()
-						.getStartLine() < line) {
-					line = s.getValue1()
-							.getRegion()
-							.getStartLine();
-					initialState = s.getValue0();
+						.getStartLine();
+				initialState = s.getValue0();
 				stmt = s.getValue1();
 			}
 		}
 
 		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
 			@Override
-				public Val createState(Val val, Stmt stmt) {
-					return val;
-				}
+			public Val createState(Val val, Stmt stmt) {
+				return val;
+			}
 
-				@Override
-				public boolean isGeneratedState(Val val) {
-					return false;
-				}
+			@Override
+			public boolean isGeneratedState(Val val) {
+				return false;
+			}
 
-				@Override
-				public Stmt epsilon() {
-					return new Stmt(CpgWpds.EPSILON, new Region(-1, -1, -1, -1));
-				}
+			@Override
+			public Stmt epsilon() {
+				return new Stmt(CpgWpds.EPSILON, new Region(-1, -1, -1, -1));
+			}
 
-				@Override
-				public TypestateWeight getZero() {
-					return TypestateWeight.zero();
-				}
+			@Override
+			public TypestateWeight getZero() {
+				return TypestateWeight.zero();
+			}
 
-				@Override
-				public TypestateWeight getOne() {
-					return TypestateWeight.one();
-				}
-			};
-			final Val accepting = new Val(ACCEPT, ACCEPT);
-			// Create an automaton for the initial configuration from where post* will start.
-			dumpInitialConfigurations(initialStates);
+			@Override
+			public TypestateWeight getOne() {
+				return TypestateWeight.one();
+			}
+		};
+		final Val accepting = new Val(ACCEPT, ACCEPT);
+		// Create an automaton for the initial configuration from where post* will start.
+		dumpInitialConfigurations(initialStates);
 
-			wnfa.addTransition(new Transition<>(initialState, stmt, accepting),
-				new TypestateWeight(Set.of(new NFATransition<Node>(new Node(START, START), new Node(START, START), "constructor"))));
+		wnfa.addTransition(new Transition<>(initialState, stmt, accepting),
+			new TypestateWeight(Set.of(new NFATransition<Node>(new Node(START, START), new Node(START, START), "constructor"))));
 
-			// Add final ("accepting") states to NFA.
+		// Add final ("accepting") states to NFA.
 		wnfa.addFinalState(accepting);
 
 		return wnfa;

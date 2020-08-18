@@ -14,5 +14,15 @@
         }
       }
     ]
+  },
+  "InvalidGCMAuthtenticationNonceLength": {
+    "shortDescription": {
+      "text": "GCM nonce length should be at least 12 bytes"
+    }
+  },
+  "InsufficientGCMTagLength": {
+    "shortDescription": {
+      "text": "GCM tag length should be at least 12 bytes"
+    }
   }
 }

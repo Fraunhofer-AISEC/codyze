@@ -74,7 +74,7 @@ configurations.all {
 }
 
 dependencies {
-    api("org.json:json:20190722")
+    api("org.json:json:20200518")
 
     api("org.apache.logging.log4j:log4j-slf4j18-impl:2.13.3")
     api("org.apache.logging.log4j:log4j-core:2.13.3")
@@ -102,8 +102,8 @@ dependencies {
     api("com.jayway.jsonpath:json-path:2.4.0")
 
     // Command line interface support
-    api("info.picocli:picocli:4.1.4")
-    annotationProcessor("info.picocli:picocli-codegen:4.1.4")
+    api("info.picocli:picocli:4.5.0")
+    annotationProcessor("info.picocli:picocli-codegen:4.5.0")
 
     // Gremlin
     api("org.apache.tinkerpop:gremlin-core:3.4.3")

@@ -867,7 +867,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	 * @return a Pair of edge factories and a pre-computed map of classes/IN-Fields.
 	 */
 	private Pair<List<EdgeFactory<OdbEdge>>, Map<Class, Set<MutableEdgeLayout>>> createEdgeFactories(@NonNull Set<Class<? extends Node>> allClasses) {
-		System.out.println("Creating edge factories");
 		final HashMap<Class, Set<Class>> subclassCache = new HashMap<>();
 		Map<Class, Set<MutableEdgeLayout>> inEdgeLayouts = new HashMap<>();
 		List<EdgeFactory<OdbEdge>> edgeFactories = new ArrayList<>();

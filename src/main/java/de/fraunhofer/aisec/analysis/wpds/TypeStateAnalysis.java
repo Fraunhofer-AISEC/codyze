@@ -12,6 +12,7 @@ import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.cpg.graph.type.*;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
@@ -643,7 +644,7 @@ public class TypeStateAnalysis {
 		Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
 				.stream()
 				.filter(
-					tran -> belongsToOp(currentStmtNode.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
+					tran -> belongsToOp(currentStmtNode, tran.getTarget().getBase(), tran.getTarget().getOp()))
 				.collect(Collectors.toSet());
 		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
@@ -665,8 +666,8 @@ public class TypeStateAnalysis {
 	 * @param op
 	 * @return
 	 */
-	private boolean belongsToOp(@NonNull String call, @Nullable String markInstance, String op) {
-		if (markInstance == null || call.equals("")) {
+	private boolean belongsToOp(@NonNull Statement call, @Nullable String markInstance, String op) {
+		if (markInstance == null || call.getName().equals("")) {
 			return false;
 		}
 
@@ -677,15 +678,39 @@ public class TypeStateAnalysis {
 		}
 
 		// Note: this method is called a few times and repeats some work. Potential for caching/optimization.
+		if (call instanceof CallExpression) {
+			de.fraunhofer.aisec.cpg.graph.Node base = ((CallExpression) call).getBase();
 
-		for (MOp o : mEntity.getValue1().getOps()) {
-			if (!op.equals(o.getName())) {
-				continue;
+			// Check for type of base, if exists
+			Set<Type> types = new HashSet<>();
+			if (base != null && base instanceof Expression) {
+				types = ((Expression) base).getPossibleSubTypes();
 			}
-			for (OpStatement opStatement : o.getStatements()) {
-				if (opStatement.getCall().getName().endsWith(call)) {
-					// TODO should rather compare fully qualified names instead of "endsWith"
-					return true;
+
+			for (MOp o : mEntity.getValue1().getOps()) {
+				if (!op.equals(o.getName())) {
+					continue;
+				}
+				for (OpStatement opStatement : o.getStatements()) {
+					if (types.isEmpty()) {
+						/* Failure to resolve type or a function call (e.g. EVP_EncryptInit), rather than a method call.
+						   In case of function calls/non-OO languages, we ignore the type of the (non-existing) base
+						   and simply check if the call stmt matches the one in the "op" spec.
+						 */
+						if (opStatement.getCall().getName().endsWith(call.getName())) { // Diryt: endsWith() as call.getName() does not include scope.
+							return true;
+						}
+					} else {
+						for (Type type : types) {
+							if (type.getTypeName().startsWith(Utils.getScope(opStatement.getCall().getName()).replace("::", ".")) // Dirty: startsWith() to ignore modifiers (such as "*").
+									&& opStatement.getCall()
+											.getName()
+											.endsWith(call.getName())) {
+								// TODO should rather compare fully qualified names instead of "endsWith"
+								return true;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -853,7 +878,7 @@ public class TypeStateAnalysis {
 		Set<NFATransition<Node>> relevantNFATransitions = nfa.getTransitions()
 				.stream()
 				.filter(
-					tran -> belongsToOp(mce.getName(), tran.getTarget().getBase(), tran.getTarget().getOp()))
+					tran -> belongsToOp(mce, tran.getTarget().getBase(), tran.getTarget().getOp()))
 				.collect(Collectors.toSet());
 		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 

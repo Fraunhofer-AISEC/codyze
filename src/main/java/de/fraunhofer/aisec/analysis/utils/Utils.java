@@ -261,6 +261,23 @@ public class Utils {
 		return typeStr;
 	}
 
+	/**
+	 * Counterpart to toNonQualifiedName().
+	 *
+	 * @param fqn
+	 * @return
+	 */
+	@NonNull
+	public static String getScope(@NonNull String fqn) {
+		int posDot = fqn.lastIndexOf('.');
+		int posColon = fqn.indexOf(':');
+		int pos = Math.max(posDot, posColon);
+		if (pos > -1 && pos < fqn.length() - 1) {
+			fqn = fqn.substring(0, pos);
+		}
+		return fqn;
+	}
+
 	private static boolean isStringType(Type sourceType) {
 		while (sourceType instanceof PointerType) {
 			sourceType = ((PointerType) sourceType).getElementType();

@@ -127,7 +127,7 @@ rule ID_5_3_02_GMAC {
         || ( _is(m.key, kf.outkey) && _is(kf.keyspec, sks) ) )
     ensure
         // find a keygenerator of sufficient size
-        && kg.keysize >= 128
+        kg.keysize >= 128
         || (_has_value(sks.len) && sks.len >= 128)
         || (!(_has_value(sks.len)) && _has_value(sks.key) && _length(sks.key) >= 16)
     onfail

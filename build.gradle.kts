@@ -87,7 +87,7 @@ dependencies {
     api("de.fraunhofer.aisec:cpg:2.2.1")
 
     // Ehcache is used to cache heavyweight reflection operations
-    api("org.ehcache:ehcache:3.8.0")
+    api("org.ehcache:ehcache:3.8.1")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { setChanging(true) }

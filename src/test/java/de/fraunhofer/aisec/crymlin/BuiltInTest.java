@@ -7,7 +7,6 @@ import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinHelper;
 import de.fraunhofer.aisec.crymlin.builtin.InvalidArgumentException;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedVertex;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,20 +18,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class BuiltInTest extends AbstractMarkTest {
-
-	@BeforeEach
-	public void clearDatabase() {
-		// Make sure we start with a clean (and connected) db
-		try {
-			var db = OverflowDatabase.getInstance();
-			db.connect(true);
-			db.clearDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
-	}
 
 	@Test
 	public void split_1() throws Exception {

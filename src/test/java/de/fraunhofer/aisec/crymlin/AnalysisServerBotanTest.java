@@ -6,7 +6,6 @@ import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MRule;
@@ -47,17 +46,6 @@ public class AnalysisServerBotanTest {
 		File markPoC1 = new File(resource.getFile());
 		assertNotNull(markPoC1);
 		String markModelFiles = markPoC1.getParent();
-
-		// Make sure we start with a clean (and connected) db
-		try {
-			var db = OverflowDatabase.getInstance();
-			db.connect(true);
-			db.clearDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
 
 		// Start an analysis server
 		server = AnalysisServer.builder()

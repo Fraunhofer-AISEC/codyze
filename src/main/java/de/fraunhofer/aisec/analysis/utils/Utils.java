@@ -311,22 +311,6 @@ public class Utils {
 	}
 
 	/**
-	 * Returns an (unmodifiable) possibly empty list of all types this vertex might have.
-	 *
-	 * @param next
-	 * @return
-	 */
-	@NonNull
-	public static Set<Type> getPossibleSubTypes(@NonNull Vertex next) {
-
-		Set<Type> types = new HashSet<>();
-		UnmodifiableIterator<Edge> it = Iterators.filter(next.edges(Direction.OUT, TYPE, POSSIBLE_SUB_TYPES), v -> Utils.hasLabel(v.inVertex(), Type.class));
-		it.forEachRemaining(e -> types.add((Type) OverflowDatabase.getInstance().vertexToNode(e.inVertex())));
-
-		return types;
-	}
-
-	/**
 	 * Returns a brief human-readable representation of a vertex as a string.
 	 *
 	 * @param base The vertex. If null, this method will return the string "null".

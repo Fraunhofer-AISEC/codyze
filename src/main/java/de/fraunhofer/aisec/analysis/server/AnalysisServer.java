@@ -15,21 +15,14 @@ import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
-import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection.Type;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
-import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo;
-import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLReader;
-import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.URI;
@@ -41,12 +34,20 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -67,511 +68,434 @@ import java.util.zip.ZipInputStream;
  */
 public class AnalysisServer {
 
-	private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
+    private static final Logger log = LoggerFactory.getLogger(AnalysisServer.class);
 
-	/**
-	 * Name of file containing human-readable explanations of findings.
-	 */
-	private static final String FINDING_DESCRIPTION_FILE = "findingDescription.json";
+    /**
+     * Name of file containing human-readable explanations of findings.
+     */
+    private static final String FINDING_DESCRIPTION_FILE = "findingDescription.json";
 
-	private static AnalysisServer instance;
+    private static AnalysisServer instance;
 
-	private ServerConfiguration config;
+    private ServerConfiguration config;
 
-	private JythonInterpreter interp;
+    private JythonInterpreter interp;
 
-	private CpgLanguageServer lsp;
+    private CpgLanguageServer lsp;
 
-	private TranslationResult translationResult;
+    private TranslationResult translationResult;
 
-	private Mark markModel = new Mark();
+    private OverflowDatabase<Node> db;
 
-	@SuppressWarnings("java:S3010")
-	private AnalysisServer(ServerConfiguration config) {
-		this.config = config;
-		AnalysisServer.instance = this;
+    private Mark markModel = new Mark();
 
-		// Register built-in functions
-		Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of builtins");
-		Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.builtin");
-		int i = 0;
-		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
-			log.info("Registering builtin {}", builtin.getName());
-			try {
-				Builtin bi = builtin.getDeclaredConstructor().newInstance();
-				BuiltinRegistry.getInstance().register(bi);
-			}
-			catch (Exception e) {
-				log.error("Could not instantiate {}: ", builtin.getName(), e);
-			}
-			i++;
-		}
-		bench.stop();
-		log.info("Registered {} builtins", i);
-	}
+    @SuppressWarnings("java:S3010")
+    private AnalysisServer(ServerConfiguration config) {
+        this.config = config;
+        AnalysisServer.instance = this;
 
-	/**
-	 * Singleton must be initialized with AnalysisServer.builder().build() first.
-	 *
-	 * @return the current Analysisserver instance
-	 */
-	@Nullable
-	public static AnalysisServer getInstance() {
-		return instance;
-	}
+        // Register built-in functions
+        Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of builtins");
+        Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.builtin");
+        int i = 0;
+        for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
+            log.info("Registering builtin {}", builtin.getName());
+            try {
+                Builtin bi = builtin.getDeclaredConstructor().newInstance();
+                BuiltinRegistry.getInstance().register(bi);
+            } catch (Exception e) {
+                log.error("Could not instantiate {}: ", builtin.getName(), e);
+            }
+            i++;
+        }
+        bench.stop();
+        log.info("Registered {} builtins", i);
 
-	public static Builder builder() {
-		return new Builder();
-	}
+        db = new OverflowDatabase(config);
+    }
 
-	/**
-	 * Starts the server in a separate threat, returns as soon as the server is ready to operate.
-	 */
-	public void start() {
-		if (config.launchLsp) {
-			launchLspServer();
-		} else if (config.launchConsole) {
-			launchConsole();
-		} else {
-			// only load rules
-			loadMarkRulesFromConfig();
-		}
-	}
+    /**
+     * Singleton must be initialized with AnalysisServer.builder().build() first.
+     *
+     * @return the current Analysisserver instance
+     */
+    @Nullable
+    public static AnalysisServer getInstance() {
+        return instance;
+    }
 
-	private void launchConsole() {
+    public static Builder builder() {
+        return new Builder();
+    }
 
-		loadMarkRulesFromConfig();
+    /**
+     * Starts the server in a separate threat, returns as soon as the server is ready to operate.
+     */
+    public void start() {
+        if (config.launchLsp) {
+            launchLspServer();
+        } else if (config.launchConsole) {
+            launchConsole();
+        } else {
+            // only load rules
+            loadMarkRulesFromConfig();
+        }
+    }
 
-		var db = OverflowDatabase.getInstance();
-		db.connect(config.disableOverflow);
+    private void launchConsole() {
 
-		// Initialize JythonInterpreter
-		log.info("Launching crymlin query interpreter ...");
-		interp = new JythonInterpreter();
-		interp.connect();
+        loadMarkRulesFromConfig();
 
-		// Spawn an interactive console for gremlin experiments/controlling the server.
-		// Blocks forever.
-		// May be replaced by custom JLine console later (not important for the moment)
-		// Blocks forever:
-		interp.spawnInteractiveConsole();
-	}
+        // Initialize JythonInterpreter
+        log.info("Launching crymlin query interpreter ...");
+        interp = new JythonInterpreter();
 
-	/**
-	 * Launches the LSP server.
-	 */
-	@SuppressWarnings("java:S106")
-	private void launchLspServer() {
-		lsp = new CpgLanguageServer();
+        // Spawn an interactive console for gremlin experiments/controlling the server.
+        // Blocks forever.
+        // May be replaced by custom JLine console later (not important for the moment)
+        // Blocks forever:
+        interp.spawnInteractiveConsole();
+    }
 
-		Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(lsp, System.in, System.out);
-		launcher.startListening();
+    /**
+     * Launches the LSP server.
+     */
+    @SuppressWarnings("java:S106")
+    private void launchLspServer() {
+        lsp = new CpgLanguageServer();
 
-		LanguageClient client = launcher.getRemoteProxy();
-		lsp.connect(client);
-		log.info("LSP server started");
+        Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(lsp, System.in, System.out);
+        launcher.startListening();
 
-		loadMarkRulesFromConfig();
-	}
+        LanguageClient client = launcher.getRemoteProxy();
+        lsp.connect(client);
+        log.info("LSP server started");
 
-	/**
-	 * Runs an analysis and persists the result.
-	 *
-	 * @param analyzer the translationmanager to analyze
-	 * @return the Future for this analysis
-	 */
-	public CompletableFuture<AnalysisContext> analyze(TranslationManager analyzer) {
+        loadMarkRulesFromConfig();
+    }
 
-		/*
-		 * Create analysis context and register at all passes supporting contexts. An analysis context is an in-memory data structure that can be used to exchange data
-		 * across passes outside of the actual CPG.
-		 */
-		File srcLocation = analyzer.getConfig()
-				.getSourceLocations()
-				.get(0);
-		AnalysisContext ctx = new AnalysisContext(srcLocation); // NOTE: We currently operate on a single source file.
-		for (Pass p : analyzer.getPasses()) {
-			if (p instanceof PassWithContext) {
-				((PassWithContext) p).setContext(ctx);
-			}
-		}
-		// Run all passes and persist the result
-		final Benchmark benchParsing = new Benchmark(AnalysisServer.class, "  Parsing source and creating CPG for " + srcLocation.getName());
-		return analyzer.analyze() // Run analysis
-				.thenApply(
-					result -> {
-						benchParsing.stop();
-						// Attach analysis context to result
-						result.getScratch().put("ctx", ctx);
-						translationResult = result;
-						return persistToODB(result);
-					})
-				.thenApply(
-					result -> {
-						Benchmark bench = new Benchmark(AnalysisServer.class, "  Export to GraphML (or debugging)");
-						if (ServerConfiguration.EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J) {
-							exportToGraphML();
-							// Optional, only if neo4j is available in classpath: re-import into Neo4J
-							importIntoNeo4j();
-						}
-						bench.stop();
-						return result;
-					})
-				.thenApply(
-					result -> {
-						Benchmark bench = new Benchmark(AnalysisServer.class, "  Evaluation of MARK");
-						log.info(
-							"Evaluating mark: {} entities, {} rules",
-							this.markModel.getEntities().size(),
-							this.markModel.getRules().size());
-						// Evaluate all MARK rules
-						Evaluator mi = new Evaluator(this.markModel, this.config);
-						mi.evaluate(result, ctx);
-						bench.stop();
-						return ctx;
-					})
-				.thenApply(
-					analysisContext -> {
-						Benchmark bench = new Benchmark(AnalysisServer.class, "  Filtering results");
-						if (config.disableGoodFindings) {
-							// Filter out "positive" results
-							analysisContext.getFindings().removeIf(finding -> !finding.isProblem());
-						}
-						bench.stop();
-						return analysisContext;
-					});
-	}
+    /**
+     * Runs an analysis and persists the result.
+     *
+     * @param analyzer the translationmanager to analyze
+     * @return the Future for this analysis
+     */
+    public CompletableFuture<AnalysisContext> analyze(TranslationManager analyzer) {
 
-	public void loadMarkRulesFromConfig() {
-		/*
-		 * Load MARK model as given in configuration, if it has not been set manually before.
-		 */
-		if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
-			File markModelLocation = new File(config.markModelFiles);
-			loadMarkRules(markModelLocation);
-		}
-	}
+        /*
+         * Create analysis context and register at all passes supporting contexts. An analysis context is an in-memory data structure that can be used to exchange data
+         * across passes outside of the actual CPG.
+         */
+        File srcLocation = analyzer.getConfig()
+                .getSourceLocations()
+                .get(0);
+        AnalysisContext ctx = new AnalysisContext(srcLocation, db); // NOTE: We currently operate on a single source file.
+        for (Pass p : analyzer.getPasses()) {
+            if (p instanceof PassWithContext) {
+                ((PassWithContext) p).setContext(ctx);
+            }
+        }
+        // Run all passes and persist the result
+        final Benchmark benchParsing = new Benchmark(AnalysisServer.class, "  Parsing source and creating CPG for " + srcLocation.getName());
+        return analyzer.analyze() // Run analysis
+                .thenApply(
+                        result -> {
+                            benchParsing.stop();
+                            // Attach analysis context to result
+                            result.getScratch().put("ctx", ctx);
+                            translationResult = result;
+                            return persistToODB(result);
+                        })
+                .thenApply(
+                        result -> {
+                            Benchmark bench = new Benchmark(AnalysisServer.class, "  Evaluation of MARK");
+                            log.info(
+                                    "Evaluating mark: {} entities, {} rules",
+                                    this.markModel.getEntities().size(),
+                                    this.markModel.getRules().size());
+                            // Evaluate all MARK rules
+                            Evaluator mi = new Evaluator(this.markModel, this.config);
+                            mi.evaluate(result, ctx);
+                            bench.stop();
+                            return ctx;
+                        })
+                .thenApply(
+                        analysisContext -> {
+                            Benchmark bench = new Benchmark(AnalysisServer.class, "  Filtering results");
+                            if (config.disableGoodFindings) {
+                                // Filter out "positive" results
+                                analysisContext.getFindings().removeIf(finding -> !finding.isProblem());
+                            }
+                            bench.stop();
+                            return analysisContext;
+                        });
+    }
 
-	/**
-	 * recursively list all mark files
-	 * @param currentFile
-	 * @param allFiles
-	 * @throws IOException
-	 */
-	private void getMarkFileLocations(File currentFile, List<File> allFiles) throws IOException {
-		try (Stream<Path> walk = Files.walk(currentFile.toPath(), Integer.MAX_VALUE);) {
-			File[] files = walk.map(Path::toFile)
-					.filter(File::isFile)
-					.filter(f -> f.getName().endsWith(".mark"))
-					.toArray(File[]::new);
-			for (File f : files) {
-				log.info("  Loading MARK file {}", f.getAbsolutePath());
-				if (f.isDirectory()) {
-					getMarkFileLocations(f, allFiles);
-				} else if (f.getName().endsWith(".mark")) {
-					allFiles.add(f);
-				}
-			}
-		}
-	}
+    public void loadMarkRulesFromConfig() {
+        /*
+         * Load MARK model as given in configuration, if it has not been set manually before.
+         */
+        if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
+            File markModelLocation = new File(config.markModelFiles);
+            loadMarkRules(markModelLocation);
+        }
+    }
 
-	/**
-	 * extracts all mark-files and the findingDescription.js from a zip or jar file to a temp-folder (which is cleared by the JVM upon exiting)
-	 * @param zipFilePath
-	 * @return
-	 * @throws IOException
-	 */
-	private ArrayList<File> unzipMarkAndFindingDescription(String zipFilePath) throws IOException {
-		ArrayList<File> ret = new ArrayList<>();
-		Path tempDirWithPrefix = Files.createTempDirectory("mark_extracted_");
-		try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath))) {
-			ZipEntry entry = zipIn.getNextEntry();
-			// iterates over entries in the zip file
-			while (entry != null) {
-				String filePath = tempDirWithPrefix.toString() + File.separator + entry.getName();
-				if (!entry.isDirectory()
-						&& (entry.getName().endsWith(".mark") || entry.getName().equals(FINDING_DESCRIPTION_FILE))) {
-					try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
-						byte[] bytesIn = new byte[4096];
-						int read;
-						while ((read = zipIn.read(bytesIn)) != -1) {
-							bos.write(bytesIn, 0, read);
-						}
-					}
-					ret.add(new File(filePath));
-				} else {
-					// if the entry is a directory, make the directory
-					File dir = new File(filePath);
-					if (!dir.mkdir()) {
-						throw new IOException("could not create folder " + dir.getAbsolutePath());
-					}
-				}
-				zipIn.closeEntry();
-				entry = zipIn.getNextEntry();
-			}
-		}
-		return ret;
-	}
+    /**
+     * recursively list all mark files
+     *
+     * @param currentFile
+     * @param allFiles
+     * @throws IOException
+     */
+    private void getMarkFileLocations(File currentFile, List<File> allFiles) throws IOException {
+        try (Stream<Path> walk = Files.walk(currentFile.toPath(), Integer.MAX_VALUE);) {
+            File[] files = walk.map(Path::toFile)
+                    .filter(File::isFile)
+                    .filter(f -> f.getName().endsWith(".mark"))
+                    .toArray(File[]::new);
+            for (File f : files) {
+                log.info("  Loading MARK file {}", f.getAbsolutePath());
+                if (f.isDirectory()) {
+                    getMarkFileLocations(f, allFiles);
+                } else if (f.getName().endsWith(".mark")) {
+                    allFiles.add(f);
+                }
+            }
+        }
+    }
 
-	/**
-	 * Loads all MARK rules from a file or a directory.
-	 *
-	 * @param markFile load all mark entities/rules from this file
-	 */
-	public void loadMarkRules(@NonNull File markFile) {
-		File markDescriptionFile = null;
+    /**
+     * extracts all mark-files and the findingDescription.js from a zip or jar file to a temp-folder (which is cleared by the JVM upon exiting)
+     *
+     * @param zipFilePath
+     * @return
+     * @throws IOException
+     */
+    private ArrayList<File> unzipMarkAndFindingDescription(String zipFilePath) throws IOException {
+        ArrayList<File> ret = new ArrayList<>();
+        Path tempDirWithPrefix = Files.createTempDirectory("mark_extracted_");
+        try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath))) {
+            ZipEntry entry = zipIn.getNextEntry();
+            // iterates over entries in the zip file
+            while (entry != null) {
+                String filePath = tempDirWithPrefix.toString() + File.separator + entry.getName();
+                if (!entry.isDirectory()
+                        && (entry.getName().endsWith(".mark") || entry.getName().equals(FINDING_DESCRIPTION_FILE))) {
+                    try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
+                        byte[] bytesIn = new byte[4096];
+                        int read;
+                        while ((read = zipIn.read(bytesIn)) != -1) {
+                            bos.write(bytesIn, 0, read);
+                        }
+                    }
+                    ret.add(new File(filePath));
+                } else {
+                    // if the entry is a directory, make the directory
+                    File dir = new File(filePath);
+                    if (!dir.mkdir()) {
+                        throw new IOException("could not create folder " + dir.getAbsolutePath());
+                    }
+                }
+                zipIn.closeEntry();
+                entry = zipIn.getNextEntry();
+            }
+        }
+        return ret;
+    }
 
-		log.info("Parsing MARK files in {}", markFile.getAbsolutePath());
-		Instant start = Instant.now();
+    /**
+     * Loads all MARK rules from a file or a directory.
+     *
+     * @param markFile load all mark entities/rules from this file
+     */
+    public void loadMarkRules(@NonNull File markFile) {
+        File markDescriptionFile = null;
 
-		XtextParser parser = new XtextParser();
+        log.info("Parsing MARK files in {}", markFile.getAbsolutePath());
+        Instant start = Instant.now();
 
-		if (!markFile.exists() || !markFile.canRead()) {
-			log.warn("Cannot read MARK file(s) {}", markFile.getAbsolutePath());
-		}
+        XtextParser parser = new XtextParser();
 
-		if (markFile.isDirectory()) {
-			log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
-			ArrayList<File> allMarkFiles = new ArrayList<>();
-			try {
-				getMarkFileLocations(markFile, allMarkFiles);
-				for (File f : allMarkFiles) {
-					log.info("  Loading MARK file {}", f.getAbsolutePath());
-					parser.addMarkFile(f);
-				}
-			}
-			catch (IOException e) {
-				log.error("Failed to load MARK file", e);
-			}
-			markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + FINDING_DESCRIPTION_FILE);
-		} else if (markFile.getName().endsWith(".jar") || markFile.getName().endsWith(".zip")) {
-			try {
-				ArrayList<File> allMarkFiles = unzipMarkAndFindingDescription(markFile.getAbsolutePath());
-				for (File f : allMarkFiles) {
-					if (f.getName().endsWith(".mark")) {
-						log.info("  Loading MARK file {}", f.getAbsolutePath());
-						parser.addMarkFile(f);
-					} else if (f.getName().equals(FINDING_DESCRIPTION_FILE)) {
-						markDescriptionFile = f;
-					}
-				}
-			}
-			catch (Exception e) {
-				log.error("Failed to load MARK file", e);
-			}
-		} else {
-			log.info("Loading MARK from file {}", markFile.getAbsolutePath());
-			parser.addMarkFile(markFile);
-			markDescriptionFile = new File(markFile.getParent() + File.separator + FINDING_DESCRIPTION_FILE);
-		}
+        if (!markFile.exists() || !markFile.canRead()) {
+            log.warn("Cannot read MARK file(s) {}", markFile.getAbsolutePath());
+        }
 
-		HashMap<String, MarkModel> markModels = parser.parse();
-		log.info("Done parsing MARK files in {} ms", Duration.between(start, Instant.now()).toMillis());
+        if (markFile.isDirectory()) {
+            log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
+            ArrayList<File> allMarkFiles = new ArrayList<>();
+            try {
+                getMarkFileLocations(markFile, allMarkFiles);
+                for (File f : allMarkFiles) {
+                    log.info("  Loading MARK file {}", f.getAbsolutePath());
+                    parser.addMarkFile(f);
+                }
+            } catch (IOException e) {
+                log.error("Failed to load MARK file", e);
+            }
+            markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + FINDING_DESCRIPTION_FILE);
+        } else if (markFile.getName().endsWith(".jar") || markFile.getName().endsWith(".zip")) {
+            try {
+                ArrayList<File> allMarkFiles = unzipMarkAndFindingDescription(markFile.getAbsolutePath());
+                for (File f : allMarkFiles) {
+                    if (f.getName().endsWith(".mark")) {
+                        log.info("  Loading MARK file {}", f.getAbsolutePath());
+                        parser.addMarkFile(f);
+                    } else if (f.getName().equals(FINDING_DESCRIPTION_FILE)) {
+                        markDescriptionFile = f;
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to load MARK file", e);
+            }
+        } else {
+            log.info("Loading MARK from file {}", markFile.getAbsolutePath());
+            parser.addMarkFile(markFile);
+            markDescriptionFile = new File(markFile.getParent() + File.separator + FINDING_DESCRIPTION_FILE);
+        }
 
-		for (Map.Entry<URI, List<Resource.Diagnostic>> e : parser.getErrors().entrySet()) {
-			if (e.getValue() != null && !e.getValue().isEmpty()) {
-				for (Resource.Diagnostic d : e.getValue()) {
-					log.warn("Error in {}: l{}: {}", e.getKey().toFileString(), d.getLine(), d.getMessage());
-				}
-			}
-		}
+        HashMap<String, MarkModel> markModels = parser.parse();
+        log.info("Done parsing MARK files in {} ms", Duration.between(start, Instant.now()).toMillis());
 
-		start = Instant.now();
-		log.info("Transforming MARK Xtext to internal format");
-		this.markModel = new MarkModelLoader().load(markModels);
-		log.info(
-			"Done Transforming MARK Xtext to internal format in {} ms",
-			Duration.between(start, Instant.now()).toMillis());
+        for (Map.Entry<URI, List<Resource.Diagnostic>> e : parser.getErrors().entrySet()) {
+            if (e.getValue() != null && !e.getValue().isEmpty()) {
+                for (Resource.Diagnostic d : e.getValue()) {
+                    log.warn("Error in {}: l{}: {}", e.getKey().toFileString(), d.getLine(), d.getMessage());
+                }
+            }
+        }
 
-		log.info(
-			"Loaded {} entities and {} rules.",
-			this.markModel.getEntities().size(),
-			this.markModel.getRules().size());
+        start = Instant.now();
+        log.info("Transforming MARK Xtext to internal format");
+        this.markModel = new MarkModelLoader().load(markModels);
+        log.info(
+                "Done Transforming MARK Xtext to internal format in {} ms",
+                Duration.between(start, Instant.now()).toMillis());
 
-		if (markDescriptionFile != null && markDescriptionFile.exists()) {
-			FindingDescription.getInstance().init(markDescriptionFile);
-		} else {
-			log.info("MARK description file does not exist");
-		}
-	}
+        log.info(
+                "Loaded {} entities and {} rules.",
+                this.markModel.getEntities().size(),
+                this.markModel.getRules().size());
 
-	/**
-	 * Returns a list with the names of the currently loaded MARK rules.
-	 *
-	 * @return the markmodel for this analysisserver
-	 */
-	public @NonNull Mark getMarkModel() {
-		return this.markModel;
-	}
+        if (markDescriptionFile != null && markDescriptionFile.exists()) {
+            FindingDescription.getInstance().init(markDescriptionFile);
+        } else {
+            log.info("MARK description file does not exist");
+        }
+    }
 
-	public void stop() {
-		if (interp != null) {
-			interp.close();
-		}
-		if (lsp != null) {
-			lsp.shutdown();
-		}
+    /**
+     * Returns a list with the names of the currently loaded MARK rules.
+     *
+     * @return the markmodel for this analysisserver
+     */
+    public @NonNull Mark getMarkModel() {
+        return this.markModel;
+    }
 
-		// Close in-memory graph and evict caches
-		OverflowDatabase.getInstance().close();
+    public void stop() {
+        if (interp != null) {
+            interp.close();
+        }
+        if (lsp != null) {
+            lsp.shutdown();
+        }
 
-		this.config = null;
-		this.markModel = null;
-		this.interp = null;
-		this.lsp = null;
-		this.translationResult = null;
-		this.instance = null;
-		log.info("stop.");
-	}
+        // Close in-memory graph and evict caches
+        db.close();
 
-	public CpgLanguageServer getLSP() {
-		return lsp;
-	}
+        this.config = null;
+        this.markModel = null;
+        this.interp = null;
+        this.lsp = null;
+        this.translationResult = null;
+        this.instance = null;
+        log.info("stop.");
+    }
 
-	public TranslationResult getTranslationResult() {
-		return translationResult;
-	}
+    public CpgLanguageServer getLSP() {
+        return lsp;
+    }
 
-	private TranslationResult persistToODB(TranslationResult result) {
-		Benchmark bench = new Benchmark(this.getClass(), " Serializing into OverflowDB");
-		// Persist the result
-		OverflowDatabase.getInstance().clearDatabase();
-		OverflowDatabase<Node> db = OverflowDatabase.getInstance();
-		db.connect(config.disableOverflow);
+    public TranslationResult getTranslationResult() {
+        return translationResult;
+    }
 
-		db.saveAll(result.getTranslationUnits());
-		long duration = bench.stop();
-		// connect to DB
-		try (TraversalConnection t = new TraversalConnection(Type.OVERFLOWDB)) {
-			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-			Long numEdges = crymlinTraversal.V().outE().count().next();
-			Long numVertices = crymlinTraversal.V().count().next();
-			log.info(
-				"Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
-				numVertices,
-				String.format("%.2f", (double) duration / numVertices),
-				numEdges,
-				String.format("%.2f", (double) duration / numEdges));
-		}
-		catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-		log.info("Benchmark: Persisted approx {} nodes", db.getNumNodes());
-		return result;
-	}
+    private TranslationResult persistToODB(TranslationResult result) {
+        Benchmark bench = new Benchmark(this.getClass(), " Serializing into OverflowDB");
 
-	/**
-	 * It's awful, but this is the only way to import raw data into Neo4J without relying on an OGM.
-	 *
-	 * <p>
-	 * We want to skip the OGM to make that what we see in the database is the actual graph from memory, and not the
-	 * result of CPG -> OverflowDB-OGM -> OverflowDB -> Tinkerpop -> Neo4J-OGM -> Neo4J.
-	 */
-	private void exportToGraphML() {
-		// Export from OverflowDB to file
-		OverflowDatabase.getInstance().connect();
-		Graph graph = OverflowDatabase.getInstance().getGraph();
+        // ensure, that the database is clear
+        db.clearDatabase();
 
-		log.info("Exporting {} nodes to GraphML", graph.traversal().V().count().next());
-		try (FileOutputStream fos = new FileOutputStream("this-is-so-graphic.graphml")) {
-			GraphMLWriter.Builder writer = graph.io(GraphMLIo.build()).writer();
-			writer.vertexLabelKey("labels");
-			writer.create().writeGraph(fos, graph);
-			log.info("Exported GraphML to {}/this-is-so-graphic.graphml", System.getProperty("user.dir"));
-		}
-		catch (IOException e) {
-			log.error("IOException", e);
-		}
-	}
+        // connect
+        db.connect();
 
-	/**
-	 * Note that this methods expects neo4j in classpath at runtime.
-	 * <p>
-	 * It is used for debugging only.
-	 */
-	private void importIntoNeo4j() {
-		// Import from file to Neo4J (for visualization only)
-		log.info("Importing into Neo4j ...");
-		try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml");
-				Neo4jGraph neo4jGraph = Neo4jGraph.open(Path.of(".data", "databases", "graph.db").toString())) {
-			File neo4jDB = Path.of(".data", "databases", "graph.db").toFile();
-			if (neo4jDB.exists()) {
-				Path of = Path.of(
-					System.getProperty("java.io.tmpdir"),
-					"backup" + System.currentTimeMillis() + ".db");
-				Files.move(
-					neo4jDB.toPath(), of);
-				log.info("Backed up old Neo4j-Database to {}", of.getFileName());
-			}
-			GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
-			reader.strict(false);
-			reader.vertexLabelKey("labels");
-			reader.create().readGraph(fis, neo4jGraph);
+        // Persist the result
+        db.saveAll(result.getTranslationUnits());
 
-		}
-		catch (IOException e) {
-			log.error("IOException", e);
-		}
-		catch (RuntimeException e) {
-			if (e.getCause() instanceof ClassNotFoundException) {
-				log.warn("Neo4j not found in path, export to neo4j failed");
-			} else {
-				throw e;
-			}
-		}
-		catch (Exception e) {
-			log.error("Exception", e);
-		}
-		log.info("Done importing");
-	}
+        long duration = bench.stop();
+        // connect to DB
+        try (TraversalConnection t = new TraversalConnection(db)) {
+            CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
+            Long numEdges = crymlinTraversal.V().outE().count().next();
+            Long numVertices = crymlinTraversal.V().count().next();
+            log.info(
+                    "Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
+                    numVertices,
+                    String.format("%.2f", (double) duration / numVertices),
+                    numEdges,
+                    String.format("%.2f", (double) duration / numEdges));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        log.info("Benchmark: Persisted approx {} nodes", db.getNumNodes());
+        return result;
+    }
 
-	public CompletableFuture<AnalysisContext> analyze(String url) {
-		List<File> files = new ArrayList<>();
-		File f = new File(url);
-		if (f.isDirectory()) {
-			File[] list = f.listFiles();
-			if (list != null) {
-				files.addAll(Arrays.asList(list));
-			} else {
-				log.error("Null file list");
-			}
-		} else {
-			files.add(f);
-		}
+    public CompletableFuture<AnalysisContext> analyze(String url) {
+        List<File> files = new ArrayList<>();
+        File f = new File(url);
+        if (f.isDirectory()) {
+            File[] list = f.listFiles();
+            if (list != null) {
+                files.addAll(Arrays.asList(list));
+            } else {
+                log.error("Null file list");
+            }
+        } else {
+            files.add(f);
+        }
 
-		OverflowDatabase.getInstance().connect(config.disableOverflow); // simply returns if already connected
-		OverflowDatabase.getInstance().clearDatabase();
+        TranslationConfiguration.Builder tConfig = TranslationConfiguration.builder()
+                .debugParser(true)
+                .failOnError(false)
+                .codeInNodes(true)
+                .loadIncludes(config.analyzeIncludes)
+                .defaultPasses()
+                .sourceLocations(files.toArray(new File[0]));
+        // TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
+        for (File includePath : config.includePath) {
+            tConfig.includePath(includePath.getAbsolutePath());
+        }
+        TranslationManager translationManager = TranslationManager.builder()
+                .config(tConfig.build())
+                .build();
+        return analyze(translationManager);
+    }
 
-		TranslationConfiguration.Builder tConfig = TranslationConfiguration.builder()
-				.debugParser(true)
-				.failOnError(false)
-				.codeInNodes(true)
-				.loadIncludes(config.analyzeIncludes)
-				.defaultPasses()
-				.sourceLocations(files.toArray(new File[0]));
-		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
-		for (File includePath : config.includePath) {
-			tConfig.includePath(includePath.getAbsolutePath());
-		}
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(tConfig.build())
-				.build();
-		return analyze(translationManager);
-	}
+    public static class Builder {
+        private ServerConfiguration config;
 
-	public static class Builder {
-		private ServerConfiguration config;
+        private Builder() {
+        }
 
-		private Builder() {
-		}
+        public Builder config(ServerConfiguration config) {
+            this.config = config;
+            return this;
+        }
 
-		public Builder config(ServerConfiguration config) {
-			this.config = config;
-			return this;
-		}
-
-		public AnalysisServer build() {
-			return new AnalysisServer(this.config);
-		}
-	}
+        public AnalysisServer build() {
+            return new AnalysisServer(this.config);
+        }
+    }
 }

@@ -58,7 +58,6 @@ public class JythonInterpreterTest {
 
 		// Start console (in thread, because it will block)
 		interp = new JythonInterpreter();
-		interp.connect();
 		new Thread(() -> {
 			interp.spawnInteractiveConsole();
 		}).start();

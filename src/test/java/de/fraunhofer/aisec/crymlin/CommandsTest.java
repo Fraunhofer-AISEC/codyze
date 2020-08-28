@@ -51,7 +51,6 @@ public class CommandsTest {
 
 		// Init console
 		JythonInterpreter interp = new JythonInterpreter();
-		interp.connect();
 		Commands com = new Commands(interp);
 
 		com.help();

@@ -33,7 +33,7 @@ public class OrderEvaluator {
 
 			case WPDS:
 				log.info("Evaluating order with WPDS");
-				TypeStateAnalysis ts = new TypeStateAnalysis(markContextHolder);
+				TypeStateAnalysis ts = new TypeStateAnalysis(markContextHolder, resultCtx);
 				try {
 					// NOTE: rule and orderExpression might be redundant as arguments
 					result = ts.analyze(orderExpression, contextID, resultCtx, crymlinTraversal, rule);

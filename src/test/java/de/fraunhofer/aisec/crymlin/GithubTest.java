@@ -33,207 +33,198 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 // TODO Remove before release or at least remove hardcoded paths
 @Disabled
 class GithubTest {
 
-	private static final int FILES_OFFSET = 0;
-	private static final int MAX_FILES_TO_SCAN = -1; // -1: all
-	private static final String OUTFOLDERNAME = "/home/user/temp/eval_151020/";
-	private static final String baseFolder;
-	private static final Logger log = LoggerFactory.getLogger(GithubTest.class);
-	private static final boolean RESCAN = true;
-	private static AnalysisServer server;
-	private static TestAppender logCopy;
+    private static final int FILES_OFFSET = 0;
+    private static final int MAX_FILES_TO_SCAN = -1; // -1: all
+    private static final String OUTFOLDERNAME = "/home/user/temp/eval_151020/";
+    private static final String baseFolder;
+    private static final Logger log = LoggerFactory.getLogger(GithubTest.class);
+    private static final boolean RESCAN = true;
+    private static AnalysisServer server;
+    private static TestAppender logCopy;
 
-	static {
-		//    ClassLoader classLoader = GithubTest.class.getClassLoader();
-		//    URL resource = classLoader.getResource("random_github");
-		//    assertNotNull(resource);
-		// baseFolder = resource.getFile();
-		baseFolder = "/home/ubuntu/github";
-	}
+    static {
+        //    ClassLoader classLoader = GithubTest.class.getClassLoader();
+        //    URL resource = classLoader.getResource("random_github");
+        //    assertNotNull(resource);
+        // baseFolder = resource.getFile();
+        baseFolder = "/home/ubuntu/github";
+    }
 
-	private static List<String> listFiles() {
-		// File folder = new File("/tmp/random_sources");
+    private static List<String> listFiles() {
+        // File folder = new File("/tmp/random_sources");
 
-		File folder = new File(baseFolder);
-		assertNotNull(folder);
-		File[] files = folder.listFiles();
-		assertNotNull(files);
-		List<String> ret = new ArrayList<>();
-		for (File f : files) {
-			ret.add(f.getAbsolutePath().substring(baseFolder.length() + 1)); // only use the file name
-		}
-		Collections.sort(ret);
-		// random!
-		Collections.shuffle(ret);
-		if (MAX_FILES_TO_SCAN != -1) {
-			ret = ret.subList(FILES_OFFSET, FILES_OFFSET + MAX_FILES_TO_SCAN);
-		}
-		return ret;
-	}
+        File folder = new File(baseFolder);
+        assertNotNull(folder);
+        File[] files = folder.listFiles();
+        assertNotNull(files);
+        List<String> ret = new ArrayList<>();
+        for (File f : files) {
+            ret.add(f.getAbsolutePath().substring(baseFolder.length() + 1)); // only use the file name
+        }
+        Collections.sort(ret);
+        // random!
+        Collections.shuffle(ret);
+        if (MAX_FILES_TO_SCAN != -1) {
+            ret = ret.subList(FILES_OFFSET, FILES_OFFSET + MAX_FILES_TO_SCAN);
+        }
+        return ret;
+    }
 
-	@BeforeAll
-	static void setup() {
-		OverflowDatabase.getInstance().connect(true);
-		OverflowDatabase.getInstance().close();
+    @BeforeAll
+    static void setup() {
+        ClassLoader classLoader = GithubTest.class.getClassLoader();
+        URL resource = classLoader.getResource("unittests/order2.mark");
+        assertNotNull(resource);
+        File markPoC1 = new File(resource.getFile());
+        assertNotNull(markPoC1);
 
-		ClassLoader classLoader = GithubTest.class.getClassLoader();
-		URL resource = classLoader.getResource("unittests/order2.mark");
-		assertNotNull(resource);
-		File markPoC1 = new File(resource.getFile());
-		assertNotNull(markPoC1);
+        server = AnalysisServer.builder()
+                .config(
+                        ServerConfiguration.builder().disableOverflow(true).launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
+                .build();
 
-		server = AnalysisServer.builder()
-				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
-				.build();
+        server.start();
 
-		server.start();
+        logCopy = new TestAppender("logCopy", null);
+        logCopy.injectIntoLogger();
+    }
 
-		logCopy = new TestAppender("logCopy", null);
-		logCopy.injectIntoLogger();
-	}
+    @AfterAll
+    static void shutdown() {
+        server.stop();
+    }
 
-	@AfterAll
-	static void shutdown() {
-		server.stop();
-	}
+    @ParameterizedTest
+    @MethodSource("listFiles")
+    void performTest(String sourceFileName) throws Exception {
 
-	@ParameterizedTest
-	@MethodSource("listFiles")
-	void performTest(String sourceFileName) throws Exception {
+        File dir = new File(OUTFOLDERNAME);
+        final String tmpString = sourceFileName;
+        File[] matchingFiles = dir.listFiles(pathname -> pathname.getName().endsWith(tmpString + ".out"));
 
-		File dir = new File(OUTFOLDERNAME);
-		final String tmpString = sourceFileName;
-		File[] matchingFiles = dir.listFiles(pathname -> pathname.getName().endsWith(tmpString + ".out"));
+        if (!RESCAN && matchingFiles != null && matchingFiles.length > 0) {
+            System.out.println("File already scanned");
+            return;
+        }
 
-		if (!RESCAN && matchingFiles != null && matchingFiles.length > 0) {
-			System.out.println("File already scanned");
-			return;
-		}
+        Path tempDir = Files.createTempDirectory("githubtest_");
+        File tempFile = new File(tempDir.toString() + File.separator + sourceFileName);
+        Files.copy(
+                new File(baseFolder + File.separator + sourceFileName).toPath(),
+                tempFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING);
+        logCopy.reset();
 
-		Path tempDir = Files.createTempDirectory("githubtest_");
-		File tempFile = new File(tempDir.toString() + File.separator + sourceFileName);
-		Files.copy(
-			new File(baseFolder + File.separator + sourceFileName).toPath(),
-			tempFile.toPath(),
-			StandardCopyOption.REPLACE_EXISTING);
-		logCopy.reset();
+        // prepend base folder. we call this function only with the file name to make the tests
+        // nicely readable
+        sourceFileName = tempFile.getAbsolutePath();
 
-		// prepend base folder. we call this function only with the file name to make the tests
-		// nicely readable
-		sourceFileName = tempFile.getAbsolutePath();
+        File cppFile = new File(sourceFileName);
+        assertNotNull(cppFile);
 
-		File cppFile = new File(sourceFileName);
-		assertNotNull(cppFile);
+        log.info("File size: {} kB", cppFile.length() / 1024);
 
-		log.info("File size: {} kB", cppFile.length() / 1024);
+        //    try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.UTF_8)) {
+        //      log.info("Benchmark: {} contains {} lines", sourceFileName, lines.count());
+        //    } catch (Exception e) {
+        //      try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.ISO_8859_1))
+        // {
+        //        log.info("Benchmark: {} contains {} lines", sourceFileName, lines.count());
+        //      }
+        //    }
 
-		//    try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.UTF_8)) {
-		//      log.info("Benchmark: {} contains {} lines", sourceFileName, lines.count());
-		//    } catch (Exception e) {
-		//      try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.ISO_8859_1))
-		// {
-		//        log.info("Benchmark: {} contains {} lines", sourceFileName, lines.count());
-		//      }
-		//    }
+        // Make sure we start with a clean (and connected) db
+        // if this does not work, just throw
+        TranslationManager tm = TranslationManager.builder()
+                .config(
+                        TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceLocations(cppFile).build())
+                .build();
 
-		// Make sure we start with a clean (and connected) db
-		// if this does not work, just throw
-		OverflowDatabase.getInstance().clearDatabase();
+        boolean hasError = false;
+        CompletableFuture<AnalysisContext> analyze = server.analyze(tm);
+        try {
+            AnalysisContext result = analyze.get(30, TimeUnit.MINUTES);
 
-		TranslationManager tm = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceLocations(cppFile).build())
-				.build();
+            assertNotNull(result);
+            //      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
+            //      assertNotNull(ctx);
 
-		boolean hasError = false;
-		CompletableFuture<AnalysisContext> analyze = server.analyze(tm);
-		try {
-			AnalysisContext result = analyze.get(30, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            analyze.cancel(true);
 
-			assertNotNull(result);
-			//      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
-			//      assertNotNull(ctx);
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            log.error(sw.toString());
+            hasError = true;
+        }
+        tempFile.delete();
+        tempDir.toFile().delete();
 
-		}
-		catch (Exception e) {
-			analyze.cancel(true);
+        PrintWriter writer = new PrintWriter(
+                OUTFOLDERNAME + System.currentTimeMillis() + "_" + cppFile.getName() + ".out",
+                StandardCharsets.UTF_8);
+        for (LogEvent e : logCopy.getLog()) {
+            writer.println(
+                    e.getTimeMillis()
+                            + " "
+                            + e.getLevel().toString()
+                            + " "
+                            + e.getLoggerName().substring(e.getLoggerName().lastIndexOf(".") + 1)
+                            + " "
+                            + e.getMessage().getFormattedMessage());
+        }
+        writer.flush();
+        writer.close();
 
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-			log.error(sw.toString());
-			hasError = true;
-		}
-		tempFile.delete();
-		tempDir.toFile().delete();
+        System.gc();
+        System.runFinalization();
 
-		OverflowDatabase.getInstance().close();
+        //    System.out.println("The following Errors/Warnings occured:");
+        //    for(LogEvent e: logCopy.getLog(Level.ERROR, Level.WARN)) {
+        //      System.out.println(e.toString());
+        //    }
+        if (hasError) {
+            fail();
+        }
+        List<LogEvent> log = logCopy.getLog(Level.ERROR);
+        List<LogEvent> logFiltered = new ArrayList<>();
+        boolean hasParseError = false;
+        for (LogEvent x : log) {
+            if (x.getMessage()
+                    .getFormattedMessage()
+                    .contains(
+                            "Parsing of type class org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTProblemStatement is not supported (yet)")
+                    || x.getMessage().getFormattedMessage().contains("JavaParser could not parse file")) {
+                hasParseError = true;
+            }
+            logFiltered.add(x);
+        }
 
-		PrintWriter writer = new PrintWriter(
-			OUTFOLDERNAME + System.currentTimeMillis() + "_" + cppFile.getName() + ".out",
-			StandardCharsets.UTF_8);
-		for (LogEvent e : logCopy.getLog()) {
-			writer.println(
-				e.getTimeMillis()
-						+ " "
-						+ e.getLevel().toString()
-						+ " "
-						+ e.getLoggerName().substring(e.getLoggerName().lastIndexOf(".") + 1)
-						+ " "
-						+ e.getMessage().getFormattedMessage());
-		}
-		writer.flush();
-		writer.close();
+        if (!hasParseError && logFiltered.size() > 0) {
+            fail();
+        }
+    }
 
-		System.gc();
-		System.runFinalization();
+    @Test
+    void specificTest() throws Exception {
+        //		performTest("p059.java");
 
-		//    System.out.println("The following Errors/Warnings occured:");
-		//    for(LogEvent e: logCopy.getLog(Level.ERROR, Level.WARN)) {
-		//      System.out.println(e.toString());
-		//    }
-		if (hasError) {
-			fail();
-		}
-		List<LogEvent> log = logCopy.getLog(Level.ERROR);
-		List<LogEvent> logFiltered = new ArrayList<>();
-		boolean hasParseError = false;
-		for (LogEvent x : log) {
-			if (x.getMessage()
-					.getFormattedMessage()
-					.contains(
-						"Parsing of type class org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTProblemStatement is not supported (yet)")
-					|| x.getMessage().getFormattedMessage().contains("JavaParser could not parse file")) {
-				hasParseError = true;
-			}
-			logFiltered.add(x);
-		}
+        // performTest("redis.c"); // very long persisting
 
-		if (!hasParseError && logFiltered.size() > 0) {
-			fail();
-		}
-	}
+        // performTest("rpcwallet.cpp");
+        // performTest("indexed_data.cpp");
+        // performTest("RSHooks.cpp");
 
-	@Test
-	void specificTest() throws Exception {
-		OverflowDatabase.getInstance().clearDatabase();
+        performTest("OSOption.cpp");
 
-		//		performTest("p059.java");
-
-		// performTest("redis.c"); // very long persisting
-
-		// performTest("rpcwallet.cpp");
-		// performTest("indexed_data.cpp");
-		// performTest("RSHooks.cpp");
-
-		performTest("OSOption.cpp");
-
-		// NPE
-	}
+        // NPE
+    }
 
 }

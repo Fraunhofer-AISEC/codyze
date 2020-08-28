@@ -61,7 +61,7 @@ public class Commands {
 		try {
 			AnalysisContext ctx = analyze.get(10, TimeUnit.MINUTES);
 			jythonInterpreter.setFindings(ctx.getFindings());
-			jythonInterpreter.connect();
+			jythonInterpreter.connect(ctx.getDatabase());
 		}
 		catch (InterruptedException e) {
 			log.error("Interrupted", e);

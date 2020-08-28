@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.analysis.structures;
 
 import de.fraunhofer.aisec.cpg.graph.Node;
@@ -10,44 +11,45 @@ import java.util.*;
 
 public class AnalysisContext {
 
-  /** List of violations of MARK rules. the region, etc. */
-  @NonNull private final Set<Finding> findings = new HashSet<>();
+	/** List of violations of MARK rules. the region, etc. */
+	@NonNull
+	private final Set<Finding> findings = new HashSet<>();
 
-  /** Map of method signatures to {@code Method}s. */
-  public final Map<String, Method> methods = new HashMap<>();
+	/** Map of method signatures to {@code Method}s. */
+	public final Map<String, Method> methods = new HashMap<>();
 
-  private final List<File> sourceLocations;
+	private final List<File> sourceLocations;
 
-  /** The database used for this analysis. */
-  @NonNull
-  private Database<Node> db;
+	/** The database used for this analysis. */
+	@NonNull
+	private Database<Node> db;
 
-  public AnalysisContext(List<File> sourceLocations, @NonNull Database<Node> db) {
-    this.sourceLocations = sourceLocations;
-    this.db = db;
-  }
+	public AnalysisContext(List<File> sourceLocations, @NonNull Database<Node> db) {
+		this.sourceLocations = sourceLocations;
+		this.db = db;
+	}
 
-  public AnalysisContext(File f, @NonNull Database<Node> db) {
-    this(List.of(f), db);
-  }
+	public AnalysisContext(File f, @NonNull Database<Node> db) {
+		this(List.of(f), db);
+	}
 
-  /**
-   * Returns a (possibly empty) mutable list of findings, i.e. violations of MARK rules that were
-   * found during analysis. Make sure to call {@code analyze()} before as otherwise this method will
-   * return an empty list.
-   *
-   * @return Set of all findings
-   */
-  public @NonNull Set<Finding> getFindings() {
-    return this.findings;
-  }
+	/**
+	 * Returns a (possibly empty) mutable list of findings, i.e. violations of MARK rules that were
+	 * found during analysis. Make sure to call {@code analyze()} before as otherwise this method will
+	 * return an empty list.
+	 *
+	 * @return Set of all findings
+	 */
+	public @NonNull Set<Finding> getFindings() {
+		return this.findings;
+	}
 
-  public List<File> getSourceLocations() {
-    return sourceLocations;
-  }
+	public List<File> getSourceLocations() {
+		return sourceLocations;
+	}
 
-  @NonNull
-  public Database<Node> getDatabase() {
-    return this.db;
-  }
+	@NonNull
+	public Database<Node> getDatabase() {
+		return this.db;
+	}
 }

@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
@@ -38,7 +39,10 @@ public class PerformanceTest {
 		}
 
 		System.out.println("Creating DB instance ...");
-		OverflowDatabase db = OverflowDatabase.getInstance();
+
+		var db = new OverflowDatabase<Node>(ServerConfiguration.builder().disableOverflow(true).build());
+		db.connect();
+
 		Graph g = db.getGraph();
 
 		System.out.println("Saving nodes and edges to DB");

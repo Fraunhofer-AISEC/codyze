@@ -23,9 +23,6 @@ public class ServerConfiguration {
 	@NonNull
 	public final TypestateMode typestateAnalysis;
 
-	// For debugging: should we export the data to neo4j, if Neo4J DB is available?
-	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = false;
-
 	/**
 	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether or not to
 	 * parse include files.

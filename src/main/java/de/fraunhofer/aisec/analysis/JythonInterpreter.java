@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.analysis;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -71,9 +72,8 @@ public class JythonInterpreter implements AutoCloseable {
 	private CrymlinConsole c;
 
 	/** Connect to the graph database and initialize the internal Jython engine. */
-	public void connect() {
-
-		traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB);
+	public void connect(@NonNull Database db) {
+		traversalConnection = new TraversalConnection(db);
 
 		// Make Java objects available with a few shorthand aliases in python
 		Bindings bindings = this.engine.getBindings(ScriptContext.ENGINE_SCOPE);

@@ -33,91 +33,93 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class RuleEnsureSemanticsTest {
+class RuleEnsureSemanticsTest {
 
-    private static HashMap<String, MarkModel> markModels;
+	private static HashMap<String, MarkModel> markModels;
 
-    @BeforeAll
-    public static void startup() throws Exception {
-        URL resource = RuleEnsureSemanticsTest.class.getClassLoader().getResource("mark/rules/ensure/semantics/");
-        assertNotNull(resource);
+	@BeforeAll
+	static void startup() {
+		URL resource = RuleEnsureSemanticsTest.class.getClassLoader().getResource("mark/rules/ensure/semantics/");
+		assertNotNull(resource);
 
-        File markFile = new File(resource.getFile());
-        assertNotNull(markFile);
+		File markFile = new File(resource.getFile());
+		assertNotNull(markFile);
 
-        File[] directoryContent = markFile.listFiles((current, name) -> name.endsWith(".mark"));
+		File[] directoryContent = markFile.listFiles((current, name) -> name.endsWith(".mark"));
 
-        if (directoryContent == null) {
-            directoryContent = new File[]{markFile};
-        }
+		if (directoryContent == null) {
+			directoryContent = new File[] { markFile };
+		}
 
-        assertNotNull(directoryContent);
-        assertTrue(directoryContent.length > 0);
+		assertNotNull(directoryContent);
+		assertTrue(directoryContent.length > 0);
 
-        XtextParser parser = new XtextParser();
-        for (File mf : directoryContent) {
-            parser.addMarkFile(mf);
-        }
+		XtextParser parser = new XtextParser();
+		for (File mf : directoryContent) {
+			parser.addMarkFile(mf);
+		}
 
-        markModels = parser.parse();
-        assertFalse(markModels.isEmpty());
-    }
+		markModels = parser.parse();
+		assertFalse(markModels.isEmpty());
+	}
 
-    private void test(String markFileEnding) throws Exception {
-        List<String> markFilePaths = markModels.keySet().stream().filter(n -> n.endsWith(markFileEnding)).collect(Collectors.toList());
-        assertEquals(1, markFilePaths.size());
+	private void test(String markFileEnding) {
+		List<String> markFilePaths = markModels.keySet().stream().filter(n -> n.endsWith(markFileEnding)).collect(Collectors.toList());
+		assertEquals(1, markFilePaths.size());
 
-        Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
-        ServerConfiguration config = ServerConfiguration.builder().disableOverflow(true).markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
-        AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)), new OverflowDatabase<>(config));
+		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
+		ServerConfiguration config = ServerConfiguration.builder().disableOverflow(true).markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
+		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)), new OverflowDatabase<>(config));
 
-        Map<String, Map<Integer, MarkIntermediateResult>> allResults = new TreeMap<>();
-        try (TraversalConnection t = new TraversalConnection(ctx.getDatabase())) { // connects to the DB
-            for (MRule r : mark.getRules()) {
+		var db = ctx.getDatabase();
+		db.connect();
 
-                MarkContextHolder markContextHolder = new MarkContextHolder();
-                markContextHolder.getAllContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
+		Map<String, Map<Integer, MarkIntermediateResult>> allResults = new TreeMap<>();
+		try (TraversalConnection t = new TraversalConnection(db)) { // connects to the DB
+			for (MRule r : mark.getRules()) {
+				MarkContextHolder markContextHolder = new MarkContextHolder();
+				markContextHolder.getAllContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
 
-                ExpressionEvaluator ee = new ExpressionEvaluator(mark, r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
+				ExpressionEvaluator ee = new ExpressionEvaluator(mark, r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
 
-                Expression ensureExpr = r.getStatement().getEnsure().getExp();
-                Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(ensureExpr);
+				Expression ensureExpr = r.getStatement().getEnsure().getExp();
+				Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(ensureExpr);
 
-                assertEquals(1, result.size());
+				assertEquals(1, result.size());
 
-                allResults.put(r.getName(), result);
-            }
-        }
+				allResults.put(r.getName(), result);
+			}
+		}
 
-        allResults.forEach((key, value) -> {
-            assertTrue(value.get(0) instanceof ConstantValue);
+		allResults.forEach((key, value) -> {
+			assertTrue(value.get(0) instanceof ConstantValue);
 
-            MarkIntermediateResult inner = value.get(0);
+			MarkIntermediateResult inner = value.get(0);
 
-            if (key.endsWith("true")) {
-                assertEquals(true, ((ConstantValue) inner).getValue(), key);
-            } else if (key.endsWith("false")) {
-                assertEquals(false, ((ConstantValue) inner).getValue(), key);
-            } else if (key.endsWith("fail")) {
-                assertTrue(ConstantValue.isError(inner));
-            } else {
-                fail("Unexpected: Rule should have failed, but is " + inner + ": " + key);
-            }
-        });
-    }
+			if (key.endsWith("true")) {
+				assertEquals(true, ((ConstantValue) inner).getValue(), key);
+			} else if (key.endsWith("false")) {
+				assertEquals(false, ((ConstantValue) inner).getValue(), key);
+			} else if (key.endsWith("fail")) {
+				assertTrue(ConstantValue.isError(inner));
+			} else {
+				fail("Unexpected: Rule should have failed, but is " + inner + ": " + key);
+			}
+		});
+	}
 
-    @Test
-    public void testEquals() throws Exception {
-        test("equals.mark");
-    }
+	@Test
+	void testEquals() {
+		test("equals.mark");
+	}
 
-    @Test
-    public void testLessThan() throws Exception {
-        test("lt.mark");
-    }
+	@Test
+	void testLessThan() {
+		test("lt.mark");
+	}
 
-    @Test
-    public void testGreaterThan() throws Exception {
-        test("gt.mark");
-    }
+	@Test
+	void testGreaterThan() {
+		test("gt.mark");
+	}
 }

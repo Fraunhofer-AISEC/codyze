@@ -20,6 +20,7 @@ import de.fraunhofer.aisec.cpg.graph.Literal;
 import de.fraunhofer.aisec.cpg.graph.MemberExpression;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.NewExpression;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.ValueDeclaration;
 import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.cpg.graph.type.Type;
@@ -95,7 +96,7 @@ public class CrymlinQueryWrapper {
 	 */
 	@NonNull
 	private static Set<Vertex> getCtors(
-			@NonNull Database db,
+			@NonNull Database<Node> db,
 			@NonNull CrymlinTraversalSource crymlinTraversal,
 			@NonNull String fqnName,
 			EList<Parameter> parameters) {
@@ -146,7 +147,7 @@ public class CrymlinQueryWrapper {
 	 */
 	@NonNull
 	private static Set<Vertex> getCalls(
-			@NonNull Database db,
+			@NonNull Database<Node> db,
 			@NonNull CrymlinTraversalSource crymlinTraversal,
 			@NonNull String fqnName,
 			EList<Parameter> parameters) {
@@ -181,7 +182,7 @@ public class CrymlinQueryWrapper {
 	 * @param sourceArguments List of Vertices. Each Vertex is expected to have an "argumentIndex" property.
 	 * @return
 	 */
-	private static boolean argumentsMatchParameters(@NonNull Database db, EList<Parameter> markParameters, @NonNull List<Vertex> sourceArguments) {
+	private static boolean argumentsMatchParameters(@NonNull Database<Node> db, EList<Parameter> markParameters, @NonNull List<Vertex> sourceArguments) {
 		int i = 0;
 
 		while (i < markParameters.size() && i < sourceArguments.size()) {
@@ -255,7 +256,7 @@ public class CrymlinQueryWrapper {
 	 * @param v
 	 * @return
 	 */
-	public static boolean isCallExpression(@NonNull Database db, Vertex v) {
+	public static boolean isCallExpression(@NonNull Database<Node> db, Vertex v) {
 		if (v.label()
 				.equals(CallExpression.class.getSimpleName())) {
 			return true;
@@ -288,7 +289,7 @@ public class CrymlinQueryWrapper {
 	 * @param crymlin   A CrymlinTraversalSource for querying the CPG.
 	 * @return List of Vertex objects whose label is "DeclaredReferenceExpression".
 	 */
-	public static List<CPGVertexWithValue> getMatchingVertices(@NonNull Database db, @NonNull String markVar, @NonNull MRule rule, Mark markModel,
+	public static List<CPGVertexWithValue> getMatchingVertices(@NonNull Database<Node> db, @NonNull String markVar, @NonNull MRule rule, Mark markModel,
 			@NonNull CrymlinTraversalSource crymlin) {
 		final List<CPGVertexWithValue> matchingVertices = new ArrayList<>();
 		// Split MARK variable "myInstance.attribute" into "myInstance" and "attribute".
@@ -498,7 +499,7 @@ public class CrymlinQueryWrapper {
 	 * @param markVar
 	 * @return
 	 */
-	private static List<CPGVertexWithValue> resolveValuesForVertices(@NonNull Database db, List<CPGVertexWithValue> vertices, @NonNull String markVar) {
+	private static List<CPGVertexWithValue> resolveValuesForVertices(@NonNull Database<Node> db, List<CPGVertexWithValue> vertices, @NonNull String markVar) {
 		List<CPGVertexWithValue> ret = new ArrayList<>();
 
 		for (CPGVertexWithValue v : vertices) {
@@ -551,7 +552,7 @@ public class CrymlinQueryWrapper {
 	}
 
 	public static Set<Vertex> getVerticesForFunctionDeclaration(
-			@NonNull Database db,
+			@NonNull Database<Node> db,
 			de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration functionDeclaration,
 			CrymlinTraversalSource crymlinTraversal) {
 
@@ -669,8 +670,8 @@ public class CrymlinQueryWrapper {
 		return Optional.empty();
 	}
 
-	public static Map<Integer, List<CPGVertexWithValue>> resolveOperand(@NonNull Database db, MarkContextHolder context, @NonNull String markVar, @NonNull MRule rule,
-			Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
+	public static Map<Integer, List<CPGVertexWithValue>> resolveOperand(@NonNull Database<Node> db, MarkContextHolder context, @NonNull String markVar, @NonNull MRule rule,
+																		Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 
 		HashMap<Integer, List<CPGVertexWithValue>> verticesPerContext = new HashMap<>();
 
@@ -760,7 +761,7 @@ public class CrymlinQueryWrapper {
 	 * @param declRefExpr
 	 * @return
 	 */
-	public static Set<ValueDeclaration> getDeclarationSites(@NonNull Database db, @NonNull DeclaredReferenceExpression declRefExpr) {
+	public static Set<ValueDeclaration> getDeclarationSites(@NonNull Database<Node> db, @NonNull DeclaredReferenceExpression declRefExpr) {
 		Set<Vertex> refersTo = db.getGraph().traversal().V(declRefExpr.getId()).outE(REFERS_TO).inV().toBulkSet();
 		Set<ValueDeclaration> varDecls = new HashSet<>();
 		for (Vertex v : refersTo) {
@@ -889,7 +890,7 @@ public class CrymlinQueryWrapper {
 	 * @return
 	 */
 	@NonNull
-	public static Set<Type> getPossibleSubTypes(@NonNull Database db, @NonNull Vertex next) {
+	public static Set<Type> getPossibleSubTypes(@NonNull Database<Node> db, @NonNull Vertex next) {
 		Set<Type> types = new HashSet<>();
 		UnmodifiableIterator<Edge> it = Iterators.filter(next.edges(Direction.OUT, TYPE, POSSIBLE_SUB_TYPES), v -> Utils.hasLabel(v.inVertex(), Type.class));
 		it.forEachRemaining(e -> types.add((Type) db.vertexToNode(e.inVertex())));

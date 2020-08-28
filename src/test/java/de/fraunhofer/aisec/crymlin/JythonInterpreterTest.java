@@ -20,9 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Testing the Crymlin console. */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-// has problems on OSX
-@Disabled
-public class JythonInterpreterTest {
+class JythonInterpreterTest {
 
 	private static JLineConsole jlineConsole;
 	private static PrintStream originalErr;

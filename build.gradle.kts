@@ -112,7 +112,6 @@ dependencies {
     api("org.apache.tinkerpop:tinkergraph-gremlin:3.4.3")
     api("org.apache.tinkerpop:gremlin-driver:3.4.3")
     api("org.apache.tinkerpop:neo4j-gremlin:3.4.3")     // Neo4j multi-label support for gremlin
-    api("com.steelbridgelabs.oss:neo4j-gremlin-bolt:0.3.1")   // For fast bolt:    // access to Neo4J
 
     // Fast in-memory graph DB (alternative to Neo4J)
     api("io.shiftleft:overflowdb-tinkerpop3:0.128")

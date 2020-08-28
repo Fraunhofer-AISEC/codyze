@@ -8,16 +8,6 @@ import de.fraunhofer.aisec.cpg.graph.EdgeProperty;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
-import overflowdb.EdgeFactory;
-import overflowdb.EdgeLayoutInformation;
-import overflowdb.NodeFactory;
-import overflowdb.NodeLayoutInformation;
-import overflowdb.NodeRef;
-import overflowdb.OdbConfig;
-import overflowdb.OdbEdge;
-import overflowdb.OdbGraph;
-import overflowdb.OdbNode;
-import overflowdb.OdbNodeProperty;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -42,6 +32,16 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import overflowdb.EdgeFactory;
+import overflowdb.EdgeLayoutInformation;
+import overflowdb.NodeFactory;
+import overflowdb.NodeLayoutInformation;
+import overflowdb.NodeRef;
+import overflowdb.OdbConfig;
+import overflowdb.OdbEdge;
+import overflowdb.OdbGraph;
+import overflowdb.OdbNode;
+import overflowdb.OdbNodeProperty;
 
 import java.io.File;
 import java.io.IOException;
@@ -111,10 +111,11 @@ public class OverflowDatabase<N> implements Database<N> {
 	 */
 	private static final String CPG_PACKAGE = "de.fraunhofer.aisec.cpg.graph";
 
-	private static OverflowDatabase INSTANCE;
 	private final ServerConfiguration config;
 
 	private OdbGraph graph;
+	private OdbConfig odbConfig;
+
 	private static final Map<String, List<Field>> fieldsIncludingSuperclasses = new HashMap<>();
 	private static final Map<String, Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>>> inAndOutFields = new HashMap<>();
 	private static final Map<String, Map<String, Object>> edgeProperties = new HashMap<>();
@@ -124,13 +125,6 @@ public class OverflowDatabase<N> implements Database<N> {
 	private static final Map<String, String[]> subClasses = new HashMap<>();
 	private static final Map<String, String[]> superClasses = new HashMap<>();
 
-	private final Map<Long, N> nodesCache = new HashMap<>(); // Key is actually v.id() (Long)
-	private Map<N, Vertex> nodeToVertex = new IdentityHashMap<>(); // No cache.
-	private Set<N> saved = new HashSet<>();
-
-	// maps from vertex ID to edge targets (map label to IDs of target vertices)
-	private Map<Object, Map<String, Set<Object>>> edgesCache = new HashMap<>();
-
 	// Scan all classes in package
 	private static final Reflections reflections = new Reflections(
 		new ConfigurationBuilder()
@@ -139,12 +133,21 @@ public class OverflowDatabase<N> implements Database<N> {
 					new ResourcesScanner())
 				.setUrls(ClasspathHelper.forPackage(CPG_PACKAGE))
 				.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
-	private OdbConfig odbConfig;
+
+	/**
+	 * maps from vertex ID to edge targets (map label to IDs of target vertices)
+	 */
+	private Map<Object, Map<String, Set<Object>>> edgesCache = new HashMap<>();
+	private final Map<N, Vertex> nodeToVertex = new IdentityHashMap<>(); // No cache.
+	private final Map<Long, N> nodesCache = new HashMap<>(); // Key is actually v.id() (Long)
+	private final Set<N> saved = new HashSet<>();
 
 	public OverflowDatabase(ServerConfiguration config) {
 		try {
-			// Delete overflow cache file. Otherwise, OverflowDB will try to initialize the DB from it.
-			Files.deleteIfExists(new File("graph-cache-overflow.bin").toPath());
+			if (!config.disableOverflow) {
+				// Delete overflow cache file. Otherwise, OverflowDB will try to initialize the DB from it.
+				Files.deleteIfExists(new File("graph-cache-overflow.bin").toPath());
+			}
 		}
 		catch (IOException e) {
 			log.error("IO", e);
@@ -808,7 +811,6 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	public void destroy() {
 		close();
-		INSTANCE = null;
 	}
 
 	public long getNumNodes() {

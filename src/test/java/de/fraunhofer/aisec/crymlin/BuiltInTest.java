@@ -24,8 +24,8 @@ public class BuiltInTest extends AbstractMarkTest {
 	public void clearDatabase() {
 		// Make sure we start with a clean (and connected) db
 		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
+			var db = OverflowDatabase.getInstance();
+			db.connect(true);
 			db.clearDatabase();
 		}
 		catch (Throwable e) {

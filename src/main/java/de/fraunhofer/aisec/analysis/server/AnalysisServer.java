@@ -142,6 +142,9 @@ public class AnalysisServer {
 
 		loadMarkRulesFromConfig();
 
+		var db = OverflowDatabase.getInstance();
+		db.connect(config.disableOverflow);
+
 		// Initialize JythonInterpreter
 		log.info("Launching crymlin query interpreter ...");
 		interp = new JythonInterpreter();
@@ -429,41 +432,13 @@ public class AnalysisServer {
 		return translationResult;
 	}
 
-	/**
-	 * @deprecated (Neo4J support will be phased out in the near future)
-	 * @param result
-	 * @return
-	 */
-	@Deprecated(forRemoval = true)
-	private TranslationResult persistToNeo4J(TranslationResult result) {
-		Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
-		// Persist the result
-		Neo4jDatabase.getInstance().connect(); // this does not connect again if we are already connected
-		Neo4jDatabase.getInstance().clearDatabase();
-		Neo4jDatabase<Node> db = Neo4jDatabase.getInstance();
-		db.saveAll(result.getTranslationUnits());
-		long duration = b.stop();
-		// connect to DB
-		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
-			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-			Long numEdges = crymlinTraversal.E().count().next();
-			Long numVertices = crymlinTraversal.V().count().next();
-			log.info(
-				"Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
-				numVertices,
-				String.format("%.2f", (double) duration / numVertices),
-				numEdges,
-				String.format("%.2f", (double) duration / numEdges));
-		}
-		log.info("Benchmark: Persisted approx {} nodes", Neo4jDatabase.getInstance().getNumNodes());
-		return result;
-	}
-
 	private TranslationResult persistToODB(TranslationResult result) {
 		Benchmark bench = new Benchmark(this.getClass(), " Serializing into OverflowDB");
 		// Persist the result
 		OverflowDatabase.getInstance().clearDatabase();
 		OverflowDatabase<Node> db = OverflowDatabase.getInstance();
+		db.connect(config.disableOverflow);
+
 		db.saveAll(result.getTranslationUnits());
 		long duration = bench.stop();
 		// connect to DB
@@ -564,7 +539,7 @@ public class AnalysisServer {
 			files.add(f);
 		}
 
-		OverflowDatabase.getInstance().connect(); // simply returns if already connected
+		OverflowDatabase.getInstance().connect(config.disableOverflow); // simply returns if already connected
 		OverflowDatabase.getInstance().clearDatabase();
 
 		TranslationConfiguration.Builder tConfig = TranslationConfiguration.builder()

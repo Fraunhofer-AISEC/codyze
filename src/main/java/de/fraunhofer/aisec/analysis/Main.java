@@ -71,9 +71,7 @@ public class Main implements Callable<Integer> {
 		}
 
 		// Warm up OverflowDB in parallel (esp. creating edge factories by reflection takes a few ms)
-		Executors.newSingleThreadExecutor().submit(() -> {
-			OverflowDatabase.getInstance();
-		}).get();
+		Executors.newSingleThreadExecutor().submit((Runnable) OverflowDatabase::getInstance).get();
 
 		AnalysisServer server = AnalysisServer.builder()
 				.config(ServerConfiguration.builder()

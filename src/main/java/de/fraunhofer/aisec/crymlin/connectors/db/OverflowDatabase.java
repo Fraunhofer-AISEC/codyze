@@ -17,8 +17,6 @@ import io.shiftleft.overflowdb.OdbEdge;
 import io.shiftleft.overflowdb.OdbGraph;
 import io.shiftleft.overflowdb.OdbNode;
 import io.shiftleft.overflowdb.OdbNodeProperty;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -110,17 +108,16 @@ public class OverflowDatabase<N> implements Database<N> {
 	private static final String CPG_PACKAGE = "de.fraunhofer.aisec.cpg.graph";
 
 	private static OverflowDatabase INSTANCE;
-	private final OdbGraph graph;
-	private final Map<String, List> fieldsIncludingSuperclasses;
-	private final Map<String, Pair> inAndOutFields;
-	private final Map<String, Map> edgeProperties;
+	private OdbGraph graph;
+	private final Map<String, List<Field>> fieldsIncludingSuperclasses;
+	private final Map<String, Pair<List<EdgeLayoutInformation>, List<EdgeLayoutInformation>>> inAndOutFields;
+	private final Map<String, Map<String, Object>> edgeProperties;
 	private final Map<String, Boolean> mapsToRelationship;
 	private final Map<String, Boolean> mapsToProperty;
 	private final Map<Long, N> nodesCache; // Key is actually v.id() (Long)
 	private final Map<String, NodeLayoutInformation> layoutinformation;
 	private final Map<String, String[]> subClasses;
 	private final Map<String, String[]> superClasses;
-	private final OdbConfig odbConfig;
 
 	private Map<N, Vertex> nodeToVertex = new IdentityHashMap<>(); // No cache.
 	private Set<N> saved = new HashSet<>();
@@ -138,20 +135,12 @@ public class OverflowDatabase<N> implements Database<N> {
 					new ResourcesScanner())
 				.setUrls(ClasspathHelper.forPackage(CPG_PACKAGE))
 				.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(CPG_PACKAGE))));
+	private OdbConfig odbConfig;
 
 	private OverflowDatabase() {
-		// Initialize EhCache to cache some heavyweight reflection
-		tmpCacheDir = "." + File.separator;
 		try {
 			// Delete overflow cache file. Otherwise, OverflowDB will try to initialize the DB from it.
 			Files.deleteIfExists(new File("graph-cache-overflow.bin").toPath());
-
-			// Make sure there a directory for EhCache disk overflow (not used at the moment).
-			tmpCacheDir = Files.createTempDirectory("cache").toFile().getAbsolutePath();
-			File f = new File("cache");
-			if (!f.exists()) {
-				Files.createDirectory(f.toPath());
-			}
 		}
 		catch (IOException e) {
 			log.error("IO", e);
@@ -167,29 +156,15 @@ public class OverflowDatabase<N> implements Database<N> {
 		subClasses = new HashMap<>();
 		superClasses = new HashMap<>();
 
-		// Create factories for nodes and edges of CPG.
-		Pair<List<NodeFactory<OdbNode>>, List<EdgeFactory<OdbEdge>>> factories = getFactories();
-		List<NodeFactory<OdbNode>> nodeFactories = factories.getValue0();
-		List<EdgeFactory<OdbEdge>> edgeFactories = factories.getValue1();
-
-		// Create OverflowDatabase
-		odbConfig = OdbConfig.withDefaults()
-				.withStorageLocation("graph-cache-overflow.bin") // Overflow file
-				.withHeapPercentageThreshold(5); // Threshold for mem-to-disk overflow
-		graph = OdbGraph.open(
-			odbConfig,
-			Collections.unmodifiableList(nodeFactories),
-			Collections.unmodifiableList(edgeFactories));
-
 		// This is how to create indices. Unused at the moment.
 		// graph.createIndex("EOG", Vertex.class);
 	}
 
 	public static <N> OverflowDatabase<N> getInstance() {
 		// Intentional double checking for performance+thread safety
-		if (INSTANCE == null || INSTANCE.graph.isClosed()) {
+		if (INSTANCE == null || INSTANCE.graph == null || INSTANCE.graph.isClosed()) {
 			synchronized (OverflowDatabase.class) {
-				if (INSTANCE == null || INSTANCE.graph.isClosed()) {
+				if (INSTANCE == null || INSTANCE.graph == null || INSTANCE.graph.isClosed()) {
 					INSTANCE = new OverflowDatabase();
 				}
 			}
@@ -199,7 +174,28 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	@Override
 	public boolean connect() {
-		// Nothing to do. No remote connection
+		return connect(false);
+	}
+
+	public boolean connect(boolean disableOverflow) {
+		// Create factories for nodes and edges of CPG.
+		Pair<List<NodeFactory<OdbNode>>, List<EdgeFactory<OdbEdge>>> factories = getFactories();
+		List<NodeFactory<OdbNode>> nodeFactories = factories.getValue0();
+		List<EdgeFactory<OdbEdge>> edgeFactories = factories.getValue1();
+
+		odbConfig = OdbConfig.withDefaults();
+
+		if (disableOverflow) {
+			odbConfig.disableOverflow();
+		} else {
+			odbConfig.withStorageLocation("graph-cache-overflow.bin").withHeapPercentageThreshold(5);
+		}
+
+		graph = OdbGraph.open(
+			odbConfig,
+			Collections.unmodifiableList(nodeFactories),
+			Collections.unmodifiableList(edgeFactories));
+
 		return true;
 	}
 
@@ -376,13 +372,12 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	private void handleCollections(N node, Field f, List<N> targets, Class<?> collectionType)
 			throws InstantiationException, IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException {
+			NoSuchMethodException, ClassNotFoundException {
 		Collection targetCollection;
+		Class<?> clazz = Class.forName("java.util.ImmutableCollections");
+
 		if (collectionType.getEnclosingClass() != null
-				&& collectionType
-						.getEnclosingClass()
-						.getName()
-						.equals("java.util.ImmutableCollections")) { // NOSONAR
+				&& clazz.isAssignableFrom(collectionType.getEnclosingClass())) {
 			// immutable collections have size 1 and 2 as special cases
 			Constructor<?> constructor;
 			switch (targets.size()) {
@@ -408,7 +403,7 @@ public class OverflowDatabase<N> implements Database<N> {
 				default:
 					constructor = collectionType.getDeclaredConstructor(Object[].class);
 					constructor.setAccessible(true);
-					targetCollection = (Collection) constructor.newInstance(new Object[] { targets.toArray() });
+					targetCollection = (Collection) constructor.newInstance(targets.toArray());
 					break;
 			}
 		} else {
@@ -418,7 +413,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		f.set(node, targetCollection);
 	}
 
-	public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+	private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
 		Set<Object> seen = ConcurrentHashMap.newKeySet();
 		return t -> seen.add(keyExtractor.apply(t));
 	}
@@ -608,7 +603,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
 				Direction direction = getRelationshipDirection(f);
 				String relName = getRelationshipLabel(f);
-				Map<String, Object> edgeProperties = getEdgeProperties(f);
+				Map<String, Object> edgePropertiesForField = getEdgeProperties(f);
 
 				try {
 					f.setAccessible(true);
@@ -623,13 +618,19 @@ public class OverflowDatabase<N> implements Database<N> {
 					// Create an edge from a field value
 					if (isCollection(x.getClass())) {
 						// Add multiple edges for collections
-						connectAll(v, relName, edgeProperties, (Collection) x, direction.equals(Direction.IN));
+						connectAll(
+							v, relName, edgePropertiesForField, (Collection) x, direction.equals(Direction.IN));
 					} else if (Node[].class.isAssignableFrom(x.getClass())) {
 						connectAll(
-							v, relName, edgeProperties, Arrays.asList(x), direction.equals(Direction.IN));
+							v,
+							relName,
+							edgePropertiesForField,
+							Collections.singletonList(x),
+							direction.equals(Direction.IN));
 					} else {
 						// Add single edge for non-collections
-						Vertex target = connect(v, relName, edgeProperties, (Node) x, direction.equals(Direction.IN));
+						Vertex target = connect(
+							v, relName, edgePropertiesForField, (Node) x, direction.equals(Direction.IN));
 						assert target.property("hashCode").value().equals(x.hashCode());
 					}
 				}
@@ -744,7 +745,7 @@ public class OverflowDatabase<N> implements Database<N> {
 			return true;
 		}
 
-		// check whether this is some kind of primitive datatype that seems likely to be a property
+		// check whe ther this is some kind of primitive datatype that seems likely to be a property
 		String type = getContainedType(f).getTypeName();
 
 		boolean result = PRIMITIVES.contains(type) || AUTOBOXERS.contains(type);
@@ -779,7 +780,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		return result;
 	}
 
-	public static String[] getSuperclasses(Class<?> c) {
+	private static String[] getSuperclasses(Class<?> c) {
 		OverflowDatabase<?> instance = OverflowDatabase.getInstance();
 		if (instance.superClasses.containsKey(c.getName())) {
 			return instance.superClasses.get(c.getName());
@@ -805,21 +806,26 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	@Override
 	public void close() {
-		// do not save database on close
-		this.odbConfig.withStorageLocation(null);
+		if (this.odbConfig != null) {
+			// do not save database on close
+			this.odbConfig.withStorageLocation(null);
+		}
 
 		// Clear saved nodes.
 		this.saved.clear();
 
 		// Close graph
 		try {
-			this.graph.traversal().V().drop();
-			this.graph.traversal().E().drop();
-			this.graph.close();
+			if (this.graph != null) {
+				this.graph.traversal().V().drop();
+				this.graph.traversal().E().drop();
+				this.graph.close();
+			}
 		}
 		catch (Exception e) {
 			log.error("Closing graph", e);
 		}
+
 		this.nodeToVertex.clear();
 
 		// delete tmp folder
@@ -884,7 +890,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					continue;
 				}
 
-				/**
+				/*
 				 * Handle situation where class A has a field f to class B:
 				 *
 				 * <p>B and all of its subclasses need to accept INCOMING edges labeled "f". Additionally,
@@ -922,7 +928,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					}
 				}
 
-				EdgeFactory<OdbEdge> edgeFactory = new EdgeFactory<OdbEdge>() {
+				EdgeFactory<OdbEdge> edgeFactory = new EdgeFactory<>() {
 					@Override
 					public String forLabel() {
 						return getRelationshipLabel(field);
@@ -948,21 +954,12 @@ public class OverflowDatabase<N> implements Database<N> {
 		}
 
 		List<Field> fields = new ArrayList<>();
-		try {
-			var beanInfo = Introspector.getBeanInfo(c);
-			var pds = beanInfo.getPropertyDescriptors();
-
-			var parent = c;
-			while (parent != Object.class) {
-				fields.addAll(Arrays.asList(parent.getDeclaredFields()));
-				parent = parent.getSuperclass();
-			}
-			fieldsIncludingSuperclasses.putIfAbsent(c.getName(), fields);
-
+		var parent = c;
+		while (parent != Object.class) {
+			fields.addAll(Arrays.asList(parent.getDeclaredFields()));
+			parent = parent.getSuperclass();
 		}
-		catch (IntrospectionException e) {
-			e.printStackTrace();
-		}
+		fieldsIncludingSuperclasses.putIfAbsent(c.getName(), fields);
 
 		return fields;
 	}

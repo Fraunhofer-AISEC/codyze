@@ -78,7 +78,7 @@ class GithubTest {
 
 	@BeforeAll
 	static void setup() {
-		OverflowDatabase.getInstance().connect();
+		OverflowDatabase.getInstance().connect(true);
 		OverflowDatabase.getInstance().close();
 
 		ClassLoader classLoader = GithubTest.class.getClassLoader();

@@ -2,9 +2,10 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
-import java.io.File;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.io.File;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {

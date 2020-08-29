@@ -5,7 +5,10 @@ import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 public class MEntity {
 

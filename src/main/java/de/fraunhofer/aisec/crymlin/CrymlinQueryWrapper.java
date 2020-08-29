@@ -26,7 +26,6 @@ import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.cpg.graph.type.Type;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
@@ -256,7 +255,7 @@ public class CrymlinQueryWrapper {
 	 * @param v
 	 * @return
 	 */
-	public static boolean isCallExpression(@NonNull Database<Node> db, Vertex v) {
+	public static boolean isCallExpression(Vertex v) {
 		if (v.label()
 				.equals(CallExpression.class.getSimpleName())) {
 			return true;

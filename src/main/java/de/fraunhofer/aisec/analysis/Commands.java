@@ -5,10 +5,8 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalDsl;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
-import de.fraunhofer.aisec.crymlin.dsl.DefaultCrymlinTraversal;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -23,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_QUERY;
 import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_SERVER;

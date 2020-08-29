@@ -15,7 +15,7 @@ public class TraversalConnection implements AutoCloseable {
 	private final Graph tg;
 	private final CrymlinTraversalSource crymlinSource;
 
-	public TraversalConnection(@NonNull Database db) {
+	public TraversalConnection(@NonNull Database<?> db) {
 		this.tg = db.getGraph();
 		this.crymlinSource = this.tg.traversal(CrymlinTraversalSource.class);
 	}

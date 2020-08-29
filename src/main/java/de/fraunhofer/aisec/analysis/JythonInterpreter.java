@@ -13,9 +13,17 @@ import org.python.core.PyMethod;
 import org.python.jline.console.completer.Completer;
 import org.python.util.JLineConsole;
 
-import javax.script.*;
+import javax.script.Bindings;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.python.jline.internal.Ansi.stripAnsi;
@@ -72,7 +80,7 @@ public class JythonInterpreter implements AutoCloseable {
 	private CrymlinConsole c;
 
 	/** Connect to the graph database and initialize the internal Jython engine. */
-	public void connect(@NonNull Database db) {
+	public void connect(@NonNull Database<?> db) {
 		traversalConnection = new TraversalConnection(db);
 
 		// Make Java objects available with a few shorthand aliases in python

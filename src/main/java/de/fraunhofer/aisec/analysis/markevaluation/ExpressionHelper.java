@@ -2,7 +2,22 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.AlternativeExpression;
+import de.fraunhofer.aisec.mark.markDsl.Argument;
+import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
+import de.fraunhofer.aisec.mark.markDsl.Expression;
+import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
+import de.fraunhofer.aisec.mark.markDsl.Literal;
+import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
+import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
+import de.fraunhofer.aisec.mark.markDsl.Operand;
+import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
+import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
+import de.fraunhofer.aisec.mark.markDsl.Terminal;
+import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;

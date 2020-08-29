@@ -98,15 +98,15 @@ class JythonInterpreterTest {
 							.interrupt();
 				}
 			}
-			// instead of running a full analysis, just provide access to an empty database
-			interp.connect(new OverflowDatabase(ServerConfiguration.builder().disableOverflow(true).build()));
-
 			consoleAvailable.signalAll();
 			lock.unlock();
 		}).start();
 		lock.lock();
 		consoleAvailable.await(100, TimeUnit.SECONDS);
 		lock.unlock();
+
+		// instead of running a full analysis, just provide access to an empty database
+		interp.connect(new OverflowDatabase(ServerConfiguration.builder().disableOverflow(true).build()));
 
 		jlineConsole = (JLineConsole) Py.getConsole();
 

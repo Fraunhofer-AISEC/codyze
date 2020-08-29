@@ -33,7 +33,6 @@ import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -125,8 +124,6 @@ public class TypeStateAnalysis {
 			CrymlinTraversalSource crymlinTraversal,
 			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for {} and {}", ctx, crymlinTraversal);
-
-		var db = ctx.getDatabase();
 
 		instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 		this.rule = rule;
@@ -478,7 +475,7 @@ public class TypeStateAnalysis {
 		/*
 		  Handle calls into known methods (not a "phantom" method) by creating push rule.
 		 */
-		if (isCallExpression(ctx.getDatabase(), currentStmtVertex) && !isPhantom((CallExpression) stmtNode)) {
+		if (isCallExpression(currentStmtVertex) && !isPhantom((CallExpression) stmtNode)) {
 			CallExpression callE = (CallExpression) stmtNode;
 			/*
 			 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
@@ -656,7 +653,7 @@ public class TypeStateAnalysis {
 			numberOfOutgoingEogs++;
 			eogs.next();
 		}
-		return isCallExpression(ctx.getDatabase(), v) || Utils.hasLabel(v, IfStatement.class) || v.edges(Direction.IN, CrymlinConstants.STATEMENTS).hasNext()
+		return isCallExpression(v) || Utils.hasLabel(v, IfStatement.class) || v.edges(Direction.IN, CrymlinConstants.STATEMENTS).hasNext()
 				|| numberOfOutgoingEogs >= 2;
 	}
 

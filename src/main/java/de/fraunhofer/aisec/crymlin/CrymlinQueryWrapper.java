@@ -670,8 +670,9 @@ public class CrymlinQueryWrapper {
 		return Optional.empty();
 	}
 
-	public static Map<Integer, List<CPGVertexWithValue>> resolveOperand(@NonNull Database<Node> db, MarkContextHolder context, @NonNull String markVar, @NonNull MRule rule,
-																		Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
+	public static Map<Integer, List<CPGVertexWithValue>> resolveOperand(@NonNull Database<Node> db, MarkContextHolder context, @NonNull String markVar,
+			@NonNull MRule rule,
+			Mark markModel, @NonNull CrymlinTraversalSource crymlin) {
 
 		HashMap<Integer, List<CPGVertexWithValue>> verticesPerContext = new HashMap<>();
 

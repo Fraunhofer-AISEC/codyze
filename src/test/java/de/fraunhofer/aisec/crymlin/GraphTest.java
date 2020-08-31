@@ -237,7 +237,7 @@ class GraphTest {
 			Optional<Long> count = crymlin.functions()
 					.count()
 					.tryNext();
-			assertEquals(16, count.get());
+			assertEquals(17, count.get());
 		}
 	}
 

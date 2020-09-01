@@ -24,7 +24,7 @@ class RealBotanTest extends AbstractMarkTest {
 	public void testSimple() throws Exception {
 		// Just a very simple test to explore the graph
 		Set<Finding> findings = performTest("real-examples/botan/streamciphers/bsex.cpp", "real-examples/botan/streamciphers/bsex.mark");
-		GraphTraversalSource t = OverflowDatabase.getInstance()
+		GraphTraversalSource t = ctx.getDatabase()
 				.getGraph()
 				.traversal();
 

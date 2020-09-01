@@ -2,7 +2,11 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.breakpointsec.pushdown.IllegalTransitionException;
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.wpds.TypeStateAnalysis;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -33,7 +37,7 @@ public class OrderEvaluator {
 
 			case WPDS:
 				log.info("Evaluating order with WPDS");
-				TypeStateAnalysis ts = new TypeStateAnalysis(markContextHolder);
+				TypeStateAnalysis ts = new TypeStateAnalysis(markContextHolder, resultCtx);
 				try {
 					// NOTE: rule and orderExpression might be redundant as arguments
 					result = ts.analyze(orderExpression, contextID, resultCtx, crymlinTraversal, rule);

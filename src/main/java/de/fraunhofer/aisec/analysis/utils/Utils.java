@@ -275,7 +275,7 @@ public class Utils {
 	@NonNull
 	public static String getScope(@NonNull String fqn) {
 		int posDot = fqn.lastIndexOf('.');
-		int posColon = fqn.indexOf(':');
+		int posColon = fqn.lastIndexOf("::");
 		int pos = Math.max(posDot, posColon);
 		if (pos > -1 && pos < fqn.length() - 1) {
 			fqn = fqn.substring(0, pos);

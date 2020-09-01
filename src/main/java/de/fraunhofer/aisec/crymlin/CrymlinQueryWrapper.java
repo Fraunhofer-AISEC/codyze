@@ -193,6 +193,63 @@ public class CrymlinQueryWrapper {
 		return (i == markParameters.size() || endsWithEllipsis) && i == sourceArguments.size();
 	}
 
+	/**
+	 * Same as {@code argumentsMatchParameters(EList<Parameter>, List<Vertex>) } but for arguments as List<Expression>
+	 * @param markParameters
+	 * @param sourceArguments
+	 *
+	 * @return
+	 */
+	public static boolean argumentsMatchSourceParameters(EList<Parameter> markParameters, List<Expression> sourceArguments) {
+		int i = 0;
+
+		while (i < markParameters.size() && i < sourceArguments.size()) {
+			Parameter markParam = markParameters.get(i);
+
+			Set<Type> sourceArgs = new HashSet<>();
+			for (Expression arg : sourceArguments) {
+				sourceArgs.add(arg.getType());
+			}
+
+			if (sourceArgs.isEmpty()) {
+				log.error("Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argument types: {}",
+					String.join(", ", MOp.paramsToString(markParameters)));
+				return false;
+			}
+
+			if (Constants.ELLIPSIS.equals(markParam.getVar())) {
+				return true;
+			}
+
+			// UNDERSCORE means we do not care about this specific argument at all
+			if (Constants.UNDERSCORE.equals(markParam.getVar())) {
+				i++;
+				continue;
+			}
+
+			// ANY_TYPE means we have a MARK variable, but do not care about its type
+			if (Constants.ANY_TYPE.equals(markParam.getVar())) {
+				i++;
+				continue;
+			}
+
+			if (!Utils.isSubTypeOf(sourceArgs, markParam)) {
+				return false;
+			}
+
+			i++;
+		}
+
+		// If parameter list ends with an ELLIPSIS, we ignore the remaining arguments
+		boolean endsWithEllipsis = false;
+		if (i < markParameters.size()) {
+			List<Parameter> sublist = markParameters.subList(i, markParameters.size());
+			endsWithEllipsis = sublist.stream().allMatch(markParm -> Constants.ELLIPSIS.equals(markParm.getVar()));
+		}
+
+		return (i == markParameters.size() || endsWithEllipsis) && i == sourceArguments.size();
+	}
+
 	public static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {
 		return crymlin.byID(id)
 				.in("RHS")
@@ -207,12 +264,12 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
-	 * Returns true if the given vertex represents a CallExpression or a subclass thereof.
+	 * Returns true if the given vertex represents a CallExpression or a subclass of it.
 	 *
 	 * @param v
 	 * @return
 	 */
-	public static boolean isCallExpression(Vertex v) {
+	public static boolean isCallExpression(@NonNull Vertex v) {
 		if (v.label()
 				.equals(CallExpression.class.getSimpleName())) {
 			return true;
@@ -837,4 +894,5 @@ public class CrymlinQueryWrapper {
 		}
 		return Optional.empty();
 	}
+
 }

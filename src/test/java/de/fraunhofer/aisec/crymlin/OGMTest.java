@@ -60,15 +60,17 @@ public class OGMTest {
 
 	@Test
 	void allVerticesToNodes() throws Exception {
+		var db = result.getDatabase();
+
 		// Get all vertices from graph ...
-		Graph graph = OverflowDatabase.getInstance().getGraph();
+		Graph graph = db.getGraph();
 		Iterator<Vertex> vIt = graph.vertices();
 		int vertices = 0;
 		int verticesWithLabel = 0;
 		while (vIt.hasNext()) {
 			// ... and convert back to node
 			Vertex v = vIt.next();
-			Node n = OverflowDatabase.<Node> getInstance().vertexToNode(v);
+			Node n = db.vertexToNode(v);
 			assertNotNull(n);
 
 			// Vertices will always have an auto-generated ID ...
@@ -89,7 +91,7 @@ public class OGMTest {
 
 			// Number of edges should be same, no matter whether we get them directly from the vertex or via graph traversal.
 			long vEdgeCount = Iterators.size(v.edges(Direction.OUT));
-			long gEdgeCount = OverflowDatabase.getInstance().getGraph().traversal().V(v.id()).outE().count().next();
+			long gEdgeCount = db.getGraph().traversal().V(v.id()).outE().count().next();
 			assertEquals(vEdgeCount, gEdgeCount);
 
 			// Number of transitive edges should be same, no matter whether we get them directly from the vertex or via graph traversal.
@@ -100,7 +102,7 @@ public class OGMTest {
 						.inVertex()
 						.edges(Direction.OUT));
 			}
-			long gTranEdgeCount = OverflowDatabase.getInstance()
+			long gTranEdgeCount = db
 					.getGraph()
 					.traversal()
 					.V(v.id())
@@ -132,7 +134,9 @@ public class OGMTest {
 	/** Test proper edges around an <code>IfStatement</code> */
 	@Test
 	void testIfGraph() {
-		Vertex ifStmt = OverflowDatabase.getInstance()
+		var db = result.getDatabase();
+
+		Vertex ifStmt = db
 				.getGraph()
 				.traversal()
 				.V()
@@ -165,7 +169,7 @@ public class OGMTest {
 		ArrayList<Edge> elseEdges = Lists.newArrayList(ifStmt.edges(Direction.OUT, "ELSE_STATEMENT"));
 		assertEquals(0, elseEdges.size());
 
-		Vertex conditionExpr = OverflowDatabase.getInstance()
+		Vertex conditionExpr = db
 				.getGraph()
 				.traversal()
 				.V()
@@ -195,7 +199,7 @@ public class OGMTest {
 	@Test
 	void countTranslationUnits() throws Exception {
 		// Get all TranslationUnitDeclarations (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
+		GraphTraversal<Vertex, Vertex> traversal = result.getDatabase()
 				.getGraph()
 				.traversal()
 				.V()
@@ -209,7 +213,7 @@ public class OGMTest {
 	@Test
 	void countRecordDeclarations() throws Exception {
 		// Get all RecordDeclaration (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
+		GraphTraversal<Vertex, Vertex> traversal = result.getDatabase()
 				.getGraph()
 				.traversal()
 				.V()
@@ -223,7 +227,7 @@ public class OGMTest {
 	@Test
 	void countMethodDeclarations() throws Exception {
 		// Get all MethodDeclaration (including subclasses)
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
+		GraphTraversal<Vertex, Vertex> traversal = result.getDatabase()
 				.getGraph()
 				.traversal()
 				.V()
@@ -238,7 +242,7 @@ public class OGMTest {
 	void countEogEdges() throws Exception {
 		// Get all EOG edges
 
-		GraphTraversal<Vertex, Edge> traversal = OverflowDatabase.getInstance()
+		GraphTraversal<Vertex, Edge> traversal = result.getDatabase()
 				.getGraph()
 				.traversal()
 				.V()
@@ -255,10 +259,12 @@ public class OGMTest {
 
 	@Test
 	void retrieveAllTranslationUnits() throws Exception {
-		List<TranslationUnitDeclaration> original = server.getTranslationResult().getTranslationUnits();
-		OverflowDatabase.<Node> getInstance().saveAll(original);
+		var db = result.getDatabase();
 
-		GraphTraversal<Vertex, Vertex> traversal = OverflowDatabase.getInstance()
+		List<TranslationUnitDeclaration> original = server.getTranslationResult().getTranslationUnits();
+		db.saveAll(original);
+
+		GraphTraversal<Vertex, Vertex> traversal = db
 				.getGraph()
 				.traversal()
 				.V()
@@ -269,7 +275,7 @@ public class OGMTest {
 		while (traversal.hasNext()) {
 			Vertex v = traversal.next();
 
-			Node n = OverflowDatabase.<Node> getInstance().vertexToNode(v);
+			Node n = db.vertexToNode(v);
 			assertNotNull(n);
 			assertTrue(n instanceof TranslationUnitDeclaration, "n is not instanceof TranslationUnitDeclaration but " + n.getClass().getName());
 			restored.add((TranslationUnitDeclaration) n);
@@ -279,8 +285,10 @@ public class OGMTest {
 
 	@Test
 	void getContainingFunction() throws Exception {
-		Vertex p2Start = OverflowDatabase.getInstance().getGraph().traversal().V().has("code", "p2.start(iv);").next();
-		Vertex containingFunction = OverflowDatabase.getInstance()
+		var db = result.getDatabase();
+
+		Vertex p2Start = db.getGraph().traversal().V().has("code", "p2.start(iv);").next();
+		Vertex containingFunction = db
 				.getGraph()
 				.traversal()
 				.V(p2Start.id())
@@ -289,26 +297,5 @@ public class OGMTest {
 					__.inE().has("sub-graph", new P<>(String::contains, "AST")).outV())
 				.next();
 		assertEquals("nok2", containingFunction.property("name").value());
-	}
-
-	static class OverflowTest {
-
-		@Test
-		@Disabled // Requires a few minutes. Should be run manually.
-		void overflowTest() throws Exception {
-			URL resource = OGMTest.class.getClassLoader().getResource("unittests/qrc_bitcoin.cpp");
-			assertNotNull(resource);
-			File sourceFile = new File(resource.getFile());
-
-			TranslationConfiguration config = TranslationConfiguration.builder().sourceLocations(sourceFile).defaultPasses().debugParser(true).failOnError(true).build();
-
-			TranslationManager tm = TranslationManager.builder().config(config).build();
-			// Start an analysis server
-			AnalysisServer server = AnalysisServer.builder().config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).build()).build();
-			server.start();
-
-			result = server.analyze(tm).get();
-			OverflowDatabase.getInstance().saveAll(server.getTranslationResult().getTranslationUnits());
-		}
 	}
 }

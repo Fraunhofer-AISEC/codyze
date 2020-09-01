@@ -15,18 +15,6 @@ import org.junit.jupiter.api.Test;
 
 public class MarkJavaTest extends AbstractMarkTest {
 
-	@BeforeEach
-	public void clearDatabase() {
-		// Make sure we start with a clean (and connected) db
-		try {
-			OverflowDatabase.getInstance().clearDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
-	}
-
 	@Test
 	public void split_1() throws Exception {
 		Set<Finding> findings = performTest("mark_java/simplesplit_splitstring.java", "mark_java/splitstring.mark");

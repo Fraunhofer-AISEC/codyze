@@ -1,27 +1,54 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContext;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
-import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.Argument;
+import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
+import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
+import de.fraunhofer.aisec.mark.markDsl.Expression;
+import de.fraunhofer.aisec.mark.markDsl.FunctionCallExpression;
+import de.fraunhofer.aisec.mark.markDsl.IntegerLiteral;
+import de.fraunhofer.aisec.mark.markDsl.Literal;
+import de.fraunhofer.aisec.mark.markDsl.LiteralListExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalAndExpression;
+import de.fraunhofer.aisec.mark.markDsl.LogicalOrExpression;
+import de.fraunhofer.aisec.mark.markDsl.MultiplicationExpression;
+import de.fraunhofer.aisec.mark.markDsl.Operand;
+import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
+import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
+import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.python.antlr.base.expr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
-
-import static java.lang.Math.toIntExact;
 
 public class ExpressionEvaluator {
 
@@ -50,7 +77,7 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Checks MARK expression against the CPG using the given instance and markvar assignments
-	 *
+	 * <p>
 	 * the value of the result is true/false if the expression is true/false null if the expression could not be evaluated (i.e., an error in the mark rule or the
 	 * evaluation)
 	 *
@@ -376,10 +403,10 @@ public class ExpressionEvaluator {
 
 	/**
 	 * Returns evaluated argument values of a Builtin-call.
-	 *
+	 * <p>
 	 * A Builtin function "myFunction" may accept 3 arguments: "myFunction(a,b,c)". Each argument may be given in form of an Expression, e.g. "myFunction(0==1, cm.init(),
 	 * 42)".
-	 *
+	 * <p>
 	 * This method evaluates the Expressions of all arguments and return them as a list contained in the ResultWithContext
 	 *
 	 * @param argList the list of arguments to evaluate
@@ -463,7 +490,7 @@ public class ExpressionEvaluator {
 					continue;
 				}
 
-				ConstantValue cv = builtin.get().execute((ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
+				ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
 
 				result.put(entry.getKey(), cv);
 
@@ -757,7 +784,8 @@ public class ExpressionEvaluator {
 
 		if (resolvedOperand == null) {
 			// if this operand is not resolved yet in this expressionevaluation, resolve it
-			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(markContextHolder, operand, markRule, markModel, traversal);
+			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(resultCtx.getDatabase(), markContextHolder, operand, markRule,
+				markModel, traversal);
 			if (operandVertices.size() == 0) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
 			}

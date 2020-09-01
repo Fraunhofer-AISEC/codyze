@@ -8,27 +8,37 @@ import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TypestateMode;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
-import de.fraunhofer.aisec.markmodel.*;
+import de.fraunhofer.aisec.markmodel.MRule;
+import de.fraunhofer.aisec.markmodel.Mark;
+import de.fraunhofer.aisec.markmodel.MarkModelLoader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-public class RuleEnsureSemanticsTest {
+class RuleEnsureSemanticsTest {
 
 	private static HashMap<String, MarkModel> markModels;
 
 	@BeforeAll
-	public static void startup() throws Exception {
+	static void startup() {
 		URL resource = RuleEnsureSemanticsTest.class.getClassLoader().getResource("mark/rules/ensure/semantics/");
 		assertNotNull(resource);
 
@@ -53,18 +63,20 @@ public class RuleEnsureSemanticsTest {
 		assertFalse(markModels.isEmpty());
 	}
 
-	private void test(String markFileEnding) throws Exception {
+	private void test(String markFileEnding) {
 		List<String> markFilePaths = markModels.keySet().stream().filter(n -> n.endsWith(markFileEnding)).collect(Collectors.toList());
 		assertEquals(1, markFilePaths.size());
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
-		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
-		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)));
+		ServerConfiguration config = ServerConfiguration.builder().disableOverflow(true).markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
+		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)), new OverflowDatabase<>(config));
+
+		var db = ctx.getDatabase();
+		db.connect();
 
 		Map<String, Map<Integer, MarkIntermediateResult>> allResults = new TreeMap<>();
-		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
+		try (TraversalConnection t = new TraversalConnection(db)) { // connects to the DB
 			for (MRule r : mark.getRules()) {
-
 				MarkContextHolder markContextHolder = new MarkContextHolder();
 				markContextHolder.getAllContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
 
@@ -97,17 +109,17 @@ public class RuleEnsureSemanticsTest {
 	}
 
 	@Test
-	public void testEquals() throws Exception {
+	void testEquals() {
 		test("equals.mark");
 	}
 
 	@Test
-	public void testLessThan() throws Exception {
+	void testLessThan() {
 		test("lt.mark");
 	}
 
 	@Test
-	public void testGreaterThan() throws Exception {
+	void testGreaterThan() {
 		test("gt.mark");
 	}
 }

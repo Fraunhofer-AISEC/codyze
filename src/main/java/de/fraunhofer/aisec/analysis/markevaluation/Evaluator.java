@@ -2,7 +2,16 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.MarkContext;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
+import de.fraunhofer.aisec.analysis.structures.Pair;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.ConstructExpression;
@@ -19,19 +28,25 @@ import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
-import io.netty.util.Constant;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Evaluates all loaded MARK rules against the CPG.
- *
+ * <p>
  * returns a number of Findings if any of the rules are violated
  */
 public class Evaluator {
@@ -55,16 +70,16 @@ public class Evaluator {
 	 * This is the core of the MARK evaluation.
 	 *
 	 * @param result representing the analysed program, i.e., the CPG
-	 * @param ctx [out] the context storing the result of the evaluation. This could also include results from previous steps
+	 * @param ctx    [out] the context storing the result of the evaluation. This could also include results from previous steps
 	 */
 	public TranslationResult evaluate(@NonNull TranslationResult result, @NonNull final AnalysisContext ctx) {
 
 		Benchmark bOuter = new Benchmark(this.getClass(), "Mark evaluation");
 
-		try (TraversalConnection traversal = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) { // connects to the DB
+		try (TraversalConnection traversal = new TraversalConnection(ctx.getDatabase())) { // connects to the DB
 
 			log.info("Precalculating matching nodes");
-			assignCallVerticesToOps(traversal.getCrymlinTraversal());
+			assignCallVerticesToOps(ctx, traversal.getCrymlinTraversal());
 
 			log.info("Evaluate forbidden calls");
 			Benchmark b = new Benchmark(this.getClass(), "Evaluate forbidden calls");
@@ -93,12 +108,13 @@ public class Evaluator {
 
 	/**
 	 * Iterate over all MOps in all MEntities, find all call statements in CPG and assign them to their respective MOp.
-	 *
+	 * <p>
 	 * After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
 	 *
+	 * @param ctx
 	 * @param crymlinTraversal traversal-connection to the DB
 	 */
-	private void assignCallVerticesToOps(@NonNull CrymlinTraversalSource crymlinTraversal) {
+	private void assignCallVerticesToOps(@NonNull AnalysisContext ctx, @NonNull CrymlinTraversalSource crymlinTraversal) {
 		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		// iterate over all entities and precalculate:
 		// - call statements to vertices
@@ -109,7 +125,7 @@ public class Evaluator {
 				log.debug("Looking for call statements for {}", op.getName());
 				int numMatches = 0;
 				for (OpStatement opStmt : op.getStatements()) {
-					Set<Vertex> temp = CrymlinQueryWrapper.getVerticesForFunctionDeclaration(opStmt.getCall(), crymlinTraversal);
+					Set<Vertex> temp = CrymlinQueryWrapper.getVerticesForFunctionDeclaration(ctx.getDatabase(), opStmt.getCall(), crymlinTraversal);
 					log.debug(
 						"Call {}({}) of op {} found {} times",
 						opStmt.getCall().getName(),
@@ -131,7 +147,7 @@ public class Evaluator {
 	/**
 	 * Evaluates all rules and creates findings.
 	 *
-	 * @param ctx the result/analysis context
+	 * @param ctx              the result/analysis context
 	 * @param crymlinTraversal connection to the db
 	 */
 	private void evaluateRules(AnalysisContext ctx, @NonNull CrymlinTraversalSource crymlinTraversal) {
@@ -261,9 +277,9 @@ public class Evaluator {
 
 	/**
 	 * Evaluates the "when" part of a rule and removes all entries from "markCtxHolder" to which the condition does not apply.
-	 *
+	 * <p>
 	 * If the "when" part is not satisfied, the "MarkContextHolder" will be empty.
-	 *
+	 * <p>
 	 * The markContextHolder parameter is modified as a side effect.
 	 *
 	 * @param rule
@@ -323,11 +339,11 @@ public class Evaluator {
 
 	/**
 	 * Collect all entities, and calculate which instances correspond to the entity.
-	 *
+	 * <p>
 	 * For instance, an entity "Cipher" may be referenced by "c1" and "c2" in a MARK rule.
-	 *
+	 * <p>
 	 * The "Cipher" entity might refer to three actual object variables in the program: "v1", "v2", "v3".
-	 *
+	 * <p>
 	 * In that case, the function will return [ [ (c1, v1) , (c1, v2), (c1, v3) ] [ (c2, c1), (c2, v2), (c2, v3) ] ]
 	 *
 	 * @param rule

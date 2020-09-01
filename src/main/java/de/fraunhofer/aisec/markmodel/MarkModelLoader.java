@@ -3,7 +3,12 @@ package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
 import de.fraunhofer.aisec.analysis.structures.Pair;
-import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration;
+import de.fraunhofer.aisec.mark.markDsl.EntityStatement;
+import de.fraunhofer.aisec.mark.markDsl.MarkModel;
+import de.fraunhofer.aisec.mark.markDsl.OpDeclaration;
+import de.fraunhofer.aisec.mark.markDsl.RuleDeclaration;
+import de.fraunhofer.aisec.mark.markDsl.VariableDeclaration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.jline.internal.Log;

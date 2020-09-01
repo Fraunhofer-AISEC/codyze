@@ -1,26 +1,29 @@
 
 package de.fraunhofer.aisec.crymlin.connectors.db;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+
 import java.util.Collection;
-import java.util.Map;
 
 public interface Database<N> {
 
-	public boolean connect();
+	boolean connect();
 
-	public boolean isConnected();
+	boolean isConnected();
 
-	public <T extends N> T find(Class<T> clazz, Long id);
+	<T extends N> T find(Class<T> clazz, Long id);
 
-	public void saveAll(Collection<? extends N> list);
+	void saveAll(Collection<? extends N> list);
 
-	public void clearDatabase();
+	void clearDatabase();
 
-	public void close();
+	void close();
 
-	public <T> Iterable<T> search(Class<T> clazz, String query, Map<String, String> parameters);
+	long getNumNodes();
 
-	public long getNumNodes();
+	N vertexToNode(Vertex v);
 
-	public void setCancelled();
+	Graph getGraph();
+
 }

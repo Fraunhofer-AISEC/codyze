@@ -1,12 +1,21 @@
 
 package de.fraunhofer.aisec.markmodel.fsm;
 
-import de.fraunhofer.aisec.mark.markDsl.*;
+import de.fraunhofer.aisec.mark.markDsl.AlternativeExpression;
+import de.fraunhofer.aisec.mark.markDsl.Expression;
+import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
+import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
+import de.fraunhofer.aisec.mark.markDsl.Terminal;
 import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class FSM {
 

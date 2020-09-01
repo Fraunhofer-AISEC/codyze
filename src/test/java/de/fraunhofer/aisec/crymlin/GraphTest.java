@@ -8,7 +8,7 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -31,10 +31,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Tests structure of CPG generated from "real" source files. */
+/**
+ * Tests structure of CPG generated from "real" source files.
+ */
 class GraphTest {
 	static AnalysisContext result;
 	static AnalysisServer server;
@@ -47,17 +52,6 @@ class GraphTest {
 		assertNotNull(resource);
 		File cppFile = new File(resource.getFile());
 		assertNotNull(cppFile);
-
-		// Make sure we start with a clean (and connected) db
-		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
-			db.clearDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
 
 		// Start an analysis server
 		server = AnalysisServer.builder().config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).build()).build();
@@ -90,11 +84,10 @@ class GraphTest {
 
 	@Test
 	void testMethods() {
-		Set<Object> functions = OverflowDatabase.getInstance().getGraph().traversal().V().hasLabel(MethodDeclaration.class.getSimpleName()).values("name").toSet();
+		Set<Object> functions = result.getDatabase().getGraph().traversal().V().hasLabel(MethodDeclaration.class.getSimpleName()).values("name").toSet();
 		System.out.println(
 			"METHODS:  "
-					+ String.join(
-						", ", functions.stream().map(v -> v.toString()).collect(Collectors.toList())));
+					+ functions.stream().map(Object::toString).collect(Collectors.joining(", ")));
 		assertTrue(functions.contains("nok1"));
 		assertTrue(functions.contains("nok2"));
 		assertTrue(functions.contains("nok3"));
@@ -105,7 +98,7 @@ class GraphTest {
 
 	@Test
 	void testLabelHierarchy() {
-		Set<Object> functions = OverflowDatabase.getInstance()
+		Set<Object> functions = result.getDatabase()
 				.getGraph()
 				.traversal()
 				.V()
@@ -119,7 +112,7 @@ class GraphTest {
 
 	@Test
 	void crymlinDslTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			// Run crymlin queries directly in Java
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.records()
@@ -131,7 +124,7 @@ class GraphTest {
 
 	@Test
 	void crymlinIfstmtTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.ifstmts()
 					.count()
@@ -143,7 +136,7 @@ class GraphTest {
 
 	@Test
 	void crymlinNamespacesTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.namespaces()
 					.count()
@@ -155,7 +148,7 @@ class GraphTest {
 
 	@Test
 	void crymlinNamespacesPatternTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.namespaces("codyze")
 					.count()
@@ -167,7 +160,7 @@ class GraphTest {
 
 	@Test
 	void crymlinTypedefsTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.typedefs()
 					.count()
@@ -179,7 +172,7 @@ class GraphTest {
 
 	@Test
 	void crymlinTypedefsPatternTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.typedefs("codyze")
 					.count()
@@ -191,7 +184,7 @@ class GraphTest {
 
 	@Test
 	void crymlinReturnsTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.returns()
 					.count()
@@ -204,7 +197,7 @@ class GraphTest {
 
 	@Test
 	void crymlinVarsTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Set<String> count = crymlin.vars()
 					.name()
@@ -219,7 +212,7 @@ class GraphTest {
 
 	@Test
 	void crymlinVarldeclTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.valdecl()
 					.count()
@@ -232,7 +225,7 @@ class GraphTest {
 
 	@Test
 	void crymlinFunctionsTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Optional<Long> count = crymlin.functions()
 					.count()
@@ -243,7 +236,7 @@ class GraphTest {
 
 	@Test
 	void crymlinFunctionsPatternTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		try (TraversalConnection traversalConnection = new TraversalConnection(result.getDatabase())) {
 			CrymlinTraversalSource crymlin = traversalConnection.getCrymlinTraversal();
 			Set<String> count = crymlin.functions("nok")
 					.name()
@@ -268,7 +261,10 @@ class GraphTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	void gremlinGraphMutationTest() {
-		try (TraversalConnection traversalConnection = new TraversalConnection(TraversalConnection.Type.OVERFLOWDB)) {
+		var db = new OverflowDatabase<Node>(ServerConfiguration.builder().disableOverflow(true).build());
+		db.connect();
+
+		try (TraversalConnection traversalConnection = new TraversalConnection(db)) {
 			GraphTraversalSource g = traversalConnection.getGremlinTraversal();
 
 			Long size = g.V()

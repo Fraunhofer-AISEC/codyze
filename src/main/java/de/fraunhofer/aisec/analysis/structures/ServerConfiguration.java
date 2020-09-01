@@ -7,57 +7,55 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.File;
 
-/**
- * The configuration for the {@link AnalysisServer} holds all values used by the server.
- */
+/** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {
 
-	/**
-	 * Should the server launch an interactive CLI console?
-	 */
+	/** Should the server launch an interactive CLI console? */
 	public final boolean launchConsole;
 
-	/**
-	 * Should the server launch an LSP server?
-	 */
+	/** Should the server launch an LSP server? */
 	public final boolean launchLsp;
 
-	/**
-	 * Directory or file with MARK entities/rules.
-	 */
+	/** Directory or file with MARK entities/rules. */
 	@Nullable
 	public final String markModelFiles;
 
-	/**
-	 * Which type of typestate analysis do we want?
-	 */
+	/** Which type of typestate analysis do we want? */
 	@NonNull
 	public final TypestateMode typestateAnalysis;
 
-	// For debugging: should we export the data to neo4j, if Neo4J DB is available?
-	public static final boolean EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J = false;
-
 	/**
-	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether or not to parse include files.
+	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether or not to
+	 * parse include files.
 	 */
 	public final boolean analyzeIncludes;
 
 	/**
 	 * Path(s) containing include files.
 	 *
-	 * Paths must be separated by File.pathSeparator (: or ;).
+	 * <p>Paths must be separated by File.pathSeparator (: or ;).
 	 */
 	@NonNull
 	public final File[] includePath;
 
-	/**
-	 * If true, no "positive" findings will be returned from the analysis.
-	 */
+	/** If true, no "positive" findings will be returned from the analysis. */
 	public final boolean disableGoodFindings;
 
-	private ServerConfiguration(boolean launchConsole, boolean launchLsp, @Nullable String markModelFiles, @NonNull TypestateMode typestateMode, boolean analyzeIncludes,
+	/**
+	 * If true, the overflow of OverflowDB will be disabled. Might be faster for projects who fit
+	 * completely in memory.
+	 */
+	public final boolean disableOverflow;
+
+	private ServerConfiguration(
+			boolean launchConsole,
+			boolean launchLsp,
+			@Nullable String markModelFiles,
+			@NonNull TypestateMode typestateMode,
+			boolean analyzeIncludes,
 			@NonNull File[] includePath,
-			boolean disableGoodFindings) {
+			boolean disableGoodFindings,
+			boolean disableOverflow) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
@@ -65,6 +63,7 @@ public class ServerConfiguration {
 		this.analyzeIncludes = analyzeIncludes;
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
+		this.disableOverflow = disableOverflow;
 	}
 
 	public static Builder builder() {
@@ -81,6 +80,7 @@ public class ServerConfiguration {
 		private boolean analyzeIncludes;
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
+		private boolean disableOverflow;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -121,9 +121,21 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public ServerConfiguration build() {
-			return new ServerConfiguration(launchConsole, launchLsp, markModelFiles, typestateAnalysis, analyzeIncludes, includePath, disableGoodFindings);
+		public Builder disableOverflow(boolean disableOverflow) {
+			this.disableOverflow = disableOverflow;
+			return this;
 		}
 
+		public ServerConfiguration build() {
+			return new ServerConfiguration(
+				launchConsole,
+				launchLsp,
+				markModelFiles,
+				typestateAnalysis,
+				analyzeIncludes,
+				includePath,
+				disableGoodFindings,
+				disableOverflow);
+		}
 	}
 }

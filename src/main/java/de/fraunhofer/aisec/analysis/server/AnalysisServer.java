@@ -15,21 +15,14 @@ import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
-import de.fraunhofer.aisec.crymlin.connectors.db.Neo4jDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection.Type;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
-import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLIo;
-import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLReader;
-import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.URI;
@@ -41,12 +34,20 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -84,6 +85,8 @@ public class AnalysisServer {
 
 	private TranslationResult translationResult;
 
+	private OverflowDatabase<Node> db;
+
 	private Mark markModel = new Mark();
 
 	@SuppressWarnings("java:S3010")
@@ -108,6 +111,8 @@ public class AnalysisServer {
 		}
 		bench.stop();
 		log.info("Registered {} builtins", i);
+
+		db = new OverflowDatabase(config);
 	}
 
 	/**
@@ -145,7 +150,6 @@ public class AnalysisServer {
 		// Initialize JythonInterpreter
 		log.info("Launching crymlin query interpreter ...");
 		interp = new JythonInterpreter();
-		interp.connect();
 
 		// Spawn an interactive console for gremlin experiments/controlling the server.
 		// Blocks forever.
@@ -186,7 +190,7 @@ public class AnalysisServer {
 		File srcLocation = analyzer.getConfig()
 				.getSourceLocations()
 				.get(0);
-		AnalysisContext ctx = new AnalysisContext(srcLocation); // NOTE: We currently operate on a single source file.
+		AnalysisContext ctx = new AnalysisContext(srcLocation, db); // NOTE: We currently operate on a single source file.
 		for (Pass p : analyzer.getPasses()) {
 			if (p instanceof PassWithContext) {
 				((PassWithContext) p).setContext(ctx);
@@ -202,17 +206,6 @@ public class AnalysisServer {
 						result.getScratch().put("ctx", ctx);
 						translationResult = result;
 						return persistToODB(result);
-					})
-				.thenApply(
-					result -> {
-						Benchmark bench = new Benchmark(AnalysisServer.class, "  Export to GraphML (or debugging)");
-						if (ServerConfiguration.EXPORT_GRAPHML_AND_IMPORT_TO_NEO4J) {
-							exportToGraphML();
-							// Optional, only if neo4j is available in classpath: re-import into Neo4J
-							importIntoNeo4j();
-						}
-						bench.stop();
-						return result;
 					})
 				.thenApply(
 					result -> {
@@ -251,6 +244,7 @@ public class AnalysisServer {
 
 	/**
 	 * recursively list all mark files
+	 *
 	 * @param currentFile
 	 * @param allFiles
 	 * @throws IOException
@@ -274,6 +268,7 @@ public class AnalysisServer {
 
 	/**
 	 * extracts all mark-files and the findingDescription.js from a zip or jar file to a temp-folder (which is cleared by the JVM upon exiting)
+	 *
 	 * @param zipFilePath
 	 * @return
 	 * @throws IOException
@@ -410,7 +405,7 @@ public class AnalysisServer {
 		}
 
 		// Close in-memory graph and evict caches
-		OverflowDatabase.getInstance().close();
+		db.close();
 
 		this.config = null;
 		this.markModel = null;
@@ -429,45 +424,21 @@ public class AnalysisServer {
 		return translationResult;
 	}
 
-	/**
-	 * @deprecated (Neo4J support will be phased out in the near future)
-	 * @param result
-	 * @return
-	 */
-	@Deprecated(forRemoval = true)
-	private TranslationResult persistToNeo4J(TranslationResult result) {
-		Benchmark b = new Benchmark(this.getClass(), "Persisting to Database");
-		// Persist the result
-		Neo4jDatabase.getInstance().connect(); // this does not connect again if we are already connected
-		Neo4jDatabase.getInstance().clearDatabase();
-		Neo4jDatabase<Node> db = Neo4jDatabase.getInstance();
-		db.saveAll(result.getTranslationUnits());
-		long duration = b.stop();
-		// connect to DB
-		try (TraversalConnection t = new TraversalConnection(TraversalConnection.Type.NEO4J)) {
-			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-			Long numEdges = crymlinTraversal.E().count().next();
-			Long numVertices = crymlinTraversal.V().count().next();
-			log.info(
-				"Nodes in Neo4J graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
-				numVertices,
-				String.format("%.2f", (double) duration / numVertices),
-				numEdges,
-				String.format("%.2f", (double) duration / numEdges));
-		}
-		log.info("Benchmark: Persisted approx {} nodes", Neo4jDatabase.getInstance().getNumNodes());
-		return result;
-	}
-
 	private TranslationResult persistToODB(TranslationResult result) {
 		Benchmark bench = new Benchmark(this.getClass(), " Serializing into OverflowDB");
+
+		// ensure, that the database is clear
+		db.clearDatabase();
+
+		// connect
+		db.connect();
+
 		// Persist the result
-		OverflowDatabase.getInstance().clearDatabase();
-		OverflowDatabase<Node> db = OverflowDatabase.getInstance();
 		db.saveAll(result.getTranslationUnits());
+
 		long duration = bench.stop();
 		// connect to DB
-		try (TraversalConnection t = new TraversalConnection(Type.OVERFLOWDB)) {
+		try (TraversalConnection t = new TraversalConnection(db)) {
 			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
 			Long numEdges = crymlinTraversal.V().outE().count().next();
 			Long numVertices = crymlinTraversal.V().count().next();
@@ -485,71 +456,6 @@ public class AnalysisServer {
 		return result;
 	}
 
-	/**
-	 * It's awful, but this is the only way to import raw data into Neo4J without relying on an OGM.
-	 *
-	 * <p>
-	 * We want to skip the OGM to make that what we see in the database is the actual graph from memory, and not the
-	 * result of CPG -> OverflowDB-OGM -> OverflowDB -> Tinkerpop -> Neo4J-OGM -> Neo4J.
-	 */
-	private void exportToGraphML() {
-		// Export from OverflowDB to file
-		OverflowDatabase.getInstance().connect();
-		Graph graph = OverflowDatabase.getInstance().getGraph();
-
-		log.info("Exporting {} nodes to GraphML", graph.traversal().V().count().next());
-		try (FileOutputStream fos = new FileOutputStream("this-is-so-graphic.graphml")) {
-			GraphMLWriter.Builder writer = graph.io(GraphMLIo.build()).writer();
-			writer.vertexLabelKey("labels");
-			writer.create().writeGraph(fos, graph);
-			log.info("Exported GraphML to {}/this-is-so-graphic.graphml", System.getProperty("user.dir"));
-		}
-		catch (IOException e) {
-			log.error("IOException", e);
-		}
-	}
-
-	/**
-	 * Note that this methods expects neo4j in classpath at runtime.
-	 * <p>
-	 * It is used for debugging only.
-	 */
-	private void importIntoNeo4j() {
-		// Import from file to Neo4J (for visualization only)
-		log.info("Importing into Neo4j ...");
-		try (FileInputStream fis = new FileInputStream("this-is-so-graphic.graphml");
-				Neo4jGraph neo4jGraph = Neo4jGraph.open(Path.of(".data", "databases", "graph.db").toString())) {
-			File neo4jDB = Path.of(".data", "databases", "graph.db").toFile();
-			if (neo4jDB.exists()) {
-				Path of = Path.of(
-					System.getProperty("java.io.tmpdir"),
-					"backup" + System.currentTimeMillis() + ".db");
-				Files.move(
-					neo4jDB.toPath(), of);
-				log.info("Backed up old Neo4j-Database to {}", of.getFileName());
-			}
-			GraphMLReader.Builder reader = neo4jGraph.io(GraphMLIo.build()).reader();
-			reader.strict(false);
-			reader.vertexLabelKey("labels");
-			reader.create().readGraph(fis, neo4jGraph);
-
-		}
-		catch (IOException e) {
-			log.error("IOException", e);
-		}
-		catch (RuntimeException e) {
-			if (e.getCause() instanceof ClassNotFoundException) {
-				log.warn("Neo4j not found in path, export to neo4j failed");
-			} else {
-				throw e;
-			}
-		}
-		catch (Exception e) {
-			log.error("Exception", e);
-		}
-		log.info("Done importing");
-	}
-
 	public CompletableFuture<AnalysisContext> analyze(String url) {
 		List<File> files = new ArrayList<>();
 		File f = new File(url);
@@ -563,9 +469,6 @@ public class AnalysisServer {
 		} else {
 			files.add(f);
 		}
-
-		OverflowDatabase.getInstance().connect(); // simply returns if already connected
-		OverflowDatabase.getInstance().clearDatabase();
 
 		TranslationConfiguration.Builder tConfig = TranslationConfiguration.builder()
 				.debugParser(true)

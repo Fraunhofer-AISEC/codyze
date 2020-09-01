@@ -25,10 +25,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Testing console commands. */
-public class CommandsTest {
+class CommandsTest {
 
 	@Test
-	public void commandConsoleTest() throws Exception {
+	void commandConsoleTest() {
 		AnalysisServer server = AnalysisServer.builder()
 				.config(ServerConfiguration.builder()
 						.launchLsp(false)
@@ -51,7 +51,6 @@ public class CommandsTest {
 
 		// Init console
 		JythonInterpreter interp = new JythonInterpreter();
-		interp.connect();
 		Commands com = new Commands(interp);
 
 		com.help();

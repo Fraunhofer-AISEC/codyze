@@ -86,6 +86,7 @@ public abstract class AbstractMarkTest {
 							.launchLsp(false)
 							.typestateAnalysis(tsMode)
 							.markFiles(markDirPath)
+							.disableOverflow(true)
 							.build())
 				.build();
 		server.start();

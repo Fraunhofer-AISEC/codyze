@@ -5,7 +5,7 @@ package unittests
 */
 entity LibreSslEncryption {
 	op initOp {
-        EVP_EncryptInit(_,_,_);
+        EVP_EncryptInit(_,_,_,_);
 	}
 	op updateOp {
         EVP_EncryptUpdate(_,_,_,_,_);

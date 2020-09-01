@@ -161,6 +161,9 @@ public class InitialConfiguration {
 		// Create an automaton for the initial configuration from where post* will start.
 		dumpInitialConfigurations(initialStates);
 
+		if (initialState == null) {
+			return wnfa;
+		}
 		wnfa.addTransition(new Transition<>(initialState, stmt, accepting),
 			new TypestateWeight(Set.of(new NFATransition<Node>(new Node(START, START), new Node(START, START), "constructor"))));
 

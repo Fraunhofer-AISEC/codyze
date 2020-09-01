@@ -11,18 +11,7 @@ import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
-import de.fraunhofer.aisec.cpg.graph.CallExpression;
-import de.fraunhofer.aisec.cpg.graph.ConstructExpression;
-import de.fraunhofer.aisec.cpg.graph.DeclaredReferenceExpression;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Literal;
-import de.fraunhofer.aisec.cpg.graph.MemberExpression;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.NewExpression;
-import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.cpg.graph.ValueDeclaration;
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.cpg.graph.type.Type;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
@@ -236,6 +225,63 @@ public class CrymlinQueryWrapper {
 		return (i == markParameters.size() || endsWithEllipsis) && i == sourceArguments.size();
 	}
 
+	/**
+	 * Same as {@code argumentsMatchParameters(EList<Parameter>, List<Vertex>) } but for arguments as List<Expression>
+	 * @param markParameters
+	 * @param sourceArguments
+	 *
+	 * @return
+	 */
+	public static boolean argumentsMatchSourceParameters(EList<Parameter> markParameters, List<Expression> sourceArguments) {
+		int i = 0;
+
+		while (i < markParameters.size() && i < sourceArguments.size()) {
+			Parameter markParam = markParameters.get(i);
+
+			Set<Type> sourceArgs = new HashSet<>();
+			for (Expression arg : sourceArguments) {
+				sourceArgs.add(arg.getType());
+			}
+
+			if (sourceArgs.isEmpty()) {
+				log.error("Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argument types: {}",
+					String.join(", ", MOp.paramsToString(markParameters)));
+				return false;
+			}
+
+			if (Constants.ELLIPSIS.equals(markParam.getVar())) {
+				return true;
+			}
+
+			// UNDERSCORE means we do not care about this specific argument at all
+			if (Constants.UNDERSCORE.equals(markParam.getVar())) {
+				i++;
+				continue;
+			}
+
+			// ANY_TYPE means we have a MARK variable, but do not care about its type
+			if (Constants.ANY_TYPE.equals(markParam.getVar())) {
+				i++;
+				continue;
+			}
+
+			if (!Utils.isSubTypeOf(sourceArgs, markParam)) {
+				return false;
+			}
+
+			i++;
+		}
+
+		// If parameter list ends with an ELLIPSIS, we ignore the remaining arguments
+		boolean endsWithEllipsis = false;
+		if (i < markParameters.size()) {
+			List<Parameter> sublist = markParameters.subList(i, markParameters.size());
+			endsWithEllipsis = sublist.stream().allMatch(markParm -> Constants.ELLIPSIS.equals(markParm.getVar()));
+		}
+
+		return (i == markParameters.size() || endsWithEllipsis) && i == sourceArguments.size();
+	}
+
 	private static List<Vertex> lhsVariableOfAssignment(CrymlinTraversalSource crymlin, long id) {
 		return crymlin.byID(id)
 				.in("RHS")
@@ -250,12 +296,12 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
-	 * Returns true if the given vertex represents a CallExpression or a subclass thereof.
+	 * Returns true if the given vertex represents a CallExpression or a subclass of it.
 	 *
 	 * @param v
 	 * @return
 	 */
-	public static boolean isCallExpression(Vertex v) {
+	public static boolean isCallExpression(@NonNull Vertex v) {
 		if (v.label()
 				.equals(CallExpression.class.getSimpleName())) {
 			return true;
@@ -896,5 +942,35 @@ public class CrymlinQueryWrapper {
 		it.forEachRemaining(e -> types.add((Type) db.vertexToNode(e.inVertex())));
 
 		return types;
+	}
+
+	/**
+	 * Returns true if this Vertex has a label "ReturnStatement".
+	 *
+	 * @param v
+	 * @return
+	 */
+	public static boolean isReturnStatement(Vertex v) {
+		return Utils.hasLabel(v, ReturnStatement.class);
+	}
+
+	/**
+	 * Returns true if this Vertex has a label "VariableDeclaration".
+	 *
+	 * @param v
+	 * @return
+	 */
+	public static boolean isVariableDeclaration(@NonNull Vertex v) {
+		return Utils.hasLabel(v, VariableDeclaration.class);
+	}
+
+	/**
+	 * Returns true if this Vertex has a label "DeclarationStatement".
+	 *
+	 * @param v
+	 * @return
+	 */
+	public static boolean isDeclarationStatement(@NonNull Vertex v) {
+		return Utils.hasLabel(v, DeclarationStatement.class);
 	}
 }

@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 // TODO Remove before release or at least remove hardcoded paths
 @Disabled
@@ -78,9 +79,6 @@ class GithubTest {
 
 	@BeforeAll
 	static void setup() {
-		OverflowDatabase.getInstance().connect();
-		OverflowDatabase.getInstance().close();
-
 		ClassLoader classLoader = GithubTest.class.getClassLoader();
 		URL resource = classLoader.getResource("unittests/order2.mark");
 		assertNotNull(resource);
@@ -89,7 +87,7 @@ class GithubTest {
 
 		server = AnalysisServer.builder()
 				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
+					ServerConfiguration.builder().disableOverflow(true).launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
 				.build();
 
 		server.start();
@@ -144,8 +142,6 @@ class GithubTest {
 
 		// Make sure we start with a clean (and connected) db
 		// if this does not work, just throw
-		OverflowDatabase.getInstance().clearDatabase();
-
 		TranslationManager tm = TranslationManager.builder()
 				.config(
 					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceLocations(cppFile).build())
@@ -171,8 +167,6 @@ class GithubTest {
 		}
 		tempFile.delete();
 		tempDir.toFile().delete();
-
-		OverflowDatabase.getInstance().close();
 
 		PrintWriter writer = new PrintWriter(
 			OUTFOLDERNAME + System.currentTimeMillis() + "_" + cppFile.getName() + ".out",
@@ -221,8 +215,6 @@ class GithubTest {
 
 	@Test
 	void specificTest() throws Exception {
-		OverflowDatabase.getInstance().clearDatabase();
-
 		//		performTest("p059.java");
 
 		// performTest("redis.c"); // very long persisting

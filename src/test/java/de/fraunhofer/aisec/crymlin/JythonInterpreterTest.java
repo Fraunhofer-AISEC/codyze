@@ -2,12 +2,25 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.python.core.Py;
 import org.python.util.JLineConsole;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,12 +28,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_G;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_GRAPH;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_Q;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_QUERY;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_S;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_SERVER;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Testing the Crymlin console. */
+/**
+ * Testing the Crymlin console.
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class JythonInterpreterTest {
+@Disabled
+class JythonInterpreterTest {
 
 	private static JLineConsole jlineConsole;
 	private static PrintStream originalErr;
@@ -58,10 +81,7 @@ public class JythonInterpreterTest {
 
 		// Start console (in thread, because it will block)
 		interp = new JythonInterpreter();
-		interp.connect();
-		new Thread(() -> {
-			interp.spawnInteractiveConsole();
-		}).start();
+		new Thread(() -> interp.spawnInteractiveConsole()).start();
 
 		// Wait until console is up
 		ReentrantLock lock = new ReentrantLock();
@@ -84,6 +104,9 @@ public class JythonInterpreterTest {
 		lock.lock();
 		consoleAvailable.await(100, TimeUnit.SECONDS);
 		lock.unlock();
+
+		// instead of running a full analysis, just provide access to an empty database
+		interp.connect(new OverflowDatabase(ServerConfiguration.builder().disableOverflow(true).build()));
 
 		jlineConsole = (JLineConsole) Py.getConsole();
 

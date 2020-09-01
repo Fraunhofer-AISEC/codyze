@@ -1,8 +1,6 @@
 
 package de.fraunhofer.aisec.analysis.utils;
 
-import com.google.common.collect.Iterators;
-import com.google.common.collect.UnmodifiableIterator;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
@@ -14,8 +12,6 @@ import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.Constants;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -24,10 +20,20 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_COLUMN;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_LINE;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_COLUMN;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_LINE;
 import static java.lang.Math.toIntExact;
 
 public class Utils {
@@ -308,22 +314,6 @@ public class Utils {
 		int startColumn = toIntExact((Long) v.property(START_COLUMN).orElse(Long.valueOf(-1))) - 1;
 		int endColumn = toIntExact((Long) v.property(END_COLUMN).orElse(Long.valueOf(-1))) - 1;
 		return new Region(startLine, startColumn, endLine, endColumn);
-	}
-
-	/**
-	 * Returns an (unmodifiable) possibly empty list of all types this vertex might have.
-	 *
-	 * @param next
-	 * @return
-	 */
-	@NonNull
-	public static Set<Type> getPossibleSubTypes(@NonNull Vertex next) {
-
-		Set<Type> types = new HashSet<>();
-		UnmodifiableIterator<Edge> it = Iterators.filter(next.edges(Direction.OUT, TYPE, POSSIBLE_SUB_TYPES), v -> Utils.hasLabel(v.inVertex(), Type.class));
-		it.forEachRemaining(e -> types.add((Type) OverflowDatabase.getInstance().vertexToNode(e.inVertex())));
-
-		return types;
 	}
 
 	/**

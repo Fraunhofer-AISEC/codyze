@@ -100,7 +100,7 @@ class WpdsTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("unittests/regression88.cpp", "../../src/dist/mark/botan");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertEquals(5, findings.stream().filter(Finding::isProblem).count());
+		assertEquals(7, findings.stream().filter(Finding::isProblem).count());
 	}
 
 	@Test

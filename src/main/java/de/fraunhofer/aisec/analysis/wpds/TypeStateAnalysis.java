@@ -9,14 +9,31 @@ import de.breakpointsec.pushdown.rules.NormalRule;
 import de.breakpointsec.pushdown.rules.PopRule;
 import de.breakpointsec.pushdown.rules.PushRule;
 import de.breakpointsec.pushdown.rules.Rule;
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.NonNullPair;
+import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.graph.*;
-import de.fraunhofer.aisec.cpg.graph.type.*;
+import de.fraunhofer.aisec.cpg.graph.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.CompoundStatement;
+import de.fraunhofer.aisec.cpg.graph.Declaration;
+import de.fraunhofer.aisec.cpg.graph.DeclarationStatement;
+import de.fraunhofer.aisec.cpg.graph.DeclaredReferenceExpression;
+import de.fraunhofer.aisec.cpg.graph.Expression;
+import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.IfStatement;
+import de.fraunhofer.aisec.cpg.graph.ParamVariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.ReturnStatement;
+import de.fraunhofer.aisec.cpg.graph.Statement;
+import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.type.Type;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -40,11 +57,26 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper.isCallExpression;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_COLUMN;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_LINE;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.EOG;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.NAME;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_COLUMN;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_LINE;
 import static de.fraunhofer.aisec.crymlin.dsl.__.__;
 import static java.lang.Math.toIntExact;
 
@@ -72,12 +104,11 @@ public class TypeStateAnalysis {
 	@NonNull
 	private final MarkContextHolder markContextHolder;
 	private CPGInstanceContext instanceContext;
+	private AnalysisContext ctx;
 
-	@NonNull
-	private OverflowDatabase<de.fraunhofer.aisec.cpg.graph.Node> odb = OverflowDatabase.getInstance();
-
-	public TypeStateAnalysis(@NonNull MarkContextHolder markContextHolder) {
+	public TypeStateAnalysis(@NonNull MarkContextHolder markContextHolder, @NonNull AnalysisContext ctx) {
 		this.markContextHolder = markContextHolder;
+		this.ctx = ctx;
 	}
 
 	/**
@@ -95,8 +126,6 @@ public class TypeStateAnalysis {
 			CrymlinTraversalSource crymlinTraversal,
 			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for {} and {}", ctx, crymlinTraversal);
-
-		odb = OverflowDatabase.getInstance();
 
 		instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 		this.rule = rule;
@@ -194,7 +223,7 @@ public class TypeStateAnalysis {
 		}
 
 		// Turn function vertex into a FunctionDeclaration so we can work with it
-		FunctionDeclaration funcDecl = (FunctionDeclaration) OverflowDatabase.getInstance()
+		FunctionDeclaration funcDecl = (FunctionDeclaration) ctx.getDatabase()
 				.vertexToNode(containingFunctionOpt.get());
 		if (funcDecl == null) {
 			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
@@ -222,14 +251,13 @@ public class TypeStateAnalysis {
 	 * This method receives a post-*-saturated WNFA and creates Findings if any violations of the given MARK rule are found.
 	 * <p>
 	 * 1) Transitions in WNFA with *empty weights* or weights into an ERROR type state indicate an error. Type state requirements are violated at this point.
-	 *
+	 * <p>
 	 * 2) If there is a path through the automaton leading to the END state, the type state specification is completely covered by this path
-	 *
+	 * <p>
 	 * 3) If all transitions have proper type state weights but none of them leads to END, the type state is correct but incomplete.
 	 *
-	 *
 	 * @param wpds
-	 * @param wnfa Weighted NFA, representing a set of configurations of the WPDS
+	 * @param wnfa        Weighted NFA, representing a set of configurations of the WPDS
 	 * @param currentFile
 	 * @return
 	 */
@@ -377,10 +405,12 @@ public class TypeStateAnalysis {
 		// To remember already visited nodes and avoid endless iteration
 		HashSet<Vertex> alreadySeen = new HashSet<>();
 
+		var db = ctx.getDatabase();
+
 		// the WPDS we are creating here
 		CpgWpds wpds = new CpgWpds();
 
-		FunctionDeclaration fd = (FunctionDeclaration) odb.vertexToNode(fdVertex);
+		FunctionDeclaration fd = (FunctionDeclaration) db.vertexToNode(fdVertex);
 		log.info("Processing function {}", fdVertex.property(NAME).orElse(""));
 
 		// Work list of following EOG nodes. Not all EOG nodes will result in a WPDS rule, though.
@@ -430,10 +460,11 @@ public class TypeStateAnalysis {
 			@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
 			@NonNull NFA tsNfa,
 			@NonNull CrymlinTraversalSource crymlinTraversal) {
+		var db = ctx.getDatabase();
 
 		String currentFunctionName = (String) functionVertex.property(NAME).orElse("UNKNOWN");
 		Stmt currentStmt = vertexToStmt(currentStmtVertex);
-		de.fraunhofer.aisec.cpg.graph.@Nullable Node stmtNode = odb.vertexToNode(currentStmtVertex);
+		de.fraunhofer.aisec.cpg.graph.Node stmtNode = db.vertexToNode(currentStmtVertex);
 
 		/* First we create normal rules from previous stmt to the current stmt, simply propagating existing values. */
 		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(previousStmt, currentStmtVertex, valsInScope, tsNfa);
@@ -450,7 +481,7 @@ public class TypeStateAnalysis {
 		/*
 		  Handle calls into known methods (not a "phantom" method) by creating push rule.
 		 */
-		if (isCallExpression(currentStmtVertex) && !isPhantom((CallExpression) stmtNode)) {
+		if (CrymlinQueryWrapper.isCallExpression(currentStmtVertex) && !isPhantom((CallExpression) stmtNode)) {
 			CallExpression callE = (CallExpression) stmtNode;
 			/*
 			 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
@@ -468,7 +499,7 @@ public class TypeStateAnalysis {
 			}
 		} else if (isVariableDeclaration(currentStmtVertex)) {
 			// Add declVal to set of currently tracked variables
-			VariableDeclaration decl = (VariableDeclaration) odb.vertexToNode(currentStmtVertex);
+			VariableDeclaration decl = (VariableDeclaration) db.vertexToNode(currentStmtVertex);
 			Val declVal = new Val(decl.getName(), currentFunctionName);
 			valsInScope.add(declVal);
 		} else if (isDeclarationStatement(currentStmtVertex)) {
@@ -479,7 +510,7 @@ public class TypeStateAnalysis {
 			// Note: We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a "BinaryOperator".
 			log.debug("Found variable declaration {}", currentStmtVertex.property("code")
 					.orElse(""));
-			DeclarationStatement ds = (DeclarationStatement) odb.vertexToNode(currentStmtVertex);
+			DeclarationStatement ds = (DeclarationStatement) db.vertexToNode(currentStmtVertex);
 			for (Declaration decl : ds.getDeclarations()) {
 				if (!(decl instanceof VariableDeclaration)) {
 					continue;
@@ -519,7 +550,7 @@ public class TypeStateAnalysis {
 			}
 		} else if (isReturnStatement(currentStmtVertex)) {
 			/* Return statements result in pop rules */
-			ReturnStatement returnV = (ReturnStatement) odb.vertexToNode(currentStmtVertex);
+			ReturnStatement returnV = (ReturnStatement) db.vertexToNode(currentStmtVertex);
 			if (returnV != null && !returnV.isDummy()) {
 				Set<Val> returnedVals = findReturnedVals(crymlinTraversal, currentStmtVertex);
 
@@ -543,7 +574,7 @@ public class TypeStateAnalysis {
 				}
 
 				// Pop Rules for side effects on parameters
-				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex, currentStmtVertex, odb, crymlinTraversal);
+				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex, currentStmtVertex, crymlinTraversal);
 				if (paramToValueMap.containsKey(currentFunctionName)) {
 					for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
 						PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(),
@@ -628,7 +659,7 @@ public class TypeStateAnalysis {
 	 */
 	private boolean isRelevantStmt(Vertex v) {
 		int numberOfOutgoingEogs = 0;
-		Iterator<Edge> eogs = v.edges(Direction.OUT, "EOG");
+		Iterator<Edge> eogs = v.edges(Direction.OUT, EOG);
 		while (eogs.hasNext()) {
 			numberOfOutgoingEogs++;
 			eogs.next();
@@ -653,9 +684,11 @@ public class TypeStateAnalysis {
 	}
 
 	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final Stmt previousStmt, final Vertex v, final Set<Val> valsInScope, final NFA tsNfa) {
+		var db = ctx.getDatabase();
+
 		Stmt currentStmt = vertexToStmt(v);
 
-		de.fraunhofer.aisec.cpg.graph.@Nullable Node currentStmtNode = odb.vertexToNode(v);
+		de.fraunhofer.aisec.cpg.graph.@Nullable Node currentStmtNode = db.vertexToNode(v);
 
 		Set<NormalRule<Stmt, Val, TypestateWeight>> result = new HashSet<>();
 
@@ -737,8 +770,7 @@ public class TypeStateAnalysis {
 					if ((assignerFqn != null && opStatement.getCall().getName().equals(assignerFqn)) // Dirty: contains() as call.getName() does not include scope.
 							&& (assigneeVar != null // is return value assigned to valInScope?
 									|| arguments.isEmpty()
-									|| CrymlinQueryWrapper.argumentsMatchSourceParameters(opStatement.getCall().getParams(), ((CallExpression) call).getArguments())
-							)) {
+									|| CrymlinQueryWrapper.argumentsMatchSourceParameters(opStatement.getCall().getParams(), ((CallExpression) call).getArguments()))) {
 						return true;
 					}
 				} else {
@@ -773,16 +805,16 @@ public class TypeStateAnalysis {
 	 *
 	 * @param functionDeclaration
 	 * @param returnV
-	 * @param odb
 	 * @param crymlinTraversalSource
 	 * @return
 	 */
 	@NonNull
-	private Map<String, Set<Pair<Val, Val>>> findParamToValues(Vertex functionDeclaration, Vertex returnV,
-			OverflowDatabase<de.fraunhofer.aisec.cpg.graph.Node> odb, CrymlinTraversalSource crymlinTraversalSource) {
+	private Map<String, Set<Pair<Val, Val>>> findParamToValues(Vertex functionDeclaration, Vertex returnV, CrymlinTraversalSource crymlinTraversalSource) {
+		var db = ctx.getDatabase();
+
 		Map<String, Set<Pair<Val, Val>>> result = new HashMap<>();
 		try {
-			FunctionDeclaration calleeFD = (FunctionDeclaration) odb.vertexToNode(functionDeclaration);
+			FunctionDeclaration calleeFD = (FunctionDeclaration) db.vertexToNode(functionDeclaration);
 			if (calleeFD == null) {
 				log.error("Unexpected: FunctionDeclaration of callee is null.");
 				return result;
@@ -797,7 +829,7 @@ public class TypeStateAnalysis {
 					.toList();
 
 			for (Vertex call : calls) {
-				CallExpression ce = (CallExpression) odb.vertexToNode(call);
+				CallExpression ce = (CallExpression) db.vertexToNode(call);
 				if (ce == null) {
 					continue;
 				}
@@ -814,7 +846,7 @@ public class TypeStateAnalysis {
 						.toList();
 
 				for (Vertex callerV : callers) {
-					FunctionDeclaration caller = (FunctionDeclaration) odb.vertexToNode(callerV);
+					FunctionDeclaration caller = (FunctionDeclaration) db.vertexToNode(callerV);
 					if (caller == null) {
 						log.error("Unexpected: Null Node object for FunctionDeclaration vertex {}", callerV.id());
 						continue;

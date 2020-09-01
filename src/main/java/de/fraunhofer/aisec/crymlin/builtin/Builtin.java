@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
@@ -27,6 +28,7 @@ public interface Builtin {
 	 *
 	 * Builtin needs to respect
 	 *
+	 * @param ctx The analysis context
 	 * @param argResultList Resolved argumentsList for one context of the Builtin function call.
 	 * @param contextID
 	 * @param markContextHolder
@@ -34,6 +36,7 @@ public interface Builtin {
 	 * @return
 	 */
 	ConstantValue execute(
+			@NonNull AnalysisContext ctx,
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,

@@ -8,8 +8,6 @@ import de.fraunhofer.aisec.analysis.structures.Method;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,7 +20,6 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class AnalysisServerQueriesTest {
 
@@ -31,17 +28,6 @@ public class AnalysisServerQueriesTest {
 
 	@BeforeAll
 	public static void startup() throws Exception {
-		// Make sure we start with a clean (and connected) db
-		try {
-			Database db = OverflowDatabase.getInstance();
-			db.connect();
-			db.clearDatabase();
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-			assumeFalse(true); // Assumption for this test not fulfilled. Do not fail but bail.
-		}
-
 		ClassLoader classLoader = AnalysisServerQueriesTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource("good/Bouncycastle.java");
@@ -58,7 +44,7 @@ public class AnalysisServerQueriesTest {
 		// Start an analysis server
 		server = AnalysisServer.builder()
 				.config(
-					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build())
+					ServerConfiguration.builder().disableOverflow(true).launchConsole(false).launchLsp(false).markFiles(markModelFiles).build())
 				.build();
 		server.start();
 
@@ -80,7 +66,9 @@ public class AnalysisServerQueriesTest {
 		server.stop();
 	}
 
-	/** Test analysis context - additional in-memory structures used for analysis. */
+	/**
+	 * Test analysis context - additional in-memory structures used for analysis.
+	 */
 	@Test
 	public void contextTest() {
 		// Get analysis context from scratch

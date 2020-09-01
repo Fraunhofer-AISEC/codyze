@@ -1,7 +1,13 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
@@ -17,10 +23,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_COLUMN;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_LINE;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.EOG;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_COLUMN;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_LINE;
 import static java.lang.Math.toIntExact;
 
 public class OrderNFAEvaluator {

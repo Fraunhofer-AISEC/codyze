@@ -1,10 +1,17 @@
 
 package de.fraunhofer.aisec.analysis;
 
-import org.python.core.*;
+import org.python.core.Py;
+import org.python.core.PyException;
+import org.python.core.PyObject;
+import org.python.core.PyString;
+import org.python.core.PyUnicode;
+import org.python.core.__builtin__;
 import org.python.util.InteractiveInterpreter;
 
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.*;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.ANSI_CYAN;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.ANSI_CYAN_BG;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.ANSI_RESET;
 
 /**
  * This class provides the read, execute, print loop needed by a Python console; it is not actually

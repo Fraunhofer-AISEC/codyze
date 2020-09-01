@@ -2,26 +2,9 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +18,7 @@ class ForbiddenTest extends AbstractMarkTest {
 			"unittests/forbidden.java", "unittests/forbidden.mark");
 
 		Set<String> findings = results.stream()
-				.map(f -> f.toString())
+				.map(Finding::toString)
 				.collect(Collectors.toSet());
 		assertEquals(
 			5, findings.stream().filter(s -> s.contains("Violation against forbidden call")).count());

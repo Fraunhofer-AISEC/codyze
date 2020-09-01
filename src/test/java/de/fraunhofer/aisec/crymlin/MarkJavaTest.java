@@ -93,8 +93,7 @@ public class MarkJavaTest extends AbstractMarkTest {
 
 		// todo: missing: Enum is not handled yet
 		expected(findings, "line [17, 3]: Rule Static verified",
-			"line [15, 3]: Rule Static violated" // TODO false positive, Constant not correctly resolved
-		);
+			"line [15, 3]: Rule Static verified");
 
 	}
 

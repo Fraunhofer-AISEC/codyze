@@ -1,12 +1,11 @@
 
 package de.fraunhofer.aisec.analysis.utils;
 
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.cpg.graph.type.PointerType;
 import de.fraunhofer.aisec.cpg.graph.type.Type;
 import de.fraunhofer.aisec.cpg.graph.type.UnknownType;
+import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
@@ -375,5 +374,33 @@ public class Utils {
 			}
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Returns true if the given CallExpression refers to a function whose Body is not available.
+	 *
+	 * @param callExpression
+	 * @return
+	 */
+	public static boolean isPhantom(CallExpression callExpression) {
+		return callExpression.getInvokes().isEmpty();
+	}
+
+	/**
+	 * Returns the {@code Region} of a FunctionDeclaration or a Region of (-1, -1, -1, -1).
+	 *
+	 * Never returns null.
+	 *
+	 * @param fd
+	 * @return
+	 */
+	@NonNull
+	public static Region getRegion(@NonNull FunctionDeclaration fd) {
+		Region region = new Region(-1, -1, -1, -1);
+		PhysicalLocation loc = fd.getLocation();
+		if (loc != null) {
+			return loc.getRegion();
+		}
+		return region;
 	}
 }

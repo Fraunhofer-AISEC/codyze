@@ -1,11 +1,16 @@
 
 package de.fraunhofer.aisec.analysis.cpgpasses;
 
-import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
-import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.analysis.structures.Method;
 import de.fraunhofer.aisec.analysis.utils.Utils;
+import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
+import de.fraunhofer.aisec.cpg.graph.CompoundStatement;
+import de.fraunhofer.aisec.cpg.graph.Declaration;
+import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.Statement;
+import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
 
 /**
  * This pass collects all statements in a method's body in the correct order.

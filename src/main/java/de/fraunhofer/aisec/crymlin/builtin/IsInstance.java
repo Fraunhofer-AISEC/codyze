@@ -2,12 +2,15 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.type.Type;
+import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -34,6 +37,7 @@ public class IsInstance implements Builtin {
 	}
 
 	public ConstantValue execute(
+			@NonNull AnalysisContext ctx,
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
@@ -67,9 +71,9 @@ public class IsInstance implements Builtin {
 					cv = ConstantValue.of(type.equals(classname));
 				} else {
 					// Get list of possible types, including the most specific type.
-					boolean match = Utils.getPossibleSubTypes(next)
+					boolean match = CrymlinQueryWrapper.getPossibleSubTypes(ctx.getDatabase(), next)
 							.stream()
-							.map(type -> type.getTypeName())
+							.map(Type::getTypeName)
 							.anyMatch(typeName -> classname.equals(typeName));
 					cv = ConstantValue.of(match);
 				}

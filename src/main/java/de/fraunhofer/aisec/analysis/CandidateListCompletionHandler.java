@@ -19,7 +19,11 @@ import org.python.jline.console.CursorBuffer;
 import org.python.jline.console.completer.CompletionHandler;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A {@link CompletionHandler} that deals with multiple distinct completions

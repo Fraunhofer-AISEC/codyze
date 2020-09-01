@@ -11,7 +11,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.0"
-    id("com.diffplug.spotless") version "5.2.0"
+    id("com.diffplug.spotless") version "5.3.0"
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
@@ -86,9 +86,6 @@ dependencies {
     // Code Property Graph
     api("de.fraunhofer.aisec:cpg:2.2.1")
 
-    // Ehcache is used to cache heavyweight reflection operations
-    api("org.ehcache:ehcache:3.8.0")
-
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { setChanging(true) }
 
@@ -115,7 +112,6 @@ dependencies {
     api("org.apache.tinkerpop:tinkergraph-gremlin:3.4.3")
     api("org.apache.tinkerpop:gremlin-driver:3.4.3")
     api("org.apache.tinkerpop:neo4j-gremlin:3.4.3")     // Neo4j multi-label support for gremlin
-    api("com.steelbridgelabs.oss:neo4j-gremlin-bolt:0.3.1")   // For fast bolt:    // access to Neo4J
 
     // Fast in-memory graph DB (alternative to Neo4J)
     api("io.shiftleft:overflowdb-tinkerpop3:0.128")

@@ -481,9 +481,7 @@ public class TypeStateAnalysis {
 			 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
 			 * "return site" is the statement to which flow returns after the function call.
 			 */
-			Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, tsNfa,
-				currentStmt,
-				currentStmtVertex);
+			Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, currentStmt, currentStmtVertex);
 			for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
 				log.debug("  Adding push rule: {}", pushRule);
 				wpds.addRule(pushRule);
@@ -914,22 +912,12 @@ public class TypeStateAnalysis {
 	 * @return
 	 */
 	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
-			NFA nfa, Stmt currentStmt, Vertex currentStmtVertex) {
+			Stmt currentStmt, Vertex currentStmtVertex) {
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
 		List<Vertex> returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) currentStmtVertex.id());
 
 		// Arguments of function call
 		List<Val> argVals = argumentsToVals(mce, currentFunctionName);
-
-		Set<NFATransition<Node>> relevantNFATransitions = new HashSet<>();
-		for (Val argVal : argVals) {
-			nfa.getTransitions()
-					.stream()
-					.filter(
-						tran -> triggersTypestateTransition(mce, tran.getTarget().getBase(), tran.getTarget().getOp()))
-					.collect(Collectors.toSet());
-		}
-		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
 		Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = new HashSet<>();
 		for (FunctionDeclaration potentialCallee : mce.getInvokes()) {
@@ -955,7 +943,7 @@ public class TypeStateAnalysis {
 							parmVals.get(i),
 							new Stmt(potentialCallee.getName(), Utils.getRegion(potentialCallee)),
 							returnSite,
-							weight);
+							TypestateWeight.one()); // A push rule does not trigger any typestate transitions.
 						pushRules.add(pushRule);
 					}
 				}

@@ -491,7 +491,7 @@ public class CrymlinQueryWrapper {
 			} else if (Utils.hasLabel(v.getArgumentVertex(), MemberExpression.class)) {
 				// When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the member's name.
 				MemberExpression memberExpression = (MemberExpression) OverflowDatabase.getInstance().vertexToNode(v.getArgumentVertex());
-				String fqn = memberExpression.getBase().getName() + '.' + memberExpression.getMember().getName();
+				String fqn = memberExpression.getBase().getName() + '.' + memberExpression.getRefersTo().getName();
 				ConstantValue cv = ConstantValue.of(fqn);
 				CPGVertexWithValue add = CPGVertexWithValue.of(v);
 				add.setValue(cv);

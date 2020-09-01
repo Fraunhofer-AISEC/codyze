@@ -136,6 +136,10 @@ public class TypeStateAnalysis {
 		   In this case, we are starting with all statements that initiate a type state transition.
 		 */
 		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = InitialConfiguration.create(InitialConfiguration::FIRST_TYPESTATE_EVENT, wpds);
+		// No transition - no finding.
+		if (wnfa.getInitialState() == null) {
+			return ConstantValue.of(Boolean.FALSE);
+		}
 
 		// For debugging only: Print WPDS rules
 		if (log.isDebugEnabled()) {
@@ -429,7 +433,7 @@ public class TypeStateAnalysis {
 
 		String currentFunctionName = (String) functionVertex.property(NAME).orElse("UNKNOWN");
 		Stmt currentStmt = vertexToStmt(currentStmtVertex);
-		Statement stmtNode = (Statement) odb.vertexToNode(currentStmtVertex);
+		de.fraunhofer.aisec.cpg.graph.@Nullable Node stmtNode = odb.vertexToNode(currentStmtVertex);
 
 		/* First we create normal rules from previous stmt to the current stmt, simply propagating existing values. */
 		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(previousStmt, currentStmtVertex, valsInScope, tsNfa);
@@ -462,6 +466,11 @@ public class TypeStateAnalysis {
 				// Remember that arguments flow only into callee and do not bypass it.
 				skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
 			}
+		} else if (isVariableDeclaration(currentStmtVertex)) {
+			// Add declVal to set of currently tracked variables
+			VariableDeclaration decl = (VariableDeclaration) odb.vertexToNode(currentStmtVertex);
+			Val declVal = new Val(decl.getName(), currentFunctionName);
+			valsInScope.add(declVal);
 		} else if (isDeclarationStatement(currentStmtVertex)) {
 			/* Handle declaration of new variables.
 			 "DeclarationStatements" result in a normal rule, assigning rhs to lhs.
@@ -599,7 +608,7 @@ public class TypeStateAnalysis {
 	private Collection<? extends Vertex> getSuccessors(@NonNull final Vertex v, @NonNull final HashSet<Vertex> alreadySeen) {
 		Set<Vertex> unseenSuccessors = new HashSet<>();
 		Vertex vertex = v;
-		Iterator<Edge> eogSuccessors = vertex.edges(Direction.OUT, "EOG");
+		Iterator<Edge> eogSuccessors = vertex.edges(Direction.OUT, EOG);
 		while (eogSuccessors.hasNext()) {
 			Vertex succ = eogSuccessors.next()
 					.inVertex();
@@ -624,7 +633,11 @@ public class TypeStateAnalysis {
 			numberOfOutgoingEogs++;
 			eogs.next();
 		}
-		return isCallExpression(v) || Utils.hasLabel(v, IfStatement.class) || v.edges(Direction.IN, CrymlinConstants.STATEMENTS).hasNext() || numberOfOutgoingEogs >= 2;
+		return isCallExpression(v)
+				|| Utils.hasLabel(v, DeclarationStatement.class)
+				|| Utils.hasLabel(v, VariableDeclaration.class)
+				|| Utils.hasLabel(v, IfStatement.class)
+				|| v.edges(Direction.IN, CrymlinConstants.STATEMENTS).hasNext() || numberOfOutgoingEogs >= 2;
 	}
 
 	private boolean isReturnStatement(Vertex v) {
@@ -635,21 +648,27 @@ public class TypeStateAnalysis {
 		return Utils.hasLabel(v, DeclarationStatement.class);
 	}
 
+	private boolean isVariableDeclaration(Vertex v) {
+		return Utils.hasLabel(v, VariableDeclaration.class);
+	}
+
 	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final Stmt previousStmt, final Vertex v, final Set<Val> valsInScope, final NFA tsNfa) {
 		Stmt currentStmt = vertexToStmt(v);
 
-		Statement currentStmtNode = (Statement) odb.vertexToNode(v);
+		de.fraunhofer.aisec.cpg.graph.@Nullable Node currentStmtNode = odb.vertexToNode(v);
 
 		Set<NormalRule<Stmt, Val, TypestateWeight>> result = new HashSet<>();
-		Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
-				.stream()
-				.filter(
-					tran -> belongsToOp(currentStmtNode, tran.getTarget().getBase(), tran.getTarget().getOp()))
-				.collect(Collectors.toSet());
-		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
 		// Create normal rule. Flow remains where it is.
 		for (Val valInScope : valsInScope) {
+			// Determine weight
+			Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
+					.stream()
+					.filter(
+						tran -> belongsToOp(valInScope, currentStmtNode, tran.getTarget().getBase(), tran.getTarget().getOp()))
+					.collect(Collectors.toSet());
+			TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
+
 			NormalRule<Stmt, Val, TypestateWeight> normalRule = new NormalRule<>(valInScope, previousStmt, valInScope, currentStmt, weight);
 			log.debug("Adding normal rule {}", normalRule);
 			result.add(normalRule);
@@ -659,14 +678,15 @@ public class TypeStateAnalysis {
 	}
 
 	/**
-	 * Returns true if [markInstance].[call] refers to [op] of [entity.
+	 * Returns {@code true} if {@code call}
 	 *
-	 * @param call
+	 * @param call A {@code Statement} or {@code VariableDeclaration} CPG node.
 	 * @param markInstance
 	 * @param op
 	 * @return
 	 */
-	private boolean belongsToOp(@NonNull Statement call, @Nullable String markInstance, String op) {
+	private boolean belongsToOp(@NonNull Val valInScope, de.fraunhofer.aisec.cpg.graph.Node call, @Nullable String markInstance, String op) {
+		// Note: this method is called a few times and repeats some work. Potential for caching/optimization.
 		if (markInstance == null || call.getName().equals("")) {
 			return false;
 		}
@@ -677,43 +697,64 @@ public class TypeStateAnalysis {
 			return false;
 		}
 
-		// Note: this method is called a few times and repeats some work. Potential for caching/optimization.
+		// For non-OO languages, we need to check valInScope against function args and return value (=assignee)
+		String assigneeVar = null;
+		String assignerFqn = null;
+		if (call instanceof VariableDeclaration) {
+			assigneeVar = call.getName();
+			if (((VariableDeclaration) call).getInitializer() instanceof CallExpression) {
+				assignerFqn = ((CallExpression) ((VariableDeclaration) call).getInitializer()).getFqn();
+			}
+		} else if (call instanceof CallExpression) {
+			assignerFqn = ((CallExpression) call).getFqn();
+		}
+
+		// For method calls we collect the "base", its type(s), and the method arguments.
+		Set<Type> types = new HashSet<>();
+		List<Expression> arguments = new ArrayList<>();
 		if (call instanceof CallExpression) {
 			de.fraunhofer.aisec.cpg.graph.Node base = ((CallExpression) call).getBase();
 
 			// Check for type of base, if exists
-			Set<Type> types = new HashSet<>();
 			if (base != null && base instanceof Expression) {
 				types = ((Expression) base).getPossibleSubTypes();
 			}
 
-			for (MOp o : mEntity.getValue1().getOps()) {
-				if (!op.equals(o.getName())) {
-					continue;
-				}
-				for (OpStatement opStatement : o.getStatements()) {
-					if (types.isEmpty()) {
-						/* Failure to resolve type or a function call (e.g. EVP_EncryptInit), rather than a method call.
-						   In case of function calls/non-OO languages, we ignore the type of the (non-existing) base
-						   and simply check if the call stmt matches the one in the "op" spec.
-						 */
-						if (opStatement.getCall().getName().endsWith(call.getName())) { // Diryt: endsWith() as call.getName() does not include scope.
+			arguments.addAll(((CallExpression) call).getArguments());
+		}
+
+		for (MOp o : mEntity.getValue1().getOps()) {
+			if (!op.equals(o.getName())) {
+				continue;
+			}
+			for (OpStatement opStatement : o.getStatements()) {
+				if (types.isEmpty()) {
+					/* Failure to resolve type or a function call (e.g. EVP_EncryptInit), rather than a method call.
+					   In case of function calls/non-OO languages, we ignore the type of the (non-existing) base
+					   and simply check if the call stmt matches the one in the "op" spec.
+					   "Matches" means that it matches the function and valInScope is either one of the arguments or is assigned the call's return value.
+					 */
+					if ((assignerFqn != null && opStatement.getCall().getName().equals(assignerFqn)) // Dirty: contains() as call.getName() does not include scope.
+							&& (assigneeVar != null // is return value assigned to valInScope?
+									|| arguments.isEmpty()
+									|| CrymlinQueryWrapper.argumentsMatchSourceParameters(opStatement.getCall().getParams(), ((CallExpression) call).getArguments())
+							)) {
+						return true;
+					}
+				} else {
+					for (Type type : types) {
+						if (type.getTypeName().startsWith(Utils.getScope(opStatement.getCall().getName()).replace("::", ".")) // Dirty: startsWith() to ignore modifiers (such as "*").
+								&& opStatement.getCall()
+										.getName()
+										.endsWith(call.getName())) {
+							// TODO should rather compare fully qualified names instead of "endsWith"
 							return true;
-						}
-					} else {
-						for (Type type : types) {
-							if (type.getTypeName().startsWith(Utils.getScope(opStatement.getCall().getName()).replace("::", ".")) // Dirty: startsWith() to ignore modifiers (such as "*").
-									&& opStatement.getCall()
-											.getName()
-											.endsWith(call.getName())) {
-								// TODO should rather compare fully qualified names instead of "endsWith"
-								return true;
-							}
 						}
 					}
 				}
 			}
 		}
+
 		return false;
 	}
 
@@ -875,18 +916,21 @@ public class TypeStateAnalysis {
 	 */
 	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
 			NFA nfa, Stmt currentStmt, Vertex currentStmtVertex) {
-		Set<NFATransition<Node>> relevantNFATransitions = nfa.getTransitions()
-				.stream()
-				.filter(
-					tran -> belongsToOp(mce, tran.getTarget().getBase(), tran.getTarget().getOp()))
-				.collect(Collectors.toSet());
-		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
-
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
 		List<Vertex> returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) currentStmtVertex.id());
 
 		// Arguments of function call
 		List<Val> argVals = argumentsToVals(mce, currentFunctionName);
+
+		Set<NFATransition<Node>> relevantNFATransitions = new HashSet<>();
+		for (Val argVal : argVals) {
+			nfa.getTransitions()
+					.stream()
+					.filter(
+						tran -> belongsToOp(argVal, mce, tran.getTarget().getBase(), tran.getTarget().getOp()))
+					.collect(Collectors.toSet());
+		}
+		TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
 		Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = new HashSet<>();
 		for (FunctionDeclaration potentialCallee : mce.getInvokes()) {

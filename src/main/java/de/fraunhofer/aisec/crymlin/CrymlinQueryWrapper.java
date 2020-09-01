@@ -11,19 +11,7 @@ import de.fraunhofer.aisec.analysis.structures.MarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
-import de.fraunhofer.aisec.cpg.graph.CallExpression;
-import de.fraunhofer.aisec.cpg.graph.ConstructExpression;
-import de.fraunhofer.aisec.cpg.graph.DeclaredReferenceExpression;
-import de.fraunhofer.aisec.cpg.graph.Expression;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Literal;
-import de.fraunhofer.aisec.cpg.graph.MemberExpression;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.NewExpression;
-import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.cpg.graph.ValueDeclaration;
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.*;
 import de.fraunhofer.aisec.cpg.graph.type.Type;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
@@ -954,5 +942,35 @@ public class CrymlinQueryWrapper {
 		it.forEachRemaining(e -> types.add((Type) db.vertexToNode(e.inVertex())));
 
 		return types;
+	}
+
+	/**
+	 * Returns true if this Vertex has a label "ReturnStatement".
+	 *
+	 * @param v
+	 * @return
+	 */
+	public static boolean isReturnStatement(Vertex v) {
+		return Utils.hasLabel(v, ReturnStatement.class);
+	}
+
+	/**
+	 * Returns true if this Vertex has a label "VariableDeclaration".
+	 *
+	 * @param v
+	 * @return
+	 */
+	public static boolean isVariableDeclaration(@NonNull Vertex v) {
+		return Utils.hasLabel(v, VariableDeclaration.class);
+	}
+
+	/**
+	 * Returns true if this Vertex has a label "DeclarationStatement".
+	 *
+	 * @param v
+	 * @return
+	 */
+	public static boolean isDeclarationStatement(@NonNull Vertex v) {
+		return Utils.hasLabel(v, DeclarationStatement.class);
 	}
 }

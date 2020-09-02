@@ -100,7 +100,7 @@ class WpdsTest extends AbstractMarkTest {
 		Set<Finding> findings = performTest("unittests/regression88.cpp", "../../src/dist/mark/botan");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
-		assertEquals(5, findings.stream().filter(Finding::isProblem).count());
+		assertEquals(7, findings.stream().filter(Finding::isProblem).count());
 	}
 
 	@Test
@@ -307,6 +307,31 @@ class WpdsTest extends AbstractMarkTest {
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertTrue(startLineNumbers.containsKey(30));
 		assertTrue(startLineNumbers.get(30)); // isProblem
+	}
+
+	@Test
+	void testJavaMethodArgs() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("java/jca/AESCBC.java", "../../src/dist/mark/bouncycastle");
+
+		Map<Integer, Boolean> startLineNumbers = findings.stream()
+				.collect(Collectors.toMap(
+					f -> f.getRegions().get(0).getStartLine(),
+					f -> f.isProblem(),
+					(isProblemA, isProblemB) -> {
+						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
+						return isProblemA || isProblemB;
+					}));
+
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		assertTrue(startLineNumbers.containsKey(10));
+		assertTrue(startLineNumbers.get(10)); // isProblem
+		assertTrue(startLineNumbers.containsKey(12));
+		assertTrue(startLineNumbers.get(12)); // isProblem
+		assertTrue(startLineNumbers.containsKey(13));
+		assertTrue(startLineNumbers.get(13)); // isProblem
+		assertTrue(startLineNumbers.containsKey(15));
+		assertTrue(startLineNumbers.get(15)); // isProblem
 	}
 
 	@Test

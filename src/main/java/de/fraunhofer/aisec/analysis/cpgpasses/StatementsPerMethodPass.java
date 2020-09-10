@@ -8,6 +8,7 @@ import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
 import de.fraunhofer.aisec.cpg.graph.CompoundStatement;
 import de.fraunhofer.aisec.cpg.graph.Declaration;
 import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.NamespaceDeclaration;
 import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Statement;
 import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
@@ -26,9 +27,9 @@ public class StatementsPerMethodPass extends PassWithContext {
 	public void accept(TranslationResult t) {
 		for (TranslationUnitDeclaration tu : t.getTranslationUnits()) {
 			for (Declaration d : tu.getDeclarations()) {
-				if (d instanceof TranslationUnitDeclaration) { // anything which has Declarations
+				if (d instanceof NamespaceDeclaration) { // anything which has Declarations
 					// loop through functions
-					for (Declaration child : ((TranslationUnitDeclaration) d).getDeclarations()) {
+					for (Declaration child : ((NamespaceDeclaration) d).getDeclarations()) {
 						handleDeclaration(child);
 					}
 				} else {

@@ -11,7 +11,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.0"
-    id("com.diffplug.spotless") version "5.4.0"
+    id("com.diffplug.spotless") version "5.5.1"
     id("com.github.hierynomus.license") version "0.15.0"
 }
 

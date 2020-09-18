@@ -12,7 +12,15 @@ import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
+import de.fraunhofer.aisec.cpg.passes.CallResolver;
+import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
+import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
+import de.fraunhofer.aisec.cpg.passes.ImportResolver;
+import de.fraunhofer.aisec.cpg.passes.JavaExternalTypeHierarchyResolver;
 import de.fraunhofer.aisec.cpg.passes.Pass;
+import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
+import de.fraunhofer.aisec.cpg.passes.TypeResolver;
+import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
@@ -475,7 +483,16 @@ public class AnalysisServer {
 				.failOnError(false)
 				.codeInNodes(true)
 				.loadIncludes(config.analyzeIncludes)
-				.defaultPasses()
+				//.defaultPasses()
+				.registerPass(new TypeHierarchyResolver())
+				.registerPass(new JavaExternalTypeHierarchyResolver())
+				.registerPass(new ImportResolver())
+				.registerPass(new VariableUsageResolver())
+				.registerPass(new CallResolver()) // creates CG
+				.registerPass(new EvaluationOrderGraphPass()) // creates EOG
+				.registerPass(new TypeResolver())
+				//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
+				.registerPass(new FilenameMapper())
 				.sourceLocations(files.toArray(new File[0]));
 		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
 		for (File includePath : config.includePath) {

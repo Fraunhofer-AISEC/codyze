@@ -9,6 +9,14 @@ import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
+import de.fraunhofer.aisec.cpg.passes.CallResolver;
+import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
+import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
+import de.fraunhofer.aisec.cpg.passes.ImportResolver;
+import de.fraunhofer.aisec.cpg.passes.JavaExternalTypeHierarchyResolver;
+import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
+import de.fraunhofer.aisec.cpg.passes.TypeResolver;
+import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.lsp4j.CodeAction;
@@ -115,7 +123,16 @@ public class CpgDocumentService implements TextDocumentService {
 							.debugParser(false)
 							.failOnError(false)
 							.codeInNodes(true)
-							.defaultPasses()
+							//.defaultPasses()
+							.registerPass(new TypeHierarchyResolver())
+							.registerPass(new JavaExternalTypeHierarchyResolver())
+							.registerPass(new ImportResolver())
+							.registerPass(new VariableUsageResolver())
+							.registerPass(new CallResolver()) // creates CG
+							.registerPass(new EvaluationOrderGraphPass()) // creates EOG
+							.registerPass(new TypeResolver())
+							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
+							.registerPass(new FilenameMapper())
 							.sourceLocations(file)
 							.build())
 				.build();

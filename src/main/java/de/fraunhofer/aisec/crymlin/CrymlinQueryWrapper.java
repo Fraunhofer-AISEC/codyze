@@ -555,6 +555,26 @@ public class CrymlinQueryWrapper {
 						.property("value")
 						.value()));
 				ret.add(add);
+			} else if (Utils.hasLabel(v.getArgumentVertex(), MemberExpression.class)) {
+				// When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the member's name.
+				ConstantResolver cResolver = new SimpleConstantResolver(db);
+				MemberExpression memberExpression = (MemberExpression) db.vertexToNode(v.getArgumentVertex());
+				Set<ConstantValue> constantValue = cResolver.resolveConstantValues(memberExpression);
+
+				if (!constantValue.isEmpty()) {
+					constantValue.forEach(cv -> {
+						CPGVertexWithValue add = CPGVertexWithValue.of(v);
+						add.setValue(cv);
+						ret.add(add);
+					});
+				} else {
+					String fqn = memberExpression.getBase().getName() + '.' + memberExpression.getName();
+
+					ConstantValue cv = ConstantValue.of(fqn);
+					CPGVertexWithValue add = CPGVertexWithValue.of(v);
+					add.setValue(cv);
+					ret.add(add);
+				}
 			} else if (Utils.hasLabel(v.getArgumentVertex(), DeclaredReferenceExpression.class)) {
 				// Otherwise we use ConstantResolver to find concrete values of a DeclaredReferenceExpression.
 				ConstantResolver cResolver = new SimpleConstantResolver(db);
@@ -577,14 +597,6 @@ public class CrymlinQueryWrapper {
 					v.setValue(ErrorValue.newErrorValue(String.format("could not resolve %s", markVar)));
 					ret.add(add);
 				}
-			} else if (Utils.hasLabel(v.getArgumentVertex(), MemberExpression.class)) {
-				// When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the member's name.
-				MemberExpression memberExpression = (MemberExpression) db.vertexToNode(v.getArgumentVertex());
-				String fqn = memberExpression.getBase().getName() + '.' + memberExpression.getRefersTo().getName();
-				ConstantValue cv = ConstantValue.of(fqn);
-				CPGVertexWithValue add = CPGVertexWithValue.of(v);
-				add.setValue(cv);
-				ret.add(add);
 			} else {
 				log.info("Cannot resolve concrete value of a node that is not a DeclaredReferenceExpression or a Literal: {} Returning NULL",
 					v.getArgumentVertex().label());

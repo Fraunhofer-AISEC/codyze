@@ -169,6 +169,12 @@ public class SimpleConstantResolver implements ConstantResolver {
 										if (constantValue.isPresent()) {
 											return constantValue;
 										}
+									} else if (v.label().equals(Literal.class.getSimpleName())) {
+										Object literalValue = v.property("value").orElse(null);
+										Optional<ConstantValue> constantValue = ConstantValue.tryOf(literalValue);
+										if (constantValue.isPresent()) {
+											return constantValue;
+										}
 									} else {
 										log.warn("Last expression in ExpressionList does not have a VariableDeclaration. Cannot resolve its value: {}",
 											lastExpressionInList.property("code").value());

@@ -235,7 +235,7 @@ public class OGMTest {
 					MethodDeclaration.class.getSimpleName(),
 					OverflowDatabase.getSubclasses(MethodDeclaration.class));
 		long mdCount = traversal.count().next();
-		assertEquals(16, mdCount, "Expected exactly 15 MethodDeclarations");
+		assertEquals(17, mdCount, "Expected exactly 17 MethodDeclarations");
 	}
 
 	@Test

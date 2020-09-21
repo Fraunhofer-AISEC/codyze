@@ -72,7 +72,7 @@ If you are looking for an exciting thesis project or student job in the field of
 
 # Support
 
-We will continue to maintain this project for the foreeable future on a best-effort basis. That is, if you run into any bugs or find the documentation insufficient, we encourage you to open issues or pull requests. If you are interested in support and development for commercial use, please contact us.
+We will continue to maintain this project for the foreseeable future on a best-effort basis. That is, if you run into any bugs or find the documentation insufficient, we encourage you to open issues or pull requests. If you are interested in support and development for commercial use, please contact us.
 
 # License
 

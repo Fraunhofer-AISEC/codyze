@@ -100,7 +100,7 @@ dependencies {
 
     // Command line interface support
     api("info.picocli:picocli:4.5.0")
-    annotationProcessor("info.picocli:picocli-codegen:4.5.0")
+    annotationProcessor("info.picocli:picocli-codegen:4.5.1")
 
     // Gremlin
     api("org.apache.tinkerpop:gremlin-core:3.4.3")

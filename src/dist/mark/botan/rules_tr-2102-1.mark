@@ -30,7 +30,7 @@ rule _2_1_2_1_02_CCM_TagSize {
 	using Botan.Cipher_Mode as cm
 	when _starts_with(_split(cm.algorithm, "/", 1), "CCM")
 	ensure _between(_split(cm.algorithm, "/", 1), "(", ")") >= 8 // 8 byte = 64 bit
-	onfail  _2_1_2_2_03_GCM_TagSize
+	onfail  _2_1_2_2_02_CCM_TagSize
 }
 
 // NOTE: rule 2.1.2.2.01 seems to be not checkable. We cannot sufficiently reason about the dynamic behaviour of the program to check this rule.

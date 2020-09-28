@@ -107,7 +107,7 @@ rule ID_2_1_2_2_02 {
         (_has_value(gcm.src) && _length(gcm.src) == 12) /* in bytes */
         || (_has_value(gcm.len) && gcm.len == 12)
     onfail
-        InvalidGCMAuthtenticationNonceLength
+        InvalidGCMAuthenticationNonceLength
 }
 
 /**

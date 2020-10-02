@@ -8,15 +8,12 @@ import de.fraunhofer.aisec.cpg.graph.EdgeProperty;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.edge.Properties;
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge;
-import de.fraunhofer.aisec.cpg.graph.type.ObjectType;
+import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdgeConverter;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -33,46 +30,18 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import overflowdb.EdgeFactory;
-import overflowdb.EdgeLayoutInformation;
-import overflowdb.NodeFactory;
-import overflowdb.NodeLayoutInformation;
-import overflowdb.NodeRef;
-import overflowdb.OdbConfig;
-import overflowdb.OdbEdge;
-import overflowdb.OdbGraph;
-import overflowdb.OdbNode;
-import overflowdb.OdbNodeProperty;
+import overflowdb.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.lang.reflect.ParameterizedType;
 
 /**
  * <code>Database</code> implementation for OverflowDB.
@@ -308,7 +277,29 @@ public class OverflowDatabase<N> implements Database<N> {
 							.filter(distinctByKey(Vertex::id))
 							.map(this::vertexToNode)
 							.collect(Collectors.toList());
+
+					List<Edge> targetEdges = IteratorUtils.stream(v.edges(direction, getRelationshipLabel(f))).collect(Collectors.toList());
+
 					if (isCollection(f.getType())) {
+
+						ParameterizedType genericValue = (ParameterizedType) f.getGenericType();
+
+						Type[] collectionsGenerics = genericValue.getActualTypeArguments();
+						if (collectionsGenerics.length > 0 && collectionsGenerics[0].getTypeName()
+								.equals(PropertyEdge.class.getName())) {
+							targets = new ArrayList<>();
+							for (Edge edge : targetEdges) {
+
+								N endNode = vertexToNode(((OdbEdge) edge).inNode());
+
+								PropertyEdgeConverter propertyEdgeConverter = new PropertyEdgeConverter();
+								Map<Properties, Object> propertyMap = propertyEdgeConverter.toEntityAttribute(((OdbEdge) edge).propertyMap());
+
+								PropertyEdge propertyEdge = new PropertyEdge((Node) node, (Node) endNode, propertyMap);
+								targets.add((N) propertyEdge);
+							}
+						}
+
 						/*
 						 * we don't know for sure that the relationships are stored as a list. Might as well be any other collection. Thus we'll create it using
 						 * reflection

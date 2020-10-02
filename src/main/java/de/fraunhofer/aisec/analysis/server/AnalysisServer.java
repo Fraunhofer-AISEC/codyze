@@ -439,7 +439,9 @@ public class AnalysisServer {
 		db.clearDatabase();
 
 		// connect
-		db.connect();
+		if (!db.isConnected()) {
+			db.connect();
+		}
 
 		// Persist the result
 		db.saveAll(result.getTranslationUnits());

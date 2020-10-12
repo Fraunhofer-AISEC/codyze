@@ -23,6 +23,7 @@ import de.fraunhofer.aisec.cpg.passes.TypeResolver;
 import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
+import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
@@ -93,7 +94,7 @@ public class AnalysisServer {
 
 	private TranslationResult translationResult;
 
-	private OverflowDatabase<Node> db;
+	private Database<Node> db;
 
 	private Mark markModel = new Mark();
 

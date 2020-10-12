@@ -40,7 +40,7 @@ public class PerformanceTest {
 
 		System.out.println("Creating DB instance ...");
 
-		var db = new OverflowDatabase<Node>(ServerConfiguration.builder().disableOverflow(true).build());
+		var db = new OverflowDatabase(ServerConfiguration.builder().disableOverflow(true).build());
 		db.connect();
 
 		Graph g = db.getGraph();

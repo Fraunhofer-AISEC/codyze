@@ -8,7 +8,7 @@ import java.util.Collection;
 
 public interface Database<N> {
 
-	boolean connect();
+	void connect();
 
 	boolean isConnected();
 

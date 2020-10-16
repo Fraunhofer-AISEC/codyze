@@ -54,20 +54,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -213,18 +200,22 @@ public class OverflowDatabase implements Database<Node> {
 	/**
 	 * Saves a single Node in OverflowDB.
 	 */
-	private void save(Node node) {
-		if (saved.contains(node)) {
-			// Has been seen before. Skip
-			return;
-		}
+	private void save(@Nullable Node n) {
+		Queue<Node> processing = new ArrayDeque<>();
 
-		// Store node
-		createVertex(node);
-		saved.add(node);
+		// don't allow null
+		while (n != null) {
+			if (!saved.contains(n)) {
+				// haven't processed node yet
+				createVertex(n);
+				saved.add(n);
 
-		for (Node child : SubgraphWalker.getAstChildren(node)) {
-			save(child);
+				// process children
+				processing.addAll(SubgraphWalker.getAstChildren(n));
+			}
+
+			// get next node if it exists; if it doesn't (i.e. queue is empty) this returns null
+			n = processing.poll();
 		}
 	}
 
@@ -779,7 +770,7 @@ public class OverflowDatabase implements Database<Node> {
 	 * @param c
 	 * @return
 	 */
-	public static String[] getSubclasses(Class<?> c) {
+	public static String[] getSubclasses(@NonNull Class<?> c) {
 		if (subClasses.containsKey(c.getName())) {
 			return subClasses.get(c.getName());
 		}
@@ -797,16 +788,18 @@ public class OverflowDatabase implements Database<Node> {
 	}
 
 	/**
+	 * Creates an array of simple class names (<see>{@link Class#getSimpleName()}</see>) starting from specified class
+	 * (index <code>0</code>) through all its parent classes excluding <code>Object</code> (indices <code>2...n</code>).
 	 *
-	 *
-	 * @param c
-	 * @return
+	 * @param c a class to determine superclasses of
+	 * @return array of the super class hierarchy starting at the specified class up to but excluding <code>Object</code>
 	 */
-	private static String[] getSuperclasses(Class<?> c) {
+	private static String[] getSuperclasses(@NonNull Class<?> c) {
 		if (superClasses.containsKey(c.getName())) {
 			return superClasses.get(c.getName());
 		}
 
+		// IMPROVEMENT store intermediate class hierarchies as well and possibly try to find them in map
 		List<String> labels = new ArrayList<>();
 		while (!c.equals(Object.class)) {
 			labels.add(c.getSimpleName());

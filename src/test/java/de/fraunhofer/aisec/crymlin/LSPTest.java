@@ -98,7 +98,7 @@ class LSPTest {
 
 			@Override
 			public void publishDiagnostics(PublishDiagnosticsParams publishDiagnosticsParams) {
-				assertEquals(7, publishDiagnosticsParams.getDiagnostics().size());
+				assertEquals(8, publishDiagnosticsParams.getDiagnostics().size());
 			}
 
 			@Override

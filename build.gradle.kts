@@ -81,10 +81,8 @@ dependencies {
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
     api("org.slf4j:slf4j-api:1.8.0-beta4")
 
-    api("com.github.javaparser:javaparser-symbol-solver-core:3.16.1")
-
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:3.0.0")
+    api("de.fraunhofer.aisec:cpg:3.1.0")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { setChanging(true) }

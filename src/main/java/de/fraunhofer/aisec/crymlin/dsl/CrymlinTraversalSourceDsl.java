@@ -2,21 +2,21 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
 import de.fraunhofer.aisec.analysis.ShellCommand;
-import de.fraunhofer.aisec.cpg.graph.CallExpression;
-import de.fraunhofer.aisec.cpg.graph.ConstructExpression;
-import de.fraunhofer.aisec.cpg.graph.EnumConstantDeclaration;
-import de.fraunhofer.aisec.cpg.graph.FieldDeclaration;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.IfStatement;
-import de.fraunhofer.aisec.cpg.graph.MemberCallExpression;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.NamespaceDeclaration;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.ReturnStatement;
-import de.fraunhofer.aisec.cpg.graph.Statement;
-import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
-import de.fraunhofer.aisec.cpg.graph.TypedefDeclaration;
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.EnumConstantDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.NamespaceDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.TranslationUnitDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.TypedefDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.statements.IfStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.Statement;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection;
 import org.apache.tinkerpop.gremlin.process.traversal.TextP;
@@ -41,7 +41,7 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.out;
  * The DSL definition must be a class that extends {@code GraphTraversalSource} and should be referenced in the {@code GremlinDsl} annotation on the
  * {@code GraphTraversal} extension - in this example {@link CrymlinTraversalDsl}. The methods on this class will be exposed with the other traversal start steps on
  * {@code GraphTraversalSource}.</p>
- *
+ * <p>
  * Note: Overloading methods is of course possible at Java level, but might lead to undesired effects at Jython level.
  */
 public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
@@ -61,7 +61,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
 	/**
 	 * Returns function and method calls.
-	 *
+	 * <p>
 	 * This traversal step will return vertices of type CallExpression (or its subclasses).
 	 *
 	 * @return traversal of matched {@code CallExpression} vertices
@@ -76,7 +76,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
 	/**
 	 * Returns the vertices representing the call site of a function with the given fully qualified name.
-	 *
+	 * <p>
 	 * This traversal step will return vertices of type CallExpression (or its subclasses).
 	 *
 	 * @param calleeName name of the called function/method
@@ -94,7 +94,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
 	/**
 	 * Returns the vertices representing the call site of a function whose given fully qualified name contains the argument.
-	 *
+	 * <p>
 	 * This traversal step will return vertices of type CallExpression (or its subclasses).
 	 *
 	 * @param calleeName name of the called function/method
@@ -113,7 +113,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 
 	/**
 	 * Returns the vertices representing the construct site of a object with the given fully qualified type.
-	 *
+	 * <p>
 	 * This traversal step will return vertices of type ConstructExpression (or its subclasses) which
 	 * match the given type, i.e. which have a TYPE edge to any Type node with a name that equals
 	 * the given {@code type}.

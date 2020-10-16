@@ -2,9 +2,9 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
 import de.fraunhofer.aisec.analysis.ShellCommand;
-import de.fraunhofer.aisec.cpg.graph.BinaryOperator;
-import de.fraunhofer.aisec.cpg.graph.Literal;
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal;
 import org.apache.tinkerpop.gremlin.neo4j.process.traversal.LabelP;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;

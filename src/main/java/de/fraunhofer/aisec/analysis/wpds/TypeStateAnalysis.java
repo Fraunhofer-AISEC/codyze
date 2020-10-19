@@ -18,19 +18,19 @@ import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.NonNullPair;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.graph.CallExpression;
-import de.fraunhofer.aisec.cpg.graph.CompoundStatement;
-import de.fraunhofer.aisec.cpg.graph.Declaration;
-import de.fraunhofer.aisec.cpg.graph.DeclarationStatement;
-import de.fraunhofer.aisec.cpg.graph.DeclaredReferenceExpression;
-import de.fraunhofer.aisec.cpg.graph.Expression;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.IfStatement;
-import de.fraunhofer.aisec.cpg.graph.ParamVariableDeclaration;
-import de.fraunhofer.aisec.cpg.graph.ReturnStatement;
-import de.fraunhofer.aisec.cpg.graph.Statement;
-import de.fraunhofer.aisec.cpg.graph.VariableDeclaration;
-import de.fraunhofer.aisec.cpg.graph.type.Type;
+import de.fraunhofer.aisec.cpg.graph.declarations.Declaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.ParamVariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.statements.CompoundStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.IfStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.Statement;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression;
+import de.fraunhofer.aisec.cpg.graph.types.Type;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants;
@@ -906,7 +906,6 @@ public class TypeStateAnalysis {
 	 * @param mce
 	 * @param crymlinTraversal
 	 * @param currentFunctionName
-	 * @param nfa
 	 * @param currentStmt
 	 * @param currentStmtVertex
 	 * @return

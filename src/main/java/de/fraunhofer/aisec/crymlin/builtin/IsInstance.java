@@ -8,8 +8,8 @@ import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.graph.CallExpression;
-import de.fraunhofer.aisec.cpg.graph.type.Type;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.types.Type;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -74,7 +74,7 @@ public class IsInstance implements Builtin {
 					boolean match = CrymlinQueryWrapper.getPossibleSubTypes(ctx.getDatabase(), next)
 							.stream()
 							.map(Type::getTypeName)
-							.anyMatch(typeName -> classname.equals(typeName));
+							.anyMatch(classname::equals);
 					cv = ConstantValue.of(match);
 				}
 			}

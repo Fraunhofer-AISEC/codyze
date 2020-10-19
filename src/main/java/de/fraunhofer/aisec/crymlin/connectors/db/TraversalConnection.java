@@ -34,15 +34,6 @@ public class TraversalConnection implements AutoCloseable {
 
 	public void close() {
 		try {
-			if (tg != null) {
-				tg.close();
-			}
-		}
-		catch (Exception e) {
-			log.debug("Closing TG: ", e);
-		}
-
-		try {
 			if (crymlinSource != null) {
 				crymlinSource.close();
 			}

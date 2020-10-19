@@ -2,25 +2,9 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.graph.TypeManager;
-import de.fraunhofer.aisec.cpg.graph.type.ObjectType;
-import de.fraunhofer.aisec.cpg.graph.type.Type;
-import de.fraunhofer.aisec.cpg.graph.type.TypeParser;
-import de.fraunhofer.aisec.mark.markDsl.MarkDslFactory;
-import de.fraunhofer.aisec.mark.markDsl.Parameter;
-import de.fraunhofer.aisec.mark.markDsl.impl.MarkDslFactoryImpl;
-import de.fraunhofer.aisec.mark.markDsl.impl.ParameterImpl;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JCATest extends AbstractMarkTest {
 

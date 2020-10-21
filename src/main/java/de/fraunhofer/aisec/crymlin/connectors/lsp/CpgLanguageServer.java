@@ -28,9 +28,9 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 
 	private static final Logger log = LoggerFactory.getLogger(CpgLanguageServer.class);
 
-	private CpgDocumentService textDocumentService = new CpgDocumentService();
+	private final CpgDocumentService textDocumentService = new CpgDocumentService();
 
-	private CpgWorkspaceService workspaceService = new CpgWorkspaceService();
+	private final CpgWorkspaceService workspaceService = new CpgWorkspaceService();
 
 	private Instant start = Instant.now();
 	private boolean shutdownRequested = false;
@@ -44,7 +44,7 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 		ServerCapabilities capabilities = new ServerCapabilities();
 		capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
 		List<String> commands = Arrays
-				.asList(new String[] { "textDocument/documentHighlight", "textDocument/documentSymbol", "textDocument/codeAction" });
+				.asList("textDocument/documentHighlight", "textDocument/documentSymbol", "textDocument/codeAction");
 		ExecuteCommandOptions exep = new ExecuteCommandOptions(commands);
 		capabilities.setExecuteCommandProvider(exep);
 		capabilities.setHoverProvider(false);

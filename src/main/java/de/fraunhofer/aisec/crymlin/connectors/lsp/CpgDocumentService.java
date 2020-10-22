@@ -69,26 +69,9 @@ public class CpgDocumentService implements TextDocumentService {
 	private static final String DISABLE_FINDING_PREFIX = "CODYZE-IGNORE-";
 	private static final String DISABLE_FINDING_ALL = "CODYZE-IGNORE-ALL";
 
-	private HashMap<String, Pair<String, PublishDiagnosticsParams>> lastScan = new HashMap<>();
+	private final HashMap<String, Pair<String, PublishDiagnosticsParams>> lastScan = new HashMap<>();
 
 	private LanguageClient client;
-
-	// mark the whole file with _Information_ to indicate that the file is being scanned
-	private void markWholeFile(String text, String uriString) {
-		ArrayList<Diagnostic> allDiags = new ArrayList<>();
-		Diagnostic diagnostic = new Diagnostic();
-		diagnostic.setSeverity(DiagnosticSeverity.Information);
-		diagnostic.setMessage("File is being scanned");
-		String[] split = text.split("\n");
-		diagnostic.setRange(
-			new Range(
-				new Position(0, 0), new Position(split.length - 1, split[split.length - 1].length())));
-		allDiags.add(diagnostic);
-		PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
-		diagnostics.setDiagnostics(allDiags);
-		diagnostics.setUri(uriString);
-		client.publishDiagnostics(diagnostics);
-	}
 
 	private void analyze(String uriString, String text) {
 		log.debug("Starting analysis of file {}", uriString);
@@ -106,8 +89,6 @@ public class CpgDocumentService implements TextDocumentService {
 		}
 
 		log.debug("Really starting analysis of file {}", uriString);
-
-		// markWholeFile(text, uriString);
 
 		Benchmark bm = new Benchmark(CpgDocumentService.class, "Analysis finished");
 

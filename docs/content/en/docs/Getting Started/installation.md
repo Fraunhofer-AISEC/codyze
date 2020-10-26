@@ -26,11 +26,11 @@ Download and Install
 
 ## Integration in Eclipse
 
-Codyze can be installed from an Eclipse update site. It has been tested against Eclipse 2019-04 and later.
+Codyze can be installed from an Eclipse update site. It has been tested against Eclipse 2019-12 and later.
 
 1. In Eclipse, click on `Help`->`Install New Software...`
 2. Click `Add...` to add a new update site
-3. Choose a name and enter the location [https://update.breakpoint-security.com](https://update.breakpoint-security.com) (note this is an Eclipse update site URL and not suited to open with a web browser)
+3. Choose a name and enter the location [https://codyze.s3.eu-central-1.amazonaws.com/codyze-eclipse-plugin/](https://codyze.s3.eu-central-1.amazonaws.com/codyze-eclipse-plugin/) (note this is an Eclipse update site URL and not suited to open with a web browser)
 
 <img src="/img/eclipse-update-site.png" 
     alt="Adding Eclipse Update Site"
@@ -60,7 +60,7 @@ Once installed, configure the Eclipse plugin to use the local LSP server:
 
 1. Download and install the `LSP Support` plugin. Restart IntelliJ.
 2. Goto `Settings` -> `Language Server Protocol` -> `Server Definitions`
-3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `/opt/codyze/codyze-1.0.0/bin/codyze` script. 
+3. Add a new server definition of type `Executable` for extension `java` and navigate to your local `codyze-<version>/bin/codyze` script. 
  
 <img src="/img/lsp-settings-intellij.png" 
 alt="IntelliJ LSP Settings" 

@@ -46,8 +46,8 @@ public class Main implements Callable<Integer> {
 	private File markFolderName;
 
 	@Option(names = { "-o",
-			"--output" }, paramLabel = "<file>", description = "Write results to file. Use -- for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-	private File outputFile;
+			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+	private String outputFile;
 
 	@Option(names = {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
@@ -90,7 +90,14 @@ public class Main implements Callable<Integer> {
 			AnalysisContext ctx = server.analyze(analysisInput.getAbsolutePath())
 					.get(timeout, TimeUnit.MINUTES);
 
-			writeFindings(ctx.getFindings());
+			var findings = ctx.getFindings();
+
+			writeFindings(findings);
+
+			if (executionMode.cli) {
+				// Return code based on the existence of violations
+				return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
+			}
 		} else if (executionMode.lsp) {
 			// Block main thread. Work is done in
 			Thread.currentThread().join();
@@ -112,10 +119,10 @@ public class Main implements Callable<Integer> {
 		}
 		sb.append("]");
 
-		if (outputFile.getName().equals("--")) {
+		if (outputFile.equals("-")) {
 			System.out.println(sb.toString());
 		} else {
-			try (PrintWriter out = new PrintWriter(outputFile.getAbsolutePath())) {
+			try (PrintWriter out = new PrintWriter(new File(outputFile))) {
 				out.println(sb.toString());
 			}
 			catch (FileNotFoundException e) {

@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.graph.EdgeProperty;
 import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.Persistable;
 import de.fraunhofer.aisec.cpg.graph.edge.Properties;
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge;
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdgeConverter;
@@ -19,6 +20,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.javatuples.Pair;
 import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 import org.neo4j.ogm.typeconversion.CompositeAttributeConverter;
@@ -229,6 +231,21 @@ public class OverflowDatabase<N> implements Database<N> {
 		return Collections.emptyMap();
 	}
 
+	private List<N> rebuildPropertyEdges(List<Edge> targetEdges) {
+		List<N> targets = new ArrayList<>();
+		for (Edge edge : targetEdges) {
+			N startNode = vertexToNode(((OdbEdge) edge).outNode());
+			N endNode = vertexToNode(((OdbEdge) edge).inNode());
+
+			PropertyEdgeConverter propertyEdgeConverter = new PropertyEdgeConverter();
+			Map<Properties, Object> propertyMap = propertyEdgeConverter.toEntityAttribute(((OdbEdge) edge).propertyMap());
+
+			PropertyEdge propertyEdge = new PropertyEdge((Node) startNode, (Node) endNode, propertyMap);
+			targets.add((N) propertyEdge);
+		}
+		return targets;
+	}
+
 	/**
 	 * Constructs a native Node object from a given Vertex or returns a cached Node object.
 	 *
@@ -285,19 +302,10 @@ public class OverflowDatabase<N> implements Database<N> {
 						ParameterizedType genericValue = (ParameterizedType) f.getGenericType();
 
 						Type[] collectionsGenerics = genericValue.getActualTypeArguments();
+						// Handle PropertyEdges by overwriting targets
 						if (collectionsGenerics.length > 0 && collectionsGenerics[0].getTypeName()
 								.equals(PropertyEdge.class.getName())) {
-							targets = new ArrayList<>();
-							for (Edge edge : targetEdges) {
-
-								N endNode = vertexToNode(((OdbEdge) edge).inNode());
-
-								PropertyEdgeConverter propertyEdgeConverter = new PropertyEdgeConverter();
-								Map<Properties, Object> propertyMap = propertyEdgeConverter.toEntityAttribute(((OdbEdge) edge).propertyMap());
-
-								PropertyEdge propertyEdge = new PropertyEdge((Node) node, (Node) endNode, propertyMap);
-								targets.add((N) propertyEdge);
-							}
+							targets = rebuildPropertyEdges(targetEdges);
 						}
 
 						/*
@@ -323,7 +331,13 @@ public class OverflowDatabase<N> implements Database<N> {
 						assert Collection.class.isAssignableFrom(collectionType);
 						handleCollections(node, f, targets, collectionType);
 					} else if (f.getType().isArray()) {
-						Object targetArray = Array.newInstance(f.getType(), targets.size());
+						Object targetArray = Array.newInstance(f.getType().getComponentType(), targets.size());
+
+						// Handle PropertyEdges by overwriting targets
+						if (PropertyEdge[].class.isAssignableFrom(f.getType())) {
+							targets = rebuildPropertyEdges(targetEdges);
+						}
+
 						for (int i = 0; i < targets.size(); i++) {
 							Array.set(targetArray, i, targets.get(i));
 						}
@@ -331,6 +345,9 @@ public class OverflowDatabase<N> implements Database<N> {
 					} else {
 						// single edge
 						if (!targets.isEmpty() && !Modifier.isFinal(f.getModifiers())) {
+							if (PropertyEdge.class.isAssignableFrom(f.getType())) {
+								targets = rebuildPropertyEdges(targetEdges);
+							}
 							f.set(node, targets.get(0));
 						}
 					}
@@ -595,6 +612,13 @@ public class OverflowDatabase<N> implements Database<N> {
 		return null;
 	}
 
+	private void connectPropertyEdge(PropertyEdge entry, Map<String, Object> edgePropertiesForField, Vertex v, String relName, Direction direction) {
+		Node endNode = (entry).getEnd();
+		Map<String, Object> edgeProperties = getcustomEdgeProperties(entry);
+		edgeProperties.putAll(edgePropertiesForField);
+		connect(v, relName, edgeProperties, endNode, direction.equals(Direction.IN));
+	}
+
 	private void createEdges(Vertex v, N n) {
 		for (Field f : getFieldsIncludingSuperclasses(n.getClass())) {
 			if (mapsToRelationship(f)) {
@@ -614,15 +638,11 @@ public class OverflowDatabase<N> implements Database<N> {
 					v.property(f.getName() + "_type", x.getClass().getName());
 
 					// Create an edge from a field value
-					if (isList(x.getClass())) {
-						// TODO do we want automatic indexing for lists?
-						for (Object entry : (List) x) {
+					if (isCollection(x.getClass())) {
+						// Add multiple edges for collections
+						for (Object entry : (Collection) x) {
 							if (PropertyEdge.class.isAssignableFrom(entry.getClass())) {
-
-								Node endNode = ((PropertyEdge) entry).getEnd();
-								Map<String, Object> edgeProperties = getcustomEdgeProperties(entry);
-								edgeProperties.putAll(edgePropertiesForField);
-								Vertex target = connect(v, relName, edgeProperties, endNode, direction.equals(Direction.IN));
+								connectPropertyEdge((PropertyEdge) entry, edgePropertiesForField, v, relName, direction);
 							} else if (Node.class.isAssignableFrom(entry.getClass())) {
 								Vertex target = connect(v, relName, edgePropertiesForField, (Node) entry, direction.equals(Direction.IN));
 								assert target.property("hashCode").value().equals(entry.hashCode());
@@ -630,22 +650,28 @@ public class OverflowDatabase<N> implements Database<N> {
 								log.info("Found non-Node class in collection for label \"{}\"", relName);
 							}
 						}
-					} else if (isCollection(x.getClass())) {
-						// Add multiple edges for collections
-						connectAll(
-							v, relName, edgePropertiesForField, (Collection) x, direction.equals(Direction.IN));
-					} else if (Node[].class.isAssignableFrom(x.getClass())) {
-						connectAll(
-							v,
-							relName,
-							edgePropertiesForField,
-							Collections.singletonList(x),
-							direction.equals(Direction.IN));
+					} else if (Persistable[].class.isAssignableFrom(x.getClass())) {
+						for (Object entry : Collections.singletonList(x)) {
+							if (entry.getClass().getName().equals(PropertyEdge.class.getName())) {
+								connectPropertyEdge((PropertyEdge) entry, edgePropertiesForField, v, relName, direction);
+							} else if (Node.class.isAssignableFrom(entry.getClass())) {
+								Vertex target = connect(v, relName, edgePropertiesForField, (Node) entry, direction.equals(Direction.IN));
+								assert target.property("hashCode").value().equals(x.hashCode());
+							} else {
+								log.info("Found non-Node class in an array for label \"{}\"", relName);
+							}
+						}
 					} else {
 						// Add single edge for non-collections
-						Vertex target = connect(
-							v, relName, edgePropertiesForField, (Node) x, direction.equals(Direction.IN));
-						assert target.property("hashCode").value().equals(x.hashCode());
+						if (PropertyEdge.class.isAssignableFrom(x.getClass())) {
+							connectPropertyEdge((PropertyEdge) x, edgePropertiesForField, v, relName, direction);
+						} else if (Node.class.isAssignableFrom(x.getClass())) {
+							Vertex target = connect(
+								v, relName, edgePropertiesForField, (Node) x, direction.equals(Direction.IN));
+							assert target.property("hashCode").value().equals(x.hashCode());
+						} else {
+							log.info("Found non-Node class for label \"{}\"", relName);
+						}
 					}
 				}
 				catch (IllegalAccessException e) {
@@ -769,10 +795,6 @@ public class OverflowDatabase<N> implements Database<N> {
 
 	private boolean isCollection(Class<?> aClass) {
 		return Collection.class.isAssignableFrom(aClass);
-	}
-
-	private boolean isList(Class<?> aClass) {
-		return List.class.isAssignableFrom(aClass);
 	}
 
 	/**

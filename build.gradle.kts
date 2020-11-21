@@ -11,7 +11,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.0"
-    id("com.diffplug.spotless") version "5.3.0"
+    id("com.diffplug.spotless") version "5.8.2"
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
@@ -74,17 +74,15 @@ configurations.all {
 }
 
 dependencies {
-    api("org.json:json:20200518")
+    api("org.json:json:20201115")
 
-    api("org.apache.logging.log4j:log4j-slf4j18-impl:2.13.3")
-    api("org.apache.logging.log4j:log4j-core:2.13.3")
+    api("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.0")
+    api("org.apache.logging.log4j:log4j-core:2.14.0")
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
     api("org.slf4j:slf4j-api:1.8.0-beta4")
 
-    api("com.github.javaparser:javaparser-symbol-solver-core:3.16.1")
-
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:2.2.1")
+    api("de.fraunhofer.aisec:cpg:3.1.0")
 
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
@@ -100,8 +98,8 @@ dependencies {
     api("com.jayway.jsonpath:json-path:2.4.0")
 
     // Command line interface support
-    api("info.picocli:picocli:4.5.0")
-    annotationProcessor("info.picocli:picocli-codegen:4.5.0")
+    api("info.picocli:picocli:4.5.2")
+    annotationProcessor("info.picocli:picocli-codegen:4.5.2")
 
     // Gremlin
     api("org.apache.tinkerpop:gremlin-core:3.4.3")
@@ -124,9 +122,9 @@ dependencies {
     // Jython (Scripting engine)
     api("org.python:jython-standalone:2.7.2")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.6.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
 }
 
 application {

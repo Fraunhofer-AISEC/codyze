@@ -9,6 +9,14 @@ import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
+import de.fraunhofer.aisec.cpg.passes.CallResolver;
+import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
+import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
+import de.fraunhofer.aisec.cpg.passes.ImportResolver;
+import de.fraunhofer.aisec.cpg.passes.JavaExternalTypeHierarchyResolver;
+import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
+import de.fraunhofer.aisec.cpg.passes.TypeResolver;
+import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.lsp4j.CodeAction;
@@ -61,26 +69,9 @@ public class CpgDocumentService implements TextDocumentService {
 	private static final String DISABLE_FINDING_PREFIX = "CODYZE-IGNORE-";
 	private static final String DISABLE_FINDING_ALL = "CODYZE-IGNORE-ALL";
 
-	private HashMap<String, Pair<String, PublishDiagnosticsParams>> lastScan = new HashMap<>();
+	private final HashMap<String, Pair<String, PublishDiagnosticsParams>> lastScan = new HashMap<>();
 
 	private LanguageClient client;
-
-	// mark the whole file with _Information_ to indicate that the file is being scanned
-	private void markWholeFile(String text, String uriString) {
-		ArrayList<Diagnostic> allDiags = new ArrayList<>();
-		Diagnostic diagnostic = new Diagnostic();
-		diagnostic.setSeverity(DiagnosticSeverity.Information);
-		diagnostic.setMessage("File is being scanned");
-		String[] split = text.split("\n");
-		diagnostic.setRange(
-			new Range(
-				new Position(0, 0), new Position(split.length - 1, split[split.length - 1].length())));
-		allDiags.add(diagnostic);
-		PublishDiagnosticsParams diagnostics = new PublishDiagnosticsParams();
-		diagnostics.setDiagnostics(allDiags);
-		diagnostics.setUri(uriString);
-		client.publishDiagnostics(diagnostics);
-	}
 
 	private void analyze(String uriString, String text) {
 		log.debug("Starting analysis of file {}", uriString);
@@ -99,8 +90,6 @@ public class CpgDocumentService implements TextDocumentService {
 
 		log.debug("Really starting analysis of file {}", uriString);
 
-		// markWholeFile(text, uriString);
-
 		Benchmark bm = new Benchmark(CpgDocumentService.class, "Analysis finished");
 
 		File file = new File(URI.create(uriString));
@@ -115,7 +104,16 @@ public class CpgDocumentService implements TextDocumentService {
 							.debugParser(false)
 							.failOnError(false)
 							.codeInNodes(true)
-							.defaultPasses()
+							//.defaultPasses()
+							.registerPass(new TypeHierarchyResolver())
+							.registerPass(new JavaExternalTypeHierarchyResolver())
+							.registerPass(new ImportResolver())
+							.registerPass(new VariableUsageResolver())
+							.registerPass(new CallResolver()) // creates CG
+							.registerPass(new EvaluationOrderGraphPass()) // creates EOG
+							.registerPass(new TypeResolver())
+							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
+							.registerPass(new FilenameMapper())
 							.sourceLocations(file)
 							.build())
 				.build();

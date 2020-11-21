@@ -12,7 +12,21 @@ import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.*;
-import de.fraunhofer.aisec.cpg.graph.type.Type;
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.NewExpression;
+import de.fraunhofer.aisec.cpg.graph.types.Type;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -555,6 +569,26 @@ public class CrymlinQueryWrapper {
 						.property("value")
 						.value()));
 				ret.add(add);
+			} else if (Utils.hasLabel(v.getArgumentVertex(), MemberExpression.class)) {
+				// When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the member's name.
+				ConstantResolver cResolver = new SimpleConstantResolver(db);
+				MemberExpression memberExpression = (MemberExpression) db.vertexToNode(v.getArgumentVertex());
+				Set<ConstantValue> constantValue = cResolver.resolveConstantValues(memberExpression);
+
+				if (!constantValue.isEmpty()) {
+					constantValue.forEach(cv -> {
+						CPGVertexWithValue add = CPGVertexWithValue.of(v);
+						add.setValue(cv);
+						ret.add(add);
+					});
+				} else {
+					String fqn = memberExpression.getBase().getName() + '.' + memberExpression.getName();
+
+					ConstantValue cv = ConstantValue.of(fqn);
+					CPGVertexWithValue add = CPGVertexWithValue.of(v);
+					add.setValue(cv);
+					ret.add(add);
+				}
 			} else if (Utils.hasLabel(v.getArgumentVertex(), DeclaredReferenceExpression.class)) {
 				// Otherwise we use ConstantResolver to find concrete values of a DeclaredReferenceExpression.
 				ConstantResolver cResolver = new SimpleConstantResolver(db);
@@ -577,14 +611,6 @@ public class CrymlinQueryWrapper {
 					v.setValue(ErrorValue.newErrorValue(String.format("could not resolve %s", markVar)));
 					ret.add(add);
 				}
-			} else if (Utils.hasLabel(v.getArgumentVertex(), MemberExpression.class)) {
-				// When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the member's name.
-				MemberExpression memberExpression = (MemberExpression) db.vertexToNode(v.getArgumentVertex());
-				String fqn = memberExpression.getBase().getName() + '.' + memberExpression.getMember().getName();
-				ConstantValue cv = ConstantValue.of(fqn);
-				CPGVertexWithValue add = CPGVertexWithValue.of(v);
-				add.setValue(cv);
-				ret.add(add);
 			} else {
 				log.info("Cannot resolve concrete value of a node that is not a DeclaredReferenceExpression or a Literal: {} Returning NULL",
 					v.getArgumentVertex().label());

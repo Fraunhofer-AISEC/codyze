@@ -4,7 +4,6 @@
   ],
    "ignoreDeps": [
                   "de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark",
-                  "de.fraunhofer.aisec:cpg", 
                   "org.apache.tinkerpop:gremlin-core",
                   "org.apache.tinkerpop:gremlin-driver",
                   "org.apache.tinkerpop:gremlin-python",

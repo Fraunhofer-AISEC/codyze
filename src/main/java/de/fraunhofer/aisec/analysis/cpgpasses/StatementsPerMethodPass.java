@@ -5,12 +5,13 @@ import de.fraunhofer.aisec.analysis.structures.Method;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
-import de.fraunhofer.aisec.cpg.graph.CompoundStatement;
-import de.fraunhofer.aisec.cpg.graph.Declaration;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.Statement;
-import de.fraunhofer.aisec.cpg.graph.TranslationUnitDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.Declaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.NamespaceDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.TranslationUnitDeclaration;
+import de.fraunhofer.aisec.cpg.graph.statements.CompoundStatement;
+import de.fraunhofer.aisec.cpg.graph.statements.Statement;
 
 /**
  * This pass collects all statements in a method's body in the correct order.
@@ -26,9 +27,9 @@ public class StatementsPerMethodPass extends PassWithContext {
 	public void accept(TranslationResult t) {
 		for (TranslationUnitDeclaration tu : t.getTranslationUnits()) {
 			for (Declaration d : tu.getDeclarations()) {
-				if (d instanceof TranslationUnitDeclaration) { // anything which has Declarations
+				if (d instanceof NamespaceDeclaration) { // anything which has Declarations
 					// loop through functions
-					for (Declaration child : ((TranslationUnitDeclaration) d).getDeclarations()) {
+					for (Declaration child : ((NamespaceDeclaration) d).getDeclarations()) {
 						handleDeclaration(child);
 					}
 				} else {

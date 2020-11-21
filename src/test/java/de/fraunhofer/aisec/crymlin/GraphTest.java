@@ -6,9 +6,9 @@ import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.graph.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
@@ -230,7 +230,7 @@ class GraphTest {
 			Optional<Long> count = crymlin.functions()
 					.count()
 					.tryNext();
-			assertEquals(16, count.get());
+			assertEquals(17, count.get());
 		}
 	}
 

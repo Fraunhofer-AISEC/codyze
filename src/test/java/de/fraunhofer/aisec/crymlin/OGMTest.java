@@ -8,7 +8,11 @@ import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.graph.*;
+import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.TranslationUnitDeclaration;
+import de.fraunhofer.aisec.cpg.graph.statements.IfStatement;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
@@ -19,7 +23,6 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -29,7 +32,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for the Object-Graph-Mapper.
@@ -235,7 +240,7 @@ public class OGMTest {
 					MethodDeclaration.class.getSimpleName(),
 					OverflowDatabase.getSubclasses(MethodDeclaration.class));
 		long mdCount = traversal.count().next();
-		assertEquals(16, mdCount, "Expected exactly 15 MethodDeclarations");
+		assertEquals(17, mdCount, "Expected exactly 17 MethodDeclarations");
 	}
 
 	@Test

@@ -2,7 +2,7 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.cpg.graph.DeclaredReferenceExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Set;

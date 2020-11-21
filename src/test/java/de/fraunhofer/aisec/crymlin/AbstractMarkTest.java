@@ -8,6 +8,14 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TypestateMode;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.passes.CallResolver;
+import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
+import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
+import de.fraunhofer.aisec.cpg.passes.ImportResolver;
+import de.fraunhofer.aisec.cpg.passes.JavaExternalTypeHierarchyResolver;
+import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
+import de.fraunhofer.aisec.cpg.passes.TypeResolver;
+import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -97,7 +105,16 @@ public abstract class AbstractMarkTest {
 							.debugParser(true)
 							.failOnError(false)
 							.codeInNodes(true)
-							.defaultPasses()
+							//.defaultPasses()
+							.registerPass(new TypeHierarchyResolver())
+							.registerPass(new JavaExternalTypeHierarchyResolver())
+							.registerPass(new ImportResolver())
+							.registerPass(new VariableUsageResolver())
+							.registerPass(new CallResolver()) // creates CG
+							.registerPass(new EvaluationOrderGraphPass()) // creates EOG
+							.registerPass(new TypeResolver())
+							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
+							.registerPass(new FilenameMapper())
 							.loadIncludes(true)
 							.sourceLocations(toAnalyze.toArray(new File[0]))
 							.build())

@@ -110,7 +110,7 @@ public class OverflowDatabase<N> implements Database<N> {
 	/**
 	 * maps from vertex ID to edge targets (map label to IDs of target vertices)
 	 */
-	private Map<Object, Map<String, Set<Object>>> edgesCache = new HashMap<>();
+	private final Map<Object, Map<String, Set<Object>>> edgesCache = new HashMap<>();
 	private final Map<N, Vertex> nodeToVertex = new IdentityHashMap<>(); // No cache.
 	private final Map<Long, N> nodesCache = new HashMap<>(); // Key is actually v.id() (Long)
 	private final Set<N> saved = new HashSet<>();
@@ -179,6 +179,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		mapsToProperty.clear();
 		mapsToRelationship.clear();
 		nodesCache.clear();
+		edgesCache.clear();
 
 		// Note: Do NOT clear "layoutInformation". They will be needed for queries.
 	}
@@ -424,6 +425,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
 		// Set node properties (from field values which are not relationships)
 		List<Field> fields = getFieldsIncludingSuperclasses(n.getClass());
+
 		for (Field f : fields) {
 			if (!mapsToRelationship(f) && mapsToProperty(f)) {
 				try {
@@ -434,10 +436,8 @@ public class OverflowDatabase<N> implements Database<N> {
 					}
 					if (hasAnnotation(f, Convert.class)) {
 						properties.putAll(convertToVertexProperties(f, x));
-					} else if (mapsToProperty(f)) {
-						properties.put(f.getName(), x);
 					} else {
-						log.info("Not a property");
+						properties.put(f.getName(), x);
 					}
 				}
 				catch (IllegalAccessException e) {

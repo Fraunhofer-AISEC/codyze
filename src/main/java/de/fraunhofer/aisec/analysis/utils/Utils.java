@@ -2,9 +2,13 @@
 package de.fraunhofer.aisec.analysis.utils;
 
 import de.fraunhofer.aisec.cpg.graph.*;
-import de.fraunhofer.aisec.cpg.graph.type.PointerType;
-import de.fraunhofer.aisec.cpg.graph.type.Type;
-import de.fraunhofer.aisec.cpg.graph.type.UnknownType;
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
+import de.fraunhofer.aisec.cpg.graph.types.PointerType;
+import de.fraunhofer.aisec.cpg.graph.types.Type;
+import de.fraunhofer.aisec.cpg.graph.types.UnknownType;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;

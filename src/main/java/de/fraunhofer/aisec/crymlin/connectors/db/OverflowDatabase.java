@@ -613,7 +613,12 @@ public class OverflowDatabase<N> implements Database<N> {
 	}
 
 	private void connectPropertyEdge(PropertyEdge entry, Map<String, Object> edgePropertiesForField, Vertex v, String relName, Direction direction) {
-		Node endNode = (entry).getEnd();
+		Node endNode;
+		if (direction.equals(Direction.IN)) {
+			endNode = (entry).getStart();
+		} else {
+			endNode = (entry).getEnd();
+		}
 		Map<String, Object> edgeProperties = getcustomEdgeProperties(entry);
 		edgeProperties.putAll(edgePropertiesForField);
 		connect(v, relName, edgeProperties, endNode, direction.equals(Direction.IN));
@@ -1037,7 +1042,8 @@ public class OverflowDatabase<N> implements Database<N> {
 				catch (IllegalAccessException e) {
 					log.error("Object does not contain the required field", e);
 				}
-			} else if (f.getAnnotation(StartNode.class) == null && f.getAnnotation(EndNode.class) == null && f.getAnnotation(Id.class) == null) {
+			} else if (f.getAnnotation(StartNode.class) == null && f.getAnnotation(EndNode.class) == null && f.getAnnotation(Id.class) == null
+					&& f.getAnnotation(Transient.class) == null) {
 				try {
 					properties.put(f.getName(), f.get(edge));
 				}

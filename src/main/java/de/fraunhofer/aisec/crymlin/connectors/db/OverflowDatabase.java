@@ -10,6 +10,7 @@ import de.fraunhofer.aisec.cpg.graph.Persistable;
 import de.fraunhofer.aisec.cpg.graph.edge.Properties;
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge;
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdgeConverter;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -24,6 +25,7 @@ import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 import org.neo4j.ogm.typeconversion.CompositeAttributeConverter;
+import org.python.antlr.ast.Call;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -787,7 +789,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		}
 
 		// Transient fields are not supposed to be persisted
-		if (Modifier.isTransient(f.getModifiers()) || hasAnnotation(f, Transient.class)) {
+		if (Modifier.isTransient(f.getModifiers()) || hasAnnotation(f, Transient.class) || Modifier.isStatic(f.getModifiers())) {
 			mapsToProperty.putIfAbsent(key, false);
 			return false;
 		}
@@ -1057,7 +1059,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					log.error("Object does not contain the required field", e);
 				}
 			} else if (f.getAnnotation(StartNode.class) == null && f.getAnnotation(EndNode.class) == null && f.getAnnotation(Id.class) == null
-					&& f.getAnnotation(Transient.class) == null) {
+					&& f.getAnnotation(Transient.class) == null && !Modifier.isStatic(f.getModifiers())) {
 				try {
 					properties.put(f.getName(), f.get(edge));
 				}

@@ -304,7 +304,7 @@ public class OverflowDatabase<N> implements Database<N> {
 
 						Type[] collectionsGenerics = genericValue.getActualTypeArguments();
 						// Handle PropertyEdges by overwriting targets
-						if (collectionsGenerics.length > 0 && collectionsGenerics[0].getTypeName()
+						if (collectionsGenerics.length > 0 && getGenericStripedType(collectionsGenerics[0]).getTypeName()
 								.equals(PropertyEdge.class.getName())) {
 							targets = rebuildPropertyEdges(targetEdges);
 						}
@@ -360,6 +360,20 @@ public class OverflowDatabase<N> implements Database<N> {
 			log.error("Error creating new {} node", targetClass.getName(), e);
 		}
 		return null;
+	}
+
+	/**
+	 * Strips the parameterized types from the potentially generic type.
+	 *
+	 * @param o Object that may or may not be a generics type name
+	 * @return the non generic parameter part of the type name
+	 */
+	private Type getGenericStripedType(Type o) {
+		if (o instanceof ParameterizedType) {
+			return ((ParameterizedType) o).getRawType();
+		} else {
+			return o;
+		}
 	}
 
 	private void handleCollections(N node, Field f, List<N> targets, Class<?> collectionType)
@@ -657,7 +671,7 @@ public class OverflowDatabase<N> implements Database<N> {
 						}
 					} else if (Persistable[].class.isAssignableFrom(x.getClass())) {
 						for (Object entry : Collections.singletonList(x)) {
-							if (entry.getClass().getName().equals(PropertyEdge.class.getName())) {
+							if (getGenericStripedType(entry.getClass()).getTypeName().equals(PropertyEdge.class.getName())) {
 								connectPropertyEdge((PropertyEdge) entry, edgePropertiesForField, v, relName, direction);
 							} else if (Node.class.isAssignableFrom(entry.getClass())) {
 								Vertex target = connect(v, relName, edgePropertiesForField, (Node) entry, direction.equals(Direction.IN));
@@ -757,7 +771,7 @@ public class OverflowDatabase<N> implements Database<N> {
 			assert f.getGenericType() instanceof ParameterizedType;
 			Type[] elementTypes = ((ParameterizedType) f.getGenericType()).getActualTypeArguments();
 			assert elementTypes.length == 1;
-			return (Class<?>) elementTypes[0];
+			return (Class<?>) getGenericStripedType(elementTypes[0]);
 		} else if (f.getType().isArray()) {
 			return f.getType().getComponentType();
 		} else {

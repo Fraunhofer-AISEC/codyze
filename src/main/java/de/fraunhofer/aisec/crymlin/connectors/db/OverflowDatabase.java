@@ -10,7 +10,6 @@ import de.fraunhofer.aisec.cpg.graph.Persistable;
 import de.fraunhofer.aisec.cpg.graph.edge.Properties;
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge;
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdgeConverter;
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -21,11 +20,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.javatuples.Pair;
 import org.neo4j.ogm.annotation.*;
-import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 import org.neo4j.ogm.typeconversion.CompositeAttributeConverter;
-import org.python.antlr.ast.Call;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -45,7 +42,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.lang.reflect.ParameterizedType;
 
 /**
  * <code>Database</code> implementation for OverflowDB.
@@ -243,7 +239,7 @@ public class OverflowDatabase<N> implements Database<N> {
 			PropertyEdgeConverter propertyEdgeConverter = new PropertyEdgeConverter();
 			Map<Properties, Object> propertyMap = propertyEdgeConverter.toEntityAttribute(((OdbEdge) edge).propertyMap());
 
-			PropertyEdge propertyEdge = new PropertyEdge((Node) startNode, (Node) endNode, propertyMap);
+			var propertyEdge = new PropertyEdge<>((Node) startNode, (Node) endNode, propertyMap);
 			targets.add((N) propertyEdge);
 		}
 		return targets;
@@ -628,14 +624,14 @@ public class OverflowDatabase<N> implements Database<N> {
 		return null;
 	}
 
-	private void connectPropertyEdge(PropertyEdge entry, Map<String, Object> edgePropertiesForField, Vertex v, String relName, Direction direction) {
+	private void connectPropertyEdge(PropertyEdge<?> entry, Map<String, Object> edgePropertiesForField, Vertex v, String relName, Direction direction) {
 		Node endNode;
 		if (direction.equals(Direction.IN)) {
 			endNode = (entry).getStart();
 		} else {
 			endNode = (entry).getEnd();
 		}
-		Map<String, Object> edgeProperties = getcustomEdgeProperties(entry);
+		Map<String, Object> edgeProperties = getCustomEdgeProperties(entry);
 		edgeProperties.putAll(edgePropertiesForField);
 		connect(v, relName, edgeProperties, endNode, direction.equals(Direction.IN));
 	}
@@ -661,9 +657,9 @@ public class OverflowDatabase<N> implements Database<N> {
 					// Create an edge from a field value
 					if (isCollection(x.getClass())) {
 						// Add multiple edges for collections
-						for (Object entry : (Collection) x) {
+						for (var entry : (Collection) x) {
 							if (PropertyEdge.class.isAssignableFrom(entry.getClass())) {
-								connectPropertyEdge((PropertyEdge) entry, edgePropertiesForField, v, relName, direction);
+								connectPropertyEdge((PropertyEdge<?>) entry, edgePropertiesForField, v, relName, direction);
 							} else if (Node.class.isAssignableFrom(entry.getClass())) {
 								Vertex target = connect(v, relName, edgePropertiesForField, (Node) entry, direction.equals(Direction.IN));
 								assert target.property("hashCode").value().equals(entry.hashCode());
@@ -674,7 +670,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					} else if (Persistable[].class.isAssignableFrom(x.getClass())) {
 						for (Object entry : Collections.singletonList(x)) {
 							if (getGenericStripedType(entry.getClass()).getTypeName().equals(PropertyEdge.class.getName())) {
-								connectPropertyEdge((PropertyEdge) entry, edgePropertiesForField, v, relName, direction);
+								connectPropertyEdge((PropertyEdge<?>) entry, edgePropertiesForField, v, relName, direction);
 							} else if (Node.class.isAssignableFrom(entry.getClass())) {
 								Vertex target = connect(v, relName, edgePropertiesForField, (Node) entry, direction.equals(Direction.IN));
 								assert target.property("hashCode").value().equals(x.hashCode());
@@ -685,7 +681,7 @@ public class OverflowDatabase<N> implements Database<N> {
 					} else {
 						// Add single edge for non-collections
 						if (PropertyEdge.class.isAssignableFrom(x.getClass())) {
-							connectPropertyEdge((PropertyEdge) x, edgePropertiesForField, v, relName, direction);
+							connectPropertyEdge((PropertyEdge<?>) x, edgePropertiesForField, v, relName, direction);
 						} else if (Node.class.isAssignableFrom(x.getClass())) {
 							Vertex target = connect(
 								v, relName, edgePropertiesForField, (Node) x, direction.equals(Direction.IN));
@@ -734,22 +730,6 @@ public class OverflowDatabase<N> implements Database<N> {
 		}
 
 		return targetVertex;
-	}
-
-	private void connectAll(
-			Vertex sourceVertex,
-			String label,
-			Map<String, Object> edgeTypes,
-			Collection<?> targetNodes,
-			boolean reverse) {
-		for (Object entry : targetNodes) {
-			if (Node.class.isAssignableFrom(entry.getClass())) {
-				Vertex target = connect(sourceVertex, label, edgeTypes, (Node) entry, reverse);
-				assert target.property("hashCode").value().equals(entry.hashCode());
-			} else {
-				log.info("Found non-Node class in collection for label \"{}\"", label);
-			}
-		}
 	}
 
 	/**
@@ -1047,7 +1027,7 @@ public class OverflowDatabase<N> implements Database<N> {
 		return keyEdgeProperties;
 	}
 
-	private Map<String, Object> getcustomEdgeProperties(Object edge) {
+	private Map<String, Object> getCustomEdgeProperties(Object edge) {
 		Map<String, Object> properties = new HashMap<>();
 		for (Field f : edge.getClass().getDeclaredFields()) {
 			if (f.getAnnotation(Convert.class) != null) {
@@ -1149,7 +1129,7 @@ public class OverflowDatabase<N> implements Database<N> {
 			@Override
 			public OdbNode createNode(NodeRef<OdbNode> ref) {
 				return new OdbNode(ref) {
-					private Map<String, Object> propertyValues = new HashMap<>();
+					private final Map<String, Object> propertyValues = new HashMap<>();
 
 					/**
 					 * All fields annotated with <code></code>@Relationship</code> will become edges.
@@ -1214,9 +1194,9 @@ public class OverflowDatabase<N> implements Database<N> {
 							// for GraphMLWriter. Leaving this in for future reference
 							//                || (Collection.class.isAssignableFrom(values.getClass())
 							//                    && ((Collection) values).isEmpty())) {
-							return new ArrayList<VertexProperty<V>>(0).iterator();
+							return Collections.emptyIterator();
 						}
-						return IteratorUtils.<VertexProperty<V>> of(
+						return IteratorUtils.of(
 							new OdbNodeProperty(this, key, this.propertyValues.get(key)));
 					}
 
@@ -1245,8 +1225,8 @@ public class OverflowDatabase<N> implements Database<N> {
 			}
 
 			@Override
-			public NodeRef createNodeRef(OdbGraph graph, long id) {
-				return new NodeRef(graph, id) {
+			public NodeRef<OdbNode> createNodeRef(OdbGraph graph, long id) {
+				return new NodeRef<>(graph, id) {
 					@Override
 					public String label() {
 						return c.getSimpleName();

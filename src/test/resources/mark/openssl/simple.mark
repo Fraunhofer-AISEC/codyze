@@ -1,0 +1,17 @@
+entity Context {
+    var param;
+
+    op init {
+        SSL_CTX_new(_);
+    }
+
+    op ecdh {
+        SSL_CTX_set_ecdh_auto(this, param);
+    }
+}
+
+rule MustBeOne {
+    using Context as ctx
+    ensure ctx.param == 1
+    onfail MyFail
+}

@@ -1,0 +1,34 @@
+package openssl
+
+entity Protocol_Version {
+	var min_version: int;
+	var max_version: int;
+	
+	op set_min_version {
+		SSL_CTX_set_min_proto_version(_, version);
+		SSL_set_min_proto_version(_, version);
+	}
+	
+	op set_max_version {
+		SSL_CTX_set_max_proto_version(_, version);
+		SSL_set_max_proto_version(_, version);
+	}
+	
+}
+
+rule min_version {
+	using Protocol_Version as pv
+	ensure 
+		pv.min_version in [TLS1_2_VERSION, TLS1_3_VERSION]
+	onfail TLSVersion
+	
+}
+
+
+rule max_version {
+	using Protocol_Version as pv
+	ensure 
+		pv.max_version in [TLS1_2_VERSION, TLS1_3_VERSION]
+	onfail TLSVersion
+	
+}

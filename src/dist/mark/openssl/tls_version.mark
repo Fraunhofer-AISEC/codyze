@@ -19,7 +19,7 @@ entity Protocol_Version {
 rule min_version {
 	using Protocol_Version as pv
 	ensure 
-		pv.min_version in [TLS1_2_VERSION, TLS1_3_VERSION]
+		pv.min_version in ["TLS1_2_VERSION", "TLS1_3_VERSION"]
 	onfail TLSVersion
 	
 }
@@ -28,7 +28,7 @@ rule min_version {
 rule max_version {
 	using Protocol_Version as pv
 	ensure 
-		pv.max_version in [TLS1_2_VERSION, TLS1_3_VERSION]
+		pv.max_version in ["TLS1_2_VERSION", "TLS1_3_VERSION"]
 	onfail TLSVersion
 	
 }

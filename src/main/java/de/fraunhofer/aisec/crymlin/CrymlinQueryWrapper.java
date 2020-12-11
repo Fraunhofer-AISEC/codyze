@@ -637,7 +637,10 @@ public class CrymlinQueryWrapper {
 						ret.add(add);
 					});
 				} else {
+					String fqn = declExpr.getName();
+					ConstantValue cv = ConstantValue.of(fqn);
 					CPGVertexWithValue add = CPGVertexWithValue.of(v);
+					add.setValue(cv);
 					v.setValue(ErrorValue.newErrorValue(String.format("could not resolve %s", markVar)));
 					ret.add(add);
 				}

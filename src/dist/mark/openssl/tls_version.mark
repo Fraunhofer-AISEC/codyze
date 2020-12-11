@@ -1,34 +1,69 @@
 package openssl
 
-entity Protocol_Version {
-	var min_version: int;
-	var max_version: int;
+entity ProtocolVersion {
+	var minVersion;
+	var maxVersion;
 	
 	op set_min_version {
-		SSL_CTX_set_min_proto_version(_, version);
-		SSL_set_min_proto_version(_, version);
+		SSL_CTX_set_min_proto_version(_, minVersion);
+		SSL_set_min_proto_version(_, minVersion);
 	}
 	
 	op set_max_version {
-		SSL_CTX_set_max_proto_version(_, version);
-		SSL_set_max_proto_version(_, version);
+		SSL_CTX_set_max_proto_version(_, maxVersion);
+		SSL_set_max_proto_version(_, maxVersion);
+	}
+	
+	op deprecated_ssl_methods {
+		// These functions are deprecated according to the openssl-Documentation https://www.openssl.org/docs/man1.1.1/man3/DTLS_client_method.html
+		forbidden SSLv23_method();
+		forbidden SSLv23_server_method();
+		forbidden SSLv23_client_method();
+		
+		forbidden SSLv3_method();
+		forbidden SSLv3_server_method();
+		forbidden SSLv3_client_method();
+		
+		forbidden TLSv1_method();
+		forbidden TLSv1_server_method();
+		forbidden TLSv1_client_method();
+		
+		forbidden TLSv1_1_method();
+		forbidden TLSv1_1_server_method();
+		forbidden TLSv1_1_client_method();
+		
+		forbidden TLSv1_2_method();
+		forbidden TLSv1_2_server_method();
+		forbidden TLSv1_2_client_method();
+		
+		forbidden DTLSv1_method();
+		forbidden DTLSv1_server_method();
+		forbidden DTLSv1_client_method();
+		
+		forbidden DTLSv1_2_method();
+		forbidden DTLSv1_2_server_method();
+		forbidden DTLSv1_2_client_method();
+
+		
+		/* In case DTLS is supposed to be forbidden as well
+		forbidden DTLS_method(void);
+		forbidden DTLS_server_method(void);
+ 		*/
 	}
 	
 }
 
 rule min_version {
-	using Protocol_Version as pv
-	ensure 
-		pv.min_version in ["TLS1_2_VERSION", "TLS1_3_VERSION"]
+	using ProtocolVersion as pv
+	ensure pv.minVersion in ["TLS1_2_VERSION", "TLS1_3_VERSION", "TLS_MAX_VERSION"] || pv.minVersion in [0x0303, 0x0304]
 	onfail TLSVersion
 	
 }
 
 
 rule max_version {
-	using Protocol_Version as pv
-	ensure 
-		pv.max_version in ["TLS1_2_VERSION", "TLS1_3_VERSION"]
+	using ProtocolVersion as pv
+	ensure pv.maxVersion in ["TLS1_2_VERSION", "TLS1_3_VERSION", "TLS_MAX_VERSION"] || pv.minVersion in [0x0303, 0x0304]
 	onfail TLSVersion
 	
 }

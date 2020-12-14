@@ -63,7 +63,7 @@ rule min_version {
 
 rule max_version {
 	using ProtocolVersion as pv
-	ensure pv.maxVersion in ["TLS1_2_VERSION", "TLS1_3_VERSION", "TLS_MAX_VERSION"] || pv.minVersion in [0x0303, 0x0304]
+	ensure pv.maxVersion in ["TLS1_2_VERSION", "TLS1_3_VERSION", "TLS_MAX_VERSION"] || pv.maxVersion in [0x0303, 0x0304]
 	onfail TLSVersion
 	
 }

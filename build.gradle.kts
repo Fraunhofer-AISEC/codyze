@@ -82,19 +82,19 @@ dependencies {
     api("org.slf4j:slf4j-api:1.8.0-beta4")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:3.1.0")
+    api("de.fraunhofer.aisec:cpg:3.2.0")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // LSP
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.9.0")
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.10.0")
 
     // JSON parser for generation of results file
     api("org.json:json:20190722")
 
     // JsonPath for querying JSON
-    api("com.jayway.jsonpath:json-path:2.4.0")
+    api("com.jayway.jsonpath:json-path:2.5.0")
 
     // Command line interface support
     api("info.picocli:picocli:4.5.2")

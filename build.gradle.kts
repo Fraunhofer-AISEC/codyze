@@ -94,7 +94,7 @@ dependencies {
     api("org.json:json:20190722")
 
     // JsonPath for querying JSON
-    api("com.jayway.jsonpath:json-path:2.4.0")
+    api("com.jayway.jsonpath:json-path:2.5.0")
 
     // Command line interface support
     api("info.picocli:picocli:4.5.2")

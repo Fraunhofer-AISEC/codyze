@@ -97,7 +97,7 @@ dependencies {
     api("com.jayway.jsonpath:json-path:2.5.0")
 
     // Command line interface support
-    api("info.picocli:picocli:4.5.2")
+    api("info.picocli:picocli:4.6.1")
     annotationProcessor("info.picocli:picocli-codegen:4.5.2")
 
     // Gremlin

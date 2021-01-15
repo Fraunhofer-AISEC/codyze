@@ -28,6 +28,12 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
+	public void testNewExpression() throws Exception {
+		var findings = performTest("mark_cpp/new.cpp", "mark_cpp/new.mark");
+		expected(findings, "line 10: Rule MustBeOne violated");
+	}
+
+	@Test
 	public void functioncallComplex() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/functioncall_complex.cpp", "mark_cpp/functioncall_complex.mark");
 		expected(findings,

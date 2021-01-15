@@ -241,9 +241,9 @@ public class CrymlinQueryWrapper {
 
 	/**
 	 * Same as {@code argumentsMatchParameters(EList<Parameter>, List<Vertex>) } but for arguments as List<Expression>
+	 *
 	 * @param markParameters
 	 * @param sourceArguments
-	 *
 	 * @return
 	 */
 	public static boolean argumentsMatchSourceParameters(EList<Parameter> markParameters, List<Expression> sourceArguments) {
@@ -727,6 +727,16 @@ public class CrymlinQueryWrapper {
 			if (it.hasNext()) {
 				variableDeclaration = it.next().outVertex();
 			}
+
+			// if this refers to a 'new' expression, we need to traverse one more step
+			if (NewExpression.class.getSimpleName().equals(variableDeclaration.label())) {
+				// use the DFG node to find the reference expression
+				it = variableDeclaration.edges(Direction.OUT, DFG);
+				if (it.hasNext()) {
+					variableDeclaration = it.next().inVertex();
+				}
+			}
+
 			Iterator<Edge> refIterator = variableDeclaration.edges(Direction.OUT, REFERS_TO);
 			if (refIterator.hasNext()) {
 				// if the node refers to another node, return the node it refers to

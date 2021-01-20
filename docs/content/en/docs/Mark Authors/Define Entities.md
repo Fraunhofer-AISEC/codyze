@@ -14,7 +14,7 @@ MARK rules refer to _entities_ - abstract objects that wrap the real object clas
 1. A set of _ops_ (operations)
 1. A set of MARK _variables_
 
-Writing MARK rules for a cryptographic library requires a good understanding of the library API and its class hierarchy. We recommend the following approach to writing MARK entities.
+Writing MARK rules for a library requires a good understanding of the library API and its class hierarchy. We recommend the following approach to writing MARK entities.
 
 1. Model relevant classes as MARK entities
 1. Define _op_s and variables
@@ -22,7 +22,7 @@ Writing MARK rules for a cryptographic library requires a good understanding of 
 
 ## Model relevant classes as MARK entities
 
-It is certainly not necessary to model all classes of the software library as MARK entities. Rather, you need to identify those classes which hold cryptographic relevant data or provide cryptographic functions. Although in many cases, several classes of the programming language can be summarized in one abstract MARK entity, it might be easier to directly map classes to entities in the first iteration.
+It is certainly not necessary to model all classes of the software library as MARK entities. Rather, you need to identify those classes which hold relevant data or provide functions. Although in many cases, several classes of the programming language can be summarized in one abstract MARK entity, it might be easier to directly map classes to entities in the first iteration.
 
 The name of an entity can be freely chosen. If it refers to a specific class in the programming language, though, it might make sense to name them accordingly.
 

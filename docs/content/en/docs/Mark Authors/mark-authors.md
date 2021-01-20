@@ -8,7 +8,7 @@ description: >
   Built-ins of MARK
 ---
 
-Once the core functions of a cryptographic library have been modeled as MARK entities, you can start writing rules. MARK rules operate over instances of entities and define conditions which must apply to these instances. A MARK "instance" may correspond to an actual object in the program, but in the case of non-object oriented languages or static methods, it may simply be an abstract set of function calls and variables.
+Once the core functions of a library have been modeled as MARK entities, you can start writing rules. MARK rules operate over instances of entities and define conditions which must apply to these instances. A MARK "instance" may correspond to an actual object in the program, but in the case of non-object oriented languages or static methods, it may simply be an abstract set of function calls and variables.
 
 ### Basic rule structure
 
@@ -45,7 +45,7 @@ To illustrate the process of writing MARK rules, let us assume we want to ensure
 
 ### Preconditions
 
-Some rules only apply if certain preconditions are fulfiled, i.e. such preconditions will be evaluated before the actual condition. If they fail, the main condition will not be evaluated and the rule will not return any result (i.e. it will neither confirm a valid program nor flag a wrong program). Preconditions follow the same syntax as the main condition, but are declared by the `when` keyword.
+Some rules only apply if certain preconditions are fulfilled, i.e. such preconditions will be evaluated before the actual condition. If they fail, the main condition will not be evaluated and the rule will not return any result (i.e. it will neither confirm a valid program nor flag a wrong program). Preconditions follow the same syntax as the main condition, but are declared by the `when` keyword.
 
 
 <pre>

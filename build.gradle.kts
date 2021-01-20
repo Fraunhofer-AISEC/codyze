@@ -82,7 +82,7 @@ dependencies {
     api("org.slf4j:slf4j-api:1.8.0-beta4")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:3.2.0")
+    api("de.fraunhofer.aisec:cpg:3.3.1")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { setChanging(true) }

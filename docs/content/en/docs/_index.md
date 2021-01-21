@@ -15,7 +15,7 @@ Security is hard and implementing it correctly is even harder. Luckily, there ar
 
 ## How does it work?
 
-In contrast to many other static analysis tools, Codyze directly analyzes the source code and does not require a compiler toolchain. It can thus even analyse incomplete source code and tolerate small syntax errors.
+In contrast to many other static analysis tools, Codyze directly analyzes the source code and does not require a compiler tool-chain. It can thus even analyse incomplete source code and tolerate small syntax errors.
 
 Codyze is based on a "Code Property Graph", which represents the source code as a graph and adds semantic information to support the analysis. This representation can be used in two ways:
 

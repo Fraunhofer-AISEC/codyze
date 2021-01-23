@@ -8,16 +8,14 @@ menu:
   main:
     weight: 20
 description: >
-  Codyze is a static analysis tool to support developers in correctly using cryptographic libraries. 
+  Codyze is a static analysis tool to support developers in verifying compliance to security requirements
 ---
 
-
-Cryptography is hard and implementing it correctly is even harder. Luckily, there are well-established and battle-proven libraries available that do the heavy lifting of efficient and side-channel resilient implementation of cryptographic primitives. But even when using these libraries in application code, developers run the risk of making subtle errors that may undermine the security of their application. This is where {{< param product >}} helps. It integrates into the IDE or CI pipeline, analyses source code and tells developers if they are using cryptographic libraries in a correct or in an insecure way.
-
+Security is hard and implementing it correctly is even harder. Luckily, there are well-established and battle-proven libraries available that do the heavy lifting of security functions such as authentication, logging or encryption. But even when using these libraries in application code, developers run the risk of making subtle errors that may undermine the security of their application. This is where {{< param product >}} helps. It integrates into the IDE or CI pipeline, analyses source code and tells developers if they are using libraries in a correct or in an insecure way.
 
 ## How does it work?
 
-In contrast to many other static analysis tools, Codyze directly analyzes the source code and does not require a compiler toolchain. It can thus even analyse incomplete source code and tolerate small syntax errors.
+In contrast to many other static analysis tools, Codyze directly analyzes the source code and does not require a compiler tool-chain. It can thus even analyse incomplete source code and tolerate small syntax errors.
 
 Codyze is based on a "Code Property Graph", which represents the source code as a graph and adds semantic information to support the analysis. This representation can be used in two ways:
 

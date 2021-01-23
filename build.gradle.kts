@@ -10,8 +10,8 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.sonarqube") version "3.0"
-    id("com.diffplug.spotless") version "5.7.0"
+    id("org.sonarqube") version "3.1"
+    id("com.diffplug.spotless") version "5.9.0"
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
@@ -74,31 +74,31 @@ configurations.all {
 }
 
 dependencies {
-    api("org.json:json:20200518")
+    api("org.json:json:20201115")
 
-    api("org.apache.logging.log4j:log4j-slf4j18-impl:2.13.3")
-    api("org.apache.logging.log4j:log4j-core:2.13.3")
+    api("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.0")
+    api("org.apache.logging.log4j:log4j-core:2.14.0")
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
     api("org.slf4j:slf4j-api:1.8.0-beta4")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:3.1.0")
+    api("de.fraunhofer.aisec:cpg:3.3.1")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // LSP
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.9.0")
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.10.0")
 
     // JSON parser for generation of results file
     api("org.json:json:20190722")
 
     // JsonPath for querying JSON
-    api("com.jayway.jsonpath:json-path:2.4.0")
+    api("com.jayway.jsonpath:json-path:2.5.0")
 
     // Command line interface support
-    api("info.picocli:picocli:4.5.2")
-    annotationProcessor("info.picocli:picocli-codegen:4.5.2")
+    api("info.picocli:picocli:4.6.1")
+    annotationProcessor("info.picocli:picocli-codegen:4.6.1")
 
     // Gremlin
     api("org.apache.tinkerpop:gremlin-core:3.4.3")
@@ -127,7 +127,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "de.fraunhofer.aisec.analysis.Main"
+    mainClass.set("de.fraunhofer.aisec.analysis.Main")
     // Required to give Ehcache deep reflective access to fields to correctly esitmate the cache size.
     applicationDefaultJvmArgs = listOf("--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED", "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED")
 }

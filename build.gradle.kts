@@ -10,7 +10,7 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.sonarqube") version "3.1"
+    id("org.sonarqube") version "3.1.1"
     id("com.diffplug.spotless") version "5.9.0"
     id("com.github.hierynomus.license") version "0.15.0"
 }
@@ -127,7 +127,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "de.fraunhofer.aisec.analysis.Main"
+    mainClass.set("de.fraunhofer.aisec.analysis.Main")
     // Required to give Ehcache deep reflective access to fields to correctly esitmate the cache size.
     applicationDefaultJvmArgs = listOf("--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED", "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED", "-Xss10M")
 }

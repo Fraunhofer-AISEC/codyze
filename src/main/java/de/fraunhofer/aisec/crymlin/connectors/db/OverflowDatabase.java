@@ -192,7 +192,11 @@ public class OverflowDatabase implements Database<Node> {
 		while (n != null) {
 			if (!saved.contains(n)) {
 				// haven't processed node yet
-				createVertex(n);
+				Vertex v = createVertex(n);
+
+				var targetNodes = createEdges(v, n);
+				processing.addAll(targetNodes);
+
 				saved.add(n);
 
 				// process children
@@ -477,7 +481,6 @@ public class OverflowDatabase implements Database<Node> {
 		Vertex result = graph.addVertex(props.toArray());
 		nodeToVertex.put(n, result);
 
-		createEdges(result, n);
 		return result;
 	}
 
@@ -641,7 +644,7 @@ public class OverflowDatabase implements Database<Node> {
 		return null;
 	}
 
-	private void connectPropertyEdge(PropertyEdge<?> entry, Map<String, Object> edgePropertiesForField, Vertex v, String relName, Direction direction) {
+	private Node connectPropertyEdge(PropertyEdge<?> entry, Map<String, Object> edgePropertiesForField, Vertex v, String relName, Direction direction) {
 		Node endNode;
 		if (direction.equals(Direction.IN)) {
 			endNode = (entry).getStart();
@@ -651,9 +654,13 @@ public class OverflowDatabase implements Database<Node> {
 		Map<String, Object> edgeProperties = getCustomEdgeProperties(entry);
 		edgeProperties.putAll(edgePropertiesForField);
 		connect(v, relName, edgeProperties, endNode, direction.equals(Direction.IN));
+
+		return endNode;
 	}
 
-	private void createEdges(Vertex v, Node n) {
+	private List<Node> createEdges(Vertex v, Node n) {
+		var targetNodes = new ArrayList<Node>();
+
 		for (Field f : getFieldsIncludingSuperclasses(n.getClass())) {
 			if (mapsToRelationship(f)) {
 
@@ -676,10 +683,13 @@ public class OverflowDatabase implements Database<Node> {
 						// Add multiple edges for collections
 						for (var entry : (Collection) x) {
 							if (PropertyEdge.class.isAssignableFrom(entry.getClass())) {
-								connectPropertyEdge((PropertyEdge<?>) entry, edgePropertiesForField, v, relName, direction);
+								Node target = connectPropertyEdge((PropertyEdge<?>) entry, edgePropertiesForField, v, relName, direction);
+								targetNodes.add(target);
 							} else if (Node.class.isAssignableFrom(entry.getClass())) {
 								Vertex target = connect(v, relName, edgePropertiesForField, (Node) entry, direction.equals(Direction.IN));
 								assert target.property("hashCode").value().equals(entry.hashCode());
+
+								targetNodes.add((Node) entry);
 							} else {
 								log.info("Found non-Node class in collection for label \"{}\"", relName);
 							}
@@ -687,10 +697,13 @@ public class OverflowDatabase implements Database<Node> {
 					} else if (Persistable[].class.isAssignableFrom(x.getClass())) {
 						for (Object entry : Collections.singletonList(x)) {
 							if (getGenericStripedType(entry.getClass()).getTypeName().equals(PropertyEdge.class.getName())) {
-								connectPropertyEdge((PropertyEdge<?>) entry, edgePropertiesForField, v, relName, direction);
+								Node target = connectPropertyEdge((PropertyEdge<?>) entry, edgePropertiesForField, v, relName, direction);
+								targetNodes.add(target);
 							} else if (Node.class.isAssignableFrom(entry.getClass())) {
 								Vertex target = connect(v, relName, edgePropertiesForField, (Node) entry, direction.equals(Direction.IN));
 								assert target.property("hashCode").value().equals(x.hashCode());
+
+								targetNodes.add((Node) entry);
 							} else {
 								log.info("Found non-Node class in an array for label \"{}\"", relName);
 							}
@@ -698,11 +711,14 @@ public class OverflowDatabase implements Database<Node> {
 					} else {
 						// Add single edge for non-collections
 						if (PropertyEdge.class.isAssignableFrom(x.getClass())) {
-							connectPropertyEdge((PropertyEdge<?>) x, edgePropertiesForField, v, relName, direction);
+							Node target = connectPropertyEdge((PropertyEdge<?>) x, edgePropertiesForField, v, relName, direction);
+							targetNodes.add(target);
 						} else if (Node.class.isAssignableFrom(x.getClass())) {
 							Vertex target = connect(
 								v, relName, edgePropertiesForField, (Node) x, direction.equals(Direction.IN));
 							assert target.property("hashCode").value().equals(x.hashCode());
+
+							targetNodes.add((Node) x);
 						} else {
 							log.info("Found non-Node class for label \"{}\"", relName);
 						}
@@ -713,6 +729,8 @@ public class OverflowDatabase implements Database<Node> {
 				}
 			}
 		}
+
+		return targetNodes;
 	}
 
 	/**

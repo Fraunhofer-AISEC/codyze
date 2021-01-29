@@ -382,7 +382,7 @@ public class OverflowDatabase implements Database<Node> {
 	private void handleCollections(Node node, Field f, List<?> targets, Class<?> collectionType)
 			throws InstantiationException, IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, ClassNotFoundException {
-		Collection targetCollection;
+		Collection<Object> targetCollection;
 		Class<?> clazz = Class.forName("java.util.ImmutableCollections");
 
 		if (collectionType.getEnclosingClass() != null
@@ -991,7 +991,7 @@ public class OverflowDatabase implements Database<Node> {
 				 */
 				if (getRelationshipDirection(field).equals(Direction.OUT)) {
 					List<Class<?>> classesWithIncomingEdge = new ArrayList<>();
-					Class containedType = getContainedType(field);
+					Class<?> containedType = getContainedType(field);
 					if (containedType.getAnnotation(RelationshipEntity.class) != null) {
 						for (Field f : containedType.getDeclaredFields()) {
 							if (f.getAnnotation(EndNode.class) != null) {
@@ -1272,7 +1272,7 @@ public class OverflowDatabase implements Database<Node> {
 
 					@Override
 					@SuppressWarnings("java:S125")
-					protected <V> Iterator specificProperties(String key) {
+					protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
 						/*
 						 * We filter out null property values here. GraphMLWriter cannot handle these and will die with NPE. Gremlin assumes that property values are
 						 * non-null.
@@ -1283,10 +1283,10 @@ public class OverflowDatabase implements Database<Node> {
 							// for GraphMLWriter. Leaving this in for future reference
 							//                || (Collection.class.isAssignableFrom(values.getClass())
 							//                    && ((Collection) values).isEmpty())) {
-							return Collections.emptyIterator();
+							return Collections.<VertexProperty<V>> emptyIterator();
 						}
-						return IteratorUtils.of(
-							new OdbNodeProperty(this, key, this.propertyValues.get(key)));
+						return IteratorUtils.<VertexProperty<V>> of(
+							new OdbNodeProperty<V>(this, key, (V) this.propertyValues.get(key)));
 					}
 
 					@Override

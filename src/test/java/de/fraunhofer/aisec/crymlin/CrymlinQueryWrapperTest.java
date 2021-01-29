@@ -17,7 +17,7 @@ class CrymlinQueryWrapperTest {
 	void testFilePath() {
 		Node win = new Node();
 		win.setFile("C:\\Users\\test\\Documents\\Some Path\\test");
-		var db = new OverflowDatabase<Node>(ServerConfiguration.builder().disableOverflow(true).build());
+		var db = new OverflowDatabase(ServerConfiguration.builder().disableOverflow(true).build());
 		db.connect();
 
 		Vertex vWin = db.createVertex(win);

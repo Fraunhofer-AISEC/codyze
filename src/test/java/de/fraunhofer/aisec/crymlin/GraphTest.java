@@ -261,7 +261,7 @@ class GraphTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	void gremlinGraphMutationTest() {
-		var db = new OverflowDatabase<Node>(ServerConfiguration.builder().disableOverflow(true).build());
+		var db = new OverflowDatabase(ServerConfiguration.builder().disableOverflow(true).build());
 		db.connect();
 
 		try (TraversalConnection traversalConnection = new TraversalConnection(db)) {

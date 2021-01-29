@@ -4,6 +4,7 @@
   <img src="https://img.shields.io/github/last-commit/Fraunhofer-AISEC/codyze.svg?style=popout">
   <img src="https://sonarcloud.io/api/project_badges/measure?project=codyze&metric=security_rating">
   <img src="https://sonarcloud.io/api/project_badges/measure?project=codyze&metric=alert_status">
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=codyze&metric=coverage">
   <a href="https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE"><img alt="undefined" src="https://img.shields.io/github/license/Fraunhofer-AISEC/codyze.svg?style=popout"></a>
   <br><br><br>
 </p>
@@ -14,7 +15,7 @@ Documentation: https://www.codyze.io
 
 # Build & run Codyze
 
-Java 11 (OpenSDK) is a prerequisite.
+Java 11 (OpenJDK) is a prerequisite.
 
 To build an executable version of Codyze, use the `installDist` task:
 

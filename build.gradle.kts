@@ -112,7 +112,7 @@ dependencies {
     api("org.apache.tinkerpop:neo4j-gremlin:3.4.3")     // Neo4j multi-label support for gremlin
 
     // Fast in-memory graph DB (alternative to Neo4J)
-    api("io.shiftleft:overflowdb-tinkerpop3:0.128")
+    api("io.shiftleft:overflowdb-tinkerpop3:1.30")
     api("org.reflections", "reflections", "0.9.11")
 
     // Pushdown Systems

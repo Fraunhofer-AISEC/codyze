@@ -77,7 +77,7 @@ dependencies {
     api("org.json:json:20210307")
 
     api("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.0")
-    api("org.apache.logging.log4j:log4j-core:2.14.0")
+    api("org.apache.logging.log4j:log4j-core:2.14.1")
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
     api("org.slf4j:slf4j-api:1.8.0-beta4")
 

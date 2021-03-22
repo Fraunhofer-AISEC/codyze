@@ -11,7 +11,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.1.1"
-    id("com.diffplug.spotless") version "5.9.0"
+    id("com.diffplug.spotless") version "5.11.0"
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
@@ -74,10 +74,10 @@ configurations.all {
 }
 
 dependencies {
-    api("org.json:json:20201115")
+    api("org.json:json:20210307")
 
-    api("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.0")
-    api("org.apache.logging.log4j:log4j-core:2.14.0")
+    api("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
+    api("org.apache.logging.log4j:log4j-core:2.14.1")
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
     api("org.slf4j:slf4j-api:1.8.0-beta4")
 
@@ -121,9 +121,9 @@ dependencies {
     // Jython (Scripting engine)
     api("org.python:jython-standalone:2.7.2")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
 }
 
 application {

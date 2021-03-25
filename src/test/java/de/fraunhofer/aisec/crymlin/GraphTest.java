@@ -218,8 +218,8 @@ class GraphTest {
 					.count()
 					.tryNext();
 			System.out.println(count.get());
-			// 15 variable declarations
-			assertEquals(15, count.get());
+			// 29 variable declarations
+			assertEquals(29, count.get());
 		}
 	}
 

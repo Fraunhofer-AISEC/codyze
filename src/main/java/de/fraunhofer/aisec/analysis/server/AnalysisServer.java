@@ -48,6 +48,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -276,35 +277,45 @@ public class AnalysisServer {
 	}
 
 	/**
-	 * extracts all mark-files and the findingDescription.js from a zip or jar file to a temp-folder (which is cleared by the JVM upon exiting)
+	 * Extracts all MARK files and a findingDescription.json from a zip or jar file to a temporary directory (which is cleared by the JVM upon exiting).
 	 *
-	 * @param zipFilePath
-	 * @return
-	 * @throws IOException
+	 * @param zipFilePath Path to a zip or jar file containing MARK files and a findingsDescription.json
+	 * @return List of extracted MARK files
+	 * @throws IOException if zip entry cannot be extracted or an error during extraction occurred
 	 */
 	private ArrayList<File> unzipMarkAndFindingDescription(String zipFilePath) throws IOException {
 		ArrayList<File> ret = new ArrayList<>();
 		Path tempDirWithPrefix = Files.createTempDirectory("mark_extracted_");
+
 		try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath))) {
 			ZipEntry entry = zipIn.getNextEntry();
 			// iterates over entries in the zip file
 			while (entry != null) {
-				String filePath = tempDirWithPrefix.toString() + File.separator + entry.getName();
+				// resolve path of zip entry w.r.t. temporary directory and normalize path
+				Path filePath = tempDirWithPrefix.resolve(entry.getName()).normalize();
+				// prevent malicious file system traversal
+				if (!filePath.startsWith(tempDirWithPrefix)) {
+					throw new IOException("Prevented file extraction outside of destination directory. " +
+							"Entry: '" + entry.getName() + "' " +
+							"Expected base directory: '" + tempDirWithPrefix + "' " +
+							"Actual path: '" + filePath + "'");
+				}
+
+				File destFile = filePath.toFile();
 				if (!entry.isDirectory()
 						&& (entry.getName().endsWith(".mark") || entry.getName().equals(FINDING_DESCRIPTION_FILE))) {
-					try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
+					try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(destFile))) {
 						byte[] bytesIn = new byte[4096];
 						int read;
 						while ((read = zipIn.read(bytesIn)) != -1) {
 							bos.write(bytesIn, 0, read);
 						}
 					}
-					ret.add(new File(filePath));
+					ret.add(destFile);
 				} else {
 					// if the entry is a directory, make the directory
-					File dir = new File(filePath);
-					if (!dir.mkdir()) {
-						throw new IOException("could not create folder " + dir.getAbsolutePath());
+					if (!destFile.mkdir()) {
+						throw new IOException("Could not create directory " + destFile.getAbsolutePath());
 					}
 				}
 				zipIn.closeEntry();

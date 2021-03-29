@@ -11,7 +11,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.1.1"
-    id("com.diffplug.spotless") version "5.11.0"
+    id("com.diffplug.spotless") version "5.11.1"
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
@@ -88,7 +88,7 @@ dependencies {
      api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { setChanging(true) }
 
     // LSP
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.10.0")
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.11.0")
 
     // JSON parser for generation of results file
     api("org.json:json:20190722")

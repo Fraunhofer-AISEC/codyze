@@ -276,45 +276,6 @@ public class AnalysisServer {
 	}
 
 	/**
-	 * extracts all mark-files and the findingDescription.js from a zip or jar file to a temp-folder (which is cleared by the JVM upon exiting)
-	 *
-	 * @param zipFilePath
-	 * @return
-	 * @throws IOException
-	 */
-	private ArrayList<File> unzipMarkAndFindingDescription(String zipFilePath) throws IOException {
-		ArrayList<File> ret = new ArrayList<>();
-		Path tempDirWithPrefix = Files.createTempDirectory("mark_extracted_");
-		try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath))) {
-			ZipEntry entry = zipIn.getNextEntry();
-			// iterates over entries in the zip file
-			while (entry != null) {
-				String filePath = tempDirWithPrefix.toString() + File.separator + entry.getName();
-				if (!entry.isDirectory()
-						&& (entry.getName().endsWith(".mark") || entry.getName().equals(FINDING_DESCRIPTION_FILE))) {
-					try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath))) {
-						byte[] bytesIn = new byte[4096];
-						int read;
-						while ((read = zipIn.read(bytesIn)) != -1) {
-							bos.write(bytesIn, 0, read);
-						}
-					}
-					ret.add(new File(filePath));
-				} else {
-					// if the entry is a directory, make the directory
-					File dir = new File(filePath);
-					if (!dir.mkdir()) {
-						throw new IOException("could not create folder " + dir.getAbsolutePath());
-					}
-				}
-				zipIn.closeEntry();
-				entry = zipIn.getNextEntry();
-			}
-		}
-		return ret;
-	}
-
-	/**
 	 * Loads all MARK rules from a file or a directory.
 	 *
 	 * @param markFile load all mark entities/rules from this file
@@ -345,21 +306,6 @@ public class AnalysisServer {
 				log.error("Failed to load MARK file", e);
 			}
 			markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + FINDING_DESCRIPTION_FILE);
-		} else if (markFile.getName().endsWith(".jar") || markFile.getName().endsWith(".zip")) {
-			try {
-				ArrayList<File> allMarkFiles = unzipMarkAndFindingDescription(markFile.getAbsolutePath());
-				for (File f : allMarkFiles) {
-					if (f.getName().endsWith(".mark")) {
-						log.info("  Loading MARK file {}", f.getAbsolutePath());
-						parser.addMarkFile(f);
-					} else if (f.getName().equals(FINDING_DESCRIPTION_FILE)) {
-						markDescriptionFile = f;
-					}
-				}
-			}
-			catch (Exception e) {
-				log.error("Failed to load MARK file", e);
-			}
 		} else {
 			log.info("Loading MARK from file {}", markFile.getAbsolutePath());
 			parser.addMarkFile(markFile);

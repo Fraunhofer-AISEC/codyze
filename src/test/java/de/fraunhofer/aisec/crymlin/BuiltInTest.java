@@ -7,20 +7,17 @@ import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinHelper;
 import de.fraunhofer.aisec.crymlin.builtin.InvalidArgumentException;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedVertex;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-public class BuiltInTest extends AbstractMarkTest {
+class BuiltInTest extends AbstractMarkTest {
 
 	@Test
-	public void split_1() throws Exception {
+	void split_1() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/simplesplit_splitstring.cpp", "mark_cpp/splitstring.mark");
 
 		expected(findings,
@@ -31,7 +28,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void is_instance_1() throws Exception {
+	void is_instance_1() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/simple_instancestring.cpp", "mark_cpp/instancestring.mark");
 
 		expected(findings,
@@ -39,7 +36,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void eog_connection_1() throws Exception {
+	void eog_connection_1() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/simple_eog_connection.cpp", "mark_cpp/eog_connection.mark");
 
 		expected(findings,
@@ -49,7 +46,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void direct_eog_connection_1() throws Exception {
+	void direct_eog_connection_1() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/simple_eog_connection.cpp", "mark_cpp/direct_eog_connection.mark");
 
 		expected(findings,
@@ -59,7 +56,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void dimensionLengthJava() throws Exception {
+	void dimensionLengthJava() throws Exception {
 		Set<Finding> findings = performTest("mark_java/length.java", "mark_java/length.mark");
 
 		expected(findings,
@@ -68,7 +65,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void isJava() throws Exception {
+	void isJava() throws Exception {
 		Set<Finding> findings = performTest("mark_java/is.java", "mark_java/is.mark");
 
 		expected(findings,
@@ -77,7 +74,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void hasValueJava() throws Exception {
+	void hasValueJava() throws Exception {
 		Set<Finding> findings = performTest("mark_java/has_value.java", "mark_java/has_value.mark");
 
 		expected(findings,
@@ -86,7 +83,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void extractResponsibleVertices() {
+	void extractResponsibleVertices() {
 
 		ListValue lv = new ListValue();
 		ConstantValue cv1 = ConstantValue.of(2);
@@ -161,7 +158,7 @@ public class BuiltInTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void verifyArgumentTypesOrThrow() throws InvalidArgumentException {
+	void verifyArgumentTypesOrThrow() throws InvalidArgumentException {
 		ListValue lv = new ListValue();
 		lv.add(ConstantValue.of(2));
 		lv.add(ConstantValue.of(3));

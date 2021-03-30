@@ -25,7 +25,7 @@ class FSMTest {
 	private static Mark mark;
 
 	@BeforeAll
-	static void startup() throws Exception {
+	static void startup() {
 
 		URL resource = MarkLoadOutputTest.class.getClassLoader().getResource("mark/PoC_MS1/Botan_CipherMode.mark");
 		assertNotNull(resource);

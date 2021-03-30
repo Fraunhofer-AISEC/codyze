@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class OrderTest extends AbstractMarkTest {
 
@@ -16,7 +15,7 @@ class OrderTest extends AbstractMarkTest {
 	void checkJava() throws Exception {
 		Set<Finding> results = performTest("unittests/order.java", "unittests/order.mark");
 
-		Set<String> findings = results.stream().map(f -> f.toString()).collect(Collectors.toSet());
+		Set<String> findings = results.stream().map(Finding::toString).collect(Collectors.toSet());
 		check(findings);
 	}
 
@@ -24,7 +23,7 @@ class OrderTest extends AbstractMarkTest {
 	void checkCpp() throws Exception {
 		Set<Finding> results = performTest("unittests/order.cpp", "unittests/order.mark");
 
-		Set<String> findings = results.stream().map(f -> f.toString()).collect(Collectors.toSet());
+		Set<String> findings = results.stream().map(Finding::toString).collect(Collectors.toSet());
 		check(findings);
 	}
 

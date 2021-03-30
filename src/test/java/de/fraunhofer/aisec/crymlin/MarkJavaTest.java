@@ -2,21 +2,18 @@
 package de.fraunhofer.aisec.crymlin;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 
 import java.util.Optional;
 import java.util.Set;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class MarkJavaTest extends AbstractMarkTest {
 
 	@Test
-	public void split_1() throws Exception {
+	void split_1() throws Exception {
 		Set<Finding> findings = performTest("mark_java/simplesplit_splitstring.java", "mark_java/splitstring.mark");
 
 		System.out.println("All findings:");
@@ -47,7 +44,7 @@ public class MarkJavaTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void is_instance_1() throws Exception {
+	void is_instance_1() throws Exception {
 		Set<Finding> findings = performTest("mark_java/simple_instancestring.java", "mark_java/instancestring.mark");
 
 		System.out.println("All findings:");
@@ -76,7 +73,7 @@ public class MarkJavaTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void const_value() throws Exception {
+	void const_value() throws Exception {
 		Set<Finding> findings = performTest("mark_java/const.java", "mark_java/const.mark");
 
 		// todo: missing: Enum is not handled yet

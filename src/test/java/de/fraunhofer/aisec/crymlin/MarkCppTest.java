@@ -2,39 +2,36 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class MarkCppTest extends AbstractMarkTest {
 
 	@Test
-	public void nested_markvars() throws Exception {
+	void nested_markvars() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/nested_markvars.cpp", "mark_cpp/nested_markvars.mark");
 		expected(findings, "line 27: Rule SomethingSomething verified");
 	}
 
 	@Test
-	public void functioncall() throws Exception {
+	void functioncall() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/functioncall.cpp", "mark_cpp/functioncall.mark");
 		expected(findings, "line 9: Rule HasBeenCalled violated",
 			"line 7: Rule HasBeenCalled verified");
 	}
 
 	@Test
-	public void testNewExpression() throws Exception {
+	void testNewExpression() throws Exception {
 		var findings = performTest("mark_cpp/new.cpp", "mark_cpp/new.mark");
 		expected(findings, "line 10: Rule MustBeOne violated");
 	}
 
 	@Test
-	public void functioncallComplex() throws Exception {
+	void functioncallComplex() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/functioncall_complex.cpp", "mark_cpp/functioncall_complex.mark");
 		expected(findings,
 			"line [11, 12]: Rule Local verified",
@@ -49,7 +46,7 @@ public class MarkCppTest extends AbstractMarkTest {
 
 	@Test
 	@Disabled // requires interprocedural context-insensitive dataflow analysis for constant resolution.
-	public void _01_assign() throws Exception {
+	void _01_assign() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/01_assign.cpp", "mark_cpp/01_assign.mark");
 		System.out.println("All findings:");
 		for (Finding f : findings) {
@@ -60,7 +57,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void _02_arg() throws Exception {
+	void _02_arg() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/02_arg.cpp", "mark_cpp/02_arg.mark");
 		expected(findings,
 			"line 13: Rule NotThree violated",
@@ -69,7 +66,7 @@ public class MarkCppTest extends AbstractMarkTest {
 
 	@Test
 	@Disabled // requires interprocedural context-insensitive dataflow analysis of function argument for constant resolution.
-	public void _03_arg_as_param() throws Exception {
+	void _03_arg_as_param() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/03_arg_as_param.cpp", "mark_cpp/03_arg_as_param.mark");
 		System.out.println("All findings:");
 		for (Finding f : findings) {
@@ -80,42 +77,42 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void arg_prevassign_int() throws Exception {
+	void arg_prevassign_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_prevassign_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings, "line 14: Rule SomethingAboutFoo violated");
 	}
 
 	@Test
-	public void arg_prevassign_bool() throws Exception {
+	void arg_prevassign_bool() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_prevassign_bool.cpp", "mark_cpp/bool.mark");
 
 		expected(findings, "line 14: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
-	public void arg_prevassign_string() throws Exception {
+	void arg_prevassign_string() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_prevassign_string.cpp", "mark_cpp/string.mark");
 
 		expected(findings, "line 15: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
-	public void arg_vardecl_int() throws Exception {
+	void arg_vardecl_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_vardecl_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings, "line 12: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
-	public void arg_vardecl_bool() throws Exception {
+	void arg_vardecl_bool() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_vardecl_bool.cpp", "mark_cpp/bool.mark");
 
 		expected(findings, "line 12: Rule SomethingAboutFoo verified");
 	}
 
 	@Test
-	public void arg_vardecl_string() throws Exception {
+	void arg_vardecl_string() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_vardecl_string.cpp", "mark_cpp/string.mark");
 
 		expected(findings, "line 13: Rule SomethingAboutFoo verified");
@@ -123,7 +120,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void arg_assignconstructor_int() throws Exception {
+	void arg_assignconstructor_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_assignconstructor_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings,
@@ -131,7 +128,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void arg_assignparenthesisexpr_int() throws Exception {
+	void arg_assignparenthesisexpr_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_assignparenthesisexpr_int.cpp", "mark_cpp/int.mark");
 
 		System.out.println("All findings:");
@@ -145,7 +142,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void arg_initializerparenthesisexpr_int() throws Exception {
+	void arg_initializerparenthesisexpr_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_initializerparenthesisexpr_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings,
@@ -153,7 +150,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void arg_uniforminitializer_int() throws Exception {
+	void arg_uniforminitializer_int() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/arg_uniforminitializer_int.cpp", "mark_cpp/int.mark");
 
 		expected(findings,
@@ -161,7 +158,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void const_value() throws Exception {
+	void const_value() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/const.cpp", "mark_cpp/const.mark");
 
 		// todo: missing: Enum is not handled yet

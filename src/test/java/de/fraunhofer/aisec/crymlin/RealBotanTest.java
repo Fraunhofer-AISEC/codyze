@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RealBotanTest extends AbstractMarkTest {
 
 	@Test
-	public void testSimple() throws Exception {
+	void testSimple() throws Exception {
 		// Just a very simple test to explore the graph
 		Set<Finding> findings = performTest("real-examples/botan/streamciphers/bsex.cpp", "real-examples/botan/streamciphers/bsex.mark");
 		GraphTraversalSource t = ctx.getDatabase()
@@ -108,7 +108,7 @@ class RealBotanTest extends AbstractMarkTest {
 		List<Finding> keyLengths = findings
 				.stream()
 				.filter(f -> f.getOnfailIdentifier().equals("BadKeyLength"))
-				.filter(f -> f.isProblem())
+				.filter(Finding::isProblem)
 				.collect(Collectors.toList());
 		assertEquals(2, keyLengths.size());
 

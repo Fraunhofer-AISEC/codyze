@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ExpressionHelperTest {
 
 	@Test
-	public void testComparableInt() {
+	void testComparableInt() {
 		assertEquals("0.0", ExpressionHelper.toComparableString(0));
 		assertEquals("0.0", ExpressionHelper.toComparableString(0.0));
 		assertEquals("1.0", ExpressionHelper.toComparableString(1));
@@ -19,7 +19,7 @@ public class ExpressionHelperTest {
 	}
 
 	@Test
-	public void testComparableDouble() {
+	void testComparableDouble() {
 		assertEquals("0.0", ExpressionHelper.toComparableString(0d));
 		assertEquals("0.0", ExpressionHelper.toComparableString(0.0d));
 		assertEquals("1.0", ExpressionHelper.toComparableString(1d));
@@ -29,7 +29,7 @@ public class ExpressionHelperTest {
 	}
 
 	@Test
-	public void testComparableString() {
+	void testComparableString() {
 		assertEquals("", ExpressionHelper.toComparableString(""));
 		assertEquals("a", ExpressionHelper.toComparableString("a"));
 		assertEquals("1.0", ExpressionHelper.toComparableString("1"));

@@ -9,7 +9,7 @@ import java.util.Set;
 public class JCATest extends AbstractMarkTest {
 
 	@Test
-	public void testBCProviderCipher() throws Exception {
+	void testBCProviderCipher() throws Exception {
 		Set<Finding> findings = performTest("java/jca/BCProviderCipher.java",
 			new String[] {
 					"java/jca/include/BouncyCastleProvider.java"
@@ -45,7 +45,7 @@ public class JCATest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void testBlockCipher() throws Exception {
+	void testBlockCipher() throws Exception {
 		Set<Finding> findings = performTest("java/jca/BlockCipher.java", "mark/bouncycastle/");
 
 		// possible lines: 10,14,28,22,26
@@ -70,7 +70,7 @@ public class JCATest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void testAESCCM() throws Exception {
+	void testAESCCM() throws Exception {
 		Set<Finding> findings = performTest("java/jca/AESCCM.java", "mark/bouncycastle/");
 
 		// possible lines: 18,22,23,24,28,30,31,36
@@ -92,7 +92,7 @@ public class JCATest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void testAESGCM() throws Exception {
+	void testAESGCM() throws Exception {
 		Set<Finding> findings = performTest("java/jca/AESGCM.java",
 			new String[] {
 					"java/jca/include/GCMParameterSpec.java"
@@ -129,7 +129,7 @@ public class JCATest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void testAESCBC() throws Exception {
+	void testAESCBC() throws Exception {
 		Set<Finding> findings = performTest("java/jca/AESCBC.java", "mark/bouncycastle/");
 
 		expected(findings,
@@ -172,7 +172,7 @@ public class JCATest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void testAESCTR() throws Exception {
+	void testAESCTR() throws Exception {
 		Set<Finding> findings = performTest("java/jca/AESCTR.java",
 			new String[] {
 					"java/jca/include/IvParameterSpec.java",
@@ -210,7 +210,7 @@ public class JCATest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void testBCMac() throws Exception {
+	void testBCMac() throws Exception {
 		Set<Finding> findings = performTest("java/jca/BCMac.java", "mark/bouncycastle/");
 
 		expected(findings,
@@ -248,7 +248,7 @@ public class JCATest extends AbstractMarkTest {
 	}
 
 	@Test
-	public void testRSACipherTest() throws Exception {
+	void testRSACipherTest() throws Exception {
 		Set<Finding> findings = performTest("java/jca/BCRSACipher.java", "mark/bouncycastle/");
 
 		expected(findings,

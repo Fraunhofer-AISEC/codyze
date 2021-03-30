@@ -9,7 +9,7 @@ import java.util.Set;
 public class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
-	public void test_rule_2_01() throws Exception {
+	void test_rule_2_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/2_01.cpp", "mark/botan/");
 
 		expected(findings,
@@ -25,7 +25,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_2_1_01() throws Exception {
+	void test_rule_2_1_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_01.cpp", "mark/botan/");
 
 		expected(findings,
@@ -40,7 +40,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_2_1_2_1_02() throws Exception {
+	void test_rule_2_1_2_1_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_1_02.cpp", "mark/botan/");
 
 		expected(findings,
@@ -56,7 +56,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_2_1_2_2_03() throws Exception {
+	void test_rule_2_1_2_2_03() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_2_03.cpp", "mark/botan/");
 
 		expected(findings,
@@ -71,7 +71,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_2_1_2_3_01() throws Exception {
+	void test_rule_2_1_2_3_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/2_1_2_3_01.cpp", "mark/botan/");
 
 		/* missing
@@ -91,7 +91,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_3_3_02() throws Exception {
+	void test_rule_3_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/3_3_02.cpp", "mark/botan/");
 		expected(findings,
 			"line 21: Rule _3_3_03_ECIES_KDF verified", // ok
@@ -100,7 +100,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_3_3_03() throws Exception {
+	void test_rule_3_3_03() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/3_3_03.cpp", "mark/botan/");
 		expected(findings,
 			"line 22: Rule _3_3_03_ECIES_KDF verified", // ok
@@ -109,7 +109,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_3_4_01() throws Exception {
+	void test_rule_3_4_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_01.cpp", "mark/botan/");
 		expected(findings,
 			"line 30: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
@@ -125,7 +125,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_3_4_02() throws Exception {
+	void test_rule_3_4_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/3_4_02.cpp", "mark/botan/");
 		expected(findings,
 			"line 17: Rule _3_4_02_DLIES_KEYLEN_2022 verified", // ok
@@ -140,7 +140,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_4_01() throws Exception {
+	void test_rule_4_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/4_01.cpp", "mark/botan/");
 		expected(findings,
 			"line 8: Verified Order: HashOrder", // ok
@@ -153,7 +153,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_5_3_01() throws Exception {
+	void test_rule_5_3_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_01.cpp", "mark/botan/");
 		expected(findings,
 			"line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
@@ -163,7 +163,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_5_3_02() throws Exception {
+	void test_rule_5_3_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_02.cpp", "mark/botan/");
 		expected(findings, "line 11: Rule _5_3_02_MAC_KEYLEN verified", // ok
 			"line 14: Rule _5_3_01_MAC verified", // ok
@@ -173,7 +173,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_5_3_03() throws Exception {
+	void test_rule_5_3_03() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_3_03.cpp", "mark/botan/");
 		expected(findings,
 			"line 12: Rule _5_3_02_MAC_KEYLEN verified", // ok
@@ -184,7 +184,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_5_4_1_01() throws Exception {
+	void test_rule_5_4_1_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", "mark/botan/");
 		expected(findings,
 			"line 10: Verified Order: PrivKeyOrder",
@@ -196,7 +196,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_5_4_1_02() throws Exception {
+	void test_rule_5_4_1_02() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_1_02.cpp", "mark/botan/");
 		expected(findings,
 			"line 11: Rule _5_4_1_02_RSA_SIG_KeyLen_2022 verified", // ok
@@ -208,7 +208,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_5_4_2_01() throws Exception {
+	void test_rule_5_4_2_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_2_01.cpp", "mark/botan/");
 		expected(findings,
 			"line 14: Verified Order: SignatureOrder", // ok
@@ -219,7 +219,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_5_4_3_01() throws Exception {
+	void test_rule_5_4_3_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/5_4_3_01.cpp", "mark/botan/");
 		expected(findings,
 			"line 14: Verified Order: SignatureOrder", // ok
@@ -229,7 +229,7 @@ public class BotanRuleTR_Test extends AbstractMarkTest {
 	}
 
 	@Test
-	public void test_rule_7_2_2_1_01() throws Exception {
+	void test_rule_7_2_2_1_01() throws Exception {
 		Set<Finding> findings = performTest("botan_rule_tr_test/7_2_2_1_01.cpp", "mark/botan/");
 		expected(findings,
 			"line 13: Rule _7_2_2_1_01_DH_KEYLEN verified", // ok

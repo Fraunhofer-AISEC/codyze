@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class StructuresTest {
 
 	@Test
-	public void testConstantValueEquals() {
+	void testConstantValueEquals() {
 		ConstantValue nullCV = ErrorValue.newErrorValue("narf");
 		ConstantValue otherNullCV = ErrorValue.newErrorValue("other");
 		ConstantValue oneCV = ConstantValue.of(1);

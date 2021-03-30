@@ -31,7 +31,7 @@ class WpdsTest extends AbstractMarkTest {
 	}
 
 	@Test
-	void testRegexToNFA() throws Exception {
+	void testRegexToNFA() {
 		XtextParser parser = new XtextParser();
 		parser.addMarkFile(new File("src/test/resources/unittests/nfa-test.mark"));
 		OrderExpression expr = (OrderExpression) parser
@@ -122,7 +122,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
@@ -138,7 +138,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
@@ -168,7 +168,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
@@ -200,7 +200,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
@@ -225,7 +225,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
@@ -251,7 +251,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
@@ -275,7 +275,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
@@ -298,7 +298,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;
@@ -317,7 +317,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA || isProblemB;
@@ -343,7 +343,7 @@ class WpdsTest extends AbstractMarkTest {
 		Map<Integer, Boolean> startLineNumbers = findings.stream()
 				.collect(Collectors.toMap(
 					f -> f.getRegions().isEmpty() ? -1 : f.getRegions().get(0).getStartLine(),
-					f -> f.isProblem(),
+						Finding::isProblem,
 					(isProblemA, isProblemB) -> {
 						System.out.println("Several findings : " + isProblemA + "/" + isProblemB);
 						return isProblemA && isProblemB;

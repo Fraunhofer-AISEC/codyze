@@ -6,7 +6,6 @@ import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
@@ -255,8 +254,6 @@ class GraphTest {
 	 *
 	 * <p>
 	 * Note that we need to use labels which actually exist in our CPG and we must provide them in Tinkerpop's multi-label syntax (<label 1>::<label 2>).
-	 *
-	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
 	@Test

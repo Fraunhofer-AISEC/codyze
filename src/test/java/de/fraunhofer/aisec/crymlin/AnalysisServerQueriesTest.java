@@ -61,7 +61,7 @@ public class AnalysisServerQueriesTest {
 	}
 
 	@AfterAll
-	public static void teardown() throws Exception {
+	public static void teardown() {
 		// Stop the analysis server
 		server.stop();
 	}
@@ -70,7 +70,7 @@ public class AnalysisServerQueriesTest {
 	 * Test analysis context - additional in-memory structures used for analysis.
 	 */
 	@Test
-	public void contextTest() {
+	void contextTest() {
 		// Get analysis context from scratch
 		AnalysisContext ctx = AnalysisServerQueriesTest.result;
 

@@ -22,7 +22,7 @@ class LSPTest {
 	private static AnalysisServer server;
 
 	@BeforeAll
-	static void setup() throws Exception {
+	static void setup() {
 		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource("unittests/order.mark");

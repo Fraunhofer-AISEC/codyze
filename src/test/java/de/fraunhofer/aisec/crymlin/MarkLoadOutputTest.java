@@ -7,7 +7,6 @@ import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -22,12 +21,12 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class MarkLoadOutputTest {
+class MarkLoadOutputTest {
 
 	private static Map<String, Mark> allModels = new HashMap<>();
 
 	@BeforeAll
-	public static void startup() throws Exception {
+	public static void startup() {
 
 		URL resource = MarkLoadOutputTest.class.getClassLoader().getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark");
 		assertNotNull(resource);
@@ -54,7 +53,7 @@ public class MarkLoadOutputTest {
 	}
 
 	@Test
-	public void markModelLoaderTest() throws Exception {
+	void markModelLoaderTest() throws Exception {
 
 		for (Map.Entry<String, Mark> entry : allModels.entrySet()) {
 

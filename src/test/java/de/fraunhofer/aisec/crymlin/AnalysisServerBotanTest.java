@@ -24,7 +24,7 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AnalysisServerBotanTest {
+class AnalysisServerBotanTest {
 
 	private static AnalysisServer server;
 	private static AnalysisContext result;

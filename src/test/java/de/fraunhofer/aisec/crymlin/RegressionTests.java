@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-public class RegressionTests extends AbstractMarkTest {
+class RegressionTests extends AbstractMarkTest {
 
 	/**
 	 * Test for arguments of NestedConstructExpressions (Java).

@@ -62,7 +62,7 @@ class RealBotanTest extends AbstractMarkTest {
 	}
 
 	@Test
-	@Disabled //WIP, not working yet
+	@Disabled("WIP, not working yet")
 	void testPlaybookCreator() throws Exception {
 		@NonNull
 		Set<Finding> findings = performTest("real-examples/botan/blockciphers/obraunsdorf.playbook-creator/pbcStorage.cpp",

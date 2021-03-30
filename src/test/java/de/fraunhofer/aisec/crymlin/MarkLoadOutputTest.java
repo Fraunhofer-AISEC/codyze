@@ -21,7 +21,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class MarkLoadOutputTest {
+class MarkLoadOutputTest {
 
 	private static Map<String, Mark> allModels = new HashMap<>();
 

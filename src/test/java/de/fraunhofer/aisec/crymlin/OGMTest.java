@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>
  * We expect Neo4J and OverflowDB to behave exactly the same, so we can replace one by the other. These tests verify that the graph structure is as expected.
  */
-public class OGMTest {
+class OGMTest {
 
 	private static AnalysisContext result;
 	private static AnalysisServer server;

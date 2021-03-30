@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-public class MarkJavaTest extends AbstractMarkTest {
+class MarkJavaTest extends AbstractMarkTest {
 
 	@Test
 	void split_1() throws Exception {
@@ -29,7 +29,7 @@ public class MarkJavaTest extends AbstractMarkTest {
 		};
 
 		for (String expected : expectedFindings) {
-			assertTrue(1 == findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
+			assertEquals(1, findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
 			Optional<Finding> first = findings.stream().filter(f -> f.toString().equals(expected)).findFirst();
 			findings.remove(first.get());
 		}
@@ -58,7 +58,7 @@ public class MarkJavaTest extends AbstractMarkTest {
 		};
 
 		for (String expected : expectedFindings) {
-			assertTrue(1 == findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
+			assertEquals(1, findings.stream().filter(f -> f.toString().equals(expected)).count(), "not found: \"" + expected + "\"");
 			Optional<Finding> first = findings.stream().filter(f -> f.toString().equals(expected)).findFirst();
 			findings.remove(first.get());
 		}

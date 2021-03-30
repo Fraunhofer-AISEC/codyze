@@ -9,7 +9,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class MarkCppTest extends AbstractMarkTest {
+class MarkCppTest extends AbstractMarkTest {
 
 	@Test
 	void nested_markvars() throws Exception {
@@ -45,7 +45,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	@Disabled // requires interprocedural context-insensitive dataflow analysis for constant resolution.
+	@Disabled("requires interprocedural context-insensitive dataflow analysis for constant resolution.")
 	void _01_assign() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/01_assign.cpp", "mark_cpp/01_assign.mark");
 		System.out.println("All findings:");
@@ -65,7 +65,7 @@ public class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
-	@Disabled // requires interprocedural context-insensitive dataflow analysis of function argument for constant resolution.
+	@Disabled("requires interprocedural context-insensitive dataflow analysis of function argument for constant resolution.")
 	void _03_arg_as_param() throws Exception {
 		Set<Finding> findings = performTest("mark_cpp/03_arg_as_param.cpp", "mark_cpp/03_arg_as_param.mark");
 		System.out.println("All findings:");

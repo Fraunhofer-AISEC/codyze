@@ -21,7 +21,7 @@ import java.util.concurrent.TimeoutException;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class AnalysisServerQueriesTest {
+class AnalysisServerQueriesTest {
 
 	private static AnalysisServer server;
 	private static AnalysisContext result;

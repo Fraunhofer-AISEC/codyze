@@ -14,7 +14,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class BuiltInTest extends AbstractMarkTest {
+class BuiltInTest extends AbstractMarkTest {
 
 	@Test
 	void split_1() throws Exception {

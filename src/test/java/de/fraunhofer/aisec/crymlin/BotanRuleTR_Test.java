@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-public class BotanRuleTR_Test extends AbstractMarkTest {
+class BotanRuleTR_Test extends AbstractMarkTest {
 
 	@Test
 	void test_rule_2_01() throws Exception {

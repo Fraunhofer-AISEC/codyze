@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RealBCTest extends AbstractMarkTest {
+class RealBCTest extends AbstractMarkTest {
 
 	@Test
 	void testSimple() throws Exception {

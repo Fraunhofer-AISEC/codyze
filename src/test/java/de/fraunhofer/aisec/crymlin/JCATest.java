@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-public class JCATest extends AbstractMarkTest {
+class JCATest extends AbstractMarkTest {
 
 	@Test
 	void testBCProviderCipher() throws Exception {

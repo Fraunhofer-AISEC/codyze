@@ -156,7 +156,7 @@ public abstract class AbstractMarkTest {
 			}
 		}
 
-		assertEquals(0, findings.size(), findings.stream().map(f -> f.toString()).collect(Collectors.joining()));
+		assertEquals(0, findings.size(), findings.stream().map(Finding::toString).collect(Collectors.joining()));
 	}
 
 }

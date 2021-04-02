@@ -4,7 +4,6 @@ package de.fraunhofer.aisec.crymlin;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.FindingDescription;
 import de.fraunhofer.aisec.cpg.sarif.Region;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

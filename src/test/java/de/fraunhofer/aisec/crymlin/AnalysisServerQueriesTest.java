@@ -21,7 +21,7 @@ import java.util.concurrent.TimeoutException;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class AnalysisServerQueriesTest {
+class AnalysisServerQueriesTest {
 
 	private static AnalysisServer server;
 	private static AnalysisContext result;
@@ -61,7 +61,7 @@ public class AnalysisServerQueriesTest {
 	}
 
 	@AfterAll
-	public static void teardown() throws Exception {
+	public static void teardown() {
 		// Stop the analysis server
 		server.stop();
 	}
@@ -70,7 +70,7 @@ public class AnalysisServerQueriesTest {
 	 * Test analysis context - additional in-memory structures used for analysis.
 	 */
 	@Test
-	public void contextTest() {
+	void contextTest() {
 		// Get analysis context from scratch
 		AnalysisContext ctx = AnalysisServerQueriesTest.result;
 

@@ -122,7 +122,7 @@ class JythonInterpreterTest {
 	 */
 	@Test
 	@Order(1)
-	public void completionSimpleTest() throws Exception {
+	void completionSimpleTest() throws Exception {
 		List<CharSequence> completions = new ArrayList<>();
 		jlineConsole.getReader()
 				.getCompleters()
@@ -147,7 +147,7 @@ class JythonInterpreterTest {
 	 */
 	@Test
 	@Order(2)
-	public void completionServerObjectTest() throws Exception {
+	void completionServerObjectTest() throws Exception {
 		List<CharSequence> completions = new ArrayList<>();
 		jlineConsole.getReader()
 				.getCompleters()
@@ -171,7 +171,7 @@ class JythonInterpreterTest {
 	 */
 	@Test
 	@Order(3)
-	public void completionServerObjectTest2() throws Exception {
+	void completionServerObjectTest2() throws Exception {
 		List<CharSequence> completions = new ArrayList<>();
 		jlineConsole.getReader()
 				.getCompleters()
@@ -192,7 +192,7 @@ class JythonInterpreterTest {
 	 */
 	@Test
 	@Order(4)
-	public void completionQueryObjectTest() throws Exception {
+	void completionQueryObjectTest() throws Exception {
 		List<CharSequence> completions = new ArrayList<>();
 		jlineConsole.getReader()
 				.getCompleters()
@@ -213,7 +213,7 @@ class JythonInterpreterTest {
 	 */
 	@Test
 	@Order(5)
-	public void completionQueryObjectTest2() throws Exception {
+	void completionQueryObjectTest2() throws Exception {
 		List<CharSequence> completions = new ArrayList<>();
 		jlineConsole.getReader()
 				.getCompleters()
@@ -228,7 +228,7 @@ class JythonInterpreterTest {
 
 	@Test
 	@Order(6)
-	public void simpleJythonTest() throws Exception {
+	void simpleJythonTest() throws Exception {
 		// Just for testing: We can run normal Gremlin queries:
 		Object result = interp.query("q.V([]).toSet()"); // Get all (!) nodes
 		assertEquals(HashSet.class, result.getClass());
@@ -236,7 +236,7 @@ class JythonInterpreterTest {
 
 	@Test
 	@Order(7)
-	public void crymlinOverJythonTest() throws Exception {
+	void crymlinOverJythonTest() throws Exception {
 		// Run crymlin queries as strings and get back the results as Java objects:
 		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.records().toList()");
 		assertNotNull(classes);

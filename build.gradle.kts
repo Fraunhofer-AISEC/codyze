@@ -172,3 +172,13 @@ downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = "compileClasspath"
 }
+
+tasks.named<CreateStartScripts>("startScripts") {
+    doLast {
+        /* On Windows the classpath can be too long. This is a workaround for https://github.com/gradle/gradle/issues/1989
+         * 
+         * The problem doesn't seem to exist in the current version, but may reappear, so we're keeping this one around.
+         */
+        windowsScript.writeText(windowsScript.readText().replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*"))
+    }
+}

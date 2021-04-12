@@ -48,6 +48,7 @@ repositories {
         setUrl("https://oss.sonatype.org/content/groups/public")
     }
 
+    // Eclipse CDT repo
     ivy {
         setUrl("https://download.eclipse.org/tools/cdt/releases/9.11/cdt-9.11.1/plugins")
         metadataSources {
@@ -78,7 +79,7 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:3.4.0") // ok
+    api("de.fraunhofer.aisec:cpg:3.4.1") // ok
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
@@ -97,7 +98,6 @@ dependencies {
     annotationProcessor("info.picocli:picocli-codegen:4.5.2")
 
     // JSON parser for generation of results file
-//    implementation("org.json:json:20190722")
     implementation("org.json:json:20210307")
 
     // JsonPath for querying findings description
@@ -152,7 +152,6 @@ tasks.named("compileJava") {
     dependsOn(":spotlessApply")
 }
 
-
 tasks.named("sonarqube") {
     dependsOn(":jacocoTestReport")
 }
@@ -172,11 +171,4 @@ spotless {
 downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = "compileClasspath"
-}
-
-tasks.named<CreateStartScripts>("startScripts") {
-    doLast {
-        // workaround for https://github.com/gradle/gradle/issues/1989
-        windowsScript.writeText(windowsScript.readText().replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*"))
-    }
 }

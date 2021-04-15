@@ -50,7 +50,7 @@ repositories {
 
     // Eclipse CDT repo
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/9.11/cdt-9.11.1/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/10.2.0/cdt-10.2.0/plugins")
         metadataSources {
             artifact()
         }

@@ -79,7 +79,7 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:3.4.1") // ok
+    api("de.fraunhofer.aisec:cpg:3.5.0") // ok
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

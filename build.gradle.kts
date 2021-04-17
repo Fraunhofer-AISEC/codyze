@@ -94,8 +94,8 @@ dependencies {
     implementation("org.python:jython-standalone:2.7.2") // ok
 
     // Command line interface support
-    implementation("info.picocli:picocli:4.5.2")
-    annotationProcessor("info.picocli:picocli-codegen:4.5.2")
+    api("info.picocli:picocli:4.6.1")
+    annotationProcessor("info.picocli:picocli-codegen:4.6.1")
 
     // JSON parser for generation of results file
     implementation("org.json:json:20210307")
@@ -113,6 +113,9 @@ dependencies {
     api("org.apache.tinkerpop:tinkergraph-gremlin:3.4.3")
     api("org.apache.tinkerpop:gremlin-driver:3.4.3")
     api("org.apache.tinkerpop:neo4j-gremlin:3.4.3")     // Neo4j multi-label support for gremlin
+
+    // Groovy
+    implementation("org.codehaus.groovy:groovy:3.0.7") // fetch a recent groovy otherwise, Java11+ has problems
 
     // Fast in-memory graph DB (alternative to Neo4J)
     implementation("io.shiftleft:overflowdb-tinkerpop3:0.128")

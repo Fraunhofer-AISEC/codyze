@@ -6,7 +6,6 @@ import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
@@ -24,9 +23,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-public class AnalysisServerBotanTest {
+class AnalysisServerBotanTest {
 
 	private static AnalysisServer server;
 	private static AnalysisContext result;
@@ -67,16 +65,16 @@ public class AnalysisServerBotanTest {
 	}
 
 	@AfterAll
-	public static void teardown() throws Exception {
+	public static void teardown() {
 		// Stop the analysis server
 		server.stop();
 	}
 
 	/** Test analysis context - additional in-memory structures used for analysis. */
 	@Test
-	public void contextTest() {
+	void contextTest() {
 		// Get analysis context from scratch
-		AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result;
+		AnalysisContext ctx = AnalysisServerBotanTest.result;
 
 		// We expect no methods (as there is no class)
 		assertNotNull(ctx);
@@ -84,7 +82,7 @@ public class AnalysisServerBotanTest {
 	}
 
 	@Test
-	public void markModelTest() throws Exception {
+	void markModelTest() {
 		Mark markModel = server.getMarkModel();
 		assertNotNull(markModel);
 		List<MRule> rules = markModel.getRules();
@@ -95,8 +93,8 @@ public class AnalysisServerBotanTest {
 	}
 
 	@Test
-	public void markEvaluationTest() throws Exception {
-		AnalysisContext ctx = (AnalysisContext) AnalysisServerBotanTest.result;
+	void markEvaluationTest() {
+		AnalysisContext ctx = AnalysisServerBotanTest.result;
 		assertNotNull(ctx);
 		List<String> findings = new ArrayList<>();
 		assertNotNull(ctx.getFindings());

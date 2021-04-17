@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>
  * We expect Neo4J and OverflowDB to behave exactly the same, so we can replace one by the other. These tests verify that the graph structure is as expected.
  */
-public class OGMTest {
+class OGMTest {
 
 	private static AnalysisContext result;
 	private static AnalysisServer server;
@@ -64,7 +64,7 @@ public class OGMTest {
 	}
 
 	@Test
-	void allVerticesToNodes() throws Exception {
+	void allVerticesToNodes() {
 		var db = result.getDatabase();
 
 		// Get all vertices from graph ...
@@ -202,7 +202,7 @@ public class OGMTest {
 	}
 
 	@Test
-	void countTranslationUnits() throws Exception {
+	void countTranslationUnits() {
 		// Get all TranslationUnitDeclarations (including subclasses)
 		GraphTraversal<Vertex, Vertex> traversal = result.getDatabase()
 				.getGraph()
@@ -216,7 +216,7 @@ public class OGMTest {
 	}
 
 	@Test
-	void countRecordDeclarations() throws Exception {
+	void countRecordDeclarations() {
 		// Get all RecordDeclaration (including subclasses)
 		GraphTraversal<Vertex, Vertex> traversal = result.getDatabase()
 				.getGraph()
@@ -230,7 +230,7 @@ public class OGMTest {
 	}
 
 	@Test
-	void countMethodDeclarations() throws Exception {
+	void countMethodDeclarations() {
 		// Get all MethodDeclaration (including subclasses)
 		GraphTraversal<Vertex, Vertex> traversal = result.getDatabase()
 				.getGraph()
@@ -244,7 +244,7 @@ public class OGMTest {
 	}
 
 	@Test
-	void countEogEdges() throws Exception {
+	void countEogEdges() {
 		// Get all EOG edges
 
 		GraphTraversal<Vertex, Edge> traversal = result.getDatabase()
@@ -263,7 +263,7 @@ public class OGMTest {
 	}
 
 	@Test
-	void retrieveAllTranslationUnits() throws Exception {
+	void retrieveAllTranslationUnits() {
 		var db = result.getDatabase();
 
 		List<TranslationUnitDeclaration> original = server.getTranslationResult().getTranslationUnits();
@@ -289,7 +289,7 @@ public class OGMTest {
 	}
 
 	@Test
-	void getContainingFunction() throws Exception {
+	void getContainingFunction() {
 		var db = result.getDatabase();
 
 		Vertex p2Start = db.getGraph().traversal().V().has("code", "p2.start(iv);").next();

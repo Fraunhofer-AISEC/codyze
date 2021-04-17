@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-public class RegressionTests extends AbstractMarkTest {
+class RegressionTests extends AbstractMarkTest {
 
 	/**
 	 * Test for arguments of NestedConstructExpressions (Java).
@@ -14,7 +14,7 @@ public class RegressionTests extends AbstractMarkTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testNestedConstructExpressionsJava() throws Exception {
+	void testNestedConstructExpressionsJava() throws Exception {
 		Set<Finding> findings = performTest("unittests/regression/nested_constructors/NestedConstructor.java", "unittests/regression/nested_constructors/");
 		expected(findings,
 			"line 8: Rule PublicKeyInstanceOfVerifier violated");
@@ -26,7 +26,7 @@ public class RegressionTests extends AbstractMarkTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testNestedConstructExpressionsCpp() throws Exception {
+	void testNestedConstructExpressionsCpp() throws Exception {
 		Set<Finding> findings = performTest("unittests/regression/nested_constructors/nested_constructor.cpp", "unittests/regression/nested_constructors/");
 		expected(findings,
 			"line 31: Rule PublicKeyInstanceOfVerifier violated");

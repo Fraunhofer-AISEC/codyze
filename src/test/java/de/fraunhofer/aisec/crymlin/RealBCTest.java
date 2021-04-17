@@ -5,17 +5,14 @@ import de.fraunhofer.aisec.analysis.structures.Finding;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-public class RealBCTest extends AbstractMarkTest {
+class RealBCTest extends AbstractMarkTest {
 
 	@Test
-	public void testSimple() throws Exception {
+	void testSimple() throws Exception {
 		// Just a very simple test of a source file found in the wild.
 		Set<Finding> findings = performTest("real-examples/bc/rwedoff.Password-Manager/Main.java", "real-examples/bc/rwedoff.Password-Manager/");
 

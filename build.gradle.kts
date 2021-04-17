@@ -1,6 +1,3 @@
-val deployUsername: String? by extra // imported from settings.gradle.kts
-val deployPassword: String? by extra // imported from settings.gradle.kts
-
 plugins {
     // built-in
     java
@@ -11,7 +8,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.1.1"
-    id("com.diffplug.spotless") version "5.11.1"
+    id("com.diffplug.spotless") version "5.12.0"
     id("com.github.hierynomus.license") version "0.15.0"
 }
 
@@ -19,8 +16,8 @@ plugins {
 group = "de.fraunhofer.aisec"
 
 /* License plugin needs a special treatment, as long as the main project does not have a license yet.
-   See https://github.com/hierynomus/license-gradle-plugin/issues/155 
-*/
+ * See https://github.com/hierynomus/license-gradle-plugin/issues/155
+ */
 gradle.startParameter.excludedTaskNames += "licenseMain"
 gradle.startParameter.excludedTaskNames += "licenseTest"
 
@@ -51,8 +48,9 @@ repositories {
         setUrl("https://oss.sonatype.org/content/groups/public")
     }
 
+    // Eclipse CDT repo
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/9.11/cdt-9.11.1/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/10.2/cdt-10.2.0/plugins")
         metadataSources {
             artifact()
         }
@@ -74,31 +72,36 @@ configurations.all {
 }
 
 dependencies {
-    api("org.json:json:20210307")
-
-    api("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
-    api("org.apache.logging.log4j:log4j-core:2.14.1")
+    // Logging
+    implementation("org.slf4j:slf4j-api:1.8.0-beta4") // ok
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
-    api("org.slf4j:slf4j-api:1.8.0-beta4")
+    api("org.apache.logging.log4j:log4j-core:2.14.1") // impl in main; used only in test
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:3.4.0")
+    api("de.fraunhofer.aisec:cpg:3.5.0") // ok
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
-     api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { setChanging(true) }
+    api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
 
-    // LSP
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.11.0")
+    // Pushdown Systems
+    api("de.breakpointsec:pushdown:1.1") // ok
 
-    // JSON parser for generation of results file
-    api("org.json:json:20190722")
+    // LSP interface support
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.12.0") // ok
 
-    // JsonPath for querying JSON
-    api("com.jayway.jsonpath:json-path:2.5.0")
+    // Interactive console interface support using Jython (Scripting engine)
+    implementation("org.python:jython-standalone:2.7.2") // ok
 
     // Command line interface support
     api("info.picocli:picocli:4.6.1")
     annotationProcessor("info.picocli:picocli-codegen:4.6.1")
+
+    // JSON parser for generation of results file
+    implementation("org.json:json:20210307")
+
+    // JsonPath for querying findings description
+    implementation("com.jayway.jsonpath:json-path:2.5.0")
 
     // Gremlin
     api("org.apache.tinkerpop:gremlin-core:3.4.3")
@@ -115,15 +118,12 @@ dependencies {
     implementation("org.codehaus.groovy:groovy:3.0.7") // fetch a recent groovy otherwise, Java11+ has problems
 
     // Fast in-memory graph DB (alternative to Neo4J)
-    api("io.shiftleft:overflowdb-tinkerpop3:0.128")
-    api("org.reflections", "reflections", "0.9.11")
+    implementation("io.shiftleft:overflowdb-tinkerpop3:0.128")
 
-    // Pushdown Systems
-    api("de.breakpointsec:pushdown:1.1")
+    // Reflections for OverflowDB and registering Crymlin built-ins
+    implementation("org.reflections", "reflections", "0.9.11")
 
-    // Jython (Scripting engine)
-    api("org.python:jython-standalone:2.7.2")
-
+    // Unit tests
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
@@ -131,9 +131,8 @@ dependencies {
 
 application {
     mainClass.set("de.fraunhofer.aisec.analysis.Main")
-    // Required to give Ehcache deep reflective access to fields to correctly esitmate the cache size.
-    applicationDefaultJvmArgs = listOf("--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.util=ALL-UNNAMED", "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED")
 }
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
     maxHeapSize = "6000m"
@@ -155,7 +154,6 @@ sourceSets.getByName("test").resources {
 tasks.named("compileJava") {
     dependsOn(":spotlessApply")
 }
-
 
 tasks.named("sonarqube") {
     dependsOn(":jacocoTestReport")
@@ -180,7 +178,10 @@ downloadLicenses {
 
 tasks.named<CreateStartScripts>("startScripts") {
     doLast {
-        // workaround for https://github.com/gradle/gradle/issues/1989
+        /* On Windows the classpath can be too long. This is a workaround for https://github.com/gradle/gradle/issues/1989
+         * 
+         * The problem doesn't seem to exist in the current version, but may reappear, so we're keeping this one around.
+         */
         windowsScript.writeText(windowsScript.readText().replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*"))
     }
 }

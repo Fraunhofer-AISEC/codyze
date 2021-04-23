@@ -2,15 +2,7 @@
 package de.fraunhofer.aisec.crymlin.dsl;
 
 import de.fraunhofer.aisec.analysis.ShellCommand;
-import de.fraunhofer.aisec.cpg.graph.declarations.EnumConstantDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.NamespaceDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.TranslationUnitDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.TypedefDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
+import de.fraunhofer.aisec.cpg.graph.declarations.*;
 import de.fraunhofer.aisec.cpg.graph.statements.IfStatement;
 import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement;
 import de.fraunhofer.aisec.cpg.graph.statements.Statement;
@@ -26,7 +18,6 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.eclipse.xtend.lib.macro.declaration.ParameterDeclaration;
 
 import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.EOG;
 import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.NAME;
@@ -327,7 +318,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(
-			ParameterDeclaration.class.getSimpleName(),
+			ParamVariableDeclaration.class.getSimpleName(),
 			VariableDeclaration.class.getSimpleName(),
 			FieldDeclaration.class.getSimpleName(),
 			EnumConstantDeclaration.class.getSimpleName());
@@ -343,7 +334,7 @@ public class CrymlinTraversalSourceDsl extends GraphTraversalSource {
 		GraphTraversal<Vertex, Vertex> traversal = this.clone().V();
 
 		return traversal.hasLabel(
-			ParameterDeclaration.class.getSimpleName(),
+			ParamVariableDeclaration.class.getSimpleName(),
 			VariableDeclaration.class.getSimpleName(),
 			FieldDeclaration.class.getSimpleName(),
 			EnumConstantDeclaration.class.getSimpleName())

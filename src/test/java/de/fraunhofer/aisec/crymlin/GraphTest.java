@@ -217,8 +217,13 @@ class GraphTest {
 					.count()
 					.tryNext();
 			System.out.println(count.get());
-			// 29 variable declarations
-			assertEquals(29, count.get());
+
+			//  4   ParamVariableDeclaration (parameters to functions)
+			// 22   VariableDeclaration (variable declaration and function declaration through 'this')
+			//  7   FieldDeclaration (fields and class definitions through 'this')
+			//  0   EnumConstantDeclaration
+			// 33   total variable declarations
+			assertEquals(33, count.get());
 		}
 	}
 

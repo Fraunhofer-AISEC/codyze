@@ -40,6 +40,9 @@ repositories {
     mavenLocal()
     mavenCentral()
 
+    maven { setUrl("https://jitpack.io") }
+
+
     // NOTE: Remove this when we "release". this is the public sonatype repo which is used to
     // sync to maven central, but directly adding this repo is faster than waiting for a maven central sync,
     // which takes 8 hours in the worse case. so it is useful during heavy development but should be removed
@@ -83,7 +86,8 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:3.5.1") // ok
+    //api("de.fraunhofer.aisec:cpg:3.5.1") // ok
+    implementation("com.github.Fraunhofer-AISEC:cpg:trying-to-fix-neo4j-SNAPSHOT")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

@@ -115,7 +115,7 @@ class AnalysisServerBotanTest {
 	private static TranslationManager newAnalysisRun(File... sourceLocations) {
 		return TranslationManager.builder()
 				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().sourceLocations(sourceLocations).build())
+					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().defaultLanguages().sourceLocations(sourceLocations).build())
 				.build();
 	}
 }

@@ -1,6 +1,6 @@
 redis==3.3.11
 simplejson==3.13.2
-urllib3==1.25.7
+urllib3==1.25.8
 PyGithub==1.44.1
 celery==4.3.0
 python-dotenv==0.10.3

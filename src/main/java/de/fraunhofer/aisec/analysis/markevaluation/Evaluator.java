@@ -15,6 +15,7 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.StaticCallExpression;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.sarif.Region;
@@ -28,21 +29,18 @@ import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.REFERS_TO;
 
 /**
  * Evaluates all loaded MARK rules against the CPG.
@@ -378,6 +376,15 @@ public class Evaluator {
 							ref = CrymlinQueryWrapper.getDFGTarget(vertex);
 						}
 					}
+
+					// make sure, that we are actually targeting the variable declaration and not the reference
+					if (ref.isPresent() && Utils.hasLabel(ref.get(), DeclaredReferenceExpression.class)) {
+						Iterator<Edge> refIterator = ref.get().edges(Direction.OUT, REFERS_TO);
+						if (refIterator.hasNext()) {
+							ref = Optional.ofNullable(refIterator.next().inVertex());
+						}
+					}
+
 					ref.ifPresent(instanceVariables::add);
 
 					if (ref.isEmpty()) {

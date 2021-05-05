@@ -506,14 +506,24 @@ public class CrymlinQueryWrapper {
 							.toList();
 
 					if (argumentVertices.size() == 1) {
+						// handle the case, where we have a 'this' variable, explicitly specifying the
+						// base, this is usually used in scenarios, where the object is used as an argument
+						// rather than a member call
+
 						// get base of call expression
 						Optional<Vertex> baseOfCallExpression;
-						if (v.property("nodeType").isPresent() && v.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.StaticCallExpression")) {
-							baseOfCallExpression = CrymlinQueryWrapper.getDFGTarget(v);
+						int[] thisPositions = IntStream.range(0, params.size()).filter(i -> "this".equals(params.get(i).getVar())).toArray();
+
+						if (thisPositions.length == 1) {
+							baseOfCallExpression = CrymlinQueryWrapper.getBaseOfCallExpressionUsingArgument(v, thisPositions[0], crymlin);
 						} else {
-							baseOfCallExpression = CrymlinQueryWrapper.getBaseOfCallExpression(v);
-							if (baseOfCallExpression.isEmpty()) { // if we did not find a base the "easy way", try to find a base using the simple-DFG
+							if (v.property("nodeType").isPresent() && v.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.StaticCallExpression")) {
 								baseOfCallExpression = CrymlinQueryWrapper.getDFGTarget(v);
+							} else {
+								baseOfCallExpression = CrymlinQueryWrapper.getBaseOfCallExpression(v);
+								if (baseOfCallExpression.isEmpty()) { // if we did not find a base the "easy way", try to find a base using the simple-DFG
+									baseOfCallExpression = CrymlinQueryWrapper.getDFGTarget(v);
+								}
 							}
 						}
 						CPGVertexWithValue cpgVertexWithValue = new CPGVertexWithValue(argumentVertices.get(0), ConstantValue.newUninitialized());
@@ -547,6 +557,26 @@ public class CrymlinQueryWrapper {
 					.map(v -> v.getArgumentVertex().label() + ": " + v.getArgumentVertex().property("code").value())
 					.collect(Collectors.joining(", ")));
 		return matchingVertices;
+	}
+
+	private static Optional<Vertex> getBaseOfCallExpressionUsingArgument(Vertex v, int argumentIndex, @NonNull CrymlinTraversalSource crymlin) {
+		var list = crymlin.byID((long) v.id())
+				.argument(argumentIndex)
+				.toList();
+
+		if (list.size() == 1) {
+			var node = list.get(0);
+
+			Iterator<Edge> refIterator = node.edges(Direction.OUT, REFERS_TO);
+			if (refIterator.hasNext()) {
+				// if the node refers to another node, return the node it refers to
+				node = refIterator.next().inVertex();
+			}
+
+			return Optional.ofNullable(node);
+		}
+
+		return Optional.empty();
 	}
 
 	/**
@@ -607,7 +637,10 @@ public class CrymlinQueryWrapper {
 						ret.add(add);
 					});
 				} else {
+					String fqn = declExpr.getName();
+					ConstantValue cv = ConstantValue.of(fqn);
 					CPGVertexWithValue add = CPGVertexWithValue.of(v);
+					add.setValue(cv);
 					v.setValue(ErrorValue.newErrorValue(String.format("could not resolve %s", markVar)));
 					ret.add(add);
 				}

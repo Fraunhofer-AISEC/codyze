@@ -39,17 +39,17 @@ public abstract class AbstractMarkTest {
 	protected AnalysisContext ctx;
 	protected TypestateMode tsMode = TypestateMode.NFA;
 
-	Set<Finding> performTest(String sourceFileName) throws Exception {
+	protected Set<Finding> performTest(String sourceFileName) throws Exception {
 		return performTest(sourceFileName, null);
 	}
 
 	@NonNull
-	Set<Finding> performTest(String sourceFileName, @Nullable String markFileName) throws Exception {
+	protected Set<Finding> performTest(String sourceFileName, @Nullable String markFileName) throws Exception {
 		return performTest(sourceFileName, null, markFileName);
 	}
 
 	@NonNull
-	Set<Finding> performTest(String sourceFileName, String[] additionalFiles, @Nullable String markFileName) throws Exception {
+	protected Set<Finding> performTest(String sourceFileName, String[] additionalFiles, @Nullable String markFileName) throws Exception {
 		ClassLoader classLoader = AbstractMarkTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);

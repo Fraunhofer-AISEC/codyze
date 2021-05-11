@@ -118,7 +118,7 @@ dependencies {
     implementation("org.codehaus.groovy:groovy:3.0.7") // fetch a recent groovy otherwise, Java11+ has problems
 
     // Fast in-memory graph DB (alternative to Neo4J)
-    implementation("io.shiftleft:overflowdb-tinkerpop3:0.128")
+    implementation("io.shiftleft:overflowdb-tinkerpop3:1.34")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.9.11")

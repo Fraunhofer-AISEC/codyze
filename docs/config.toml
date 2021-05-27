@@ -133,7 +133,7 @@ no = 'Sorry to hear that. Please <a href="https://github.com/USERNAME/REPOSITORY
 # End user relevant links. These will show up on left side of footer and in the community page if you have one.
 [[params.links.user]]
 	name = "Email"
-	url = "mailto:info@aisec.fraunhofer.de"
+	url = "mailto:codyze@aisec.fraunhofer.de"
 	icon = "fa fa-envelope"
         desc = "Send us an email"
 [[params.links.user]]

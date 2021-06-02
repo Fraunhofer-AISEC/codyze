@@ -101,7 +101,7 @@ dependencies {
     implementation("org.json:json:20210307")
 
     // JsonPath for querying findings description
-    implementation("com.jayway.jsonpath:json-path:2.5.0")
+    implementation("com.jayway.jsonpath:json-path:2.6.0")
 
     // Gremlin
     api("org.apache.tinkerpop:gremlin-core:3.4.3")

@@ -189,4 +189,15 @@ class BuiltInTest extends AbstractMarkTest {
 
 	}
 
+	@Test
+	void testSplitSubset() throws Exception {
+		var findings = performTest("builtins/split_subset.c", "builtins/split_subset.mark");
+
+		expected(findings,
+			"line 2: Rule split_subset_1 verified",
+			"line 2: Rule split_subset_2 verified",
+			"line 2: Rule split_subset_3 verified",
+			"line 2: Rule split_subset_4 violated");
+	}
+
 }

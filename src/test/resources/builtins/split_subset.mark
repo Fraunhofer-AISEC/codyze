@@ -1,0 +1,42 @@
+package split_subset
+
+entity E {
+	var param;
+
+	op t {
+		test(param);
+	}
+
+}
+
+rule split_subset_1 {
+    using
+    	E as e
+    ensure
+        _split_subset(e.param, ":", ["c1", "c2"])
+    onfail success
+}
+
+rule split_subset_2 {
+    using
+        E as e
+    ensure
+        _split_subset(e.param, ":", ["c1", "c2"]) == true
+    onfail success
+}
+
+rule split_subset_3 {
+    using
+        E as e
+    ensure
+        _split_subset(e.param, ":", ["c1", "c2", "c3"])
+    onfail success
+}
+
+rule split_subset_4 {
+    using
+        E as e
+    ensure
+        _split_subset(e.param, ":", ["c1"])
+    onfail fail
+}

@@ -7,7 +7,7 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.sonarqube") version "3.2.0"
+    id("org.sonarqube") version "3.3"
     id("com.diffplug.spotless") version "5.12.5"
     id("com.github.hierynomus.license") version "0.16.1"
 }

@@ -22,9 +22,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -157,6 +155,38 @@ public abstract class AbstractMarkTest {
 		}
 
 		assertEquals(0, findings.size(), findings.stream().map(Finding::toString).collect(Collectors.joining()));
+	}
+
+	/**
+	 * Verifies that a set of findings contains at least the given expected findings.
+	 * @param findings A set of findings to check.
+	 * @param expectedFindings A set of expected findings.
+	 */
+	protected void containsFindings(@NonNull Set<Finding> findings, String... expectedFindings) {
+		System.out.println("All findings:");
+		for (Finding f : findings)
+			System.out.println(f.toString());
+
+		Set<String> missingFindings = new HashSet<String>();
+		for (String expected : expectedFindings) {
+			boolean found = false;
+			for (Finding finding : findings) {
+				if (expected.equals(finding.toString())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				missingFindings.add(expected);
+			}
+		}
+		if (!missingFindings.isEmpty()) {
+			System.out.println("Missing findings:");
+			for (String missing : missingFindings) {
+				System.out.println(missing);
+			}
+		}
+		assert (missingFindings.isEmpty());
 	}
 
 }

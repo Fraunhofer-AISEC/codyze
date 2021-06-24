@@ -8,7 +8,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "5.13.0"
+    id("com.diffplug.spotless") version "5.14.0"
     id("com.github.hierynomus.license") version "0.16.1"
 }
 

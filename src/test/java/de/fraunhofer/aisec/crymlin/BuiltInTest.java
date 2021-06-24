@@ -189,4 +189,17 @@ class BuiltInTest extends AbstractMarkTest {
 
 	}
 
+	@Test
+	void testSplitMatch() throws Exception {
+		var findings = performTest("builtins/split_match_unordered.c", "builtins/split_match_unordered.mark");
+
+		expected(findings,
+			"line 2: Rule split_match_unordered_1 verified",
+			"line 2: Rule split_match_unordered_2 verified",
+			"line 2: Rule split_match_unordered_3 verified",
+			"line 2: Rule split_match_unordered_4 violated",
+			"line 2: Rule split_match_unordered_5 verified",
+			"line 2: Rule split_match_unordered_6 violated");
+	}
+
 }

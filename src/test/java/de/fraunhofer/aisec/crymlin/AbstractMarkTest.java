@@ -186,7 +186,7 @@ public abstract class AbstractMarkTest {
 				System.out.println(missing);
 			}
 		}
-		assert (missingFindings.isEmpty());
+		assertTrue(missingFindings.isEmpty());
 	}
 
 }

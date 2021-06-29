@@ -58,6 +58,10 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
+
+    maven { 
+        setUrl("https://jitpack.io")
+    }
 }
 
 java {
@@ -82,7 +86,9 @@ dependencies {
     api("de.fraunhofer.aisec:cpg:3.5.1") // ok
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
-    api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
+    //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
+    api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:master-SNAPSHOT:repackaged")
+
 
     // Pushdown Systems
     api("de.breakpointsec:pushdown:1.1") // ok

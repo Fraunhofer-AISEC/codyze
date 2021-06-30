@@ -833,7 +833,6 @@ public class CrymlinQueryWrapper {
 			}
 		} else {
 			// if the instance is entity referenced in the op, precalculate the variabledecl for each used op
-
 			for (Map.Entry<Integer, MarkContext> entry : context.getAllContexts().entrySet()) {
 				if (!entry.getValue().getInstanceContext().containsInstance(instance)) {
 					log.warn("Instance not found in context");
@@ -927,12 +926,42 @@ public class CrymlinQueryWrapper {
 		return false;
 	}
 
+	/**
+	 *
+	 * TODO if there are really more than one possible DFG targets we should return a list
+	 *
+	 * @param vertex
+	 * @return
+	 */
 	public static Optional<Vertex> getDFGTarget(Vertex vertex) {
 		Iterator<Edge> it = vertex.edges(Direction.OUT, DFG);
-		if (it.hasNext()) {
-			return Optional.of(it.next().inVertex());
+
+		var target = Optional.<Vertex> empty();
+
+		// there are cases where there is more than one outgoing DFG edge
+		while (it.hasNext()) {
+			var e = it.next();
+			var v = e.inVertex();
+
+			log.info("DFG target: {}", v);
+
+			// set the first find
+			if (target.isEmpty()) {
+				target = Optional.of(v);
+			} else {
+				// otherwise, look for something more useful
+				if (v.property("nodeType").isPresent()) {
+					var nodeType = v.value("nodeType");
+
+					// like a declared reference expression or a variable declaration
+					if (nodeType.equals("de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression")
+							|| nodeType.equals("de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration")) {
+						target = Optional.of(v);
+					}
+				}
+			}
 		}
-		return Optional.empty();
+		return target;
 	}
 
 	public static Set<Vertex> getDFGSources(Vertex vertex) {

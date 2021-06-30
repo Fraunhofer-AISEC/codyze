@@ -849,11 +849,18 @@ public class CrymlinQueryWrapper {
 		}
 
 		// now calculate a list of contextID to matching vertices which fill the base we are looking for
-
 		for (CPGVertexWithValue vertexWithValue : vertices) {
 			Long id = -1L; // -1 = null
 			if (vertexWithValue.getBase() != null) {
-				id = (Long) vertexWithValue.getBase().id();
+				var base = vertexWithValue.getBase();
+
+				if (base.property("nodeType").isPresent()
+						&& base.value("nodeType").equals("de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression")) {
+					var referencedBase = base.edges(Direction.OUT, "REFERS_TO").next().inVertex();
+					id = (Long) referencedBase.id();
+				} else {
+					id = (Long) base.id();
+				}
 			}
 			List<Integer> contextIDs = nodeIDToContextIDs.get(id);
 			if (contextIDs == null) {

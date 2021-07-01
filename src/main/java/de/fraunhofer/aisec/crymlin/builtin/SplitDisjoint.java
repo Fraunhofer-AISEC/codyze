@@ -8,10 +8,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
@@ -54,15 +51,15 @@ public class SplitDisjoint implements Builtin {
 			var providedSet = listSet.stream().map(mir -> ((ConstantValue) mir).getValue()).collect(Collectors.toSet());
 
 			if (s == null || regex == null || providedSet == null) {
-				log.warn("One of the arguments for _split_match_unordered was not the expected type, or not initialized/resolved");
-				return ErrorValue.newErrorValue("One of the arguments for _split_match_unordered was not the expected type, or not initialized/resolved",
+				log.warn("One of the arguments for _split_disjoint was not the expected type, or not initialized/resolved");
+				return ErrorValue.newErrorValue("One of the arguments for _split_disjoint was not the expected type, or not initialized/resolved",
 					argResultList.getAll());
 			}
 
 			log.info("args are: {}; {}; {}", s, regex, providedSet);
 
 			String[] splitted = s.split(regex);
-			var values = Set.of(splitted);
+			var values = Arrays.stream(splitted).map(String::strip).collect(Collectors.toSet());
 			boolean isDisjoint = Collections.disjoint(values, providedSet);
 
 			ConstantValue cv = ConstantValue.of(isDisjoint);

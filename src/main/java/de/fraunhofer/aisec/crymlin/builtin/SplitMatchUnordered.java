@@ -8,9 +8,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
@@ -69,7 +69,7 @@ public class SplitMatchUnordered implements Builtin {
 			log.info("args are: {}; {}; {}; {}", s, regex, providedSet, strict);
 
 			String[] splitted = s.split(regex);
-			var values = Set.of(splitted);
+			var values = Arrays.stream(splitted).map(String::strip).collect(Collectors.toSet());
 			boolean isMatch = strict ? Objects.equals(values, providedSet) : providedSet.containsAll(values);
 
 			ConstantValue cv = ConstantValue.of(isMatch);

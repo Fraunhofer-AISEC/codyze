@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.analysis.server;
 
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
 import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
-import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyEvaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.FindingDescription;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
@@ -43,10 +43,7 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,8 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 /**
  * This is the main CPG analysis server.
@@ -224,7 +219,7 @@ public class AnalysisServer {
 							this.markModel.getEntities().size(),
 							this.markModel.getRules().size());
 						// Evaluate all MARK rules
-						Evaluator mi = new Evaluator(this.markModel, this.config);
+						LegacyEvaluator mi = new LegacyEvaluator(this.markModel, this.config);
 						mi.evaluate(result, ctx);
 						bench.stop();
 						return ctx;

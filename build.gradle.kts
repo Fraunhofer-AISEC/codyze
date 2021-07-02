@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     // built-in
     java
@@ -10,6 +12,7 @@ plugins {
     id("org.sonarqube") version "3.3"
     id("com.diffplug.spotless") version "5.14.0"
     id("com.github.hierynomus.license") version "0.16.1"
+    kotlin("jvm") version "1.5.20"
 }
 
 
@@ -133,6 +136,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 application {
@@ -184,4 +188,12 @@ tasks.named<CreateStartScripts>("startScripts") {
          */
         windowsScript.writeText(windowsScript.readText().replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*"))
     }
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }

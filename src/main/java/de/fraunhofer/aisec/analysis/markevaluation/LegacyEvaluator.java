@@ -2,15 +2,22 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.MarkContext;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
+import de.fraunhofer.aisec.analysis.structures.Pair;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.StaticCallExpression;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelper.*;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -33,8 +40,6 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getVerticesForFunctionDeclaration;
-import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
 import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.REFERS_TO;
 
 /**
@@ -42,8 +47,9 @@ import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.REFERS_TO;
  * <p>
  * returns a number of Findings if any of the rules are violated
  */
-public class Evaluator {
-	private static final Logger log = LoggerFactory.getLogger(Evaluator.class);
+@Deprecated
+public class LegacyEvaluator {
+	private static final Logger log = LoggerFactory.getLogger(LegacyEvaluator.class);
 
 	@NonNull
 	private final Mark markModel;
@@ -51,7 +57,7 @@ public class Evaluator {
 	@NonNull
 	private final ServerConfiguration config;
 
-	public Evaluator(@NonNull Mark markModel, @NonNull ServerConfiguration config) {
+	public LegacyEvaluator(@NonNull Mark markModel, @NonNull ServerConfiguration config) {
 		this.markModel = markModel;
 		this.config = config;
 	}
@@ -69,11 +75,10 @@ public class Evaluator {
 
 		Benchmark bOuter = new Benchmark(this.getClass(), "Mark evaluation");
 
-		try /*(TraversalConnection traversal = new TraversalConnection(ctx.getDatabase()))*/ { // connects to the DB
-			var graph = getGraph(result);
+		try (TraversalConnection traversal = new TraversalConnection(ctx.getDatabase())) { // connects to the DB
 
 			log.info("Precalculating matching nodes");
-			assignCallVerticesToOps(ctx, graph);
+			assignCallVerticesToOps(ctx, traversal.getCrymlinTraversal());
 
 			log.info("Evaluate forbidden calls");
 			Benchmark b = new Benchmark(this.getClass(), "Evaluate forbidden calls");
@@ -83,7 +88,7 @@ public class Evaluator {
 
 			log.info("Evaluate rules");
 			b = new Benchmark(this.getClass(), "Evaluate rules");
-			//evaluateRules(ctx, traversal.getCrymlinTraversal());
+			evaluateRules(ctx, traversal.getCrymlinTraversal());
 			b.stop();
 
 			bOuter.stop();
@@ -106,22 +111,20 @@ public class Evaluator {
 	 * After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
 	 *
 	 * @param ctx
-	 * @param graph the Graph
+	 * @param crymlinTraversal traversal-connection to the DB
 	 */
-	private void assignCallVerticesToOps(@NonNull AnalysisContext ctx, @NonNull Graph graph) {
+	private void assignCallVerticesToOps(@NonNull AnalysisContext ctx, @NonNull CrymlinTraversalSource crymlinTraversal) {
 		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		// iterate over all entities and precalculate:
 		// - call statements to vertices
-		for (var ent : markModel.getEntities()) {
+		for (MEntity ent : markModel.getEntities()) {
 			log.info("Precalculating call statements for entity {}", ent.getName());
 			ent.parseVars();
-
-			for (var op : ent.getOps()) {
+			for (MOp op : ent.getOps()) {
 				log.debug("Looking for call statements for {}", op.getName());
-
 				int numMatches = 0;
-				for (var opStmt : op.getStatements()) {
-					var temp = getVerticesForFunctionDeclaration(graph, opStmt.getCall());
+				for (OpStatement opStmt : op.getStatements()) {
+					Set<Vertex> temp = CrymlinQueryWrapper.getVerticesForFunctionDeclaration(ctx.getDatabase(), opStmt.getCall(), crymlinTraversal);
 					log.debug(
 						"Call {}({}) of op {} found {} times",
 						opStmt.getCall().getName(),
@@ -129,10 +132,9 @@ public class Evaluator {
 						op.getName(),
 						temp.size());
 					numMatches += temp.size();
-					//op.addVertex(opStmt, temp);
+					op.addVertex(opStmt, temp);
 				}
 				op.setParsingFinished();
-
 				if (numMatches > 0) {
 					log.info("Found {} call statements in the cpg for {}", numMatches, op.getName());
 				}

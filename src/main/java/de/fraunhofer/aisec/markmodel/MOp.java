@@ -26,7 +26,11 @@ public class MOp {
 	private List<OpStatement> statements = new ArrayList<>();
 
 	private boolean parsed = false;
+
+	@Deprecated
 	private Map<OpStatement, Set<Vertex>> statementToCPGVertex = new HashMap<>();
+
+	@Deprecated
 	private Map<Vertex, Set<OpStatement>> vertexToStatements = new HashMap<>();
 	private Set<Vertex> allVertices = new HashSet<>();
 

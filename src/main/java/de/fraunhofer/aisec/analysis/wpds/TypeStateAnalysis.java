@@ -10,7 +10,7 @@ import de.breakpointsec.pushdown.rules.PopRule;
 import de.breakpointsec.pushdown.rules.PushRule;
 import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.LegacyCPGInstanceContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -97,7 +97,7 @@ public class TypeStateAnalysis {
 	private MRule rule;
 	@NonNull
 	private final MarkContextHolder markContextHolder;
-	private CPGInstanceContext instanceContext;
+	private LegacyCPGInstanceContext instanceContext;
 	private AnalysisContext ctx;
 
 	public TypeStateAnalysis(@NonNull MarkContextHolder markContextHolder, @NonNull AnalysisContext ctx) {

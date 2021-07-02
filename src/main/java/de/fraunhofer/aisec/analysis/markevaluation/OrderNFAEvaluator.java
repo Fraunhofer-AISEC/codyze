@@ -2,7 +2,7 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.LegacyCPGInstanceContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -77,7 +77,7 @@ public class OrderNFAEvaluator {
 		//   Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
 		//   Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
 
-		CPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
+		LegacyCPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 
 		Set<String> markInstances = new HashSet<>();
 		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression

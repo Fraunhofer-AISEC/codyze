@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.analysis.server;
 
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
 import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
+import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.LegacyEvaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.FindingDescription;
@@ -218,9 +219,15 @@ public class AnalysisServer {
 							"Evaluating mark: {} entities, {} rules",
 							this.markModel.getEntities().size(),
 							this.markModel.getRules().size());
-						// Evaluate all MARK rules
-						LegacyEvaluator mi = new LegacyEvaluator(this.markModel, this.config);
-						mi.evaluate(result, ctx);
+						if (config.legacyEvaluator) {
+							// Evaluate all MARK rules
+							LegacyEvaluator mi = new LegacyEvaluator(this.markModel, this.config);
+							mi.evaluate(result, ctx);
+						} else {
+							// Evaluate all MARK rules
+							var evaluator = new Evaluator(this.markModel, this.config);
+							evaluator.evaluate(result, ctx);
+						}
 						bench.stop();
 						return ctx;
 					})

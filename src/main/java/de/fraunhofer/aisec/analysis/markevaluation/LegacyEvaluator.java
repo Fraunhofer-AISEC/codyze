@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.LegacyCPGInstanceContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -325,7 +325,7 @@ public class LegacyEvaluator {
 	private MarkContextHolder createMarkContext(List<List<Pair<String, Vertex>>> entities) {
 		MarkContextHolder context = new MarkContextHolder();
 		for (List<Pair<String, Vertex>> list : Lists.cartesianProduct(entities)) {
-			CPGInstanceContext instanceCtx = new CPGInstanceContext();
+			LegacyCPGInstanceContext instanceCtx = new LegacyCPGInstanceContext();
 			for (Pair<String, Vertex> p : list) {
 				String markInstanceName = p.getValue0();
 				Vertex v = p.getValue1();

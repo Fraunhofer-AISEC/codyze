@@ -47,6 +47,12 @@ public class ServerConfiguration {
 	 */
 	public final boolean disableOverflow;
 
+	/**
+	 * Use the OverflowDB-based legacy evaluator.
+	 */
+	@Deprecated
+	public boolean legacyEvaluator;
+
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
@@ -55,7 +61,8 @@ public class ServerConfiguration {
 			boolean analyzeIncludes,
 			@NonNull File[] includePath,
 			boolean disableGoodFindings,
-			boolean disableOverflow) {
+			boolean disableOverflow,
+			boolean legacyEvaluator) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
@@ -64,6 +71,7 @@ public class ServerConfiguration {
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
 		this.disableOverflow = disableOverflow;
+		this.legacyEvaluator = legacyEvaluator;
 	}
 
 	public static Builder builder() {
@@ -81,6 +89,7 @@ public class ServerConfiguration {
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
 		private boolean disableOverflow;
+		private boolean legacyEvaluator = true;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -126,6 +135,11 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder useLegacyEvaluator(boolean legacyEvaluator) {
+			this.legacyEvaluator = legacyEvaluator;
+			return this;
+		}
+
 		public ServerConfiguration build() {
 			return new ServerConfiguration(
 				launchConsole,
@@ -135,7 +149,8 @@ public class ServerConfiguration {
 				analyzeIncludes,
 				includePath,
 				disableGoodFindings,
-				disableOverflow);
+				disableOverflow,
+				legacyEvaluator);
 		}
 	}
 }

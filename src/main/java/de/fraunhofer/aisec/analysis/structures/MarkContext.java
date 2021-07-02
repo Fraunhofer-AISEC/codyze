@@ -14,7 +14,7 @@ import java.util.Map;
 public class MarkContext {
 	private static final Logger log = LoggerFactory.getLogger(MarkContext.class);
 
-	private CPGInstanceContext instances = null;
+	private LegacyCPGInstanceContext instances = null;
 	private Map<String, CPGVertexWithValue> operands = new HashMap<>();
 	private boolean findingAlreadyAdded = false;
 
@@ -27,14 +27,14 @@ public class MarkContext {
 	public MarkContext() {
 	}
 
-	public void addInstanceContext(CPGInstanceContext instance) {
+	public void addInstanceContext(LegacyCPGInstanceContext instance) {
 		if (instances != null) {
 			log.warn("overwriting existing instance context");
 		}
 		this.instances = instance;
 	}
 
-	public CPGInstanceContext getInstanceContext() {
+	public LegacyCPGInstanceContext getInstanceContext() {
 		return instances;
 	}
 

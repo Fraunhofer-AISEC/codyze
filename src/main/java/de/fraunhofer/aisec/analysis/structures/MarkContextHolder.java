@@ -40,7 +40,7 @@ public class MarkContextHolder {
 	private Map<Integer, List<Integer>> copyStack = new HashMap<>();
 	private boolean createFindingsDuringEvaluation = true;
 
-	public void addInitialInstanceContext(CPGInstanceContext instance) {
+	public void addInitialInstanceContext(LegacyCPGInstanceContext instance) {
 		MarkContext mk = new MarkContext();
 		mk.addInstanceContext(instance);
 		contexts.put(currentElements++, mk);

@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.markmodel;
 
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -29,10 +30,15 @@ public class MOp {
 
 	@Deprecated
 	private Map<OpStatement, Set<Vertex>> statementToCPGVertex = new HashMap<>();
+	private final Map<OpStatement, Set<Node>> statementToNodes = new HashMap<>();
 
 	@Deprecated
 	private Map<Vertex, Set<OpStatement>> vertexToStatements = new HashMap<>();
+	private Map<Node, Set<OpStatement>> nodesToStatements = new HashMap<>();
+
+	@Deprecated
 	private Set<Vertex> allVertices = new HashSet<>();
+	private Set<Node> allNodes = new HashSet<>();
 
 	public MOp(MEntity parent) {
 		this.parent = parent;
@@ -72,10 +78,16 @@ public class MOp {
 		return vertexToStatements;
 	}
 
+	@Deprecated
 	public Set<Vertex> getAllVertices() {
 		return allVertices;
 	}
 
+	public Set<Node> getAllNodes() {
+		return allNodes;
+	}
+
+	@Deprecated
 	public void addVertex(OpStatement stmt, Set<Vertex> verts) {
 		statementToCPGVertex.put(stmt, verts);
 		for (Vertex v : verts) {
@@ -83,6 +95,15 @@ public class MOp {
 			callStatements.add(stmt);
 		}
 		allVertices.addAll(verts);
+	}
+
+	public void addNode(OpStatement stmt, Set<Node> nodes) {
+		statementToNodes.put(stmt, nodes);
+		for (var node : nodes) {
+			Set<OpStatement> callStatements = nodesToStatements.computeIfAbsent(node, k -> new HashSet<>());
+			callStatements.add(stmt);
+		}
+		allNodes.addAll(nodes);
 	}
 
 	public void setParsingFinished() {
@@ -113,4 +134,5 @@ public class MOp {
 		}
 		return ret;
 	}
+
 }

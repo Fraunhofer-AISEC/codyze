@@ -12,7 +12,7 @@ plugins {
     id("org.sonarqube") version "3.3"
     id("com.diffplug.spotless") version "5.14.0"
     id("com.github.hierynomus.license") version "0.16.1"
-    kotlin("jvm") version "1.5.20"
+    kotlin("jvm") version "1.4.32" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
 

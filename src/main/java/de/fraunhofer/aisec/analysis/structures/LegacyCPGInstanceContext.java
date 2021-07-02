@@ -16,7 +16,8 @@ import java.util.Set;
  * key: Mark instance ("b") value: the Vertex that usages of program variables corresponding to "b" REFERS_TO. Typically a VariableDeclaration node.
  *
  */
-public class CPGInstanceContext {
+@Deprecated
+public class LegacyCPGInstanceContext {
 	// e.g. for
 	//    using Botan as b, Random as r
 	// maps "b" to its vertex and "r" to its vertex

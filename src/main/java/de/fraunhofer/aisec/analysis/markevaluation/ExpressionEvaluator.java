@@ -58,20 +58,17 @@ public class ExpressionEvaluator {
 	private final MRule markRule;
 	// configuration for the evaluation. E.g., used for WPDS vs. NFA for order evaluation
 	private final ServerConfiguration config;
-	// connection into the DB
-	private final CrymlinTraversalSource traversal;
+
 	// the resulting analysis context
 	private final AnalysisContext resultCtx;
 	private final MarkContextHolder markContextHolder;
 	private final Mark markModel;
 
-	public ExpressionEvaluator(Mark markModel, MRule rule, AnalysisContext resultCtx, ServerConfiguration config, CrymlinTraversalSource traversal,
-			MarkContextHolder context) {
+	public ExpressionEvaluator(Mark markModel, MRule rule, AnalysisContext resultCtx, ServerConfiguration config, MarkContextHolder context) {
 		this.markModel = markModel;
 		this.markRule = rule;
 		this.resultCtx = resultCtx;
 		this.config = config;
-		this.traversal = traversal;
 		this.markContextHolder = context;
 	}
 
@@ -132,7 +129,7 @@ public class ExpressionEvaluator {
 	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.info("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		for (Map.Entry<Integer, LegacyMarkContext> entry : markContextHolder.getAllContexts().entrySet()) {
+		for (Map.Entry<Integer, LegacyMarkContext> entry : markContextHolder.getAllLegacyContexts().entrySet()) {
 
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
 			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);
@@ -538,7 +535,7 @@ public class ExpressionEvaluator {
 		}
 
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
-		for (Integer key : markContextHolder.getAllContexts()
+		for (Integer key : markContextHolder.getAllLegacyContexts()
 				.keySet()) {
 			ret.put(key, value);
 		}
@@ -766,7 +763,7 @@ public class ExpressionEvaluator {
 
 		if (split.length == 1) { // also return the markvar itself, might be needed by a builtin
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
-				Vertex vertex = markContextHolder.getContext(entry.getKey()).getInstanceContext().getVertex(operand.getOperand());
+				Vertex vertex = markContextHolder.getLegacyContext(entry.getKey()).getInstanceContext().getVertex(operand.getOperand());
 				CPGVertexWithValue vwv = new CPGVertexWithValue(vertex, ConstantValue.newUninitialized());
 				ConstantValue constant = ConstantValue.of(vwv.getValue());
 				constant.addResponsibleVertex(vertex);
@@ -794,9 +791,5 @@ public class ExpressionEvaluator {
 		}
 
 		return resolvedOperand;
-	}
-
-	public CrymlinTraversalSource getCrymlinTraversal() {
-		return this.traversal;
 	}
 }

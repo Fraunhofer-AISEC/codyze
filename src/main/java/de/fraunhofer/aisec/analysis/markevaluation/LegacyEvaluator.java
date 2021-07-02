@@ -215,7 +215,7 @@ public class LegacyEvaluator {
 				 * responsible vertices.
 				 */
 
-				LegacyMarkContext c = markCtxHolder.getContext(markCtx);
+				LegacyMarkContext c = markCtxHolder.getLegacyContext(markCtx);
 
 				URI currentFile = null;
 
@@ -258,16 +258,16 @@ public class LegacyEvaluator {
 						isRuleViolated));
 				}
 			} else if (evaluationResultUb == null) {
-				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size()
+				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllLegacyContexts().size()
 						+ ", result was null, this should not happen.",
 					rule.getName());
 			} else if (ConstantValue.isError(entry.getValue())) {
-				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result had an error: \n\t{}",
+				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllLegacyContexts().size() + ", result had an error: \n\t{}",
 					rule.getName(),
 					((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
 			} else {
 				log.error(
-					"Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result is not a boolean, but {}",
+					"Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllLegacyContexts().size() + ", result is not a boolean, but {}",
 					rule.getName(), evaluationResultUb.getClass().getSimpleName());
 			}
 		}
@@ -331,7 +331,7 @@ public class LegacyEvaluator {
 				Vertex v = p.getValue1();
 				instanceCtx.putMarkInstance(markInstanceName, v);
 			}
-			context.addInitialInstanceContext(instanceCtx);
+			context.addInitialLegacyInstanceContext(instanceCtx);
 		}
 		return context;
 	}

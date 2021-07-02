@@ -36,24 +36,36 @@ public class MarkContextHolder {
 	@Deprecated
 	private final Map<Integer, LegacyMarkContext> legacyContexts = new HashMap<>();
 
+	private final Map<Integer, MarkContext> contexts = new HashMap<>();
+
 	private int currentElements = 0;
 
 	private final Set<String> resolvedOperands = new HashSet<>();
 	private final Map<Integer, List<Integer>> copyStack = new HashMap<>();
 	private boolean createFindingsDuringEvaluation = true;
 
-	public void addInitialInstanceContext(LegacyCPGInstanceContext instance) {
+	public void addInitialLegacyInstanceContext(LegacyCPGInstanceContext instance) {
 		LegacyMarkContext mk = new LegacyMarkContext();
 		mk.addInstanceContext(instance);
 		legacyContexts.put(currentElements++, mk);
 	}
 
-	public LegacyMarkContext getContext(int id) {
+	@Deprecated
+	public LegacyMarkContext getLegacyContext(int id) {
 		return legacyContexts.get(id);
 	}
 
-	public Map<Integer, LegacyMarkContext> getAllContexts() {
+	public MarkContext getContext(int id) {
+		return contexts.get(id);
+	}
+
+	@Deprecated
+	public Map<Integer, LegacyMarkContext> getAllLegacyContexts() {
 		return legacyContexts;
+	}
+
+	public Map<Integer, MarkContext> getAllContexts() {
+		return contexts;
 	}
 
 	public Map<Integer, MarkIntermediateResult> generateNullResult() {
@@ -155,4 +167,5 @@ public class MarkContextHolder {
 		}
 		out.println("===========================");
 	}
+
 }

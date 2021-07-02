@@ -11,31 +11,30 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
-@Deprecated
-public class LegacyMarkContext {
-	private static final Logger log = LoggerFactory.getLogger(LegacyMarkContext.class);
+public class MarkContext {
+	private static final Logger log = LoggerFactory.getLogger(MarkContext.class);
 
-	private LegacyCPGInstanceContext instances = null;
+	private GraphInstanceContext instances = null;
 	private Map<String, CPGVertexWithValue> operands = new HashMap<>();
 	private boolean findingAlreadyAdded = false;
 
-	public LegacyMarkContext(LegacyMarkContext other) {
+	public MarkContext(MarkContext other) {
 		// shallow copy
 		other.operands.forEach(operands::put);
 		instances = other.instances;
 	}
 
-	public LegacyMarkContext() {
+	public MarkContext() {
 	}
 
-	public void addInstanceContext(LegacyCPGInstanceContext instance) {
+	public void addInstanceContext(GraphInstanceContext instance) {
 		if (instances != null) {
 			log.warn("overwriting existing instance context");
 		}
 		this.instances = instance;
 	}
 
-	public LegacyCPGInstanceContext getInstanceContext() {
+	public GraphInstanceContext getInstanceContext() {
 		return instances;
 	}
 
@@ -56,16 +55,16 @@ public class LegacyMarkContext {
 	}
 
 	/**
-	 * Dump this {@link LegacyMarkContext} to the given {@link PrintStream}.
+	 * Dump this {@link MarkContext} to the given {@link PrintStream}.
 	 *
 	 * @param out
 	 */
 	public void dump(@NonNull PrintStream out) {
 		if (instances != null) {
 			for (String instance : instances.getMarkInstances()) {
-				Vertex v = instances.getVertex(instance);
-				if (v != null) {
-					out.println("  MARK instance " + instance + " " + v.property("type").orElse(""));
+				var node = instances.getNode(instance);
+				if (node != null) {
+					out.println("  MARK instance " + instance + " " + node.getClass().getSimpleName());
 				} else {
 					out.println("  MARK instance " + instance + " <null>");
 				}

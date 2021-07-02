@@ -435,6 +435,7 @@ public class AnalysisServer {
 				.codeInNodes(true)
 				.loadIncludes(config.analyzeIncludes)
 				//.defaultPasses()
+				.defaultLanguages()
 				.registerPass(new TypeHierarchyResolver())
 				.registerPass(new JavaExternalTypeHierarchyResolver())
 				.registerPass(new ImportResolver())

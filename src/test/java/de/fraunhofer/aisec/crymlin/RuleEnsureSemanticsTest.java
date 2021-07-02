@@ -78,7 +78,7 @@ class RuleEnsureSemanticsTest {
 		try (TraversalConnection t = new TraversalConnection(db)) { // connects to the DB
 			for (MRule r : mark.getRules()) {
 				MarkContextHolder markContextHolder = new MarkContextHolder();
-				markContextHolder.getAllContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
+				markContextHolder.getAllLegacyContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
 
 				ExpressionEvaluator ee = new ExpressionEvaluator(mark, r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
 

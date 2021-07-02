@@ -94,6 +94,7 @@ class AnalysisServerQueriesTest {
 							.debugParser(true)
 							.failOnError(false)
 							.defaultPasses()
+							.defaultLanguages()
 							.registerPass(new StatementsPerMethodPass())
 							.sourceLocations(
 								sourceLocations)

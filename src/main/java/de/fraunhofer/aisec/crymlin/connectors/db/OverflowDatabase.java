@@ -374,6 +374,9 @@ public class OverflowDatabase implements Database<Node> {
 	private Type getGenericStripedType(Type o) {
 		if (o instanceof ParameterizedType) {
 			return ((ParameterizedType) o).getRawType();
+		} else if (o instanceof WildcardType) {
+			// take the first upper bound
+			return getGenericStripedType(((WildcardType) o).getUpperBounds()[0]);
 		} else {
 			return o;
 		}
@@ -800,7 +803,9 @@ public class OverflowDatabase implements Database<Node> {
 			assert f.getGenericType() instanceof ParameterizedType;
 			Type[] elementTypes = ((ParameterizedType) f.getGenericType()).getActualTypeArguments();
 			assert elementTypes.length == 1;
-			return (Class<?>) getGenericStripedType(elementTypes[0]);
+			var type = getGenericStripedType(elementTypes[0]);
+
+			return (Class<?>) type;
 		} else if (f.getType().isArray()) {
 			return f.getType().getComponentType();
 		} else {

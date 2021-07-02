@@ -77,7 +77,7 @@ public class OrderNFAEvaluator {
 		//   Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
 		//   Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
 
-		LegacyCPGInstanceContext instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
+		LegacyCPGInstanceContext instanceContext = markContextHolder.getLegacyContext(contextID).getInstanceContext();
 
 		Set<String> markInstances = new HashSet<>();
 		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
@@ -480,7 +480,7 @@ public class OrderNFAEvaluator {
 		}
 		ConstantValue of = ConstantValue.of(isOrderValid);
 		if (markContextHolder.isCreateFindingsDuringEvaluation()) {
-			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
+			markContextHolder.getLegacyContext(contextID).setFindingAlreadyAdded(true);
 		}
 		return of;
 	}

@@ -28,6 +28,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -222,13 +223,20 @@ public class Evaluator {
 					if (evalResult.getResponsibleVertices().isEmpty() || evalResult.getResponsibleVertices().stream().noneMatch(Objects::nonNull)) {
 						// use the line of the instances
 						if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
-							for (Vertex v : c.getInstanceContext().getMarkInstanceVertices()) {
-								if (v == null) {
+							for (var node : c.getInstanceContext().getMarkInstanceVertices()) {
+								if (node == null) {
 									continue;
 								}
-								ranges.add(Utils.getRegionByVertex(v));
 
-								currentFile = CrymlinQueryWrapper.getFileLocation(v);
+								var location = node.getLocation();
+
+								if (location != null) {
+									ranges.add(location.getRegion());
+								} else {
+									ranges.add(new Region(-1, -1, -1, -1));
+								}
+
+								currentFile = new File(node.getFile()).toURI();
 							}
 						}
 						if (ranges.isEmpty()) {
@@ -368,6 +376,7 @@ public class Evaluator {
 				for (var node : op.getAllNodes()) {
 					Node ref = null;
 
+					// TODO(oxisto): There is similar code in EvaluationHelper::getMatchingReferences
 					if (node instanceof ConstructExpression) {
 						ref = getAssignee((ConstructExpression) node, graph);
 					} else if (node instanceof StaticCallExpression) {

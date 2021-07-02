@@ -1,21 +1,28 @@
 package de.fraunhofer.aisec.analysis.markevaluation
 
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator.log
+import de.fraunhofer.aisec.analysis.structures.*
 import de.fraunhofer.aisec.analysis.utils.Utils
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.Graph
 import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.declarations.Declaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
+import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants
 import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration
+import de.fraunhofer.aisec.mark.markDsl.OpStatement
 import de.fraunhofer.aisec.mark.markDsl.Parameter
-import de.fraunhofer.aisec.markmodel.Constants
+import de.fraunhofer.aisec.markmodel.*
+import org.apache.commons.lang3.StringUtils
 import org.apache.tinkerpop.gremlin.structure.Direction
 import org.apache.tinkerpop.gremlin.structure.Vertex
 import java.util.*
+import java.util.function.Consumer
+import java.util.stream.Collectors
+import java.util.stream.IntStream
 
 class EvaluationHelper {
 }
@@ -36,6 +43,7 @@ fun Graph.getVerticesForFunctionDeclaration(
     )
 
     // fix for Java. In java, a ctor is always accompanied with a NewExpression
+    // TODO(oxist): check, if this really needed anymore, I guess not
     callsAndInitializers.removeIf { it is NewExpression }
 
     return callsAndInitializers
@@ -136,7 +144,7 @@ fun Node.getSuitableDFGTarget(): Node? {
 
 @ExperimentalGraph
 fun Node.getInitializedNodes(graph: Graph): List<Node> {
-    // TODO: we need the graph as a helper here, since we cannot go inwards in all nodes yet
+    // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
 
     return graph.nodes.filter {
         // TODO: It would be nice, if the CPG would have a HasInitializer interface
@@ -193,10 +201,10 @@ fun ConstructExpression.getAssignee(graph: Graph): Node? {
 fun CallExpression.getBaseDeclaration(): Node? {
     var base: Node? = null
 
-    this.base?.let {
+    this.base.let {
         if(it is DeclaredReferenceExpression) {
-            it.refersTo?.let { ref: Declaration ->
-                base = ref
+            it.refersTo?.let { declaration ->
+                base = declaration
             }
         } else {
             base = it
@@ -204,6 +212,417 @@ fun CallExpression.getBaseDeclaration(): Node? {
     }
 
     return base
+}
+
+// TODO(oxisto): Rename this function, because "base" is misleading here.
+private fun CallExpression.getBaseOfCallExpressionUsingArgument(
+    argumentIndex: Int
+): Node? {
+    val list = this.arguments.filter { it.argumentIndex == argumentIndex }
+
+    if (list.size == 1) {
+        var node: Node = list.first()
+
+        (node as? DeclaredReferenceExpression)?.refersTo?.let {
+            // if the node refers to another node, return the node it refers to
+            node = it
+        }
+
+        return node
+    }
+
+    return null
+}
+
+fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
+    var base: Node? = null
+    var refIterator = this.edges(Direction.IN, CrymlinConstants.ARGUMENTS)
+
+    if (refIterator.hasNext()) {
+        var it = refIterator.next().outVertex().edges(Direction.IN, CrymlinConstants.INITIALIZER)
+        if (it.hasNext()) {
+            var baseVertex = it.next().outVertex()
+            // for java, an initializer is contained in another
+            it = baseVertex.edges(Direction.IN, CrymlinConstants.INITIALIZER)
+            if (it.hasNext()) {
+                baseVertex = it.next().outVertex()
+            }
+            refIterator = baseVertex.edges(Direction.OUT, CrymlinConstants.REFERS_TO)
+            if (refIterator.hasNext()) {
+                // if the node refers to another node, return the node it refers to
+                base = Optional.of(refIterator.next().inVertex())
+            } else {
+                base = Optional.of(baseVertex)
+            }
+        }
+    }
+
+    return base
+}
+
+@ExperimentalGraph
+fun Graph.resolveOperand(
+    context: MarkContextHolder, markVar: String,
+    rule: MRule,
+    markModel: Mark
+): Map<Int, MutableList<NodeWithValue<*>>> {
+    val verticesPerContext = HashMap<Int, MutableList<NodeWithValue<*>>>()
+
+    // first get all nodes for the operand
+    val matchingVertices = rule.getMatchingReferences(this, markVar, markModel)
+    if (matchingVertices.isEmpty()) {
+        log.warn("Did not find matching vertices for {}", markVar)
+        return verticesPerContext
+    }
+
+    // Use Constant resolver to resolve assignments to arguments
+    val vertices: List<CPGVertexWithValue> =
+        ArrayList(CrymlinQueryWrapper.resolveValuesForVertices(db, matchingVertices, markVar))
+
+    // now split them up to belong to each instance (t) or markvar (t.foo)
+    val instance = markVar.substring(0, markVar.lastIndexOf('.'))
+
+    // precompute a list mapping
+    // from a nodeID (representing the varabledecl for the instance)
+    // to a List of contexts where this base is referenced
+    val nodeIDToContextIDs = HashMap<Long, MutableList<Int>>()
+    if (StringUtils.countMatches(instance, '.') >= 1) {
+        // if the instance itself is a markvar,
+        // precalculate the variabledecl where each of the corresponding instance points to
+        // i.e., precalculate the variabledecl for t.foo for each instance
+        for ((key, value) in context.allLegacyContexts) {
+            val opInstance = value.getOperand(instance)
+            if (opInstance == null) {
+                CrymlinQueryWrapper.log.warn("Instance not found in context")
+            } else if (opInstance.argumentVertex == null) {
+                CrymlinQueryWrapper.log.warn("MARK variable {} does not correspond to a vertex", markVar)
+            } else {
+                var vertex = opInstance.argumentVertex
+                // if available, get the variabledeclaration, this declaredreference refers_to
+                val refersTo = opInstance.argumentVertex.edges(Direction.OUT, CrymlinConstants.REFERS_TO)
+                if (refersTo.hasNext()) {
+                    val next = refersTo.next()
+                    vertex = next.inVertex()
+                }
+                val contextIDs = nodeIDToContextIDs.computeIfAbsent(
+                    vertex.id() as Long
+                ) { x: Long? -> ArrayList() }
+                contextIDs.add(key)
+            }
+        }
+    } else {
+        // if the instance is entity referenced in the op, precalculate the variabledecl for each used op
+        for ((key, value) in context.allLegacyContexts) {
+            if (!value.instanceContext.containsInstance(instance)) {
+                CrymlinQueryWrapper.log.warn("Instance not found in context")
+            } else {
+                val opInstance: Vertex = value.instanceContext.getVertex(instance)
+                var id = -1L
+                if (opInstance != null) {
+                    id = opInstance.id() as Long
+                }
+                val contextIDs = nodeIDToContextIDs.computeIfAbsent(
+                    id
+                ) { x: Long? -> ArrayList() }
+                contextIDs.add(key)
+            }
+        }
+    }
+
+    // now calculate a list of contextID to matching vertices which fill the base we are looking for
+    for (vertexWithValue in vertices) {
+        var id = -1L // -1 = null
+        if (vertexWithValue.base != null) {
+            val base = vertexWithValue.base
+            id = if (base.property<Any>("nodeType").isPresent
+                && base.value<Any>("nodeType") == "de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression"
+            ) {
+                val referencedBase = base.edges(Direction.OUT, "REFERS_TO").next().inVertex()
+                referencedBase.id() as Long
+            } else {
+                base.id() as Long
+            }
+        }
+        val contextIDs: List<Int>? = nodeIDToContextIDs[id]
+        if (contextIDs == null) {
+            CrymlinQueryWrapper.log.warn("Base not found in any context. Following expressionevaluation will be incomplete")
+        } else {
+            for (c in contextIDs) {
+                val verts = verticesPerContext.computeIfAbsent(
+                    c
+                ) { x: Int? -> ArrayList() }
+                verts.add(vertexWithValue)
+            }
+        }
+    }
+    return verticesPerContext
+}
+
+/**
+ * Returns a list of [de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression]s and values that correspond
+ * to a given MARK variable in a given rule.
+ *
+ * TODO: It seems that it can also contain declarations and others, not sure why
+ *
+ * @param markVar   The MARK variable.
+ * @param rule      The MARK rule using the MARK variable.
+ * @param markModel The current MARK model.
+ * @param graph   The Graph.
+ *
+ * @return List of reference nodes in a list of [de.fraunhofer.aisec.analysis.structures.NodeWithValue]
+ */
+@ExperimentalGraph
+fun MRule.getMatchingReferences(
+    graph: Graph,
+    markVar: String,
+    markModel: Mark,
+): MutableList<NodeWithValue<Node>> {
+    val matchingVertices = mutableListOf<NodeWithValue<Node>>()
+
+    // Split MARK variable "myInstance.attribute" into "myInstance" and "attribute".
+    val markVarParts = markVar.split("\\.".toRegex()).toTypedArray()
+    var instance = markVarParts[0]
+    var attribute = markVarParts[1]
+
+    // Get the MARK entity corresponding to the MARK instance variable.
+    val ref = this.entityReferences[instance]
+    if (ref == null || ref.value1 == null) {
+        log.warn(
+            "Unexpected: rule {} without referenced entity for instance {}",
+            this.name,
+            instance
+        )
+        return matchingVertices
+    }
+
+    var referencedEntity = ref.value1
+
+    if (StringUtils.countMatches(markVar, ".") > 1) {
+        log.info("{} References an entity inside an entity", markVar)
+        for (i in 1 until markVarParts.size - 1) {
+            instance += "." + markVarParts[i]
+            attribute = markVarParts[i + 1]
+
+            // sanity-checking the references entity
+            var match: MVar? = null
+            for (`var` in referencedEntity!!.vars) {
+                if (`var`.name == markVarParts[i]) {
+                    match = `var`
+                    break
+                }
+            }
+
+            if (match == null) {
+                log.warn("Entity does not contain variable {}", markVarParts[i])
+
+                return matchingVertices
+            }
+
+            referencedEntity = markModel.getEntity(match.type)
+            if (referencedEntity == null) {
+                log.warn("No Entity with name {} found", match.type)
+
+                return matchingVertices
+            }
+        }
+    }
+
+    val finalAttribute = attribute
+    val usesAsVar: MutableList<Pair<MOp, Set<OpStatement>?>> = ArrayList()
+    val usesAsFunctionArgs: MutableList<Pair<MOp, Set<OpStatement>?>> = ArrayList()
+
+    // Collect *variables* assigned in Ops of this entity and *arguments* used in Ops.
+    for (operation in referencedEntity!!.ops) {
+        val vars: MutableSet<OpStatement> = HashSet()
+        val args: MutableSet<OpStatement> = HashSet()
+
+        // Iterate over all statements of that op
+        for (opStmt in operation.statements) {
+            // simple assignment, i.e. "var = something()"
+            if (attribute == opStmt.getVar()) {
+                vars.add(opStmt)
+            }
+            // Function parameter, i.e. "something(..., var, ...)"
+            if (opStmt.call
+                    .params
+                    .stream()
+                    .anyMatch { p: Parameter -> p.getVar() == finalAttribute }
+            ) {
+                args.add(opStmt)
+            }
+        }
+        if (vars.isNotEmpty()) {
+            usesAsVar.add(Pair(operation, vars))
+        }
+        if (args.isNotEmpty()) {
+            usesAsFunctionArgs.add(Pair(operation, args))
+        }
+    }
+
+    // get nodes for all usesAsVar (i.e., simple assignment, i.e. "var = something()")
+    for (p in usesAsVar) {
+        if (p.value1 == null) {
+            log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.value0)
+            continue
+        }
+
+        // TODO(oxisto): use kotlin.Pair instead of custom class for p
+        for (opstmt in p.value1!!) {
+            val fqFunctionName = opstmt.call.name
+            val vertices = graph.getCalls(fqFunctionName, opstmt.call.params)
+            vertices.addAll(graph.getCtors(fqFunctionName, opstmt.call.params))
+
+            for (v in vertices) {
+                // precalculate base
+                val baseOfCallExpression = v.getBaseDeclaration()
+                var foundTargetVertex = false
+
+                // check if there was an assignment (i.e., i = call(foo);)
+                val references = v.lhsReferenceOfAssignment(graph)
+                if (references.isNotEmpty()) {
+                    foundTargetVertex = true
+                    log.info("found assignment: {}", references)
+
+                    references.forEach(Consumer {
+                        // create a pair of nodes and their values (uninitalized yet)
+                        val cpgVertexWithValue = NodeWithValue<Node>(
+                            it,
+                            ConstantValue.newUninitialized()
+                        )
+                        cpgVertexWithValue.base = baseOfCallExpression
+                        matchingVertices.add(cpgVertexWithValue)
+                    })
+                }
+
+                // check if there was a direct initialization (i.e., int i = call(foo);)
+                val varDeclarations = v.getInitializedNodes(graph).filterIsInstance<VariableDeclaration>()
+                if (!varDeclarations.isEmpty()) {
+                    foundTargetVertex = true
+                    log.info("found direct initialization: {}", varDeclarations)
+
+                    varDeclarations.forEach(Consumer {
+                        val cpgVertexWithValue = NodeWithValue<Node>(
+                            it,
+                            ConstantValue.newUninitialized()
+                        )
+                        cpgVertexWithValue.base = baseOfCallExpression
+                        matchingVertices.add(cpgVertexWithValue)
+                    })
+                }
+
+                if (!foundTargetVertex) { // this can be a directly used return value from a call
+                    val cpgVertexWithValue = NodeWithValue<Node>(v, ConstantValue.newUninitialized())
+                    cpgVertexWithValue.base = baseOfCallExpression
+                    matchingVertices.add(cpgVertexWithValue)
+                }
+            }
+        }
+    }
+
+    // get vertices for all usesAsFunctionArgs (i.e., Function parameter, i.e. "something(..., var, ...)")
+    for (p in usesAsFunctionArgs) {
+        if (p.value1 == null) {
+            log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.value0)
+            continue
+        }
+
+        for (opstmt in p.value1!!) { // opstatement is one possible method call/ctor inside an op
+            val fqFunctionName = opstmt.call.name
+            val params = opstmt.call.params
+            val paramPositions = IntStream.range(0, params.size).filter { i: Int ->
+                finalAttribute == params[i].getVar()
+            }.toArray()
+            if (paramPositions.size > 1) {
+                log.warn("Invalid op signature: MarkVar is referenced more than once. Only the first one will be used.")
+            }
+
+            if (paramPositions.isEmpty()) {
+                log.error("argument not found in parameters. This should not happen")
+                continue
+            }
+
+            val argumentIndex = paramPositions[0]
+            log.debug(
+                "Checking for call/ctor. fqname: {} - markParams: {}",
+                fqFunctionName,
+                java.lang.String.join(", ", MOp.paramsToString(params))
+            )
+            for (v in graph.getCalls(fqFunctionName, params)) {
+                val argumentVertices = v.arguments.filter { it.argumentIndex == argumentIndex }
+
+                if (argumentVertices.size == 1) {
+                    // handle the case, where we have a 'this' variable, explicitly specifying the
+                    // base, this is usually used in scenarios, where the object is used as an argument
+                    // rather than a member call
+
+                    // get base of call expression
+                    var baseOfCallExpression: Node?
+                    val thisPositions = IntStream.range(0, params.size).filter { i: Int ->
+                        "this" == params[i].getVar()
+                    }.toArray()
+                    if (thisPositions.size == 1) {
+                        baseOfCallExpression = v.getBaseOfCallExpressionUsingArgument(
+                            thisPositions[0]
+                        )
+                    } else {
+                        if (v is StaticCallExpression) {
+                            baseOfCallExpression = v.getSuitableDFGTarget()
+                        } else {
+                            baseOfCallExpression = v.getBaseDeclaration()
+                            if (baseOfCallExpression == null) { // if we did not find a base the "easy way", try to find a base using the simple-DFG
+                                baseOfCallExpression = v.getSuitableDFGTarget()
+                            }
+                        }
+                    }
+                    val cpgVertexWithValue = NodeWithValue<Node>(argumentVertices[0], ConstantValue.newUninitialized())
+                    cpgVertexWithValue.base = baseOfCallExpression
+                    matchingVertices.add(cpgVertexWithValue)
+                } else {
+                    log.warn(
+                        "multiple arguments for function {} have the same argument_id. Invalid cpg.",
+                        fqFunctionName
+                    )
+                }
+            }
+            for (v in graph.getCtors(fqFunctionName, params)) {
+                val argumentVertices = v.arguments.filter { it.argumentIndex == argumentIndex }
+                if (argumentVertices.size == 1) {
+                    // get base of initializer for ctor
+                    val baseOfCallExpression = argumentVertices[0].getBaseOfInitializerArgument(graph)
+                    val cpgVertexWithValue = NodeWithValue<Node>(argumentVertices[0], ConstantValue.newUninitialized())
+                    cpgVertexWithValue.base = baseOfCallExpression
+                    matchingVertices.add(cpgVertexWithValue)
+                } else {
+                    log.warn(
+                        "multiple arguments for function {} have the same argument_id. Invalid cpg.",
+                        fqFunctionName
+                    )
+                }
+            }
+        }
+    }
+
+    log.debug("GETMATCHINGVERTICES for {} returns {}",
+        markVar,
+        matchingVertices.stream()
+            .map { it.node.javaClass.simpleName + ": " + it.node.code }
+            .collect(Collectors.joining(", ")))
+
+    return matchingVertices
+}
+
+
+/**
+ * If this expression is the right-hand side of a [de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator], it will return the left-hand side of the operation. Additionally, it will filter only for references, i.e. [de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression].
+ */
+@ExperimentalGraph
+private fun Expression.lhsReferenceOfAssignment(graph: Graph): List<DeclaredReferenceExpression> {
+    // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
+    return graph.nodes.filter {
+        it is BinaryOperator &&
+                it.rhs == this && it.operatorCode == "="} // look for a binary operation where this expression is on the right-hand side
+        .map { (it as BinaryOperator).lhs } // return the LHS
+        .filterIsInstance<DeclaredReferenceExpression>() // we are only interested in references
 }
 
 /**

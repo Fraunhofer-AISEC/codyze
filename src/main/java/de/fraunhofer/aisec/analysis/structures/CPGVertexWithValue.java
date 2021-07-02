@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.analysis.structures;
 
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
+@Deprecated
 public class CPGVertexWithValue {
 	private Vertex argumentVertex;
 	private ConstantValue value;

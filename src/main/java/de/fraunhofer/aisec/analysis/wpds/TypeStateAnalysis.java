@@ -121,7 +121,7 @@ public class TypeStateAnalysis {
 			MRule rule) throws IllegalTransitionException {
 		log.info("Typestate analysis starting for {} and {}", ctx, crymlinTraversal);
 
-		instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
+		instanceContext = markContextHolder.getLegacyContext(contextID).getInstanceContext();
 		this.rule = rule;
 
 		// Remember the order expression we are analyzing
@@ -196,7 +196,7 @@ public class TypeStateAnalysis {
 
 		ConstantValue of = ConstantValue.of(findings.isEmpty());
 		if (markContextHolder.isCreateFindingsDuringEvaluation()) {
-			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
+			markContextHolder.getLegacyContext(contextID).setFindingAlreadyAdded(true);
 		}
 		return of;
 	}

@@ -105,6 +105,7 @@ public class CpgDocumentService implements TextDocumentService {
 							.failOnError(false)
 							.codeInNodes(true)
 							//.defaultPasses()
+							.defaultLanguages()
 							.registerPass(new TypeHierarchyResolver())
 							.registerPass(new JavaExternalTypeHierarchyResolver())
 							.registerPass(new ImportResolver())

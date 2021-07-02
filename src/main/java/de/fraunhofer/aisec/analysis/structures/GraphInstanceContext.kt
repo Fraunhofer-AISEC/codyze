@@ -4,7 +4,7 @@ import de.fraunhofer.aisec.cpg.graph.Node
 import org.apache.tinkerpop.gremlin.structure.Vertex
 
 /**
- * Maps a Mark instances ("b") to (one of) the CPG vertices that defines it.
+ * Maps a Mark instances ("b") to (one of) the CPG nodes that defines it.
  *
  * key: Mark instance ("b") value: the Vertex that usages of program variables corresponding to "b" REFERS_TO. Typically a VariableDeclaration node.
  *

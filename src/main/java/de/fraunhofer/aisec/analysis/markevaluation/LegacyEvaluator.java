@@ -7,7 +7,7 @@ import de.fraunhofer.aisec.analysis.structures.LegacyCPGInstanceContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.MarkContext;
+import de.fraunhofer.aisec.analysis.structures.LegacyMarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.structures.Pair;
@@ -215,7 +215,7 @@ public class LegacyEvaluator {
 				 * responsible vertices.
 				 */
 
-				MarkContext c = markCtxHolder.getContext(markCtx);
+				LegacyMarkContext c = markCtxHolder.getContext(markCtx);
 
 				URI currentFile = null;
 

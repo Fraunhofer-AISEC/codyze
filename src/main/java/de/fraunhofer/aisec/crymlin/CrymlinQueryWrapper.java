@@ -7,7 +7,7 @@ import de.fraunhofer.aisec.analysis.scp.SimpleConstantResolver;
 import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContext;
+import de.fraunhofer.aisec.analysis.structures.LegacyMarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.analysis.utils.Utils;
@@ -813,7 +813,7 @@ public class CrymlinQueryWrapper {
 			// precalculate the variabledecl where each of the corresponding instance points to
 			// i.e., precalculate the variabledecl for t.foo for each instance
 
-			for (Map.Entry<Integer, MarkContext> entry : context.getAllContexts().entrySet()) {
+			for (Map.Entry<Integer, LegacyMarkContext> entry : context.getAllContexts().entrySet()) {
 				CPGVertexWithValue opInstance = entry.getValue().getOperand(instance);
 				if (opInstance == null) {
 					log.warn("Instance not found in context");
@@ -833,7 +833,7 @@ public class CrymlinQueryWrapper {
 			}
 		} else {
 			// if the instance is entity referenced in the op, precalculate the variabledecl for each used op
-			for (Map.Entry<Integer, MarkContext> entry : context.getAllContexts().entrySet()) {
+			for (Map.Entry<Integer, LegacyMarkContext> entry : context.getAllContexts().entrySet()) {
 				if (!entry.getValue().getInstanceContext().containsInstance(instance)) {
 					log.warn("Instance not found in context");
 				} else {

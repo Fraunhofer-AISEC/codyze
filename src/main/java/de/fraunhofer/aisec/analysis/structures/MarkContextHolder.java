@@ -33,30 +33,32 @@ public class MarkContextHolder {
 
 	private static final Logger log = LoggerFactory.getLogger(MarkContextHolder.class);
 
-	private Map<Integer, MarkContext> contexts = new HashMap<>();
+	@Deprecated
+	private final Map<Integer, LegacyMarkContext> legacyContexts = new HashMap<>();
+
 	private int currentElements = 0;
 
-	private Set<String> resolvedOperands = new HashSet<>();
-	private Map<Integer, List<Integer>> copyStack = new HashMap<>();
+	private final Set<String> resolvedOperands = new HashSet<>();
+	private final Map<Integer, List<Integer>> copyStack = new HashMap<>();
 	private boolean createFindingsDuringEvaluation = true;
 
 	public void addInitialInstanceContext(LegacyCPGInstanceContext instance) {
-		MarkContext mk = new MarkContext();
+		LegacyMarkContext mk = new LegacyMarkContext();
 		mk.addInstanceContext(instance);
-		contexts.put(currentElements++, mk);
+		legacyContexts.put(currentElements++, mk);
 	}
 
-	public MarkContext getContext(int id) {
-		return contexts.get(id);
+	public LegacyMarkContext getContext(int id) {
+		return legacyContexts.get(id);
 	}
 
-	public Map<Integer, MarkContext> getAllContexts() {
-		return contexts;
+	public Map<Integer, LegacyMarkContext> getAllContexts() {
+		return legacyContexts;
 	}
 
 	public Map<Integer, MarkIntermediateResult> generateNullResult() {
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
-		contexts.keySet()
+		legacyContexts.keySet()
 				.forEach(
 					x -> ret.put(x, ConstantValue.newUninitialized()));
 		return ret;
@@ -67,7 +69,7 @@ public class MarkContextHolder {
 			return null;
 		}
 		final Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		contexts.forEach((id, context) -> {
+		legacyContexts.forEach((id, context) -> {
 			CPGVertexWithValue vwv = context.getOperand(operand);
 			ConstantValue constant = ConstantValue.of(vwv.getValue());
 			constant.addResponsibleVertex(getVertexFromSelfOrFromParent(operand, context));
@@ -78,7 +80,7 @@ public class MarkContextHolder {
 
 	// return the vertex responsible for this operand, or (if the vertex would be null), the vertex of the base of this
 	// operand
-	private Vertex getVertexFromSelfOrFromParent(String operand, MarkContext context) {
+	private Vertex getVertexFromSelfOrFromParent(String operand, LegacyMarkContext context) {
 		CPGVertexWithValue vwv = context.getOperand(operand);
 		if (vwv == null) {
 			return null;
@@ -96,10 +98,10 @@ public class MarkContextHolder {
 
 	public void addResolvedOperands(String operand, Map<Integer, List<CPGVertexWithValue>> operandVerticesForContext) {
 		resolvedOperands.add(operand);
-		final Map<Integer, MarkContext> toAdd = new HashMap<>();
+		final Map<Integer, LegacyMarkContext> toAdd = new HashMap<>();
 		final Map<Integer, List<Integer>> copyStackToAdd = new HashMap<>();
 
-		contexts.forEach((id, context) -> {
+		legacyContexts.forEach((id, context) -> {
 			List<CPGVertexWithValue> operandVertices = operandVerticesForContext.get(id);
 			if (operandVertices == null || operandVertices.isEmpty()) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
@@ -110,7 +112,7 @@ public class MarkContextHolder {
 			} else {
 				List<Integer> oldStack = copyStack.computeIfAbsent(id, x -> new ArrayList<>());
 				for (int i = 1; i < operandVertices.size(); i++) {
-					MarkContext mk = new MarkContext(context); // create a shallow! copy
+					LegacyMarkContext mk = new LegacyMarkContext(context); // create a shallow! copy
 					mk.setOperand(operand, operandVertices.get(i));
 					toAdd.put(currentElements, mk);
 
@@ -123,12 +125,12 @@ public class MarkContextHolder {
 
 			}
 		});
-		contexts.putAll(toAdd);
+		legacyContexts.putAll(toAdd);
 		copyStack.putAll(copyStackToAdd);
 	}
 
 	public void removeContext(Integer key) {
-		contexts.remove(key);
+		legacyContexts.remove(key);
 	}
 
 	public List<Integer> getCopyStack(Integer key) {
@@ -145,9 +147,9 @@ public class MarkContextHolder {
 
 	public void dump(PrintStream out) {
 		out.println("====== Mark Context ========");
-		for (Map.Entry<Integer, MarkContext> ctx : contexts.entrySet()) {
+		for (Map.Entry<Integer, LegacyMarkContext> ctx : legacyContexts.entrySet()) {
 			int id = ctx.getKey();
-			MarkContext mCtx = ctx.getValue();
+			LegacyMarkContext mCtx = ctx.getValue();
 			out.println(id + ":");
 			mCtx.dump(out);
 		}

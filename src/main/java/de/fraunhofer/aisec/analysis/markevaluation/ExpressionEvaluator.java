@@ -7,7 +7,7 @@ import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContext;
+import de.fraunhofer.aisec.analysis.structures.LegacyMarkContext;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
@@ -132,7 +132,7 @@ public class ExpressionEvaluator {
 	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.info("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		for (Map.Entry<Integer, MarkContext> entry : markContextHolder.getAllContexts().entrySet()) {
+		for (Map.Entry<Integer, LegacyMarkContext> entry : markContextHolder.getAllContexts().entrySet()) {
 
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
 			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);

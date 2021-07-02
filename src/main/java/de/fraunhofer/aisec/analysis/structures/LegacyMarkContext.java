@@ -11,20 +11,20 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MarkContext {
-	private static final Logger log = LoggerFactory.getLogger(MarkContext.class);
+public class LegacyMarkContext {
+	private static final Logger log = LoggerFactory.getLogger(LegacyMarkContext.class);
 
 	private LegacyCPGInstanceContext instances = null;
 	private Map<String, CPGVertexWithValue> operands = new HashMap<>();
 	private boolean findingAlreadyAdded = false;
 
-	public MarkContext(MarkContext other) {
+	public LegacyMarkContext(LegacyMarkContext other) {
 		// shallow copy
 		other.operands.forEach(operands::put);
 		instances = other.instances;
 	}
 
-	public MarkContext() {
+	public LegacyMarkContext() {
 	}
 
 	public void addInstanceContext(LegacyCPGInstanceContext instance) {
@@ -55,7 +55,7 @@ public class MarkContext {
 	}
 
 	/**
-	 * Dump this {@link MarkContext} to the given {@link PrintStream}.
+	 * Dump this {@link LegacyMarkContext} to the given {@link PrintStream}.
 	 *
 	 * @param out
 	 */

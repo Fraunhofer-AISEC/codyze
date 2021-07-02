@@ -213,7 +213,7 @@ public class Evaluator {
 				 * responsible vertices.
 				 */
 
-				MarkContext c = markCtxHolder.getContext(markCtx);
+				var c = markCtxHolder.getContext(markCtx);
 
 				URI currentFile = null;
 

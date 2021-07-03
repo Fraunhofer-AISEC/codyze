@@ -88,7 +88,7 @@ dependencies {
     // Code Property Graph
     //api("de.fraunhofer.aisec:cpg:3.5.1") // ok
     //implementation("com.github.Fraunhofer-AISEC:cpg:v4.0.0-beta.1")
-    implementation("com.github.Fraunhofer-AISEC:cpg:-SNAPSHOT")
+    implementation("com.github.Fraunhofer-AISEC:cpg:d4af4ff7b")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

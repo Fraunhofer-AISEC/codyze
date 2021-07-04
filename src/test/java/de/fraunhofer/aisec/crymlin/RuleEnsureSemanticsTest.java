@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
@@ -80,7 +80,7 @@ class RuleEnsureSemanticsTest {
 				MarkContextHolder markContextHolder = new MarkContextHolder();
 				markContextHolder.getAllLegacyContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
 
-				ExpressionEvaluator ee = new ExpressionEvaluator(mark, r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
+				LegacyExpressionEvaluator ee = new LegacyExpressionEvaluator(mark, r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
 
 				Expression ensureExpr = r.getStatement().getEnsure().getExp();
 				Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(ensureExpr);

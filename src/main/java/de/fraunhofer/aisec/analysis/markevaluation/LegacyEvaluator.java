@@ -184,7 +184,7 @@ public class LegacyEvaluator {
 			// A CPGInstanceContext is a specific interpretation of a Mark rule that needs to be evaluated.
 			MarkContextHolder markCtxHolder = createMarkContext(entities);
 
-			ExpressionEvaluator ee = new ExpressionEvaluator(this.markModel, rule, ctx, config, crymlinTraversal, markCtxHolder);
+			LegacyExpressionEvaluator ee = new LegacyExpressionEvaluator(this.markModel, rule, ctx, config, crymlinTraversal, markCtxHolder);
 
 			// Evaluate "when" part, if present (will possibly remove entries from markCtxhHlder)
 			evaluateWhen(rule, markCtxHolder, ee);
@@ -286,7 +286,7 @@ public class LegacyEvaluator {
 	 * @param ee
 	 * @return
 	 */
-	private void evaluateWhen(@NonNull MRule rule, @NonNull MarkContextHolder markCtxHolder, @NonNull ExpressionEvaluator ee) {
+	private void evaluateWhen(@NonNull MRule rule, @NonNull MarkContextHolder markCtxHolder, @NonNull LegacyExpressionEvaluator ee) {
 		// do not create any findings during When-Evaluation
 		markCtxHolder.setCreateFindingsDuringEvaluation(false);
 

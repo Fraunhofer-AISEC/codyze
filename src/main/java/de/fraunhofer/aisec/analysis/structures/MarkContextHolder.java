@@ -109,7 +109,7 @@ public class MarkContextHolder {
 		return null;
 	}
 
-	public void addResolvedOperands(String operand, Map<Integer, List<CPGVertexWithValue>> operandVerticesForContext) {
+	public void addLegacyResolvedOperands(String operand, Map<Integer, List<CPGVertexWithValue>> operandVerticesForContext) {
 		resolvedOperands.add(operand);
 		final Map<Integer, LegacyMarkContext> toAdd = new HashMap<>();
 		final Map<Integer, List<Integer>> copyStackToAdd = new HashMap<>();
@@ -144,21 +144,21 @@ public class MarkContextHolder {
 
 	public void addResolvedOperands(String operand, Map<Integer, List<NodeWithValue<Node>>> operandVerticesForContext) {
 		resolvedOperands.add(operand);
-		final Map<Integer, LegacyMarkContext> toAdd = new HashMap<>();
+		final var toAdd = new HashMap<Integer, MarkContext>();
 		final Map<Integer, List<Integer>> copyStackToAdd = new HashMap<>();
 
-		legacyContexts.forEach((id, context) -> {
-			List<CPGVertexWithValue> operandVertices = operandVerticesForContext.get(id);
+		contexts.forEach((id, context) -> {
+			List<NodeWithValue<Node>> operandVertices = operandVerticesForContext.get(id);
 			if (operandVertices == null || operandVertices.isEmpty()) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
-				context.setOperand(operand, new CPGVertexWithValue(null,
+				context.setOperand(operand, new NodeWithValue<Node>(null,
 					ErrorValue.newErrorValue(String.format("Did not find any vertices for %s, following evaluation will be imprecise", operand))));
 			} else if (operandVertices.size() == 1) {
 				context.setOperand(operand, operandVertices.get(0));
 			} else {
 				List<Integer> oldStack = copyStack.computeIfAbsent(id, x -> new ArrayList<>());
 				for (int i = 1; i < operandVertices.size(); i++) {
-					LegacyMarkContext mk = new LegacyMarkContext(context); // create a shallow! copy
+					var mk = new MarkContext(context); // create a shallow! copy
 					mk.setOperand(operand, operandVertices.get(i));
 					toAdd.put(currentElements, mk);
 
@@ -171,7 +171,7 @@ public class MarkContextHolder {
 
 			}
 		});
-		legacyContexts.putAll(toAdd);
+		contexts.putAll(toAdd);
 		copyStack.putAll(copyStackToAdd);
 	}
 

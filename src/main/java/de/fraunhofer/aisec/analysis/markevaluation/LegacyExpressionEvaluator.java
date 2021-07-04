@@ -1,11 +1,22 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.LegacyMarkContext;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
+import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.graph.Graph;
+import de.fraunhofer.aisec.cpg.sarif.Region;
+import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
 import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
 import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
@@ -25,40 +36,43 @@ import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 
-import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.resolveOperand;
+public class LegacyExpressionEvaluator {
 
-public class ExpressionEvaluator {
-
-	private static final Logger log = LoggerFactory.getLogger(ExpressionEvaluator.class);
+	private static final Logger log = LoggerFactory.getLogger(LegacyExpressionEvaluator.class);
 
 	// the mark rule this evaluation is called in
 	private final MRule markRule;
 	// configuration for the evaluation. E.g., used for WPDS vs. NFA for order evaluation
 	private final ServerConfiguration config;
-
+	// connection into the DB
+	private final CrymlinTraversalSource traversal;
 	// the resulting analysis context
 	private final AnalysisContext resultCtx;
-	private final MarkContextHolder markContextHolder;
+	private final MarkContextHolder MarkContextHolder;
 	private final Mark markModel;
-	private final Graph graph;
 
-	public ExpressionEvaluator(Graph graph, Mark markModel, MRule rule, AnalysisContext resultCtx, ServerConfiguration config, MarkContextHolder context) {
-		this.graph = graph;
+	public LegacyExpressionEvaluator(Mark markModel, MRule rule, AnalysisContext resultCtx, ServerConfiguration config, CrymlinTraversalSource traversal,
+			MarkContextHolder context) {
 		this.markModel = markModel;
 		this.markRule = rule;
 		this.resultCtx = resultCtx;
 		this.config = config;
-		this.markContextHolder = context;
+		this.traversal = traversal;
+		this.MarkContextHolder = context;
 	}
 
 	/**
@@ -75,7 +89,7 @@ public class ExpressionEvaluator {
 
 		if (expr == null) {
 			log.error("Cannot evaluate null Expression");
-			return markContextHolder.generateNullResult();
+			return MarkContextHolder.generateNullResult();
 		}
 
 		// from lowest to highest operator precedence
@@ -118,12 +132,12 @@ public class ExpressionEvaluator {
 	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.info("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		/*for (Map.Entry<Integer, LegacyMarkContext> entry : markContextHolder.getAllLegacyContexts().entrySet()) {
-		
+		for (Map.Entry<Integer, LegacyMarkContext> entry : MarkContextHolder.getAllLegacyContexts().entrySet()) {
+
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
-			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);
-		
-			if (markContextHolder.isCreateFindingsDuringEvaluation() && res != null && Objects.equals(res.getValue(), true)) {
+			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.MarkContextHolder);
+
+			if (MarkContextHolder.isCreateFindingsDuringEvaluation() && res != null && Objects.equals(res.getValue(), true)) {
 				Set<String> markInstances = new HashSet<>();
 				ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
 				if (markInstances.size() == 1) { // otherwise, the analysis did not work anyway and we did not have a result
@@ -141,9 +155,9 @@ public class ExpressionEvaluator {
 					}
 				}
 			}
-		
+
 			result.put(entry.getKey(), res);
-		}*/
+		}
 		return result;
 	}
 
@@ -374,7 +388,7 @@ public class ExpressionEvaluator {
 		if (leftResult.containsKey(key)) {
 			return leftResult.get(key);
 		}
-		List<Integer> copyStack = markContextHolder.getCopyStack(key);
+		List<Integer> copyStack = MarkContextHolder.getCopyStack(key);
 		if (copyStack != null && !copyStack.isEmpty()) {
 			for (int i = copyStack.size() - 1; i >= 0; i--) {
 				int newKey = copyStack.get(i);
@@ -476,9 +490,7 @@ public class ExpressionEvaluator {
 					continue;
 				}
 
-				//TODO(oxisto): built-ins
-				ConstantValue cv = null;
-				//ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
+				ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), MarkContextHolder, this);
 
 				result.put(entry.getKey(), cv);
 
@@ -526,7 +538,7 @@ public class ExpressionEvaluator {
 		}
 
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
-		for (Integer key : markContextHolder.getAllLegacyContexts()
+		for (Integer key : MarkContextHolder.getAllLegacyContexts()
 				.keySet()) {
 			ret.put(key, value);
 		}
@@ -734,13 +746,14 @@ public class ExpressionEvaluator {
 
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateOperand(Operand operand) {
+
 		// operands are split by "."
 		String[] split = operand.getOperand().split("\\.");
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(split[0]); // add base
 
-		Map<Integer, MarkIntermediateResult> result = markContextHolder.generateNullResult();
+		Map<Integer, MarkIntermediateResult> result = MarkContextHolder.generateNullResult();
 
 		for (int i = 1; i < split.length; i++) {
 			sb.append(".");
@@ -753,7 +766,7 @@ public class ExpressionEvaluator {
 
 		if (split.length == 1) { // also return the markvar itself, might be needed by a builtin
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
-				Vertex vertex = markContextHolder.getLegacyContext(entry.getKey()).getInstanceContext().getVertex(operand.getOperand());
+				Vertex vertex = MarkContextHolder.getLegacyContext(entry.getKey()).getInstanceContext().getVertex(operand.getOperand());
 				CPGVertexWithValue vwv = new CPGVertexWithValue(vertex, ConstantValue.newUninitialized());
 				ConstantValue constant = ConstantValue.of(vwv.getValue());
 				constant.addResponsibleVertex(vertex);
@@ -767,19 +780,24 @@ public class ExpressionEvaluator {
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateSingleOperand(String operand) {
 
-		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getResolvedOperand(operand);
+		Map<Integer, MarkIntermediateResult> resolvedOperand = MarkContextHolder.getResolvedOperand(operand);
 
 		if (resolvedOperand == null) {
-			// if this operand is not resolved yet in this expression evaluation, resolve it
-			var operandVertices = resolveOperand(markRule, graph, markContextHolder, operand, markModel);
+			// if this operand is not resolved yet in this expressionevaluation, resolve it
+			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(resultCtx.getDatabase(), MarkContextHolder, operand,
+				markRule,
+				markModel, traversal);
 			if (operandVertices.size() == 0) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
 			}
-
-			markContextHolder.addResolvedOperands(operand, operandVertices); // cache the resolved operand
-			resolvedOperand = markContextHolder.getResolvedOperand(operand);
+			MarkContextHolder.addLegacyResolvedOperands(operand, operandVertices); // cache the resolved operand
+			resolvedOperand = MarkContextHolder.getResolvedOperand(operand);
 		}
 
 		return resolvedOperand;
+	}
+
+	public CrymlinTraversalSource getCrymlinTraversal() {
+		return this.traversal;
 	}
 }

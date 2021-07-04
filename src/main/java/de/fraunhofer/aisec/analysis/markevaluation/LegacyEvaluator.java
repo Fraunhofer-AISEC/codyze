@@ -311,7 +311,7 @@ public class LegacyEvaluator {
 
 				if (value.equals(false) || ConstantValue.isError(entry.getValue())) {
 					log.info("Precondition of {} is false or error, do not evaluate ensure for this combination of instances.", rule.getName());
-					markCtxHolder.removeContext(entry.getKey());
+					markCtxHolder.removeLegacyContext(entry.getKey());
 				} else {
 					log.debug("Precondition of {} is true, we will evaluate this context in the following.", rule.getName());
 				}

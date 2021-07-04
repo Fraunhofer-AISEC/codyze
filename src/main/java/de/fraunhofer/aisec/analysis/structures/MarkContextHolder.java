@@ -222,8 +222,13 @@ public class MarkContextHolder {
 		copyStack.putAll(copyStackToAdd);
 	}
 
-	public void removeContext(Integer key) {
+	@Deprecated
+	public void removeLegacyContext(Integer key) {
 		legacyContexts.remove(key);
+	}
+
+	public void removeContext(Integer key) {
+		contexts.remove(key);
 	}
 
 	public List<Integer> getCopyStack(Integer key) {

@@ -72,7 +72,6 @@ public class ConstValue implements Builtin {
 			ConstantValue of = ConstantValue.of(initializerValue);
 			of.addResponsibleNode(field);
 			return of;
-
 		}
 		catch (InvalidArgumentException e) {
 			log.warn(e.getMessage());

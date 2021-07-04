@@ -41,10 +41,10 @@ public class HasValue implements Builtin {
 			return ErrorValue.newErrorValue("Argument %s is not a ConstantValue", argResultList.getAll());
 		}
 
-		Set<Vertex> collect = ((ConstantValue) argResultList.get(0)).getResponsibleVertices().stream().filter(Objects::nonNull).collect(Collectors.toSet());
+		var collect = ((ConstantValue) argResultList.get(0)).getResponsibleNodes().stream().filter(Objects::nonNull).collect(Collectors.toSet());
 
 		ConstantValue ret = ConstantValue.of(!collect.isEmpty());
-		ret.addResponsibleVertices(collect);
+		ret.addResponsibleNodes(collect);
 		return ret;
 
 	}

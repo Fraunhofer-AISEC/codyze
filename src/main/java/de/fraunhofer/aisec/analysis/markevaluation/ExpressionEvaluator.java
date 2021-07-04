@@ -764,7 +764,7 @@ public class ExpressionEvaluator {
 
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateSingleOperand(String operand) {
-		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getLegacyResolvedOperand(operand);
+		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getResolvedOperand(operand);
 
 		if (resolvedOperand == null) {
 			// if this operand is not resolved yet in this expression evaluation, resolve it

@@ -82,7 +82,7 @@ public class LegacyEvaluator {
 
 			log.info("Evaluate forbidden calls");
 			Benchmark b = new Benchmark(this.getClass(), "Evaluate forbidden calls");
-			ForbiddenEvaluator forbiddenEvaluator = new ForbiddenEvaluator(this.markModel);
+			LegacyForbiddenEvaluator forbiddenEvaluator = new LegacyForbiddenEvaluator(this.markModel);
 			forbiddenEvaluator.evaluate(ctx);
 			b.stop();
 

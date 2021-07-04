@@ -1,11 +1,13 @@
 package de.fraunhofer.aisec.analysis.markevaluation
 
+import de.fraunhofer.aisec.analysis.cpgpasses.astParent
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator.log
 import de.fraunhofer.aisec.analysis.scp.SimpleConstantResolver
 import de.fraunhofer.aisec.analysis.structures.*
 import de.fraunhofer.aisec.analysis.utils.Utils
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.Graph
+import de.fraunhofer.aisec.cpg.graph.HasInitializer
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
@@ -150,17 +152,11 @@ fun Node.getInitializedNodes(graph: Graph): List<Node> {
     // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST
     // parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
 
-    return graph.nodes.filter {
-        // TODO: It would be nice, if the CPG would have a HasInitializer interface
-        (it is VariableDeclaration && it.initializer == this) ||
-            (it is FieldDeclaration && it.initializer == this) ||
-            (it is NewExpression && it.initializer == this)
-    }
+    return graph.nodes.filter { it is HasInitializer && it.initializer == this }
 }
 
 fun FieldDeclaration.getInitializerValue(): Any? {
     this.initializer?.let {
-        val vertex1 = it
         if (it is Literal<*>) {
             return it.value
         }
@@ -179,22 +175,14 @@ fun FieldDeclaration.getInitializerValue(): Any? {
  * @return
  */
 @ExperimentalGraph
-fun Node.getContainingFunction(graph: Graph): FunctionDeclaration? {
-    /*return crymlinTraversal.byID(v.id() as Long)
-    .repeat(
-        org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inE()
-            .has("sub-graph", "AST")
-            .outV()
-    )
-    .until(
-        __.or<Any>(
-            __.hasLabel<Any>(de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration::class.java.simpleName),
-            __.hasLabel<Any>(MethodDeclaration::class.java.simpleName)
-        )
-    )
-    .tryNext()*/
-    // TODO(oxisto): this is blocked until we get AST parents, otherwise it will be too complex
-    return null
+fun Node.getContainingFunction(): FunctionDeclaration? {
+    var parent = this.astParent
+
+    while (parent != null && parent !is FunctionDeclaration) {
+        parent = parent.astParent
+    }
+
+    return parent as FunctionDeclaration
 }
 
 /** Checks, whether a EOG connection from this node (source) to the sink exists. */
@@ -319,6 +307,8 @@ private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: I
 fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
     var base: Node? = null
 
+    // TODO(oxisto): replace with .astParent
+
     val refIterator =
         graph.nodes.filter { it is ConstructExpression && it.arguments.contains(this) }.iterator()
     if (refIterator.hasNext()) {
@@ -409,7 +399,6 @@ fun MRule.resolveOperand(
     }
 
     // now calculate a list of contextID to matching vertices which fill the base we are looking for
-    // TODO (oxisto): this will not work, need a pointer to the node itself
     for (vertexWithValue in vertices) {
         var id = -1L // -1 = null
         if (vertexWithValue.base != null) {

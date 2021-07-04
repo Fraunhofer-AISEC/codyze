@@ -19,7 +19,7 @@ class MarkCppTest extends AbstractMarkTest {
 
 	@Test
 	void functioncall() throws Exception {
-		Set<Finding> findings = performTest("mark_cpp/functioncall.cpp", null, "mark_cpp/functioncall.mark", false);
+		Set<Finding> findings = performTest("mark_cpp/functioncall.cpp", "mark_cpp/functioncall.mark");
 		expected(findings, "line 9: Rule HasBeenCalled violated",
 			"line 7: Rule HasBeenCalled verified");
 	}

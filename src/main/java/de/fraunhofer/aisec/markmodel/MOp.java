@@ -22,9 +22,10 @@ public class MOp {
 	private static final Logger log = LoggerFactory.getLogger(MOp.class);
 
 	private String name;
-	private MEntity parent;
+	private final MEntity parent;
+
 	@NonNull
-	private List<OpStatement> statements = new ArrayList<>();
+	private final List<OpStatement> statements = new ArrayList<>();
 
 	private boolean parsed = false;
 
@@ -34,11 +35,11 @@ public class MOp {
 
 	@Deprecated
 	private Map<Vertex, Set<OpStatement>> vertexToStatements = new HashMap<>();
-	private Map<Node, Set<OpStatement>> nodesToStatements = new HashMap<>();
+	private final Map<Node, Set<OpStatement>> nodesToStatements = new HashMap<>();
 
 	@Deprecated
 	private Set<Vertex> allVertices = new HashSet<>();
-	private Set<Node> allNodes = new HashSet<>();
+	private final Set<Node> allNodes = new HashSet<>();
 
 	public MOp(MEntity parent) {
 		this.parent = parent;
@@ -76,6 +77,10 @@ public class MOp {
 
 	public Map<Vertex, Set<OpStatement>> getVertexToCallStatementsMap() {
 		return vertexToStatements;
+	}
+
+	public Map<Node, Set<OpStatement>> getNodesToStatements() {
+		return nodesToStatements;
 	}
 
 	@Deprecated

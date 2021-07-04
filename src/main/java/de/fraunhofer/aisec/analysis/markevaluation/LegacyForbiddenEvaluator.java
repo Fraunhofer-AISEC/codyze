@@ -19,12 +19,13 @@ import java.util.Set;
 
 import static java.lang.Math.toIntExact;
 
-public class ForbiddenEvaluator {
+@Deprecated
+public class LegacyForbiddenEvaluator {
 
-	private static final Logger log = LoggerFactory.getLogger(ForbiddenEvaluator.class);
+	private static final Logger log = LoggerFactory.getLogger(LegacyForbiddenEvaluator.class);
 	private final Mark markModel;
 
-	public ForbiddenEvaluator(@NonNull Mark markModel) {
+	public LegacyForbiddenEvaluator(@NonNull Mark markModel) {
 		this.markModel = markModel;
 	}
 

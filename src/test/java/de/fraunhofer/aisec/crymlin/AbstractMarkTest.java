@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
 import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
@@ -44,12 +45,12 @@ public abstract class AbstractMarkTest {
 
 	@NonNull
 	protected Set<Finding> performTest(String sourceFileName, @Nullable String markFileName) throws Exception {
-		return performTest(sourceFileName, null, markFileName, true);
+		return performTest(sourceFileName, null, markFileName, false);
 	}
 
 	@NonNull
 	protected Set<Finding> performTest(String sourceFileName, String[] additionalFiles, @Nullable String markFileName) throws Exception {
-		return performTest(sourceFileName, null, markFileName, true);
+		return performTest(sourceFileName, null, markFileName, false);
 	}
 
 	@NonNull
@@ -122,6 +123,7 @@ public abstract class AbstractMarkTest {
 							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 							.registerPass(new FilenameMapper())
 							.registerPass(new IdentifierPass())
+							.registerPass(new EdgeCachePass())
 							.loadIncludes(true)
 							.sourceLocations(toAnalyze.toArray(new File[0]))
 							.build())

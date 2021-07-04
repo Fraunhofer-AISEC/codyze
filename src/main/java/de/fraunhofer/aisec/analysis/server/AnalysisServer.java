@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.analysis.server;
 
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
+import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
 import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
@@ -475,6 +476,7 @@ public class AnalysisServer {
 				//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 				.registerPass(new FilenameMapper())
 				.registerPass(new IdentifierPass())
+				.registerPass(new EdgeCachePass())
 				.sourceLocations(files.toArray(new File[0]));
 		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
 		for (File includePath : config.includePath) {

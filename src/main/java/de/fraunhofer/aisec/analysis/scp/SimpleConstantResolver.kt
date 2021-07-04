@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.analysis.scp
 
 import de.fraunhofer.aisec.analysis.structures.ConstantValue
+import de.fraunhofer.aisec.cpg.graph.HasInitializer
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
@@ -45,7 +46,7 @@ class SimpleConstantResolver : ConstantResolver {
         // TODO(oxisto): do we also need to support field declarations?
         val `val` =
             resolveConstantValueOfFunctionArgument(
-                declRefExpr.refersTo as? VariableDeclaration,
+                declRefExpr.refersTo as? HasInitializer,
                 declRefExpr
             )
         `val`.ifPresent { e: ConstantValue -> result.add(e) }
@@ -53,7 +54,7 @@ class SimpleConstantResolver : ConstantResolver {
     }
 
     private fun resolveConstantValueOfFunctionArgument(
-        declaration: VariableDeclaration?,
+        declaration: HasInitializer?,
         declRefExpr: Node
     ): Optional<ConstantValue> {
         if (declaration == null) {
@@ -63,7 +64,7 @@ class SimpleConstantResolver : ConstantResolver {
         var retVal: Optional<ConstantValue> = Optional.empty()
 
         log.debug("Vertex for function call: {}", declRefExpr.code)
-        log.debug("Vertex of variable declaration: {}", declaration.code)
+        log.debug("Vertex of variable declaration: {}", (declaration as Node).code)
 
         var workList = HashSet<Node>()
         val seen = HashSet<Node>()

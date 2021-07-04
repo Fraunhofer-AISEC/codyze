@@ -40,7 +40,7 @@ public class InsideSameFunction implements Builtin {
 
 			for (var v : vertices) {
 				// TODO: broken until AST parents
-				var containingFunction = getContainingFunction(v, expressionEvaluator.getGraph());
+				var containingFunction = getContainingFunction(v);
 				if (containingFunction == null) {
 					log.warn("Instance vertex {} is not contained in a method/function, cannot evaluate {}", v.getCode(), getName());
 					return ErrorValue

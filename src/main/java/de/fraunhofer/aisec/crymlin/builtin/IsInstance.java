@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.crymlin.builtin;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
+import de.fraunhofer.aisec.cpg.graph.HasType;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.types.Type;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
@@ -50,31 +51,31 @@ public class IsInstance implements Builtin {
 			}
 
 			// unify type (Java/C/C++)
-			String classname = Utils.unifyType((String) classnameArgument.getValue());
-			Set<Vertex> v = ((ConstantValue) argResultList.get(0)).getResponsibleVertices();
+			var classname = Utils.unifyType((String) classnameArgument.getValue());
+			var v = ((ConstantValue) argResultList.get(0)).getResponsibleNodes();
 
 			if (v.size() != 1) {
 				log.warn("Cannot evaluate _is_instance with multiple vertices as input");
 				cv = ErrorValue.newErrorValue("Cannot evaluate _is_instance with multiple vertices as input", argResultList.getAll());
 			} else {
-				Vertex next = v.iterator().next();
-				if (next == null) {
-					log.warn("Vertex is null, cannot check _is_instance");
-					cv = ErrorValue.newErrorValue("Vertex is null, cannot check _is_instance", argResultList.getAll());
-				} else if (Utils.hasLabel(next, CallExpression.class)) {
+				var next = v.iterator().next();
+				if (!(next instanceof HasType)) {
+					log.warn("Node is null or does not implement HasType, cannot check _is_instance");
+					cv = ErrorValue.newErrorValue("Node is null or does not implement HasType, cannot check _is_instance", argResultList.getAll());
+				} else if (next instanceof CallExpression) {
 					// CallExpressions do not have a "type" property. We rather get their type from the called object.
-					String type = next.value("fqn");
+					String type = ((CallExpression) next).getFqn();
 					cv = ConstantValue.of(type.equals(classname));
 				} else {
 					// Get list of possible types, including the most specific type.
-					boolean match = CrymlinQueryWrapper.getPossibleSubTypes(ctx.getDatabase(), next)
+					boolean match = ((HasType) next).getPossibleSubTypes()
 							.stream()
 							.map(Type::getTypeName)
 							.anyMatch(classname::equals);
 					cv = ConstantValue.of(match);
 				}
 			}
-			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+			cv.addResponsibleNodesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1));
 			return cv;
 		}

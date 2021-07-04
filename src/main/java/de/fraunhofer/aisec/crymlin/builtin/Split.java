@@ -65,7 +65,7 @@ public class Split implements Builtin {
 
 			ConstantValue cv = ConstantValue.of(ret);
 
-			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+			cv.addResponsibleNodesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1),
 				(ConstantValue) argResultList.get(2));
 

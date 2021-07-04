@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.crymlin;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
-import de.fraunhofer.aisec.analysis.scp.SimpleConstantResolver;
+import de.fraunhofer.aisec.analysis.scp.LegacySimpleConstantResolver;
 import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
@@ -601,7 +601,7 @@ public class CrymlinQueryWrapper {
 				ret.add(add);
 			} else if (Utils.hasLabel(v.getArgumentVertex(), MemberExpression.class)) {
 				// When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the member's name.
-				ConstantResolver cResolver = new SimpleConstantResolver(db);
+				ConstantResolver cResolver = new LegacySimpleConstantResolver(db);
 				MemberExpression memberExpression = (MemberExpression) db.vertexToNode(v.getArgumentVertex());
 				Set<ConstantValue> constantValue = cResolver.resolveConstantValues(memberExpression);
 
@@ -621,7 +621,7 @@ public class CrymlinQueryWrapper {
 				}
 			} else if (Utils.hasLabel(v.getArgumentVertex(), DeclaredReferenceExpression.class)) {
 				// Otherwise we use ConstantResolver to find concrete values of a DeclaredReferenceExpression.
-				ConstantResolver cResolver = new SimpleConstantResolver(db);
+				ConstantResolver cResolver = new LegacySimpleConstantResolver(db);
 				DeclaredReferenceExpression declExpr = (DeclaredReferenceExpression) db
 						.vertexToNode(v.getArgumentVertex());
 				if (declExpr == null) {

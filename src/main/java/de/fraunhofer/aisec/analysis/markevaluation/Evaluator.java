@@ -14,15 +14,11 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.StaticCallExpression
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.AliasedEntityExpression;
 import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
-import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -35,7 +31,6 @@ import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.*;
 import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.REFERS_TO;
 
 /**
  * Evaluates all loaded MARK rules against the CPG.
@@ -183,7 +178,7 @@ public class Evaluator {
 			// A CPGInstanceContext is a specific interpretation of a Mark rule that needs to be evaluated.
 			MarkContextHolder markCtxHolder = createMarkContext(entities);
 
-			ExpressionEvaluator ee = new ExpressionEvaluator(this.markModel, rule, ctx, config, null, markCtxHolder);
+			ExpressionEvaluator ee = new ExpressionEvaluator(graph, this.markModel, rule, ctx, config, markCtxHolder);
 
 			// Evaluate "when" part, if present (will possibly remove entries from markCtxhHlder)
 			evaluateWhen(rule, markCtxHolder, ee);
@@ -422,5 +417,4 @@ public class Evaluator {
 
 		return entities;
 	}
-
 }

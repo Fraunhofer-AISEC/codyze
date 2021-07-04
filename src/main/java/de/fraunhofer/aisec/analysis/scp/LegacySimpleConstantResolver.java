@@ -35,11 +35,11 @@ import java.util.Set;
 /**
  * A simple intraprocedural resolution of constant values.
  */
-public class SimpleConstantResolver implements ConstantResolver {
-	private static final Logger log = LoggerFactory.getLogger(SimpleConstantResolver.class);
+public class LegacySimpleConstantResolver implements ConstantResolver {
+	private static final Logger log = LoggerFactory.getLogger(LegacySimpleConstantResolver.class);
 	private final Database<Node> db;
 
-	public SimpleConstantResolver(@NonNull Database<Node> db) {
+	public LegacySimpleConstantResolver(@NonNull Database<Node> db) {
 		this.db = db;
 	}
 
@@ -164,7 +164,7 @@ public class SimpleConstantResolver implements ConstantResolver {
 								if (refersTo.hasNext()) {
 									Vertex v = refersTo.next().outVertex();
 									if (v.label().equals(VariableDeclaration.class.getSimpleName())) {
-										SimpleConstantResolver resolver = new SimpleConstantResolver(db);
+										LegacySimpleConstantResolver resolver = new LegacySimpleConstantResolver(db);
 										Optional<ConstantValue> constantValue = resolver.resolveConstantValueOfFunctionArgument(v, lastExpressionInList);
 										if (constantValue.isPresent()) {
 											return constantValue;

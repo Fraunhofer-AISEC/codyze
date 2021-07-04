@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import de.fraunhofer.aisec.cpg.graph.Node;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +110,39 @@ public class MarkContextHolder {
 	}
 
 	public void addResolvedOperands(String operand, Map<Integer, List<CPGVertexWithValue>> operandVerticesForContext) {
+		resolvedOperands.add(operand);
+		final Map<Integer, LegacyMarkContext> toAdd = new HashMap<>();
+		final Map<Integer, List<Integer>> copyStackToAdd = new HashMap<>();
+
+		legacyContexts.forEach((id, context) -> {
+			List<CPGVertexWithValue> operandVertices = operandVerticesForContext.get(id);
+			if (operandVertices == null || operandVertices.isEmpty()) {
+				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
+				context.setOperand(operand, new CPGVertexWithValue(null,
+					ErrorValue.newErrorValue(String.format("Did not find any vertices for %s, following evaluation will be imprecise", operand))));
+			} else if (operandVertices.size() == 1) {
+				context.setOperand(operand, operandVertices.get(0));
+			} else {
+				List<Integer> oldStack = copyStack.computeIfAbsent(id, x -> new ArrayList<>());
+				for (int i = 1; i < operandVertices.size(); i++) {
+					LegacyMarkContext mk = new LegacyMarkContext(context); // create a shallow! copy
+					mk.setOperand(operand, operandVertices.get(i));
+					toAdd.put(currentElements, mk);
+
+					List<Integer> stackForNewContext = new ArrayList<>(oldStack);
+					stackForNewContext.add(id);
+					copyStackToAdd.put(currentElements, stackForNewContext);
+					currentElements++;
+				}
+				context.setOperand(operand, operandVertices.get(0)); // set the current one to the first value
+
+			}
+		});
+		legacyContexts.putAll(toAdd);
+		copyStack.putAll(copyStackToAdd);
+	}
+
+	public void addResolvedOperands(String operand, Map<Integer, List<NodeWithValue<Node>>> operandVerticesForContext) {
 		resolvedOperands.add(operand);
 		final Map<Integer, LegacyMarkContext> toAdd = new HashMap<>();
 		final Map<Integer, List<Integer>> copyStackToAdd = new HashMap<>();

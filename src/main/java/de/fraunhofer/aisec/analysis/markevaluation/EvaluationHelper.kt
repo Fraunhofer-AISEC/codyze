@@ -1,6 +1,8 @@
 package de.fraunhofer.aisec.analysis.markevaluation
 
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator.log
+import de.fraunhofer.aisec.analysis.scp.LegacySimpleConstantResolver
+import de.fraunhofer.aisec.analysis.scp.SimpleConstantResolver
 import de.fraunhofer.aisec.analysis.structures.*
 import de.fraunhofer.aisec.analysis.utils.Utils
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
@@ -10,6 +12,7 @@ import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
+import de.fraunhofer.aisec.crymlin.ConstantResolver
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants
 import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration
@@ -234,25 +237,24 @@ private fun CallExpression.getBaseOfCallExpressionUsingArgument(
     return null
 }
 
+@ExperimentalGraph
 fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
     var base: Node? = null
-    var refIterator = this.edges(Direction.IN, CrymlinConstants.ARGUMENTS)
 
+    var refIterator = graph.nodes.filter { it is ConstructExpression && it.arguments.contains(this) }.iterator()
     if (refIterator.hasNext()) {
-        var it = refIterator.next().outVertex().edges(Direction.IN, CrymlinConstants.INITIALIZER)
-        if (it.hasNext()) {
-            var baseVertex = it.next().outVertex()
+        for(baseVertex in refIterator.next().getInitializedNodes(graph)){
             // for java, an initializer is contained in another
-            it = baseVertex.edges(Direction.IN, CrymlinConstants.INITIALIZER)
+            /*it = baseVertex.edges(Direction.IN, CrymlinConstants.INITIALIZER)
             if (it.hasNext()) {
                 baseVertex = it.next().outVertex()
-            }
-            refIterator = baseVertex.edges(Direction.OUT, CrymlinConstants.REFERS_TO)
-            if (refIterator.hasNext()) {
-                // if the node refers to another node, return the node it refers to
-                base = Optional.of(refIterator.next().inVertex())
+            }*/
+            if(baseVertex is DeclaredReferenceExpression) {
+                baseVertex.refersTo?.let {
+                    base = it
+                }
             } else {
-                base = Optional.of(baseVertex)
+                base = baseVertex
             }
         }
     }
@@ -261,23 +263,22 @@ fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
 }
 
 @ExperimentalGraph
-fun Graph.resolveOperand(
+fun MRule.resolveOperand(
+    graph: Graph,
     context: MarkContextHolder, markVar: String,
-    rule: MRule,
-    markModel: Mark
-): Map<Int, MutableList<NodeWithValue<*>>> {
-    val verticesPerContext = HashMap<Int, MutableList<NodeWithValue<*>>>()
+    markModel: Mark,
+): Map<Int, MutableList<NodeWithValue<Node>>> {
+    val verticesPerContext = HashMap<Int, MutableList<NodeWithValue<Node>>>()
 
     // first get all nodes for the operand
-    val matchingVertices = rule.getMatchingReferences(this, markVar, markModel)
+    val matchingVertices = this.getMatchingReferences(graph, markVar, markModel)
     if (matchingVertices.isEmpty()) {
         log.warn("Did not find matching vertices for {}", markVar)
         return verticesPerContext
     }
 
     // Use Constant resolver to resolve assignments to arguments
-    val vertices: List<CPGVertexWithValue> =
-        ArrayList(CrymlinQueryWrapper.resolveValuesForVertices(db, matchingVertices, markVar))
+    val vertices = resolveValuesForVertices(matchingVertices, markVar)
 
     // now split them up to belong to each instance (t) or markvar (t.foo)
     val instance = markVar.substring(0, markVar.lastIndexOf('.'))
@@ -290,71 +291,77 @@ fun Graph.resolveOperand(
         // if the instance itself is a markvar,
         // precalculate the variabledecl where each of the corresponding instance points to
         // i.e., precalculate the variabledecl for t.foo for each instance
-        for ((key, value) in context.allLegacyContexts) {
+        for ((key, value) in context.allContexts) {
             val opInstance = value.getOperand(instance)
-            if (opInstance == null) {
-                CrymlinQueryWrapper.log.warn("Instance not found in context")
-            } else if (opInstance.argumentVertex == null) {
-                CrymlinQueryWrapper.log.warn("MARK variable {} does not correspond to a vertex", markVar)
-            } else {
-                var vertex = opInstance.argumentVertex
-                // if available, get the variabledeclaration, this declaredreference refers_to
-                val refersTo = opInstance.argumentVertex.edges(Direction.OUT, CrymlinConstants.REFERS_TO)
-                if (refersTo.hasNext()) {
-                    val next = refersTo.next()
-                    vertex = next.inVertex()
+            when {
+                opInstance == null -> {
+                    log.warn("Instance not found in context")
                 }
-                val contextIDs = nodeIDToContextIDs.computeIfAbsent(
-                    vertex.id() as Long
-                ) { x: Long? -> ArrayList() }
-                contextIDs.add(key)
+                opInstance.node == null -> {
+                    log.warn("MARK variable {} does not correspond to a node", markVar)
+                }
+                else -> {
+                    var vertex = opInstance.node
+                    // if available, get the variabledeclaration, this declaredreference refers_to
+                    if(vertex is DeclaredReferenceExpression) {
+                        vertex.refersTo?.let {
+                            vertex = it
+                        }
+                    }
+                    // TODO (oxisto): this will not work, need a pointer to the node itself
+                    val contextIDs = nodeIDToContextIDs.computeIfAbsent(
+                        vertex.id!!
+                    ) { ArrayList() }
+                    contextIDs.add(key)
+                }
             }
         }
     } else {
         // if the instance is entity referenced in the op, precalculate the variabledecl for each used op
-        for ((key, value) in context.allLegacyContexts) {
+        for ((key, value) in context.allContexts) {
             if (!value.instanceContext.containsInstance(instance)) {
-                CrymlinQueryWrapper.log.warn("Instance not found in context")
+                log.warn("Instance not found in context")
             } else {
-                val opInstance: Vertex = value.instanceContext.getVertex(instance)
+                val opInstance = value.instanceContext.getNode(instance)
                 var id = -1L
                 if (opInstance != null) {
-                    id = opInstance.id() as Long
+                    // TODO (oxisto): this will not work, need a pointer to the node itself
+                    id = opInstance.id!!
                 }
                 val contextIDs = nodeIDToContextIDs.computeIfAbsent(
                     id
-                ) { x: Long? -> ArrayList() }
+                ) { ArrayList() }
                 contextIDs.add(key)
             }
         }
     }
 
     // now calculate a list of contextID to matching vertices which fill the base we are looking for
+    // TODO (oxisto): this will not work, need a pointer to the node itself
     for (vertexWithValue in vertices) {
         var id = -1L // -1 = null
         if (vertexWithValue.base != null) {
             val base = vertexWithValue.base
-            id = if (base.property<Any>("nodeType").isPresent
-                && base.value<Any>("nodeType") == "de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression"
-            ) {
-                val referencedBase = base.edges(Direction.OUT, "REFERS_TO").next().inVertex()
-                referencedBase.id() as Long
+            id = if (base is DeclaredReferenceExpression && base.refersTo != null) {
+                val referencedBase = base.refersTo
+                referencedBase?.id!!
             } else {
-                base.id() as Long
+                base?.id!!
             }
         }
         val contextIDs: List<Int>? = nodeIDToContextIDs[id]
         if (contextIDs == null) {
-            CrymlinQueryWrapper.log.warn("Base not found in any context. Following expressionevaluation will be incomplete")
+            log.warn("Base not found in any context. Following expressionevaluation will be incomplete")
         } else {
             for (c in contextIDs) {
                 val verts = verticesPerContext.computeIfAbsent(
                     c
-                ) { x: Int? -> ArrayList() }
+                ) { ArrayList() }
                 verts.add(vertexWithValue)
             }
         }
     }
+
     return verticesPerContext
 }
 
@@ -609,6 +616,77 @@ fun MRule.getMatchingReferences(
             .collect(Collectors.joining(", ")))
 
     return matchingVertices
+}
+
+/**
+ * Given a MARK variable and a list of vertices, attempts to find constant values that would be assigned to these variables at runtime.
+ *
+ *
+ * The precision of this resolution depends on the implementation of the ConstantResolver.
+ *
+ * @param vertices
+ * @param markVar
+ * @return
+ */
+private fun resolveValuesForVertices(
+    vertices: List<NodeWithValue<Node>>,
+    markVar: String
+): MutableList<NodeWithValue<Node>> {
+    val ret = mutableListOf<NodeWithValue<Node>>()
+    for (v in vertices) {
+        if (v.node is Literal<*> && v.node.value != null) {
+            // The vertices may already be constants ("Literal"). In that case, immediately add the value.
+            val add = NodeWithValue.of(v)
+            add.value = ConstantValue.of(v.node.value)
+            ret.add(add)
+        } else if (v.node is MemberExpression) {
+            // When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the member's name.
+            val cResolver: ConstantResolver = SimpleConstantResolver()
+            val constantValue = cResolver.resolveConstantValues(v.node)
+            if (constantValue.isNotEmpty()) {
+                constantValue.forEach(Consumer { cv: ConstantValue ->
+                    val add = NodeWithValue.of(v)
+                    add.value = cv
+                    ret.add(add)
+                })
+            } else {
+                val fqn: String = v.node.base.name + '.' + v.node.name
+                val cv = ConstantValue.of(fqn)
+                val add = NodeWithValue.of(v)
+                add.value = cv
+                ret.add(add)
+            }
+        } else if (v.node is DeclaredReferenceExpression) {
+            // Otherwise we use ConstantResolver to find concrete values of a DeclaredReferenceExpression.
+            val cResolver: ConstantResolver =
+                SimpleConstantResolver()
+            val constantValue = cResolver.resolveConstantValues(v.node)
+            if (constantValue.isNotEmpty()) {
+                constantValue.forEach(Consumer { cv: ConstantValue ->
+                    val add = NodeWithValue.of(v)
+                    add.value = cv
+                    ret.add(add)
+                })
+            } else {
+                val fqn = v.node.name
+                val cv = ConstantValue.of(fqn)
+                val add = NodeWithValue.of(v)
+                add.value = cv
+                v.value = ErrorValue.newErrorValue(String.format("could not resolve %s", markVar))
+                ret.add(add)
+            }
+        } else {
+            log.info(
+                "Cannot resolve concrete value of a node that is not a DeclaredReferenceExpression or a Literal: {} Returning NULL",
+                v.node.javaClass.simpleName
+            )
+            val add = NodeWithValue.of(v)
+            v.value = ErrorValue.newErrorValue(String.format("could not resolve %s", markVar))
+            ret.add(add)
+        }
+    }
+
+    return ret
 }
 
 

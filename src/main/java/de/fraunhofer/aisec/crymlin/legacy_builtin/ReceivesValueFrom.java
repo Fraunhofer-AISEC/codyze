@@ -1,16 +1,23 @@
 
-package de.fraunhofer.aisec.crymlin.builtin;
+package de.fraunhofer.aisec.crymlin.legacy_builtin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.*;
-import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Method signature: _receives_value_from(var target, var source).
@@ -33,41 +40,37 @@ public class ReceivesValueFrom implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull LegacyExpressionEvaluator expressionEvaluator) {
+
 		try {
 			// We expect a source and a target vertex
-			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
-
+			List<Vertex> vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
 			if (vertices.size() != 2) {
 				return ErrorValue.newErrorValue("Could not resolve arguments of _receives_value_from");
 			}
-
-			var targetV = vertices.get(0);
-			var sourceV = vertices.get(1);
+			Vertex targetV = vertices.get(0);
+			Vertex sourceV = vertices.get(1);
 
 			// Follow DFG edges backwards, avoiding loops
-			Set<Node> seen = new HashSet<>();
-			Deque<Node> worklist = new ArrayDeque<>(targetV.getPrevDFG());
-
+			Set<Vertex> seen = new HashSet<>();
+			Deque<Vertex> worklist = new ArrayDeque<>();
+			worklist.addAll(CrymlinQueryWrapper.getDFGSources(targetV));
 			while (!worklist.isEmpty()) {
-				var currentV = worklist.pop();
+				Vertex currentV = worklist.pop();
 				if (seen.contains(currentV)) {
 					continue;
 				}
-
 				seen.add(currentV);
-				if (currentV == sourceV) {
+				if (currentV.id().equals(sourceV.id())) {
 					return ConstantValue.of(true);
 				}
-
-				worklist.addAll(targetV.getPrevDFG());
+				worklist.addAll(CrymlinQueryWrapper.getDFGSources(targetV));
 			}
 		}
 		catch (InvalidArgumentException e) {
 			log.warn(e.getMessage());
 			return ErrorValue.newErrorValue(e.getMessage() + " in _receives_value_from");
 		}
-
 		return ErrorValue.newErrorValue("Error in _receives_value_from");
 	}
 }

@@ -1,8 +1,12 @@
 
-package de.fraunhofer.aisec.crymlin.builtin;
+package de.fraunhofer.aisec.crymlin.legacy_builtin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.types.Type;
@@ -37,7 +41,7 @@ public class IsInstance implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull LegacyExpressionEvaluator expressionEvaluator) {
 
 		try {
 			BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class, ConstantValue.class);

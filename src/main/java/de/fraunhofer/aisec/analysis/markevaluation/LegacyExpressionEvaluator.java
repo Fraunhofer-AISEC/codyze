@@ -14,8 +14,8 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.builtin.Builtin;
-import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
+import de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin;
+import de.fraunhofer.aisec.crymlin.legacy_builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
 import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+@Deprecated
 public class LegacyExpressionEvaluator {
 
 	private static final Logger log = LoggerFactory.getLogger(LegacyExpressionEvaluator.class);

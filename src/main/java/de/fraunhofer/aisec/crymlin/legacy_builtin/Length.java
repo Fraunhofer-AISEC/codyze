@@ -1,8 +1,12 @@
 
-package de.fraunhofer.aisec.crymlin.builtin;
+package de.fraunhofer.aisec.crymlin.legacy_builtin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -34,23 +38,22 @@ public class Length implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull LegacyExpressionEvaluator expressionEvaluator) {
 
 		try {
-			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 1);
+			List<Vertex> vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 1);
 
-			// TODO: broken for now
-			/*Optional<Vertex> ini = CrymlinQueryWrapper.getInitializerFor(vertices.get(0));
-			
+			Optional<Vertex> ini = CrymlinQueryWrapper.getInitializerFor(vertices.get(0));
+
 			if (ini.isPresent()) {
 				Iterator<Edge> dimensions = ini.get().edges(Direction.OUT, "DIMENSIONS");
 				if (dimensions.hasNext()) {
 					Long value = dimensions.next().inVertex().value("value");
 					ConstantValue ret = ConstantValue.of(value);
-					ret.addResponsibleNodes(vertices);
+					ret.addResponsibleVertices(vertices);
 					return ret;
 				}
-			}*/
+			}
 
 			log.warn("Could not determine length");
 			return ErrorValue.newErrorValue("Could not determine length", argResultList.getAll());

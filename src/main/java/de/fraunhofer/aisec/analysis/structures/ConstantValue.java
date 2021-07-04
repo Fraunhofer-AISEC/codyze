@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import de.fraunhofer.aisec.cpg.graph.Node;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -29,7 +30,9 @@ public class ConstantValue extends MarkIntermediateResult {
 	@NonNull
 	protected Object value;
 
+	@Deprecated
 	private final Set<Vertex> responsibleVertices = new HashSet<>();
+	private final Set<Node> responsibleNodes = new HashSet<>();
 
 	public static boolean isError(Object o) {
 		return o instanceof ErrorValue;
@@ -142,16 +145,31 @@ public class ConstantValue extends MarkIntermediateResult {
 		return Objects.hash(type, value);
 	}
 
+	@Deprecated
 	public void addResponsibleVertex(Vertex v) {
 		responsibleVertices.add(v);
 	}
 
+	public void addResponsibleNode(Node node) {
+		responsibleNodes.add(node);
+	}
+
+	@Deprecated
 	public void addResponsibleVertices(Collection<Vertex> responsibleVertices) {
 		this.responsibleVertices.addAll(responsibleVertices);
 	}
 
+	public void addResponsibleNodes(Collection<Node> nodes) {
+		responsibleNodes.addAll(nodes);
+	}
+
+	@Deprecated
 	public void addResponsibleVertices(Vertex... responsibleVertices) {
 		this.responsibleVertices.addAll(Arrays.asList(responsibleVertices));
+	}
+
+	public void addResponsibleNodes(Node... nodes) {
+		responsibleNodes.addAll(Arrays.asList(nodes));
 	}
 
 	public void addResponsibleVerticesFrom(ConstantValue... other) {
@@ -162,8 +180,13 @@ public class ConstantValue extends MarkIntermediateResult {
 		}
 	}
 
+	@Deprecated
 	public Set<Vertex> getResponsibleVertices() {
 		return responsibleVertices;
+	}
+
+	public Set<Node> getResponsibleNodes() {
+		return responsibleNodes;
 	}
 
 	@Override

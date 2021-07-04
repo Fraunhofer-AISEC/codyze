@@ -1,7 +1,6 @@
 package de.fraunhofer.aisec.analysis.markevaluation
 
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator.log
-import de.fraunhofer.aisec.analysis.scp.LegacySimpleConstantResolver
 import de.fraunhofer.aisec.analysis.scp.SimpleConstantResolver
 import de.fraunhofer.aisec.analysis.structures.*
 import de.fraunhofer.aisec.analysis.utils.Utils
@@ -9,13 +8,13 @@ import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.Graph
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
+import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
 import de.fraunhofer.aisec.crymlin.ConstantResolver
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants
-import de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration
 import de.fraunhofer.aisec.mark.markDsl.OpStatement
 import de.fraunhofer.aisec.mark.markDsl.Parameter
 import de.fraunhofer.aisec.markmodel.*
@@ -32,7 +31,7 @@ class EvaluationHelper {
 
 @ExperimentalGraph
 fun Graph.getVerticesForFunctionDeclaration(
-    markFunctionReference: FunctionDeclaration,
+    markFunctionReference: de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration,
 ): Set<Node> {
 
     // resolve parameters which have a corresponding var part in the entity
@@ -113,6 +112,13 @@ fun Graph.getCtors(
     return ret
 }
 
+@ExperimentalGraph
+fun Graph.getField(fqnClassName: String, fieldName: String?): FieldDeclaration? {
+    return this.nodes.filter { it is RecordDeclaration && it.name == fqnClassName }
+        .map { (it as RecordDeclaration).getField(fieldName) }
+        .firstOrNull()
+}
+
 /**
  *
  * TODO if there are really more than one possible DFG targets we should return a list
@@ -155,6 +161,87 @@ fun Node.getInitializedNodes(graph: Graph): List<Node> {
                 (it is FieldDeclaration && it.initializer == this) ||
                 (it is NewExpression && it.initializer == this)
     }
+}
+
+fun FieldDeclaration.getInitializerValue(): Any? {
+    this.initializer?.let {
+        val vertex1 = it
+        if (it is Literal<*>) {
+            return it.value
+        }
+    }
+
+    return null
+}
+
+/**
+ * Given a Vertex v, try to find the function or method in which v is contained.
+ * The resulting Vertex will be of type FunctionDeclaration or MethodDeclaration.
+ * If v is not contained in a function, this method returns an empty Optional.
+ *
+ * @param v
+ * @param crymlinTraversal
+ * @return
+ */
+@ExperimentalGraph
+fun Node.getContainingFunction(graph: Graph): FunctionDeclaration? {
+    /*return crymlinTraversal.byID(v.id() as Long)
+        .repeat(
+            org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inE()
+                .has("sub-graph", "AST")
+                .outV()
+        )
+        .until(
+            __.or<Any>(
+                __.hasLabel<Any>(de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration::class.java.simpleName),
+                __.hasLabel<Any>(MethodDeclaration::class.java.simpleName)
+            )
+        )
+        .tryNext()*/
+    // TODO(oxisto): this is blocked until we get AST parents, otherwise it will be too complex
+    return null
+}
+
+/**
+ * Checks, whether a EOG connection from this node (source) to the sink exists.
+ */
+fun Node.hasEOGTo(sink: Node, branchesAllowed: Boolean): Boolean {
+    if (this == sink) {
+        return true
+    }
+
+    var workList = HashSet<Node>()
+    val seen = HashSet<Node>()
+    workList.add(this)
+
+    while (!workList.isEmpty()) {
+        val newWorkList = HashSet<Node>()
+
+        for (v in workList) {
+            seen.add(v)
+            val eog = v.nextEOG.iterator()
+            var numEdges = 0
+
+            while (eog.hasNext()) {
+                numEdges++
+                if (numEdges > 1 && !branchesAllowed) {
+                    return false
+                }
+
+                val next = eog.next()
+                if (next == sink) {
+                    return true
+                }
+
+                if (!seen.contains(next)) {
+                    newWorkList.add(next)
+                }
+            }
+        }
+        workList = newWorkList
+    }
+
+    return false
 }
 
 @ExperimentalGraph
@@ -241,7 +328,7 @@ private fun CallExpression.getBaseOfCallExpressionUsingArgument(
 fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
     var base: Node? = null
 
-    var refIterator = graph.nodes.filter { it is ConstructExpression && it.arguments.contains(this) }.iterator()
+    val refIterator = graph.nodes.filter { it is ConstructExpression && it.arguments.contains(this) }.iterator()
     if (refIterator.hasNext()) {
         for(baseVertex in refIterator.next().getInitializedNodes(graph)){
             // for java, an initializer is contained in another
@@ -732,10 +819,10 @@ private fun argumentsMatchParameters(
         }
 
         if (sourceArgs.isEmpty()) {
-            /*logger.error(
+            log.error(
                 "Cannot compare function arguments to MARK parameters. Unexpectedly null element or no argument types: {}",
                 java.lang.String.join(", ", MOp.paramsToString(markParameters))
-            )*/
+            )
             return false
         }
         if (Constants.ELLIPSIS == markParam.getVar()) {

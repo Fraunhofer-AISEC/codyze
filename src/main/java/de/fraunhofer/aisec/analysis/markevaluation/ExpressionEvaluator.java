@@ -476,9 +476,7 @@ public class ExpressionEvaluator {
 					continue;
 				}
 
-				//TODO(oxisto): built-ins
-				ConstantValue cv = null;
-				//ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
+				ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
 
 				result.put(entry.getKey(), cv);
 
@@ -781,5 +779,9 @@ public class ExpressionEvaluator {
 		}
 
 		return resolvedOperand;
+	}
+
+	public Graph getGraph() {
+		return this.graph;
 	}
 }

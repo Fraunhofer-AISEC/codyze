@@ -1,8 +1,12 @@
 
-package de.fraunhofer.aisec.crymlin.builtin;
+package de.fraunhofer.aisec.crymlin.legacy_builtin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -29,7 +33,7 @@ public class HasValue implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull LegacyExpressionEvaluator expressionEvaluator) {
 
 		if (argResultList.size() != 1) {
 			log.warn("Invalid number of arguments: {}", argResultList.size());

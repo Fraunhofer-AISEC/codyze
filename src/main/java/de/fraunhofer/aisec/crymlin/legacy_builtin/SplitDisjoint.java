@@ -1,7 +1,7 @@
 
-package de.fraunhofer.aisec.crymlin.builtin;
+package de.fraunhofer.aisec.crymlin.legacy_builtin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
 import de.fraunhofer.aisec.analysis.structures.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -36,7 +36,7 @@ public class SplitDisjoint implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull LegacyExpressionEvaluator expressionEvaluator) {
 
 		// arguments: String, String, List
 		// example:

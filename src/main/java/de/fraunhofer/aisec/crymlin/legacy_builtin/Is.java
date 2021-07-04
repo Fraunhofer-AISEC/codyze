@@ -1,12 +1,11 @@
 
-package de.fraunhofer.aisec.crymlin.builtin;
+package de.fraunhofer.aisec.crymlin.legacy_builtin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -32,24 +31,22 @@ public class Is implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull LegacyExpressionEvaluator expressionEvaluator) {
 
 		try {
-			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
+			List<Vertex> vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
 
-			var v1 = (vertices.get(0) instanceof DeclaredReferenceExpression) ? ((DeclaredReferenceExpression) vertices.get(0)).getRefersTo() : vertices.get(0);
-			var v2 = (vertices.get(1) instanceof DeclaredReferenceExpression) ? ((DeclaredReferenceExpression) vertices.get(1)).getRefersTo() : vertices.get(1);
+			Vertex v1 = CrymlinQueryWrapper.refersTo(vertices.get(0)).orElse(vertices.get(0));
+			Vertex v2 = CrymlinQueryWrapper.refersTo(vertices.get(1)).orElse(vertices.get(1));
 
-			ConstantValue ret = ConstantValue.of(v1 == v2);
-			ret.addResponsibleNodes(vertices.get(0), vertices.get(1));
-
+			ConstantValue ret = ConstantValue.of(v1.id().equals(v2.id()));
+			ret.addResponsibleVertices(vertices.get(0), vertices.get(1));
 			return ret;
 		}
 		catch (InvalidArgumentException e) {
 			// Expected: Did not find a matching vertex v1 or v2. Return false
 			log.info("_is({}, {}) returns false", argResultList.get(0), argResultList.get(1), e.getMessage());
 			ConstantValue retFalse = ConstantValue.of(false);
-
 			return retFalse;
 		}
 

@@ -22,8 +22,8 @@ import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
 import de.fraunhofer.aisec.cpg.passes.TypeResolver;
 import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
-import de.fraunhofer.aisec.crymlin.builtin.Builtin;
-import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
+import de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin;
+import de.fraunhofer.aisec.crymlin.legacy_builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -101,7 +101,7 @@ public class AnalysisServer {
 
 		// Register built-in functions
 		Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of builtins");
-		Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.builtin");
+		Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.legacy_builtin");
 		int i = 0;
 		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
 			log.info("Registering builtin {}", builtin.getName());

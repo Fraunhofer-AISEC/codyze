@@ -1,10 +1,13 @@
 
-package de.fraunhofer.aisec.crymlin.builtin;
+package de.fraunhofer.aisec.crymlin.legacy_builtin;
 
-import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
-import de.fraunhofer.aisec.analysis.structures.*;
-import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.ListValue;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -12,9 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
-
-import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getField;
-import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getInitializerValue;
 
 /**
  *
@@ -33,7 +33,7 @@ public class ConstValue implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull LegacyExpressionEvaluator expressionEvaluator) {
 
 		try {
 			BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class);
@@ -56,21 +56,22 @@ public class ConstValue implements Builtin {
 			String fieldName = s.substring(i + 1);
 
 			// check if this is a field and we have a value from the field
-			var field = getField(expressionEvaluator.getGraph(), fqnClassName, fieldName);
 
-			if (field == null) {
+			Optional<Vertex> field = CrymlinQueryWrapper.getField(fqnClassName, fieldName, expressionEvaluator.getCrymlinTraversal());
+
+			if (field.isEmpty()) {
 				log.warn("Unknown field value {}", s);
 				return ErrorValue.newErrorValue("Unknown field value " + s, argResultList.getAll());
 			}
 
-			Object initializerValue = getInitializerValue(field);
-			if (initializerValue == null) {
+			Optional<Object> initializerValue = CrymlinQueryWrapper.getInitializerValue(field.get());
+			if (initializerValue.isEmpty()) {
 				log.warn("Unknown cannot determine value of {}", s);
 				return ErrorValue.newErrorValue("Unknown cannot determine value of " + s, argResultList.getAll());
 			}
 
-			ConstantValue of = ConstantValue.of(initializerValue);
-			of.addResponsibleNode(field);
+			ConstantValue of = ConstantValue.of(initializerValue.get());
+			of.addResponsibleVertex(field.get());
 			return of;
 
 		}

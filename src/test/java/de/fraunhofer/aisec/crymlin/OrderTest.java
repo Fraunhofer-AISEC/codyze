@@ -20,14 +20,6 @@ class OrderTest extends AbstractMarkTest {
 	}
 
 	@Test
-	void checkJavaNewEvaluator() throws Exception {
-		Set<Finding> results = performTest("unittests/order.java", null, "unittests/order.mark", false);
-
-		Set<String> findings = results.stream().map(Finding::toString).collect(Collectors.toSet());
-		check(findings);
-	}
-
-	@Test
 	void checkCpp() throws Exception {
 		Set<Finding> results = performTest("unittests/order.cpp", "unittests/order.mark");
 

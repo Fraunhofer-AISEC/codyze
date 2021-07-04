@@ -25,6 +25,13 @@ class MarkCppTest extends AbstractMarkTest {
 	}
 
 	@Test
+	void functioncallNewEvaluator() throws Exception {
+		Set<Finding> findings = performTest("mark_cpp/functioncall.cpp", null, "mark_cpp/functioncall.mark", false);
+		expected(findings, "line 9: Rule HasBeenCalled violated",
+			"line 7: Rule HasBeenCalled verified");
+	}
+
+	@Test
 	void testNewExpression() throws Exception {
 		var findings = performTest("mark_cpp/new.cpp", "mark_cpp/new.mark");
 		expected(findings, "line 10: Rule MustBeOne violated");

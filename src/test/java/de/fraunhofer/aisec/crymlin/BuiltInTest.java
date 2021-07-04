@@ -5,8 +5,8 @@ import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.crymlin.builtin.BuiltinHelper;
-import de.fraunhofer.aisec.crymlin.builtin.InvalidArgumentException;
+import de.fraunhofer.aisec.crymlin.legacy_builtin.BuiltinHelper;
+import de.fraunhofer.aisec.crymlin.legacy_builtin.InvalidArgumentException;
 import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedVertex;
 import org.junit.jupiter.api.Test;
 

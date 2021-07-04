@@ -121,7 +121,7 @@ public class MOp {
 		allVertices = new HashSet<>();
 	}
 
-	public static List<String> paramsToString(EList<Parameter> params) {
+	public static List<String> paramsToString(List<Parameter> params) {
 		ArrayList<String> ret = new ArrayList<>();
 		for (Parameter p : params) {
 			StringBuilder sb = new StringBuilder();

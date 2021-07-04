@@ -25,14 +25,12 @@ import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.File;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.resolveOperand;
@@ -117,22 +115,21 @@ public class ExpressionEvaluator {
 	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.info("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		/*for (Map.Entry<Integer, LegacyMarkContext> entry : markContextHolder.getAllLegacyContexts().entrySet()) {
-		
+		for (var entry : markContextHolder.getAllContexts().entrySet()) {
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
-			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);
-		
+			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, graph, this.markContextHolder);
+
 			if (markContextHolder.isCreateFindingsDuringEvaluation() && res != null && Objects.equals(res.getValue(), true)) {
 				Set<String> markInstances = new HashSet<>();
 				ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
+
 				if (markInstances.size() == 1) { // otherwise, the analysis did not work anyway and we did not have a result
-					@Nullable
-					Vertex operand = entry.getValue().getInstanceContext().getVertex(markInstances.iterator().next());
-					if (operand != null) {
-						List<Region> ranges = List.of(Utils.getRegionByVertex(operand));
+					var node = entry.getValue().getInstanceContext().getNode(markInstances.iterator().next());
+					if (node != null) {
+						var ranges = List.of(Utils.getRegionByNode(node));
 						Finding f = new Finding(
 							"Verified Order: " + this.markRule.getName(),
-							CrymlinQueryWrapper.getFileLocation(operand),
+							new File(node.getFile()).toURI(),
 							"",
 							ranges,
 							false);
@@ -140,9 +137,9 @@ public class ExpressionEvaluator {
 					}
 				}
 			}
-		
+
 			result.put(entry.getKey(), res);
-		}*/
+		}
 		return result;
 	}
 

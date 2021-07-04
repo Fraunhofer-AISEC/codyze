@@ -136,7 +136,7 @@ public class LegacyExpressionEvaluator {
 		for (Map.Entry<Integer, LegacyMarkContext> entry : MarkContextHolder.getAllLegacyContexts().entrySet()) {
 
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
-			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.MarkContextHolder);
+			ConstantValue res = orderEvaluator.legacyEvaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.MarkContextHolder);
 
 			if (MarkContextHolder.isCreateFindingsDuringEvaluation() && res != null && Objects.equals(res.getValue(), true)) {
 				Set<String> markInstances = new HashSet<>();

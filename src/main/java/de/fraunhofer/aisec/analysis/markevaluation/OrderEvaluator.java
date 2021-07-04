@@ -8,6 +8,7 @@ import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.wpds.TypeStateAnalysis;
+import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
@@ -27,14 +28,13 @@ public class OrderEvaluator {
 		this.config = config;
 	}
 
-	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext resultCtx,
+	public ConstantValue legacyEvaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext resultCtx,
 			CrymlinTraversalSource crymlinTraversal, MarkContextHolder markContextHolder) {
 		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "Typestate Analysis");
 
 		ConstantValue result;
 
 		switch (config.typestateAnalysis) {
-
 			case WPDS:
 				log.info("Evaluating order with WPDS");
 				TypeStateAnalysis ts = new TypeStateAnalysis(markContextHolder, resultCtx);
@@ -50,8 +50,41 @@ public class OrderEvaluator {
 
 			case NFA:
 				log.info("Evaluating order with NFA");
-				OrderNFAEvaluator orderNFAEvaluator = new OrderNFAEvaluator(rule, markContextHolder);
+				LegacyOrderNFAEvaluator orderNFAEvaluator = new LegacyOrderNFAEvaluator(rule, markContextHolder);
 				result = orderNFAEvaluator.evaluate(orderExpression, contextID, resultCtx, crymlinTraversal);
+				break;
+
+			default:
+				result = ErrorValue.newErrorValue("Unknown typestateanalysis");
+		}
+
+		tsBench.stop();
+		return result;
+	}
+
+	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext resultCtx, Graph graph, MarkContextHolder markContextHolder) {
+		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "Typestate Analysis");
+
+		ConstantValue result = null;
+
+		switch (config.typestateAnalysis) {
+			/*case WPDS:
+				log.info("Evaluating order with WPDS");
+				TypeStateAnalysis ts = new TypeStateAnalysis(markContextHolder, resultCtx);
+				try {
+					// NOTE: rule and orderExpression might be redundant as arguments
+					result = ts.analyze(orderExpression, contextID, resultCtx, crymlinTraversal, rule);
+				}
+				catch (IllegalTransitionException e) {
+					log.error("Unexpected error in typestate WPDS", e);
+					result = ErrorValue.newErrorValue(String.format("Unexpected error in typestate WPDS %s", e.getMessage()));
+				}
+				break;*/
+
+			case NFA:
+				log.info("Evaluating order with NFA");
+				var orderNFAEvaluator = new OrderNFAEvaluator(rule, markContextHolder);
+				result = orderNFAEvaluator.evaluate(orderExpression, contextID, resultCtx, graph);
 				break;
 
 			default:

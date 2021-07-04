@@ -1,18 +1,15 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePassKt;
-import de.fraunhofer.aisec.analysis.cpgpasses.Edges;
-import de.fraunhofer.aisec.analysis.structures.*;
-import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.graph.Graph;
-import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
-import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression;
+import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
+import de.fraunhofer.aisec.analysis.structures.LegacyCPGInstanceContext;
+import de.fraunhofer.aisec.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.analysis.structures.ErrorValue;
+import de.fraunhofer.aisec.analysis.structures.Finding;
+import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
+import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
@@ -25,30 +22,40 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePassKt.getAstParent;
-import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getContainingFunction;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_COLUMN;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_LINE;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.EOG;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_COLUMN;
+import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_LINE;
 import static java.lang.Math.toIntExact;
 
-public class OrderNFAEvaluator {
+@Deprecated
+public class LegacyOrderNFAEvaluator {
 
-	private static final Logger log = LoggerFactory.getLogger(OrderNFAEvaluator.class);
+	private static final Logger log = LoggerFactory.getLogger(LegacyOrderNFAEvaluator.class);
 	private final MRule rule;
 	private final MarkContextHolder markContextHolder;
 
-	public OrderNFAEvaluator(MRule rule, MarkContextHolder markContextHolder) {
+	public LegacyOrderNFAEvaluator(MRule rule, MarkContextHolder markContextHolder) {
 		this.rule = rule;
 		this.markContextHolder = markContextHolder;
 	}
 
 	@SuppressWarnings({ "java:S1905", "java:S125" })
 	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext ctx,
-			Graph graph) {
+			CrymlinTraversalSource crymlinTraversal) {
 		// We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
 		// Any function calls to functions which are not specified in an entity are _ignored_
 
@@ -71,9 +78,9 @@ public class OrderNFAEvaluator {
 		//   Violation against Order: i2.c(); (c) is not allowed. Expected one of: x.a
 		//   Violation against Order: Base i1 is not correctly terminated. Expected one of [x.c] to follow the last call on this base.
 
-		var instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
+		LegacyCPGInstanceContext instanceContext = markContextHolder.getLegacyContext(contextID).getInstanceContext();
 
-		var markInstances = new HashSet<String>();
+		Set<String> markInstances = new HashSet<>();
 		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
 
 		if (markInstances.size() > 1) {
@@ -87,17 +94,19 @@ public class OrderNFAEvaluator {
 
 		String markVar = markInstances.iterator().next();
 
-		var variableDecl = instanceContext.getNode(markVar);
+		Vertex variableDecl = instanceContext.getVertex(markVar);
 		if (variableDecl == null) {
 			log.warn("No instance for markvar {} set in the instancecontext. Invalid evaluation.", markVar);
 			return ErrorValue.newErrorValue(String.format("No instance for markvar %s set in the instancecontext. Invalid evaluation.", markVar));
 		}
 
-		var containingFunction = getContainingFunction(variableDecl);
-		if (containingFunction == null) {
-			log.error("Instance vertex {} is not contained in a method/function", variableDecl.getCode());
-			return ErrorValue.newErrorValue(String.format("Instance vertex %s is not contained in a method/function", variableDecl.getCode()));
+		Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(variableDecl, crymlinTraversal);
+		if (containingFunction.isEmpty()) {
+			log.error("Instance vertex {} is not contained in a method/function", variableDecl.property("code"));
+			return ErrorValue.newErrorValue(String.format("Instance vertex %s is not contained in a method/function", variableDecl.property("code").toString()));
 		}
+
+		Vertex functionDeclaration = containingFunction.get();
 
 		boolean isOrderValid = true;
 
@@ -106,16 +115,14 @@ public class OrderNFAEvaluator {
 
 		// Cache which Vertex belongs to which Op/Entity
 		// a vertex can _only_ belong to one entity/op!
-		var verticesToOp = new HashMap<de.fraunhofer.aisec.cpg.graph.Node, MOp>();
-		for (var entry : rule.getEntityReferences().entrySet()) {
+		HashMap<Vertex, MOp> verticesToOp = new HashMap<>();
+		for (Map.Entry<String, Pair<String, MEntity>> entry : rule.getEntityReferences().entrySet()) {
 			MEntity ent = entry.getValue().getValue1();
-
 			if (ent == null) {
 				continue;
 			}
-
 			for (MOp op : ent.getOps()) {
-				op.getAllNodes().forEach(v -> verticesToOp.put(v, op));
+				op.getAllVertices().forEach(v -> verticesToOp.put(v, op));
 			}
 		}
 
@@ -125,60 +132,62 @@ public class OrderNFAEvaluator {
 		}
 
 		// collect all instances used in this order
-		// TODO: same as in line67?
-		var entityReferences = new HashSet<String>();
+		Set<String> entityReferences = new HashSet<>();
 		ExpressionHelper.collectMarkInstances(orderExpression.getExp(), entityReferences);
 
-		var referencedVertices = new HashSet<Long>();
+		Set<Object> referencedVertices = new HashSet<>();
 		for (String alias : entityReferences) {
-			var v = instanceContext.getNode(alias);
+			Vertex v = instanceContext.getVertex(alias);
 			if (v == null) {
 				log.error("alias {} is not referenced in this rule {}", alias, rule.getName());
 				return ErrorValue.newErrorValue(String.format("alias %s is not referenced in this rule %s", alias, rule.getName()));
 			}
-			referencedVertices.add(v.getId());
+			referencedVertices.add(v.id());
 		}
 
-		var fsm = new FSM();
+		FSM fsm = new FSM();
 		fsm.sequenceToFSM(orderExpression.getExp());
 
-		log.info("Evaluating function {}", containingFunction.getName());
+		log.info("Evaluating function {}", (Object) functionDeclaration.value("name"));
 
-		var currentWorklist = new HashSet<de.fraunhofer.aisec.cpg.graph.Node>();
-		currentWorklist.add(containingFunction);
+		HashSet<Vertex> currentWorklist = new HashSet<>();
+		currentWorklist.add(functionDeclaration);
 
 		// which bases did we already see, but are not initialized correctly base to set of eogpaths
 		HashMap<String, HashSet<String>> disallowedBases = new HashMap<>();
 		// stores the current markings in the FSM (i.e., which base is at which FSM-node)
 		HashMap<String, HashSet<Node>> baseToFSMNodes = new HashMap<>();
 		// last usage of base
-		HashMap<String, de.fraunhofer.aisec.cpg.graph.Node> lastBaseUsage = new HashMap<>();
+		HashMap<String, Vertex> lastBaseUsage = new HashMap<>();
 
 		HashMap<Long, HashSet<String>> nodeIDtoEOGPathSet = new HashMap<>();
 		HashSet<String> startEOG = new HashSet<>();
 		startEOG.add("0");
-		nodeIDtoEOGPathSet.put(containingFunction.getId(), startEOG);
+		nodeIDtoEOGPathSet.put((Long) functionDeclaration.id(), startEOG);
 
 		HashSet<String> seenStates = new HashSet<>();
 		long visitedNodes = 0;
 
 		while (!currentWorklist.isEmpty()) {
-			HashSet<de.fraunhofer.aisec.cpg.graph.Node> nextWorklist = new HashSet<>();
+			HashSet<Vertex> nextWorklist = new HashSet<>();
 
-			for (var vertex : currentWorklist) {
+			for (Vertex vertex : currentWorklist) {
 				visitedNodes++;
 
 				String currentState = getStateSnapshot(vertex, baseToFSMNodes);
 				seenStates.add(currentState);
 
-				HashSet<String> eogPathSet = nodeIDtoEOGPathSet.get(vertex.getId());
+				HashSet<String> eogPathSet = nodeIDtoEOGPathSet.get((Long) vertex.id());
 				if (eogPathSet == null) {
-					log.warn("Error during Order-evaluation, no path set for node {}", vertex.getId());
+					log.warn("Error during Order-evaluation, no path set for node {}", (Long) vertex.id());
 					continue;
 				}
 				for (String eogPath : eogPathSet) {
+
 					// ... no direct access to the labels TreeSet of Neo4JVertex
-					if ((vertex instanceof CallExpression)
+					if ((vertex.label().contains("MemberCallExpression") || vertex.label().equals("CallExpression")
+							|| vertex.label().contains("ConstructExpression")
+							|| vertex.label().contains("StaticCallExpression"))
 							// is the vertex part of any op of any mentioned entity? If not, ignore
 							&& verticesToOp.get(vertex) != null) {
 
@@ -191,149 +200,154 @@ public class OrderNFAEvaluator {
 
 							String base = null;
 							String ref = null;
-							de.fraunhofer.aisec.cpg.graph.Node refNode = null;
-							if (vertex instanceof MemberCallExpression) {
-								var baseVertex = ((MemberCallExpression) vertex).getBase();
-								base = baseVertex.getName();
-								if (baseVertex instanceof DeclaredReferenceExpression) {
-									refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
-									if (refNode != null) {
-										ref = refNode.getId().toString();
-									}
-								}
-							} else if (vertex instanceof ConstructExpression) { // ctor
-								var initializerBase = getAstParent(vertex);
-								if (initializerBase != null) {
-									var it = initializerBase.getNextDFG().iterator();
-									if (it.hasNext()) {
-										var baseVertex = it.next();
-										base = baseVertex.getName();
-										// for ctor, the DFG points already to the variabledecl
-										refNode = baseVertex;
-										ref = refNode.getId().toString();
-									}
-								}
-							} else if (vertex instanceof CallExpression) {
-								var it = vertex.getNextDFG().iterator();
+							Vertex refNode = null;
+							if (vertex.label().contains("MemberCallExpression")) {
+								Iterator<Edge> it = vertex.edges(Direction.OUT, "BASE");
 								if (it.hasNext()) {
-									var baseVertex = it.next();
-									base = baseVertex.getName();
-									if (baseVertex instanceof ConstructExpression) {
-										it = baseVertex.getNextDFG().iterator();
+									Vertex baseVertex = it.next()
+											.inVertex();
+									base = baseVertex.value("name");
+									Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+									if (refIterator.hasNext()) {
+										refNode = refIterator.next()
+												.inVertex();
+										ref = refNode.id().toString();
+									}
+								}
+							} else if (vertex.label().contains("StaticCallExpression") || vertex.label().equals("CallExpression")) {
+								Iterator<Edge> it = vertex.edges(Direction.OUT, "DFG");
+								if (it.hasNext()) {
+									Vertex baseVertex = it.next()
+											.inVertex();
+									base = baseVertex.value("name");
+									if (baseVertex.label().equals("ConstructExpression")) {
+										it = baseVertex.edges(Direction.OUT, "DFG");
 										if (it.hasNext()) {
-											baseVertex = it.next();
-											base = baseVertex.getName();
+											baseVertex = it.next().inVertex();
+											base = baseVertex.value("name");
 										}
 									}
-									if (baseVertex instanceof VariableDeclaration) {
+									if (baseVertex.label().equals("VariableDeclaration")) {
 										// this is already the reference
 										refNode = baseVertex;
-										ref = refNode.getId().toString();
+										ref = refNode.id().toString();
 									} else {
-										if (baseVertex instanceof DeclaredReferenceExpression) {
-											refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
-											if (refNode != null) {
-												ref = refNode.getId().toString();
-											}
+										Iterator<Edge> refIterator = baseVertex.edges(Direction.OUT, "REFERS_TO");
+										if (refIterator.hasNext()) {
+											refNode = refIterator.next()
+													.inVertex();
+											ref = refNode.id().toString();
 										}
 									}
 								}
-								if (base == null) {
-									log.error("base must not be null for {}", vertex.getClass().getSimpleName());
+							} else { // ctor
+								Iterator<Edge> it = vertex.edges(Direction.IN, "INITIALIZER");
+								if (it.hasNext()) {
+									Vertex baseVertex = it.next().outVertex();
+									it = baseVertex.edges(Direction.OUT, "DFG");
+									if (it.hasNext()) {
+										baseVertex = it.next().inVertex();
+										base = baseVertex.value("name");
+										// for ctor, the DFG points already to the variabledecl
+										refNode = baseVertex;
+										ref = refNode.id().toString();
+									}
+								}
+							}
+							if (base == null) {
+								log.error("base must not be null for {}", vertex.label());
+							} else {
+
+								if (refNode != null
+										&& !referencedVertices.contains(refNode.id())) {
+									log.info("this call does not reference the function we are looking at, skipping.");
+
 								} else {
-									if (refNode != null
-											&& !referencedVertices.contains(refNode.getId())) {
-										log.info("this call does not reference the function we are looking at, skipping.");
+									// if we have a reference to a node in the cpg, we add this to the prefixed
+									// base this way, we could differentiate between nodes with the same base
+									// name, but referencing different variables (e.g., if they are used in
+									// different blocks)
+									if (ref != null) {
+										base += "|" + ref;
+									}
+
+									String prefixedBase = eogPath + "." + base;
+
+									if (isDisallowedBase(disallowedBases, eogPath, base)) {
+										// we hide base errors for now!
 									} else {
-										// if we have a reference to a node in the cpg, we add this to the prefixed
-										// base this way, we could differentiate between nodes with the same base
-										// name, but referencing different variables (e.g., if they are used in
-										// different blocks)
-										if (ref != null) {
-											base += "|" + ref;
+										Set<Node> nodesInFSM;
+										if (baseToFSMNodes.get(prefixedBase) == null) {
+											// we have not seen this base before. check if this is the start of an order
+											nodesInFSM = fsm.getStart(); // start nodes
+										} else {
+											nodesInFSM = baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
 										}
 
-										String prefixedBase = eogPath + "." + base;
+										HashSet<Node> nextNodesInFSM = new HashSet<>();
 
-										if (isDisallowedBase(disallowedBases, eogPath, base)) {
-											// we hide base errors for now!
+										// did at least one fsm-Node-match occur?
+										boolean match = false;
+										for (Node n : nodesInFSM) {
+											// are there any ops corresponding to the current base and the current function name?
+											if (op != null && op.getName().equals(n.getOp())) {
+												// this also has as effect, that if the FSM is in a end-state and a
+												// intermediate state, and we follow the intermediate state, the
+												// end-state is removed again, which is correct!
+												nextNodesInFSM.addAll(n.getSuccessors());
+												match = true;
+											}
+										}
+										if (!match) {
+											// if not, this call is not allowed, and this base must not be used in the
+											// following eog
+											isOrderValid = false;
+											Finding f = new Finding(
+												"Violation against Order: "
+														+ vertex.value("code")
+														+ " ("
+														+ (op == null ? "null" : op.getName())
+														+ ") is not allowed. Expected one of: "
+														+ nodesInFSM.stream()
+																.map(Node::getName)
+																.sorted()
+																.collect(Collectors.joining(", "))
+														+ " ("
+														+ rule.getErrorMessage()
+														+ ")",
+												rule.getErrorMessage(),
+												CrymlinQueryWrapper.getFileLocation(vertex),
+												toIntExact(vertex.value(START_LINE)) - 1,
+												toIntExact(vertex.value(END_LINE)) - 1,
+												toIntExact(vertex.value(START_COLUMN)) - 1,
+												toIntExact(vertex.value(END_COLUMN)) - 1);
+											if (markContextHolder.isCreateFindingsDuringEvaluation()) {
+												ctx.getFindings().add(f);
+											}
+											log.info("Finding: {}", f);
+											disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
 										} else {
-											Set<Node> nodesInFSM;
-											if (baseToFSMNodes.get(prefixedBase) == null) {
-												// we have not seen this base before. check if this is the start of an order
-												nodesInFSM = fsm.getStart(); // start nodes
-											} else {
-												nodesInFSM = baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
+											Vertex vertex1 = lastBaseUsage.get(prefixedBase);
+											long prevMaxLine = 0;
+											if (vertex1 != null) {
+												prevMaxLine = vertex1.value(START_LINE);
 											}
-
-											HashSet<Node> nextNodesInFSM = new HashSet<>();
-
-											// did at least one fsm-Node-match occur?
-											boolean match = false;
-											for (Node n : nodesInFSM) {
-												// are there any ops corresponding to the current base and the current function name?
-												if (op.getName().equals(n.getOp())) {
-													// this also has as effect, that if the FSM is in a end-state and a
-													// intermediate state, and we follow the intermediate state, the
-													// end-state is removed again, which is correct!
-													nextNodesInFSM.addAll(n.getSuccessors());
-													match = true;
-												}
+											long newLine = vertex.value(START_LINE);
+											if (prevMaxLine <= newLine) {
+												lastBaseUsage.put(prefixedBase, vertex);
 											}
-											if (!match) {
-												// if not, this call is not allowed, and this base must not be used in the
-												// following eog
-												isOrderValid = false;
-
-												var region = Utils.getRegionByNode(vertex);
-												Finding f = new Finding(
-													"Violation against Order: "
-															+ vertex.getCode()
-															+ " ("
-															+ op.getName()
-															+ ") is not allowed. Expected one of: "
-															+ nodesInFSM.stream()
-																	.map(Node::getName)
-																	.sorted()
-																	.collect(Collectors.joining(", "))
-															+ " ("
-															+ rule.getErrorMessage()
-															+ ")",
-													rule.getErrorMessage(),
-													new File(vertex.getFile()).toURI(),
-													region.getStartLine(),
-													region.getEndLine(),
-													region.getStartColumn(),
-													region.getEndColumn());
-												if (markContextHolder.isCreateFindingsDuringEvaluation()) {
-													ctx.getFindings().add(f);
-												}
-												log.info("Finding: {}", f);
-												disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
-											} else {
-												var region = Utils.getRegionByNode(vertex);
-												var vertex1 = lastBaseUsage.get(prefixedBase);
-												var region1 = Utils.getRegionByNode(vertex1);
-												long prevMaxLine = 0;
-												if (vertex1 != null) {
-													prevMaxLine = region1.getStartLine();
-												}
-												long newLine = region.getStartLine();
-												if (prevMaxLine <= newLine) {
-													lastBaseUsage.put(prefixedBase, vertex);
-												}
-												baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
-											}
+											baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
 										}
 									}
 								}
 							}
 						}
 					}
+					ArrayList<Vertex> outVertices = new ArrayList<>();
+					vertex.edges(Direction.OUT, EOG)
+							.forEachRemaining(edge -> outVertices.add(edge.inVertex()));
 
-					var outVertices = new ArrayList<>(vertex.getNextEOG());
-
-					// if more than one vertex follows the current one, we need to branch the eogPath
+					// if more than one vertex follows the curreant one, we need to branch the eogPath
 					if (outVertices.size() > 1) { // split
 						HashSet<String> oldBases = new HashSet<>();
 						HashMap<String, HashSet<Node>> newBases = new HashMap<>();
@@ -351,7 +365,7 @@ public class OrderNFAEvaluator {
 						oldBases.forEach(baseToFSMNodes::remove);
 
 						// (1) update all entries previously removed from the baseToFSMNodes map with
-						// the new eog-path as prefix to the base
+						// the new eogpath as prefix to the base
 						for (int i = outVertices.size() - 1; i >= 0; i--) {
 							// also update them in the baseToFSMNodes map
 							String newEOGPath = eogPath + i;
@@ -363,15 +377,15 @@ public class OrderNFAEvaluator {
 								outVertices.remove(i);
 								newBases.forEach((k, v) -> baseToFSMNodes.remove(newEOGPath + k));
 							} else {
-								// update the eog-path directly in the vertices for the next step
-								nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(i).getId(),
+								// update the eogpath directly in the vertices for the next step
+								nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(i).id(),
 									x -> new HashSet<>()).add(newEOGPath);
 							}
 						}
 					} else if (outVertices.size() == 1) {
 						// else, if we only have one vertex following this
 						// vertex, simply propagate the current eogpath to the next vertex
-						nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(0).getId(),
+						nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(0).id(),
 							x -> new HashSet<>()).add(eogPath);
 					}
 
@@ -379,13 +393,12 @@ public class OrderNFAEvaluator {
 				}
 				// the current vertex has been analyzed with all these eogpath. remove from map, if we
 				// visit it in another iteration
-				nodeIDtoEOGPathSet.remove(vertex.getId());
+				nodeIDtoEOGPathSet.remove((Long) vertex.id());
 			}
 			currentWorklist = nextWorklist;
 		}
 
-		log.info("Done evaluating function {}, rule {}. Visited Nodes: {}", containingFunction.getName(), rule.getName(), visitedNodes);
-
+		log.info("Done evaluating function {}, rule {}. Visited Nodes: {}", functionDeclaration.value("name"), rule.getName(), visitedNodes);
 		// now the whole function was evaluated.
 		// Check that the FSM is in its end/beginning state for all bases
 		HashMap<String, HashSet<String>> nonterminatedBases = new HashMap<>();
@@ -402,7 +415,7 @@ public class OrderNFAEvaluator {
 				}
 			}
 			if (!hasEnd) {
-				// extract the real base name from eog-path.base
+				// extract the real base name from eogpath.base
 				HashSet<String> next = nonterminatedBases.computeIfAbsent(entry.getKey(),
 					x -> new HashSet<>());
 				next.addAll(notEnded);
@@ -410,15 +423,14 @@ public class OrderNFAEvaluator {
 		}
 		for (Map.Entry<String, HashSet<String>> entry : nonterminatedBases.entrySet()) {
 			isOrderValid = false;
-
-			var vertex = lastBaseUsage.get(entry.getKey());
+			Vertex vertex = lastBaseUsage.get(entry.getKey());
 			if (vertex == null) {
 				String[] split = entry.getKey().split("\\.");
 				if (split.length != 2) {
-					log.warn("Invalid eog-path");
+					log.warn("Invalid eogpath");
 				} else {
 					if (split[0].length() <= 1) {
-						log.warn("Invalid eog-path length");
+						log.warn("Invalid eogpath length");
 					} else {
 						while (vertex == null || split[0].length() > 2) { // remove a number of branches until we find a last usage
 							split[0] = split[0].substring(0, split[0].length() - 1);
@@ -437,8 +449,11 @@ public class OrderNFAEvaluator {
 			int startCol = -1;
 			int endCol = -1;
 			if (vertex != null) {
-				file = new File(vertex.getFile()).toURI();
-				var region = Utils.getRegionByNode(vertex);
+				file = CrymlinQueryWrapper.getFileLocation(vertex);
+				startLine = toIntExact(vertex.value(START_LINE)) - 1;
+				endLine = toIntExact(vertex.value(END_LINE)) - 1;
+				startCol = toIntExact(vertex.value(START_COLUMN)) - 1;
+				endCol = toIntExact(vertex.value(END_COLUMN)) - 1;
 			}
 			Finding f = new Finding(
 				"Violation against Order: Base "
@@ -466,7 +481,7 @@ public class OrderNFAEvaluator {
 		}
 		ConstantValue of = ConstantValue.of(isOrderValid);
 		if (markContextHolder.isCreateFindingsDuringEvaluation()) {
-			markContextHolder.getContext(contextID).setFindingAlreadyAdded(true);
+			markContextHolder.getLegacyContext(contextID).setFindingAlreadyAdded(true);
 		}
 		return of;
 	}
@@ -480,7 +495,7 @@ public class OrderNFAEvaluator {
 		return false;
 	}
 
-	private String getStateSnapshot(de.fraunhofer.aisec.cpg.graph.Node v, HashMap<String, HashSet<Node>> baseToFSMNodes) {
+	private String getStateSnapshot(Vertex v, HashMap<String, HashSet<Node>> baseToFSMNodes) {
 		HashMap<String, HashSet<Node>> simplified = new HashMap<>();
 
 		for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
@@ -498,7 +513,7 @@ public class OrderNFAEvaluator {
 				.sorted()
 				.collect(Collectors.toList());
 
-		return v.getId() + " " + String.join(",", fsmStates);
+		return v.id() + " " + String.join(",", fsmStates);
 	}
 
 }

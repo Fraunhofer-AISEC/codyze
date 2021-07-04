@@ -22,8 +22,8 @@ import de.fraunhofer.aisec.cpg.passes.Pass;
 import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
 import de.fraunhofer.aisec.cpg.passes.TypeResolver;
 import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
-import de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin;
-import de.fraunhofer.aisec.crymlin.legacy_builtin.BuiltinRegistry;
+import de.fraunhofer.aisec.crymlin.builtin.Builtin;
+import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
@@ -99,25 +99,48 @@ public class AnalysisServer {
 		this.config = config;
 		AnalysisServer.instance = this;
 
-		// Register built-in functions
-		Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of builtins");
-		Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.legacy_builtin");
-		int i = 0;
-		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
-			log.info("Registering builtin {}", builtin.getName());
-			try {
-				Builtin bi = builtin.getDeclaredConstructor().newInstance();
-				BuiltinRegistry.getInstance().register(bi);
+		if (config.legacyEvaluator) {
+			// Register built-in functions
+			Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of legacy builtins");
+			Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.legacy_builtin");
+			int i = 0;
+			for (Class<? extends de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin> builtin : reflections
+					.getSubTypesOf(de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin.class)) {
+				log.info("Registering legacy builtin {}", builtin.getName());
+				try {
+					de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin bi = builtin.getDeclaredConstructor().newInstance();
+					de.fraunhofer.aisec.crymlin.legacy_builtin.BuiltinRegistry.getInstance().register(bi);
+				}
+				catch (Exception e) {
+					log.error("Could not instantiate {}: ", builtin.getName(), e);
+				}
+				i++;
 			}
-			catch (Exception e) {
-				log.error("Could not instantiate {}: ", builtin.getName(), e);
-			}
-			i++;
-		}
-		bench.stop();
-		log.info("Registered {} builtins", i);
+			bench.stop();
+			log.info("Registered {} legacy builtins", i);
 
-		db = new OverflowDatabase(config);
+			db = new OverflowDatabase(config);
+		} else {
+			// Register built-in functions
+			Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of built-ins");
+			Reflections reflections = new Reflections(Builtin.class.getPackageName());
+
+			int i = 0;
+			for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
+				log.info("Registering legacy builtin {}", builtin.getName());
+				try {
+					Builtin bi = builtin.getDeclaredConstructor().newInstance();
+					BuiltinRegistry.getInstance().register(bi);
+				}
+				catch (Exception e) {
+					log.error("Could not instantiate {}: ", builtin.getName(), e);
+				}
+				i++;
+			}
+
+			bench.stop();
+			log.info("Registered {} built-ins", i);
+		}
 	}
 
 	/**
@@ -210,7 +233,12 @@ public class AnalysisServer {
 						// Attach analysis context to result
 						result.getScratch().put("ctx", ctx);
 						translationResult = result;
-						return persistToODB(result);
+
+						if (config.legacyEvaluator) {
+							return persistToODB(result);
+						} else {
+							return result;
+						}
 					})
 				.thenApply(
 					result -> {

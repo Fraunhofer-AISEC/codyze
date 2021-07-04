@@ -15,7 +15,6 @@ plugins {
     kotlin("jvm") version "1.4.32" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
-
 group = "de.fraunhofer.aisec"
 
 /* License plugin needs a special treatment, as long as the main project does not have a license yet.
@@ -23,7 +22,6 @@ group = "de.fraunhofer.aisec"
  */
 gradle.startParameter.excludedTaskNames += "licenseMain"
 gradle.startParameter.excludedTaskNames += "licenseTest"
-
 
 tasks.jacocoTestReport {
     reports {
@@ -177,6 +175,10 @@ tasks.named("sonarqube") {
 spotless {
     java {
         eclipse().configFile(rootProject.file("formatter-settings.xml"))
+    }
+
+    kotlin {
+        ktfmt().kotlinlangStyle()
     }
 }
 

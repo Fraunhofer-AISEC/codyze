@@ -337,6 +337,29 @@ public class Utils {
 	}
 
 	/**
+	 * Returns a <code>Region</code> object from a vertex' startLine, endLine, startColumn, endColumn property.
+	 *
+	 * Note that these are not the exact property values but start at 0 rather than by 1.
+	 * If these properties do not exist, returns -1.
+	 *
+	 * @param n the node
+	 *
+	 * @return the region
+	 */
+	@NonNull
+	public static Region getRegionByNode(@NonNull Node n) {
+		if (n.getLocation() == null) {
+			return new Region(-1, -1, -1, -1);
+		}
+
+		int startLine = n.getLocation().getRegion().getStartLine() - 1;
+		int endLine = n.getLocation().getRegion().getEndLine() - 1;
+		int startColumn = n.getLocation().getRegion().getStartColumn() - 1;
+		int endColumn = n.getLocation().getRegion().getEndLine() - 1;
+		return new Region(startLine, startColumn, endLine, endColumn);
+	}
+
+	/**
 	 * Returns a brief human-readable representation of a vertex as a string.
 	 *
 	 * @param base The vertex. If null, this method will return the string "null".

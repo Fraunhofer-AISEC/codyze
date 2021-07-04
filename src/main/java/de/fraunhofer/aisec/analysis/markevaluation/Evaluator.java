@@ -98,7 +98,7 @@ public class Evaluator {
 	/**
 	 * Iterate over all MOps in all MEntities, find all call statements in CPG and assign them to their respective MOp.
 	 * <p>
-	 * After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
+	 * After this method, all call statements can be retrieved by MOp.getAllNodes(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
 	 *
 	 * @param ctx
 	 * @param graph the Graph
@@ -160,7 +160,7 @@ public class Evaluator {
 					}
 
 					for (var op : entity.getValue().getValue1().getOps()) {
-						if (!op.getAllVertices().isEmpty()) {
+						if (!op.getAllNodes().isEmpty()) {
 							hasCPGNodes = true;
 							break outer;
 						}
@@ -202,6 +202,7 @@ public class Evaluator {
 			// the value of the result should always be boolean, as this should be the result of the topmost expression
 			int markCtx = entry.getKey();
 			Object evaluationResultUb = ConstantValue.unbox(entry.getValue());
+
 			if (evaluationResultUb instanceof Boolean) {
 				ConstantValue evalResult = (ConstantValue) entry.getValue();
 				/*
@@ -215,7 +216,7 @@ public class Evaluator {
 
 				if (!c.isFindingAlreadyAdded()) {
 					List<Region> ranges = new ArrayList<>();
-					if (evalResult.getResponsibleVertices().isEmpty() || evalResult.getResponsibleVertices().stream().noneMatch(Objects::nonNull)) {
+					if (evalResult.getResponsibleNodes().isEmpty() || evalResult.getResponsibleNodes().stream().noneMatch(Objects::nonNull)) {
 						// use the line of the instances
 						if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
 							for (var node : c.getInstanceContext().getMarkInstanceVertices()) {
@@ -226,7 +227,7 @@ public class Evaluator {
 								var location = node.getLocation();
 
 								if (location != null) {
-									ranges.add(location.getRegion());
+									ranges.add(Utils.getRegionByNode(node));
 								} else {
 									ranges.add(new Region(-1, -1, -1, -1));
 								}
@@ -239,15 +240,16 @@ public class Evaluator {
 						}
 					} else {
 						// responsible vertices are stored in the result
-						for (Vertex v : evalResult.getResponsibleVertices()) {
-							if (v == null) {
+						for (var node : evalResult.getResponsibleNodes()) {
+							if (node == null) {
 								continue;
 							}
-							ranges.add(Utils.getRegionByVertex(v));
+							ranges.add(Utils.getRegionByNode(node));
 
-							currentFile = CrymlinQueryWrapper.getFileLocation(v);
+							currentFile = new File(node.getFile()).toURI();
 						}
 					}
+
 					boolean isRuleViolated = !(Boolean) evaluationResultUb;
 					findings.add(new Finding(
 						"Rule "
@@ -333,8 +335,9 @@ public class Evaluator {
 				instanceCtx.putMarkInstance(markInstanceName, v);
 			}
 
-			//context.addInitialInstanceContext(instanceCtx);
+			context.addInitialInstanceContext(instanceCtx);
 		}
+
 		return context;
 	}
 

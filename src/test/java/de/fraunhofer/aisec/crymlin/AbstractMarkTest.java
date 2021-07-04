@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -120,6 +121,7 @@ public abstract class AbstractMarkTest {
 							.registerPass(new TypeResolver())
 							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 							.registerPass(new FilenameMapper())
+							.registerPass(new IdentifierPass())
 							.loadIncludes(true)
 							.sourceLocations(toAnalyze.toArray(new File[0]))
 							.build())

@@ -45,10 +45,17 @@ public class MarkContextHolder {
 	private final Map<Integer, List<Integer>> copyStack = new HashMap<>();
 	private boolean createFindingsDuringEvaluation = true;
 
+	@Deprecated
 	public void addInitialLegacyInstanceContext(LegacyCPGInstanceContext instance) {
 		LegacyMarkContext mk = new LegacyMarkContext();
 		mk.addInstanceContext(instance);
 		legacyContexts.put(currentElements++, mk);
+	}
+
+	public void addInitialInstanceContext(GraphInstanceContext instance) {
+		var mk = new MarkContext();
+		mk.addInstanceContext(instance);
+		contexts.put(currentElements++, mk);
 	}
 
 	@Deprecated
@@ -77,7 +84,7 @@ public class MarkContextHolder {
 		return ret;
 	}
 
-	public Map<Integer, MarkIntermediateResult> getResolvedOperand(String operand) {
+	public Map<Integer, MarkIntermediateResult> getLegacyResolvedOperand(String operand) {
 		if (!resolvedOperands.contains(operand)) {
 			return null;
 		}
@@ -91,8 +98,25 @@ public class MarkContextHolder {
 		return result;
 	}
 
+	public Map<Integer, MarkIntermediateResult> getResolvedOperand(String operand) {
+		if (!resolvedOperands.contains(operand)) {
+			return null;
+		}
+
+		final Map<Integer, MarkIntermediateResult> result = new HashMap<>();
+		contexts.forEach((id, context) -> {
+			var vwv = context.getOperand(operand);
+			var constant = ConstantValue.of(vwv.getValue());
+			constant.addResponsibleNodes(getNodeFromSelfOrFromParent(operand, context));
+			result.put(id, constant);
+		});
+
+		return result;
+	}
+
 	// return the vertex responsible for this operand, or (if the vertex would be null), the vertex of the base of this
 	// operand
+	@Deprecated
 	private Vertex getVertexFromSelfOrFromParent(String operand, LegacyMarkContext context) {
 		CPGVertexWithValue vwv = context.getOperand(operand);
 		if (vwv == null) {
@@ -106,6 +130,29 @@ public class MarkContextHolder {
 		if (split.length >= 2) {
 			return getVertexFromSelfOrFromParent(operand.substring(0, operand.lastIndexOf('.')), context);
 		}
+		return null;
+	}
+
+	/**return the vertex responsible for this operand, or (if the vertex would be null), the vertex of the base of this
+	* operand
+	*
+	 */
+	private Node getNodeFromSelfOrFromParent(String operand, MarkContext context) {
+		var vwv = context.getOperand(operand);
+		if (vwv == null) {
+			return null;
+		}
+
+		var node = vwv.getNode();
+		if (node != null) {
+			return node;
+		}
+
+		String[] split = operand.split("\\.");
+		if (split.length >= 2) {
+			return getNodeFromSelfOrFromParent(operand.substring(0, operand.lastIndexOf('.')), context);
+		}
+
 		return null;
 	}
 

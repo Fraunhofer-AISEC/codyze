@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.analysis.server;
 
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
+import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.LegacyEvaluator;
@@ -127,7 +128,7 @@ public class AnalysisServer {
 
 			int i = 0;
 			for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
-				log.info("Registering legacy builtin {}", builtin.getName());
+				log.info("Registering builtin {}", builtin.getName());
 				try {
 					Builtin bi = builtin.getDeclaredConstructor().newInstance();
 					BuiltinRegistry.getInstance().register(bi);
@@ -473,6 +474,7 @@ public class AnalysisServer {
 				.registerPass(new TypeResolver())
 				//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 				.registerPass(new FilenameMapper())
+				.registerPass(new IdentifierPass())
 				.sourceLocations(files.toArray(new File[0]));
 		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
 		for (File includePath : config.includePath) {

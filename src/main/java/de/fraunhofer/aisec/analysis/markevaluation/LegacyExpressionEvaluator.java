@@ -781,7 +781,7 @@ public class LegacyExpressionEvaluator {
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateSingleOperand(String operand) {
 
-		Map<Integer, MarkIntermediateResult> resolvedOperand = MarkContextHolder.getResolvedOperand(operand);
+		Map<Integer, MarkIntermediateResult> resolvedOperand = MarkContextHolder.getLegacyResolvedOperand(operand);
 
 		if (resolvedOperand == null) {
 			// if this operand is not resolved yet in this expressionevaluation, resolve it
@@ -792,7 +792,7 @@ public class LegacyExpressionEvaluator {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
 			}
 			MarkContextHolder.addLegacyResolvedOperands(operand, operandVertices); // cache the resolved operand
-			resolvedOperand = MarkContextHolder.getResolvedOperand(operand);
+			resolvedOperand = MarkContextHolder.getLegacyResolvedOperand(operand);
 		}
 
 		return resolvedOperand;

@@ -14,20 +14,16 @@ import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
 import de.fraunhofer.aisec.crymlin.ConstantResolver
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants
 import de.fraunhofer.aisec.mark.markDsl.OpStatement
 import de.fraunhofer.aisec.mark.markDsl.Parameter
 import de.fraunhofer.aisec.markmodel.*
-import org.apache.commons.lang3.StringUtils
-import org.apache.tinkerpop.gremlin.structure.Direction
-import org.apache.tinkerpop.gremlin.structure.Vertex
 import java.util.*
 import java.util.function.Consumer
 import java.util.stream.Collectors
 import java.util.stream.IntStream
+import org.apache.commons.lang3.StringUtils
 
-class EvaluationHelper {
-}
+class EvaluationHelper {}
 
 @ExperimentalGraph
 fun Graph.getVerticesForFunctionDeclaration(
@@ -35,13 +31,11 @@ fun Graph.getVerticesForFunctionDeclaration(
 ): Set<Node> {
 
     // resolve parameters which have a corresponding var part in the entity
-    val callsAndInitializers: MutableSet<Node> = HashSet(
-        this.getCalls(markFunctionReference.name, markFunctionReference.params)
-    )
+    val callsAndInitializers: MutableSet<Node> =
+        HashSet(this.getCalls(markFunctionReference.name, markFunctionReference.params))
 
     callsAndInitializers.addAll(
-        this.getCtors(markFunctionReference.name, markFunctionReference.params
-        )
+        this.getConstructs(markFunctionReference.name, markFunctionReference.params)
     )
 
     // fix for Java. In java, a ctor is always accompanied with a NewExpression
@@ -54,20 +48,20 @@ fun Graph.getVerticesForFunctionDeclaration(
 /**
  * Returns a set of Vertices representing the `CallExpression` to a target function
  *
- * @param fqnName          fully qualified name
- * @param parameters       list of parameter types; must appear in order (i.e. index 0 = type of first parameter, etc.); currently, types must be precise (i.e. with
- * qualifiers, pointer, reference)
+ * @param fqnName fully qualified name
+ * @param parameters list of parameter types; must appear in order (i.e. index 0 = type of first
+ * parameter, etc.); currently, types must be precise (i.e. with qualifiers, pointer, reference)
  * @return
  */
 @ExperimentalGraph
-fun Graph.getCalls(
-    fqnName: String,
-    parameters: List<Parameter>
-): MutableSet<CallExpression> {
-    val nodes = this.nodes.filter {
-        it is CallExpression &&
-                it.fqn == Utils.unifyType(fqnName) &&
-                argumentsMatchParameters(parameters, it.arguments) }
+fun Graph.getCalls(fqnName: String, parameters: List<Parameter>): MutableSet<CallExpression> {
+    val nodes =
+        this.nodes
+            .filter {
+                it is CallExpression &&
+                    it.fqn == Utils.unifyType(fqnName) &&
+                    argumentsMatchParameters(parameters, it.arguments)
+            }
             .filterIsInstance<CallExpression>()
 
     return HashSet(nodes)
@@ -76,45 +70,45 @@ fun Graph.getCalls(
 /**
  * Returns a set of `ConstructExpression`s with a specified name and parameters
  *
- * @param fqnName          fully qualified name
- * @param parameters       list of parameter types; must appear in order (i.e. index 0 = type of first parameter, etc.); currently, types must be precise (i.e. with
- * qualifiers, pointer, reference)
+ * @param fqnName fully qualified name
+ * @param parameters list of parameter types; must appear in order (i.e. index 0 = type of first
+ * parameter, etc.); currently, types must be precise (i.e. with qualifiers, pointer, reference)
  * @return
  */
 @ExperimentalGraph
-fun Graph.getCtors(
-    fqnName: String,
-    parameters: List<Parameter>
-): Set<ConstructExpression> {
-    val nodes = this.nodes
-        .filter { it is ConstructExpression && it.type.name == Utils.unifyType(fqnName) }
-        .filterIsInstance<ConstructExpression>()
-    //val nodes = this.query("MATCH (c:ConstructExpression)-[:TYPE]->(t:Type) WHERE t.name = \"${Utils.unifyType(fqnName)}\"")
+fun Graph.getConstructs(fqnName: String, parameters: List<Parameter>): Set<ConstructExpression> {
+    val nodes =
+        this.nodes
+            .filter { it is ConstructExpression && it.type.name == Utils.unifyType(fqnName) }
+            .filterIsInstance<ConstructExpression>()
+    // val nodes = this.query("MATCH (c:ConstructExpression)-[:TYPE]->(t:Type) WHERE t.name =
+    // \"${Utils.unifyType(fqnName)}\"")
 
     // In case of constructors, "functionName" holds the name of the constructed type.
     val ret: MutableSet<ConstructExpression> = HashSet(nodes)
 
     // now, ret contains possible candidates --> need to filter out calls where params don't match
     ret.removeIf {
-        // ConstructExpression needs a special treatment because the argument of a ConstructExpression is the CallExpression to the constructor and we are interested in its arguments.
-            val args = it.arguments
-            if (args.size == 1 &&
-                    args[0] is CallExpression
-                )
-             {
-                return@removeIf argumentsMatchParameters(
-                    parameters,
-                    (args[0] as CallExpression).arguments
-                )
-            }
+        // ConstructExpression needs a special treatment because the argument of a
+        // ConstructExpression is the CallExpression to the constructor and we are interested in its
+        // arguments.
+        val args = it.arguments
+        if (args.size == 1 && args[0] is CallExpression) {
+            return@removeIf argumentsMatchParameters(
+                parameters,
+                (args[0] as CallExpression).arguments
+            )
+        }
         argumentsMatchParameters(parameters, args)
     }
+
     return ret
 }
 
 @ExperimentalGraph
 fun Graph.getField(fqnClassName: String, fieldName: String?): FieldDeclaration? {
-    return this.nodes.filter { it is RecordDeclaration && it.name == fqnClassName }
+    return this.nodes
+        .filter { it is RecordDeclaration && it.name == fqnClassName }
         .map { (it as RecordDeclaration).getField(fieldName) }
         .firstOrNull()
 }
@@ -153,13 +147,14 @@ fun Node.getSuitableDFGTarget(): Node? {
 
 @ExperimentalGraph
 fun Node.getInitializedNodes(graph: Graph): List<Node> {
-    // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
+    // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST
+    // parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
 
     return graph.nodes.filter {
         // TODO: It would be nice, if the CPG would have a HasInitializer interface
         (it is VariableDeclaration && it.initializer == this) ||
-                (it is FieldDeclaration && it.initializer == this) ||
-                (it is NewExpression && it.initializer == this)
+            (it is FieldDeclaration && it.initializer == this) ||
+            (it is NewExpression && it.initializer == this)
     }
 }
 
@@ -175,9 +170,9 @@ fun FieldDeclaration.getInitializerValue(): Any? {
 }
 
 /**
- * Given a Vertex v, try to find the function or method in which v is contained.
- * The resulting Vertex will be of type FunctionDeclaration or MethodDeclaration.
- * If v is not contained in a function, this method returns an empty Optional.
+ * Given a Vertex v, try to find the function or method in which v is contained. The resulting
+ * Vertex will be of type FunctionDeclaration or MethodDeclaration. If v is not contained in a
+ * function, this method returns an empty Optional.
  *
  * @param v
  * @param crymlinTraversal
@@ -186,25 +181,23 @@ fun FieldDeclaration.getInitializerValue(): Any? {
 @ExperimentalGraph
 fun Node.getContainingFunction(graph: Graph): FunctionDeclaration? {
     /*return crymlinTraversal.byID(v.id() as Long)
-        .repeat(
-            org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inE()
-                .has("sub-graph", "AST")
-                .outV()
+    .repeat(
+        org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inE()
+            .has("sub-graph", "AST")
+            .outV()
+    )
+    .until(
+        __.or<Any>(
+            __.hasLabel<Any>(de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration::class.java.simpleName),
+            __.hasLabel<Any>(MethodDeclaration::class.java.simpleName)
         )
-        .until(
-            __.or<Any>(
-                __.hasLabel<Any>(de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration::class.java.simpleName),
-                __.hasLabel<Any>(MethodDeclaration::class.java.simpleName)
-            )
-        )
-        .tryNext()*/
+    )
+    .tryNext()*/
     // TODO(oxisto): this is blocked until we get AST parents, otherwise it will be too complex
     return null
 }
 
-/**
- * Checks, whether a EOG connection from this node (source) to the sink exists.
- */
+/** Checks, whether a EOG connection from this node (source) to the sink exists. */
 fun Node.hasEOGTo(sink: Node, branchesAllowed: Boolean): Boolean {
     if (this == sink) {
         return true
@@ -265,14 +258,14 @@ fun ConstructExpression.getAssignee(graph: Graph): Node? {
             }
         }
 
-        if(node is DeclaredReferenceExpression) {
-            node.refersTo?.let {
-                node = it
-            }
+        if (node is DeclaredReferenceExpression) {
+            node.refersTo?.let { node = it }
         }
 
         if (node !is VariableDeclaration) {
-            log.warn("Unexpected: Source of INITIALIZER edge to ConstructExpression is not a VariableDeclaration. Trying to continue anyway")
+            log.warn(
+                "Unexpected: Source of INITIALIZER edge to ConstructExpression is not a VariableDeclaration. Trying to continue anyway"
+            )
         }
 
         return node
@@ -282,9 +275,11 @@ fun ConstructExpression.getAssignee(graph: Graph): Node? {
 }
 
 /**
- * Given a node that represents a `CallExpression`, return the base(s) that this call expression uses.
+ * Given a node that represents a `CallExpression`, return the base(s) that this call expression
+ * uses.
  *
- * The result will be either an Optional.empty() in case of static method calls or function calls, or contain a single element.
+ * The result will be either an Optional.empty() in case of static method calls or function calls,
+ * or contain a single element.
  *
  * @return
  */
@@ -292,10 +287,8 @@ fun CallExpression.getBaseDeclaration(): Node? {
     var base: Node? = null
 
     this.base.let {
-        if(it is DeclaredReferenceExpression) {
-            it.refersTo?.let { declaration ->
-                base = declaration
-            }
+        if (it is DeclaredReferenceExpression) {
+            it.refersTo?.let { declaration -> base = declaration }
         } else {
             base = it
         }
@@ -305,9 +298,7 @@ fun CallExpression.getBaseDeclaration(): Node? {
 }
 
 // TODO(oxisto): Rename this function, because "base" is misleading here.
-private fun CallExpression.getBaseOfCallExpressionUsingArgument(
-    argumentIndex: Int
-): Node? {
+private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: Int): Node? {
     val list = this.arguments.filter { it.argumentIndex == argumentIndex }
 
     if (list.size == 1) {
@@ -328,18 +319,17 @@ private fun CallExpression.getBaseOfCallExpressionUsingArgument(
 fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
     var base: Node? = null
 
-    val refIterator = graph.nodes.filter { it is ConstructExpression && it.arguments.contains(this) }.iterator()
+    val refIterator =
+        graph.nodes.filter { it is ConstructExpression && it.arguments.contains(this) }.iterator()
     if (refIterator.hasNext()) {
-        for(baseVertex in refIterator.next().getInitializedNodes(graph)){
+        for (baseVertex in refIterator.next().getInitializedNodes(graph)) {
             // for java, an initializer is contained in another
             /*it = baseVertex.edges(Direction.IN, CrymlinConstants.INITIALIZER)
             if (it.hasNext()) {
                 baseVertex = it.next().outVertex()
             }*/
-            if(baseVertex is DeclaredReferenceExpression) {
-                baseVertex.refersTo?.let {
-                    base = it
-                }
+            if (baseVertex is DeclaredReferenceExpression) {
+                baseVertex.refersTo?.let { base = it }
             } else {
                 base = baseVertex
             }
@@ -352,7 +342,8 @@ fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
 @ExperimentalGraph
 fun MRule.resolveOperand(
     graph: Graph,
-    context: MarkContextHolder, markVar: String,
+    context: MarkContextHolder,
+    markVar: String,
     markModel: Mark,
 ): Map<Int, MutableList<NodeWithValue<Node>>> {
     val verticesPerContext = HashMap<Int, MutableList<NodeWithValue<Node>>>()
@@ -390,21 +381,18 @@ fun MRule.resolveOperand(
                 else -> {
                     var vertex = opInstance.node
                     // if available, get the variabledeclaration, this declaredreference refers_to
-                    if(vertex is DeclaredReferenceExpression) {
-                        vertex.refersTo?.let {
-                            vertex = it
-                        }
+                    if (vertex is DeclaredReferenceExpression) {
+                        vertex.refersTo?.let { vertex = it }
                     }
                     // TODO (oxisto): this will not work, need a pointer to the node itself
-                    val contextIDs = nodeIDToContextIDs.computeIfAbsent(
-                        vertex.id!!
-                    ) { ArrayList() }
+                    val contextIDs = nodeIDToContextIDs.computeIfAbsent(vertex.id!!) { ArrayList() }
                     contextIDs.add(key)
                 }
             }
         }
     } else {
-        // if the instance is entity referenced in the op, precalculate the variabledecl for each used op
+        // if the instance is entity referenced in the op, precalculate the variabledecl for each
+        // used op
         for ((key, value) in context.allContexts) {
             if (!value.instanceContext.containsInstance(instance)) {
                 log.warn("Instance not found in context")
@@ -412,12 +400,9 @@ fun MRule.resolveOperand(
                 val opInstance = value.instanceContext.getNode(instance)
                 var id = -1L
                 if (opInstance != null) {
-                    // TODO (oxisto): this will not work, need a pointer to the node itself
                     id = opInstance.id!!
                 }
-                val contextIDs = nodeIDToContextIDs.computeIfAbsent(
-                    id
-                ) { ArrayList() }
+                val contextIDs = nodeIDToContextIDs.computeIfAbsent(id) { ArrayList() }
                 contextIDs.add(key)
             }
         }
@@ -429,21 +414,22 @@ fun MRule.resolveOperand(
         var id = -1L // -1 = null
         if (vertexWithValue.base != null) {
             val base = vertexWithValue.base
-            id = if (base is DeclaredReferenceExpression && base.refersTo != null) {
-                val referencedBase = base.refersTo
-                referencedBase?.id!!
-            } else {
-                base?.id!!
-            }
+            id =
+                if (base is DeclaredReferenceExpression && base.refersTo != null) {
+                    val referencedBase = base.refersTo
+                    referencedBase?.id!!
+                } else {
+                    base?.id!!
+                }
         }
         val contextIDs: List<Int>? = nodeIDToContextIDs[id]
         if (contextIDs == null) {
-            log.warn("Base not found in any context. Following expressionevaluation will be incomplete")
+            log.warn(
+                "Base not found in any context. Following expressionevaluation will be incomplete"
+            )
         } else {
             for (c in contextIDs) {
-                val verts = verticesPerContext.computeIfAbsent(
-                    c
-                ) { ArrayList() }
+                val verts = verticesPerContext.computeIfAbsent(c) { ArrayList() }
                 verts.add(vertexWithValue)
             }
         }
@@ -453,17 +439,19 @@ fun MRule.resolveOperand(
 }
 
 /**
- * Returns a list of [de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression]s and values that correspond
- * to a given MARK variable in a given rule.
+ * Returns a list of
+ * [de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression]s and values
+ * that correspond to a given MARK variable in a given rule.
  *
  * TODO: It seems that it can also contain declarations and others, not sure why
  *
- * @param markVar   The MARK variable.
- * @param rule      The MARK rule using the MARK variable.
+ * @param markVar The MARK variable.
+ * @param rule The MARK rule using the MARK variable.
  * @param markModel The current MARK model.
- * @param graph   The Graph.
+ * @param graph The Graph.
  *
- * @return List of reference nodes in a list of [de.fraunhofer.aisec.analysis.structures.NodeWithValue]
+ * @return List of reference nodes in a list of
+ * [de.fraunhofer.aisec.analysis.structures.NodeWithValue]
  */
 @ExperimentalGraph
 fun MRule.getMatchingReferences(
@@ -537,10 +525,9 @@ fun MRule.getMatchingReferences(
                 vars.add(opStmt)
             }
             // Function parameter, i.e. "something(..., var, ...)"
-            if (opStmt.call
-                    .params
-                    .stream()
-                    .anyMatch { p: Parameter -> p.getVar() == finalAttribute }
+            if (opStmt.call.params.stream().anyMatch { p: Parameter ->
+                    p.getVar() == finalAttribute
+                }
             ) {
                 args.add(opStmt)
             }
@@ -564,7 +551,7 @@ fun MRule.getMatchingReferences(
         for (opstmt in p.value1!!) {
             val fqFunctionName = opstmt.call.name
             val vertices = graph.getCalls(fqFunctionName, opstmt.call.params)
-            vertices.addAll(graph.getCtors(fqFunctionName, opstmt.call.params))
+            vertices.addAll(graph.getConstructs(fqFunctionName, opstmt.call.params))
 
             for (v in vertices) {
                 // precalculate base
@@ -577,35 +564,37 @@ fun MRule.getMatchingReferences(
                     foundTargetVertex = true
                     log.info("found assignment: {}", references)
 
-                    references.forEach(Consumer {
-                        // create a pair of nodes and their values (uninitalized yet)
-                        val cpgVertexWithValue = NodeWithValue<Node>(
-                            it,
-                            ConstantValue.newUninitialized()
-                        )
-                        cpgVertexWithValue.base = baseOfCallExpression
-                        matchingVertices.add(cpgVertexWithValue)
-                    })
+                    references.forEach(
+                        Consumer {
+                            // create a pair of nodes and their values (uninitalized yet)
+                            val cpgVertexWithValue =
+                                NodeWithValue<Node>(it, ConstantValue.newUninitialized())
+                            cpgVertexWithValue.base = baseOfCallExpression
+                            matchingVertices.add(cpgVertexWithValue)
+                        }
+                    )
                 }
 
                 // check if there was a direct initialization (i.e., int i = call(foo);)
-                val varDeclarations = v.getInitializedNodes(graph).filterIsInstance<VariableDeclaration>()
+                val varDeclarations =
+                    v.getInitializedNodes(graph).filterIsInstance<VariableDeclaration>()
                 if (!varDeclarations.isEmpty()) {
                     foundTargetVertex = true
                     log.info("found direct initialization: {}", varDeclarations)
 
-                    varDeclarations.forEach(Consumer {
-                        val cpgVertexWithValue = NodeWithValue<Node>(
-                            it,
-                            ConstantValue.newUninitialized()
-                        )
-                        cpgVertexWithValue.base = baseOfCallExpression
-                        matchingVertices.add(cpgVertexWithValue)
-                    })
+                    varDeclarations.forEach(
+                        Consumer {
+                            val cpgVertexWithValue =
+                                NodeWithValue<Node>(it, ConstantValue.newUninitialized())
+                            cpgVertexWithValue.base = baseOfCallExpression
+                            matchingVertices.add(cpgVertexWithValue)
+                        }
+                    )
                 }
 
                 if (!foundTargetVertex) { // this can be a directly used return value from a call
-                    val cpgVertexWithValue = NodeWithValue<Node>(v, ConstantValue.newUninitialized())
+                    val cpgVertexWithValue =
+                        NodeWithValue<Node>(v, ConstantValue.newUninitialized())
                     cpgVertexWithValue.base = baseOfCallExpression
                     matchingVertices.add(cpgVertexWithValue)
                 }
@@ -613,7 +602,8 @@ fun MRule.getMatchingReferences(
         }
     }
 
-    // get vertices for all usesAsFunctionArgs (i.e., Function parameter, i.e. "something(..., var, ...)")
+    // get vertices for all usesAsFunctionArgs (i.e., Function parameter, i.e. "something(..., var,
+    // ...)")
     for (p in usesAsFunctionArgs) {
         if (p.value1 == null) {
             log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.value0)
@@ -623,11 +613,14 @@ fun MRule.getMatchingReferences(
         for (opstmt in p.value1!!) { // opstatement is one possible method call/ctor inside an op
             val fqFunctionName = opstmt.call.name
             val params = opstmt.call.params
-            val paramPositions = IntStream.range(0, params.size).filter { i: Int ->
-                finalAttribute == params[i].getVar()
-            }.toArray()
+            val paramPositions =
+                IntStream.range(0, params.size)
+                    .filter { i: Int -> finalAttribute == params[i].getVar() }
+                    .toArray()
             if (paramPositions.size > 1) {
-                log.warn("Invalid op signature: MarkVar is referenced more than once. Only the first one will be used.")
+                log.warn(
+                    "Invalid op signature: MarkVar is referenced more than once. Only the first one will be used."
+                )
             }
 
             if (paramPositions.isEmpty()) {
@@ -646,29 +639,33 @@ fun MRule.getMatchingReferences(
 
                 if (argumentVertices.size == 1) {
                     // handle the case, where we have a 'this' variable, explicitly specifying the
-                    // base, this is usually used in scenarios, where the object is used as an argument
+                    // base, this is usually used in scenarios, where the object is used as an
+                    // argument
                     // rather than a member call
 
                     // get base of call expression
                     var baseOfCallExpression: Node?
-                    val thisPositions = IntStream.range(0, params.size).filter { i: Int ->
-                        "this" == params[i].getVar()
-                    }.toArray()
+                    val thisPositions =
+                        IntStream.range(0, params.size)
+                            .filter { i: Int -> "this" == params[i].getVar() }
+                            .toArray()
                     if (thisPositions.size == 1) {
-                        baseOfCallExpression = v.getBaseOfCallExpressionUsingArgument(
-                            thisPositions[0]
-                        )
+                        baseOfCallExpression =
+                            v.getBaseOfCallExpressionUsingArgument(thisPositions[0])
                     } else {
                         if (v is StaticCallExpression) {
                             baseOfCallExpression = v.getSuitableDFGTarget()
                         } else {
                             baseOfCallExpression = v.getBaseDeclaration()
-                            if (baseOfCallExpression == null) { // if we did not find a base the "easy way", try to find a base using the simple-DFG
+                            if (baseOfCallExpression == null
+                            ) { // if we did not find a base the "easy way", try to find a base
+                                // using the simple-DFG
                                 baseOfCallExpression = v.getSuitableDFGTarget()
                             }
                         }
                     }
-                    val cpgVertexWithValue = NodeWithValue<Node>(argumentVertices[0], ConstantValue.newUninitialized())
+                    val cpgVertexWithValue =
+                        NodeWithValue<Node>(argumentVertices[0], ConstantValue.newUninitialized())
                     cpgVertexWithValue.base = baseOfCallExpression
                     matchingVertices.add(cpgVertexWithValue)
                 } else {
@@ -678,12 +675,14 @@ fun MRule.getMatchingReferences(
                     )
                 }
             }
-            for (v in graph.getCtors(fqFunctionName, params)) {
+            for (v in graph.getConstructs(fqFunctionName, params)) {
                 val argumentVertices = v.arguments.filter { it.argumentIndex == argumentIndex }
                 if (argumentVertices.size == 1) {
                     // get base of initializer for ctor
-                    val baseOfCallExpression = argumentVertices[0].getBaseOfInitializerArgument(graph)
-                    val cpgVertexWithValue = NodeWithValue<Node>(argumentVertices[0], ConstantValue.newUninitialized())
+                    val baseOfCallExpression =
+                        argumentVertices[0].getBaseOfInitializerArgument(graph)
+                    val cpgVertexWithValue =
+                        NodeWithValue<Node>(argumentVertices[0], ConstantValue.newUninitialized())
                     cpgVertexWithValue.base = baseOfCallExpression
                     matchingVertices.add(cpgVertexWithValue)
                 } else {
@@ -696,18 +695,21 @@ fun MRule.getMatchingReferences(
         }
     }
 
-    log.debug("GETMATCHINGVERTICES for {} returns {}",
+    log.debug(
+        "GETMATCHINGVERTICES for {} returns {}",
         markVar,
-        matchingVertices.stream()
+        matchingVertices
+            .stream()
             .map { it.node.javaClass.simpleName + ": " + it.node.code }
-            .collect(Collectors.joining(", ")))
+            .collect(Collectors.joining(", "))
+    )
 
     return matchingVertices
 }
 
 /**
- * Given a MARK variable and a list of vertices, attempts to find constant values that would be assigned to these variables at runtime.
- *
+ * Given a MARK variable and a list of vertices, attempts to find constant values that would be
+ * assigned to these variables at runtime.
  *
  * The precision of this resolution depends on the implementation of the ConstantResolver.
  *
@@ -722,20 +724,24 @@ private fun resolveValuesForVertices(
     val ret = mutableListOf<NodeWithValue<Node>>()
     for (v in vertices) {
         if (v.node is Literal<*> && v.node.value != null) {
-            // The vertices may already be constants ("Literal"). In that case, immediately add the value.
+            // The vertices may already be constants ("Literal"). In that case, immediately add the
+            // value.
             val add = NodeWithValue.of(v)
             add.value = ConstantValue.of(v.node.value)
             ret.add(add)
         } else if (v.node is MemberExpression) {
-            // When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the member's name.
+            // When resolving to a member ("javax.crypto.Cipher.ENCRYPT_MODE") we resolve to the
+            // member's name.
             val cResolver: ConstantResolver = SimpleConstantResolver()
             val constantValue = cResolver.resolveConstantValues(v.node)
             if (constantValue.isNotEmpty()) {
-                constantValue.forEach(Consumer { cv: ConstantValue ->
-                    val add = NodeWithValue.of(v)
-                    add.value = cv
-                    ret.add(add)
-                })
+                constantValue.forEach(
+                    Consumer { cv: ConstantValue ->
+                        val add = NodeWithValue.of(v)
+                        add.value = cv
+                        ret.add(add)
+                    }
+                )
             } else {
                 val fqn: String = v.node.base.name + '.' + v.node.name
                 val cv = ConstantValue.of(fqn)
@@ -744,16 +750,18 @@ private fun resolveValuesForVertices(
                 ret.add(add)
             }
         } else if (v.node is DeclaredReferenceExpression) {
-            // Otherwise we use ConstantResolver to find concrete values of a DeclaredReferenceExpression.
-            val cResolver: ConstantResolver =
-                SimpleConstantResolver()
+            // Otherwise we use ConstantResolver to find concrete values of a
+            // DeclaredReferenceExpression.
+            val cResolver: ConstantResolver = SimpleConstantResolver()
             val constantValue = cResolver.resolveConstantValues(v.node)
             if (constantValue.isNotEmpty()) {
-                constantValue.forEach(Consumer { cv: ConstantValue ->
-                    val add = NodeWithValue.of(v)
-                    add.value = cv
-                    ret.add(add)
-                })
+                constantValue.forEach(
+                    Consumer { cv: ConstantValue ->
+                        val add = NodeWithValue.of(v)
+                        add.value = cv
+                        ret.add(add)
+                    }
+                )
             } else {
                 val fqn = v.node.name
                 val cv = ConstantValue.of(fqn)
@@ -776,26 +784,32 @@ private fun resolveValuesForVertices(
     return ret
 }
 
-
 /**
- * If this expression is the right-hand side of a [de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator], it will return the left-hand side of the operation. Additionally, it will filter only for references, i.e. [de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression].
+ * If this expression is the right-hand side of a
+ * [de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator], it will return the
+ * left-hand side of the operation. Additionally, it will filter only for references, i.e.
+ * [de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression].
  */
 @ExperimentalGraph
 private fun Expression.lhsReferenceOfAssignment(graph: Graph): List<DeclaredReferenceExpression> {
-    // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
-    return graph.nodes.filter {
-        it is BinaryOperator &&
-                it.rhs == this && it.operatorCode == "="} // look for a binary operation where this expression is on the right-hand side
+    // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST
+    // parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
+    return graph
+        .nodes
+        .filter {
+            it is BinaryOperator && it.rhs == this && it.operatorCode == "="
+        } // look for a binary operation where this expression is on the right-hand side
         .map { (it as BinaryOperator).lhs } // return the LHS
         .filterIsInstance<DeclaredReferenceExpression>() // we are only interested in references
 }
 
 /**
- * Returns true if the given list of arguments (of a function or method or constructor call)
- * matches the given list of parameters in MARK.
+ * Returns true if the given list of arguments (of a function or method or constructor call) matches
+ * the given list of parameters in MARK.
  *
- * @param markParameters  List of types.
- * @param sourceArguments List of Vertices. Each Vertex is expected to have an "argumentIndex" property.
+ * @param markParameters List of types.
+ * @param sourceArguments List of Vertices. Each Vertex is expected to have an "argumentIndex"
+ * property.
  * @return
  */
 @ExperimentalGraph
@@ -809,7 +823,7 @@ private fun argumentsMatchParameters(
         val sourceArgs: MutableSet<Type> = HashSet()
 
         // We cannot assume that the position in sourceArgument corresponds with the actual order.
-         // Must rather check "argumentIndex" property.
+        // Must rather check "argumentIndex" property.
         for (vArg in sourceArguments) {
             val sourceArgPos = vArg.argumentIndex
 
@@ -850,7 +864,10 @@ private fun argumentsMatchParameters(
     var endsWithEllipsis = false
     if (i < markParameters.size) {
         val sublist: List<Parameter> = markParameters.subList(i, markParameters.size)
-        endsWithEllipsis = sublist.stream().allMatch { markParm: Parameter -> Constants.ELLIPSIS == markParm.getVar() }
+        endsWithEllipsis =
+            sublist.stream().allMatch { markParm: Parameter ->
+                Constants.ELLIPSIS == markParm.getVar()
+            }
     }
     return (i == markParameters.size || endsWithEllipsis) && i == sourceArguments.size
 }

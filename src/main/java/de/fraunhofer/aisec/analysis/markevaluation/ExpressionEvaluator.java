@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
@@ -23,7 +24,6 @@ import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +72,6 @@ public class ExpressionEvaluator {
 	 */
 	@NonNull
 	public Map<Integer, MarkIntermediateResult> evaluateExpression(Expression expr) {
-
 		if (expr == null) {
 			log.error("Cannot evaluate null Expression");
 			return markContextHolder.generateNullResult();
@@ -223,7 +222,7 @@ public class ExpressionEvaluator {
 						right.getClass().equals(Boolean.class)) {
 
 					ConstantValue cv = ConstantValue.of(Boolean.logicalAnd((Boolean) left, (Boolean) right));
-					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+					cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 					combinedResult.put(key, cv);
 				}
 
@@ -245,7 +244,7 @@ public class ExpressionEvaluator {
 						right.getClass().equals(Boolean.class)) {
 
 					ConstantValue cv = ConstantValue.of(Boolean.logicalOr((Boolean) left, (Boolean) right));
-					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+					cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 					combinedResult.put(key, cv);
 				}
 			}
@@ -295,12 +294,12 @@ public class ExpressionEvaluator {
 							String inner = ExpressionHelper.toComparableString(o);
 							if (comp.compare(ExpressionHelper.toComparableString(left), inner) == 0) {
 								cv = ConstantValue.of(true);
-								cv.addResponsibleVerticesFrom((ConstantValue) o);
+								cv.addResponsibleNodesFrom((ConstantValue) o);
 								break;
 							}
 						}
 					}
-					cv.addResponsibleVerticesFrom(leftBoxed);
+					cv.addResponsibleNodesFrom(leftBoxed);
 					combinedResult.put(key, cv);
 				} else {
 					log.warn("Unknown op for List on the right side");
@@ -328,38 +327,39 @@ public class ExpressionEvaluator {
 					switch (op) {
 						case "==":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) == 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case "!=":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) != 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case "<":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) < 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case "<=":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) <= 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case ">":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) > 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case ">=":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) >= 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 
 						case "like":
 							cv = ConstantValue.of(
 								Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						default:
 							log.warn("Unsupported operand {}", op);
 							cv = ErrorValue.newErrorValue(String.format("Unsupported operand %s", op));
 					}
+
 					combinedResult.put(key, cv);
 				}
 			}
@@ -524,7 +524,7 @@ public class ExpressionEvaluator {
 		}
 
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
-		for (Integer key : markContextHolder.getAllLegacyContexts()
+		for (Integer key : markContextHolder.getAllContexts()
 				.keySet()) {
 			ret.put(key, value);
 		}
@@ -657,7 +657,7 @@ public class ExpressionEvaluator {
 						unboxedResult = ErrorValue.newErrorValue(String.format("Unsupported expression %s", op));
 				}
 				ConstantValue cv = ConstantValue.of(unboxedResult);
-				cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+				cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 				combinedResult.put(key, cv);
 			}
 		}
@@ -724,7 +724,7 @@ public class ExpressionEvaluator {
 					unboxedResult = ErrorValue.newErrorValue(String.format("Trying to evaluate unknown unary expression: %s", ExpressionHelper.exprToString(expr)));
 			}
 			ConstantValue cv = ConstantValue.of(unboxedResult);
-			cv.addResponsibleVerticesFrom(valueBoxed);
+			cv.addResponsibleNodesFrom(valueBoxed);
 			subExprResult.put(entry.getKey(), cv);
 		}
 		return subExprResult;
@@ -751,10 +751,10 @@ public class ExpressionEvaluator {
 
 		if (split.length == 1) { // also return the markvar itself, might be needed by a builtin
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
-				Vertex vertex = markContextHolder.getLegacyContext(entry.getKey()).getInstanceContext().getVertex(operand.getOperand());
-				CPGVertexWithValue vwv = new CPGVertexWithValue(vertex, ConstantValue.newUninitialized());
-				ConstantValue constant = ConstantValue.of(vwv.getValue());
-				constant.addResponsibleVertex(vertex);
+				var node = markContextHolder.getContext(entry.getKey()).getInstanceContext().getNode(operand.getOperand());
+				var vwv = new NodeWithValue<Node>(node, ConstantValue.newUninitialized());
+				var constant = ConstantValue.of(vwv.getValue());
+				constant.addResponsibleNode(node);
 				entry.setValue(constant);
 			}
 		}
@@ -764,8 +764,7 @@ public class ExpressionEvaluator {
 
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateSingleOperand(String operand) {
-
-		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getResolvedOperand(operand);
+		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getLegacyResolvedOperand(operand);
 
 		if (resolvedOperand == null) {
 			// if this operand is not resolved yet in this expression evaluation, resolve it

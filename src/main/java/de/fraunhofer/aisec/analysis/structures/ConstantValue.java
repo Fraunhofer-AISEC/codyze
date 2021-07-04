@@ -172,10 +172,19 @@ public class ConstantValue extends MarkIntermediateResult {
 		responsibleNodes.addAll(Arrays.asList(nodes));
 	}
 
+	@Deprecated
 	public void addResponsibleVerticesFrom(ConstantValue... other) {
 		if (other != null) {
 			for (ConstantValue cv : other) {
 				responsibleVertices.addAll(cv.responsibleVertices);
+			}
+		}
+	}
+
+	public void addResponsibleNodesFrom(ConstantValue... other) {
+		if (other != null) {
+			for (ConstantValue cv : other) {
+				responsibleNodes.addAll(cv.responsibleNodes);
 			}
 		}
 	}

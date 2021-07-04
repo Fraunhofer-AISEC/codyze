@@ -43,7 +43,6 @@ class SimpleConstantResolver : ConstantResolver {
     ): Set<ConstantValue> {
         // TODO(oxisto): refersTo is singular, so why is this a set?
         val result: MutableSet<ConstantValue> = HashSet()
-        // TODO(oxisto): do we also need to support field declarations?
         val `val` =
             resolveConstantValueOfFunctionArgument(
                 declRefExpr.refersTo as? HasInitializer,
@@ -81,7 +80,7 @@ class SimpleConstantResolver : ConstantResolver {
                 }
                 seen.add(tVertex)
 
-                if (tVertex is BinaryOperator && tVertex.operatorCode == "==" && tVertex.lhs != null
+                if (tVertex is BinaryOperator && tVertex.operatorCode == "=" && tVertex.lhs != null
                 ) {
                     val lhs = tVertex.lhs
 

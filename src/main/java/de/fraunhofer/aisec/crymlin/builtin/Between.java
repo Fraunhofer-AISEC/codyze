@@ -50,9 +50,9 @@ public class Between implements Builtin {
 			String ret = s.substring(s.indexOf(start) + 1);
 			ret = ret.substring(0, ret.lastIndexOf(end));
 
-			ConstantValue cv = ConstantValue.of(ret);
+			var cv = ConstantValue.of(ret);
 
-			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+			cv.addResponsibleNodesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1),
 				(ConstantValue) argResultList.get(2));
 

@@ -90,7 +90,7 @@ public class LegacyExpressionEvaluator {
 
 		if (expr == null) {
 			log.error("Cannot evaluate null Expression");
-			return MarkContextHolder.generateNullResult();
+			return MarkContextHolder.generateLegacyNullResult();
 		}
 
 		// from lowest to highest operator precedence
@@ -754,7 +754,7 @@ public class LegacyExpressionEvaluator {
 		StringBuilder sb = new StringBuilder();
 		sb.append(split[0]); // add base
 
-		Map<Integer, MarkIntermediateResult> result = MarkContextHolder.generateNullResult();
+		Map<Integer, MarkIntermediateResult> result = MarkContextHolder.generateLegacyNullResult();
 
 		for (int i = 1; i < split.length; i++) {
 			sb.append(".");

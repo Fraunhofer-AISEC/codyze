@@ -46,11 +46,13 @@ public class Is implements Builtin {
 			return ret;
 		}
 		catch (InvalidArgumentException e) {
+			if (argResultList.size() == 1) {
+				System.out.println("something wrong here!");
+			}
 			// Expected: Did not find a matching vertex v1 or v2. Return false
-			log.info("_is({}, {}) returns false", argResultList.get(0), argResultList.get(1), e.getMessage());
-			ConstantValue retFalse = ConstantValue.of(false);
+			log.info("_is({}, {}) returns false", argResultList.get(0), argResultList.get(1));
 
-			return retFalse;
+			return ConstantValue.of(false);
 		}
 
 	}

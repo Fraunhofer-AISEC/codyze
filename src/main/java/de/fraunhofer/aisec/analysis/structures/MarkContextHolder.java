@@ -76,9 +76,18 @@ public class MarkContextHolder {
 		return contexts;
 	}
 
-	public Map<Integer, MarkIntermediateResult> generateNullResult() {
+	@Deprecated
+	public Map<Integer, MarkIntermediateResult> generateLegacyNullResult() {
 		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
 		legacyContexts.keySet()
+				.forEach(
+					x -> ret.put(x, ConstantValue.newUninitialized()));
+		return ret;
+	}
+
+	public Map<Integer, MarkIntermediateResult> generateNullResult() {
+		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
+		contexts.keySet()
 				.forEach(
 					x -> ret.put(x, ConstantValue.newUninitialized()));
 		return ret;

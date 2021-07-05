@@ -25,7 +25,6 @@ import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +71,7 @@ public class ExpressionEvaluator {
 	public Map<Integer, MarkIntermediateResult> evaluateExpression(Expression expr) {
 		if (expr == null) {
 			log.error("Cannot evaluate null Expression");
-			return markContextHolder.generateNullResult();
+			return markContextHolder.generateLegacyNullResult();
 		}
 
 		// from lowest to highest operator precedence

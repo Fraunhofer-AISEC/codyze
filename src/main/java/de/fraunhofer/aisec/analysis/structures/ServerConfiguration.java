@@ -89,7 +89,7 @@ public class ServerConfiguration {
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
 		private boolean disableOverflow;
-		private boolean legacyEvaluator = true;
+		private boolean legacyEvaluator;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;

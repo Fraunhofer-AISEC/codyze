@@ -810,12 +810,6 @@ private fun Expression.lhsReferenceOfAssignment(graph: Graph): List<DeclaredRefe
         .filterIsInstance<DeclaredReferenceExpression>() // we are only interested in references
 }
 
-@ExperimentalGraph
-val Graph.functions: List<FunctionDeclaration>
-    get() {
-        return this.nodes.filterIsInstance<FunctionDeclaration>()
-    }
-
 /**
  * Returns true if the given list of arguments (of a function or method or constructor call) matches
  * the given list of parameters in MARK.

@@ -1,6 +1,8 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
+import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
@@ -31,7 +33,6 @@ class AnalysisServerBotanTest {
 
 	@BeforeAll
 	public static void startup() throws Exception {
-
 		ClassLoader classLoader = AnalysisServerBotanTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource("mark_cpp/symm_block_cipher.cpp");
@@ -115,7 +116,15 @@ class AnalysisServerBotanTest {
 	private static TranslationManager newAnalysisRun(File... sourceLocations) {
 		return TranslationManager.builder()
 				.config(
-					TranslationConfiguration.builder().debugParser(true).failOnError(false).defaultPasses().defaultLanguages().sourceLocations(sourceLocations).build())
+					TranslationConfiguration.builder()
+							.debugParser(true)
+							.failOnError(false)
+							.defaultPasses()
+							.registerPass(new IdentifierPass())
+							.registerPass(new EdgeCachePass())
+							.defaultLanguages()
+							.sourceLocations(sourceLocations)
+							.build())
 				.build();
 	}
 }

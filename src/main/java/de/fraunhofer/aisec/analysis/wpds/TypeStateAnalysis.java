@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePassKt.getAstParent;
 import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.*;
+import static de.fraunhofer.aisec.analysis.markevaluation.NodeExtensionsKt.getFunctions;
 import static java.lang.Math.toIntExact;
 
 /**

@@ -396,15 +396,18 @@ public class AnalysisServer {
 			lsp.shutdown();
 		}
 
-		// Close in-memory graph and evict caches
-		db.close();
+		if (config.legacyEvaluator) {
+			// Close in-memory graph and evict caches
+			db.close();
+		}
 
 		this.config = null;
 		this.markModel = null;
 		this.interp = null;
 		this.lsp = null;
 		this.translationResult = null;
-		this.instance = null;
+		instance = null;
+
 		log.info("stop.");
 	}
 

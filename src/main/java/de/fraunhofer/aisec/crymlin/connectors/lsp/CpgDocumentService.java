@@ -1,6 +1,8 @@
 
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
+import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
+import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -115,6 +117,8 @@ public class CpgDocumentService implements TextDocumentService {
 							.registerPass(new TypeResolver())
 							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 							.registerPass(new FilenameMapper())
+							.registerPass(new IdentifierPass())
+							.registerPass(new EdgeCachePass())
 							.sourceLocations(file)
 							.build())
 				.build();

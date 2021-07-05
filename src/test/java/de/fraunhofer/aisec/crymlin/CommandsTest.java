@@ -23,6 +23,7 @@ class CommandsTest {
 						.launchConsole(true)
 						.typestateAnalysis(TypestateMode.NFA)
 						.markFiles(new File("src/test/resources/mark_java").getAbsolutePath())
+						.useLegacyEvaluator(true)
 						.build())
 				.build();
 

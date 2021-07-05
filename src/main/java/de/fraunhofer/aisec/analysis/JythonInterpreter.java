@@ -35,6 +35,7 @@ import static org.python.jline.internal.Ansi.stripAnsi;
  *
  * @author julian
  */
+@Deprecated
 public class JythonInterpreter implements AutoCloseable {
 	public static final String ANSI_RESET = "\u001B[0m";
 	public static final String ANSI_BLACK = "\u001B[30m";

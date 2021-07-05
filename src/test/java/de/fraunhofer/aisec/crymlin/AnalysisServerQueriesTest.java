@@ -1,6 +1,8 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
+import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.cpgpasses.StatementsPerMethodPass;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
@@ -95,6 +97,8 @@ class AnalysisServerQueriesTest {
 							.failOnError(false)
 							.defaultPasses()
 							.defaultLanguages()
+							.registerPass(new IdentifierPass())
+							.registerPass(new EdgeCachePass())
 							.registerPass(new StatementsPerMethodPass())
 							.sourceLocations(
 								sourceLocations)

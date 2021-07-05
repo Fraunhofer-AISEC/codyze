@@ -42,14 +42,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>
  * We expect Neo4J and OverflowDB to behave exactly the same, so we can replace one by the other. These tests verify that the graph structure is as expected.
  */
-class OGMTest {
+@Deprecated
+class LegacyOGMTest {
 
 	private static AnalysisContext result;
 	private static AnalysisServer server;
 
 	@BeforeAll
 	static void setup() throws ExecutionException, InterruptedException {
-		URL resource = OGMTest.class.getClassLoader().getResource("unittests/order.java");
+		URL resource = LegacyOGMTest.class.getClassLoader().getResource("unittests/order.java");
 		assertNotNull(resource);
 		File sourceFile = new File(resource.getFile());
 
@@ -63,7 +64,7 @@ class OGMTest {
 
 		TranslationManager tm = TranslationManager.builder().config(config).build();
 		// Start an analysis server
-		server = AnalysisServer.builder().config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).build()).build();
+		server = AnalysisServer.builder().config(ServerConfiguration.builder().launchConsole(false).launchLsp(false).useLegacyEvaluator(true).build()).build();
 		server.start();
 
 		result = server.analyze(tm).get();

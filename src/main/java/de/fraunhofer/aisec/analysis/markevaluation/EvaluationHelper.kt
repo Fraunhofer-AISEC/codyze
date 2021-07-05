@@ -119,7 +119,6 @@ fun Graph.getField(fqnClassName: String, fieldName: String?): FieldDeclaration? 
  * @param vertex
  * @return
  */
-@ExperimentalGraph
 fun Node.getSuitableDFGTarget(): Node? {
     val it = this.nextDFG.iterator()
     var target: Node? = null
@@ -187,22 +186,22 @@ val Node.nextStatement: Statement?
     }
 
 /**
- * Given a Vertex v, try to find the function or method in which v is contained. The resulting
+ * Given a node, try to find the function or method in which the node is contained. The resulting
  * Vertex will be of type FunctionDeclaration or MethodDeclaration. If v is not contained in a
  * function, this method returns an empty Optional.
  *
  * @return
  */
-@ExperimentalGraph
-fun Node.getContainingFunction(): FunctionDeclaration? {
-    var parent = this.astParent
+val Node.containingFunction: FunctionDeclaration?
+    get() {
+        var parent = this.astParent
 
-    while (parent != null && parent !is FunctionDeclaration) {
-        parent = parent.astParent
+        while (parent != null && parent !is FunctionDeclaration) {
+            parent = parent.astParent
+        }
+
+        return parent as? FunctionDeclaration
     }
-
-    return parent as? FunctionDeclaration
-}
 
 /** Checks, whether a EOG connection from this node (source) to the sink exists. */
 fun Node.hasEOGTo(sink: Node, branchesAllowed: Boolean): Boolean {
@@ -244,7 +243,6 @@ fun Node.hasEOGTo(sink: Node, branchesAllowed: Boolean): Boolean {
     return false
 }
 
-@ExperimentalGraph
 fun ConstructExpression.getAssignee(): Node? {
     this.initializedNode?.let {
         var node = it
@@ -324,7 +322,6 @@ private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: I
  *
  * For example for the code `Foo f = new Foo(b)` this would return `f` for the expression `b`.
  */
-@ExperimentalGraph
 fun Expression.getBaseOfInitializerArgument(): Node? {
     var base: Node? = null
 
@@ -337,7 +334,17 @@ fun Expression.getBaseOfInitializerArgument(): Node? {
         astParent?.initializedNode?.let {
             when (it) {
                 is DeclaredReferenceExpression -> it.refersTo.let { base = it }
-                is NewExpression -> base = it.astParent
+                is NewExpression -> {
+                    // if the NewExpression is part of an initializer, return the initializer
+                    val parent = it.astParent
+                    base =
+                        if (parent is HasInitializer) {
+                            it.astParent
+                        } else {
+                            // otherwise, the NewExpression itself is the base
+                            it
+                        }
+                }
                 else -> base = it
             }
         }

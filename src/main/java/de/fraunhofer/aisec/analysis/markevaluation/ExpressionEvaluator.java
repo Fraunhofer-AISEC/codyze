@@ -71,7 +71,7 @@ public class ExpressionEvaluator {
 	public Map<Integer, MarkIntermediateResult> evaluateExpression(Expression expr) {
 		if (expr == null) {
 			log.error("Cannot evaluate null Expression");
-			return markContextHolder.generateLegacyNullResult();
+			return markContextHolder.generateNullResult();
 		}
 
 		// from lowest to highest operator precedence

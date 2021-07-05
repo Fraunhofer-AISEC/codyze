@@ -818,6 +818,7 @@ private fun argumentsMatchParameters(
 
             if (sourceArgPos == i) {
                 sourceArgs.addAll(vArg.possibleSubTypes)
+                sourceArgs.add(vArg.type)
             }
         }
 

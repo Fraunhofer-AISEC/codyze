@@ -13,6 +13,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -67,8 +68,11 @@ public class IsInstance implements Builtin {
 					String type = ((CallExpression) next).getFqn();
 					cv = ConstantValue.of(type.equals(classname));
 				} else {
+					var types = new HashSet<>(((HasType) next).getPossibleSubTypes());
+					types.add(((HasType) next).getType());
+
 					// Get list of possible types, including the most specific type.
-					boolean match = ((HasType) next).getPossibleSubTypes()
+					boolean match = types
 							.stream()
 							.map(Type::getTypeName)
 							.anyMatch(classname::equals);

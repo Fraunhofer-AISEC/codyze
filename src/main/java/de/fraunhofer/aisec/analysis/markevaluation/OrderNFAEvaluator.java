@@ -365,14 +365,14 @@ public class OrderNFAEvaluator {
 								newBases.forEach((k, v) -> baseToFSMNodes.remove(newEOGPath + k));
 							} else {
 								// update the eog-path directly in the vertices for the next step
-								nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(i).getId(),
+								nodeIDtoEOGPathSet.computeIfAbsent(outVertices.get(i).getId(),
 									x -> new HashSet<>()).add(newEOGPath);
 							}
 						}
 					} else if (outVertices.size() == 1) {
 						// else, if we only have one vertex following this
 						// vertex, simply propagate the current eogpath to the next vertex
-						nodeIDtoEOGPathSet.computeIfAbsent((Long) outVertices.get(0).getId(),
+						nodeIDtoEOGPathSet.computeIfAbsent(outVertices.get(0).getId(),
 							x -> new HashSet<>()).add(eogPath);
 					}
 

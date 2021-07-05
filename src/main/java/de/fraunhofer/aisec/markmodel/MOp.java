@@ -122,8 +122,11 @@ public class MOp {
 	public void reset() {
 		parsed = false;
 		statementToCPGVertex = new HashMap<>();
+		statementToNodes.clear();
 		vertexToStatements = new HashMap<>();
+		nodesToStatements.clear();
 		allVertices = new HashSet<>();
+		allNodes.clear();
 	}
 
 	public static List<String> paramsToString(List<Parameter> params) {

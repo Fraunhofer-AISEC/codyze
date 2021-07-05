@@ -61,10 +61,9 @@ public class Evaluator {
 	 * @param ctx    [out] the context storing the result of the evaluation. This could also include results from previous steps
 	 */
 	public TranslationResult evaluate(@NonNull TranslationResult result, @NonNull final AnalysisContext ctx) {
-
 		Benchmark bOuter = new Benchmark(this.getClass(), "Mark evaluation");
 
-		try /*(TraversalConnection traversal = new TraversalConnection(ctx.getDatabase()))*/ { // connects to the DB
+		try { // connects to the DB
 			var graph = getGraph(result);
 
 			log.info("Precalculating matching nodes");

@@ -377,7 +377,7 @@ public class Evaluator {
 
 					// TODO(oxisto): There is similar code in EvaluationHelper::getMatchingReferences
 					if (node instanceof ConstructExpression) {
-						ref = getAssignee((ConstructExpression) node, graph);
+						ref = getAssignee((ConstructExpression) node);
 					} else if (node instanceof StaticCallExpression) {
 						// mainly for builder functions
 						ref = getSuitableDFGTarget(node);

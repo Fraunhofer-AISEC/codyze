@@ -195,8 +195,10 @@ public class LegacyEvaluator {
 			/* Get findings from "result" */
 			Collection<Finding> findings = getFindings(result, markCtxHolder, rule);
 
-			log.info("Got {} findings: {}", findings.size(), findings.stream().map(f -> f.getLogMsg()).collect(Collectors.toList()));
 			ctx.getFindings().addAll(findings);
+
+			log.info("Got {} findings in analysis context: {}", ctx.getFindings().size(),
+				ctx.getFindings().stream().map(Finding::getLogMsg).collect(Collectors.toList()));
 		}
 	}
 

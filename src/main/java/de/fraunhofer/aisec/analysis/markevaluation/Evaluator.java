@@ -183,14 +183,15 @@ public class Evaluator {
 			// Evaluate "when" part, if present (will possibly remove entries from markCtxhHlder)
 			evaluateWhen(rule, markCtxHolder, ee);
 
-			// Evaluate "ensure" part
+			// Evaluate "ensure" part. This may already add findings, i.e. from the order expression
 			Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(rule.getStatement().getEnsure().getExp());
 
 			// Get findings from "result"
 			Collection<Finding> findings = getFindings(result, markCtxHolder, rule);
-
-			log.info("Got {} findings: {}", findings.size(), findings.stream().map(Finding::getLogMsg).collect(Collectors.toList()));
 			ctx.getFindings().addAll(findings);
+
+			log.info("Got {} findings in analysis context: {}", ctx.getFindings().size(),
+				ctx.getFindings().stream().map(Finding::getLogMsg).collect(Collectors.toList()));
 		}
 	}
 

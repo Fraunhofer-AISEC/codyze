@@ -238,92 +238,93 @@ public class OrderNFAEvaluator {
 										}
 									}
 								}
-								if (base == null) {
-									log.error("base must not be null for {}", vertex.getClass().getSimpleName());
+							}
+
+							if (base == null) {
+								log.error("base must not be null for {}", vertex.getClass().getSimpleName());
+							} else {
+								if (refNode != null
+										&& !referencedVertices.contains(refNode.getId())) {
+									log.info("this call does not reference the function we are looking at, skipping.");
 								} else {
-									if (refNode != null
-											&& !referencedVertices.contains(refNode.getId())) {
-										log.info("this call does not reference the function we are looking at, skipping.");
+									// if we have a reference to a node in the cpg, we add this to the prefixed
+									// base this way, we could differentiate between nodes with the same base
+									// name, but referencing different variables (e.g., if they are used in
+									// different blocks)
+									if (ref != null) {
+										base += "|" + ref;
+									}
+
+									String prefixedBase = eogPath + "." + base;
+
+									if (isDisallowedBase(disallowedBases, eogPath, base)) {
+										// we hide base errors for now!
 									} else {
-										// if we have a reference to a node in the cpg, we add this to the prefixed
-										// base this way, we could differentiate between nodes with the same base
-										// name, but referencing different variables (e.g., if they are used in
-										// different blocks)
-										if (ref != null) {
-											base += "|" + ref;
+										Set<Node> nodesInFSM;
+										if (baseToFSMNodes.get(prefixedBase) == null) {
+											// we have not seen this base before. check if this is the start of an order
+											nodesInFSM = fsm.getStart(); // start nodes
+										} else {
+											nodesInFSM = baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
 										}
 
-										String prefixedBase = eogPath + "." + base;
+										HashSet<Node> nextNodesInFSM = new HashSet<>();
 
-										if (isDisallowedBase(disallowedBases, eogPath, base)) {
-											// we hide base errors for now!
+										// did at least one fsm-Node-match occur?
+										boolean match = false;
+										for (Node n : nodesInFSM) {
+											// are there any ops corresponding to the current base and the current function name?
+											if (op.getName().equals(n.getOp())) {
+												// this also has as effect, that if the FSM is in a end-state and a
+												// intermediate state, and we follow the intermediate state, the
+												// end-state is removed again, which is correct!
+												nextNodesInFSM.addAll(n.getSuccessors());
+												match = true;
+											}
+										}
+										if (!match) {
+											// if not, this call is not allowed, and this base must not be used in the
+											// following eog
+											isOrderValid = false;
+
+											var region = Utils.getRegionByNode(vertex);
+											Finding f = new Finding(
+												"Violation against Order: "
+														+ vertex.getCode()
+														+ " ("
+														+ op.getName()
+														+ ") is not allowed. Expected one of: "
+														+ nodesInFSM.stream()
+																.map(Node::getName)
+																.sorted()
+																.collect(Collectors.joining(", "))
+														+ " ("
+														+ rule.getErrorMessage()
+														+ ")",
+												rule.getErrorMessage(),
+												new File(vertex.getFile()).toURI(),
+												region.getStartLine(),
+												region.getEndLine(),
+												region.getStartColumn(),
+												region.getEndColumn());
+											if (markContextHolder.isCreateFindingsDuringEvaluation()) {
+												ctx.getFindings().add(f);
+											}
+											log.info("Finding: {}", f);
+											disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
 										} else {
-											Set<Node> nodesInFSM;
-											if (baseToFSMNodes.get(prefixedBase) == null) {
-												// we have not seen this base before. check if this is the start of an order
-												nodesInFSM = fsm.getStart(); // start nodes
-											} else {
-												nodesInFSM = baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
-											}
-
-											HashSet<Node> nextNodesInFSM = new HashSet<>();
-
-											// did at least one fsm-Node-match occur?
-											boolean match = false;
-											for (Node n : nodesInFSM) {
-												// are there any ops corresponding to the current base and the current function name?
-												if (op.getName().equals(n.getOp())) {
-													// this also has as effect, that if the FSM is in a end-state and a
-													// intermediate state, and we follow the intermediate state, the
-													// end-state is removed again, which is correct!
-													nextNodesInFSM.addAll(n.getSuccessors());
-													match = true;
-												}
-											}
-											if (!match) {
-												// if not, this call is not allowed, and this base must not be used in the
-												// following eog
-												isOrderValid = false;
-
-												var region = Utils.getRegionByNode(vertex);
-												Finding f = new Finding(
-													"Violation against Order: "
-															+ vertex.getCode()
-															+ " ("
-															+ op.getName()
-															+ ") is not allowed. Expected one of: "
-															+ nodesInFSM.stream()
-																	.map(Node::getName)
-																	.sorted()
-																	.collect(Collectors.joining(", "))
-															+ " ("
-															+ rule.getErrorMessage()
-															+ ")",
-													rule.getErrorMessage(),
-													new File(vertex.getFile()).toURI(),
-													region.getStartLine(),
-													region.getEndLine(),
-													region.getStartColumn(),
-													region.getEndColumn());
-												if (markContextHolder.isCreateFindingsDuringEvaluation()) {
-													ctx.getFindings().add(f);
-												}
-												log.info("Finding: {}", f);
-												disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
-											} else {
-												var region = Utils.getRegionByNode(vertex);
-												var vertex1 = lastBaseUsage.get(prefixedBase);
+											var region = Utils.getRegionByNode(vertex);
+											var vertex1 = lastBaseUsage.get(prefixedBase);
+											long prevMaxLine = 0;
+											if (vertex1 != null) {
 												var region1 = Utils.getRegionByNode(vertex1);
-												long prevMaxLine = 0;
-												if (vertex1 != null) {
-													prevMaxLine = region1.getStartLine();
-												}
-												long newLine = region.getStartLine();
-												if (prevMaxLine <= newLine) {
-													lastBaseUsage.put(prefixedBase, vertex);
-												}
-												baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
+												prevMaxLine = region1.getStartLine();
 											}
+											long newLine = region.getStartLine();
+											if (prevMaxLine <= newLine) {
+												lastBaseUsage.put(prefixedBase, vertex);
+											}
+											baseToFSMNodes.put(prefixedBase, nextNodesInFSM);
 										}
 									}
 								}
@@ -439,6 +440,10 @@ public class OrderNFAEvaluator {
 			if (vertex != null) {
 				file = new File(vertex.getFile()).toURI();
 				var region = Utils.getRegionByNode(vertex);
+				startLine = region.getStartLine();
+				endLine = region.getEndLine();
+				startCol = region.getStartColumn();
+				endCol = region.getEndColumn();
 			}
 			Finding f = new Finding(
 				"Violation against Order: Base "

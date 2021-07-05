@@ -141,13 +141,14 @@ fun Node.getSuitableDFGTarget(): Node? {
     return target
 }
 
-@ExperimentalGraph
-fun Node.getInitializedNodes(graph: Graph): List<Node> {
-    // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST
-    // parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
-
-    return graph.nodes.filter { it is HasInitializer && it.initializer == this }
-}
+val Node.initializedNode: Node?
+    get() {
+        return if (this.astParent is HasInitializer) {
+            this.astParent
+        } else {
+            null
+        }
+    }
 
 fun FieldDeclaration.getInitializerValue(): Any? {
     this.initializer?.let {
@@ -220,28 +221,24 @@ fun Node.hasEOGTo(sink: Node, branchesAllowed: Boolean): Boolean {
 }
 
 @ExperimentalGraph
-fun ConstructExpression.getAssignee(graph: Graph): Node? {
-    var it = this.getInitializedNodes(graph).iterator()
-    if (it.hasNext()) {
-        var node = it.next()
+fun ConstructExpression.getAssignee(): Node? {
+    this.initializedNode?.let {
+        var node = it
 
         // TODO: this follows initializers twice, but it should follow it until we have an assignee
-        it = node.getInitializedNodes(graph).iterator()
-        if (it.hasNext()) {
-            node = it.next()
-        }
+        node.initializedNode?.let { node = it }
 
         // if this refers to a 'new' expression, we need to traverse one more step
         if (node is NewExpression) {
             // use the DFG node to find the reference expression
-            it = node.nextDFG.iterator()
+            val it = node.nextDFG.iterator()
             if (it.hasNext()) {
                 node = it.next()
             }
         }
 
         if (node is DeclaredReferenceExpression) {
-            node.refersTo?.let { node = it }
+            (node as DeclaredReferenceExpression).refersTo?.let { node = it }
         }
 
         if (node !is VariableDeclaration) {
@@ -304,16 +301,20 @@ private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: I
  * For example for the code `Foo f = new Foo(b)` this would return `f` for the expression `b`.
  */
 @ExperimentalGraph
-fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
+fun Expression.getBaseOfInitializerArgument(): Node? {
     var base: Node? = null
 
-    val astParent = this.astParent
-    if (astParent is CallExpression && astParent.arguments.contains(this)) {
-        for (baseVertex in astParent.getInitializedNodes(graph)) {
-            when (baseVertex) {
-                is DeclaredReferenceExpression -> baseVertex.refersTo?.let { base = it }
-                is NewExpression -> base = baseVertex.astParent
-                else -> base = baseVertex
+    // check, if AST parent is a call expression and it contains this expression as an argument
+    if (this.astParent is CallExpression &&
+            (this.astParent as CallExpression).arguments.contains(this)
+    ) {
+        // get the node, that this call expression initializes, i.e. the variable declaration
+        // (either directly or indirectly)
+        astParent?.initializedNode?.let {
+            when (it) {
+                is DeclaredReferenceExpression -> it.refersTo.let { base = it }
+                is NewExpression -> base = it.astParent
+                else -> base = it
             }
         }
     }
@@ -557,20 +558,15 @@ fun MRule.getMatchingReferences(
                 }
 
                 // check if there was a direct initialization (i.e., int i = call(foo);)
-                val varDeclarations =
-                    v.getInitializedNodes(graph).filterIsInstance<VariableDeclaration>()
-                if (!varDeclarations.isEmpty()) {
+                val varDeclaration = v.initializedNode as? VariableDeclaration
+                if (varDeclaration != null) {
                     foundTargetVertex = true
-                    log.info("found direct initialization: {}", varDeclarations)
+                    log.info("found direct initialization: {}", varDeclaration)
 
-                    varDeclarations.forEach(
-                        Consumer {
-                            val cpgVertexWithValue =
-                                NodeWithValue<Node>(it, ConstantValue.newUninitialized())
-                            cpgVertexWithValue.base = baseOfCallExpression
-                            matchingVertices.add(cpgVertexWithValue)
-                        }
-                    )
+                    val cpgVertexWithValue =
+                        NodeWithValue<Node>(varDeclaration, ConstantValue.newUninitialized())
+                    cpgVertexWithValue.base = baseOfCallExpression
+                    matchingVertices.add(cpgVertexWithValue)
                 }
 
                 if (!foundTargetVertex) { // this can be a directly used return value from a call
@@ -660,8 +656,7 @@ fun MRule.getMatchingReferences(
                 val argumentVertices = v.arguments.filter { it.argumentIndex == argumentIndex }
                 if (argumentVertices.size == 1) {
                     // get base of initializer for ctor
-                    val baseOfCallExpression =
-                        argumentVertices[0].getBaseOfInitializerArgument(graph)
+                    val baseOfCallExpression = argumentVertices[0].getBaseOfInitializerArgument()
                     val cpgVertexWithValue =
                         NodeWithValue<Node>(argumentVertices[0], ConstantValue.newUninitialized())
                     cpgVertexWithValue.base = baseOfCallExpression

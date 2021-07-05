@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.analysis.markevaluation
 
 import de.fraunhofer.aisec.analysis.cpgpasses.astParent
+import de.fraunhofer.aisec.analysis.cpgpasses.followNextEOG
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator.log
 import de.fraunhofer.aisec.analysis.scp.SimpleConstantResolver
 import de.fraunhofer.aisec.analysis.structures.*
@@ -13,6 +14,8 @@ import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
+import de.fraunhofer.aisec.cpg.graph.statements.CompoundStatement
+import de.fraunhofer.aisec.cpg.graph.statements.Statement
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
 import de.fraunhofer.aisec.crymlin.ConstantResolver
@@ -176,6 +179,12 @@ fun FieldDeclaration.getInitializerValue(): Any? {
 
     return null
 }
+
+val Node.nextStatement: Statement?
+    get() {
+        return this.followNextEOG { it.end.astParent is CompoundStatement }?.last()?.end as?
+            Statement
+    }
 
 /**
  * Given a Vertex v, try to find the function or method in which v is contained. The resulting

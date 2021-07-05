@@ -23,9 +23,6 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression;
 import de.fraunhofer.aisec.cpg.graph.types.Type;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
@@ -34,7 +31,6 @@ import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.TreeIterator;
@@ -48,9 +44,8 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePassKt.getAstParent;
 import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.*;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
-import static de.fraunhofer.aisec.crymlin.dsl.__.__;
 import static java.lang.Math.toIntExact;
 
 /**
@@ -422,7 +417,7 @@ public class TypeStateAnalysis {
 			@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
 			@NonNull NFA tsNfa,
 			@NonNull Graph graph) {
-		String currentFunctionName = (String) functionVertex.getName();
+		String currentFunctionName = functionVertex.getName();
 		Stmt currentStmt = vertexToStmt(stmtNode);
 
 		/* First we create normal rules from previous stmt to the current stmt, simply propagating existing values. */
@@ -507,8 +502,8 @@ public class TypeStateAnalysis {
 		} else if (stmtNode instanceof ReturnStatement) {
 			/* Return statements result in pop rules */
 			ReturnStatement returnV = (ReturnStatement) stmtNode;
-			if (returnV != null && !returnV.isDummy()) {
-				Set<Val> returnedVals = findReturnedVals(graph, stmtNode);
+			if (!returnV.isDummy()) {
+				Set<Val> returnedVals = findReturnedVals(stmtNode);
 
 				for (Val returnedVal : returnedVals) {
 					Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
@@ -530,7 +525,7 @@ public class TypeStateAnalysis {
 				}
 
 				// Pop Rules for side effects on parameters
-				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex, stmtNode, graph);
+				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex);
 				if (paramToValueMap.containsKey(currentFunctionName)) {
 					for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
 						PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(),
@@ -608,8 +603,7 @@ public class TypeStateAnalysis {
 				|| node instanceof DeclarationStatement
 				|| node instanceof VariableDeclaration
 				|| node instanceof IfStatement
-				// TODO(oxisto): need the graph to handle it
-				/*|| v.edges(Direction.IN, CrymlinConstants.STATEMENTS).hasNext()*/
+				|| getAstParent(node) instanceof CompoundStatement
 				|| numberOfOutgoingEogs >= 2;
 	}
 
@@ -725,62 +719,47 @@ public class TypeStateAnalysis {
 	/**
 	 * Finds the mapping from function parameters to arguments of calls to this method. This is needed for later construction of pop rules.
 	 *
-	 * @param calleeFD
-	 * @param returnV
-	 * @param graph
-	 *
+	 * @param callee
 	 * @return
 	 */
 	@NonNull
-	private Map<String, Set<Pair<Val, Val>>> findParamToValues(FunctionDeclaration calleeFD, de.fraunhofer.aisec.cpg.graph.Node returnV, Graph graph) {
+	private Map<String, Set<Pair<Val, Val>>> findParamToValues(FunctionDeclaration callee) {
 		Map<String, Set<Pair<Val, Val>>> result = new HashMap<>();
 		try {
-			if (calleeFD == null) {
+			if (callee == null) {
 				log.error("Unexpected: FunctionDeclaration of callee is null.");
 				return result;
 			}
-			String calleeName = calleeFD.getName();
+			String calleeName = callee.getName();
 
-			/*List<Vertex> calls = crymlinTraversalSource.byID((long) returnV.id())
-					.repeat(__().out(DFG))
-					.until(
-						__().hasLabel(CallExpression.class.getSimpleName()))
-					.limit(5)
-					.toList();*/
-			// TODO: do
-			List<CallExpression> calls = new ArrayList<>();
+			// the function declaration is connected to their call expressions by a DFG edge
+			var calls = callee.getNextDFG()
+					.stream()
+					.filter(x -> x instanceof CallExpression)
+					.map(x -> (CallExpression) x)
+					.collect(Collectors.toList());
 
 			for (var ce : calls) {
-				/*
-				 * Find name of calling function ("caller") TODO This is not an optimal way to find out the calling function, as we need to traverse potentially many EOG
-				 * edges.
-				 */
-				/*List<Vertex> callers = crymlinTraversalSource.byID((long) call.id())
-						.repeat(__().in(EOG))
-						.until(
-							__().hasLabel(FunctionDeclaration.class.getSimpleName()))
-						.limit(50)
-						.toList();*/
-				// TODO: do
-				List<FunctionDeclaration> callers = new ArrayList<FunctionDeclaration>();
+				var caller = getContainingFunction(ce);
 
-				for (var caller : callers) {
-					if (caller == null) {
-						log.error("Unexpected: Null Node object for FunctionDeclaration {}", caller);
-						continue;
-					}
-					List<Expression> args = ce.getArguments();
-					FunctionDeclaration callee = ce.getInvokes()
-							.get(
-								0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
-					List<ParamVariableDeclaration> params = callee.getParameters();
-
-					Set<Pair<Val, Val>> pToA = new HashSet<>();
-					for (int i = 0; i < Math.min(params.size(), args.size()); i++) {
-						pToA.add(new Pair<>(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
-					}
-					result.put(calleeName, pToA);
+				if (caller == null) {
+					log.error("Unexpected: Null Node object for FunctionDeclaration");
+					continue;
 				}
+
+				List<Expression> args = ce.getArguments();
+				/*FunctionDeclaration callee = ce.getInvokes()
+						.get(
+							0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
+				
+				 */
+				List<ParamVariableDeclaration> params = callee.getParameters();
+
+				Set<Pair<Val, Val>> pToA = new HashSet<>();
+				for (int i = 0; i < Math.min(params.size(), args.size()); i++) {
+					pToA.add(new Pair<>(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
+				}
+				result.put(calleeName, pToA);
 			}
 		}
 		catch (FastNoSuchElementException e) {
@@ -799,10 +778,10 @@ public class TypeStateAnalysis {
 	 * <p>
 	 * int bla() { return 42; }
 	 *
-	 * @param v
+	 * @param node
 	 * @return
 	 */
-	private Set<Val> findReturnedVals(Graph graph, de.fraunhofer.aisec.cpg.graph.Node node) {
+	private Set<Val> findReturnedVals(de.fraunhofer.aisec.cpg.graph.Node node) {
 		/*
 		 * Follow along "DFG" edges from the return statement to the CallExpression that initiated the call. Then check if there is a "DFG" edge from that CallExpression
 		 * to a VariableDeclaration.
@@ -853,9 +832,14 @@ public class TypeStateAnalysis {
 	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, Graph graph, String currentFunctionName,
 			Stmt currentStmt, de.fraunhofer.aisec.cpg.graph.Node currentStmtVertex) {
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
-		//var returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) currentStmtVertex.id());
-		// TODO: not sure how
-		var returnSites = new ArrayList<de.fraunhofer.aisec.cpg.graph.Node>();
+		// TODO: support multiple return sites
+		var returnSite = getNextStatement(currentStmtVertex);
+		List<Statement> returnSites;
+		if (returnSite == null) {
+			returnSites = Collections.emptyList();
+		} else {
+			returnSites = Collections.singletonList(returnSite);
+		}
 
 		// Arguments of function call
 		var argVals = argumentsToVals(mce, currentFunctionName);
@@ -876,14 +860,14 @@ public class TypeStateAnalysis {
 			if (firstStmt != null && firstStmt.getCode() != null) {
 				for (int i = 0; i < argVals.size(); i++) {
 					for (var returnSiteVertex : returnSites) {
-						Stmt returnSite = vertexToStmt(returnSiteVertex);
+						Stmt stmt = vertexToStmt(returnSiteVertex);
 
 						PushRule<Stmt, Val, TypestateWeight> pushRule = new PushRule<>(
 							argVals.get(i),
 							currentStmt,
 							parmVals.get(i),
 							new Stmt(potentialCallee.getName(), Utils.getRegion(potentialCallee)),
-							returnSite,
+							stmt,
 							TypestateWeight.one()); // A push rule does not trigger any typestate transitions.
 						pushRules.add(pushRule);
 					}

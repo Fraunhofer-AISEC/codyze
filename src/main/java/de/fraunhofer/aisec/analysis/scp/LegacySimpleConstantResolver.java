@@ -35,6 +35,7 @@ import java.util.Set;
 /**
  * A simple intraprocedural resolution of constant values.
  */
+@Deprecated
 public class LegacySimpleConstantResolver implements ConstantResolver {
 	private static final Logger log = LoggerFactory.getLogger(LegacySimpleConstantResolver.class);
 	private final Database<Node> db;

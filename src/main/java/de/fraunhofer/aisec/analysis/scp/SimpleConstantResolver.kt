@@ -172,15 +172,12 @@ class SimpleConstantResolver : ConstantResolver {
 
         // we arrived at the declaration of the variable. See if we have an initializer
         declaration.initializer?.let {
+            // TODO(oxisto): refarctor this to avoid copy/paste and handle NewExpression (forward to
+            // initalizer)
             if (it is Literal<*>) {
                 retVal = ConstantValue.tryOf(it.value)
             } else if (it is ConstructExpression) {
                 var args = it.arguments
-                if (args.size == 1 && args[0] is CallExpression) {
-                    // If the single argument of ConstructExpression is a CallExpression, we are
-                    // interested in its arguments.
-                    args = (args[0] as CallExpression).arguments
-                }
                 if (args.size == 1) {
                     val init = args.first()
                     if (init is Literal<*>) {
@@ -235,7 +232,7 @@ class SimpleConstantResolver : ConstantResolver {
                     log.warn("No initializer found")
                 }
             } else {
-                log.warn("Unknown Initializer: {}", it.javaClass.simpleName)
+                log.warn("Unknown initializer: {}", it.javaClass.simpleName)
             }
         }
 

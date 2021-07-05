@@ -95,13 +95,7 @@ fun Graph.getConstructs(fqnName: String, parameters: List<Parameter>): Set<Const
         // ConstructExpression is the CallExpression to the constructor and we are interested in its
         // arguments.
         val args = it.arguments
-        if (args.size == 1 && args[0] is CallExpression) {
-            return@removeIf argumentsMatchParameters(
-                parameters,
-                (args[0] as CallExpression).arguments
-            )
-        }
-        argumentsMatchParameters(parameters, args)
+        !argumentsMatchParameters(parameters, args)
     }
 
     return ret
@@ -303,25 +297,23 @@ private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: I
     return null
 }
 
+/**
+ * This returns the "base" (MARK speech) object of an expression that is contained as an argument in
+ * an initializer, e.g. in a construct or call expression.
+ *
+ * For example for the code `Foo f = new Foo(b)` this would return `f` for the expression `b`.
+ */
 @ExperimentalGraph
 fun Expression.getBaseOfInitializerArgument(graph: Graph): Node? {
     var base: Node? = null
 
-    // TODO(oxisto): replace with .astParent
-
-    val refIterator =
-        graph.nodes.filter { it is ConstructExpression && it.arguments.contains(this) }.iterator()
-    if (refIterator.hasNext()) {
-        for (baseVertex in refIterator.next().getInitializedNodes(graph)) {
-            // for java, an initializer is contained in another
-            /*it = baseVertex.edges(Direction.IN, CrymlinConstants.INITIALIZER)
-            if (it.hasNext()) {
-                baseVertex = it.next().outVertex()
-            }*/
-            if (baseVertex is DeclaredReferenceExpression) {
-                baseVertex.refersTo?.let { base = it }
-            } else {
-                base = baseVertex
+    val astParent = this.astParent
+    if (astParent is CallExpression && astParent.arguments.contains(this)) {
+        for (baseVertex in astParent.getInitializedNodes(graph)) {
+            when (baseVertex) {
+                is DeclaredReferenceExpression -> baseVertex.refersTo?.let { base = it }
+                is NewExpression -> base = baseVertex.astParent
+                else -> base = baseVertex
             }
         }
     }

@@ -422,9 +422,9 @@ public class Utils {
 	 * @return
 	 */
 	@NonNull
-	public static Region getRegion(@NonNull FunctionDeclaration fd) {
+	public static Region getRegion(@NonNull Node node) {
 		Region region = new Region(-1, -1, -1, -1);
-		PhysicalLocation loc = fd.getLocation();
+		PhysicalLocation loc = node.getLocation();
 		if (loc != null) {
 			return loc.getRegion();
 		}

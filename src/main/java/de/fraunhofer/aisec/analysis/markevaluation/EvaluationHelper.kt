@@ -182,8 +182,6 @@ fun FieldDeclaration.getInitializerValue(): Any? {
  * Vertex will be of type FunctionDeclaration or MethodDeclaration. If v is not contained in a
  * function, this method returns an empty Optional.
  *
- * @param v
- * @param crymlinTraversal
  * @return
  */
 @ExperimentalGraph
@@ -194,7 +192,7 @@ fun Node.getContainingFunction(): FunctionDeclaration? {
         parent = parent.astParent
     }
 
-    return parent as FunctionDeclaration
+    return parent as? FunctionDeclaration
 }
 
 /** Checks, whether a EOG connection from this node (source) to the sink exists. */
@@ -796,6 +794,12 @@ private fun Expression.lhsReferenceOfAssignment(graph: Graph): List<DeclaredRefe
         .filterIsInstance<DeclaredReferenceExpression>() // we are only interested in references
 }
 
+@ExperimentalGraph
+val Graph.functions: List<FunctionDeclaration>
+    get() {
+        return this.nodes.filterIsInstance<FunctionDeclaration>()
+    }
+
 /**
  * Returns true if the given list of arguments (of a function or method or constructor call) matches
  * the given list of parameters in MARK.
@@ -864,4 +868,25 @@ private fun argumentsMatchParameters(
             }
     }
     return (i == markParameters.size || endsWithEllipsis) && i == sourceArguments.size
+}
+
+fun Node.followNextDFG(predicate: (Node) -> Boolean): List<Node>? {
+    val path = mutableListOf<Node>()
+
+    for (to in this.nextDFG) {
+        path.add(to)
+
+        if (predicate(to)) {
+            return path
+        }
+
+        val subPath = to.followNextDFG(predicate)
+        if (subPath != null) {
+            path.addAll(subPath)
+
+            return path
+        }
+    }
+
+    return null
 }

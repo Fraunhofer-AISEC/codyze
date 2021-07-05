@@ -24,11 +24,10 @@ class RealBotanTest extends AbstractMarkTest {
 	void testSimple() throws Exception {
 		// Just a very simple test to explore the graph
 		Set<Finding> findings = performTest("real-examples/botan/streamciphers/bsex.cpp", "real-examples/botan/streamciphers/bsex.mark");
-		GraphTraversalSource t = ctx.getDatabase()
-				.getGraph()
-				.traversal();
 
-		List<Vertex> variables = t.V().hasLabel(VariableDeclaration.class.getSimpleName()).toList();
+		var graph = ctx.getGraph();
+
+		var variables = graph.getNodes().stream().filter(node -> node instanceof VariableDeclaration).collect(Collectors.toList());
 
 		assertTrue(variables.size() > 0);
 	}

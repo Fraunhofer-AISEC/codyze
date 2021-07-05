@@ -60,6 +60,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
+
 /**
  * This is the main CPG analysis server.
  *
@@ -257,6 +259,9 @@ public class AnalysisServer {
 							// Evaluate all MARK rules
 							var evaluator = new Evaluator(this.markModel, this.config);
 							evaluator.evaluate(result, ctx);
+
+							// make the graph from the result available in the analysis context
+							ctx.graph = getGraph(result);
 						}
 						bench.stop();
 						return ctx;

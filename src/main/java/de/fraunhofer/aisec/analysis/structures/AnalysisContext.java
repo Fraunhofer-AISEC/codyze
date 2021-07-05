@@ -1,6 +1,8 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.crymlin.connectors.db.Database;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -22,6 +24,7 @@ public class AnalysisContext {
 	public final Map<String, Method> methods = new HashMap<>();
 
 	private final List<File> sourceLocations;
+	public Graph graph;
 
 	/** The database used for this analysis. */
 	@NonNull
@@ -52,7 +55,12 @@ public class AnalysisContext {
 	}
 
 	@NonNull
+	@Deprecated
 	public Database<Node> getDatabase() {
 		return this.db;
+	}
+
+	public Graph getGraph() {
+		return this.graph;
 	}
 }

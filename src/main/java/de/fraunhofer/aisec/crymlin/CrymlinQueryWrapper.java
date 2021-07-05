@@ -310,7 +310,7 @@ public class CrymlinQueryWrapper {
 	}
 
 	/**
-	 * Returns true if the given vertex represents a CallExpression or a subclass of it.
+	 * Returns true if the given node represents a CallExpression or a subclass of it.
 	 *
 	 * @param v
 	 * @return

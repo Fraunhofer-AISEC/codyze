@@ -150,6 +150,23 @@ val Node.initializedNode: Node?
         }
     }
 
+/**
+ * If the expression is either a declaration of a reference to a declaration, it returns the
+ * initializer for the underyling declaration.
+ */
+fun Node.getInitializerFor(): Expression? {
+    if (this is HasInitializer) {
+        // directly go to the initializer
+        return this.initializer
+    } else if (this is DeclaredReferenceExpression) {
+        // follow the reference back to the declaration
+        return this.refersTo?.getInitializerFor()
+    }
+
+    // in all other cases, return null
+    return null
+}
+
 fun FieldDeclaration.getInitializerValue(): Any? {
     this.initializer?.let {
         if (it is Literal<*>) {

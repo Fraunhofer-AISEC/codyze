@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
+import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
  * In case of an error, this Builtin returns an ErrorValue;
  */
 public class SplitMatchUnordered implements Builtin {
-	private static final Logger log = LoggerFactory.getLogger(SplitMatchUnordered.class);
+	private static final Logger log = LoggerFactory.getLogger(de.fraunhofer.aisec.crymlin.legacy_builtin.SplitMatchUnordered.class);
 
 	@NonNull
 	@Override
@@ -38,7 +39,7 @@ public class SplitMatchUnordered implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			ExpressionEvaluator expressionEvaluator) {
+			@NonNull ExpressionEvaluator expressionEvaluator) {
 
 		// arguments: String, String, List
 		// example:
@@ -47,7 +48,8 @@ public class SplitMatchUnordered implements Builtin {
 
 		try {
 			if (argResultList.size() == 4) {
-				BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class, ConstantValue.class, ListValue.class, ConstantValue.class);
+				BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class, ConstantValue.class,
+					ListValue.class, ConstantValue.class);
 			} else {
 				BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class, ConstantValue.class, ListValue.class);
 			}
@@ -60,7 +62,7 @@ public class SplitMatchUnordered implements Builtin {
 
 			var providedSet = listSet.stream().map(mir -> ((ConstantValue) mir).getValue()).collect(Collectors.toSet());
 
-			if (s == null || regex == null || providedSet == null) {
+			if (s == null || regex == null) {
 				log.warn("One of the arguments for _split_match_unordered was not the expected type, or not initialized/resolved");
 				return ErrorValue.newErrorValue("One of the arguments for _split_match_unordered was not the expected type, or not initialized/resolved",
 					argResultList.getAll());
@@ -74,7 +76,7 @@ public class SplitMatchUnordered implements Builtin {
 
 			ConstantValue cv = ConstantValue.of(isMatch);
 
-			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+			cv.addResponsibleNodesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1));
 
 			return cv;

@@ -3,6 +3,8 @@ package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.ArrayCreationExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal;
 import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -14,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+
+import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getInitializerFor;
 
 /**
  * This builtin gets the length for a variable.
@@ -35,22 +39,24 @@ public class Length implements Builtin {
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
 			ExpressionEvaluator expressionEvaluator) {
-
 		try {
 			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 1);
 
-			// TODO: broken for now
-			/*Optional<Vertex> ini = CrymlinQueryWrapper.getInitializerFor(vertices.get(0));
-			
-			if (ini.isPresent()) {
-				Iterator<Edge> dimensions = ini.get().edges(Direction.OUT, "DIMENSIONS");
-				if (dimensions.hasNext()) {
-					Long value = dimensions.next().inVertex().value("value");
-					ConstantValue ret = ConstantValue.of(value);
-					ret.addResponsibleNodes(vertices);
-					return ret;
+			var ini = getInitializerFor(vertices.get(0));
+
+			if (ini instanceof ArrayCreationExpression) {
+				var dimensions = ((ArrayCreationExpression) ini).getDimensions();
+				if (!dimensions.isEmpty()) {
+					var first = dimensions.get(0);
+
+					if (first instanceof Literal<?>) {
+						var value = ((Literal<?>) first).getValue();
+						ConstantValue ret = ConstantValue.of(value);
+						ret.addResponsibleNodes(vertices);
+						return ret;
+					}
 				}
-			}*/
+			}
 
 			log.warn("Could not determine length");
 			return ErrorValue.newErrorValue("Could not determine length", argResultList.getAll());

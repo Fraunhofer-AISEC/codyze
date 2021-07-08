@@ -66,7 +66,7 @@ public class Evaluator {
 			var graph = getGraph(result);
 
 			log.info("Precalculating matching nodes");
-			assignCallsToOps(ctx, graph);
+			assignCallsToOps(graph);
 
 			log.info("Evaluate forbidden calls");
 			Benchmark b = new Benchmark(this.getClass(), "Evaluate forbidden calls");
@@ -98,10 +98,9 @@ public class Evaluator {
 	 * <p>
 	 * After this method, all call statements can be retrieved by MOp.getAllNodes(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
 	 *
-	 * @param ctx
 	 * @param graph the Graph
 	 */
-	private void assignCallsToOps(@NonNull AnalysisContext ctx, @NonNull Graph graph) {
+	private void assignCallsToOps(@NonNull Graph graph) {
 		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		// iterate over all entities and precalculate:
 		// - call statements to vertices
@@ -146,7 +145,7 @@ public class Evaluator {
 
 			// Evaluate "using" part and collect the instances of MARK entities, as well as
 			// the potential vertex representing the base object variables.
-			var entities = findInstancesForEntities(rule, graph);
+			var entities = findInstancesForEntities(rule);
 
 			// skip evaluation if there are no cpg-nodes which would be used in this evaluation
 			if (!entities.isEmpty()) {
@@ -353,7 +352,7 @@ public class Evaluator {
 	 *
 	 * @return
 	 */
-	private List<List<Pair<String, Node>>> findInstancesForEntities(MRule rule, @NonNull Graph graph) {
+	private List<List<Pair<String, Node>>> findInstancesForEntities(MRule rule) {
 		var ruleStmt = rule.getStatement();
 		var entities = new ArrayList<List<Pair<String, Node>>>();
 

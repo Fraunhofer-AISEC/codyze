@@ -59,7 +59,7 @@ public class Split implements Builtin {
 				ret = splitted[index.intValue()];
 			} else {
 				log.warn("{} did not have an {}-th element when split by '{}'", s, index, regex);
-				return ErrorValue.newErrorValue(String.format("%s did not have an %s-th element when split by '%s'", s, index.toString(), regex),
+				return ErrorValue.newErrorValue(String.format("%s did not have an %s-th element when split by '%s'", s, index, regex),
 					argResultList.getAll());
 			}
 

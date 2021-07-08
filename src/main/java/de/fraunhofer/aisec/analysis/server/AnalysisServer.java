@@ -246,7 +246,7 @@ public class AnalysisServer {
 	 * @throws IOException
 	 */
 	private void getMarkFileLocations(File currentFile, List<File> allFiles) throws IOException {
-		try (Stream<Path> walk = Files.walk(currentFile.toPath(), Integer.MAX_VALUE);) {
+		try (Stream<Path> walk = Files.walk(currentFile.toPath(), Integer.MAX_VALUE)) {
 			File[] files = walk.map(Path::toFile)
 					.filter(File::isFile)
 					.filter(f -> f.getName().endsWith(".mark"))

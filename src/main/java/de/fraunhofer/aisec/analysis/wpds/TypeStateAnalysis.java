@@ -107,7 +107,7 @@ public class TypeStateAnalysis {
 		String markInstance = getMarkInstanceOrderExpression(orderExpr);
 		if (markInstance == null) {
 			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr);
-			return ErrorValue.newErrorValue(String.format("OrderExpression does not refer to a Mark instance: %s. Will not run TS analysis", orderExpr.toString()));
+			return ErrorValue.newErrorValue(String.format("OrderExpression does not refer to a Mark instance: %s. Will not run TS analysis", orderExpr));
 		}
 
 		/* Create typestate NFA, representing the regular expression of a MARK typestate rule. */
@@ -322,8 +322,8 @@ public class TypeStateAnalysis {
 	 *
 	 * @param graph
 	 * @param tsNfa
+	 *
 	 * @return
-	 * @throws IllegalTransitionException
 	 */
 	private CpgWpds createWpds(Graph graph, NFA tsNfa) {
 		log.info("-----  Creating WPDS ----------");
@@ -338,7 +338,7 @@ public class TypeStateAnalysis {
 		 *
 		 */
 		for (var functionDeclaration : getFunctions(graph)) {
-			WPDS<Stmt, Val, TypestateWeight> funcWpds = createWpds(functionDeclaration, tsNfa, graph);
+			WPDS<Stmt, Val, TypestateWeight> funcWpds = createWpds(functionDeclaration, tsNfa);
 			for (Rule<Stmt, Val, TypestateWeight> r : funcWpds.getAllRules()) {
 				wpds.addRule(r);
 			}
@@ -357,10 +357,9 @@ public class TypeStateAnalysis {
 	 * Turns a single function into a WPDS.
 	 *
 	 * @param tsNfa
-	 * @param graph
 	 * @return
 	 */
-	private WPDS<Stmt, Val, TypestateWeight> createWpds(@NonNull FunctionDeclaration fd, NFA tsNfa, Graph graph) {
+	private WPDS<Stmt, Val, TypestateWeight> createWpds(@NonNull FunctionDeclaration fd, NFA tsNfa) {
 		// To remember already visited nodes and avoid endless iteration
 		var alreadySeen = new HashSet<de.fraunhofer.aisec.cpg.graph.Node>();
 
@@ -390,7 +389,7 @@ public class TypeStateAnalysis {
 			for (Stmt previousStmt : currentPair.getValue1()) {
 				// We consider only "Statements" and CallExpressions in the EOG
 				if (isRelevantStmt(v)) {
-					createRulesForStmt(wpds, fd, previousStmt, v, valsInScope, skipTheseValsAtStmt, tsNfa, graph);
+					createRulesForStmt(wpds, fd, previousStmt, v, valsInScope, skipTheseValsAtStmt, tsNfa);
 				} // End isRelevantStmt()
 			}
 
@@ -409,13 +408,12 @@ public class TypeStateAnalysis {
 
 	@SuppressWarnings("squid:S107")
 	private void createRulesForStmt(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds,
-			@NonNull FunctionDeclaration functionVertex,
-			@NonNull Stmt previousStmt,
-			de.fraunhofer.aisec.cpg.graph.Node stmtNode,
-			@NonNull Set<Val> valsInScope,
-			@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
-			@NonNull NFA tsNfa,
-			@NonNull Graph graph) {
+									@NonNull FunctionDeclaration functionVertex,
+									@NonNull Stmt previousStmt,
+									de.fraunhofer.aisec.cpg.graph.Node stmtNode,
+									@NonNull Set<Val> valsInScope,
+									@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
+									@NonNull NFA tsNfa) {
 		String currentFunctionName = functionVertex.getName();
 		Stmt currentStmt = vertexToStmt(stmtNode);
 
@@ -440,7 +438,7 @@ public class TypeStateAnalysis {
 			 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
 			 * "return site" is the statement to which flow returns after the function call.
 			 */
-			Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, graph, currentFunctionName, currentStmt, stmtNode);
+			Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, currentFunctionName, currentStmt, stmtNode);
 			for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
 				log.debug("  Adding push rule: {}", pushRule);
 				wpds.addRule(pushRule);
@@ -818,14 +816,13 @@ public class TypeStateAnalysis {
 	 * resulting set may contain more than one rule.
 	 *
 	 * @param mce
-	 * @param graph
 	 * @param currentFunctionName
 	 * @param currentStmt
 	 * @param currentStmtVertex
 	 * @return
 	 */
-	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, Graph graph, String currentFunctionName,
-			Stmt currentStmt, de.fraunhofer.aisec.cpg.graph.Node currentStmtVertex) {
+	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, String currentFunctionName,
+																	  Stmt currentStmt, de.fraunhofer.aisec.cpg.graph.Node currentStmtVertex) {
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
 		// TODO: support multiple return sites
 		var returnSite = getNextStatement(currentStmtVertex);

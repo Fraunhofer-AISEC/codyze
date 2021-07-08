@@ -33,10 +33,10 @@ public class NFA {
 	}
 
 	/* Set of transitions between states */
-	private Set<NFATransition<Node>> transitions = new HashSet<>();
+	private final Set<NFATransition<Node>> transitions = new HashSet<>();
 
 	/* The set of states with tokens. */
-	private Set<Node> currentConfiguration = new HashSet<>();
+	private final Set<Node> currentConfiguration = new HashSet<>();
 
 	/**
 	 * Factory method to create a new NFA from a Mark "order" expression (effectively a regular expression).
@@ -292,7 +292,7 @@ public class NFA {
 	}
 
 	private static class Head {
-		private ArrayList<Node> nodes = new ArrayList<>();
+		private final ArrayList<Node> nodes = new ArrayList<>();
 		private Boolean addNextNode = null;
 
 		void add(Node n) {

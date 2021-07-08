@@ -13,10 +13,10 @@ import java.util.List;
 public class Mark {
 
 	@NonNull
-	private HashMap<String, MEntity> entityByName = new HashMap<>();
+	private final HashMap<String, MEntity> entityByName = new HashMap<>();
 
 	@NonNull
-	private List<MRule> rules = new ArrayList<>();
+	private final List<MRule> rules = new ArrayList<>();
 
 	public void addEntities(String name, MEntity ent) {
 		this.entityByName.put(name, ent);

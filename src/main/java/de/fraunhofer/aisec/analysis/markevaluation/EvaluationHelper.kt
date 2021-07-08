@@ -28,7 +28,7 @@ import java.util.stream.Collectors
 import java.util.stream.IntStream
 import org.apache.commons.lang3.StringUtils
 
-class EvaluationHelper {}
+class EvaluationHelper
 
 @ExperimentalGraph
 fun Graph.getVerticesForFunctionDeclaration(

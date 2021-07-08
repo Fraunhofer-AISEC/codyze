@@ -77,9 +77,9 @@ class WpdsTest extends AbstractMarkTest {
 			edgesNFA.add(t.getSource().getName() + " -> " + t.getTarget().getName());
 		}
 
-		System.out.println(fsm.toString());
+		System.out.println(fsm);
 
-		System.out.println(nfa.toString());
+		System.out.println(nfa);
 		// ... and make sure they deliver same results.
 		for (String s : edgesFSM) {
 			assertTrue(edgesNFA.contains(s), s + " found in FSM, but not in NFA-FSM");

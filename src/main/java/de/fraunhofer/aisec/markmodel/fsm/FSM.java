@@ -185,7 +185,7 @@ public class FSM {
 	}
 
 	private static class Head {
-		private ArrayList<Node> nodes = new ArrayList<>();
+		private final ArrayList<Node> nodes = new ArrayList<>();
 		private Boolean addNextNode = null;
 
 		void add(Node n) {

@@ -23,6 +23,10 @@ public interface Builtin {
 	@NonNull
 	String getName();
 
+	default boolean hasParameters() {
+		return true;
+	}
+
 	/**
 	 * Runs this Builtin.
 	 *

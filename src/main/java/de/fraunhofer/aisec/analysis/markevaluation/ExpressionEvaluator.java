@@ -479,21 +479,28 @@ public class ExpressionEvaluator {
 				.findFirst();
 
 		Map<Integer, MarkIntermediateResult> arguments = evaluateArgs(expr.getArgs());
+		log.debug("Found {} arguments", arguments.size());
 
 		if (builtin.isPresent()) {
+			log.debug("Found existing builtin: {}", builtin.get().getName());
+
 			Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-			for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
 
-				if (!(entry.getValue() instanceof ListValue)) {
-					log.error("Arguments must be a list");
-					result.put(entry.getKey(), ErrorValue.newErrorValue(String.format("arguments must be a list, are %s", entry.getValue().getClass().getSimpleName())));
-					continue;
+			if (builtin.get().hasParameters()) {
+				for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
+					if (!(entry.getValue() instanceof ListValue)) {
+						log.error("Arguments must be a list");
+						result.put(entry.getKey(),
+							ErrorValue.newErrorValue(String.format("arguments must be a list, are %s", entry.getValue().getClass().getSimpleName())));
+						continue;
+					}
+
+					ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
+					result.put(entry.getKey(), cv);
 				}
-
-				ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
-
-				result.put(entry.getKey(), cv);
-
+			} else {
+				ConstantValue cv = builtin.get().execute(resultCtx, new ListValue(), -1, markContextHolder, this);
+				result.put(0, cv);
 			}
 			return result;
 		}

@@ -45,16 +45,11 @@ public abstract class AbstractMarkTest {
 
 	@NonNull
 	protected Set<Finding> performTest(String sourceFileName, @Nullable String markFileName) throws Exception {
-		return performTest(sourceFileName, null, markFileName, false);
+		return performTest(sourceFileName, null, markFileName);
 	}
 
 	@NonNull
 	protected Set<Finding> performTest(String sourceFileName, String[] additionalFiles, @Nullable String markFileName) throws Exception {
-		return performTest(sourceFileName, null, markFileName, false);
-	}
-
-	@NonNull
-	protected Set<Finding> performTest(String sourceFileName, String[] additionalFiles, @Nullable String markFileName, boolean useLegacyEvaluator) throws Exception {
 		ClassLoader classLoader = AbstractMarkTest.class.getClassLoader();
 
 		URL resource = classLoader.getResource(sourceFileName);
@@ -99,8 +94,7 @@ public abstract class AbstractMarkTest {
 							.launchLsp(false)
 							.typestateAnalysis(tsMode)
 							.markFiles(markDirPath)
-							.disableOverflow(true)
-							.useLegacyEvaluator(useLegacyEvaluator)
+							.useLegacyEvaluator()
 							.build())
 				.build();
 		server.start();

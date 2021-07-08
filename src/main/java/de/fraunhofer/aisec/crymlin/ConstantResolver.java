@@ -16,5 +16,6 @@ import java.util.Set;
  */
 public interface ConstantResolver {
 
-	@NonNull Set<ConstantValue> resolveConstantValues(@NonNull DeclaredReferenceExpression declRefExpr);
+	@NonNull
+	Set<ConstantValue> resolveConstantValues(@NonNull DeclaredReferenceExpression declRefExpr);
 }

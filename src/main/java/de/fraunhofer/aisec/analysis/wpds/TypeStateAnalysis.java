@@ -65,17 +65,15 @@ import static java.lang.Math.toIntExact;
  * [1] Reps T., Lal A., Kidd N. (2007) Program Analysis Using Weighted Pushdown Systems. In: Arvind V., Prasad S. (eds) FSTTCS 2007: Foundations of Software Technology
  * and Theoretical Computer Science. FSTTCS 2007. Lecture Notes in Computer Science, vol 4855. Springer, Berlin, Heidelberg
  */
-public class TypeStateAnalysis {
-	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
+public class TypestateAnalysis {
+	private static final Logger log = LoggerFactory.getLogger(TypestateAnalysis.class);
 	private MRule rule;
 	@NonNull
 	private final MarkContextHolder markContextHolder;
 	private GraphInstanceContext instanceContext;
-	private final AnalysisContext ctx;
 
-	public TypeStateAnalysis(@NonNull MarkContextHolder markContextHolder, @NonNull AnalysisContext ctx) {
+	public TypestateAnalysis(@NonNull MarkContextHolder markContextHolder, @NonNull AnalysisContext ctx) {
 		this.markContextHolder = markContextHolder;
-		this.ctx = ctx;
 	}
 
 	/**
@@ -408,12 +406,12 @@ public class TypeStateAnalysis {
 
 	@SuppressWarnings("squid:S107")
 	private void createRulesForStmt(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds,
-									@NonNull FunctionDeclaration functionVertex,
-									@NonNull Stmt previousStmt,
-									de.fraunhofer.aisec.cpg.graph.Node stmtNode,
-									@NonNull Set<Val> valsInScope,
-									@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
-									@NonNull NFA tsNfa) {
+			@NonNull FunctionDeclaration functionVertex,
+			@NonNull Stmt previousStmt,
+			de.fraunhofer.aisec.cpg.graph.Node stmtNode,
+			@NonNull Set<Val> valsInScope,
+			@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
+			@NonNull NFA tsNfa) {
 		String currentFunctionName = functionVertex.getName();
 		Stmt currentStmt = vertexToStmt(stmtNode);
 
@@ -822,7 +820,7 @@ public class TypeStateAnalysis {
 	 * @return
 	 */
 	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, String currentFunctionName,
-																	  Stmt currentStmt, de.fraunhofer.aisec.cpg.graph.Node currentStmtVertex) {
+			Stmt currentStmt, de.fraunhofer.aisec.cpg.graph.Node currentStmtVertex) {
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
 		// TODO: support multiple return sites
 		var returnSite = getNextStatement(currentStmtVertex);

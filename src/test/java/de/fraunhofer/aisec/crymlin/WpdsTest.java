@@ -115,7 +115,7 @@ class WpdsTest extends AbstractMarkTest {
 	@Test
 	void testCppInterprocOk1Legacy() throws Exception {
 		@NonNull
-		Set<Finding> findings = performTest("unittests/orderInterprocOk1.cpp", null, "unittests/order2.mark", true);
+		Set<Finding> findings = performTest("unittests/orderInterprocOk1.cpp", null, "unittests/order2.mark");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertEquals(0, findings.stream().filter(Finding::isProblem).count());

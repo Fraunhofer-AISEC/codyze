@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.analysis.markevaluation;
 
 import de.breakpointsec.pushdown.IllegalTransitionException;
 import de.fraunhofer.aisec.analysis.structures.*;
-import de.fraunhofer.aisec.analysis.wpds.TypeStateAnalysis;
+import de.fraunhofer.aisec.analysis.wpds.TypestateAnalysis;
 import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
@@ -24,14 +24,14 @@ public class OrderEvaluator {
 	}
 
 	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext resultCtx, Graph graph, MarkContextHolder markContextHolder) {
-		Benchmark tsBench = new Benchmark(TypeStateAnalysis.class, "Typestate Analysis");
+		Benchmark tsBench = new Benchmark(TypestateAnalysis.class, "Typestate Analysis");
 
 		ConstantValue result = null;
 
 		switch (config.typestateAnalysis) {
 			case WPDS:
 				log.info("Evaluating order with WPDS");
-				var ts = new TypeStateAnalysis(markContextHolder, resultCtx);
+				var ts = new TypestateAnalysis(markContextHolder, resultCtx);
 				try {
 					// NOTE: rule and orderExpression might be redundant as arguments
 					result = ts.analyze(orderExpression, contextID, resultCtx, graph, rule);

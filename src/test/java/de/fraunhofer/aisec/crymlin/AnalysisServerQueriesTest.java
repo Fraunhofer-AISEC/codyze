@@ -46,7 +46,7 @@ class AnalysisServerQueriesTest {
 		// Start an analysis server
 		server = AnalysisServer.builder()
 				.config(
-					ServerConfiguration.builder().disableOverflow(true).launchConsole(false).launchLsp(false).markFiles(markModelFiles).build())
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markModelFiles).build())
 				.build();
 		server.start();
 

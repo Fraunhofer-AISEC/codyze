@@ -69,7 +69,7 @@ class RuleEnsureSemanticsTest {
 		assertEquals(1, markFilePaths.size());
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
-		ServerConfiguration config = ServerConfiguration.builder().disableOverflow(true).markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
+		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
 		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)));
 
 		var graph = getGraph(new TranslationResult(TranslationManager.builder().build()));

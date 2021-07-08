@@ -64,6 +64,7 @@ public class Year implements Builtin {
 			log.debug("_year() -> {}", year);
 
 			ConstantValue cv = ConstantValue.of(year);
+
 			cv.addResponsibleNodesFrom((ConstantValue) argResultList.get(0));
 
 			return cv;

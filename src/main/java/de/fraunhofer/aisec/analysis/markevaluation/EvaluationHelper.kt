@@ -820,24 +820,18 @@ private fun Expression.lhsReferenceOfAssignment(graph: Graph): List<DeclaredRefe
  * @return
  */
 @ExperimentalGraph
-private fun argumentsMatchParameters(
+fun argumentsMatchParameters(
     markParameters: List<Parameter>,
     sourceArguments: List<Expression>
 ): Boolean {
     var i = 0
+
     while (i < markParameters.size && i < sourceArguments.size) {
         val markParam = markParameters[i]
         val sourceArgs: MutableSet<Type> = HashSet()
 
-        // We cannot assume that the position in sourceArgument corresponds with the actual order.
-        // Must rather check "argumentIndex" property.
-        for (vArg in sourceArguments) {
-            val sourceArgPos = vArg.argumentIndex
-
-            if (sourceArgPos == i) {
-                sourceArgs.addAll(vArg.possibleSubTypes)
-                sourceArgs.add(vArg.type)
-            }
+        for (arg in sourceArguments) {
+            sourceArgs.add(arg.type)
         }
 
         if (sourceArgs.isEmpty()) {
@@ -847,6 +841,7 @@ private fun argumentsMatchParameters(
             )
             return false
         }
+
         if (Constants.ELLIPSIS == markParam.getVar()) {
             return true
         }
@@ -870,13 +865,15 @@ private fun argumentsMatchParameters(
 
     // If parameter list ends with an ELLIPSIS, we ignore the remaining arguments
     var endsWithEllipsis = false
+
     if (i < markParameters.size) {
-        val sublist: List<Parameter> = markParameters.subList(i, markParameters.size)
+        val sublist = markParameters.subList(i, markParameters.size)
         endsWithEllipsis =
-            sublist.stream().allMatch { markParm: Parameter ->
-                Constants.ELLIPSIS == markParm.getVar()
+            sublist.stream().allMatch { markParam: Parameter ->
+                Constants.ELLIPSIS == markParam.getVar()
             }
     }
+
     return (i == markParameters.size || endsWithEllipsis) && i == sourceArguments.size
 }
 

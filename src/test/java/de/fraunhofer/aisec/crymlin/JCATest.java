@@ -22,7 +22,7 @@ class JCATest extends AbstractMarkTest {
 			"line 19: Rule BouncyCastleProvider_Cipher violated", // ok
 			"line 22: Rule BouncyCastleProvider_Cipher verified", // ok
 			"line 23: Rule BouncyCastleProvider_Cipher violated", // improv type resolution for BouncyCastleProvider class
-			//"line 24: Rule BouncyCastleProvider_Cipher verified", // type hierarchy not available from CPG
+			"line 24: Rule BouncyCastleProvider_Cipher verified", // type hierarchy is now available
 			"line 27: Rule BouncyCastleProvider_Cipher violated", // ok
 			"line 28: Rule BouncyCastleProvider_Cipher violated", // ok
 
@@ -30,7 +30,7 @@ class JCATest extends AbstractMarkTest {
 			"line 19: Rule ID_2_01 verified", // ok
 			"line 22: Rule ID_2_01 verified", // ok
 			"line 23: Rule ID_2_01 verified", // ok
-			// "line 24: Rule ID_2_01 verified", // type hierarchy not available from CPG
+			"line 24: Rule ID_2_01 verified", // type hierarchy is now available
 			"line 27: Rule ID_2_01 verified", // ok
 			"line 28: Rule ID_2_01 verified", // ok
 
@@ -38,7 +38,7 @@ class JCATest extends AbstractMarkTest {
 			"line 19: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 22: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 23: Rule ID_2_1_01 violated", // ok, minimal test
-			// "line 24: Rule ID_2_1_01 violated", // type hierarchy not available from CPG
+			"line 24: Rule ID_2_1_01 violated", // type hierarchy is now available
 			"line 27: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 28: Rule ID_2_1_01 violated" // ok, minimal test
 		);

@@ -2,17 +2,11 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 import de.fraunhofer.aisec.cpg.graph.Node;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 // A MarkContextHolder contains:
 //
@@ -34,9 +28,6 @@ public class MarkContextHolder {
 
 	private static final Logger log = LoggerFactory.getLogger(MarkContextHolder.class);
 
-	@Deprecated
-	private final Map<Integer, LegacyMarkContext> legacyContexts = new HashMap<>();
-
 	private final Map<Integer, MarkContext> contexts = new HashMap<>();
 
 	private int currentElements = 0;
@@ -45,44 +36,18 @@ public class MarkContextHolder {
 	private final Map<Integer, List<Integer>> copyStack = new HashMap<>();
 	private boolean createFindingsDuringEvaluation = true;
 
-	@Deprecated
-	public void addInitialLegacyInstanceContext(LegacyCPGInstanceContext instance) {
-		LegacyMarkContext mk = new LegacyMarkContext();
-		mk.addInstanceContext(instance);
-		legacyContexts.put(currentElements++, mk);
-	}
-
 	public void addInitialInstanceContext(GraphInstanceContext instance) {
 		var mk = new MarkContext();
 		mk.addInstanceContext(instance);
 		contexts.put(currentElements++, mk);
 	}
 
-	@Deprecated
-	public LegacyMarkContext getLegacyContext(int id) {
-		return legacyContexts.get(id);
-	}
-
 	public MarkContext getContext(int id) {
 		return contexts.get(id);
 	}
 
-	@Deprecated
-	public Map<Integer, LegacyMarkContext> getAllLegacyContexts() {
-		return legacyContexts;
-	}
-
 	public Map<Integer, MarkContext> getAllContexts() {
 		return contexts;
-	}
-
-	@Deprecated
-	public Map<Integer, MarkIntermediateResult> generateLegacyNullResult() {
-		Map<Integer, MarkIntermediateResult> ret = new HashMap<>();
-		legacyContexts.keySet()
-				.forEach(
-					x -> ret.put(x, ConstantValue.newUninitialized()));
-		return ret;
 	}
 
 	public Map<Integer, MarkIntermediateResult> generateNullResult() {
@@ -91,20 +56,6 @@ public class MarkContextHolder {
 				.forEach(
 					x -> ret.put(x, ConstantValue.newUninitialized()));
 		return ret;
-	}
-
-	public Map<Integer, MarkIntermediateResult> getLegacyResolvedOperand(String operand) {
-		if (!resolvedOperands.contains(operand)) {
-			return null;
-		}
-		final Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		legacyContexts.forEach((id, context) -> {
-			CPGVertexWithValue vwv = context.getOperand(operand);
-			ConstantValue constant = ConstantValue.of(vwv.getValue());
-			constant.addResponsibleVertex(getVertexFromSelfOrFromParent(operand, context));
-			result.put(id, constant);
-		});
-		return result;
 	}
 
 	public Map<Integer, MarkIntermediateResult> getResolvedOperand(String operand) {
@@ -121,25 +72,6 @@ public class MarkContextHolder {
 		});
 
 		return result;
-	}
-
-	// return the vertex responsible for this operand, or (if the vertex would be null), the vertex of the base of this
-	// operand
-	@Deprecated
-	private Vertex getVertexFromSelfOrFromParent(String operand, LegacyMarkContext context) {
-		CPGVertexWithValue vwv = context.getOperand(operand);
-		if (vwv == null) {
-			return null;
-		}
-		Vertex argumentVertex = vwv.getArgumentVertex();
-		if (argumentVertex != null) {
-			return argumentVertex;
-		}
-		String[] split = operand.split("\\.");
-		if (split.length >= 2) {
-			return getVertexFromSelfOrFromParent(operand.substring(0, operand.lastIndexOf('.')), context);
-		}
-		return null;
 	}
 
 	/**return the vertex responsible for this operand, or (if the vertex would be null), the vertex of the base of this
@@ -163,39 +95,6 @@ public class MarkContextHolder {
 		}
 
 		return null;
-	}
-
-	public void addLegacyResolvedOperands(String operand, Map<Integer, List<CPGVertexWithValue>> operandVerticesForContext) {
-		resolvedOperands.add(operand);
-		final Map<Integer, LegacyMarkContext> toAdd = new HashMap<>();
-		final Map<Integer, List<Integer>> copyStackToAdd = new HashMap<>();
-
-		legacyContexts.forEach((id, context) -> {
-			List<CPGVertexWithValue> operandVertices = operandVerticesForContext.get(id);
-			if (operandVertices == null || operandVertices.isEmpty()) {
-				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
-				context.setOperand(operand, new CPGVertexWithValue(null,
-					ErrorValue.newErrorValue(String.format("Did not find any vertices for %s, following evaluation will be imprecise", operand))));
-			} else if (operandVertices.size() == 1) {
-				context.setOperand(operand, operandVertices.get(0));
-			} else {
-				List<Integer> oldStack = copyStack.computeIfAbsent(id, x -> new ArrayList<>());
-				for (int i = 1; i < operandVertices.size(); i++) {
-					LegacyMarkContext mk = new LegacyMarkContext(context); // create a shallow! copy
-					mk.setOperand(operand, operandVertices.get(i));
-					toAdd.put(currentElements, mk);
-
-					List<Integer> stackForNewContext = new ArrayList<>(oldStack);
-					stackForNewContext.add(id);
-					copyStackToAdd.put(currentElements, stackForNewContext);
-					currentElements++;
-				}
-				context.setOperand(operand, operandVertices.get(0)); // set the current one to the first value
-
-			}
-		});
-		legacyContexts.putAll(toAdd);
-		copyStack.putAll(copyStackToAdd);
 	}
 
 	public void addResolvedOperands(String operand, Map<Integer, List<NodeWithValue<Node>>> operandVerticesForContext) {
@@ -231,11 +130,6 @@ public class MarkContextHolder {
 		copyStack.putAll(copyStackToAdd);
 	}
 
-	@Deprecated
-	public void removeLegacyContext(Integer key) {
-		legacyContexts.remove(key);
-	}
-
 	public void removeContext(Integer key) {
 		contexts.remove(key);
 	}
@@ -254,9 +148,9 @@ public class MarkContextHolder {
 
 	public void dump(PrintStream out) {
 		out.println("====== Mark Context ========");
-		for (Map.Entry<Integer, LegacyMarkContext> ctx : legacyContexts.entrySet()) {
+		for (Map.Entry<Integer, MarkContext> ctx : contexts.entrySet()) {
 			int id = ctx.getKey();
-			LegacyMarkContext mCtx = ctx.getValue();
+			var mCtx = ctx.getValue();
 			out.println(id + ":");
 			mCtx.dump(out);
 		}

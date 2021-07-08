@@ -13,13 +13,11 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExp
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.StaticCallExpression;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.sarif.Region;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.AliasedEntityExpression;
 import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +61,8 @@ public class Evaluator {
 	public TranslationResult evaluate(@NonNull TranslationResult result, @NonNull final AnalysisContext ctx) {
 		Benchmark bOuter = new Benchmark(this.getClass(), "Mark evaluation");
 
-		try { // connects to the DB
+		try {
+			// builds the graph. this is potentially expensive, so do it only once
 			var graph = getGraph(result);
 
 			log.info("Precalculating matching nodes");

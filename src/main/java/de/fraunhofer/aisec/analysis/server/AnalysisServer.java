@@ -6,7 +6,6 @@ import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
 import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
-import de.fraunhofer.aisec.analysis.markevaluation.LegacyEvaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.FindingDescription;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
@@ -15,22 +14,10 @@ import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
-import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
-import de.fraunhofer.aisec.cpg.passes.ImportResolver;
-import de.fraunhofer.aisec.cpg.passes.JavaExternalTypeHierarchyResolver;
-import de.fraunhofer.aisec.cpg.passes.Pass;
-import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
-import de.fraunhofer.aisec.cpg.passes.TypeResolver;
-import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
+import de.fraunhofer.aisec.cpg.passes.*;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
@@ -52,11 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -94,57 +77,32 @@ public class AnalysisServer {
 
 	private TranslationResult translationResult;
 
-	private Database<Node> db;
-
 	private Mark markModel = new Mark();
 
-	@SuppressWarnings("java:S3010")
 	private AnalysisServer(ServerConfiguration config) {
 		this.config = config;
 		AnalysisServer.instance = this;
 
-		if (config.legacyEvaluator) {
-			// Register built-in functions
-			Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of legacy builtins");
-			Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.legacy_builtin");
-			int i = 0;
-			for (Class<? extends de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin> builtin : reflections
-					.getSubTypesOf(de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin.class)) {
-				log.info("Registering legacy builtin {}", builtin.getName());
-				try {
-					de.fraunhofer.aisec.crymlin.legacy_builtin.Builtin bi = builtin.getDeclaredConstructor().newInstance();
-					de.fraunhofer.aisec.crymlin.legacy_builtin.BuiltinRegistry.getInstance().register(bi);
-				}
-				catch (Exception e) {
-					log.error("Could not instantiate {}: ", builtin.getName(), e);
-				}
-				i++;
+		// Register built-in functions
+		Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of built-ins");
+		Reflections reflections = new Reflections(Builtin.class.getPackageName());
+
+		int i = 0;
+		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
+			log.info("Registering builtin {}", builtin.getName());
+			try {
+				Builtin bi = builtin.getDeclaredConstructor().newInstance();
+				BuiltinRegistry.getInstance().register(bi);
 			}
-			bench.stop();
-			log.info("Registered {} legacy builtins", i);
-
-			db = new OverflowDatabase(config);
-		} else {
-			// Register built-in functions
-			Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of built-ins");
-			Reflections reflections = new Reflections(Builtin.class.getPackageName());
-
-			int i = 0;
-			for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
-				log.info("Registering builtin {}", builtin.getName());
-				try {
-					Builtin bi = builtin.getDeclaredConstructor().newInstance();
-					BuiltinRegistry.getInstance().register(bi);
-				}
-				catch (Exception e) {
-					log.error("Could not instantiate {}: ", builtin.getName(), e);
-				}
-				i++;
+			catch (Exception e) {
+				log.error("Could not instantiate {}: ", builtin.getName(), e);
 			}
-
-			bench.stop();
-			log.info("Registered {} built-ins", i);
+			i++;
 		}
+
+		bench.stop();
+		log.info("Registered {} built-ins", i);
+
 	}
 
 	/**
@@ -222,7 +180,7 @@ public class AnalysisServer {
 		File srcLocation = analyzer.getConfig()
 				.getSourceLocations()
 				.get(0);
-		AnalysisContext ctx = new AnalysisContext(srcLocation, db); // NOTE: We currently operate on a single source file.
+		AnalysisContext ctx = new AnalysisContext(srcLocation); // NOTE: We currently operate on a single source file.
 		for (Pass p : analyzer.getPasses()) {
 			if (p instanceof PassWithContext) {
 				((PassWithContext) p).setContext(ctx);
@@ -238,11 +196,7 @@ public class AnalysisServer {
 						result.getScratch().put("ctx", ctx);
 						translationResult = result;
 
-						if (config.legacyEvaluator) {
-							return persistToODB(result);
-						} else {
-							return result;
-						}
+						return result;
 					})
 				.thenApply(
 					result -> {
@@ -251,18 +205,14 @@ public class AnalysisServer {
 							"Evaluating mark: {} entities, {} rules",
 							this.markModel.getEntities().size(),
 							this.markModel.getRules().size());
-						if (config.legacyEvaluator) {
-							// Evaluate all MARK rules
-							LegacyEvaluator mi = new LegacyEvaluator(this.markModel, this.config);
-							mi.evaluate(result, ctx);
-						} else {
-							// Evaluate all MARK rules
-							var evaluator = new Evaluator(this.markModel, this.config);
-							evaluator.evaluate(result, ctx);
 
-							// make the graph from the result available in the analysis context
-							ctx.graph = getGraph(result);
-						}
+						// Evaluate all MARK rules
+						var evaluator = new Evaluator(this.markModel, this.config);
+						evaluator.evaluate(result, ctx);
+
+						// make the graph from the result available in the analysis context
+						ctx.graph = getGraph(result);
+
 						bench.stop();
 						return ctx;
 					})
@@ -396,11 +346,6 @@ public class AnalysisServer {
 			lsp.shutdown();
 		}
 
-		if (config.legacyEvaluator) {
-			// Close in-memory graph and evict caches
-			db.close();
-		}
-
 		this.config = null;
 		this.markModel = null;
 		this.interp = null;
@@ -417,40 +362,6 @@ public class AnalysisServer {
 
 	public TranslationResult getTranslationResult() {
 		return translationResult;
-	}
-
-	private TranslationResult persistToODB(TranslationResult result) {
-		Benchmark bench = new Benchmark(this.getClass(), " Serializing into OverflowDB");
-
-		// ensure, that the database is clear
-		db.clearDatabase();
-
-		// connect
-		if (!db.isConnected()) {
-			db.connect();
-		}
-
-		// Persist the result
-		db.saveAll(result.getTranslationUnits());
-
-		long duration = bench.stop();
-		// connect to DB
-		try (TraversalConnection t = new TraversalConnection(db)) {
-			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-			Long numEdges = crymlinTraversal.V().outE().count().next();
-			Long numVertices = crymlinTraversal.V().count().next();
-			log.info(
-				"Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
-				numVertices,
-				String.format("%.2f", (double) duration / numVertices),
-				numEdges,
-				String.format("%.2f", (double) duration / numEdges));
-		}
-		catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-		log.info("Benchmark: Persisted approx {} nodes", db.getNumNodes());
-		return result;
 	}
 
 	public CompletableFuture<AnalysisContext> analyze(String url) {

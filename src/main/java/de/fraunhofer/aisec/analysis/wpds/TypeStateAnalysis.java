@@ -22,7 +22,6 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExp
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression;
 import de.fraunhofer.aisec.cpg.graph.types.Type;
 import de.fraunhofer.aisec.cpg.sarif.Region;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
@@ -30,7 +29,6 @@ import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.TreeIterator;
@@ -696,7 +694,7 @@ public class TypeStateAnalysis {
 					if ((assignerFqn != null && opStatement.getCall().getName().equals(assignerFqn))
 							&& (assigneeVar != null // is return value assigned to valInScope?
 									|| arguments.isEmpty()
-									|| CrymlinQueryWrapper.argumentsMatchSourceParameters(opStatement.getCall().getParams(),
+									|| argumentsMatchParameters(opStatement.getCall().getParams(),
 										((CallExpression) cpgNode).getArguments()))) {
 						return true;
 					}
@@ -726,45 +724,41 @@ public class TypeStateAnalysis {
 	@NonNull
 	private Map<String, Set<Pair<Val, Val>>> findParamToValues(FunctionDeclaration callee) {
 		Map<String, Set<Pair<Val, Val>>> result = new HashMap<>();
-		try {
-			if (callee == null) {
-				log.error("Unexpected: FunctionDeclaration of callee is null.");
-				return result;
-			}
-			String calleeName = callee.getName();
 
-			// the function declaration is connected to their call expressions by a DFG edge
-			var calls = callee.getNextDFG()
-					.stream()
-					.filter(x -> x instanceof CallExpression)
-					.map(x -> (CallExpression) x)
-					.collect(Collectors.toList());
-
-			for (var ce : calls) {
-				var caller = getContainingFunction(ce);
-
-				if (caller == null) {
-					log.error("Unexpected: Null Node object for FunctionDeclaration");
-					continue;
-				}
-
-				List<Expression> args = ce.getArguments();
-				/*FunctionDeclaration callee = ce.getInvokes()
-						.get(
-							0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
-				
-				 */
-				List<ParamVariableDeclaration> params = callee.getParameters();
-
-				Set<Pair<Val, Val>> pToA = new HashSet<>();
-				for (int i = 0; i < Math.min(params.size(), args.size()); i++) {
-					pToA.add(new Pair<>(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
-				}
-				result.put(calleeName, pToA);
-			}
+		if (callee == null) {
+			log.error("Unexpected: FunctionDeclaration of callee is null.");
+			return result;
 		}
-		catch (FastNoSuchElementException e) {
-			log.error("FastNoSuchElementException", e);
+		String calleeName = callee.getName();
+
+		// the function declaration is connected to their call expressions by a DFG edge
+		var calls = callee.getNextDFG()
+				.stream()
+				.filter(x -> x instanceof CallExpression)
+				.map(x -> (CallExpression) x)
+				.collect(Collectors.toList());
+
+		for (var ce : calls) {
+			var caller = getContainingFunction(ce);
+
+			if (caller == null) {
+				log.error("Unexpected: Null Node object for FunctionDeclaration");
+				continue;
+			}
+
+			List<Expression> args = ce.getArguments();
+			/*FunctionDeclaration callee = ce.getInvokes()
+					.get(
+						0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
+			
+			 */
+			List<ParamVariableDeclaration> params = callee.getParameters();
+
+			Set<Pair<Val, Val>> pToA = new HashSet<>();
+			for (int i = 0; i < Math.min(params.size(), args.size()); i++) {
+				pToA.add(new Pair<>(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
+			}
+			result.put(calleeName, pToA);
 		}
 
 		return result;

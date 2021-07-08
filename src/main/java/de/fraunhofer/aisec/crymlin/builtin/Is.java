@@ -7,13 +7,9 @@ import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * This builtin checks if two mark vars are equal
@@ -35,7 +31,7 @@ public class Is implements Builtin {
 			ExpressionEvaluator expressionEvaluator) {
 
 		try {
-			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
+			var vertices = BuiltinHelper.extractResponsibleNodes(argResultList, 2);
 
 			var v1 = (vertices.get(0) instanceof DeclaredReferenceExpression) ? ((DeclaredReferenceExpression) vertices.get(0)).getRefersTo() : vertices.get(0);
 			var v2 = (vertices.get(1) instanceof DeclaredReferenceExpression) ? ((DeclaredReferenceExpression) vertices.get(1)).getRefersTo() : vertices.get(1);

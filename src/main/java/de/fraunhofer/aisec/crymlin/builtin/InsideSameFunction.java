@@ -31,7 +31,7 @@ public class InsideSameFunction implements Builtin {
 
 		try {
 			// could be extended to a variable number of arguments quite easile
-			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
+			var vertices = BuiltinHelper.extractResponsibleNodes(argResultList, 2);
 			// now we have one vertex each for arg0 and arg1, both not null
 
 			FunctionDeclaration lastIndex = null;

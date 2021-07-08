@@ -4,8 +4,6 @@ package de.fraunhofer.aisec.crymlin.builtin;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,7 @@ public class ReceivesValueFrom implements Builtin {
 			ExpressionEvaluator expressionEvaluator) {
 		try {
 			// We expect a source and a target vertex
-			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
+			var vertices = BuiltinHelper.extractResponsibleNodes(argResultList, 2);
 
 			if (vertices.size() != 2) {
 				return ErrorValue.newErrorValue("Could not resolve arguments of _receives_value_from");

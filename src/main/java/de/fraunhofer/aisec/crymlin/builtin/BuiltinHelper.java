@@ -5,7 +5,6 @@ import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
 import de.fraunhofer.aisec.cpg.graph.Node;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ public class BuiltinHelper {
 		// do not call
 	}
 
-	public static List<Node> extractResponsibleVertices(@NonNull ListValue argumentList, int numberOfExpectedArguments) throws InvalidArgumentException {
+	public static List<Node> extractResponsibleNodes(@NonNull ListValue argumentList, int numberOfExpectedArguments) throws InvalidArgumentException {
 		if (argumentList.size() != numberOfExpectedArguments) {
 			throw new InvalidArgumentException(String.format("Invalid number of arguments: %s", argumentList.size()));
 		}

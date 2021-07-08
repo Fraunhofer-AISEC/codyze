@@ -4,14 +4,9 @@ package de.fraunhofer.aisec.crymlin.builtin;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
 import de.fraunhofer.aisec.analysis.structures.*;
-import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getField;
 import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getInitializerValue;

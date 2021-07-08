@@ -2,18 +2,12 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 import de.fraunhofer.aisec.cpg.graph.Node;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Representation of a hardcoded constant.
@@ -27,11 +21,10 @@ public class ConstantValue extends MarkIntermediateResult {
 
 	@NonNull
 	private final Type type;
+
 	@NonNull
 	protected Object value;
 
-	@Deprecated
-	private final Set<Vertex> responsibleVertices = new HashSet<>();
 	private final Set<Node> responsibleNodes = new HashSet<>();
 
 	public static boolean isError(Object o) {
@@ -145,40 +138,16 @@ public class ConstantValue extends MarkIntermediateResult {
 		return Objects.hash(type, value);
 	}
 
-	@Deprecated
-	public void addResponsibleVertex(Vertex v) {
-		responsibleVertices.add(v);
-	}
-
 	public void addResponsibleNode(Node node) {
 		responsibleNodes.add(node);
-	}
-
-	@Deprecated
-	public void addResponsibleVertices(Collection<Vertex> responsibleVertices) {
-		this.responsibleVertices.addAll(responsibleVertices);
 	}
 
 	public void addResponsibleNodes(Collection<Node> nodes) {
 		responsibleNodes.addAll(nodes);
 	}
 
-	@Deprecated
-	public void addResponsibleVertices(Vertex... responsibleVertices) {
-		this.responsibleVertices.addAll(Arrays.asList(responsibleVertices));
-	}
-
 	public void addResponsibleNodes(Node... nodes) {
 		responsibleNodes.addAll(Arrays.asList(nodes));
-	}
-
-	@Deprecated
-	public void addResponsibleVerticesFrom(ConstantValue... other) {
-		if (other != null) {
-			for (ConstantValue cv : other) {
-				responsibleVertices.addAll(cv.responsibleVertices);
-			}
-		}
 	}
 
 	public void addResponsibleNodesFrom(ConstantValue... other) {
@@ -187,11 +156,6 @@ public class ConstantValue extends MarkIntermediateResult {
 				responsibleNodes.addAll(cv.responsibleNodes);
 			}
 		}
-	}
-
-	@Deprecated
-	public Set<Vertex> getResponsibleVertices() {
-		return responsibleVertices;
 	}
 
 	public Set<Node> getResponsibleNodes() {

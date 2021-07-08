@@ -5,9 +5,9 @@ import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.crymlin.legacy_builtin.BuiltinHelper;
-import de.fraunhofer.aisec.crymlin.legacy_builtin.InvalidArgumentException;
-import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedVertex;
+import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.crymlin.builtin.BuiltinHelper;
+import de.fraunhofer.aisec.crymlin.builtin.InvalidArgumentException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -87,16 +87,16 @@ class BuiltInTest extends AbstractMarkTest {
 
 		ListValue lv = new ListValue();
 		ConstantValue cv1 = ConstantValue.of(2);
-		cv1.addResponsibleVertices(new DetachedVertex(new Object(), "", null));
+		cv1.addResponsibleNodes(new Node());
 		lv.add(cv1);
 
 		ConstantValue cv2 = ConstantValue.of(2);
-		cv2.addResponsibleVertices(new DetachedVertex(new Object(), "", null));
+		cv2.addResponsibleNodes(new Node());
 		lv.add(cv2);
 
 		try {
 			// we expect this does not throw
-			BuiltinHelper.extractResponsibleVertices(lv, 2);
+			BuiltinHelper.extractResponsibleNodes(lv, 2);
 		}
 		catch (InvalidArgumentException e) {
 			fail();
@@ -104,7 +104,7 @@ class BuiltInTest extends AbstractMarkTest {
 
 		try {
 			// we expect this throws as we would expect one more argument
-			BuiltinHelper.extractResponsibleVertices(lv, 3);
+			BuiltinHelper.extractResponsibleNodes(lv, 3);
 			fail();
 		}
 		catch (InvalidArgumentException e) {
@@ -113,8 +113,8 @@ class BuiltInTest extends AbstractMarkTest {
 
 		try {
 			// we expect this throws as the second ConstantValue has 2 responsiblevertices
-			cv2.addResponsibleVertices(new DetachedVertex(new Object(), "", null));
-			BuiltinHelper.extractResponsibleVertices(lv, 2);
+			cv2.addResponsibleNodes(new Node());
+			BuiltinHelper.extractResponsibleNodes(lv, 2);
 			fail();
 		}
 		catch (InvalidArgumentException e) {
@@ -127,7 +127,7 @@ class BuiltInTest extends AbstractMarkTest {
 
 		try {
 			// we expect this throws as the responsiblevertex is not availabe
-			BuiltinHelper.extractResponsibleVertices(lv, 1);
+			BuiltinHelper.extractResponsibleNodes(lv, 1);
 			fail();
 		}
 		catch (InvalidArgumentException e) {
@@ -136,7 +136,7 @@ class BuiltInTest extends AbstractMarkTest {
 
 		try {
 			// we expect this throws as the second argument is missing
-			BuiltinHelper.extractResponsibleVertices(lv, 2);
+			BuiltinHelper.extractResponsibleNodes(lv, 2);
 			fail();
 		}
 		catch (InvalidArgumentException e) {
@@ -149,7 +149,7 @@ class BuiltInTest extends AbstractMarkTest {
 
 		try {
 			// we expect this throws as first argument is an ErrorValue
-			BuiltinHelper.extractResponsibleVertices(lv, 1);
+			BuiltinHelper.extractResponsibleNodes(lv, 1);
 			fail();
 		}
 		catch (InvalidArgumentException e) {

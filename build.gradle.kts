@@ -95,7 +95,6 @@ dependencies {
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
     api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:master-SNAPSHOT:repackaged")
 
-
     // Pushdown Systems
     api("de.breakpointsec:pushdown:1.1") // ok
 
@@ -115,22 +114,8 @@ dependencies {
     // JsonPath for querying findings description
     implementation("com.jayway.jsonpath:json-path:2.6.0")
 
-    // Gremlin
-    api("org.apache.tinkerpop:gremlin-core:3.4.3")
-    annotationProcessor("org.apache.tinkerpop:gremlin-core:3.4.3") {
-        exclude(group = "org.slf4j", module = "slf4j-api")
-        exclude(group = "org.slf4j", module = "jcl-over-slf4j")
-    }      // Newer Gradle versions require specific classpath for annotatation processors
-    api("org.apache.tinkerpop:gremlin-python:3.4.3")
-    api("org.apache.tinkerpop:tinkergraph-gremlin:3.4.3")
-    api("org.apache.tinkerpop:gremlin-driver:3.4.3")
-    api("org.apache.tinkerpop:neo4j-gremlin:3.4.3")     // Neo4j multi-label support for gremlin
-
     // Groovy
     implementation("org.codehaus.groovy:groovy:3.0.7") // fetch a recent groovy otherwise, Java11+ has problems
-
-    // Fast in-memory graph DB (alternative to Neo4J)
-    implementation("io.shiftleft:overflowdb-tinkerpop3:0.128")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.9.11")

@@ -3,7 +3,6 @@ package de.fraunhofer.aisec.analysis.structures;
 
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Node;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +70,7 @@ public class MarkContext {
 				}
 				for (Map.Entry<String, NodeWithValue<? extends Node>> op : operands.entrySet()) {
 					out.println("     " + op.getKey() + " : " + op.getValue().getValue() + " base: " + op.getValue().getBase() + " resp. vertices: "
-							+ Utils.prettyPrint(op.getValue().getValue().getResponsibleVertices()));
+							+ op.getValue().getValue().getResponsibleNodes());
 				}
 			}
 		}

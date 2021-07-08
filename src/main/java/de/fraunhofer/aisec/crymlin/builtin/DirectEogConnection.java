@@ -29,7 +29,7 @@ public class DirectEogConnection implements Builtin {
 			@NonNull MarkContextHolder markContextHolder,
 			ExpressionEvaluator expressionEvaluator) {
 		try {
-			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
+			var vertices = BuiltinHelper.extractResponsibleNodes(argResultList, 2);
 			// now we have one vertex each for arg0 and arg1, both not null
 
 			ConstantValue ret = ConstantValue.of(hasEOGTo(vertices.get(0), vertices.get(1), false));

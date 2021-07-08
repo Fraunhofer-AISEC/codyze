@@ -3,7 +3,6 @@ package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
-import de.fraunhofer.aisec.analysis.markevaluation.LegacyExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -25,7 +24,7 @@ import java.util.stream.Collectors;
  * In case of an error, this Builtin returns an ErrorValue;
  */
 public class SplitMatchUnordered implements Builtin {
-	private static final Logger log = LoggerFactory.getLogger(de.fraunhofer.aisec.crymlin.legacy_builtin.SplitMatchUnordered.class);
+	private static final Logger log = LoggerFactory.getLogger(SplitMatchUnordered.class);
 
 	@NonNull
 	@Override

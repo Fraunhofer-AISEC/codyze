@@ -4,18 +4,11 @@ package de.fraunhofer.aisec.markmodel;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MOp {
 
@@ -29,16 +22,10 @@ public class MOp {
 
 	private boolean parsed = false;
 
-	@Deprecated
-	private Map<OpStatement, Set<Vertex>> statementToCPGVertex = new HashMap<>();
 	private final Map<OpStatement, Set<Node>> statementToNodes = new HashMap<>();
 
-	@Deprecated
-	private Map<Vertex, Set<OpStatement>> vertexToStatements = new HashMap<>();
 	private final Map<Node, Set<OpStatement>> nodesToStatements = new HashMap<>();
 
-	@Deprecated
-	private Set<Vertex> allVertices = new HashSet<>();
 	private final Set<Node> allNodes = new HashSet<>();
 
 	public MOp(MEntity parent) {
@@ -59,47 +46,21 @@ public class MOp {
 		return this.statements;
 	}
 
-	public Set<Vertex> getVertices(OpStatement stmt) {
-		if (!parsed) {
-			log.error("MOp not parsed! Do not call getVertex!");
-			assert false;
-		}
-		return statementToCPGVertex.get(stmt);
-	}
-
-	public Set<OpStatement> getCallStatements(Vertex v) {
+	public Set<OpStatement> getCallStatements(Node node) {
 		if (!parsed) {
 			log.error("MOp not parsed! Do not call getCallStatements!");
 			assert false;
 		}
-		return vertexToStatements.get(v);
-	}
 
-	public Map<Vertex, Set<OpStatement>> getVertexToCallStatementsMap() {
-		return vertexToStatements;
+		return nodesToStatements.get(node);
 	}
 
 	public Map<Node, Set<OpStatement>> getNodesToStatements() {
 		return nodesToStatements;
 	}
 
-	@Deprecated
-	public Set<Vertex> getAllVertices() {
-		return allVertices;
-	}
-
 	public Set<Node> getAllNodes() {
 		return allNodes;
-	}
-
-	@Deprecated
-	public void addVertex(OpStatement stmt, Set<Vertex> verts) {
-		statementToCPGVertex.put(stmt, verts);
-		for (Vertex v : verts) {
-			Set<OpStatement> callStatements = vertexToStatements.computeIfAbsent(v, k -> new HashSet<>());
-			callStatements.add(stmt);
-		}
-		allVertices.addAll(verts);
 	}
 
 	public void addNode(OpStatement stmt, Set<Node> nodes) {
@@ -121,11 +82,8 @@ public class MOp {
 
 	public void reset() {
 		parsed = false;
-		statementToCPGVertex = new HashMap<>();
 		statementToNodes.clear();
-		vertexToStatements = new HashMap<>();
 		nodesToStatements.clear();
-		allVertices = new HashSet<>();
 		allNodes.clear();
 	}
 

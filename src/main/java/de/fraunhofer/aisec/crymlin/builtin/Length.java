@@ -5,17 +5,9 @@ import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ArrayCreationExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
 
 import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getInitializerFor;
 
@@ -40,7 +32,7 @@ public class Length implements Builtin {
 			@NonNull MarkContextHolder markContextHolder,
 			ExpressionEvaluator expressionEvaluator) {
 		try {
-			var vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 1);
+			var vertices = BuiltinHelper.extractResponsibleNodes(argResultList, 1);
 
 			var ini = getInitializerFor(vertices.get(0));
 

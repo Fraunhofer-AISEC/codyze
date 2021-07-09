@@ -202,4 +202,29 @@ class BuiltInTest extends AbstractMarkTest {
 			"line 2: Rule split_match_unordered_6 violated");
 	}
 
+	@Test
+	void testSplitDisjoint() throws Exception {
+		var findings = performTest("builtins/split_disjoint.c", "builtins/split_disjoint.mark");
+
+		expected(findings,
+			"line 2: Rule split_disjoint_1 verified",
+			"line 2: Rule split_disjoint_2 verified",
+			"line 2: Rule split_disjoint_3 violated");
+	}
+
+	@Test
+	void testNow() throws Exception {
+		var findings = performTest("builtins/now.c", "builtins/now.mark");
+
+		expected(findings,
+			"line []: Rule Test verified");
+	}
+
+	@Test
+	void testYear() throws Exception {
+		var findings = performTest("builtins/year.c", "builtins/year.mark");
+
+		expected(findings,
+			"line []: Rule Test verified");
+	}
 }

@@ -121,7 +121,7 @@ dependencies {
     api("org.apache.tinkerpop:neo4j-gremlin:3.4.3")     // Neo4j multi-label support for gremlin
 
     // Groovy
-    implementation("org.codehaus.groovy:groovy:3.0.7") // fetch a recent groovy otherwise, Java11+ has problems
+    implementation("org.codehaus.groovy:groovy:3.0.8") // fetch a recent groovy otherwise, Java11+ has problems
 
     // Fast in-memory graph DB (alternative to Neo4J)
     implementation("io.shiftleft:overflowdb-tinkerpop3:0.128")

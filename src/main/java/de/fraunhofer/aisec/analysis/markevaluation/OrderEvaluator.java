@@ -31,7 +31,7 @@ public class OrderEvaluator {
 		switch (config.typestateAnalysis) {
 			case WPDS:
 				log.info("Evaluating order with WPDS");
-				var ts = new TypestateAnalysis(markContextHolder, resultCtx);
+				var ts = new TypestateAnalysis(markContextHolder);
 				try {
 					// NOTE: rule and orderExpression might be redundant as arguments
 					result = ts.analyze(orderExpression, contextID, resultCtx, graph, rule);

@@ -149,7 +149,7 @@ val Node.initializedNode: Node?
 
 /**
  * If the expression is either a declaration of a reference to a declaration, it returns the
- * initializer for the underyling declaration.
+ * initializer for the underlying declaration.
  */
 fun Node.getInitializerFor(): Expression? {
     if (this is HasInitializer) {
@@ -239,18 +239,19 @@ fun Node.hasEOGTo(sink: Node, branchesAllowed: Boolean): Boolean {
 }
 
 fun ConstructExpression.getAssignee(): Node? {
-    this.initializedNode?.let {
-        var node = it
+    this.initializedNode?.let { initializedNode ->
+        var node = initializedNode
 
-        // TODO: this follows initializers twice, but it should follow it until we have an assignee
+        // TODO: this follows initializers twice, but initializedNode should follow initializedNode
+        // until we have an assignee
         node.initializedNode?.let { node = it }
 
         // if this refers to a 'new' expression, we need to traverse one more step
         if (node is NewExpression) {
             // use the DFG node to find the reference expression
-            val it = node.nextDFG.iterator()
-            if (it.hasNext()) {
-                node = it.next()
+            val iter = node.nextDFG.iterator()
+            if (iter.hasNext()) {
+                node = iter.next()
             }
         }
 
@@ -293,7 +294,13 @@ fun CallExpression.getBaseDeclaration(): Node? {
     return base
 }
 
-// TODO(oxisto): Rename this function, because "base" is misleading here.
+/**
+ * This returns the "base" (MARK speech) object using the argument of a call expression. A common
+ * use-case is a non-objected oriented programming language, where the to-be-tracked object is
+ * passed as the first argument in a call expression.
+ *
+ * For example, for the code `call(a, b)` and using the [argumentIndex] `0`, this will return `a`.
+ */
 private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: Int): Node? {
     val list = this.arguments.filter { it.argumentIndex == argumentIndex }
 
@@ -315,26 +322,25 @@ private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: I
  * This returns the "base" (MARK speech) object of an expression that is contained as an argument in
  * an initializer, e.g. in a construct or call expression.
  *
- * For example for the code `Foo f = new Foo(b)` this would return `f` for the expression `b`.
+ * For example, for the code `Foo f = new Foo(b)` this would return `f` for the expression `b`.
  */
 fun Expression.getBaseOfInitializerArgument(): Node? {
     var base: Node? = null
+    var parent = this.astParent
 
     // check, if AST parent is a call expression and it contains this expression as an argument
-    if (this.astParent is CallExpression &&
-            (this.astParent as CallExpression).arguments.contains(this)
-    ) {
+    if (parent is CallExpression && parent.arguments.contains(this)) {
         // get the node, that this call expression initializes, i.e. the variable declaration
         // (either directly or indirectly)
-        astParent?.initializedNode?.let {
+        parent.initializedNode?.let {
             when (it) {
                 is DeclaredReferenceExpression -> it.refersTo.let { base = it }
                 is NewExpression -> {
                     // if the NewExpression is part of an initializer, return the initializer
-                    val parent = it.astParent
+                    parent = it.astParent
                     base =
                         if (parent is HasInitializer) {
-                            it.astParent
+                            parent
                         } else {
                             // otherwise, the NewExpression itself is the base
                             it

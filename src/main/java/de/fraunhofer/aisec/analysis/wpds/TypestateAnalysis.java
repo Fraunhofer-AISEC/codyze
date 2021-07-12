@@ -73,7 +73,7 @@ public class TypestateAnalysis {
 	private final MarkContextHolder markContextHolder;
 	private GraphInstanceContext instanceContext;
 
-	public TypestateAnalysis(@NonNull MarkContextHolder markContextHolder, @NonNull AnalysisContext ctx) {
+	public TypestateAnalysis(@NonNull MarkContextHolder markContextHolder) {
 		this.markContextHolder = markContextHolder;
 	}
 
@@ -122,7 +122,7 @@ public class TypestateAnalysis {
 		 *
 		 * (e.g., "b").
 		 */
-		File currentFile = getFileFromMarkInstance(markInstance, graph);
+		File currentFile = getFileFromMarkInstance(markInstance);
 		if (currentFile == null) {
 			currentFile = new File("FIXME");
 		}
@@ -174,7 +174,7 @@ public class TypestateAnalysis {
 	}
 
 	@Nullable
-	private File getFileFromMarkInstance(String markInstance, Graph graph) {
+	private File getFileFromMarkInstance(String markInstance) {
 		var v = instanceContext.getNode(markInstance);
 		if (v == null) {
 			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
@@ -667,11 +667,11 @@ public class TypestateAnalysis {
 		Set<Type> types = new HashSet<>();
 		List<Expression> arguments = new ArrayList<>();
 		if (cpgNode instanceof CallExpression) {
-			de.fraunhofer.aisec.cpg.graph.Node base = ((CallExpression) cpgNode).getBase();
+			var base = ((CallExpression) cpgNode).getBase();
 
-			// Check for type of base, if exists
-			if (base != null && base instanceof Expression) {
-				types = ((Expression) base).getPossibleSubTypes();
+			// even though base is annotated @NotNull, it sometimes is null
+			if (base != null) {
+				types = base.getPossibleSubTypes();
 			}
 
 			arguments.addAll(((CallExpression) cpgNode).getArguments());
@@ -731,8 +731,8 @@ public class TypestateAnalysis {
 		// the function declaration is connected to their call expressions by a DFG edge
 		var calls = callee.getNextDFG()
 				.stream()
-				.filter(x -> x instanceof CallExpression)
-				.map(x -> (CallExpression) x)
+				.filter(CallExpression.class::isInstance)
+				.map(CallExpression.class::cast)
 				.collect(Collectors.toList());
 
 		for (var ce : calls) {
@@ -743,18 +743,14 @@ public class TypestateAnalysis {
 				continue;
 			}
 
-			List<Expression> args = ce.getArguments();
-			/*FunctionDeclaration callee = ce.getInvokes()
-					.get(
-						0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
-			
-			 */
-			List<ParamVariableDeclaration> params = callee.getParameters();
+			var args = ce.getArguments();
+			var params = callee.getParameters();
 
-			Set<Pair<Val, Val>> pToA = new HashSet<>();
+			var pToA = new HashSet<Pair<Val, Val>>();
 			for (int i = 0; i < Math.min(params.size(), args.size()); i++) {
 				pToA.add(new Pair<>(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
 			}
+
 			result.put(calleeName, pToA);
 		}
 
@@ -779,7 +775,7 @@ public class TypestateAnalysis {
 		 * to a VariableDeclaration.
 		 */
 		Set<Val> returnedVals = new HashSet<>();
-		var calls = node.getNextDFG().stream().filter(x -> x instanceof CallExpression).collect(Collectors.toList());
+		var calls = node.getNextDFG().stream().filter(CallExpression.class::isInstance).collect(Collectors.toList());
 
 		for (var call : calls) {
 			// We found the call site into our method. Now see if the return value is used.

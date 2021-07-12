@@ -18,6 +18,7 @@ import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,12 +152,12 @@ public class Evaluator {
 			if (!entities.isEmpty()) {
 				boolean hasCPGNodes = false;
 				outer: for (var entity : rule.getEntityReferences().entrySet()) {
-					if (entity.getValue() == null || entity.getValue().getValue1() == null) {
+					if (entity.getValue() == null || entity.getValue().getSecond() == null) {
 						log.warn("Rule {} references an unknown entity {}", rule.getName(), entity.getKey());
 						break;
 					}
 
-					for (var op : entity.getValue().getValue1().getOps()) {
+					for (var op : entity.getValue().getSecond().getOps()) {
 						if (!op.getAllNodes().isEmpty()) {
 							hasCPGNodes = true;
 							break outer;
@@ -328,8 +329,8 @@ public class Evaluator {
 		for (var list : Lists.cartesianProduct(entities)) {
 			var instanceCtx = new GraphInstanceContext();
 			for (var p : list) {
-				String markInstanceName = p.getValue0();
-				var v = p.getValue1();
+				String markInstanceName = p.getFirst();
+				var v = p.getSecond();
 				instanceCtx.putMarkInstance(markInstanceName, v);
 			}
 

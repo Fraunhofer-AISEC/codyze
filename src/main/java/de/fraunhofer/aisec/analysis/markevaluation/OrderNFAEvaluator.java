@@ -99,7 +99,7 @@ public class OrderNFAEvaluator {
 		// a vertex can _only_ belong to one entity/op!
 		var verticesToOp = new HashMap<de.fraunhofer.aisec.cpg.graph.Node, MOp>();
 		for (var entry : rule.getEntityReferences().entrySet()) {
-			MEntity ent = entry.getValue().getValue1();
+			MEntity ent = entry.getValue().getSecond();
 
 			if (ent == null) {
 				continue;
@@ -178,7 +178,7 @@ public class OrderNFAEvaluator {
 						if (rule.getEntityReferences()
 								.values()
 								.stream()
-								.anyMatch(x -> Objects.equals(x.getValue1(), op.getParent()))) {
+								.anyMatch(x -> Objects.equals(x.getSecond(), op.getParent()))) {
 
 							String base = null;
 							String ref = null;

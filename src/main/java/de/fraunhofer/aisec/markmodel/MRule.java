@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
 import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Map;

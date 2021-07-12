@@ -476,7 +476,7 @@ fun MRule.getMatchingReferences(
 
     // Get the MARK entity corresponding to the MARK instance variable.
     val ref = this.entityReferences[instance]
-    if (ref == null || ref.value1 == null) {
+    if (ref?.second == null) {
         log.warn(
             "Unexpected: rule {} without referenced entity for instance {}",
             this.name,
@@ -485,7 +485,7 @@ fun MRule.getMatchingReferences(
         return matchingVertices
     }
 
-    var referencedEntity = ref.value1
+    var referencedEntity = ref.second
 
     if (StringUtils.countMatches(markVar, ".") > 1) {
         log.info("{} References an entity inside an entity", markVar)
@@ -550,13 +550,12 @@ fun MRule.getMatchingReferences(
 
     // get nodes for all usesAsVar (i.e., simple assignment, i.e. "var = something()")
     for (p in usesAsVar) {
-        if (p.value1 == null) {
-            log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.value0)
+        if (p.second == null) {
+            log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.first)
             continue
         }
 
-        // TODO(oxisto): use kotlin.Pair instead of custom class for p
-        for (opstmt in p.value1!!) {
+        for (opstmt in p.second!!) {
             val fqFunctionName = opstmt.call.name
             val vertices = graph.getCalls(fqFunctionName, opstmt.call.params)
             vertices.addAll(graph.getConstructs(fqFunctionName, opstmt.call.params))
@@ -567,14 +566,14 @@ fun MRule.getMatchingReferences(
                 var foundTargetVertex = false
 
                 // check if there was an assignment (i.e., i = call(foo);)
-                val references = v.lhsReferenceOfAssignment(graph)
+                val references = v.lhsReferenceOfAssignment()
                 if (references.isNotEmpty()) {
                     foundTargetVertex = true
                     log.info("found assignment: {}", references)
 
                     references.forEach(
                         Consumer {
-                            // create a pair of nodes and their values (uninitalized yet)
+                            // create a pair of nodes and their values (uninitialized yet)
                             val cpgVertexWithValue =
                                 NodeWithValue<Node>(it, ConstantValue.newUninitialized())
                             cpgVertexWithValue.base = baseOfCallExpression
@@ -608,12 +607,12 @@ fun MRule.getMatchingReferences(
     // get vertices for all usesAsFunctionArgs (i.e., Function parameter, i.e. "something(..., var,
     // ...)")
     for (p in usesAsFunctionArgs) {
-        if (p.value1 == null) {
-            log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.value0)
+        if (p.second == null) {
+            log.warn("Unexpected: Null value for usesAsFunctionArg {}", p.first)
             continue
         }
 
-        for (opstmt in p.value1!!) { // opstatement is one possible method call/ctor inside an op
+        for (opstmt in p.second!!) { // opstatement is one possible method call/ctor inside an op
             val fqFunctionName = opstmt.call.name
             val params = opstmt.call.params
             val paramPositions =
@@ -793,11 +792,10 @@ private fun resolveValuesForVertices(
  * [de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression].
  */
 @ExperimentalGraph
-private fun Expression.lhsReferenceOfAssignment(graph: Graph): List<DeclaredReferenceExpression> {
-    // TODO(oxisto): Get rid of the graph variable, once we have the possibility to get the AST
-    // parent (see https://github.com/Fraunhofer-AISEC/cpg/pull/424)
-    return graph
-        .nodes
+private fun Expression.lhsReferenceOfAssignment(): List<DeclaredReferenceExpression> {
+    val nodes = listOf(this.astParent)
+
+    return nodes
         .filter {
             it is BinaryOperator && it.rhs == this && it.operatorCode == "="
         } // look for a binary operation where this expression is on the right-hand side

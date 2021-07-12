@@ -29,6 +29,7 @@ import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.TreeIterator;
@@ -224,15 +225,15 @@ public class TypestateAnalysis {
 		// Final findings
 		Set<Finding> findings = new HashSet<>();
 		// We collect good findings first, but add them only if TS machine reaches END state
-		Set<NonNullPair<Stmt, Val>> potentialGoodFindings = new HashSet<>();
+		Set<Pair<Stmt, Val>> potentialGoodFindings = new HashSet<>();
 		boolean endReached = false;
 
 		// All configurations for which we have rules. Ignoring Weight.ONE
-		Set<NonNullPair<Stmt, Val>> wpdsConfigs = new HashSet<>();
+		Set<Pair<Stmt, Val>> wpdsConfigs = new HashSet<>();
 		for (Rule<Stmt, Val, TypestateWeight> r : wpds.getAllRules()) {
 			if (!r.getWeight().equals(TypestateWeight.one())) {
-				wpdsConfigs.add(new NonNullPair<>(r.getL1(), r.getS1()));
-				wpdsConfigs.add(new NonNullPair<>(r.getL2(), r.getS2()));
+				wpdsConfigs.add(new Pair<>(r.getL1(), r.getS1()));
+				wpdsConfigs.add(new Pair<>(r.getL2(), r.getS2()));
 			}
 
 		}
@@ -245,22 +246,22 @@ public class TypestateAnalysis {
 					if (reachableTypestate.getTarget().isError()) {
 						findings.add(createBadFinding(tran, currentFile));
 					} else {
-						potentialGoodFindings.add(new NonNullPair<>(tran.getLabel(), tran.getStart()));
+						potentialGoodFindings.add(new Pair<>(tran.getLabel(), tran.getStart()));
 					}
 
 					endReached |= reachableTypestate.getTarget().isEnd();
 				}
 			} else if (w.equals(TypestateWeight.zero())) {
 				// Check if this is actually a feasible configuration
-				NonNullPair<Stmt, Val> conf = new NonNullPair<>(tran.getLabel(), tran.getStart());
-				if (wpdsConfigs.stream().anyMatch(c -> c.getValue0().equals(conf.getValue0()) && c.getValue1().equals(conf.getValue1()))) {
-					findings.add(createBadFinding(conf.getValue0(), conf.getValue1(), currentFile, Set.of()));
+				var conf = new Pair<>(tran.getLabel(), tran.getStart());
+				if (wpdsConfigs.stream().anyMatch(c -> c.getFirst().equals(conf.getFirst()) && c.getSecond().equals(conf.getSecond()))) {
+					findings.add(createBadFinding(conf.getFirst(), conf.getSecond(), currentFile, Set.of()));
 				}
 			}
 		}
 
 		if (endReached && findings.isEmpty()) {
-			findings.addAll(potentialGoodFindings.stream().map(p -> createGoodFinding(p.getValue0(), p.getValue1(), currentFile)).collect(Collectors.toSet()));
+			findings.addAll(potentialGoodFindings.stream().map(p -> createGoodFinding(p.getFirst(), p.getSecond(), currentFile)).collect(Collectors.toSet()));
 		}
 
 		return findings;
@@ -367,8 +368,8 @@ public class TypestateAnalysis {
 		log.info("Processing function {}", fd.getName());
 
 		// Work list of following EOG nodes. Not all EOG nodes will result in a WPDS rule, though.
-		var worklist = new ArrayDeque<NonNullPair<de.fraunhofer.aisec.cpg.graph.Node, Set<Stmt>>>();
-		worklist.add(new NonNullPair<>(fd, Set.of(new Stmt(fd.getName(), Utils.getRegion(fd)))));
+		var worklist = new ArrayDeque<Pair<de.fraunhofer.aisec.cpg.graph.Node, Set<Stmt>>>();
+		worklist.add(new Pair<>(fd, Set.of(new Stmt(fd.getName(), Utils.getRegion(fd)))));
 
 		var skipTheseValsAtStmt = new HashMap<Stmt, Val>();
 		var valsInScope = new HashSet<Val>();
@@ -382,9 +383,9 @@ public class TypestateAnalysis {
 		// Start creation of WPDS rules by traversing the EOG
 		while (!worklist.isEmpty()) {
 			var currentPair = worklist.pop();
-			var v = currentPair.getValue0();
+			var v = currentPair.getFirst();
 
-			for (Stmt previousStmt : currentPair.getValue1()) {
+			for (Stmt previousStmt : currentPair.getSecond()) {
 				// We consider only "Statements" and CallExpressions in the EOG
 				if (isRelevantStmt(v)) {
 					createRulesForStmt(wpds, fd, previousStmt, v, valsInScope, skipTheseValsAtStmt, tsNfa);
@@ -395,9 +396,9 @@ public class TypestateAnalysis {
 			var successors = getSuccessors(v, alreadySeen);
 			for (var succ : successors) {
 				if (isRelevantStmt(v)) {
-					worklist.add(new NonNullPair<>(succ, Set.of(vertexToStmt(v))));
+					worklist.add(new Pair<>(succ, Set.of(vertexToStmt(v))));
 				} else {
-					worklist.add(new NonNullPair<>(succ, currentPair.getValue1()));
+					worklist.add(new Pair<>(succ, currentPair.getSecond()));
 				}
 			}
 		}
@@ -523,7 +524,7 @@ public class TypestateAnalysis {
 				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex);
 				if (paramToValueMap.containsKey(currentFunctionName)) {
 					for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
-						PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(),
+						PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getFirst(), currentStmt, pToA.getSecond(),
 							TypestateWeight.one());
 						wpds.addRule(popRule);
 						log.debug("Adding pop rule {}", popRule);
@@ -646,7 +647,7 @@ public class TypestateAnalysis {
 
 		// Get the MARK entity of the markInstance
 		Pair<String, MEntity> mEntity = this.rule.getEntityReferences().get(markInstance);
-		if (mEntity == null || mEntity.getValue1() == null) {
+		if (mEntity == null || mEntity.getSecond() == null) {
 			return false;
 		}
 
@@ -676,7 +677,7 @@ public class TypestateAnalysis {
 			arguments.addAll(((CallExpression) cpgNode).getArguments());
 		}
 
-		for (MOp o : mEntity.getValue1().getOps()) {
+		for (MOp o : mEntity.getSecond().getOps()) {
 			if (!op.equals(o.getName())) {
 				continue;
 			}

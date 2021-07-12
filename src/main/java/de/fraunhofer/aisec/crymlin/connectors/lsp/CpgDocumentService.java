@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
 import de.fraunhofer.aisec.cpg.passes.TypeResolver;
 import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.cpg.sarif.Region;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
@@ -82,9 +83,9 @@ public class CpgDocumentService implements TextDocumentService {
 		if (text != null) {
 			sanitizedText = text.replaceAll("[\\n ]", "");
 			if (lastScan.get(uriString) != null
-					&& lastScan.get(uriString).getValue0().equals(sanitizedText)) {
+					&& lastScan.get(uriString).getFirst().equals(sanitizedText)) {
 				log.info("Same file already scanned, ignoring");
-				client.publishDiagnostics(lastScan.get(uriString).getValue1());
+				client.publishDiagnostics(lastScan.get(uriString).getSecond());
 				return;
 			}
 		}

@@ -8,6 +8,7 @@ import de.breakpointsec.pushdown.rules.NormalRule;
 import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,14 +120,14 @@ public class InitialConfiguration {
 		Val initialState = null;
 		Stmt stmt = null;
 		for (Pair<Val, Stmt> s : initialStates) {
-			if (s.getValue1()
+			if (s.getSecond()
 					.getRegion()
 					.getStartLine() < line) {
-				line = s.getValue1()
+				line = s.getSecond()
 						.getRegion()
 						.getStartLine();
-				initialState = s.getValue0();
-				stmt = s.getValue1();
+				initialState = s.getFirst();
+				stmt = s.getSecond();
 			}
 		}
 
@@ -175,7 +176,7 @@ public class InitialConfiguration {
 	private static void dumpInitialConfigurations(Set<Pair<Val, Stmt>> initialStates) {
 		log.debug("Initial configuration(s):");
 		for (Pair<Val, Stmt> initialConfig : initialStates) {
-			log.debug("  {} in {} at {}", initialConfig.getValue0().getVariable(), initialConfig.getValue0().getCurrentScope(), initialConfig.getValue1());
+			log.debug("  {} in {} at {}", initialConfig.getFirst().getVariable(), initialConfig.getFirst().getCurrentScope(), initialConfig.getSecond());
 		}
 	}
 

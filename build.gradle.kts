@@ -10,7 +10,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "5.14.0"
+    id("com.diffplug.spotless") version "5.14.1"
     id("com.github.hierynomus.license") version "0.16.1"
     kotlin("jvm") version "1.4.32" // we can only upgrade to Kotlin 1.5, if CPG does
 }
@@ -89,7 +89,7 @@ dependencies {
     // Code Property Graph
     //api("de.fraunhofer.aisec:cpg:3.5.1") // ok
     //implementation("com.github.Fraunhofer-AISEC:cpg:v4.0.0-beta.1")
-    implementation("com.github.Fraunhofer-AISEC:cpg:bbc1906dc")
+    implementation("com.github.Fraunhofer-AISEC:cpg:081f6de18")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
@@ -115,7 +115,7 @@ dependencies {
     implementation("com.jayway.jsonpath:json-path:2.6.0")
 
     // Groovy
-    implementation("org.codehaus.groovy:groovy:3.0.7") // fetch a recent groovy otherwise, Java11+ has problems
+    implementation("org.codehaus.groovy:groovy:3.0.8") // fetch a recent groovy otherwise, Java11+ has problems
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.9.11")

@@ -71,17 +71,6 @@ class AnalysisServerBotanTest {
 		server.stop();
 	}
 
-	/** Test analysis context - additional in-memory structures used for analysis. */
-	@Test
-	void contextTest() {
-		// Get analysis context from scratch
-		AnalysisContext ctx = AnalysisServerBotanTest.result;
-
-		// We expect no methods (as there is no class)
-		assertNotNull(ctx);
-		assertTrue(ctx.methods.isEmpty());
-	}
-
 	@Test
 	void markModelTest() {
 		Mark markModel = server.getMarkModel();

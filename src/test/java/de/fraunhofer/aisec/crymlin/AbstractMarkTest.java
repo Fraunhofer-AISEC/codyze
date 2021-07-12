@@ -132,7 +132,6 @@ public abstract class AbstractMarkTest {
 		}
 
 		assertNotNull(ctx);
-		assertTrue(ctx.methods.isEmpty());
 
 		for (Finding s : ctx.getFindings()) {
 			System.out.println(s);

@@ -165,7 +165,6 @@ internal class GraphTest {
             }
             val ctx = result
             assertNotNull(ctx)
-            assertTrue(ctx.methods.isEmpty())
         }
 
         @AfterAll

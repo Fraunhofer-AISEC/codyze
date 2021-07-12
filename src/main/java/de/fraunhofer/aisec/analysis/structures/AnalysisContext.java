@@ -2,15 +2,10 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 import de.fraunhofer.aisec.cpg.graph.Graph;
-import de.fraunhofer.aisec.cpg.graph.Node;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class AnalysisContext {
 
@@ -18,18 +13,16 @@ public class AnalysisContext {
 	@NonNull
 	private final Set<Finding> findings = new HashSet<>();
 
-	/** Map of method signatures to {@code Method}s. */
-	public final Map<String, Method> methods = new HashMap<>();
-
 	private final List<File> sourceLocations;
-	public Graph graph;
+	private final Graph graph;
 
-	public AnalysisContext(List<File> sourceLocations) {
+	public AnalysisContext(List<File> sourceLocations, Graph graph) {
 		this.sourceLocations = sourceLocations;
+		this.graph = graph;
 	}
 
-	public AnalysisContext(File f) {
-		this(List.of(f));
+	public AnalysisContext(File f, Graph graph) {
+		this(List.of(f), graph);
 	}
 
 	/**

@@ -4,7 +4,6 @@ package de.fraunhofer.aisec.analysis.server;
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
 import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
 import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
-import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.FindingDescription;
@@ -12,7 +11,6 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.passes.*;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
@@ -22,6 +20,7 @@ import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.URI;
@@ -41,6 +40,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
@@ -180,26 +180,24 @@ public class AnalysisServer {
 		File srcLocation = analyzer.getConfig()
 				.getSourceLocations()
 				.get(0);
-		AnalysisContext ctx = new AnalysisContext(srcLocation); // NOTE: We currently operate on a single source file.
-		for (Pass p : analyzer.getPasses()) {
-			if (p instanceof PassWithContext) {
-				((PassWithContext) p).setContext(ctx);
-			}
-		}
+
 		// Run all passes and persist the result
 		final Benchmark benchParsing = new Benchmark(AnalysisServer.class, "  Parsing source and creating CPG for " + srcLocation.getName());
 		return analyzer.analyze() // Run analysis
 				.thenApply(
 					result -> {
+						var ctx = new AnalysisContext(srcLocation, getGraph(result)); // NOTE: We currently operate on a single source file.
+
 						benchParsing.stop();
+
 						// Attach analysis context to result
 						result.getScratch().put("ctx", ctx);
 						translationResult = result;
 
-						return result;
+						return new Pair<>(result, ctx);
 					})
 				.thenApply(
-					result -> {
+					pair -> {
 						Benchmark bench = new Benchmark(AnalysisServer.class, "  Evaluation of MARK");
 						log.info(
 							"Evaluating mark: {} entities, {} rules",
@@ -208,23 +206,24 @@ public class AnalysisServer {
 
 						// Evaluate all MARK rules
 						var evaluator = new Evaluator(this.markModel, this.config);
-						evaluator.evaluate(result, ctx);
 
-						// make the graph from the result available in the analysis context
-						ctx.graph = getGraph(result);
+						var result = pair.getFirst();
+						var ctx = pair.getSecond();
+
+						evaluator.evaluate(result, ctx);
 
 						bench.stop();
 						return ctx;
 					})
 				.thenApply(
-					analysisContext -> {
+					ctx -> {
 						Benchmark bench = new Benchmark(AnalysisServer.class, "  Filtering results");
 						if (config.disableGoodFindings) {
 							// Filter out "positive" results
-							analysisContext.getFindings().removeIf(finding -> !finding.isProblem());
+							ctx.getFindings().removeIf(finding -> !finding.isProblem());
 						}
 						bench.stop();
-						return analysisContext;
+						return ctx;
 					});
 	}
 

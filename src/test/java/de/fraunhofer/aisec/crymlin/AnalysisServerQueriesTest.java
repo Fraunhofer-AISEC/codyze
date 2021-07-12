@@ -3,7 +3,6 @@ package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
 import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
-import de.fraunhofer.aisec.analysis.cpgpasses.StatementsPerMethodPass;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Method;
@@ -76,11 +75,7 @@ class AnalysisServerQueriesTest {
 		// Get analysis context from scratch
 		AnalysisContext ctx = AnalysisServerQueriesTest.result;
 
-		// We expect at least some methods
 		assertNotNull(ctx);
-		assertFalse(ctx.methods.isEmpty());
-		Method meth = ctx.methods.entrySet().stream().findFirst().get().getValue();
-		assertFalse(meth.getStatements().isEmpty());
 	}
 
 	/**
@@ -99,7 +94,6 @@ class AnalysisServerQueriesTest {
 							.defaultLanguages()
 							.registerPass(new IdentifierPass())
 							.registerPass(new EdgeCachePass())
-							.registerPass(new StatementsPerMethodPass())
 							.sourceLocations(
 								sourceLocations)
 							.build())

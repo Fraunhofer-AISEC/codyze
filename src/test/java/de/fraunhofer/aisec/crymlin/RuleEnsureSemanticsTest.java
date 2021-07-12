@@ -70,9 +70,9 @@ class RuleEnsureSemanticsTest {
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
 		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
-		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)));
 
 		var graph = getGraph(new TranslationResult(TranslationManager.builder().build()));
+		var ctx = new AnalysisContext(new File(markFilePaths.get(0)), graph);
 
 		Map<String, Map<Integer, MarkIntermediateResult>> allResults = new TreeMap<>();
 		for (MRule r : mark.getRules()) {

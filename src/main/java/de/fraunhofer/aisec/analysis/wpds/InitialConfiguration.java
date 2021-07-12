@@ -6,7 +6,6 @@ import de.breakpointsec.pushdown.fsm.Transition;
 import de.breakpointsec.pushdown.fsm.WeightedAutomaton;
 import de.breakpointsec.pushdown.rules.NormalRule;
 import de.breakpointsec.pushdown.rules.Rule;
-import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
 import org.checkerframework.checker.nullness.qual.NonNull;

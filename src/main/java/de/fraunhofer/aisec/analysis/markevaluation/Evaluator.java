@@ -113,7 +113,7 @@ public class Evaluator {
 
 				int numMatches = 0;
 				for (var opStmt : op.getStatements()) {
-					var temp = getVerticesForFunctionDeclaration(graph, opStmt.getCall());
+					var temp = getNodesForFunctionReference(graph, opStmt.getCall());
 					log.debug(
 						"Call {}({}) of op {} found {} times",
 						opStmt.getCall().getName(),

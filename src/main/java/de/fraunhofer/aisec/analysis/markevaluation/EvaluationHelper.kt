@@ -31,21 +31,16 @@ import org.apache.commons.lang3.StringUtils
 class EvaluationHelper
 
 @ExperimentalGraph
-fun Graph.getVerticesForFunctionDeclaration(
+fun Graph.getNodesForFunctionReference(
     markFunctionReference: de.fraunhofer.aisec.mark.markDsl.FunctionDeclaration,
-): Set<Node> {
-
+): Set<CallExpression> {
     // resolve parameters which have a corresponding var part in the entity
-    val callsAndInitializers: MutableSet<Node> =
+    val callsAndInitializers: MutableSet<CallExpression> =
         HashSet(this.getCalls(markFunctionReference.name, markFunctionReference.params))
 
     callsAndInitializers.addAll(
         this.getConstructs(markFunctionReference.name, markFunctionReference.params)
     )
-
-    // fix for Java. In java, a ctor is always accompanied with a NewExpression
-    // TODO(oxist): check, if this really needed anymore, I guess not
-    callsAndInitializers.removeIf { it is NewExpression }
 
     return callsAndInitializers
 }
@@ -398,7 +393,7 @@ fun MRule.resolveOperand(
                     if (vertex is DeclaredReferenceExpression) {
                         vertex.refersTo?.let { vertex = it }
                     }
-                    // TODO (oxisto): this will not work, need a pointer to the node itself
+
                     val contextIDs = nodeIDToContextIDs.computeIfAbsent(vertex.id!!) { ArrayList() }
                     contextIDs.add(key)
                 }

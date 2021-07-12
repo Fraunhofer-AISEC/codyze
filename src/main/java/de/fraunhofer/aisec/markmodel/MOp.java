@@ -63,8 +63,8 @@ public class MOp {
 		return allNodes;
 	}
 
-	public void addNode(OpStatement stmt, Set<Node> nodes) {
-		statementToNodes.put(stmt, nodes);
+	public <T extends Node> void addNode(OpStatement stmt, Collection<T> nodes) {
+		statementToNodes.put(stmt, new HashSet<>(nodes));
 		for (var node : nodes) {
 			Set<OpStatement> callStatements = nodesToStatements.computeIfAbsent(node, k -> new HashSet<>());
 			callStatements.add(stmt);

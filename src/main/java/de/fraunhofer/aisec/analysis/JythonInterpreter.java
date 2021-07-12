@@ -3,7 +3,6 @@ package de.fraunhofer.aisec.analysis;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.Graph;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -63,9 +62,6 @@ public class JythonInterpreter implements AutoCloseable {
 	 * handled as mere strings.
 	 */
 	final ScriptEngine engine = new ScriptEngineManager().getEngineByName("jython");
-
-	// store last result
-	private final TranslationResult lastTranslationResult = null;
 
 	@NonNull
 	private Set<Finding> findings = new HashSet<>();
@@ -166,10 +162,6 @@ public class JythonInterpreter implements AutoCloseable {
 		Bindings bindings = this.engine.getBindings(ScriptContext.ENGINE_SCOPE);
 		bindings.remove(PY_GRAPH);
 		bindings.remove(PY_G);
-	}
-
-	public TranslationResult getLastResult() {
-		return lastTranslationResult;
 	}
 
 	/**

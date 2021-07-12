@@ -24,5 +24,7 @@ class IdentifierPass : Pass() {
         }
     }
 
-    override fun cleanup() {}
+    override fun cleanup() {
+        // nothing to do
+    }
 }

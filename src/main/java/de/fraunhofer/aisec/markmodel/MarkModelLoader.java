@@ -2,7 +2,6 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
-import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration;
 import de.fraunhofer.aisec.mark.markDsl.EntityStatement;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;

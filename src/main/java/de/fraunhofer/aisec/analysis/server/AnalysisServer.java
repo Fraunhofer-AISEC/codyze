@@ -40,7 +40,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;

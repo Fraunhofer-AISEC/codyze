@@ -202,7 +202,7 @@ class FSMTest {
 
 		// Transform regex into NFA (FSM)
 		fsm.sequenceToFSM(aThenTail);
-		System.out.println(fsm.toString());
+		System.out.println(fsm);
 
 		Set<Node> start = fsm.getStart();
 		assertEquals(1, start.size());

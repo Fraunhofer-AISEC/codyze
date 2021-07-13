@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 public class ListValue extends MarkIntermediateResult implements Iterable<MarkIntermediateResult> {
 
-	private List<MarkIntermediateResult> values = new ArrayList<>();
+	private final List<MarkIntermediateResult> values = new ArrayList<>();
 
 	public ListValue() {
 		super(ResultType.LIST);

@@ -2,22 +2,14 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.ArrayCreationExpression;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getInitializerFor;
 
 /**
  * This builtin gets the length for a variable.
@@ -38,20 +30,23 @@ public class Length implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			@NonNull ExpressionEvaluator expressionEvaluator) {
-
+			ExpressionEvaluator expressionEvaluator) {
 		try {
-			List<Vertex> vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 1);
+			var vertices = BuiltinHelper.extractResponsibleNodes(argResultList, 1);
 
-			Optional<Vertex> ini = CrymlinQueryWrapper.getInitializerFor(vertices.get(0));
+			var ini = getInitializerFor(vertices.get(0));
 
-			if (ini.isPresent()) {
-				Iterator<Edge> dimensions = ini.get().edges(Direction.OUT, "DIMENSIONS");
-				if (dimensions.hasNext()) {
-					Long value = dimensions.next().inVertex().value("value");
-					ConstantValue ret = ConstantValue.of(value);
-					ret.addResponsibleVertices(vertices);
-					return ret;
+			if (ini instanceof ArrayCreationExpression) {
+				var dimensions = ((ArrayCreationExpression) ini).getDimensions();
+				if (!dimensions.isEmpty()) {
+					var first = dimensions.get(0);
+
+					if (first instanceof Literal<?>) {
+						var value = ((Literal<?>) first).getValue();
+						ConstantValue ret = ConstantValue.of(value);
+						ret.addResponsibleNodes(vertices);
+						return ret;
+					}
 				}
 			}
 

@@ -3,9 +3,7 @@ package de.fraunhofer.aisec.analysis;
 
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
+import de.fraunhofer.aisec.cpg.graph.Graph;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.core.Py;
@@ -55,15 +53,9 @@ public class JythonInterpreter implements AutoCloseable {
 	public static final String ANSI_WHITE_BG = "\u001B[47m";
 	public static final String PY_GRAPH = "graph";
 	public static final String PY_G = "g";
-	public static final String PY_CRYMLIN = "crymlin";
 	public static final String PY_SERVER = "server";
 	public static final String PY_S = "s";
-	public static final String PY_QUERY = "query";
-	public static final String PY_Q = "q";
 	public static final String PY_HELP = "help()";
-
-	/** connection to the database via a traversal */
-	private TraversalConnection traversalConnection = null;
 
 	/**
 	 * gremlin-jython engine. We use an interpreted language like Python (or Groovy) so we can easily evaluate Crymlin queries that are entered by the user at runtime and
@@ -71,25 +63,17 @@ public class JythonInterpreter implements AutoCloseable {
 	 */
 	final ScriptEngine engine = new ScriptEngineManager().getEngineByName("jython");
 
-	// store last result
-	private TranslationResult lastTranslationResult = null;
-
 	@NonNull
 	private Set<Finding> findings = new HashSet<>();
 
 	private CrymlinConsole c;
 
 	/** Connect to the graph database and initialize the internal Jython engine. */
-	public void connect(@NonNull Database<?> db) {
-		traversalConnection = new TraversalConnection(db);
-
+	public void connect(@NonNull Graph graph) {
 		// Make Java objects available with a few shorthand aliases in python
 		Bindings bindings = this.engine.getBindings(ScriptContext.ENGINE_SCOPE);
-		bindings.put(PY_GRAPH, traversalConnection.getGraph()); // Generic graph
-		bindings.put(PY_G, traversalConnection.getGraph()); // Generic graph
-		bindings.put(PY_CRYMLIN, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
-		bindings.put(PY_QUERY, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
-		bindings.put(PY_Q, traversalConnection.getCrymlinTraversal()); // Trav. source of crymlin
+		bindings.put(PY_GRAPH, graph); // Generic graph
+		bindings.put(PY_G, graph); // Generic graph
 
 		// If we already have a running console, update bound objects
 		if (this.c != null) {
@@ -175,19 +159,9 @@ public class JythonInterpreter implements AutoCloseable {
 
 	@Override
 	public void close() {
-		if (traversalConnection != null) {
-			traversalConnection.close();
-		}
 		Bindings bindings = this.engine.getBindings(ScriptContext.ENGINE_SCOPE);
 		bindings.remove(PY_GRAPH);
 		bindings.remove(PY_G);
-		bindings.remove(PY_CRYMLIN);
-		bindings.remove(PY_QUERY);
-		bindings.remove(PY_Q);
-	}
-
-	public TranslationResult getLastResult() {
-		return lastTranslationResult;
 	}
 
 	/**
@@ -278,7 +252,7 @@ public class JythonInterpreter implements AutoCloseable {
 				if (dotPos > -1) {
 					items = (List<String>) engine.eval("dir(" + withoutDot.strip() + ")");
 				} else {
-					items = List.of(PY_HELP, PY_QUERY, PY_Q, PY_SERVER, PY_S, PY_GRAPH, PY_G);
+					items = List.of(PY_HELP, PY_SERVER, PY_S, PY_GRAPH, PY_G);
 				}
 
 				for (String str : items) {

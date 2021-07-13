@@ -2,18 +2,12 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import de.fraunhofer.aisec.analysis.structures.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,7 +27,7 @@ public class HasValue implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			@NonNull ExpressionEvaluator expressionEvaluator) {
+			ExpressionEvaluator expressionEvaluator) {
 
 		if (argResultList.size() != 1) {
 			log.warn("Invalid number of arguments: {}", argResultList.size());
@@ -45,10 +39,10 @@ public class HasValue implements Builtin {
 			return ErrorValue.newErrorValue("Argument %s is not a ConstantValue", argResultList.getAll());
 		}
 
-		Set<Vertex> collect = ((ConstantValue) argResultList.get(0)).getResponsibleVertices().stream().filter(Objects::nonNull).collect(Collectors.toSet());
+		var collect = ((ConstantValue) argResultList.get(0)).getResponsibleNodes().stream().filter(Objects::nonNull).collect(Collectors.toSet());
 
 		ConstantValue ret = ConstantValue.of(!collect.isEmpty());
-		ret.addResponsibleVertices(collect);
+		ret.addResponsibleNodes(collect);
 		return ret;
 
 	}

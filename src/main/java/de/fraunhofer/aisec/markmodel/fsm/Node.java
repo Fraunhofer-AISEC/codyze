@@ -20,7 +20,7 @@ public class Node {
 	private Long id;
 
 	@Relationship(value = "s")
-	private Set<Node> successors = new HashSet<>();
+	private final Set<Node> successors = new HashSet<>();
 
 	@Nullable
 	private String base;

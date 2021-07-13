@@ -4,7 +4,7 @@ package de.fraunhofer.aisec.crymlin.builtin;
 import de.fraunhofer.aisec.analysis.structures.ConstantValue;
 import de.fraunhofer.aisec.analysis.structures.ErrorValue;
 import de.fraunhofer.aisec.analysis.structures.ListValue;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.ArrayList;
@@ -17,8 +17,7 @@ public class BuiltinHelper {
 		// do not call
 	}
 
-	public static List<Vertex> extractResponsibleVertices(@NonNull ListValue argumentList, int numberOfExpectedArguments) throws InvalidArgumentException {
-
+	public static List<Node> extractResponsibleNodes(@NonNull ListValue argumentList, int numberOfExpectedArguments) throws InvalidArgumentException {
 		if (argumentList.size() != numberOfExpectedArguments) {
 			throw new InvalidArgumentException(String.format("Invalid number of arguments: %s", argumentList.size()));
 		}
@@ -29,16 +28,16 @@ public class BuiltinHelper {
 			}
 		}
 
-		List<Vertex> ret = new ArrayList<>();
+		List<Node> ret = new ArrayList<>();
 
 		for (int i = 0; i < numberOfExpectedArguments; i++) {
-			Set<Vertex> responsibleVertices = ((ConstantValue) argumentList.get(i)).getResponsibleVertices();
+			Set<Node> responsibleVertices = ((ConstantValue) argumentList.get(i)).getResponsibleNodes();
 
 			if (responsibleVertices.size() != 1) {
 				throw new InvalidArgumentException("Vertices for arguments not available or invalid");
 			}
 
-			Vertex arg = responsibleVertices.iterator().next();
+			Node arg = responsibleVertices.iterator().next();
 
 			if (arg == null) {
 				throw new InvalidArgumentException("Vertices for arguments are invalid");

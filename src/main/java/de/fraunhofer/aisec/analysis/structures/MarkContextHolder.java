@@ -1,17 +1,12 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 // A MarkContextHolder contains:
 //
@@ -33,15 +28,16 @@ public class MarkContextHolder {
 
 	private static final Logger log = LoggerFactory.getLogger(MarkContextHolder.class);
 
-	private Map<Integer, MarkContext> contexts = new HashMap<>();
+	private final Map<Integer, MarkContext> contexts = new HashMap<>();
+
 	private int currentElements = 0;
 
-	private Set<String> resolvedOperands = new HashSet<>();
-	private Map<Integer, List<Integer>> copyStack = new HashMap<>();
+	private final Set<String> resolvedOperands = new HashSet<>();
+	private final Map<Integer, List<Integer>> copyStack = new HashMap<>();
 	private boolean createFindingsDuringEvaluation = true;
 
-	public void addInitialInstanceContext(CPGInstanceContext instance) {
-		MarkContext mk = new MarkContext();
+	public void addInitialInstanceContext(GraphInstanceContext instance) {
+		var mk = new MarkContext();
 		mk.addInstanceContext(instance);
 		contexts.put(currentElements++, mk);
 	}
@@ -66,51 +62,58 @@ public class MarkContextHolder {
 		if (!resolvedOperands.contains(operand)) {
 			return null;
 		}
+
 		final Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 		contexts.forEach((id, context) -> {
-			CPGVertexWithValue vwv = context.getOperand(operand);
-			ConstantValue constant = ConstantValue.of(vwv.getValue());
-			constant.addResponsibleVertex(getVertexFromSelfOrFromParent(operand, context));
+			var vwv = context.getOperand(operand);
+			var constant = ConstantValue.of(vwv.getValue());
+			constant.addResponsibleNodes(getNodeFromSelfOrFromParent(operand, context));
 			result.put(id, constant);
 		});
+
 		return result;
 	}
 
-	// return the vertex responsible for this operand, or (if the vertex would be null), the vertex of the base of this
-	// operand
-	private Vertex getVertexFromSelfOrFromParent(String operand, MarkContext context) {
-		CPGVertexWithValue vwv = context.getOperand(operand);
+	/**return the vertex responsible for this operand, or (if the vertex would be null), the vertex of the base of this
+	* operand
+	*
+	 */
+	private Node getNodeFromSelfOrFromParent(String operand, MarkContext context) {
+		var vwv = context.getOperand(operand);
 		if (vwv == null) {
 			return null;
 		}
-		Vertex argumentVertex = vwv.getArgumentVertex();
-		if (argumentVertex != null) {
-			return argumentVertex;
+
+		var node = vwv.getNode();
+		if (node != null) {
+			return node;
 		}
+
 		String[] split = operand.split("\\.");
 		if (split.length >= 2) {
-			return getVertexFromSelfOrFromParent(operand.substring(0, operand.lastIndexOf('.')), context);
+			return getNodeFromSelfOrFromParent(operand.substring(0, operand.lastIndexOf('.')), context);
 		}
+
 		return null;
 	}
 
-	public void addResolvedOperands(String operand, Map<Integer, List<CPGVertexWithValue>> operandVerticesForContext) {
+	public void addResolvedOperands(String operand, Map<Integer, List<NodeWithValue<Node>>> operandVerticesForContext) {
 		resolvedOperands.add(operand);
-		final Map<Integer, MarkContext> toAdd = new HashMap<>();
+		final var toAdd = new HashMap<Integer, MarkContext>();
 		final Map<Integer, List<Integer>> copyStackToAdd = new HashMap<>();
 
 		contexts.forEach((id, context) -> {
-			List<CPGVertexWithValue> operandVertices = operandVerticesForContext.get(id);
+			List<NodeWithValue<Node>> operandVertices = operandVerticesForContext.get(id);
 			if (operandVertices == null || operandVertices.isEmpty()) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
-				context.setOperand(operand, new CPGVertexWithValue(null,
+				context.setOperand(operand, new NodeWithValue<>(null,
 					ErrorValue.newErrorValue(String.format("Did not find any vertices for %s, following evaluation will be imprecise", operand))));
 			} else if (operandVertices.size() == 1) {
 				context.setOperand(operand, operandVertices.get(0));
 			} else {
 				List<Integer> oldStack = copyStack.computeIfAbsent(id, x -> new ArrayList<>());
 				for (int i = 1; i < operandVertices.size(); i++) {
-					MarkContext mk = new MarkContext(context); // create a shallow! copy
+					var mk = new MarkContext(context); // create a shallow! copy
 					mk.setOperand(operand, operandVertices.get(i));
 					toAdd.put(currentElements, mk);
 
@@ -147,10 +150,11 @@ public class MarkContextHolder {
 		out.println("====== Mark Context ========");
 		for (Map.Entry<Integer, MarkContext> ctx : contexts.entrySet()) {
 			int id = ctx.getKey();
-			MarkContext mCtx = ctx.getValue();
+			var mCtx = ctx.getValue();
 			out.println(id + ":");
 			mCtx.dump(out);
 		}
 		out.println("===========================");
 	}
+
 }

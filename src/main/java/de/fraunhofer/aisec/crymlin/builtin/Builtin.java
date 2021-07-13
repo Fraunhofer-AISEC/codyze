@@ -44,5 +44,5 @@ public interface Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			@NonNull ExpressionEvaluator expressionEvaluator);
+			ExpressionEvaluator expressionEvaluator);
 }

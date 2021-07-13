@@ -36,7 +36,7 @@ public class SplitDisjoint implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			@NonNull ExpressionEvaluator expressionEvaluator) {
+			ExpressionEvaluator expressionEvaluator) {
 
 		// arguments: String, String, List
 		// example:
@@ -52,7 +52,7 @@ public class SplitDisjoint implements Builtin {
 
 			var providedSet = listSet.stream().map(mir -> ((ConstantValue) mir).getValue()).collect(Collectors.toSet());
 
-			if (s == null || regex == null || providedSet == null) {
+			if (s == null || regex == null) {
 				log.warn("One of the arguments for _split_disjoint was not the expected type, or not initialized/resolved");
 				return ErrorValue.newErrorValue("One of the arguments for _split_disjoint was not the expected type, or not initialized/resolved",
 					argResultList.getAll());
@@ -66,7 +66,7 @@ public class SplitDisjoint implements Builtin {
 
 			ConstantValue cv = ConstantValue.of(isDisjoint);
 
-			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+			cv.addResponsibleNodesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1));
 
 			return cv;

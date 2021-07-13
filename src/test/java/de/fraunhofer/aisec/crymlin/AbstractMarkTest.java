@@ -1,6 +1,8 @@
 
 package de.fraunhofer.aisec.crymlin;
 
+import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
+import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
@@ -92,7 +94,7 @@ public abstract class AbstractMarkTest {
 							.launchLsp(false)
 							.typestateAnalysis(tsMode)
 							.markFiles(markDirPath)
-							.disableOverflow(true)
+							.useLegacyEvaluator()
 							.build())
 				.build();
 		server.start();
@@ -114,6 +116,8 @@ public abstract class AbstractMarkTest {
 							.registerPass(new TypeResolver())
 							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 							.registerPass(new FilenameMapper())
+							.registerPass(new IdentifierPass())
+							.registerPass(new EdgeCachePass())
 							.loadIncludes(true)
 							.sourceLocations(toAnalyze.toArray(new File[0]))
 							.build())
@@ -128,7 +132,6 @@ public abstract class AbstractMarkTest {
 		}
 
 		assertNotNull(ctx);
-		assertTrue(ctx.methods.isEmpty());
 
 		for (Finding s : ctx.getFindings()) {
 			System.out.println(s);

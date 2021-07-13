@@ -2,7 +2,8 @@
 package de.fraunhofer.aisec.analysis.server;
 
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
-import de.fraunhofer.aisec.analysis.cpgpasses.PassWithContext;
+import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
+import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.FindingDescription;
@@ -10,28 +11,16 @@ import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
-import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
-import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
-import de.fraunhofer.aisec.cpg.passes.ImportResolver;
-import de.fraunhofer.aisec.cpg.passes.JavaExternalTypeHierarchyResolver;
-import de.fraunhofer.aisec.cpg.passes.Pass;
-import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
-import de.fraunhofer.aisec.cpg.passes.TypeResolver;
-import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
+import de.fraunhofer.aisec.cpg.passes.*;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.markmodel.Mark;
 import de.fraunhofer.aisec.markmodel.MarkModelLoader;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.URI;
@@ -43,24 +32,17 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+
+import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
 
 /**
  * This is the main CPG analysis server.
@@ -94,18 +76,16 @@ public class AnalysisServer {
 
 	private TranslationResult translationResult;
 
-	private Database<Node> db;
-
 	private Mark markModel = new Mark();
 
-	@SuppressWarnings("java:S3010")
 	private AnalysisServer(ServerConfiguration config) {
 		this.config = config;
 		AnalysisServer.instance = this;
 
 		// Register built-in functions
-		Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of builtins");
-		Reflections reflections = new Reflections("de.fraunhofer.aisec.crymlin.builtin");
+		Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of built-ins");
+		Reflections reflections = new Reflections(Builtin.class.getPackageName());
+
 		int i = 0;
 		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
 			log.info("Registering builtin {}", builtin.getName());
@@ -118,10 +98,10 @@ public class AnalysisServer {
 			}
 			i++;
 		}
-		bench.stop();
-		log.info("Registered {} builtins", i);
 
-		db = new OverflowDatabase(config);
+		bench.stop();
+		log.info("Registered {} built-ins", i);
+
 	}
 
 	/**
@@ -199,45 +179,50 @@ public class AnalysisServer {
 		File srcLocation = analyzer.getConfig()
 				.getSourceLocations()
 				.get(0);
-		AnalysisContext ctx = new AnalysisContext(srcLocation, db); // NOTE: We currently operate on a single source file.
-		for (Pass p : analyzer.getPasses()) {
-			if (p instanceof PassWithContext) {
-				((PassWithContext) p).setContext(ctx);
-			}
-		}
+
 		// Run all passes and persist the result
 		final Benchmark benchParsing = new Benchmark(AnalysisServer.class, "  Parsing source and creating CPG for " + srcLocation.getName());
 		return analyzer.analyze() // Run analysis
 				.thenApply(
 					result -> {
+						var ctx = new AnalysisContext(srcLocation, getGraph(result)); // NOTE: We currently operate on a single source file.
+
 						benchParsing.stop();
+
 						// Attach analysis context to result
 						result.getScratch().put("ctx", ctx);
 						translationResult = result;
-						return persistToODB(result);
+
+						return new Pair<>(result, ctx);
 					})
 				.thenApply(
-					result -> {
+					pair -> {
 						Benchmark bench = new Benchmark(AnalysisServer.class, "  Evaluation of MARK");
 						log.info(
 							"Evaluating mark: {} entities, {} rules",
 							this.markModel.getEntities().size(),
 							this.markModel.getRules().size());
+
 						// Evaluate all MARK rules
-						Evaluator mi = new Evaluator(this.markModel, this.config);
-						mi.evaluate(result, ctx);
+						var evaluator = new Evaluator(this.markModel, this.config);
+
+						var result = pair.getFirst();
+						var ctx = pair.getSecond();
+
+						evaluator.evaluate(result, ctx);
+
 						bench.stop();
 						return ctx;
 					})
 				.thenApply(
-					analysisContext -> {
+					ctx -> {
 						Benchmark bench = new Benchmark(AnalysisServer.class, "  Filtering results");
 						if (config.disableGoodFindings) {
 							// Filter out "positive" results
-							analysisContext.getFindings().removeIf(finding -> !finding.isProblem());
+							ctx.getFindings().removeIf(finding -> !finding.isProblem());
 						}
 						bench.stop();
-						return analysisContext;
+						return ctx;
 					});
 	}
 
@@ -259,7 +244,7 @@ public class AnalysisServer {
 	 * @throws IOException
 	 */
 	private void getMarkFileLocations(File currentFile, List<File> allFiles) throws IOException {
-		try (Stream<Path> walk = Files.walk(currentFile.toPath(), Integer.MAX_VALUE);) {
+		try (Stream<Path> walk = Files.walk(currentFile.toPath(), Integer.MAX_VALUE)) {
 			File[] files = walk.map(Path::toFile)
 					.filter(File::isFile)
 					.filter(f -> f.getName().endsWith(".mark"))
@@ -359,15 +344,13 @@ public class AnalysisServer {
 			lsp.shutdown();
 		}
 
-		// Close in-memory graph and evict caches
-		db.close();
-
 		this.config = null;
 		this.markModel = null;
 		this.interp = null;
 		this.lsp = null;
 		this.translationResult = null;
-		this.instance = null;
+		instance = null;
+
 		log.info("stop.");
 	}
 
@@ -377,40 +360,6 @@ public class AnalysisServer {
 
 	public TranslationResult getTranslationResult() {
 		return translationResult;
-	}
-
-	private TranslationResult persistToODB(TranslationResult result) {
-		Benchmark bench = new Benchmark(this.getClass(), " Serializing into OverflowDB");
-
-		// ensure, that the database is clear
-		db.clearDatabase();
-
-		// connect
-		if (!db.isConnected()) {
-			db.connect();
-		}
-
-		// Persist the result
-		db.saveAll(result.getTranslationUnits());
-
-		long duration = bench.stop();
-		// connect to DB
-		try (TraversalConnection t = new TraversalConnection(db)) {
-			CrymlinTraversalSource crymlinTraversal = t.getCrymlinTraversal();
-			Long numEdges = crymlinTraversal.V().outE().count().next();
-			Long numVertices = crymlinTraversal.V().count().next();
-			log.info(
-				"Nodes in OverflowDB graph: {} ({} ms/node), edges in graph: {} ({} ms/edge)",
-				numVertices,
-				String.format("%.2f", (double) duration / numVertices),
-				numEdges,
-				String.format("%.2f", (double) duration / numEdges));
-		}
-		catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-		log.info("Benchmark: Persisted approx {} nodes", db.getNumNodes());
-		return result;
 	}
 
 	public CompletableFuture<AnalysisContext> analyze(String url) {
@@ -443,6 +392,8 @@ public class AnalysisServer {
 				.registerPass(new TypeResolver())
 				//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 				.registerPass(new FilenameMapper())
+				.registerPass(new IdentifierPass())
+				.registerPass(new EdgeCachePass())
 				.sourceLocations(files.toArray(new File[0]));
 		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
 		for (File includePath : config.includePath) {

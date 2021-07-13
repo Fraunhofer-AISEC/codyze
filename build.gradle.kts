@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     // built-in
     java
@@ -10,8 +12,8 @@ plugins {
     id("org.sonarqube") version "3.3"
     id("com.diffplug.spotless") version "5.14.1"
     id("com.github.hierynomus.license") version "0.16.1"
+    kotlin("jvm") version "1.4.32" // we can only upgrade to Kotlin 1.5, if CPG does
 }
-
 
 group = "de.fraunhofer.aisec"
 
@@ -21,10 +23,9 @@ group = "de.fraunhofer.aisec"
 gradle.startParameter.excludedTaskNames += "licenseMain"
 gradle.startParameter.excludedTaskNames += "licenseTest"
 
-
 tasks.jacocoTestReport {
     reports {
-        xml.isEnabled = true
+        xml.required.set(true)
     }
 }
 
@@ -88,12 +89,11 @@ dependencies {
     // Code Property Graph
     //api("de.fraunhofer.aisec:cpg:3.5.1") // ok
     //implementation("com.github.Fraunhofer-AISEC:cpg:v4.0.0-beta.1")
-    implementation("com.github.Fraunhofer-AISEC:cpg:081f6de18")
+    implementation("com.github.Fraunhofer-AISEC:cpg:bbc1906dc")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
     api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:master-SNAPSHOT:repackaged")
-
 
     // Pushdown Systems
     api("de.breakpointsec:pushdown:1.1") // ok
@@ -114,30 +114,19 @@ dependencies {
     // JsonPath for querying findings description
     implementation("com.jayway.jsonpath:json-path:2.6.0")
 
-    // Gremlin
-    api("org.apache.tinkerpop:gremlin-core:3.4.3")
-    annotationProcessor("org.apache.tinkerpop:gremlin-core:3.4.3") {
-        exclude(group = "org.slf4j", module = "slf4j-api")
-        exclude(group = "org.slf4j", module = "jcl-over-slf4j")
-    }      // Newer Gradle versions require specific classpath for annotatation processors
-    api("org.apache.tinkerpop:gremlin-python:3.4.3")
-    api("org.apache.tinkerpop:tinkergraph-gremlin:3.4.3")
-    api("org.apache.tinkerpop:gremlin-driver:3.4.3")
-    api("org.apache.tinkerpop:neo4j-gremlin:3.4.3")     // Neo4j multi-label support for gremlin
-
     // Groovy
     implementation("org.codehaus.groovy:groovy:3.0.8") // fetch a recent groovy otherwise, Java11+ has problems
-
-    // Fast in-memory graph DB (alternative to Neo4J)
-    implementation("io.shiftleft:overflowdb-tinkerpop3:0.128")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.9.11")
 
     // Unit tests
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 application {
@@ -174,6 +163,10 @@ spotless {
     java {
         eclipse().configFile(rootProject.file("formatter-settings.xml"))
     }
+
+    kotlin {
+        ktfmt().kotlinlangStyle()
+    }
 }
 
 downloadLicenses {
@@ -189,4 +182,14 @@ tasks.named<CreateStartScripts>("startScripts") {
          */
         windowsScript.writeText(windowsScript.readText().replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*"))
     }
+}
+
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "11"
+}
+
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "11"
 }

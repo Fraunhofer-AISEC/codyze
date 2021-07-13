@@ -2,7 +2,7 @@
 package de.fraunhofer.aisec.analysis.structures;
 
 public class MarkIntermediateResult {
-	private ResultType resultType;
+	private final ResultType resultType;
 
 	public enum ResultType {
 		UNDEFINED, SINGLEVALUE, LIST

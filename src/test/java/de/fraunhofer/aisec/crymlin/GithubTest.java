@@ -86,7 +86,7 @@ class GithubTest {
 
 		server = AnalysisServer.builder()
 				.config(
-					ServerConfiguration.builder().disableOverflow(true).launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
+					ServerConfiguration.builder().launchConsole(false).launchLsp(false).markFiles(markPoC1.getAbsolutePath()).build())
 				.build();
 
 		server.start();

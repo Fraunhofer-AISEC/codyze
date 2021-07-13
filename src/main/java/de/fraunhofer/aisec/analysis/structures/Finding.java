@@ -19,16 +19,16 @@ import java.util.stream.Collectors;
  *
  */
 public class Finding {
-	private String onFailIdentifier;
+	private final String onFailIdentifier;
 
 	/**
 	 * True, if this Finding indicates a problem/vulnerability. False, if this Finding indicates a code snippet that has been checked and verified.
 	 */
 	private boolean isProblem = true;
 
-	private String logMsg;
+	private final String logMsg;
 	@NonNull
-	private List<PhysicalLocation> locations = new ArrayList<>();
+	private final List<PhysicalLocation> locations = new ArrayList<>();
 
 	/**
 	 * Constructor.

@@ -77,9 +77,9 @@ class WpdsTest extends AbstractMarkTest {
 			edgesNFA.add(t.getSource().getName() + " -> " + t.getTarget().getName());
 		}
 
-		System.out.println(fsm.toString());
+		System.out.println(fsm);
 
-		System.out.println(nfa.toString());
+		System.out.println(nfa);
 		// ... and make sure they deliver same results.
 		for (String s : edgesFSM) {
 			assertTrue(edgesNFA.contains(s), s + " found in FSM, but not in NFA-FSM");
@@ -107,6 +107,15 @@ class WpdsTest extends AbstractMarkTest {
 	void testCppInterprocOk1() throws Exception {
 		@NonNull
 		Set<Finding> findings = performTest("unittests/orderInterprocOk1.cpp", "unittests/order2.mark");
+
+		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
+		assertEquals(0, findings.stream().filter(Finding::isProblem).count());
+	}
+
+	@Test
+	void testCppInterprocOk1Legacy() throws Exception {
+		@NonNull
+		Set<Finding> findings = performTest("unittests/orderInterprocOk1.cpp", null, "unittests/order2.mark");
 
 		// Note that line numbers of the "range" are the actual line numbers -1. This is required for proper LSP->editor mapping
 		assertEquals(0, findings.stream().filter(Finding::isProblem).count());

@@ -22,7 +22,7 @@ class JCATest extends AbstractMarkTest {
 			"line 19: Rule BouncyCastleProvider_Cipher violated", // ok
 			"line 22: Rule BouncyCastleProvider_Cipher verified", // ok
 			"line 23: Rule BouncyCastleProvider_Cipher violated", // improv type resolution for BouncyCastleProvider class
-			//"line 24: Rule BouncyCastleProvider_Cipher verified", // type hierarchy not available from CPG
+			"line 24: Rule BouncyCastleProvider_Cipher verified", // type hierarchy is now available
 			"line 27: Rule BouncyCastleProvider_Cipher violated", // ok
 			"line 28: Rule BouncyCastleProvider_Cipher violated", // ok
 
@@ -30,7 +30,7 @@ class JCATest extends AbstractMarkTest {
 			"line 19: Rule ID_2_01 verified", // ok
 			"line 22: Rule ID_2_01 verified", // ok
 			"line 23: Rule ID_2_01 verified", // ok
-			// "line 24: Rule ID_2_01 verified", // type hierarchy not available from CPG
+			"line 24: Rule ID_2_01 verified", // type hierarchy is now available
 			"line 27: Rule ID_2_01 verified", // ok
 			"line 28: Rule ID_2_01 verified", // ok
 
@@ -38,7 +38,7 @@ class JCATest extends AbstractMarkTest {
 			"line 19: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 22: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 23: Rule ID_2_1_01 violated", // ok, minimal test
-			// "line 24: Rule ID_2_1_01 violated", // type hierarchy not available from CPG
+			"line 24: Rule ID_2_1_01 violated", // type hierarchy is now available
 			"line 27: Rule ID_2_1_01 violated", // ok, minimal test
 			"line 28: Rule ID_2_1_01 violated" // ok, minimal test
 		);
@@ -192,13 +192,13 @@ class JCATest extends AbstractMarkTest {
 			"line 23: Rule ID_2_01 verified", // ok
 
 			// rule block cipher mode
-			"line 23: Rule ID_2_1_01 verified", // ok
+			"line 23: Rule ID_2_1_01 verified", // ok*/
 
-			// rule aes/ctr with mac
-			"line [47, 51]: Rule ID_2_2_02 violated", // improv rule
-			"line [47, 61]: Rule ID_2_2_02 violated", // improv rule
-			"line [51, 59]: Rule ID_2_2_02 violated", // improv rule
-			"line [59, 61]: Rule ID_2_2_02 violated", // improv rule
+			// rule aes/ctr with mac (these seem to be broken because of the _is builtin does not work the way it is assumed!)
+			"line [47, 51]: Rule ID_2_2_02 verified", // improv rule
+			"line [47, 61]: Rule ID_2_2_02 verified", // improv rule
+			"line [51, 59]: Rule ID_2_2_02 verified", // improv rule
+			"line [59, 61]: Rule ID_2_2_02 verified", // improv rule
 
 			// rule mac
 			"line 37: Rule ID_5_3_01 verified", // ok

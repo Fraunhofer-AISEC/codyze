@@ -41,12 +41,6 @@ public class ServerConfiguration {
 	/** If true, no "positive" findings will be returned from the analysis. */
 	public final boolean disableGoodFindings;
 
-	/**
-	 * If true, the overflow of OverflowDB will be disabled. Might be faster for projects who fit
-	 * completely in memory.
-	 */
-	public final boolean disableOverflow;
-
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
@@ -54,8 +48,7 @@ public class ServerConfiguration {
 			@NonNull TypestateMode typestateMode,
 			boolean analyzeIncludes,
 			@NonNull File[] includePath,
-			boolean disableGoodFindings,
-			boolean disableOverflow) {
+			boolean disableGoodFindings) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
@@ -63,7 +56,6 @@ public class ServerConfiguration {
 		this.analyzeIncludes = analyzeIncludes;
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
-		this.disableOverflow = disableOverflow;
 	}
 
 	public static Builder builder() {
@@ -80,7 +72,6 @@ public class ServerConfiguration {
 		private boolean analyzeIncludes;
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
-		private boolean disableOverflow;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -113,6 +104,7 @@ public class ServerConfiguration {
 			} else {
 				this.includePath = includePath;
 			}
+
 			return this;
 		}
 
@@ -121,8 +113,7 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder disableOverflow(boolean disableOverflow) {
-			this.disableOverflow = disableOverflow;
+		public Builder useLegacyEvaluator() {
 			return this;
 		}
 
@@ -134,8 +125,7 @@ public class ServerConfiguration {
 				typestateAnalysis,
 				analyzeIncludes,
 				includePath,
-				disableGoodFindings,
-				disableOverflow);
+				disableGoodFindings);
 		}
 	}
 }

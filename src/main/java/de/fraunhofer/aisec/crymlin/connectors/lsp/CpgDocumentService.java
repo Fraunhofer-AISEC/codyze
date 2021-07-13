@@ -1,11 +1,12 @@
 
 package de.fraunhofer.aisec.crymlin.connectors.lsp;
 
+import de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePass;
+import de.fraunhofer.aisec.analysis.cpgpasses.IdentifierPass;
 import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.structures.FindingDescription;
-import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
@@ -18,6 +19,7 @@ import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
 import de.fraunhofer.aisec.cpg.passes.TypeResolver;
 import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.cpg.sarif.Region;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionKind;
@@ -81,9 +83,9 @@ public class CpgDocumentService implements TextDocumentService {
 		if (text != null) {
 			sanitizedText = text.replaceAll("[\\n ]", "");
 			if (lastScan.get(uriString) != null
-					&& lastScan.get(uriString).getValue0().equals(sanitizedText)) {
+					&& lastScan.get(uriString).getFirst().equals(sanitizedText)) {
 				log.info("Same file already scanned, ignoring");
-				client.publishDiagnostics(lastScan.get(uriString).getValue1());
+				client.publishDiagnostics(lastScan.get(uriString).getSecond());
 				return;
 			}
 		}
@@ -115,6 +117,8 @@ public class CpgDocumentService implements TextDocumentService {
 							.registerPass(new TypeResolver())
 							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 							.registerPass(new FilenameMapper())
+							.registerPass(new IdentifierPass())
+							.registerPass(new EdgeCachePass())
 							.sourceLocations(file)
 							.build())
 				.build();

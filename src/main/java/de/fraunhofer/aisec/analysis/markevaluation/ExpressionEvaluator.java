@@ -1,22 +1,12 @@
 
 package de.fraunhofer.aisec.analysis.markevaluation;
 
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGVertexWithValue;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContext;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.cpg.sarif.Region;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
+import de.fraunhofer.aisec.cpg.graph.Graph;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
 import de.fraunhofer.aisec.mark.markDsl.BooleanLiteral;
 import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;
@@ -34,21 +24,15 @@ import de.fraunhofer.aisec.mark.markDsl.StringLiteral;
 import de.fraunhofer.aisec.mark.markDsl.UnaryExpression;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 import java.util.regex.Pattern;
+
+import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.resolveOperand;
 
 public class ExpressionEvaluator {
 
@@ -58,20 +42,19 @@ public class ExpressionEvaluator {
 	private final MRule markRule;
 	// configuration for the evaluation. E.g., used for WPDS vs. NFA for order evaluation
 	private final ServerConfiguration config;
-	// connection into the DB
-	private final CrymlinTraversalSource traversal;
+
 	// the resulting analysis context
 	private final AnalysisContext resultCtx;
 	private final MarkContextHolder markContextHolder;
 	private final Mark markModel;
+	private final Graph graph;
 
-	public ExpressionEvaluator(Mark markModel, MRule rule, AnalysisContext resultCtx, ServerConfiguration config, CrymlinTraversalSource traversal,
-			MarkContextHolder context) {
+	public ExpressionEvaluator(Graph graph, Mark markModel, MRule rule, AnalysisContext resultCtx, ServerConfiguration config, MarkContextHolder context) {
+		this.graph = graph;
 		this.markModel = markModel;
 		this.markRule = rule;
 		this.resultCtx = resultCtx;
 		this.config = config;
-		this.traversal = traversal;
 		this.markContextHolder = context;
 	}
 
@@ -86,7 +69,6 @@ public class ExpressionEvaluator {
 	 */
 	@NonNull
 	public Map<Integer, MarkIntermediateResult> evaluateExpression(Expression expr) {
-
 		if (expr == null) {
 			log.error("Cannot evaluate null Expression");
 			return markContextHolder.generateNullResult();
@@ -132,22 +114,21 @@ public class ExpressionEvaluator {
 	private Map<Integer, MarkIntermediateResult> evaluateOrderExpression(OrderExpression orderExpression) {
 		log.info("Evaluating order expression: {}", ExpressionHelper.exprToString(orderExpression));
 		Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		for (Map.Entry<Integer, MarkContext> entry : markContextHolder.getAllContexts().entrySet()) {
-
+		for (var entry : markContextHolder.getAllContexts().entrySet()) {
 			OrderEvaluator orderEvaluator = new OrderEvaluator(this.markRule, this.config);
-			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, this.traversal, this.markContextHolder);
+			ConstantValue res = orderEvaluator.evaluate(orderExpression, entry.getKey(), this.resultCtx, graph, this.markContextHolder);
 
 			if (markContextHolder.isCreateFindingsDuringEvaluation() && res != null && Objects.equals(res.getValue(), true)) {
 				Set<String> markInstances = new HashSet<>();
 				ExpressionHelper.collectMarkInstances(orderExpression.getExp(), markInstances); // extract all used markvars from the expression
+
 				if (markInstances.size() == 1) { // otherwise, the analysis did not work anyway and we did not have a result
-					@Nullable
-					Vertex operand = entry.getValue().getInstanceContext().getVertex(markInstances.iterator().next());
-					if (operand != null) {
-						List<Region> ranges = List.of(Utils.getRegionByVertex(operand));
+					var node = entry.getValue().getInstanceContext().getNode(markInstances.iterator().next());
+					if (node != null) {
+						var ranges = List.of(Utils.getRegionByNode(node));
 						Finding f = new Finding(
 							"Verified Order: " + this.markRule.getName(),
-							CrymlinQueryWrapper.getFileLocation(operand),
+							new File(node.getFile()).toURI(),
 							"",
 							ranges,
 							false);
@@ -237,7 +218,7 @@ public class ExpressionEvaluator {
 						right.getClass().equals(Boolean.class)) {
 
 					ConstantValue cv = ConstantValue.of(Boolean.logicalAnd((Boolean) left, (Boolean) right));
-					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+					cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 					combinedResult.put(key, cv);
 				}
 
@@ -259,7 +240,7 @@ public class ExpressionEvaluator {
 						right.getClass().equals(Boolean.class)) {
 
 					ConstantValue cv = ConstantValue.of(Boolean.logicalOr((Boolean) left, (Boolean) right));
-					cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+					cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 					combinedResult.put(key, cv);
 				}
 			}
@@ -309,12 +290,12 @@ public class ExpressionEvaluator {
 							String inner = ExpressionHelper.toComparableString(o);
 							if (comp.compare(ExpressionHelper.toComparableString(left), inner) == 0) {
 								cv = ConstantValue.of(true);
-								cv.addResponsibleVerticesFrom((ConstantValue) o);
+								cv.addResponsibleNodesFrom((ConstantValue) o);
 								break;
 							}
 						}
 					}
-					cv.addResponsibleVerticesFrom(leftBoxed);
+					cv.addResponsibleNodesFrom(leftBoxed);
 					combinedResult.put(key, cv);
 				} else {
 					log.warn("Unknown op for List on the right side");
@@ -342,38 +323,39 @@ public class ExpressionEvaluator {
 					switch (op) {
 						case "==":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) == 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case "!=":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) != 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case "<":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) < 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case "<=":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) <= 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case ">":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) > 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						case ">=":
 							cv = ConstantValue.of(comp.compare(leftComp, rightComp) >= 0);
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 
 						case "like":
 							cv = ConstantValue.of(
 								Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
-							cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 							break;
 						default:
 							log.warn("Unsupported operand {}", op);
 							cv = ErrorValue.newErrorValue(String.format("Unsupported operand %s", op));
 					}
+
 					combinedResult.put(key, cv);
 				}
 			}
@@ -678,7 +660,7 @@ public class ExpressionEvaluator {
 						unboxedResult = ErrorValue.newErrorValue(String.format("Unsupported expression %s", op));
 				}
 				ConstantValue cv = ConstantValue.of(unboxedResult);
-				cv.addResponsibleVerticesFrom(leftBoxed, rightBoxed);
+				cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
 				combinedResult.put(key, cv);
 			}
 		}
@@ -745,7 +727,7 @@ public class ExpressionEvaluator {
 					unboxedResult = ErrorValue.newErrorValue(String.format("Trying to evaluate unknown unary expression: %s", ExpressionHelper.exprToString(expr)));
 			}
 			ConstantValue cv = ConstantValue.of(unboxedResult);
-			cv.addResponsibleVerticesFrom(valueBoxed);
+			cv.addResponsibleNodesFrom(valueBoxed);
 			subExprResult.put(entry.getKey(), cv);
 		}
 		return subExprResult;
@@ -753,7 +735,6 @@ public class ExpressionEvaluator {
 
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateOperand(Operand operand) {
-
 		// operands are split by "."
 		String[] split = operand.getOperand().split("\\.");
 
@@ -773,10 +754,10 @@ public class ExpressionEvaluator {
 
 		if (split.length == 1) { // also return the markvar itself, might be needed by a builtin
 			for (Map.Entry<Integer, MarkIntermediateResult> entry : result.entrySet()) {
-				Vertex vertex = markContextHolder.getContext(entry.getKey()).getInstanceContext().getVertex(operand.getOperand());
-				CPGVertexWithValue vwv = new CPGVertexWithValue(vertex, ConstantValue.newUninitialized());
-				ConstantValue constant = ConstantValue.of(vwv.getValue());
-				constant.addResponsibleVertex(vertex);
+				var node = markContextHolder.getContext(entry.getKey()).getInstanceContext().getNode(operand.getOperand());
+				var vwv = new NodeWithValue<Node>(node, ConstantValue.newUninitialized());
+				var constant = ConstantValue.of(vwv.getValue());
+				constant.addResponsibleNode(node);
 				entry.setValue(constant);
 			}
 		}
@@ -786,16 +767,15 @@ public class ExpressionEvaluator {
 
 	@NonNull
 	private Map<Integer, MarkIntermediateResult> evaluateSingleOperand(String operand) {
-
 		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getResolvedOperand(operand);
 
 		if (resolvedOperand == null) {
-			// if this operand is not resolved yet in this expressionevaluation, resolve it
-			Map<Integer, List<CPGVertexWithValue>> operandVertices = CrymlinQueryWrapper.resolveOperand(resultCtx.getDatabase(), markContextHolder, operand, markRule,
-				markModel, traversal);
+			// if this operand is not resolved yet in this expression evaluation, resolve it
+			var operandVertices = resolveOperand(markRule, graph, markContextHolder, operand, markModel);
 			if (operandVertices.size() == 0) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
 			}
+
 			markContextHolder.addResolvedOperands(operand, operandVertices); // cache the resolved operand
 			resolvedOperand = markContextHolder.getResolvedOperand(operand);
 		}
@@ -803,7 +783,7 @@ public class ExpressionEvaluator {
 		return resolvedOperand;
 	}
 
-	public CrymlinTraversalSource getCrymlinTraversal() {
-		return this.traversal;
+	public Graph getGraph() {
+		return this.graph;
 	}
 }

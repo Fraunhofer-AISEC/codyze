@@ -292,14 +292,14 @@ public class NFA {
 	}
 
 	private static class Head {
-		private final ArrayList<Node> nodes = new ArrayList<>();
+		private final List<Node> nodes = new ArrayList<>();
 		private Boolean addNextNode = null;
 
 		void add(Node n) {
 			nodes.add(n);
 		}
 
-		ArrayList<Node> get() {
+		List<Node> get() {
 			return nodes;
 		}
 	}

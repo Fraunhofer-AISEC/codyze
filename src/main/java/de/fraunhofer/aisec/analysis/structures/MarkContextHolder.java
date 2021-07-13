@@ -107,7 +107,7 @@ public class MarkContextHolder {
 			if (operandVertices == null || operandVertices.isEmpty()) {
 				log.warn("Did not find any vertices for {}, following evaluation will be imprecise", operand);
 				context.setOperand(operand, new NodeWithValue<>(null,
-						ErrorValue.newErrorValue(String.format("Did not find any vertices for %s, following evaluation will be imprecise", operand))));
+					ErrorValue.newErrorValue(String.format("Did not find any vertices for %s, following evaluation will be imprecise", operand))));
 			} else if (operandVertices.size() == 1) {
 				context.setOperand(operand, operandVertices.get(0));
 			} else {

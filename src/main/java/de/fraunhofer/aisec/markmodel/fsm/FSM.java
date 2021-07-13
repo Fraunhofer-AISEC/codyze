@@ -10,12 +10,7 @@ import de.fraunhofer.aisec.mark.markDsl.impl.AlternativeExpressionImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class FSM {
 
@@ -185,14 +180,14 @@ public class FSM {
 	}
 
 	private static class Head {
-		private final ArrayList<Node> nodes = new ArrayList<>();
+		private final List<Node> nodes = new ArrayList<>();
 		private Boolean addNextNode = null;
 
 		void add(Node n) {
 			nodes.add(n);
 		}
 
-		ArrayList<Node> get() {
+		List<Node> get() {
 			return nodes;
 		}
 	}

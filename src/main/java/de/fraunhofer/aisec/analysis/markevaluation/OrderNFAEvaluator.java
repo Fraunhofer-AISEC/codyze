@@ -477,7 +477,7 @@ public class OrderNFAEvaluator {
 	}
 
 	private String getStateSnapshot(de.fraunhofer.aisec.cpg.graph.Node v, HashMap<String, HashSet<Node>> baseToFSMNodes) {
-		HashMap<String, HashSet<Node>> simplified = new HashMap<>();
+		Map<String, HashSet<Node>> simplified = new HashMap<>();
 
 		for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
 			simplified.computeIfAbsent(entry.getKey().split("\\.")[1], x -> new HashSet<>()).addAll(entry.getValue());

@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class MarkLoadOutputTest {
 
-	private static Map<String, Mark> allModels = new HashMap<>();
+	private static final Map<String, Mark> allModels = new HashMap<>();
 
 	@BeforeAll
 	public static void startup() {

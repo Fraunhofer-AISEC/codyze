@@ -5,8 +5,6 @@ import de.fraunhofer.aisec.analysis.server.AnalysisServer;
 import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.analysis.structures.Finding;
 import de.fraunhofer.aisec.analysis.utils.Utils;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalDsl;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSourceDsl;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -17,12 +15,10 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_QUERY;
 import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_SERVER;
 
 /**
@@ -53,12 +49,13 @@ public class Commands {
 			log.error("Analysis server not available");
 			return;
 		}
-		CompletableFuture<AnalysisContext> analyze = server.analyze(url);
+
+		var analyze = server.analyze(url);
 
 		try {
 			AnalysisContext ctx = analyze.get(10, TimeUnit.MINUTES);
 			jythonInterpreter.setFindings(ctx.getFindings());
-			jythonInterpreter.connect(ctx.getDatabase());
+			jythonInterpreter.connect(ctx.getGraph());
 		}
 		catch (InterruptedException e) {
 			log.error("Interrupted", e);
@@ -157,13 +154,7 @@ public class Commands {
 					+ "   dir(crymlin.translationunits())\n"
 					+ "          Good ol' Python dir() to find out what properties/methods are available.\n");
 		List<Method> annotatedMethods = Utils.getMethodsAnnotatedWith(Commands.class, ShellCommand.class);
-		List<Method> traversalSourceMethods = (Utils.getMethodsAnnotatedWith(CrymlinTraversalSourceDsl.class, ShellCommand.class));
-		List<Method> traversalStepMethods = (Utils.getMethodsAnnotatedWith(CrymlinTraversalDsl.class, ShellCommand.class));
 		print(annotatedMethods);
-		System.out.println("\n ------ Crymlin Traversal Sources (queries must start with these) ------- \n");
-		print(traversalSourceMethods);
-		System.out.println("\n -------- Crymlin Traversal Steps (queries may use any of these) -------- \n");
-		print(traversalStepMethods);
 		System.out.println("\n -------- Crymlin Traversal Terminates (queries end with these) -------- \n");
 		printQueryTerminators();
 	}
@@ -183,13 +174,8 @@ public class Commands {
 				// Server/console commands
 				sbEntry.append(PY_SERVER);
 				sbEntry.append(".");
-			} else if (m.getDeclaringClass().equals(CrymlinTraversalSourceDsl.class)) {
-				// Traversal sources
-				sbEntry.append(PY_QUERY);
-				sbEntry.append(".");
-			} else if (m.getDeclaringClass().equals(CrymlinTraversalDsl.class)) {
-				// Traversal steps (do not show any prefix)
 			}
+
 			sbEntry.append(m.getName());
 			sbEntry.append("(");
 			for (int i = 0; i < m.getParameterTypes().length; i++) {

@@ -2,13 +2,13 @@
 package de.fraunhofer.aisec.markmodel;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
-import de.fraunhofer.aisec.analysis.structures.Pair;
 import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration;
 import de.fraunhofer.aisec.mark.markDsl.EntityStatement;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import de.fraunhofer.aisec.mark.markDsl.OpDeclaration;
 import de.fraunhofer.aisec.mark.markDsl.RuleDeclaration;
 import de.fraunhofer.aisec.mark.markDsl.VariableDeclaration;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.python.jline.internal.Log;
@@ -105,7 +105,7 @@ public class MarkModelLoader {
 		mRule.setStatement(rule.getStmt());
 		mRule.setErrorMessage(rule.getStmt().getMsg());
 
-		HashMap<String, Pair<String, MEntity>> entityReferences = new HashMap<>();
+		var entityReferences = new HashMap<String, Pair<String, MEntity>>();
 		rule.getStmt()
 				.getEntities()
 				.forEach(

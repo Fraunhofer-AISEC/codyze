@@ -272,11 +272,11 @@ public class ExpressionHelper {
 	}
 
 	public static String toComparableString(int x) {
-		return String.valueOf(x) + ".0";
+		return x + ".0";
 	}
 
 	public static String toComparableString(long x) {
-		return String.valueOf(x) + ".0";
+		return x + ".0";
 	}
 
 	public static String toComparableString(float x) {

@@ -2,19 +2,13 @@
 package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import de.fraunhofer.aisec.analysis.structures.*;
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Optional;
+import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.getContainingFunction;
 
 /**
  * This builtin checks if 2 vertices (given via the two markvar parameters) are contained in the same function/method
@@ -33,33 +27,33 @@ public class InsideSameFunction implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			@NonNull ExpressionEvaluator expressionEvaluator) {
+			ExpressionEvaluator expressionEvaluator) {
 
 		try {
 			// could be extended to a variable number of arguments quite easile
-			List<Vertex> vertices = BuiltinHelper.extractResponsibleVertices(argResultList, 2);
+			var vertices = BuiltinHelper.extractResponsibleNodes(argResultList, 2);
 			// now we have one vertex each for arg0 and arg1, both not null
 
-			Long lastIndex = -1L;
+			FunctionDeclaration lastIndex = null;
 
 			boolean allInSame = true;
 
-			for (Vertex v : vertices) {
-				Optional<Vertex> containingFunction = CrymlinQueryWrapper.getContainingFunction(v, expressionEvaluator.getCrymlinTraversal());
-				if (containingFunction.isEmpty()) {
-					log.warn("Instance vertex {} is not contained in a method/function, cannot evaluate {}", v.property("code"), getName());
+			for (var v : vertices) {
+				var containingFunction = getContainingFunction(v);
+				if (containingFunction == null) {
+					log.warn("Instance vertex {} is not contained in a method/function, cannot evaluate {}", v.getCode(), getName());
 					return ErrorValue
-							.newErrorValue(String.format("Instance vertex %s is not contained in a method/function, cannot evaluate %s", v.property("code"), getName()));
+							.newErrorValue(String.format("Instance vertex %s is not contained in a method/function, cannot evaluate %s", v.getCode(), getName()));
 				}
-				if (lastIndex == -1L || lastIndex.equals(containingFunction.get().id())) {
-					lastIndex = (Long) containingFunction.get().id();
+				if (lastIndex == null || lastIndex == containingFunction) {
+					lastIndex = containingFunction;
 				} else {
 					allInSame = false;
 					break;
 				}
 			}
 			ConstantValue ret = ConstantValue.of(allInSame);
-			ret.addResponsibleVertices(vertices);
+			ret.addResponsibleNodes(vertices);
 			return ret;
 
 		}

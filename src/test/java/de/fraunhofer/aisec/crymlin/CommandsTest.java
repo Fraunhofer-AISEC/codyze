@@ -23,6 +23,7 @@ class CommandsTest {
 						.launchConsole(true)
 						.typestateAnalysis(TypestateMode.NFA)
 						.markFiles(new File("src/test/resources/mark_java").getAbsolutePath())
+						.useLegacyEvaluator()
 						.build())
 				.build();
 
@@ -41,7 +42,7 @@ class CommandsTest {
 		JythonInterpreter interp = new JythonInterpreter();
 		Commands com = new Commands(interp);
 
-		com.help();
+		Commands.help();
 		assertTrue(bosOut.toString().contains("help"));
 
 		com.load_rules("src/test/resources/mark_java");

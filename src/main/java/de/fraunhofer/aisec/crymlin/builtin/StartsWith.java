@@ -3,11 +3,7 @@ package de.fraunhofer.aisec.crymlin.builtin;
 
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.analysis.markevaluation.ExpressionHelper;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.analysis.structures.ListValue;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.analysis.structures.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +30,7 @@ public class StartsWith implements Builtin {
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,
 			@NonNull MarkContextHolder markContextHolder,
-			@NonNull ExpressionEvaluator expressionEvaluator) {
+			ExpressionEvaluator expressionEvaluator) {
 
 		try {
 			BuiltinHelper.verifyArgumentTypesOrThrow(argResultList, ConstantValue.class, ConstantValue.class);
@@ -52,7 +48,7 @@ public class StartsWith implements Builtin {
 
 			ConstantValue cv = ConstantValue.of(ret);
 
-			cv.addResponsibleVerticesFrom((ConstantValue) argResultList.get(0),
+			cv.addResponsibleNodesFrom((ConstantValue) argResultList.get(0),
 				(ConstantValue) argResultList.get(1));
 
 			return cv;

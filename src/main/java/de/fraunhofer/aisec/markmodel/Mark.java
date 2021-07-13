@@ -5,18 +5,15 @@ import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Mark {
 
 	@NonNull
-	private HashMap<String, MEntity> entityByName = new HashMap<>();
+	private final Map<String, MEntity> entityByName = new HashMap<>();
 
 	@NonNull
-	private List<MRule> rules = new ArrayList<>();
+	private final List<MRule> rules = new ArrayList<>();
 
 	public void addEntities(String name, MEntity ent) {
 		this.entityByName.put(name, ent);

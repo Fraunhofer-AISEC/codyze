@@ -2,45 +2,34 @@
 package de.fraunhofer.aisec.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.MarkContext;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
-import de.fraunhofer.aisec.analysis.structures.Pair;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
+import de.fraunhofer.aisec.cpg.graph.Graph;
+import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.StaticCallExpression;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
 import de.fraunhofer.aisec.cpg.sarif.Region;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.AliasedEntityExpression;
-import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.RuleStatement;
-import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.Mark;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.REFERS_TO;
+import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.*;
+import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
 
 /**
  * Evaluates all loaded MARK rules against the CPG.
@@ -48,7 +37,7 @@ import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.REFERS_TO;
  * returns a number of Findings if any of the rules are violated
  */
 public class Evaluator {
-	private static final Logger log = LoggerFactory.getLogger(Evaluator.class);
+	public static final Logger log = LoggerFactory.getLogger(Evaluator.class);
 
 	@NonNull
 	private final Mark markModel;
@@ -71,13 +60,14 @@ public class Evaluator {
 	 * @param ctx    [out] the context storing the result of the evaluation. This could also include results from previous steps
 	 */
 	public TranslationResult evaluate(@NonNull TranslationResult result, @NonNull final AnalysisContext ctx) {
-
 		Benchmark bOuter = new Benchmark(this.getClass(), "Mark evaluation");
 
-		try (TraversalConnection traversal = new TraversalConnection(ctx.getDatabase())) { // connects to the DB
+		try {
+			// builds the graph. this is potentially expensive, so do it only once
+			var graph = getGraph(result);
 
 			log.info("Precalculating matching nodes");
-			assignCallVerticesToOps(ctx, traversal.getCrymlinTraversal());
+			assignCallsToOps(graph);
 
 			log.info("Evaluate forbidden calls");
 			Benchmark b = new Benchmark(this.getClass(), "Evaluate forbidden calls");
@@ -87,7 +77,7 @@ public class Evaluator {
 
 			log.info("Evaluate rules");
 			b = new Benchmark(this.getClass(), "Evaluate rules");
-			evaluateRules(ctx, traversal.getCrymlinTraversal());
+			evaluateRules(ctx, graph);
 			b.stop();
 
 			bOuter.stop();
@@ -107,23 +97,24 @@ public class Evaluator {
 	/**
 	 * Iterate over all MOps in all MEntities, find all call statements in CPG and assign them to their respective MOp.
 	 * <p>
-	 * After this method, all call statements can be retrieved by MOp.getAllVertices(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
+	 * After this method, all call statements can be retrieved by MOp.getAllNodes(), MOp.getStatements(), and MOp.getVertexToCallStatementsMap().
 	 *
-	 * @param ctx
-	 * @param crymlinTraversal traversal-connection to the DB
+	 * @param graph the Graph
 	 */
-	private void assignCallVerticesToOps(@NonNull AnalysisContext ctx, @NonNull CrymlinTraversalSource crymlinTraversal) {
+	private void assignCallsToOps(@NonNull Graph graph) {
 		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		// iterate over all entities and precalculate:
 		// - call statements to vertices
-		for (MEntity ent : markModel.getEntities()) {
+		for (var ent : markModel.getEntities()) {
 			log.info("Precalculating call statements for entity {}", ent.getName());
 			ent.parseVars();
-			for (MOp op : ent.getOps()) {
+
+			for (var op : ent.getOps()) {
 				log.debug("Looking for call statements for {}", op.getName());
+
 				int numMatches = 0;
-				for (OpStatement opStmt : op.getStatements()) {
-					Set<Vertex> temp = CrymlinQueryWrapper.getVerticesForFunctionDeclaration(ctx.getDatabase(), opStmt.getCall(), crymlinTraversal);
+				for (var opStmt : op.getStatements()) {
+					var temp = getNodesForFunctionReference(graph, opStmt.getCall());
 					log.debug(
 						"Call {}({}) of op {} found {} times",
 						opStmt.getCall().getName(),
@@ -131,9 +122,10 @@ public class Evaluator {
 						op.getName(),
 						temp.size());
 					numMatches += temp.size();
-					op.addVertex(opStmt, temp);
+					op.addNode(opStmt, temp);
 				}
 				op.setParsingFinished();
+
 				if (numMatches > 0) {
 					log.info("Found {} call statements in the cpg for {}", numMatches, op.getName());
 				}
@@ -146,26 +138,27 @@ public class Evaluator {
 	 * Evaluates all rules and creates findings.
 	 *
 	 * @param ctx              the result/analysis context
-	 * @param crymlinTraversal connection to the db
+	 * @param graph the Graph
 	 */
-	private void evaluateRules(AnalysisContext ctx, @NonNull CrymlinTraversalSource crymlinTraversal) {
-
+	private void evaluateRules(AnalysisContext ctx, @NonNull Graph graph) {
 		for (MRule rule : this.markModel.getRules()) {
 			log.info("checking rule {}", rule.getName());
 
-			/* Evaluate "using" part and collect the instances of MARK entities, as well as the potential vertex representing the base object variables. */
-			List<List<Pair<String, Vertex>>> entities = findInstancesForEntities(rule);
+			// Evaluate "using" part and collect the instances of MARK entities, as well as
+			// the potential vertex representing the base object variables.
+			var entities = findInstancesForEntities(rule);
 
 			// skip evaluation if there are no cpg-nodes which would be used in this evaluation
 			if (!entities.isEmpty()) {
 				boolean hasCPGNodes = false;
-				outer: for (Map.Entry<String, Pair<String, MEntity>> entity : rule.getEntityReferences().entrySet()) {
-					if (entity.getValue() == null || entity.getValue().getValue1() == null) {
+				outer: for (var entity : rule.getEntityReferences().entrySet()) {
+					if (entity.getValue() == null || entity.getValue().getSecond() == null) {
 						log.warn("Rule {} references an unknown entity {}", rule.getName(), entity.getKey());
 						break;
 					}
-					for (MOp op : entity.getValue().getValue1().getOps()) {
-						if (!op.getAllVertices().isEmpty()) {
+
+					for (var op : entity.getValue().getSecond().getOps()) {
+						if (!op.getAllNodes().isEmpty()) {
 							hasCPGNodes = true;
 							break outer;
 						}
@@ -183,19 +176,20 @@ public class Evaluator {
 			// A CPGInstanceContext is a specific interpretation of a Mark rule that needs to be evaluated.
 			MarkContextHolder markCtxHolder = createMarkContext(entities);
 
-			ExpressionEvaluator ee = new ExpressionEvaluator(this.markModel, rule, ctx, config, crymlinTraversal, markCtxHolder);
+			ExpressionEvaluator ee = new ExpressionEvaluator(graph, this.markModel, rule, ctx, config, markCtxHolder);
 
 			// Evaluate "when" part, if present (will possibly remove entries from markCtxhHlder)
 			evaluateWhen(rule, markCtxHolder, ee);
 
-			/* Evaluate "ensure" part */
+			// Evaluate "ensure" part. This may already add findings, i.e. from the order expression
 			Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(rule.getStatement().getEnsure().getExp());
 
-			/* Get findings from "result" */
+			// Get findings from "result"
 			Collection<Finding> findings = getFindings(result, markCtxHolder, rule);
-
-			log.info("Got {} findings: {}", findings.size(), findings.stream().map(f -> f.getLogMsg()).collect(Collectors.toList()));
 			ctx.getFindings().addAll(findings);
+
+			log.info("Got {} findings in analysis context: {}", ctx.getFindings().size(),
+				ctx.getFindings().stream().map(Finding::getLogMsg).collect(Collectors.toList()));
 		}
 	}
 
@@ -207,6 +201,7 @@ public class Evaluator {
 			// the value of the result should always be boolean, as this should be the result of the topmost expression
 			int markCtx = entry.getKey();
 			Object evaluationResultUb = ConstantValue.unbox(entry.getValue());
+
 			if (evaluationResultUb instanceof Boolean) {
 				ConstantValue evalResult = (ConstantValue) entry.getValue();
 				/*
@@ -214,22 +209,29 @@ public class Evaluator {
 				 * responsible vertices.
 				 */
 
-				MarkContext c = markCtxHolder.getContext(markCtx);
+				var c = markCtxHolder.getContext(markCtx);
 
 				URI currentFile = null;
 
 				if (!c.isFindingAlreadyAdded()) {
 					List<Region> ranges = new ArrayList<>();
-					if (evalResult.getResponsibleVertices().isEmpty() || evalResult.getResponsibleVertices().stream().noneMatch(Objects::nonNull)) {
+					if (evalResult.getResponsibleNodes().isEmpty() || evalResult.getResponsibleNodes().stream().noneMatch(Objects::nonNull)) {
 						// use the line of the instances
 						if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
-							for (Vertex v : c.getInstanceContext().getMarkInstanceVertices()) {
-								if (v == null) {
+							for (var node : c.getInstanceContext().getMarkInstanceVertices()) {
+								if (node == null) {
 									continue;
 								}
-								ranges.add(Utils.getRegionByVertex(v));
 
-								currentFile = CrymlinQueryWrapper.getFileLocation(v);
+								var location = node.getLocation();
+
+								if (location != null) {
+									ranges.add(Utils.getRegionByNode(node));
+								} else {
+									ranges.add(new Region(-1, -1, -1, -1));
+								}
+
+								currentFile = new File(node.getFile()).toURI();
 							}
 						}
 						if (ranges.isEmpty()) {
@@ -237,15 +239,16 @@ public class Evaluator {
 						}
 					} else {
 						// responsible vertices are stored in the result
-						for (Vertex v : evalResult.getResponsibleVertices()) {
-							if (v == null) {
+						for (var node : evalResult.getResponsibleNodes()) {
+							if (node == null) {
 								continue;
 							}
-							ranges.add(Utils.getRegionByVertex(v));
+							ranges.add(Utils.getRegionByNode(node));
 
-							currentFile = CrymlinQueryWrapper.getFileLocation(v);
+							currentFile = new File(node.getFile()).toURI();
 						}
 					}
+
 					boolean isRuleViolated = !(Boolean) evaluationResultUb;
 					findings.add(new Finding(
 						"Rule "
@@ -321,17 +324,19 @@ public class Evaluator {
 		markCtxHolder.setCreateFindingsDuringEvaluation(true);
 	}
 
-	private MarkContextHolder createMarkContext(List<List<Pair<String, Vertex>>> entities) {
+	private MarkContextHolder createMarkContext(List<List<Pair<String, Node>>> entities) {
 		MarkContextHolder context = new MarkContextHolder();
-		for (List<Pair<String, Vertex>> list : Lists.cartesianProduct(entities)) {
-			CPGInstanceContext instanceCtx = new CPGInstanceContext();
-			for (Pair<String, Vertex> p : list) {
-				String markInstanceName = p.getValue0();
-				Vertex v = p.getValue1();
+		for (var list : Lists.cartesianProduct(entities)) {
+			var instanceCtx = new GraphInstanceContext();
+			for (var p : list) {
+				String markInstanceName = p.getFirst();
+				var v = p.getSecond();
 				instanceCtx.putMarkInstance(markInstanceName, v);
 			}
+
 			context.addInitialInstanceContext(instanceCtx);
 		}
+
 		return context;
 	}
 
@@ -344,66 +349,74 @@ public class Evaluator {
 	 * <p>
 	 * In that case, the function will return [ [ (c1, v1) , (c1, v2), (c1, v3) ] [ (c2, c1), (c2, v2), (c2, v3) ] ]
 	 *
-	 * @param rule
+	 * @param rule the MARK rule
+	 *
 	 * @return
 	 */
-	private List<List<Pair<String, Vertex>>> findInstancesForEntities(MRule rule) {
-		RuleStatement ruleStmt = rule.getStatement();
-		List<List<Pair<String, Vertex>>> entities = new ArrayList<>();
+	private List<List<Pair<String, Node>>> findInstancesForEntities(MRule rule) {
+		var ruleStmt = rule.getStatement();
+		var entities = new ArrayList<List<Pair<String, Node>>>();
+
 		// Find entities whose ops are used in the current Mark rule.
 		// We collect all entities and calculate which instances (=program variables) correspond to the entity.
 		// entities is a map with key: name of the Mark Entity (e.g., "b"). value: Vertex to which the program variable REFERS_TO.
 		for (AliasedEntityExpression entity : ruleStmt.getEntities()) {
-			HashSet<Vertex> instanceVariables = new HashSet<>();
-			MEntity referencedEntity = this.markModel.getEntity(entity.getE());
+			var instanceVariables = new HashSet<Node>();
+			var referencedEntity = this.markModel.getEntity(entity.getE());
+
 			if (referencedEntity == null) {
 				log.warn("Unexpected: Mark rule {} references an unknown entity {}", rule.getName(), entity.getN());
 				continue;
 			}
-			for (MOp op : referencedEntity.getOps()) {
-				for (Vertex vertex : op.getAllVertices()) {
-					Optional<Vertex> ref;
 
-					if (Utils.hasLabel(vertex, ConstructExpression.class)) {
-						ref = CrymlinQueryWrapper.getAssigneeOfConstructExpression(vertex);
-					} else if (Utils.hasLabel(vertex, StaticCallExpression.class)) {
-						// mainly for builder function
-						ref = CrymlinQueryWrapper.getDFGTarget(vertex);
-					} else {
+			for (MOp op : referencedEntity.getOps()) {
+				for (var node : op.getAllNodes()) {
+					Node ref = null;
+
+					// TODO(oxisto): There is similar code in EvaluationHelper::getMatchingReferences
+					if (node instanceof ConstructExpression) {
+						ref = getAssignee((ConstructExpression) node);
+					} else if (node instanceof StaticCallExpression) {
+						// mainly for builder functions
+						ref = getSuitableDFGTarget(node);
+					} else if (node instanceof CallExpression) {
 						// Program variable is either the Base of some method call ...
-						ref = CrymlinQueryWrapper.getBaseOfCallExpression(vertex);
-						if (ref.isEmpty()) { // if we did not find a base the "easy way", try to find a base using the simple-DFG
-							ref = CrymlinQueryWrapper.getDFGTarget(vertex);
-						}
+						ref = getBaseDeclaration((CallExpression) node);
+					}
+
+					if (ref == null) { // if we did not find a base the "easy way", try to find a base using the simple-DFG
+						ref = getSuitableDFGTarget(node);
 					}
 
 					// make sure, that we are actually targeting the variable declaration and not the reference
-					if (ref.isPresent() && Utils.hasLabel(ref.get(), DeclaredReferenceExpression.class)) {
-						Iterator<Edge> refIterator = ref.get().edges(Direction.OUT, REFERS_TO);
-						if (refIterator.hasNext()) {
-							ref = Optional.ofNullable(refIterator.next().inVertex());
+					if (ref instanceof DeclaredReferenceExpression) {
+						if (((DeclaredReferenceExpression) ref).getRefersTo() != null) {
+							ref = ((DeclaredReferenceExpression) ref).getRefersTo();
 						}
 					}
 
-					ref.ifPresent(instanceVariables::add);
-
-					if (ref.isEmpty()) {
+					if (ref != null) {
+						instanceVariables.add(ref);
+					} else {
 						log.warn("Did not find an instance variable for entity {} when searching at node {}", referencedEntity.getName(),
-							vertex.property("code").value().toString().replaceAll("\n\\s*", " "));
+							node.getCode() != null ? node.getCode().replaceAll("\n\\s*", " ") : null);
 					}
 				}
 			}
-			ArrayList<Pair<String, Vertex>> innerList = new ArrayList<>();
-			for (Vertex v : instanceVariables) {
+
+			var innerList = new ArrayList<Pair<String, Node>>();
+			for (var v : instanceVariables) {
 				innerList.add(new Pair<>(entity.getN(), v));
 			}
+
 			if (innerList.isEmpty()) {
 				// we add a NULL-entry, maybe this rule can be evaluated with one entity missing anyway.
 				innerList.add(new Pair<>(entity.getN(), null));
 			}
+
 			entities.add(innerList);
 		}
+
 		return entities;
 	}
-
 }

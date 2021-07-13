@@ -9,33 +9,19 @@ import de.breakpointsec.pushdown.rules.NormalRule;
 import de.breakpointsec.pushdown.rules.PopRule;
 import de.breakpointsec.pushdown.rules.PushRule;
 import de.breakpointsec.pushdown.rules.Rule;
-import de.fraunhofer.aisec.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.analysis.structures.CPGInstanceContext;
-import de.fraunhofer.aisec.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.analysis.structures.Finding;
-import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.analysis.structures.NonNullPair;
-import de.fraunhofer.aisec.analysis.structures.Pair;
+import de.fraunhofer.aisec.analysis.structures.*;
 import de.fraunhofer.aisec.analysis.utils.Utils;
+import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.graph.declarations.Declaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.ParamVariableDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
-import de.fraunhofer.aisec.cpg.graph.statements.CompoundStatement;
-import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement;
-import de.fraunhofer.aisec.cpg.graph.statements.IfStatement;
-import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement;
-import de.fraunhofer.aisec.cpg.graph.statements.Statement;
+import de.fraunhofer.aisec.cpg.graph.statements.*;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression;
 import de.fraunhofer.aisec.cpg.graph.types.Type;
 import de.fraunhofer.aisec.cpg.sarif.Region;
-import de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversal;
-import de.fraunhofer.aisec.crymlin.dsl.CrymlinTraversalSource;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
@@ -43,35 +29,23 @@ import de.fraunhofer.aisec.markmodel.MEntity;
 import de.fraunhofer.aisec.markmodel.MOp;
 import de.fraunhofer.aisec.markmodel.MRule;
 import de.fraunhofer.aisec.markmodel.fsm.Node;
-import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.crymlin.CrymlinQueryWrapper.isCallExpression;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.*;
-import static de.fraunhofer.aisec.crymlin.dsl.__.__;
+import static de.fraunhofer.aisec.analysis.cpgpasses.EdgeCachePassKt.getAstParent;
+import static de.fraunhofer.aisec.analysis.markevaluation.EvaluationHelperKt.*;
+import static de.fraunhofer.aisec.analysis.markevaluation.NodeExtensionsKt.getFunctions;
 import static java.lang.Math.toIntExact;
 
 /**
@@ -92,17 +66,15 @@ import static java.lang.Math.toIntExact;
  * [1] Reps T., Lal A., Kidd N. (2007) Program Analysis Using Weighted Pushdown Systems. In: Arvind V., Prasad S. (eds) FSTTCS 2007: Foundations of Software Technology
  * and Theoretical Computer Science. FSTTCS 2007. Lecture Notes in Computer Science, vol 4855. Springer, Berlin, Heidelberg
  */
-public class TypeStateAnalysis {
-	private static final Logger log = LoggerFactory.getLogger(TypeStateAnalysis.class);
+public class TypestateAnalysis {
+	private static final Logger log = LoggerFactory.getLogger(TypestateAnalysis.class);
 	private MRule rule;
 	@NonNull
 	private final MarkContextHolder markContextHolder;
-	private CPGInstanceContext instanceContext;
-	private AnalysisContext ctx;
+	private GraphInstanceContext instanceContext;
 
-	public TypeStateAnalysis(@NonNull MarkContextHolder markContextHolder, @NonNull AnalysisContext ctx) {
+	public TypestateAnalysis(@NonNull MarkContextHolder markContextHolder) {
 		this.markContextHolder = markContextHolder;
-		this.ctx = ctx;
 	}
 
 	/**
@@ -111,15 +83,15 @@ public class TypeStateAnalysis {
 	 * @param orderExpr
 	 * @param contextID
 	 * @param ctx
-	 * @param crymlinTraversal
+	 * @param graph
 	 * @param rule
 	 * @return
 	 * @throws IllegalTransitionException
 	 */
 	public ConstantValue analyze(OrderExpression orderExpr, Integer contextID, AnalysisContext ctx,
-			CrymlinTraversalSource crymlinTraversal,
+			Graph graph,
 			MRule rule) throws IllegalTransitionException {
-		log.info("Typestate analysis starting for {} and {}", ctx, crymlinTraversal);
+		log.info("Typestate analysis starting for {}", ctx);
 
 		instanceContext = markContextHolder.getContext(contextID).getInstanceContext();
 		this.rule = rule;
@@ -134,7 +106,7 @@ public class TypeStateAnalysis {
 		String markInstance = getMarkInstanceOrderExpression(orderExpr);
 		if (markInstance == null) {
 			log.error("OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis", orderExpr);
-			return ErrorValue.newErrorValue(String.format("OrderExpression does not refer to a Mark instance: %s. Will not run TS analysis", orderExpr.toString()));
+			return ErrorValue.newErrorValue(String.format("OrderExpression does not refer to a Mark instance: %s. Will not run TS analysis", orderExpr));
 		}
 
 		/* Create typestate NFA, representing the regular expression of a MARK typestate rule. */
@@ -142,7 +114,7 @@ public class TypeStateAnalysis {
 		log.debug("Initial typestate NFA:\n{}", tsNFA);
 
 		// Create a weighted pushdown system
-		CpgWpds wpds = createWpds(crymlinTraversal, tsNFA);
+		var wpds = createWpds(graph, tsNFA);
 
 		/*
 		 * Create a weighted automaton (= a weighted NFA) that describes the initial configurations. The initial configuration is the statement containing the declaration
@@ -150,7 +122,7 @@ public class TypeStateAnalysis {
 		 *
 		 * (e.g., "b").
 		 */
-		File currentFile = getFileFromMarkInstance(markInstance, crymlinTraversal);
+		File currentFile = getFileFromMarkInstance(markInstance);
 		if (currentFile == null) {
 			currentFile = new File("FIXME");
 		}
@@ -202,29 +174,21 @@ public class TypeStateAnalysis {
 	}
 
 	@Nullable
-	private File getFileFromMarkInstance(String markInstance, CrymlinTraversalSource crymlinTraversal) {
-		Vertex v = instanceContext.getVertex(markInstance);
+	private File getFileFromMarkInstance(String markInstance) {
+		var v = instanceContext.getNode(markInstance);
 		if (v == null) {
 			log.error("No vertex found for Mark instance: {}. Will not run TS analysis", markInstance);
 			return null;
 		}
 
 		// Find the function in which the vertex is located, so we can use the first statement in function as a start
-		Optional<Vertex> containingFunctionOpt = CrymlinQueryWrapper.getContainingFunction(v, crymlinTraversal);
-		if (containingFunctionOpt.isEmpty()) {
-			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.property("code").orElse(""), rule);
+		var containingFunction = getContainingFunction(v);
+		if (containingFunction == null) {
+			log.error("Vertex {} not located within a function. Cannot start TS analysis for rule {}", v.getCode(), rule);
 			return null;
 		}
 
-		// Turn function vertex into a FunctionDeclaration so we can work with it
-		FunctionDeclaration funcDecl = (FunctionDeclaration) ctx.getDatabase()
-				.vertexToNode(containingFunctionOpt.get());
-		if (funcDecl == null) {
-			log.error("Function {} could not be retrieved as a FunctionDeclaration. Cannot start TS analysis for rule {}",
-				containingFunctionOpt.get().property("name").orElse(""), rule);
-			return null;
-		}
-		return new File(funcDecl.getFile());
+		return new File(containingFunction.getFile());
 	}
 
 	@Nullable
@@ -261,15 +225,15 @@ public class TypeStateAnalysis {
 		// Final findings
 		Set<Finding> findings = new HashSet<>();
 		// We collect good findings first, but add them only if TS machine reaches END state
-		Set<NonNullPair<Stmt, Val>> potentialGoodFindings = new HashSet<>();
+		Set<Pair<Stmt, Val>> potentialGoodFindings = new HashSet<>();
 		boolean endReached = false;
 
 		// All configurations for which we have rules. Ignoring Weight.ONE
-		Set<NonNullPair<Stmt, Val>> wpdsConfigs = new HashSet<>();
+		Set<Pair<Stmt, Val>> wpdsConfigs = new HashSet<>();
 		for (Rule<Stmt, Val, TypestateWeight> r : wpds.getAllRules()) {
 			if (!r.getWeight().equals(TypestateWeight.one())) {
-				wpdsConfigs.add(new NonNullPair<>(r.getL1(), r.getS1()));
-				wpdsConfigs.add(new NonNullPair<>(r.getL2(), r.getS2()));
+				wpdsConfigs.add(new Pair<>(r.getL1(), r.getS1()));
+				wpdsConfigs.add(new Pair<>(r.getL2(), r.getS2()));
 			}
 
 		}
@@ -282,22 +246,22 @@ public class TypeStateAnalysis {
 					if (reachableTypestate.getTarget().isError()) {
 						findings.add(createBadFinding(tran, currentFile));
 					} else {
-						potentialGoodFindings.add(new NonNullPair<>(tran.getLabel(), tran.getStart()));
+						potentialGoodFindings.add(new Pair<>(tran.getLabel(), tran.getStart()));
 					}
 
 					endReached |= reachableTypestate.getTarget().isEnd();
 				}
 			} else if (w.equals(TypestateWeight.zero())) {
 				// Check if this is actually a feasible configuration
-				NonNullPair<Stmt, Val> conf = new NonNullPair<>(tran.getLabel(), tran.getStart());
-				if (wpdsConfigs.stream().anyMatch(c -> c.getValue0().equals(conf.getValue0()) && c.getValue1().equals(conf.getValue1()))) {
-					findings.add(createBadFinding(conf.getValue0(), conf.getValue1(), currentFile, Set.of()));
+				var conf = new Pair<>(tran.getLabel(), tran.getStart());
+				if (wpdsConfigs.stream().anyMatch(c -> c.getFirst().equals(conf.getFirst()) && c.getSecond().equals(conf.getSecond()))) {
+					findings.add(createBadFinding(conf.getFirst(), conf.getSecond(), currentFile, Set.of()));
 				}
 			}
 		}
 
 		if (endReached && findings.isEmpty()) {
-			findings.addAll(potentialGoodFindings.stream().map(p -> createGoodFinding(p.getValue0(), p.getValue1(), currentFile)).collect(Collectors.toSet()));
+			findings.addAll(potentialGoodFindings.stream().map(p -> createGoodFinding(p.getFirst(), p.getSecond(), currentFile)).collect(Collectors.toSet()));
 		}
 
 		return findings;
@@ -355,25 +319,25 @@ public class TypeStateAnalysis {
 	 * <p>
 	 * When populating the WPDS using post-* algorithm, the result will be an automaton capturing the reachable type states.
 	 *
-	 * @param crymlinTraversal
+	 * @param graph
 	 * @param tsNfa
+	 *
 	 * @return
-	 * @throws IllegalTransitionException
 	 */
-	private CpgWpds createWpds(CrymlinTraversalSource crymlinTraversal, NFA tsNfa) {
+	private CpgWpds createWpds(Graph graph, NFA tsNfa) {
 		log.info("-----  Creating WPDS ----------");
 
 		/* Create empty WPDS */
 		CpgWpds wpds = new CpgWpds();
 
-		/**
+		/*
 		 * For each function, create a WPDS.
 		 *
 		 * The (normal, push, pop) rules of the WPDS reflect the data flow, similar to a static taint analysis.
 		 *
 		 */
-		for (Vertex functionDeclaration : crymlinTraversal.functions().toList()) {
-			WPDS<Stmt, Val, TypestateWeight> funcWpds = createWpds(functionDeclaration, tsNfa, crymlinTraversal);
+		for (var functionDeclaration : getFunctions(graph)) {
+			WPDS<Stmt, Val, TypestateWeight> funcWpds = createWpds(functionDeclaration, tsNfa);
 			for (Rule<Stmt, Val, TypestateWeight> r : funcWpds.getAllRules()) {
 				wpds.addRule(r);
 			}
@@ -392,76 +356,68 @@ public class TypeStateAnalysis {
 	 * Turns a single function into a WPDS.
 	 *
 	 * @param tsNfa
-	 * @param crymlinTraversal
 	 * @return
 	 */
-	private WPDS<Stmt, Val, TypestateWeight> createWpds(@NonNull Vertex fdVertex, NFA tsNfa, CrymlinTraversalSource crymlinTraversal) {
+	private WPDS<Stmt, Val, TypestateWeight> createWpds(@NonNull FunctionDeclaration fd, NFA tsNfa) {
 		// To remember already visited nodes and avoid endless iteration
-		HashSet<Vertex> alreadySeen = new HashSet<>();
-
-		var db = ctx.getDatabase();
+		var alreadySeen = new HashSet<de.fraunhofer.aisec.cpg.graph.Node>();
 
 		// the WPDS we are creating here
 		CpgWpds wpds = new CpgWpds();
 
-		FunctionDeclaration fd = (FunctionDeclaration) db.vertexToNode(fdVertex);
-		log.info("Processing function {}", fdVertex.property(NAME).orElse(""));
+		log.info("Processing function {}", fd.getName());
 
 		// Work list of following EOG nodes. Not all EOG nodes will result in a WPDS rule, though.
-		ArrayDeque<NonNullPair<Vertex, Set<Stmt>>> worklist = new ArrayDeque<>();
-		worklist.add(new NonNullPair<>(fdVertex, Set.of(new Stmt(fd.getName(), Utils.getRegion(fd)))));
+		var worklist = new ArrayDeque<Pair<de.fraunhofer.aisec.cpg.graph.Node, Set<Stmt>>>();
+		worklist.add(new Pair<>(fd, Set.of(new Stmt(fd.getName(), Utils.getRegion(fd)))));
 
-		Map<Stmt, Val> skipTheseValsAtStmt = new HashMap<>();
-		Set<Val> valsInScope = new HashSet<>();
+		var skipTheseValsAtStmt = new HashMap<Stmt, Val>();
+		var valsInScope = new HashSet<Val>();
 
 		// Make sure we track all parameters inside this function
-		List<ParamVariableDeclaration> params = fd.getParameters();
+		var params = fd.getParameters();
 		for (ParamVariableDeclaration p : params) {
 			valsInScope.add(new Val(p.getName(), fd.getName()));
 		}
 
 		// Start creation of WPDS rules by traversing the EOG
 		while (!worklist.isEmpty()) {
-			NonNullPair<Vertex, Set<Stmt>> currentPair = worklist.pop();
-			Vertex v = currentPair.getValue0();
+			var currentPair = worklist.pop();
+			var v = currentPair.getFirst();
 
-			for (Stmt previousStmt : currentPair.getValue1()) {
+			for (Stmt previousStmt : currentPair.getSecond()) {
 				// We consider only "Statements" and CallExpressions in the EOG
 				if (isRelevantStmt(v)) {
-					createRulesForStmt(wpds, fdVertex, previousStmt, v, valsInScope, skipTheseValsAtStmt, tsNfa, crymlinTraversal);
+					createRulesForStmt(wpds, fd, previousStmt, v, valsInScope, skipTheseValsAtStmt, tsNfa);
 				} // End isRelevantStmt()
 			}
 
 			// Add successors to work list
-			Collection<? extends Vertex> successors = getSuccessors(v, alreadySeen);
-			for (Vertex succ : successors) {
+			var successors = getSuccessors(v, alreadySeen);
+			for (var succ : successors) {
 				if (isRelevantStmt(v)) {
-					worklist.add(new NonNullPair<>(succ, Set.of(vertexToStmt(v))));
+					worklist.add(new Pair<>(succ, Set.of(vertexToStmt(v))));
 				} else {
-					worklist.add(new NonNullPair<>(succ, currentPair.getValue1()));
+					worklist.add(new Pair<>(succ, currentPair.getSecond()));
 				}
 			}
 		}
 		return wpds;
 	}
 
-	@java.lang.SuppressWarnings("squid:S107")
+	@SuppressWarnings("squid:S107")
 	private void createRulesForStmt(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds,
-			@NonNull Vertex functionVertex,
+			@NonNull FunctionDeclaration functionVertex,
 			@NonNull Stmt previousStmt,
-			@NonNull Vertex currentStmtVertex,
+			de.fraunhofer.aisec.cpg.graph.Node stmtNode,
 			@NonNull Set<Val> valsInScope,
 			@NonNull Map<Stmt, Val> skipTheseValsAtStmt,
-			@NonNull NFA tsNfa,
-			@NonNull CrymlinTraversalSource crymlinTraversal) {
-		var db = ctx.getDatabase();
-
-		String currentFunctionName = (String) functionVertex.property(NAME).orElse("UNKNOWN");
-		Stmt currentStmt = vertexToStmt(currentStmtVertex);
-		de.fraunhofer.aisec.cpg.graph.Node stmtNode = db.vertexToNode(currentStmtVertex);
+			@NonNull NFA tsNfa) {
+		String currentFunctionName = functionVertex.getName();
+		Stmt currentStmt = vertexToStmt(stmtNode);
 
 		/* First we create normal rules from previous stmt to the current stmt, simply propagating existing values. */
-		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(previousStmt, currentStmtVertex, valsInScope, tsNfa);
+		Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = createNormalRules(previousStmt, stmtNode, valsInScope, tsNfa);
 		for (NormalRule<Stmt, Val, TypestateWeight> normalRule : normalRules) {
 			/*
 			  If this is a call into a known method, we skip immediate propagation. In that case, data flows *into* the method.
@@ -475,13 +431,13 @@ public class TypeStateAnalysis {
 		/*
 		  Handle calls into known methods (not a "phantom" method) by creating push rule.
 		 */
-		if (CrymlinQueryWrapper.isCallExpression(currentStmtVertex) && !Utils.isPhantom((CallExpression) stmtNode)) {
+		if (stmtNode instanceof CallExpression && !Utils.isPhantom((CallExpression) stmtNode)) {
 			CallExpression callE = (CallExpression) stmtNode;
 			/*
 			 * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
 			 * "return site" is the statement to which flow returns after the function call.
 			 */
-			Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, crymlinTraversal, currentFunctionName, currentStmt, currentStmtVertex);
+			Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = createPushRules(callE, currentFunctionName, currentStmt, stmtNode);
 			for (PushRule<Stmt, Val, TypestateWeight> pushRule : pushRules) {
 				log.debug("  Adding push rule: {}", pushRule);
 				wpds.addRule(pushRule);
@@ -489,20 +445,19 @@ public class TypeStateAnalysis {
 				// Remember that arguments flow only into callee and do not bypass it.
 				skipTheseValsAtStmt.put(pushRule.getCallSite(), pushRule.getS1());
 			}
-		} else if (CrymlinQueryWrapper.isVariableDeclaration(currentStmtVertex)) {
+		} else if (stmtNode instanceof VariableDeclaration) {
 			// Add declVal to set of currently tracked variables
-			VariableDeclaration decl = (VariableDeclaration) db.vertexToNode(currentStmtVertex);
+			VariableDeclaration decl = (VariableDeclaration) stmtNode;
 			Val declVal = new Val(decl.getName(), currentFunctionName);
 			valsInScope.add(declVal);
-		} else if (CrymlinQueryWrapper.isDeclarationStatement(currentStmtVertex)) {
+		} else if (stmtNode instanceof DeclarationStatement) {
 			/* Handle declaration of new variables.
 			 "DeclarationStatements" result in a normal rule, assigning rhs to lhs.
 			*/
 
 			// Note: We might be a bit more gracious here to tolerate incorrect code. For example, a non-declared variable would be a "BinaryOperator".
-			log.debug("Found variable declaration {}", currentStmtVertex.property("code")
-					.orElse(""));
-			DeclarationStatement ds = (DeclarationStatement) db.vertexToNode(currentStmtVertex);
+			log.debug("Found variable declaration {}", stmtNode.getCode());
+			DeclarationStatement ds = (DeclarationStatement) stmtNode;
 			for (Declaration decl : ds.getDeclarations()) {
 				if (!(decl instanceof VariableDeclaration)) {
 					continue;
@@ -540,11 +495,11 @@ public class TypeStateAnalysis {
 					wpds.addRule(normalRulePropagate);
 				}
 			}
-		} else if (CrymlinQueryWrapper.isReturnStatement(currentStmtVertex)) {
+		} else if (stmtNode instanceof ReturnStatement) {
 			/* Return statements result in pop rules */
-			ReturnStatement returnV = (ReturnStatement) db.vertexToNode(currentStmtVertex);
-			if (returnV != null && !returnV.isDummy()) {
-				Set<Val> returnedVals = findReturnedVals(crymlinTraversal, currentStmtVertex);
+			ReturnStatement returnV = (ReturnStatement) stmtNode;
+			if (!returnV.isDummy()) {
+				Set<Val> returnedVals = findReturnedVals(stmtNode);
 
 				for (Val returnedVal : returnedVals) {
 					Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
@@ -566,10 +521,10 @@ public class TypeStateAnalysis {
 				}
 
 				// Pop Rules for side effects on parameters
-				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex, currentStmtVertex, crymlinTraversal);
+				Map<String, Set<Pair<Val, Val>>> paramToValueMap = findParamToValues(functionVertex);
 				if (paramToValueMap.containsKey(currentFunctionName)) {
 					for (Pair<Val, Val> pToA : paramToValueMap.get(currentFunctionName)) {
-						PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getValue0(), currentStmt, pToA.getValue1(),
+						PopRule<Stmt, Val, TypestateWeight> popRule = new PopRule<>(pToA.getFirst(), currentStmt, pToA.getSecond(),
 							TypestateWeight.one());
 						wpds.addRule(popRule);
 						log.debug("Adding pop rule {}", popRule);
@@ -613,52 +568,44 @@ public class TypeStateAnalysis {
 	/**
 	 * Returns a set of Vertices which are successors of <code>v</code> in the EOG and are not contained in <code>alreadySeen</code>.
 	 *
-	 * @param v
+	 * @param n
 	 * @param alreadySeen
 	 * @return
 	 */
-	@NonNull
-	private Collection<? extends Vertex> getSuccessors(@NonNull final Vertex v, @NonNull final HashSet<Vertex> alreadySeen) {
-		Set<Vertex> unseenSuccessors = new HashSet<>();
-		Vertex vertex = v;
-		Iterator<Edge> eogSuccessors = vertex.edges(Direction.OUT, EOG);
-		while (eogSuccessors.hasNext()) {
-			Vertex succ = eogSuccessors.next()
-					.inVertex();
+	private HashSet<de.fraunhofer.aisec.cpg.graph.Node> getSuccessors(final de.fraunhofer.aisec.cpg.graph.Node n,
+			@NonNull final HashSet<de.fraunhofer.aisec.cpg.graph.Node> alreadySeen) {
+		var unseenSuccessors = new HashSet<de.fraunhofer.aisec.cpg.graph.Node>();
+
+		for (de.fraunhofer.aisec.cpg.graph.Node succ : n.getNextEOG()) {
 			if (!alreadySeen.contains(succ)) {
 				unseenSuccessors.add(succ);
 				alreadySeen.add(succ);
 			}
 		}
+
 		return unseenSuccessors;
 	}
 
 	/**
 	 * We do not convert all EOG nodes into WPDS rules, but only "relevant" ones, i.e. statements and call expressions.
 	 *
-	 * @param v
+	 * @param node
 	 * @return
 	 */
-	private boolean isRelevantStmt(Vertex v) {
-		int numberOfOutgoingEogs = 0;
-		Iterator<Edge> eogs = v.edges(Direction.OUT, EOG);
-		while (eogs.hasNext()) {
-			numberOfOutgoingEogs++;
-			eogs.next();
-		}
-		return isCallExpression(v)
-				|| Utils.hasLabel(v, DeclarationStatement.class)
-				|| Utils.hasLabel(v, VariableDeclaration.class)
-				|| Utils.hasLabel(v, IfStatement.class)
-				|| v.edges(Direction.IN, CrymlinConstants.STATEMENTS).hasNext() || numberOfOutgoingEogs >= 2;
+	private boolean isRelevantStmt(de.fraunhofer.aisec.cpg.graph.Node node) {
+		int numberOfOutgoingEogs = node.getNextEOG().size();
+
+		return node instanceof CallExpression
+				|| node instanceof DeclarationStatement
+				|| node instanceof VariableDeclaration
+				|| node instanceof IfStatement
+				|| getAstParent(node) instanceof CompoundStatement
+				|| numberOfOutgoingEogs >= 2;
 	}
 
-	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final Stmt previousStmt, final Vertex v, final Set<Val> valsInScope, final NFA tsNfa) {
-		var db = ctx.getDatabase();
-
-		Stmt currentStmt = vertexToStmt(v);
-
-		de.fraunhofer.aisec.cpg.graph.@Nullable Node currentStmtNode = db.vertexToNode(v);
+	private Set<NormalRule<Stmt, Val, TypestateWeight>> createNormalRules(final Stmt previousStmt, final de.fraunhofer.aisec.cpg.graph.Node v, final Set<Val> valsInScope,
+			final NFA tsNfa) {
+		var currentStmt = vertexToStmt(v);
 
 		Set<NormalRule<Stmt, Val, TypestateWeight>> result = new HashSet<>();
 
@@ -668,7 +615,7 @@ public class TypeStateAnalysis {
 			Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
 					.stream()
 					.filter(
-						tran -> triggersTypestateTransition(currentStmtNode, tran.getTarget().getBase(), tran.getTarget().getOp()))
+						tran -> triggersTypestateTransition(v, tran.getTarget().getBase(), tran.getTarget().getOp()))
 					.collect(Collectors.toSet());
 			TypestateWeight weight = relevantNFATransitions.isEmpty() ? TypestateWeight.one() : new TypestateWeight(relevantNFATransitions);
 
@@ -700,7 +647,7 @@ public class TypeStateAnalysis {
 
 		// Get the MARK entity of the markInstance
 		Pair<String, MEntity> mEntity = this.rule.getEntityReferences().get(markInstance);
-		if (mEntity == null || mEntity.getValue1() == null) {
+		if (mEntity == null || mEntity.getSecond() == null) {
 			return false;
 		}
 
@@ -720,17 +667,17 @@ public class TypeStateAnalysis {
 		Set<Type> types = new HashSet<>();
 		List<Expression> arguments = new ArrayList<>();
 		if (cpgNode instanceof CallExpression) {
-			de.fraunhofer.aisec.cpg.graph.Node base = ((CallExpression) cpgNode).getBase();
+			var base = ((CallExpression) cpgNode).getBase();
 
-			// Check for type of base, if exists
-			if (base != null && base instanceof Expression) {
-				types = ((Expression) base).getPossibleSubTypes();
+			// even though base is annotated @NotNull, it sometimes is null
+			if (base != null) {
+				types = base.getPossibleSubTypes();
 			}
 
 			arguments.addAll(((CallExpression) cpgNode).getArguments());
 		}
 
-		for (MOp o : mEntity.getValue1().getOps()) {
+		for (MOp o : mEntity.getSecond().getOps()) {
 			if (!op.equals(o.getName())) {
 				continue;
 			}
@@ -744,7 +691,7 @@ public class TypeStateAnalysis {
 					if ((assignerFqn != null && opStatement.getCall().getName().equals(assignerFqn))
 							&& (assigneeVar != null // is return value assigned to valInScope?
 									|| arguments.isEmpty()
-									|| CrymlinQueryWrapper.argumentsMatchSourceParameters(opStatement.getCall().getParams(),
+									|| argumentsMatchParameters(opStatement.getCall().getParams(),
 										((CallExpression) cpgNode).getArguments()))) {
 						return true;
 					}
@@ -768,70 +715,43 @@ public class TypeStateAnalysis {
 	/**
 	 * Finds the mapping from function parameters to arguments of calls to this method. This is needed for later construction of pop rules.
 	 *
-	 * @param functionDeclaration
-	 * @param returnV
-	 * @param crymlinTraversalSource
+	 * @param callee
 	 * @return
 	 */
 	@NonNull
-	private Map<String, Set<Pair<Val, Val>>> findParamToValues(Vertex functionDeclaration, Vertex returnV, CrymlinTraversalSource crymlinTraversalSource) {
-		var db = ctx.getDatabase();
-
+	private Map<String, Set<Pair<Val, Val>>> findParamToValues(FunctionDeclaration callee) {
 		Map<String, Set<Pair<Val, Val>>> result = new HashMap<>();
-		try {
-			FunctionDeclaration calleeFD = (FunctionDeclaration) db.vertexToNode(functionDeclaration);
-			if (calleeFD == null) {
-				log.error("Unexpected: FunctionDeclaration of callee is null.");
-				return result;
-			}
-			String calleeName = calleeFD.getName();
 
-			List<Vertex> calls = crymlinTraversalSource.byID((long) returnV.id())
-					.repeat(__().out(DFG))
-					.until(
-						__().hasLabel(CallExpression.class.getSimpleName()))
-					.limit(5)
-					.toList();
-
-			for (Vertex call : calls) {
-				CallExpression ce = (CallExpression) db.vertexToNode(call);
-				if (ce == null) {
-					continue;
-				}
-
-				/*
-				 * Find name of calling function ("caller") TODO This is not an optimal way to find out the calling function, as we need to traverse potentially many EOG
-				 * edges.
-				 */
-				List<Vertex> callers = crymlinTraversalSource.byID((long) call.id())
-						.repeat(__().in(EOG))
-						.until(
-							__().hasLabel(FunctionDeclaration.class.getSimpleName()))
-						.limit(50)
-						.toList();
-
-				for (Vertex callerV : callers) {
-					FunctionDeclaration caller = (FunctionDeclaration) db.vertexToNode(callerV);
-					if (caller == null) {
-						log.error("Unexpected: Null Node object for FunctionDeclaration vertex {}", callerV.id());
-						continue;
-					}
-					List<Expression> args = ce.getArguments();
-					FunctionDeclaration callee = ce.getInvokes()
-							.get(
-								0); // TODO we assume there is exactly one (=our) called function ("callee"). In case of fuzzy resolution, there might be more.
-					List<ParamVariableDeclaration> params = callee.getParameters();
-
-					Set<Pair<Val, Val>> pToA = new HashSet<>();
-					for (int i = 0; i < Math.min(params.size(), args.size()); i++) {
-						pToA.add(new Pair<>(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
-					}
-					result.put(calleeName, pToA);
-				}
-			}
+		if (callee == null) {
+			log.error("Unexpected: FunctionDeclaration of callee is null.");
+			return result;
 		}
-		catch (FastNoSuchElementException e) {
-			log.error("FastNoSuchElementException", e);
+		String calleeName = callee.getName();
+
+		// the function declaration is connected to their call expressions by a DFG edge
+		var calls = callee.getNextDFG()
+				.stream()
+				.filter(CallExpression.class::isInstance)
+				.map(CallExpression.class::cast)
+				.collect(Collectors.toList());
+
+		for (var ce : calls) {
+			var caller = getContainingFunction(ce);
+
+			if (caller == null) {
+				log.error("Unexpected: Null Node object for FunctionDeclaration");
+				continue;
+			}
+
+			var args = ce.getArguments();
+			var params = callee.getParameters();
+
+			var pToA = new HashSet<Pair<Val, Val>>();
+			for (int i = 0; i < Math.min(params.size(), args.size()); i++) {
+				pToA.add(new Pair<>(new Val(params.get(i).getName(), calleeName), new Val(args.get(i).getName(), caller.getName())));
+			}
+
+			result.put(calleeName, pToA);
 		}
 
 		return result;
@@ -846,50 +766,37 @@ public class TypeStateAnalysis {
 	 * <p>
 	 * int bla() { return 42; }
 	 *
-	 * @param v
+	 * @param node
 	 * @return
 	 */
-	private Set<Val> findReturnedVals(CrymlinTraversalSource crymlinTraversalSource, Vertex v) {
+	private Set<Val> findReturnedVals(de.fraunhofer.aisec.cpg.graph.Node node) {
 		/*
 		 * Follow along "DFG" edges from the return statement to the CallExpression that initiated the call. Then check if there is a "DFG" edge from that CallExpression
 		 * to a VariableDeclaration.
 		 */
 		Set<Val> returnedVals = new HashSet<>();
-		List<Vertex> calls = crymlinTraversalSource.byID((long) v.id())
-				.repeat(__().out(DFG))
-				.until(__().hasLabel(CallExpression.class.getSimpleName()))
-				.limit(
-					5)
-				.toList();
+		var calls = node.getNextDFG().stream().filter(CallExpression.class::isInstance).collect(Collectors.toList());
 
-		for (Vertex call : calls) {
+		for (var call : calls) {
 			// We found the call site into our method. Now see if the return value is used.
-			Optional<Vertex> nextDfgAftercall = crymlinTraversalSource.byID((long) call.id()).out(DFG).tryNext();
+			var nextDfgAftercall = call.getNextDFG().stream().findFirst();
 			String returnVar = "";
 			if (nextDfgAftercall.isPresent()) {
-				if (nextDfgAftercall.get().label().equals(VariableDeclaration.class.getSimpleName())
-						|| nextDfgAftercall.get().label().equals(DeclaredReferenceExpression.class.getSimpleName())) {
+				if (nextDfgAftercall.get() instanceof VariableDeclaration
+						|| nextDfgAftercall.get() instanceof DeclaredReferenceExpression) {
 					// return value is used. Remember variable name.
-					returnVar = nextDfgAftercall.get().property("name").value().toString();
+					returnVar = nextDfgAftercall.get().getName();
 				}
 
 				// Finally we need to find out in which function the call site actually is
 				String callerFunctionName = null;
-				CrymlinTraversal<Vertex, Vertex> traversal = crymlinTraversalSource.byID((long) call.id())
-						.repeat(__().out(EOG))
-						.until(__().in(CrymlinConstants.STATEMENTS))
-						//					.limit(10)
-						.in(CrymlinConstants.STATEMENTS)
-						.in(CrymlinConstants.BODY);
-				if (traversal.hasNext()) {
-					Vertex callerFunction = traversal.next();
-					if (callerFunction != null) {
-						callerFunctionName = callerFunction.property("name").value().toString();
-					}
+				var callerFunction = getContainingFunction(call);
+				if (callerFunction != null) {
+					callerFunctionName = callerFunction.getName();
+				}
 
-					if (callerFunctionName != null) {
-						returnedVals.add(new Val(returnVar, callerFunctionName));
-					}
+				if (callerFunctionName != null) {
+					returnedVals.add(new Val(returnVar, callerFunctionName));
 				}
 			}
 		}
@@ -904,19 +811,25 @@ public class TypeStateAnalysis {
 	 * resulting set may contain more than one rule.
 	 *
 	 * @param mce
-	 * @param crymlinTraversal
 	 * @param currentFunctionName
 	 * @param currentStmt
 	 * @param currentStmtVertex
 	 * @return
 	 */
-	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, CrymlinTraversalSource crymlinTraversal, String currentFunctionName,
-			Stmt currentStmt, Vertex currentStmtVertex) {
+	private Set<PushRule<Stmt, Val, TypestateWeight>> createPushRules(CallExpression mce, String currentFunctionName,
+			Stmt currentStmt, de.fraunhofer.aisec.cpg.graph.Node currentStmtVertex) {
 		// Return site(s). Actually, multiple return sites will only occur in case of exception handling.
-		List<Vertex> returnSites = CrymlinQueryWrapper.getNextStatements(crymlinTraversal, (long) currentStmtVertex.id());
+		// TODO: support multiple return sites
+		var returnSite = getNextStatement(currentStmtVertex);
+		List<Statement> returnSites;
+		if (returnSite == null) {
+			returnSites = Collections.emptyList();
+		} else {
+			returnSites = Collections.singletonList(returnSite);
+		}
 
 		// Arguments of function call
-		List<Val> argVals = argumentsToVals(mce, currentFunctionName);
+		var argVals = argumentsToVals(mce, currentFunctionName);
 
 		Set<PushRule<Stmt, Val, TypestateWeight>> pushRules = new HashSet<>();
 		for (FunctionDeclaration potentialCallee : mce.getInvokes()) {
@@ -926,22 +839,22 @@ public class TypeStateAnalysis {
 					potentialCallee.getSignature());
 				continue;
 			}
-			List<Val> parmVals = parametersToVals(potentialCallee);
+			var parmVals = parametersToVals(potentialCallee);
 
 			// Get first statement of callee. This is the jump target of our Push Rule.
-			Statement firstStmt = getFirstStmtOfMethod(potentialCallee);
+			var firstStmt = getFirstStmtOfMethod(potentialCallee);
 
 			if (firstStmt != null && firstStmt.getCode() != null) {
 				for (int i = 0; i < argVals.size(); i++) {
-					for (Vertex returnSiteVertex : returnSites) {
-						Stmt returnSite = vertexToStmt(returnSiteVertex);
+					for (var returnSiteVertex : returnSites) {
+						Stmt stmt = vertexToStmt(returnSiteVertex);
 
 						PushRule<Stmt, Val, TypestateWeight> pushRule = new PushRule<>(
 							argVals.get(i),
 							currentStmt,
 							parmVals.get(i),
 							new Stmt(potentialCallee.getName(), Utils.getRegion(potentialCallee)),
-							returnSite,
+							stmt,
 							TypestateWeight.one()); // A push rule does not trigger any typestate transitions.
 						pushRules.add(pushRule);
 					}
@@ -993,32 +906,17 @@ public class TypeStateAnalysis {
 	}
 
 	/**
-	 * Convert a CPG vertex into a <code>Stmt</code> in context of the WPDS.
+	 * Convert a CPG node into a <code>Stmt</code> in context of the WPDS.
 	 *
-	 * @param v CPG vertex
-	 * @return A <code>Stmt</code>, holding the "code" and "location->region" properties of <code>v</code>>.
+	 * @param n CPG node
+	 * @return A <code>Stmt</code>, holding the "code" and "location->region" properties of <code>n</code>>.
 	 */
-	@NonNull
-	private Stmt vertexToStmt(@NonNull Vertex v) {
-		Region region = new Region(-1, -1, -1, -1);
-		if (v.property(START_LINE).isPresent() &&
-				v.property(START_COLUMN).isPresent() &&
-				v.property(END_LINE).isPresent() &&
-				v.property(END_COLUMN).isPresent()) {
-			region = new Region(
-				toIntExact((long) v.property(START_LINE)
-						.value()),
-				toIntExact((long) v.property(START_COLUMN)
-						.value()),
-				toIntExact((long) v.property(END_LINE)
-						.value()),
-				toIntExact((long) v.property(END_COLUMN)
-						.value()));
-		}
+	@NotNull
+	private Stmt vertexToStmt(@NotNull de.fraunhofer.aisec.cpg.graph.Node n) {
+		var region = Utils.getRegion(n);
+
 		return new Stmt(
-			v.property("code")
-					.orElse("")
-					.toString(),
+			n.getCode(),
 			region);
 	}
 }

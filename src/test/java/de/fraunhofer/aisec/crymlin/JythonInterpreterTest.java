@@ -2,41 +2,22 @@
 package de.fraunhofer.aisec.crymlin;
 
 import de.fraunhofer.aisec.analysis.JythonInterpreter;
-import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.TranslationResult;
+import org.junit.jupiter.api.*;
 import org.python.core.Py;
 import org.python.util.JLineConsole;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_G;
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_GRAPH;
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_Q;
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_QUERY;
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_S;
-import static de.fraunhofer.aisec.analysis.JythonInterpreter.PY_SERVER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static de.fraunhofer.aisec.analysis.JythonInterpreter.*;
+import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Testing the Crymlin console.
@@ -105,8 +86,10 @@ class JythonInterpreterTest {
 		consoleAvailable.await(100, TimeUnit.SECONDS);
 		lock.unlock();
 
+		var result = new TranslationResult(TranslationManager.builder().build());
+
 		// instead of running a full analysis, just provide access to an empty database
-		interp.connect(new OverflowDatabase(ServerConfiguration.builder().disableOverflow(true).build()));
+		interp.connect(getGraph(result));
 
 		jlineConsole = (JLineConsole) Py.getConsole();
 
@@ -132,8 +115,6 @@ class JythonInterpreterTest {
 		outContent.flush();
 		errContent.flush();
 
-		assertTrue(completions.contains(PY_QUERY));
-		assertTrue(completions.contains(PY_Q));
 		assertTrue(completions.contains(PY_SERVER));
 		assertTrue(completions.contains(PY_S));
 		assertTrue(completions.contains(PY_GRAPH));
@@ -226,24 +207,24 @@ class JythonInterpreterTest {
 		assertTrue(completions.contains("next()"));
 	}
 
-	@Test
+	/*@Test
 	@Order(6)
 	void simpleJythonTest() throws Exception {
 		// Just for testing: We can run normal Gremlin queries:
 		Object result = interp.query("q.V([]).toSet()"); // Get all (!) nodes
 		assertEquals(HashSet.class, result.getClass());
-	}
+	}*/
 
-	@Test
+	/*@Test
 	@Order(7)
 	void crymlinOverJythonTest() throws Exception {
 		// Run crymlin queries as strings and get back the results as Java objects:
 		List<Vertex> classes = (List<Vertex>) interp.query("crymlin.records().toList()");
 		assertNotNull(classes);
-
+	
 		List<Vertex> literals = (List<Vertex>) interp.query("crymlin.sourcefiles().literals().toList()");
 		assertNotNull(literals);
-	}
+	}*/
 
 	@AfterAll
 	public static void afterAll() {

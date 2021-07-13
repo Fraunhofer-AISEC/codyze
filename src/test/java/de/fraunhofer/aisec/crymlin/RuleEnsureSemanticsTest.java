@@ -8,8 +8,8 @@ import de.fraunhofer.aisec.analysis.structures.MarkContextHolder;
 import de.fraunhofer.aisec.analysis.structures.MarkIntermediateResult;
 import de.fraunhofer.aisec.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.analysis.structures.TypestateMode;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
-import de.fraunhofer.aisec.crymlin.connectors.db.TraversalConnection;
+import de.fraunhofer.aisec.cpg.TranslationManager;
+import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -68,27 +69,24 @@ class RuleEnsureSemanticsTest {
 		assertEquals(1, markFilePaths.size());
 
 		Mark mark = new MarkModelLoader().load(markModels, markFilePaths.get(0));
-		ServerConfiguration config = ServerConfiguration.builder().disableOverflow(true).markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
-		AnalysisContext ctx = new AnalysisContext(new File(markFilePaths.get(0)), new OverflowDatabase(config));
+		ServerConfiguration config = ServerConfiguration.builder().markFiles(markFilePaths.get(0)).typestateAnalysis(TypestateMode.NFA).build();
 
-		var db = ctx.getDatabase();
-		db.connect();
+		var graph = getGraph(new TranslationResult(TranslationManager.builder().build()));
+		var ctx = new AnalysisContext(new File(markFilePaths.get(0)), graph);
 
 		Map<String, Map<Integer, MarkIntermediateResult>> allResults = new TreeMap<>();
-		try (TraversalConnection t = new TraversalConnection(db)) { // connects to the DB
-			for (MRule r : mark.getRules()) {
-				MarkContextHolder markContextHolder = new MarkContextHolder();
-				markContextHolder.getAllContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
+		for (MRule r : mark.getRules()) {
+			MarkContextHolder markContextHolder = new MarkContextHolder();
+			markContextHolder.getAllContexts().put(0, null); // add a dummy, so that we get exactly one result back for this context
 
-				ExpressionEvaluator ee = new ExpressionEvaluator(mark, r, ctx, config, t.getCrymlinTraversal(), markContextHolder);
+			var ee = new ExpressionEvaluator(graph, mark, r, ctx, config, markContextHolder);
 
-				Expression ensureExpr = r.getStatement().getEnsure().getExp();
-				Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(ensureExpr);
+			Expression ensureExpr = r.getStatement().getEnsure().getExp();
+			Map<Integer, MarkIntermediateResult> result = ee.evaluateExpression(ensureExpr);
 
-				assertEquals(1, result.size());
+			assertEquals(1, result.size());
 
-				allResults.put(r.getName(), result);
-			}
+			allResults.put(r.getName(), result);
 		}
 
 		allResults.forEach((key, value) -> {

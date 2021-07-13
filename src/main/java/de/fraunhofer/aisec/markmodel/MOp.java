@@ -1,34 +1,32 @@
 
 package de.fraunhofer.aisec.markmodel;
 
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MOp {
 
 	private static final Logger log = LoggerFactory.getLogger(MOp.class);
 
 	private String name;
-	private MEntity parent;
+	private final MEntity parent;
+
 	@NonNull
-	private List<OpStatement> statements = new ArrayList<>();
+	private final List<OpStatement> statements = new ArrayList<>();
 
 	private boolean parsed = false;
-	private Map<OpStatement, Set<Vertex>> statementToCPGVertex = new HashMap<>();
-	private Map<Vertex, Set<OpStatement>> vertexToStatements = new HashMap<>();
-	private Set<Vertex> allVertices = new HashSet<>();
+
+	private final Map<OpStatement, Set<Node>> statementToNodes = new HashMap<>();
+
+	private final Map<Node, Set<OpStatement>> nodesToStatements = new HashMap<>();
+
+	private final Set<Node> allNodes = new HashSet<>();
 
 	public MOp(MEntity parent) {
 		this.parent = parent;
@@ -48,37 +46,30 @@ public class MOp {
 		return this.statements;
 	}
 
-	public Set<Vertex> getVertices(OpStatement stmt) {
-		if (!parsed) {
-			log.error("MOp not parsed! Do not call getVertex!");
-			assert false;
-		}
-		return statementToCPGVertex.get(stmt);
-	}
-
-	public Set<OpStatement> getCallStatements(Vertex v) {
+	public Set<OpStatement> getCallStatements(Node node) {
 		if (!parsed) {
 			log.error("MOp not parsed! Do not call getCallStatements!");
 			assert false;
 		}
-		return vertexToStatements.get(v);
+
+		return nodesToStatements.get(node);
 	}
 
-	public Map<Vertex, Set<OpStatement>> getVertexToCallStatementsMap() {
-		return vertexToStatements;
+	public Map<Node, Set<OpStatement>> getNodesToStatements() {
+		return nodesToStatements;
 	}
 
-	public Set<Vertex> getAllVertices() {
-		return allVertices;
+	public Set<Node> getAllNodes() {
+		return allNodes;
 	}
 
-	public void addVertex(OpStatement stmt, Set<Vertex> verts) {
-		statementToCPGVertex.put(stmt, verts);
-		for (Vertex v : verts) {
-			Set<OpStatement> callStatements = vertexToStatements.computeIfAbsent(v, k -> new HashSet<>());
+	public <T extends Node> void addNode(OpStatement stmt, Collection<T> nodes) {
+		statementToNodes.put(stmt, new HashSet<>(nodes));
+		for (var node : nodes) {
+			Set<OpStatement> callStatements = nodesToStatements.computeIfAbsent(node, k -> new HashSet<>());
 			callStatements.add(stmt);
 		}
-		allVertices.addAll(verts);
+		allNodes.addAll(nodes);
 	}
 
 	public void setParsingFinished() {
@@ -91,12 +82,12 @@ public class MOp {
 
 	public void reset() {
 		parsed = false;
-		statementToCPGVertex = new HashMap<>();
-		vertexToStatements = new HashMap<>();
-		allVertices = new HashSet<>();
+		statementToNodes.clear();
+		nodesToStatements.clear();
+		allNodes.clear();
 	}
 
-	public static List<String> paramsToString(EList<Parameter> params) {
+	public static List<String> paramsToString(List<Parameter> params) {
 		ArrayList<String> ret = new ArrayList<>();
 		for (Parameter p : params) {
 			StringBuilder sb = new StringBuilder();
@@ -109,4 +100,5 @@ public class MOp {
 		}
 		return ret;
 	}
+
 }

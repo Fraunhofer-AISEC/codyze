@@ -120,10 +120,10 @@ public class Main implements Callable<Integer> {
 		sb.append("]");
 
 		if (outputFile.equals("-")) {
-			System.out.println(sb.toString());
+			System.out.println(sb);
 		} else {
 			try (PrintWriter out = new PrintWriter(new File(outputFile))) {
-				out.println(sb.toString());
+				out.println(sb);
 			}
 			catch (FileNotFoundException e) {
 				System.out.println(e.getMessage());

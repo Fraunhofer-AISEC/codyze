@@ -1,8 +1,7 @@
 
 package de.fraunhofer.aisec.analysis.utils;
 
-import de.fraunhofer.aisec.cpg.graph.*;
-import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
@@ -11,33 +10,16 @@ import de.fraunhofer.aisec.cpg.graph.types.Type;
 import de.fraunhofer.aisec.cpg.graph.types.UnknownType;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
-import de.fraunhofer.aisec.crymlin.connectors.db.OverflowDatabase;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import de.fraunhofer.aisec.markmodel.Constants;
-import org.apache.tinkerpop.gremlin.process.traversal.Path;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_COLUMN;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.END_LINE;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_COLUMN;
-import static de.fraunhofer.aisec.crymlin.dsl.CrymlinConstants.START_LINE;
-import static java.lang.Math.toIntExact;
 
 public class Utils {
 	private static final Logger log = LoggerFactory.getLogger(Utils.class);
@@ -87,41 +69,6 @@ public class Utils {
 			s = s.substring(1, s.length() - 1);
 		}
 		return s;
-	}
-
-	public static void dumpVertices(Collection<Vertex> vertices) {
-		log.debug("Dumping vertices: {}", vertices.size());
-
-		int i = 0;
-		for (Vertex v : vertices) {
-			log.debug("Vertex {}: {}", i++, v);
-		}
-	}
-
-	public static void dumpPaths(Collection<Path> paths) {
-		log.debug("Number of paths: {}", paths.size());
-
-		for (Path p : paths) {
-			log.debug("Path of length: {}", p.size());
-			for (Object o : p) {
-				log.debug("Path step: {}", o);
-			}
-		}
-	}
-
-	/**
-	 * Returns true if the given vertex has a label that equals to the given CPG class or any of its subclasses.
-	 *
-	 * That is, hasLabel(v, Node.class) will always return true.
-	 *
-	 * @param v 			A vertex with a label.
-	 * @param cpgClass		Any class from the CPG hierarchy.
-	 * @return
-	 */
-	public static boolean hasLabel(@NonNull Vertex v, @NonNull Class<? extends Node> cpgClass) {
-		String label = v.label();
-		Set<String> subClasses = Set.of(OverflowDatabase.getSubclasses(cpgClass));
-		return label.equals(cpgClass.getSimpleName()) || subClasses.contains(label);
 	}
 
 	/**
@@ -318,66 +265,26 @@ public class Utils {
 	}
 
 	/**
-	 * Returns a <code>Region</code> object from a vertex' startLine, endLine, startColumn, endColumn property.
+	 * Returns a <code>Region</code> object from a node's startLine, endLine, startColumn, endColumn property.
 	 *
 	 * Note that these are not the exact property values but start at 0 rather than by 1.
 	 * If these properties do not exist, returns -1.
 	 *
-	 * @param v
-	 * @return
-	 */
-	@NonNull
-	public static Region getRegionByVertex(@NonNull Vertex v) {
-		//TODO May return -2, must be -1.
-		int startLine = toIntExact((Long) v.property(START_LINE).orElse(Long.valueOf(-1))) - 1;
-		int endLine = toIntExact((Long) v.property(END_LINE).orElse(Long.valueOf(-1))) - 1;
-		int startColumn = toIntExact((Long) v.property(START_COLUMN).orElse(Long.valueOf(-1))) - 1;
-		int endColumn = toIntExact((Long) v.property(END_COLUMN).orElse(Long.valueOf(-1))) - 1;
-		return new Region(startLine, startColumn, endLine, endColumn);
-	}
-
-	/**
-	 * Returns a brief human-readable representation of a vertex as a string.
+	 * @param n the node
 	 *
-	 * @param base The vertex. If null, this method will return the string "null".
-	 * @return A brief representation of the vertex.
+	 * @return the region
 	 */
 	@NonNull
-	public static String prettyPrint(@Nullable Vertex base) {
-		if (base == null) {
-			return "null";
+	public static Region getRegionByNode(@NonNull Node n) {
+		if (n.getLocation() == null) {
+			return new Region(-1, -1, -1, -1);
 		}
 
-		StringBuilder sb = new StringBuilder();
-		if (base.property("labels").isPresent()) {
-			Object labels = base.property("labels").value();
-			String label;
-			if (labels instanceof List) {
-				label = (String) ((List) labels).get(0);
-			} else {
-				label = labels.toString();
-			}
-			sb.append(label);
-		}
-		sb.append("  [");
-		if (base.property("code").isPresent()) {
-			sb.append(base.property("code").value());
-		}
-		sb.append("]");
-		return sb.toString();
-	}
-
-	public static String prettyPrint(Set<Vertex> responsibleVertices) {
-		StringBuilder sb = new StringBuilder();
-		Iterator<Vertex> it = responsibleVertices.iterator();
-		while (it.hasNext()) {
-			Vertex v = it.next();
-			sb.append(prettyPrint(v));
-			if (it.hasNext()) {
-				sb.append(", ");
-			}
-		}
-		return sb.toString();
+		int startLine = n.getLocation().getRegion().getStartLine() - 1;
+		int endLine = n.getLocation().getRegion().getEndLine() - 1;
+		int startColumn = n.getLocation().getRegion().getStartColumn() - 1;
+		int endColumn = n.getLocation().getRegion().getEndLine() - 1;
+		return new Region(startLine, startColumn, endLine, endColumn);
 	}
 
 	/**
@@ -399,9 +306,9 @@ public class Utils {
 	 * @return
 	 */
 	@NonNull
-	public static Region getRegion(@NonNull FunctionDeclaration fd) {
+	public static Region getRegion(@NonNull Node node) {
 		Region region = new Region(-1, -1, -1, -1);
-		PhysicalLocation loc = fd.getLocation();
+		PhysicalLocation loc = node.getLocation();
 		if (loc != null) {
 			return loc.getRegion();
 		}

@@ -1,16 +1,11 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
-import de.fraunhofer.aisec.cpg.graph.Node;
-import de.fraunhofer.aisec.crymlin.connectors.db.Database;
+import de.fraunhofer.aisec.cpg.graph.Graph;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class AnalysisContext {
 
@@ -18,22 +13,16 @@ public class AnalysisContext {
 	@NonNull
 	private final Set<Finding> findings = new HashSet<>();
 
-	/** Map of method signatures to {@code Method}s. */
-	public final Map<String, Method> methods = new HashMap<>();
-
 	private final List<File> sourceLocations;
+	private final Graph graph;
 
-	/** The database used for this analysis. */
-	@NonNull
-	private Database<Node> db;
-
-	public AnalysisContext(List<File> sourceLocations, @NonNull Database<Node> db) {
+	public AnalysisContext(List<File> sourceLocations, Graph graph) {
 		this.sourceLocations = sourceLocations;
-		this.db = db;
+		this.graph = graph;
 	}
 
-	public AnalysisContext(File f, @NonNull Database<Node> db) {
-		this(List.of(f), db);
+	public AnalysisContext(File f, Graph graph) {
+		this(List.of(f), graph);
 	}
 
 	/**
@@ -51,8 +40,7 @@ public class AnalysisContext {
 		return sourceLocations;
 	}
 
-	@NonNull
-	public Database<Node> getDatabase() {
-		return this.db;
+	public Graph getGraph() {
+		return this.graph;
 	}
 }

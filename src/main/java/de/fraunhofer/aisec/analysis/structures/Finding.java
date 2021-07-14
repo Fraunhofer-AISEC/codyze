@@ -1,11 +1,11 @@
 
 package de.fraunhofer.aisec.analysis.structures;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.json.JSONPropertyIgnore;
 
 import java.io.PrintStream;
 import java.net.URI;
@@ -82,7 +82,7 @@ public class Finding {
 	/**
 	 * Returns an unmodifiable list of the associated LSP "ranges" (~regions).
 	 */
-	@JSONPropertyIgnore
+	@JsonIgnore
 	public List<Region> getRegions() {
 		return locations
 				.stream()

@@ -108,14 +108,8 @@ dependencies {
     api("info.picocli:picocli:4.6.1")
     annotationProcessor("info.picocli:picocli-codegen:4.6.1")
 
-    // JSON parser for generation of results file
-    implementation("org.json:json:20210307")
-
     // JsonPath for querying findings description
     implementation("com.jayway.jsonpath:json-path:2.6.0")
-
-    // Groovy
-    implementation("org.codehaus.groovy:groovy:3.0.8") // fetch a recent groovy otherwise, Java11+ has problems
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.9.11")

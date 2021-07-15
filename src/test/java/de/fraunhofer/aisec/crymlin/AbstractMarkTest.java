@@ -105,17 +105,8 @@ public abstract class AbstractMarkTest {
 							.debugParser(true)
 							.failOnError(false)
 							.codeInNodes(true)
-							//.defaultPasses()
+							.defaultPasses()
 							.defaultLanguages()
-							.registerPass(new TypeHierarchyResolver())
-							.registerPass(new JavaExternalTypeHierarchyResolver())
-							.registerPass(new ImportResolver())
-							.registerPass(new VariableUsageResolver())
-							.registerPass(new CallResolver()) // creates CG
-							.registerPass(new EvaluationOrderGraphPass()) // creates EOG
-							.registerPass(new TypeResolver())
-							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
-							.registerPass(new FilenameMapper())
 							.registerPass(new IdentifierPass())
 							.registerPass(new EdgeCachePass())
 							.loadIncludes(true)

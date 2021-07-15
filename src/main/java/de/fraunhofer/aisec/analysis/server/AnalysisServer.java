@@ -12,7 +12,6 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.*;
 import de.fraunhofer.aisec.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.crymlin.connectors.lsp.CpgLanguageServer;
@@ -381,17 +380,8 @@ public class AnalysisServer {
 				.failOnError(false)
 				.codeInNodes(true)
 				.loadIncludes(config.analyzeIncludes)
-				//.defaultPasses()
+				.defaultPasses()
 				.defaultLanguages()
-				.registerPass(new TypeHierarchyResolver())
-				.registerPass(new JavaExternalTypeHierarchyResolver())
-				.registerPass(new ImportResolver())
-				.registerPass(new VariableUsageResolver())
-				.registerPass(new CallResolver()) // creates CG
-				.registerPass(new EvaluationOrderGraphPass()) // creates EOG
-				.registerPass(new TypeResolver())
-				//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
-				.registerPass(new FilenameMapper())
 				.registerPass(new IdentifierPass())
 				.registerPass(new EdgeCachePass())
 				.sourceLocations(files.toArray(new File[0]));

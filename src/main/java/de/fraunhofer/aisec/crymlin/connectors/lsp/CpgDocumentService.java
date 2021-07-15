@@ -10,35 +10,11 @@ import de.fraunhofer.aisec.analysis.structures.FindingDescription;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.CallResolver;
-import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass;
 import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
-import de.fraunhofer.aisec.cpg.passes.ImportResolver;
-import de.fraunhofer.aisec.cpg.passes.JavaExternalTypeHierarchyResolver;
-import de.fraunhofer.aisec.cpg.passes.TypeHierarchyResolver;
-import de.fraunhofer.aisec.cpg.passes.TypeResolver;
-import de.fraunhofer.aisec.cpg.passes.VariableUsageResolver;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.eclipse.lsp4j.CodeAction;
-import org.eclipse.lsp4j.CodeActionKind;
-import org.eclipse.lsp4j.CodeActionParams;
-import org.eclipse.lsp4j.Command;
-import org.eclipse.lsp4j.Diagnostic;
-import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.eclipse.lsp4j.DidChangeTextDocumentParams;
-import org.eclipse.lsp4j.DidCloseTextDocumentParams;
-import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.DidSaveTextDocumentParams;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.PublishDiagnosticsParams;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.TextDocumentEdit;
-import org.eclipse.lsp4j.TextDocumentItem;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
-import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -50,11 +26,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -106,16 +78,8 @@ public class CpgDocumentService implements TextDocumentService {
 							.debugParser(false)
 							.failOnError(false)
 							.codeInNodes(true)
-							//.defaultPasses()
+							.defaultPasses()
 							.defaultLanguages()
-							.registerPass(new TypeHierarchyResolver())
-							.registerPass(new JavaExternalTypeHierarchyResolver())
-							.registerPass(new ImportResolver())
-							.registerPass(new VariableUsageResolver())
-							.registerPass(new CallResolver()) // creates CG
-							.registerPass(new EvaluationOrderGraphPass()) // creates EOG
-							.registerPass(new TypeResolver())
-							//.registerPass(new de.fraunhofer.aisec.cpg.passes.ControlFlowSensitiveDFGPass())
 							.registerPass(new FilenameMapper())
 							.registerPass(new IdentifierPass())
 							.registerPass(new EdgeCachePass())

@@ -93,7 +93,7 @@ dependencies {
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
-    api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:main-SNAPSHOT:repackaged")
+    api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:73209e5df:repackaged") // pin to specific commit before annotations
 
     // Pushdown Systems
     api("de.breakpointsec:pushdown:1.1") // ok

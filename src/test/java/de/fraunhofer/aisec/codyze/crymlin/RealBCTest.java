@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.codyze.crymlin;
 
 import de.fraunhofer.aisec.codyze.analysis.Finding;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -9,6 +10,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// This test is disabled for now, because this test is very flaky
+@Disabled
 class RealBCTest extends AbstractMarkTest {
 
 	@Test

@@ -107,12 +107,16 @@ public class Finding {
 	}
 
 	public String toString() {
-		// simple for now
 		String addIfExists = "";
-		String descriptionShort = FindingDescription.getInstance().getDescriptionShort(onFailIdentifier);
-		if (descriptionShort != null && !descriptionShort.equals(onFailIdentifier)) {
-			addIfExists = ": " + descriptionShort;
+
+		if (onFailIdentifier != null) {
+			// simple for now
+			String descriptionShort = FindingDescription.getInstance().getDescriptionShort(onFailIdentifier);
+			if (descriptionShort != null && !descriptionShort.equals(onFailIdentifier)) {
+				addIfExists = ": " + descriptionShort;
+			}
 		}
+
 		String lines;
 		if (locations.size() == 1) {
 			lines = (locations.get(0).getRegion().getStartLine() + 1) + "";

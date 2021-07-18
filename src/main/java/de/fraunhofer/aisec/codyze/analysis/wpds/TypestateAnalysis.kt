@@ -712,6 +712,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
         // Create normal rule. Flow remains where it is.
         for (valInScope in valsInScope) {
+            var map = node.typestateTransitionTrigger(tsNfa)
+
             // Determine weight
             val relevantNFATransitions =
                 tsNfa
@@ -730,10 +732,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
     /**
      * Returns true if the given CPG node will result in a transition from any typestate into the
-     * typestate denoted by `op`.
+     * typestate denoted by [op].
      *
-     * @param cpgNode A CPG node - typically a `CallExpression` or anything that contains a call
-     * (e.g., a `VariableDeclaration`)
      * @param markInstance The current MARK instance.
      * @param op The target typestate, indicated by a MARK op.
      *
@@ -820,6 +820,97 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             }
         }
         return false
+    }
+
+    /**
+     * Returns the set of ops for the given CPG node that will result in a transition from any
+     * typestate into another.
+     *
+     * @param markInstance The current MARK instance.
+     *
+     * @return
+     */
+    private fun Node.typestateTransitionTrigger(tsNfa: NFA): Map<String, Set<String>> {
+        val opsMap = mutableMapOf<String, Set<String>>()
+
+        for (markInstance in tsNfa.transitions.map { it.target.base }) {
+            if (markInstance == null) {
+                continue
+            }
+
+            // Get the MARK entity of the markInstance
+            val mEntity = rule.entityReferences[markInstance]
+            if (mEntity?.second == null) {
+                continue
+            }
+
+            // For non-OO languages, we need to check valInScope against function args and return
+            // value
+            // (=assignee)
+            var assigneeVar: String? = null
+            var assignerFqn: String? = null
+            if (this is VariableDeclaration) {
+                assigneeVar = this.name
+                if (this.initializer is CallExpression) {
+                    assignerFqn = (this.initializer as CallExpression).fqn
+                }
+            } else if (this is CallExpression) {
+                assignerFqn = this.fqn
+            }
+
+            // For method calls we collect the "base", its type(s), and the method arguments.
+            var types: Set<Type> = HashSet()
+            val arguments: MutableList<Expression> = ArrayList()
+            if (this is CallExpression) {
+                val base: Expression? = this.base
+
+                // even though base is annotated @NotNull, it sometimes is null
+                if (base != null) {
+                    types = base.possibleSubTypes
+                }
+                arguments.addAll(this.arguments)
+            }
+
+            val ops = opsMap.computeIfAbsent(markInstance) { mutableSetOf() }.toMutableSet()
+
+            for (o in mEntity.second!!.ops) {
+                for (opStatement in o.statements) {
+                    if (types.isEmpty()) {
+                        /* Failure to resolve type or a function call (e.g. EVP_EncryptInit), rather than a method call.
+                          In case of function calls/non-OO languages, we ignore the type of the (non-existing) base
+                          and simply check if the call stmt matches the one in the "op" spec.
+                          "Matches" means that it matches the function and valInScope is either one of the arguments or is assigned the call's return value.
+                        */
+                        if (assignerFqn != null &&
+                                opStatement.call.name == assignerFqn &&
+                                (assigneeVar != null // is return value assigned to valInScope?
+                                ||
+                                    arguments.isEmpty() ||
+                                    argumentsMatchParameters(
+                                        opStatement.call.params,
+                                        (this as CallExpression).arguments
+                                    ))
+                        ) {
+                            ops += o.name
+                        }
+                    } else {
+                        for (type in types) {
+                            if (type.typeName.startsWith(
+                                    Utils.getScope(opStatement.call.name).replace("::", ".")
+                                ) // Dirty: startsWith() to ignore modifiers (such as "*").
+                                && opStatement.call.name.endsWith(this.name)
+                            ) {
+                                // TODO should rather compare fully qualified names instead of
+                                // "endsWith"
+                                ops += o.name
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return opsMap
     }
 
     /**

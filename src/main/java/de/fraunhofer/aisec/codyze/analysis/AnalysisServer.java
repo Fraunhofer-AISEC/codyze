@@ -1,13 +1,10 @@
 
-package de.fraunhofer.aisec.codyze.analysis.server;
+package de.fraunhofer.aisec.codyze.analysis;
 
-import de.fraunhofer.aisec.codyze.analysis.JythonInterpreter;
-import de.fraunhofer.aisec.codyze.analysis.cpgpasses.EdgeCachePass;
-import de.fraunhofer.aisec.codyze.analysis.cpgpasses.IdentifierPass;
+import de.fraunhofer.aisec.codyze.JythonInterpreter;
+import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass;
+import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator;
-import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.structures.FindingDescription;
-import de.fraunhofer.aisec.codyze.analysis.structures.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;

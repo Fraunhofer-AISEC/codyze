@@ -1,8 +1,8 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
-import de.fraunhofer.aisec.codyze.analysis.structures.FindingDescription;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
+import de.fraunhofer.aisec.codyze.analysis.FindingDescription;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.junit.jupiter.api.Test;
 

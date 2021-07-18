@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.codyze.analysis;
+package de.fraunhofer.aisec.codyze;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

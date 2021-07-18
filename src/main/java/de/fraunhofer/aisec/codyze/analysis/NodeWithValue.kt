@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.analysis.structures
+package de.fraunhofer.aisec.codyze.analysis
 
 import de.fraunhofer.aisec.cpg.graph.Node
 

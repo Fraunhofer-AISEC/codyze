@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.JythonInterpreter;
+import de.fraunhofer.aisec.codyze.JythonInterpreter;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import org.junit.jupiter.api.*;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static de.fraunhofer.aisec.codyze.analysis.JythonInterpreter.*;
+import static de.fraunhofer.aisec.codyze.JythonInterpreter.*;
 import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
 import static org.junit.jupiter.api.Assertions.*;
 

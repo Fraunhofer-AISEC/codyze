@@ -1,9 +1,9 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import org.apache.logging.log4j.Level;

@@ -1,8 +1,8 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.builtin;
 
+import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.codyze.analysis.structures.*;
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;

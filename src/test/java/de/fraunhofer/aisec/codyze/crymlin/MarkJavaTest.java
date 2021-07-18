@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.codyze.crymlin;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
 
 import java.util.Optional;
 import java.util.Set;

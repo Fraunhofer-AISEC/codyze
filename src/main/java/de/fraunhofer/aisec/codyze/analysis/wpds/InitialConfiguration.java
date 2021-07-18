@@ -7,7 +7,7 @@ import de.breakpointsec.pushdown.fsm.WeightedAutomaton;
 import de.breakpointsec.pushdown.rules.NormalRule;
 import de.breakpointsec.pushdown.rules.Rule;
 import de.fraunhofer.aisec.cpg.sarif.Region;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.Node;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -165,7 +165,7 @@ public class InitialConfiguration {
 			return wnfa;
 		}
 		wnfa.addTransition(new Transition<>(initialState, stmt, accepting),
-			new TypestateWeight(Set.of(new NFATransition<Node>(new Node(START, START), new Node(START, START), "constructor"))));
+			new TypestateWeight(Set.of(new NFATransition<StateNode>(new StateNode(START, START), new StateNode(START, START), "constructor"))));
 
 		// Add final ("accepting") states to NFA.
 		wnfa.addFinalState(accepting);
@@ -191,8 +191,8 @@ public class InitialConfiguration {
 		for (Rule<Stmt, Val, TypestateWeight> rule : wpds.getAllRules()) {
 			TypestateWeight tsWeight = rule.getWeight();
 			if (tsWeight.value() instanceof Set) {
-				Set<NFATransition<Node>> tsTransitions = (Set) tsWeight.value();
-				for (NFATransition<Node> tsTransition : tsTransitions) {
+				Set<NFATransition<StateNode>> tsTransitions = (Set) tsWeight.value();
+				for (NFATransition<StateNode> tsTransition : tsTransitions) {
 					if (tsTransition.getSource()
 							.toString()
 							.equals("START.START")) {

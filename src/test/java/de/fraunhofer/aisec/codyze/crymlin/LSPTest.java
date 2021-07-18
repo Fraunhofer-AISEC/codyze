@@ -1,8 +1,8 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.codyze.analysis.structures.ServerConfiguration;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.junit.jupiter.api.BeforeAll;

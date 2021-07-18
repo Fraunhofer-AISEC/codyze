@@ -2,12 +2,12 @@
 package de.fraunhofer.aisec.codyze.crymlin;
 
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.codyze.analysis.structures.MarkContextHolder;
-import de.fraunhofer.aisec.codyze.analysis.structures.MarkIntermediateResult;
-import de.fraunhofer.aisec.codyze.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.codyze.analysis.structures.TypestateMode;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
+import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder;
+import de.fraunhofer.aisec.codyze.analysis.MarkIntermediateResult;
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
+import de.fraunhofer.aisec.codyze.analysis.TypestateMode;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.mark.XtextParser;

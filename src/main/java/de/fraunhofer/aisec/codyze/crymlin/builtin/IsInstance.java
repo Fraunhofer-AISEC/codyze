@@ -1,8 +1,8 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.builtin;
 
+import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.codyze.analysis.structures.*;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.HasType;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;

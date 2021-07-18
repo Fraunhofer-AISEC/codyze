@@ -2,10 +2,10 @@
 package de.fraunhofer.aisec.codyze.crymlin.builtin;
 
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.codyze.analysis.structures.ListValue;
-import de.fraunhofer.aisec.codyze.analysis.structures.MarkContextHolder;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
+import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.ListValue;
+import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 /** All built-in functions must implement this interface. */

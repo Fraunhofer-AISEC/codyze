@@ -1,14 +1,14 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
-import de.fraunhofer.aisec.codyze.analysis.structures.TypestateMode;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
+import de.fraunhofer.aisec.codyze.analysis.TypestateMode;
 import de.fraunhofer.aisec.codyze.analysis.wpds.NFA;
 import de.fraunhofer.aisec.codyze.analysis.wpds.NFATransition;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
 import de.fraunhofer.aisec.codyze.markmodel.fsm.FSM;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.Node;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
@@ -50,16 +50,16 @@ class WpdsTest extends AbstractMarkTest {
 		FSM fsm = new FSM();
 		fsm.sequenceToFSM(expr);
 
-		Set<Node> worklist = fsm.getStart();
+		Set<StateNode> worklist = fsm.getStart();
 		Set<String> edgesFSM = new HashSet<>();
-		for (Node n : worklist) {
+		for (StateNode n : worklist) {
 			edgesFSM.add("START.START -> " + n.getName()); // artificial node existing in the NFA
 		}
-		Set<Node> seen = new HashSet<>();
+		Set<StateNode> seen = new HashSet<>();
 		while (!worklist.isEmpty()) {
-			Set<Node> nextWorkList = new HashSet<>();
-			for (Node n : worklist) {
-				for (Node succ : n.getSuccessors()) {
+			Set<StateNode> nextWorkList = new HashSet<>();
+			for (StateNode n : worklist) {
+				for (StateNode succ : n.getSuccessors()) {
 					if (!seen.contains(succ)) {
 						seen.add(succ);
 						nextWorkList.add(succ);
@@ -73,7 +73,7 @@ class WpdsTest extends AbstractMarkTest {
 		// ... and that implementation ...
 		NFA nfa = NFA.of(expr);
 		Set<String> edgesNFA = new HashSet<>();
-		for (NFATransition<Node> t : nfa.getTransitions()) {
+		for (NFATransition<StateNode> t : nfa.getTransitions()) {
 			edgesNFA.add(t.getSource().getName() + " -> " + t.getTarget().getName());
 		}
 

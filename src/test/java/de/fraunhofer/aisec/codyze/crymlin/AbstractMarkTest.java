@@ -1,13 +1,13 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.cpgpasses.EdgeCachePass;
-import de.fraunhofer.aisec.codyze.analysis.cpgpasses.IdentifierPass;
-import de.fraunhofer.aisec.codyze.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
-import de.fraunhofer.aisec.codyze.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.codyze.analysis.structures.TypestateMode;
+import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass;
+import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
+import de.fraunhofer.aisec.codyze.analysis.TypestateMode;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import org.checkerframework.checker.nullness.qual.NonNull;

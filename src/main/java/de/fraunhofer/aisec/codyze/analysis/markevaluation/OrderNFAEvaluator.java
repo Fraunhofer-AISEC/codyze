@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.*;
+import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
@@ -14,7 +14,7 @@ import de.fraunhofer.aisec.codyze.markmodel.MEntity;
 import de.fraunhofer.aisec.codyze.markmodel.MOp;
 import de.fraunhofer.aisec.codyze.markmodel.MRule;
 import de.fraunhofer.aisec.codyze.markmodel.fsm.FSM;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.Node;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +23,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.codyze.analysis.cpgpasses.EdgeCachePassKt.getAstParent;
+import static de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePassKt.getAstParent;
 import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getContainingFunction;
 
 public class OrderNFAEvaluator {
@@ -141,7 +141,7 @@ public class OrderNFAEvaluator {
 		// which bases did we already see, but are not initialized correctly base to set of eogpaths
 		HashMap<String, HashSet<String>> disallowedBases = new HashMap<>();
 		// stores the current markings in the FSM (i.e., which base is at which FSM-node)
-		HashMap<String, HashSet<Node>> baseToFSMNodes = new HashMap<>();
+		HashMap<String, HashSet<StateNode>> baseToFSMNodes = new HashMap<>();
 		// last usage of base
 		HashMap<String, de.fraunhofer.aisec.cpg.graph.Node> lastBaseUsage = new HashMap<>();
 
@@ -251,7 +251,7 @@ public class OrderNFAEvaluator {
 									if (isDisallowedBase(disallowedBases, eogPath, base)) {
 										// we hide base errors for now!
 									} else {
-										Set<Node> nodesInFSM;
+										Set<StateNode> nodesInFSM;
 										if (baseToFSMNodes.get(prefixedBase) == null) {
 											// we have not seen this base before. check if this is the start of an order
 											nodesInFSM = fsm.getStart(); // start nodes
@@ -259,11 +259,11 @@ public class OrderNFAEvaluator {
 											nodesInFSM = baseToFSMNodes.get(prefixedBase); // nodes calculated in previous step
 										}
 
-										HashSet<Node> nextNodesInFSM = new HashSet<>();
+										HashSet<StateNode> nextNodesInFSM = new HashSet<>();
 
 										// did at least one fsm-Node-match occur?
 										boolean match = false;
-										for (Node n : nodesInFSM) {
+										for (StateNode n : nodesInFSM) {
 											// are there any ops corresponding to the current base and the current function name?
 											if (op.getName().equals(n.getOp())) {
 												// this also has as effect, that if the FSM is in a end-state and a
@@ -286,7 +286,7 @@ public class OrderNFAEvaluator {
 														+ op.getName()
 														+ ") is not allowed. Expected one of: "
 														+ nodesInFSM.stream()
-																.map(Node::getName)
+																.map(StateNode::getName)
 																.sorted()
 																.collect(Collectors.joining(", "))
 														+ " ("
@@ -328,11 +328,11 @@ public class OrderNFAEvaluator {
 					// if more than one vertex follows the current one, we need to branch the eogPath
 					if (outVertices.size() > 1) { // split
 						HashSet<String> oldBases = new HashSet<>();
-						HashMap<String, HashSet<Node>> newBases = new HashMap<>();
+						HashMap<String, HashSet<StateNode>> newBases = new HashMap<>();
 						// first we collect all entries which we need to remove from the baseToFSMNodes
 						// map we also store these entries without the eog path prefix, to update later
 						// in (1)
-						for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+						for (Map.Entry<String, HashSet<StateNode>> entry : baseToFSMNodes.entrySet()) {
 							if (entry.getKey().startsWith(eogPath)) {
 								oldBases.add(entry.getKey());
 								// keep the "." before the real base, as we need it later anyway
@@ -381,10 +381,10 @@ public class OrderNFAEvaluator {
 		// now the whole function was evaluated.
 		// Check that the FSM is in its end/beginning state for all bases
 		HashMap<String, HashSet<String>> nonterminatedBases = new HashMap<>();
-		for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+		for (Map.Entry<String, HashSet<StateNode>> entry : baseToFSMNodes.entrySet()) {
 			boolean hasEnd = false;
 			HashSet<String> notEnded = new HashSet<>();
-			for (Node n : entry.getValue()) {
+			for (StateNode n : entry.getValue()) {
 				if (n.isEnd()) {
 					// if one of the nodes in this fsm is at an END-node, this is fine.
 					hasEnd = true;
@@ -476,10 +476,10 @@ public class OrderNFAEvaluator {
 		return false;
 	}
 
-	private String getStateSnapshot(de.fraunhofer.aisec.cpg.graph.Node v, HashMap<String, HashSet<Node>> baseToFSMNodes) {
-		Map<String, HashSet<Node>> simplified = new HashMap<>();
+	private String getStateSnapshot(de.fraunhofer.aisec.cpg.graph.Node v, HashMap<String, HashSet<StateNode>> baseToFSMNodes) {
+		Map<String, HashSet<StateNode>> simplified = new HashMap<>();
 
-		for (Map.Entry<String, HashSet<Node>> entry : baseToFSMNodes.entrySet()) {
+		for (Map.Entry<String, HashSet<StateNode>> entry : baseToFSMNodes.entrySet()) {
 			simplified.computeIfAbsent(entry.getKey().split("\\.")[1], x -> new HashSet<>()).addAll(entry.getValue());
 		}
 
@@ -488,7 +488,7 @@ public class OrderNFAEvaluator {
 				.map(
 					x -> x.getKey()
 							+ "("
-							+ x.getValue().stream().map(Node::toString).collect(Collectors.joining(","))
+							+ x.getValue().stream().map(StateNode::toString).collect(Collectors.joining(","))
 							+ ")")
 				.distinct()
 				.sorted()

@@ -1,7 +1,7 @@
 
-package de.fraunhofer.aisec.codyze.analysis;
+package de.fraunhofer.aisec.codyze;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
 import org.checkerframework.checker.nullness.qual.NonNull;

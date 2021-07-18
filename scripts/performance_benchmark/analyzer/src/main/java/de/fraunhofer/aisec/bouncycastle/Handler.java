@@ -12,7 +12,7 @@ import static de.fraunhofer.aisec.bouncycastle.Utils.humanReadableByteCountSI;
 import static de.fraunhofer.aisec.bouncycastle.Utils.output;
 import static de.fraunhofer.aisec.bouncycastle.Utils.smove;
 
-import de.fraunhofer.aisec.codyze.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
 import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext;
 import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
 import de.fraunhofer.aisec.codyze.analysis.structures.ServerConfiguration;

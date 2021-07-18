@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;

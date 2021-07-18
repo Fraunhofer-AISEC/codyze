@@ -1,9 +1,9 @@
 
-package de.fraunhofer.aisec.codyze.analysis;
+package de.fraunhofer.aisec.codyze;
 
-import de.fraunhofer.aisec.codyze.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.codyze.markmodel.MRule;
 import de.fraunhofer.aisec.codyze.markmodel.Mark;
@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static de.fraunhofer.aisec.codyze.analysis.JythonInterpreter.PY_SERVER;
+import static de.fraunhofer.aisec.codyze.JythonInterpreter.PY_SERVER;
 
 /**
  * These commands are only used by the Jython console.

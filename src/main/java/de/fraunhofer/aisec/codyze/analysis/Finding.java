@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.codyze.analysis.structures;
+package de.fraunhofer.aisec.codyze.analysis;
 
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;

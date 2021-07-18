@@ -1,10 +1,10 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.ConstantValue;
-import de.fraunhofer.aisec.codyze.analysis.structures.ErrorValue;
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
-import de.fraunhofer.aisec.codyze.analysis.structures.ListValue;
+import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.ErrorValue;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
+import de.fraunhofer.aisec.codyze.analysis.ListValue;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.codyze.crymlin.builtin.BuiltinHelper;
 import de.fraunhofer.aisec.codyze.crymlin.builtin.InvalidArgumentException;

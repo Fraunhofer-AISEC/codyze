@@ -1,8 +1,11 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.builtin;
 
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
+import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.ListValue;
+import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
-import de.fraunhofer.aisec.codyze.analysis.structures.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

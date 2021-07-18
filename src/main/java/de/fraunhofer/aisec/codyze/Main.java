@@ -1,11 +1,11 @@
 
-package de.fraunhofer.aisec.codyze.analysis;
+package de.fraunhofer.aisec.codyze;
 
-import de.fraunhofer.aisec.codyze.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
-import de.fraunhofer.aisec.codyze.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.codyze.analysis.structures.TypestateMode;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
+import de.fraunhofer.aisec.codyze.analysis.TypestateMode;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

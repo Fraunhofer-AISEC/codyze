@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.codyze.analysis.structures;
+package de.fraunhofer.aisec.codyze.analysis;
 
 public enum TypestateMode {
 

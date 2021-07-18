@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.analysis.scp;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import org.checkerframework.checker.nullness.qual.NonNull;
 

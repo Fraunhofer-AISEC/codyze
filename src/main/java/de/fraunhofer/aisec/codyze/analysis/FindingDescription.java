@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.codyze.analysis.structures;
+package de.fraunhofer.aisec.codyze.analysis;
 
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;

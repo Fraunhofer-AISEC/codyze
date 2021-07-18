@@ -6,7 +6,7 @@ import de.fraunhofer.aisec.mark.markDsl.Expression;
 import de.fraunhofer.aisec.mark.markDsl.RepetitionExpression;
 import de.fraunhofer.aisec.mark.markDsl.SequenceExpression;
 import de.fraunhofer.aisec.mark.markDsl.Terminal;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.Node;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,20 +23,20 @@ import java.util.stream.Collectors;
 /** A non-deterministic finite automaton. Shameless plug from Dennis' FSM class. */
 public class NFA {
 	private static final Logger log = LoggerFactory.getLogger(NFA.class);
-	private Set<Node> startNodes = null;
+	private Set<StateNode> startNodes = null;
 
-	private final Node START = new Node("START", "START");
-	public static final Node ERROR;
+	private final StateNode START = new StateNode("START", "START");
+	public static final StateNode ERROR;
 	static {
-		ERROR = new Node("ERROR", "ERROR");
+		ERROR = new StateNode("ERROR", "ERROR");
 		ERROR.setError(true);
 	}
 
 	/* Set of transitions between states */
-	private final Set<NFATransition<Node>> transitions = new HashSet<>();
+	private final Set<NFATransition<StateNode>> transitions = new HashSet<>();
 
 	/* The set of states with tokens. */
-	private final Set<Node> currentConfiguration = new HashSet<>();
+	private final Set<StateNode> currentConfiguration = new HashSet<>();
 
 	/**
 	 * Factory method to create a new NFA from a Mark "order" expression (effectively a regular expression).
@@ -55,7 +55,7 @@ public class NFA {
 	 *
 	 * @return
 	 */
-	public Set<NFATransition<Node>> getTransitions() {
+	public Set<NFATransition<StateNode>> getTransitions() {
 		return Set.copyOf(this.transitions);
 	}
 
@@ -63,16 +63,16 @@ public class NFA {
 		this.transitions.clear();
 	}
 
-	public void addTransition(NFATransition<Node> t) {
+	public void addTransition(NFATransition<StateNode> t) {
 		this.transitions.add(t);
 	}
 
-	public boolean handleEvent(NFATransition<Node> event) {
+	public boolean handleEvent(NFATransition<StateNode> event) {
 		boolean didTransition = false;
-		Iterator<Node> it = currentConfiguration.iterator();
+		Iterator<StateNode> it = currentConfiguration.iterator();
 		while (it.hasNext()) {
-			Node currentConfig = it.next();
-			List<Node> possibleTargets = this.transitions.stream()
+			StateNode currentConfig = it.next();
+			List<StateNode> possibleTargets = this.transitions.stream()
 					.filter(t -> t.getSource().equals(currentConfig) && t.getSource().equals(event.getSource()) && t.getLabel().equals(event.getLabel()))
 					.map(
 						NFATransition::getTarget)
@@ -111,21 +111,21 @@ public class NFA {
 	 * added to the outer prevPointer List
 	 */
 	private void sequenceToFSM(final Expression seq) {
-		Node start = new Node("START", "START");
+		StateNode start = new StateNode("START", "START");
 		start.setStart(true);
 
-		Set<Node> currentNodes = new HashSet<>();
+		Set<StateNode> currentNodes = new HashSet<>();
 		currentNodes.add(start);
 		addExpr(seq, currentNodes, null);
 
 		// not strictly needed, we could simply set end=true for all the returned nodes
-		Node end = new Node(null, "END");
+		StateNode end = new StateNode(null, "END");
 		end.setEnd(true);
 		end.setFake(true);
 		currentNodes.forEach(x -> x.addSuccessor(end));
 
 		// we could remove BEGIN here, and set begin=true for its successors
-		for (Node n : start.getSuccessors()) {
+		for (StateNode n : start.getSuccessors()) {
 			n.setStart(true);
 		}
 		startNodes = start.getSuccessors();
@@ -137,8 +137,8 @@ public class NFA {
 		transitions.stream().filter(t -> t.getLabel() != null && t.getLabel().equals("END") && t.getSource() != null).forEach(t -> t.getSource().setEnd(true));
 
 		// Create transitions from artificial START state into start nodes
-		for (Node startNode : startNodes) {
-			NFATransition<Node> initialTransition = new NFATransition<>(START, startNode, startNode.getOp());
+		for (StateNode startNode : startNodes) {
+			NFATransition<StateNode> initialTransition = new NFATransition<>(START, startNode, startNode.getOp());
 			this.transitions.add(initialTransition);
 		}
 		// Set NFA to START state
@@ -149,13 +149,13 @@ public class NFA {
 	 * Initially, the NFA consists only of states (=Nodes), connected by "successor" edges. We make these transitions explicit in a "transitions" set.
 	 */
 	private void populateTransitions() {
-		HashSet<Node> seen = new HashSet<>();
-		ArrayList<Node> current = new ArrayList<>(startNodes);
-		HashMap<Node, Integer> nodeToId = new HashMap<>();
+		HashSet<StateNode> seen = new HashSet<>();
+		ArrayList<StateNode> current = new ArrayList<>(startNodes);
+		HashMap<StateNode, Integer> nodeToId = new HashMap<>();
 		int nodeCounter = 0;
 		while (!current.isEmpty()) {
-			ArrayList<Node> newWork = new ArrayList<>();
-			for (Node n : current) {
+			ArrayList<StateNode> newWork = new ArrayList<>();
+			for (StateNode n : current) {
 				if (!seen.contains(n)) {
 					Integer id = nodeToId.get(n);
 					if (id == null) {
@@ -164,12 +164,12 @@ public class NFA {
 					}
 
 					// Get all successor nodes of n and sort them
-					List<Node> sortedSuccessors = n.getSuccessors()
+					List<StateNode> sortedSuccessors = n.getSuccessors()
 							.stream()
-							.sorted(Comparator.comparing(Node::getName))
+							.sorted(Comparator.comparing(StateNode::getName))
 							.collect(Collectors.toList());
 
-					for (Node s : sortedSuccessors) {
+					for (StateNode s : sortedSuccessors) {
 						Integer idSucc = nodeToId.get(s);
 						if (idSucc == null) {
 							idSucc = nodeCounter++;
@@ -190,10 +190,10 @@ public class NFA {
 	}
 
 	@Nullable
-	private Set<Node> addExpr(final Expression expr, final Set<Node> currentNodes, Head head) {
+	private Set<StateNode> addExpr(final Expression expr, final Set<StateNode> currentNodes, Head head) {
 		if (expr instanceof Terminal) {
 			Terminal inner = (Terminal) expr;
-			Node n = new Node(inner.getEntity(), inner.getOp());
+			StateNode n = new StateNode(inner.getEntity(), inner.getOp());
 			currentNodes.forEach(x -> x.addSuccessor(n));
 			currentNodes.clear();
 			currentNodes.add(n);
@@ -210,7 +210,7 @@ public class NFA {
 			RepetitionExpression inner = (RepetitionExpression) expr;
 			String op = inner.getOp();
 			if ("?".equals(op)) {
-				HashSet<Node> remember = new HashSet<>(currentNodes);
+				HashSet<StateNode> remember = new HashSet<>(currentNodes);
 				addExpr(inner.getExpr(), currentNodes, head);
 				currentNodes.addAll(remember);
 				return currentNodes;
@@ -218,7 +218,7 @@ public class NFA {
 				Head innerHead = new Head();
 				innerHead.addNextNode = true;
 				addExpr(inner.getExpr(), currentNodes, innerHead);
-				for (Node j : innerHead.get()) {
+				for (StateNode j : innerHead.get()) {
 					currentNodes.forEach(x -> x.addSuccessor(j));
 					if (head != null && head.addNextNode) {
 						head.add(j);
@@ -226,11 +226,11 @@ public class NFA {
 				}
 				return currentNodes;
 			} else if ("*".equals(op)) {
-				HashSet<Node> remember = new HashSet<>(currentNodes);
+				HashSet<StateNode> remember = new HashSet<>(currentNodes);
 				Head innerHead = new Head();
 				innerHead.addNextNode = true;
 				addExpr(inner.getExpr(), currentNodes, innerHead);
-				for (Node j : innerHead.get()) {
+				for (StateNode j : innerHead.get()) {
 					currentNodes.forEach(x -> x.addSuccessor(j));
 					if (head != null && head.addNextNode) {
 						head.add(j);
@@ -244,7 +244,7 @@ public class NFA {
 
 		} else if (expr instanceof AlternativeExpression) {
 			AlternativeExpression inner = (AlternativeExpression) expr;
-			Set<Node> remember = new HashSet<>(currentNodes);
+			Set<StateNode> remember = new HashSet<>(currentNodes);
 			addExpr(inner.getLeft(), currentNodes, head);
 			if (head != null) {
 				head.addNextNode = true;
@@ -263,14 +263,14 @@ public class NFA {
 	 *
 	 * @return
 	 */
-	public Node getStart() {
+	public StateNode getStart() {
 		return START;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (NFATransition<Node> t : transitions) {
+		for (NFATransition<StateNode> t : transitions) {
 			sb.append("\t");
 			sb.append(t.toString());
 			sb.append("\n");
@@ -278,7 +278,7 @@ public class NFA {
 		return sb.toString();
 	}
 
-	public Set<Node> getCurrentConfiguration() {
+	public Set<StateNode> getCurrentConfiguration() {
 		return currentConfiguration;
 	}
 
@@ -287,19 +287,19 @@ public class NFA {
 	 *
 	 * @return
 	 */
-	public Set<NFATransition<Node>> getInitialTransitions() {
+	public Set<NFATransition<StateNode>> getInitialTransitions() {
 		return getTransitions().stream().filter(tr -> tr.getSource().equals(START)).collect(Collectors.toSet());
 	}
 
 	private static class Head {
-		private final List<Node> nodes = new ArrayList<>();
+		private final List<StateNode> nodes = new ArrayList<>();
 		private Boolean addNextNode = null;
 
-		void add(Node n) {
+		void add(StateNode n) {
 			nodes.add(n);
 		}
 
-		List<Node> get() {
+		List<StateNode> get() {
 			return nodes;
 		}
 	}

@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze.analysis.markevaluation
 
-import de.fraunhofer.aisec.codyze.analysis.structures.AnalysisContext
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
+import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
 import de.fraunhofer.aisec.codyze.markmodel.MOp
 import de.fraunhofer.aisec.codyze.markmodel.Mark

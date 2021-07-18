@@ -1,11 +1,11 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.Commands;
-import de.fraunhofer.aisec.codyze.analysis.JythonInterpreter;
-import de.fraunhofer.aisec.codyze.analysis.server.AnalysisServer;
-import de.fraunhofer.aisec.codyze.analysis.structures.ServerConfiguration;
-import de.fraunhofer.aisec.codyze.analysis.structures.TypestateMode;
+import de.fraunhofer.aisec.codyze.Commands;
+import de.fraunhofer.aisec.codyze.JythonInterpreter;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
+import de.fraunhofer.aisec.codyze.analysis.TypestateMode;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;

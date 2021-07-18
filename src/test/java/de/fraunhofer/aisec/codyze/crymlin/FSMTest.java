@@ -8,7 +8,7 @@ import de.fraunhofer.aisec.codyze.markmodel.MRule;
 import de.fraunhofer.aisec.codyze.markmodel.Mark;
 import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader;
 import de.fraunhofer.aisec.codyze.markmodel.fsm.FSM;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.Node;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -204,10 +204,10 @@ class FSMTest {
 		fsm.sequenceToFSM(aThenTail);
 		System.out.println(fsm);
 
-		Set<Node> start = fsm.getStart();
+		Set<StateNode> start = fsm.getStart();
 		assertEquals(1, start.size());
-		Node startNode = start.iterator().next();
-		Set<Node> expectB = startNode.getSuccessors();
+		StateNode startNode = start.iterator().next();
+		Set<StateNode> expectB = startNode.getSuccessors();
 		System.out.println(expectB);
 	}
 }

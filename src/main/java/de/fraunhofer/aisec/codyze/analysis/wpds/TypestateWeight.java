@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.codyze.analysis.wpds;
 
 import com.google.common.collect.Sets;
 import de.breakpointsec.pushdown.weights.Semiring;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.Node;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * (FSM), created from the typedef definition in a Mark file (=a regular expression).
  */
 public class TypestateWeight extends Semiring {
-	private @NonNull Set<NFATransition<Node>> value = new HashSet<>();
+	private @NonNull Set<NFATransition<StateNode>> value = new HashSet<>();
 	@Nullable
 	private NFA nfa = null;
 	@Nullable
@@ -34,7 +34,7 @@ public class TypestateWeight extends Semiring {
 		this.nfa = nfa;
 	}
 
-	public TypestateWeight(@NonNull Set<NFATransition<Node>> typestateTransitions) {
+	public TypestateWeight(@NonNull Set<NFATransition<StateNode>> typestateTransitions) {
 		this.value = typestateTransitions;
 	}
 
@@ -72,12 +72,12 @@ public class TypestateWeight extends Semiring {
 
 		TypestateWeight otherW = (TypestateWeight) other;
 
-		Set<NFATransition<Node>> resultSet = new HashSet<>();
-		for (NFATransition<Node> my : this.value) {
-			for (NFATransition<Node> theirs : otherW.value) {
+		Set<NFATransition<StateNode>> resultSet = new HashSet<>();
+		for (NFATransition<StateNode> my : this.value) {
+			for (NFATransition<StateNode> theirs : otherW.value) {
 				// 1-step transitive hull. Note that we check for equality of names, as equality of Node objects includes their successor collection.
 				if (my.getTarget().toString().equals(theirs.getSource().toString())) {
-					NFATransition<Node> newTsTran = new NFATransition<Node>(my.getSource(), theirs.getTarget(), my.getLabel());
+					NFATransition<StateNode> newTsTran = new NFATransition<StateNode>(my.getSource(), theirs.getTarget(), my.getLabel());
 					resultSet.add(newTsTran);
 				}
 			}
@@ -105,7 +105,7 @@ public class TypestateWeight extends Semiring {
 		}
 
 		if (other instanceof TypestateWeight) {
-			Set<NFATransition<Node>> union = Sets.union(this.value, ((TypestateWeight) other).value);
+			Set<NFATransition<StateNode>> union = Sets.union(this.value, ((TypestateWeight) other).value);
 			return new TypestateWeight(union);
 		}
 
@@ -141,7 +141,7 @@ public class TypestateWeight extends Semiring {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		for (NFATransition<Node> v : this.value) {
+		for (NFATransition<StateNode> v : this.value) {
 			result = prime * result + v.hashCode();
 		}
 		if (this.fixedElement != null) {

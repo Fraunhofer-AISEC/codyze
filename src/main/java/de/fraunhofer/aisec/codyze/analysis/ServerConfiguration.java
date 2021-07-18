@@ -1,7 +1,7 @@
 
-package de.fraunhofer.aisec.codyze.analysis.structures;
+package de.fraunhofer.aisec.codyze.analysis;
 
-import de.fraunhofer.aisec.codyze.analysis.server.AnalysisServer;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 

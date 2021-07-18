@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.codyze.analysis.server;
+package de.fraunhofer.aisec.codyze.analysis;
 
 /**
  * Responsible for loading Gremlin/Crymlin rules into the analysis server.

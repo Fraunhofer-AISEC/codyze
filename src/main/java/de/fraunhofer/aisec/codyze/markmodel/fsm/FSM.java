@@ -16,17 +16,17 @@ public class FSM {
 
 	private static final Logger log = LoggerFactory.getLogger(FSM.class);
 
-	private Set<Node> startNodes = null;
+	private Set<StateNode> startNodes = null;
 
 	public String toString() {
-		Set<Node> seen = new HashSet<>();
-		ArrayList<Node> current = new ArrayList<>(startNodes);
-		HashMap<Node, Integer> nodeToId = new HashMap<>();
+		Set<StateNode> seen = new HashSet<>();
+		ArrayList<StateNode> current = new ArrayList<>(startNodes);
+		HashMap<StateNode, Integer> nodeToId = new HashMap<>();
 		StringBuilder sb = new StringBuilder();
 		int nodeCounter = 0;
 		while (!current.isEmpty()) {
-			ArrayList<Node> newWork = new ArrayList<>();
-			for (Node n : current) {
+			ArrayList<StateNode> newWork = new ArrayList<>();
+			for (StateNode n : current) {
 				if (!seen.contains(n)) {
 					Integer id = nodeToId.get(n);
 					if (id == null) {
@@ -34,12 +34,12 @@ public class FSM {
 						nodeToId.put(n, id);
 					}
 					sb.append(n).append(" (").append(id).append(")\n");
-					TreeMap<String, Node> sorted = new TreeMap<>();
-					for (Node s : n.getSuccessors()) {
+					TreeMap<String, StateNode> sorted = new TreeMap<>();
+					for (StateNode s : n.getSuccessors()) {
 						sorted.put(s.getName(), s);
 					}
-					for (Map.Entry<String, Node> entry : sorted.entrySet()) {
-						Node s = entry.getValue();
+					for (Map.Entry<String, StateNode> entry : sorted.entrySet()) {
+						StateNode s = entry.getValue();
 						Integer idSucc = nodeToId.get(s);
 						if (idSucc == null) {
 							idSucc = nodeCounter++;
@@ -82,31 +82,31 @@ public class FSM {
 	 * added to the outer prevPointer List
 	 */
 	public void sequenceToFSM(final Expression seq) {
-		Node start = new Node(null, "BEGIN");
+		StateNode start = new StateNode(null, "BEGIN");
 		start.setStart(true);
 
-		Set<Node> endNodes = new HashSet<>();
+		Set<StateNode> endNodes = new HashSet<>();
 		endNodes.add(start);
 		expressionToNodes(seq, endNodes, null);
 
 		// not strictly needed, we could simply set end=true for all the returned nodes
-		Node end = new Node(null, "END");
+		StateNode end = new StateNode(null, "END");
 		end.setEnd(true);
 		end.setFake(true);
 		endNodes.forEach(x -> x.addSuccessor(end));
 
 		// we could remove BEGIN here, and set begin=true for its successors
-		for (Node n : start.getSuccessors()) {
+		for (StateNode n : start.getSuccessors()) {
 			n.setStart(true);
 		}
 		startNodes = start.getSuccessors();
 	}
 
 	private void expressionToNodes(
-			final Expression expr, final Set<Node> endNodes, final Head head) {
+			final Expression expr, final Set<StateNode> endNodes, final Head head) {
 		if (expr instanceof Terminal) {
 			Terminal inner = (Terminal) expr;
-			Node n = new Node(inner.getEntity(), inner.getOp());
+			StateNode n = new StateNode(inner.getEntity(), inner.getOp());
 			endNodes.forEach(x -> x.addSuccessor(n));
 			endNodes.clear();
 			endNodes.add(n);
@@ -124,7 +124,7 @@ public class FSM {
 			RepetitionExpression inner = (RepetitionExpression) expr;
 			String op = inner.getOp();
 			if ("?".equals(op)) {
-				Set<Node> remember = new HashSet<>(endNodes);
+				Set<StateNode> remember = new HashSet<>(endNodes);
 				expressionToNodes(inner.getExpr(), endNodes, head);
 				endNodes.addAll(remember);
 				return;
@@ -132,7 +132,7 @@ public class FSM {
 				Head innerHead = new Head();
 				innerHead.addNextNode = true;
 				expressionToNodes(inner.getExpr(), endNodes, innerHead);
-				for (Node j : innerHead.get()) {
+				for (StateNode j : innerHead.get()) {
 					// connect to innerHead
 					endNodes.forEach(x -> x.addSuccessor(j));
 					if (head != null && head.addNextNode) {
@@ -141,11 +141,11 @@ public class FSM {
 				}
 				return;
 			} else if ("*".equals(op)) {
-				Set<Node> remember = new HashSet<>(endNodes);
+				Set<StateNode> remember = new HashSet<>(endNodes);
 				Head innerHead = new Head();
 				innerHead.addNextNode = true;
 				expressionToNodes(inner.getExpr(), endNodes, innerHead);
-				for (Node j : innerHead.get()) {
+				for (StateNode j : innerHead.get()) {
 					// connect to innerHead
 					endNodes.forEach(x -> x.addSuccessor(j));
 					if (head != null && head.addNextNode) {
@@ -161,7 +161,7 @@ public class FSM {
 
 		} else if (expr instanceof AlternativeExpressionImpl) {
 			AlternativeExpression inner = (AlternativeExpression) expr;
-			Set<Node> remember = new HashSet<>(endNodes);
+			Set<StateNode> remember = new HashSet<>(endNodes);
 			expressionToNodes(inner.getLeft(), endNodes, head);
 			if (head != null) {
 				head.addNextNode = true;
@@ -175,19 +175,19 @@ public class FSM {
 		log.error("ERROR, unknown Expression: {}", expr.getClass());
 	}
 
-	public Set<Node> getStart() {
+	public Set<StateNode> getStart() {
 		return startNodes;
 	}
 
 	private static class Head {
-		private final List<Node> nodes = new ArrayList<>();
+		private final List<StateNode> nodes = new ArrayList<>();
 		private Boolean addNextNode = null;
 
-		void add(Node n) {
+		void add(StateNode n) {
 			nodes.add(n);
 		}
 
-		List<Node> get() {
+		List<StateNode> get() {
 			return nodes;
 		}
 	}

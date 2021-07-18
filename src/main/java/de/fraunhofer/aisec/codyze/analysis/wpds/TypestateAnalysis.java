@@ -9,7 +9,7 @@ import de.breakpointsec.pushdown.rules.NormalRule;
 import de.breakpointsec.pushdown.rules.PopRule;
 import de.breakpointsec.pushdown.rules.PushRule;
 import de.breakpointsec.pushdown.rules.Rule;
-import de.fraunhofer.aisec.codyze.analysis.structures.*;
+import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.graph.declarations.Declaration;
@@ -28,7 +28,7 @@ import de.fraunhofer.aisec.mark.markDsl.Terminal;
 import de.fraunhofer.aisec.codyze.markmodel.MEntity;
 import de.fraunhofer.aisec.codyze.markmodel.MOp;
 import de.fraunhofer.aisec.codyze.markmodel.MRule;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.Node;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -43,7 +43,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.aisec.codyze.analysis.cpgpasses.EdgeCachePassKt.getAstParent;
+import static de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePassKt.getAstParent;
 import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.*;
 import static de.fraunhofer.aisec.codyze.analysis.markevaluation.NodeExtensionsKt.getFunctions;
 import static java.lang.Math.toIntExact;
@@ -241,8 +241,8 @@ public class TypestateAnalysis {
 		for (Transition<Stmt, Val> tran : wnfa.getTransitions()) {
 			TypestateWeight w = wnfa.getWeightFor(tran);
 			if (w.value() instanceof Set) {
-				Set<NFATransition<Node>> reachableTypestates = (Set<NFATransition<Node>>) w.value();
-				for (NFATransition<Node> reachableTypestate : reachableTypestates) {
+				Set<NFATransition<StateNode>> reachableTypestates = (Set<NFATransition<StateNode>>) w.value();
+				for (NFATransition<StateNode> reachableTypestate : reachableTypestates) {
 					if (reachableTypestate.getTarget().isError()) {
 						findings.add(createBadFinding(tran, currentFile));
 					} else {
@@ -276,7 +276,7 @@ public class TypestateAnalysis {
 	 * @param expected
 	 * @return
 	 */
-	private Finding createBadFinding(Stmt stmt, Val val, @NonNull URI currentFile, @NonNull Collection<NFATransition<Node>> expected) {
+	private Finding createBadFinding(Stmt stmt, Val val, @NonNull URI currentFile, @NonNull Collection<NFATransition<StateNode>> expected) {
 		String name = "Invalid typestate of variable " + val + " at statement: " + stmt + " . Violates order of " + rule.getName();
 		if (!expected.isEmpty()) {
 			name += " Expected one of " + expected.stream().map(NFATransition::toString).collect(Collectors.joining(", "));
@@ -502,7 +502,7 @@ public class TypestateAnalysis {
 				Set<Val> returnedVals = findReturnedVals(stmtNode);
 
 				for (Val returnedVal : returnedVals) {
-					Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
+					Set<NFATransition<StateNode>> relevantNFATransitions = tsNfa.getTransitions()
 							.stream()
 							.filter(
 								tran -> tran.getTarget()
@@ -612,7 +612,7 @@ public class TypestateAnalysis {
 		// Create normal rule. Flow remains where it is.
 		for (Val valInScope : valsInScope) {
 			// Determine weight
-			Set<NFATransition<Node>> relevantNFATransitions = tsNfa.getTransitions()
+			Set<NFATransition<StateNode>> relevantNFATransitions = tsNfa.getTransitions()
 					.stream()
 					.filter(
 						tran -> triggersTypestateTransition(v, tran.getTarget().getBase(), tran.getTarget().getOp()))

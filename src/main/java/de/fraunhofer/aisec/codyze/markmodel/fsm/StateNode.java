@@ -2,10 +2,6 @@
 package de.fraunhofer.aisec.codyze.markmodel.fsm;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.neo4j.ogm.annotation.GeneratedValue;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -13,28 +9,22 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@NodeEntity
-public class Node {
-	@GeneratedValue
-	@Id
-	private Long id;
-
-	@Relationship(value = "s")
-	private final Set<Node> successors = new HashSet<>();
+/**
+ * Represents a node, i.e. a state, in a finite-state-machine.
+ */
+public class StateNode {
+	private final Set<StateNode> successors = new HashSet<>();
 
 	@Nullable
-	private String base;
-	private String op;
+	private final String base;
+	private final String op;
 
 	private boolean isStart = false;
 	private boolean isEnd = false;
 	private boolean isFake = false; // if this is a fake start/end node
 	private boolean isError = false; // If this indicates an invalid type state
 
-	public Node() {
-	}
-
-	public Node(@Nullable String base, String op) {
+	public StateNode(@Nullable String base, String op) {
 		this.base = base;
 		this.op = op;
 	}
@@ -43,11 +33,11 @@ public class Node {
 		this.isError = isError;
 	}
 
-	public void addSuccessor(Node s) {
+	public void addSuccessor(StateNode s) {
 		successors.add(s);
 	}
 
-	public void addSuccessor(Set<Node> s) {
+	public void addSuccessor(Set<StateNode> s) {
 		successors.addAll(s);
 	}
 
@@ -92,7 +82,7 @@ public class Node {
 		return isFake;
 	}
 
-	public Set<Node> getSuccessors() {
+	public Set<StateNode> getSuccessors() {
 		return successors;
 	}
 
@@ -116,29 +106,28 @@ public class Node {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-		Node node = (Node) o;
+		StateNode node = (StateNode) o;
 		boolean equal = isStart == node.isStart &&
 				isEnd == node.isEnd &&
 				isFake == node.isFake &&
 				isError == node.isError &&
-				Objects.equals(id, node.id) &&
 				Objects.equals(base, node.base) &&
 				Objects.equals(op, node.op);
 
 		return equal && successors.stream()
-				.sorted(Comparator.comparing(Node::getName))
-				.map(Node::getName)
+				.sorted(Comparator.comparing(StateNode::getName))
+				.map(StateNode::getName)
 				.collect(Collectors.toList())
 				.equals(
-					node.getSuccessors().stream().sorted(Comparator.comparing(Node::getName)).map(Node::getName).collect(Collectors.toList()));
+					node.getSuccessors().stream().sorted(Comparator.comparing(StateNode::getName)).map(StateNode::getName).collect(Collectors.toList()));
 	}
 
 	@Override
 	public int hashCode() {
 		int prime = 31;
-		for (Node n : this.successors) {
+		for (StateNode n : this.successors) {
 			prime *= n.getName().hashCode();
 		}
-		return prime * Objects.hash(id, base, op, isStart, isEnd, isFake, isError);
+		return prime * Objects.hash(base, op, isStart, isEnd, isFake, isError);
 	}
 }

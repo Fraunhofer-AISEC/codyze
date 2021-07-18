@@ -11,7 +11,7 @@
  * It removes the trailing space after tab completions.
  */
 
-package de.fraunhofer.aisec.codyze.analysis;
+package de.fraunhofer.aisec.codyze;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.python.jline.console.ConsoleReader;

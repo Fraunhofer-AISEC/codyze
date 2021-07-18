@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.analysis.cpgpasses
+package de.fraunhofer.aisec.codyze.analysis.passes
 
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.Node

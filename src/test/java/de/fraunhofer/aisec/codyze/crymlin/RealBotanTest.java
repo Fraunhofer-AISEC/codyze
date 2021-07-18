@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.Finding;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Disabled;

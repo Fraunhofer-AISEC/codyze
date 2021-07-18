@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;

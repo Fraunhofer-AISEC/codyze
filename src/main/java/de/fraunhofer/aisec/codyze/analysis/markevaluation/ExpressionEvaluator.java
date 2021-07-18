@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
-import de.fraunhofer.aisec.codyze.analysis.structures.*;
+import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.graph.Node;

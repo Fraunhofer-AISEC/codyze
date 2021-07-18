@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
-import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.mark.markDsl.AlternativeExpression;
 import de.fraunhofer.aisec.mark.markDsl.Argument;
 import de.fraunhofer.aisec.mark.markDsl.ComparisonExpression;

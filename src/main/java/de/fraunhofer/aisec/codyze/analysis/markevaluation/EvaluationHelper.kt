@@ -1,14 +1,14 @@
 package de.fraunhofer.aisec.codyze.analysis.markevaluation
 
-import de.fraunhofer.aisec.codyze.analysis.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.ErrorValue
 import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
 import de.fraunhofer.aisec.codyze.analysis.NodeWithValue
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator.log
 import de.fraunhofer.aisec.codyze.analysis.passes.astParent
 import de.fraunhofer.aisec.codyze.analysis.passes.followNextEOG
-import de.fraunhofer.aisec.codyze.analysis.scp.ConstantResolver
-import de.fraunhofer.aisec.codyze.analysis.scp.SimpleConstantResolver
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantResolver
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
+import de.fraunhofer.aisec.codyze.analysis.resolution.SimpleConstantResolver
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
 import de.fraunhofer.aisec.codyze.markmodel.*
 import de.fraunhofer.aisec.cpg.ExperimentalGraph

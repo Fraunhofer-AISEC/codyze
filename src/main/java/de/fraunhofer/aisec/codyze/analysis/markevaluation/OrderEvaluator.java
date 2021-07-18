@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
 import de.breakpointsec.pushdown.IllegalTransitionException;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.wpds.TypestateAnalysis;
 import de.fraunhofer.aisec.cpg.graph.Graph;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;

@@ -1,7 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.crymlin;
 
-import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.ErrorValue;
 import de.fraunhofer.aisec.codyze.analysis.Finding;
 import de.fraunhofer.aisec.codyze.analysis.ListValue;

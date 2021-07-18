@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.codyze.crymlin.builtin;
 
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.ListValue;
 import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;

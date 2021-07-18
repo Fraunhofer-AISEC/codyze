@@ -1,6 +1,5 @@
-package de.fraunhofer.aisec.codyze.analysis.scp
+package de.fraunhofer.aisec.codyze.analysis.resolution
 
-import de.fraunhofer.aisec.codyze.analysis.ConstantValue
 import de.fraunhofer.aisec.cpg.graph.HasInitializer
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration

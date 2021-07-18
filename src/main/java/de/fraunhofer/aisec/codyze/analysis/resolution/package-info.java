@@ -9,4 +9,4 @@
  * are various ways how the analysis may miss a potential constant.
  */
 
-package de.fraunhofer.aisec.codyze.analysis.scp;
+package de.fraunhofer.aisec.codyze.analysis.resolution;

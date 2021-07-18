@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.crymlin.builtin;
 
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ArrayCreationExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal;
 import org.checkerframework.checker.nullness.qual.NonNull;

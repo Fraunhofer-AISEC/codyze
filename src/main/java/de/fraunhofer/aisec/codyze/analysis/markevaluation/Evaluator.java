@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.graph.Graph;

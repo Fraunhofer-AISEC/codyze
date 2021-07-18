@@ -1,6 +1,8 @@
 
-package de.fraunhofer.aisec.codyze.analysis;
+package de.fraunhofer.aisec.codyze.analysis.resolution;
 
+import de.fraunhofer.aisec.codyze.analysis.ErrorValue;
+import de.fraunhofer.aisec.codyze.analysis.MarkIntermediateResult;
 import de.fraunhofer.aisec.cpg.graph.Node;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;

@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.analysis;
 
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Arrays;

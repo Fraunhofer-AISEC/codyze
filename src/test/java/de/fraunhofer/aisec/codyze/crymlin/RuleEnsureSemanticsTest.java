@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.codyze.crymlin;
 
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.ConstantValue;
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder;
 import de.fraunhofer.aisec.codyze.analysis.MarkIntermediateResult;
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;

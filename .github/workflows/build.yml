@@ -1,15 +1,16 @@
 name: build
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # only execute if this is coming from a push or from a PR from a forked repository
-    # otherwise this will get executed twice for PR from internal branches
-    if: github.event_name == 'push' || github.event_name == 'pull_request' && (github.event.pull_request.base.repo.full_name != github.event.pull_request.head.repo.full_name)
     steps:
       - uses: actions/checkout@v2
         with:

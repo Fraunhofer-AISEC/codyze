@@ -130,7 +130,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("de.fraunhofer.aisec.analysis.Main")
+    mainClass.set("de.fraunhofer.aisec.codyze.Main")
 }
 
 tasks.named<Test>("test") {

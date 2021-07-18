@@ -2,7 +2,6 @@ package de.fraunhofer.aisec.codyze.analysis.wpds
 
 import de.breakpointsec.pushdown.IllegalTransitionException
 import de.breakpointsec.pushdown.WPDS
-import de.breakpointsec.pushdown.fsm.Transition
 import de.breakpointsec.pushdown.fsm.WeightedAutomaton
 import de.breakpointsec.pushdown.rules.NormalRule
 import de.breakpointsec.pushdown.rules.PopRule
@@ -40,7 +39,6 @@ import java.lang.Math
 import java.net.URI
 import java.util.ArrayDeque
 import java.util.ArrayList
-import java.util.Comparator
 import java.util.HashMap
 import java.util.HashSet
 import java.util.stream.Collectors
@@ -72,13 +70,13 @@ import org.slf4j.LoggerFactory
  */
 @ExperimentalGraph
 class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
-    private var rule: MRule? = null
-    private var instanceContext: GraphInstanceContext? = null
+    private lateinit var rule: MRule
+    private lateinit var instanceContext: GraphInstanceContext
 
     /**
      * Starts the Typestate analysis.
      *
-     * @param orderExpr
+     * @param orderExpr the order expression
      * @param contextID
      * @param ctx
      * @param graph
@@ -89,29 +87,33 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     @Throws(IllegalTransitionException::class)
     fun analyze(
         orderExpr: OrderExpression,
-        contextID: Int?,
+        contextID: Int,
         ctx: AnalysisContext,
         graph: Graph,
-        rule: MRule?
+        rule: MRule
     ): ConstantValue {
         log.info("Typestate analysis starting for {}", ctx)
-        instanceContext = markContextHolder.getContext(contextID!!).instanceContext
+
+        this.instanceContext = markContextHolder.getContext(contextID).instanceContext
         this.rule = rule
 
         // Remember the order expression we are analyzing
-        val expr = this.rule!!.statement.ensure.exp
+        val expr = this.rule.statement.ensure.exp
         if (expr !is OrderExpression) {
             log.error("Unexpected: TS analysis not dealing with an order expression")
+
             return ErrorValue.newErrorValue(
                 "Unexpected: TS analysis not dealing with an order expression"
             )
         }
-        val markInstance = getMarkInstanceOrderExpression(orderExpr)
+
+        val markInstance = orderExpr.markInstance
         if (markInstance == null) {
             log.error(
                 "OrderExpression does not refer to a Mark instance: {}. Will not run TS analysis",
                 orderExpr
             )
+
             return ErrorValue.newErrorValue(
                 String.format(
                     "OrderExpression does not refer to a Mark instance: %s. Will not run TS analysis",
@@ -133,19 +135,14 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
          *
          * (e.g., "b").
          */
-        var currentFile = getFileFromMarkInstance(markInstance)
-        if (currentFile == null) {
-            currentFile = File("FIXME")
-        }
+        val currentFile = getFileFromMarkInstance(markInstance) ?: File("FIXME")
 
         /* Create an initial automaton corresponding to the start configurations of the data flow analysis.
           In this case, we are starting with all statements that initiate a type state transition.
         */
         val wnfa =
-            InitialConfiguration.create(
-                IInitialConfig { InitialConfiguration.FIRST_TYPESTATE_EVENT(it) },
-                wpds
-            )
+            InitialConfiguration.create({ InitialConfiguration.FIRST_TYPESTATE_EVENT(it) }, wpds)
+
         // No transition - no finding.
         if (wnfa.initialState == null) {
             return ConstantValue.of(java.lang.Boolean.FALSE)
@@ -154,19 +151,9 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         // For debugging only: Print WPDS rules
         if (log.isDebugEnabled) {
             for (r in
-                wpds.allRules
-                    .stream()
-                    .sorted(
-                        Comparator.comparing { r: Rule<Stmt, Val?, TypestateWeight?> ->
-                            r.l1.region.startLine
-                        }
-                    )
-                    .sorted(
-                        Comparator.comparing { r: Rule<Stmt, Val?, TypestateWeight?> ->
-                            r.l1.region.startColumn
-                        }
-                    )
-                    .collect(Collectors.toList())) {
+                wpds.allRules.sortedBy { it.l1.region.startLine }.sortedBy {
+                    it.l1.region.startColumn
+                }) {
                 log.debug("rule: {}", r)
             }
 
@@ -184,47 +171,55 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         if (markContextHolder.isCreateFindingsDuringEvaluation) {
             ctx.findings.addAll(findings)
         }
+
         val of = ConstantValue.of(findings.isEmpty())
         if (markContextHolder.isCreateFindingsDuringEvaluation) {
             markContextHolder.getContext(contextID).isFindingAlreadyAdded = true
         }
+
         return of
     }
 
     private fun getFileFromMarkInstance(markInstance: String): File? {
-        val v = instanceContext!!.getNode(markInstance)
-        if (v == null) {
-            log.error(
-                "No vertex found for Mark instance: {}. Will not run TS analysis",
-                markInstance
-            )
+        val node = instanceContext.getNode(markInstance)
+        if (node == null) {
+            log.error("No node found for Mark instance: {}. Will not run TS analysis", markInstance)
             return null
         }
 
         // Find the function in which the vertex is located, so we can use the first statement in
         // function as a start
-        val containingFunction = v.containingFunction
+        val containingFunction = node.containingFunction
         if (containingFunction == null) {
             log.error(
-                "Vertex {} not located within a function. Cannot start TS analysis for rule {}",
-                v.code,
+                "Node {} not located within a function. Cannot start TS analysis for rule {}",
+                node.code,
                 rule
             )
             return null
         }
-        return File(containingFunction.file)
-    }
 
-    private fun getMarkInstanceOrderExpression(orderExpr: OrderExpression): String? {
-        val treeIt = orderExpr.eAllContents()
-        while (treeIt.hasNext()) {
-            val eObj = treeIt.next()
-            if (eObj is Terminal) {
-                return eObj.entity
-            }
+        containingFunction.file?.let {
+            return File(it)
         }
+
         return null
     }
+
+    /** Returns the MARK instance of this order expression, if it exists. */
+    private val OrderExpression.markInstance: String?
+        get() {
+            val treeIt = this.eAllContents()
+
+            while (treeIt.hasNext()) {
+                val eObj = treeIt.next()
+                if (eObj is Terminal) {
+                    return eObj.entity
+                }
+            }
+
+            return null
+        }
 
     /**
      * Evaluates a saturated WNFA.
@@ -271,7 +266,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 val reachableTypestates = w.value() as Set<NFATransition<StateNode>>
                 for (reachableTypestate in reachableTypestates) {
                     if (reachableTypestate.target.isError) {
-                        findings.add(createBadFinding(tran, currentFile))
+                        findings.add(createBadFinding(tran.label, tran.start, currentFile))
                     } else {
                         potentialGoodFindings.add(Pair(tran.label, tran.start))
                     }
@@ -312,7 +307,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         stmt: Stmt,
         `val`: Val?,
         currentFile: URI,
-        expected: Collection<NFATransition<StateNode>>
+        expected: Collection<NFATransition<StateNode>> = listOf()
     ): Finding {
         var name =
             "Invalid typestate of variable " +
@@ -320,7 +315,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 " at statement: " +
                 stmt +
                 " . Violates order of " +
-                rule!!.name
+                rule.name
         name +=
             if (!expected.isEmpty()) {
                 " Expected one of " +
@@ -339,17 +334,13 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         val endColumn = Math.toIntExact(stmt.region.endColumn.toLong()) - 1
         return Finding(
             name,
-            rule!!.errorMessage,
+            rule.errorMessage,
             currentFile,
             startLine,
             endLine,
             startColumn,
             endColumn
         )
-    }
-
-    private fun createBadFinding(t: Transition<Stmt, Val?>, currentFile: URI): Finding {
-        return createBadFinding(t.label, t.start, currentFile, java.util.List.of())
     }
 
     /**

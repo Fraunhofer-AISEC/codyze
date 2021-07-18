@@ -55,7 +55,7 @@ public class InitialConfiguration {
 	@java.lang.SuppressWarnings({ "squid:S100", "squid:S1905" })
 	static WeightedAutomaton<Node, Val, TypestateWeight> FIRST_TYPESTATE_EVENT(@NonNull WPDS<Node, Val, TypestateWeight> wpds) {
 		// Get all WPDS rules have a type state transition originating in a START state.
-		var startRules = getTypestateStartRules((@NonNull WPDS<Node, Val, @NonNull TypestateWeight>) wpds);
+		var startRules = getTypestateStartRules(wpds);
 
 		// Collect initial configurations from the start rules.
 		/* TODO limit to the Var that is assigned the typestate.

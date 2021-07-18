@@ -33,9 +33,7 @@ import java.io.File
 import java.net.URI
 import java.util.ArrayDeque
 import java.util.ArrayList
-import java.util.HashMap
 import java.util.HashSet
-import java.util.stream.Collectors
 import org.slf4j.LoggerFactory
 
 /**
@@ -121,14 +119,12 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         log.debug("Initial typestate NFA:\n{}", tsNFA)
 
         // Create a weighted pushdown system
-        val wpds = createWpds(graph, tsNFA)
+        val wpds = createWPDS(graph, tsNFA)
 
-        /*
-         * Create a weighted automaton (= a weighted NFA) that describes the initial configurations. The initial configuration is the statement containing the declaration
-         * of the program variable (e.g., "x = Botan2()") that corresponds to the current Mark instance.
-         *
-         * (e.g., "b").
-         */
+        // Create a weighted automaton (= a weighted NFA) that describes the initial configurations.
+        // The initial configuration is the statement containing the declaration
+        // of the program variable (e.g., "x = Botan2()") that corresponds to the current Mark
+        // instance (e.g., "b").
         val currentFile = getFileFromMarkInstance(markInstance) ?: File("FIXME")
 
         // Create an initial automaton corresponding to the start configurations of the data flow
@@ -364,7 +360,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      *
      * @return
      */
-    private fun createWpds(graph: Graph, tsNfa: NFA): WPDS<Node, Val, TypestateWeight> {
+    private fun createWPDS(graph: Graph, tsNfa: NFA): WPDS<Node, Val, TypestateWeight> {
         log.info("-----  Creating WPDS ----------")
 
         // Create empty WPDS
@@ -373,7 +369,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         // For each function, create a WPDS. The (normal, push, pop) rules of the WPDS reflect the
         // data flow, similar to a static taint analysis.
         for (functionDeclaration in graph.functions) {
-            val funcWpds = createWpds(functionDeclaration, tsNfa)
+            val funcWpds = createWPDS(functionDeclaration, tsNfa)
             for (r in funcWpds.allRules) {
                 wpds.addRule(r)
             }
@@ -395,7 +391,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * @param tsNfa
      * @return
      */
-    private fun createWpds(fd: FunctionDeclaration, tsNfa: NFA): WPDS<Node, Val, TypestateWeight> {
+    private fun createWPDS(fd: FunctionDeclaration, tsNfa: NFA): WPDS<Node, Val, TypestateWeight> {
         // To remember already visited nodes and avoid endless iteration
         val alreadySeen = HashSet<Node>()
 
@@ -578,9 +574,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         wpds: WPDS<Node, Val, TypestateWeight>,
         valsInScope: MutableSet<Val>
     ) {
-        /* Handle declaration of new variables.
-         "DeclarationStatements" result in a normal rule, assigning rhs to lhs.
-        */
+        // Handle declaration of new variables. "DeclarationStatements" result in a normal rule,
+        // assigning rhs to lhs.
 
         // Note: We might be a bit more gracious here to tolerate incorrect code. For example, a
         // non-declared variable would be a "BinaryOperator".
@@ -593,10 +588,10 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             val declVal = Val(decl.name, currentFunctionName)
             val rhs: Expression? = decl.initializer
             if (rhs is CallExpression) {
-                /* Handle function/method calls whose return value is assigned to a declared variable.
-                  A new data flow for the declared variable (declVal) is introduced.
-                */
-                val normaleRuleDeclared: Rule<Node, Val, TypestateWeight> =
+                // Handle function/method calls whose return value is assigned to a declared
+                // variable.
+                // A new data flow for the declared variable (declVal) is introduced.
+                val normalRuleDeclared: Rule<Node, Val, TypestateWeight> =
                     NormalRule(
                         Val(GraphWPDS.EPSILON_NAME, currentFunctionName),
                         previousStmt,
@@ -604,30 +599,19 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                         stmtNode,
                         TypestateWeight.one()
                     )
-                log.debug("Adding normal rule for declaration {}", normaleRuleDeclared)
-                wpds.addRule(normaleRuleDeclared)
+                log.debug("Adding normal rule for declaration {}", normalRuleDeclared)
+                wpds.addRule(normalRuleDeclared)
 
                 // Add declVal to set of currently tracked variables
                 valsInScope.add(declVal)
             } else if (rhs != null) {
-                /**
-                 * Handle assignment from right side (rhs) to left side (lhs).
-                 *
-                 * We simply take rhs.getName() as a data source. This might be imprecise and need
-                 * further differentiation. For instance, if rhs is an expression (other than
-                 * CallExpression), we might want to recursively handle data flows within that
-                 * expression. This is currently not implemented as it is not needed for our use
-                 * case and would add unneeded complexity.
-                 */
-                /**
-                 * Handle assignment from right side (rhs) to left side (lhs).
-                 *
-                 * We simply take rhs.getName() as a data source. This might be imprecise and need
-                 * further differentiation. For instance, if rhs is an expression (other than
-                 * CallExpression), we might want to recursively handle data flows within that
-                 * expression. This is currently not implemented as it is not needed for our use
-                 * case and would add unneeded complexity.
-                 */
+                // Handle assignment from right side (rhs) to left side (lhs).
+                //
+                // We simply take rhs.getName() as a data source. This might be imprecise and need
+                // further differentiation. For instance, if rhs is an expression (other than
+                //  CallExpression), we might want to recursively handle data flows within that
+                //  expression. This is currently not implemented as it is not needed for our use
+                //  case and would add unneeded complexity.
                 val rhsVal = Val(rhs.name, currentFunctionName)
 
                 // Add declVal to set of currently tracked variables
@@ -720,11 +704,10 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
     private fun createNormalRules(
         previousStmt: Node,
-        v: Node,
+        node: Node,
         valsInScope: Set<Val>,
         tsNfa: NFA
     ): Set<NormalRule<Node, Val, TypestateWeight>> {
-        val currentStmt = v
         val result: MutableSet<NormalRule<Node, Val, TypestateWeight>> = HashSet()
 
         // Create normal rule. Flow remains where it is.
@@ -733,12 +716,12 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             val relevantNFATransitions =
                 tsNfa
                     .transitions
-                    .filter { triggersTypestateTransition(v, it.target.base, it.target.op) }
+                    .filter { node.triggersTypestateTransition(it.target.base, it.target.op) }
                     .toHashSet()
             val weight =
                 if (relevantNFATransitions.isEmpty()) TypestateWeight.one()
                 else TypestateWeight(relevantNFATransitions)
-            val normalRule = NormalRule(valInScope, previousStmt, valInScope, currentStmt, weight)
+            val normalRule = NormalRule(valInScope, previousStmt, valInScope, node, weight)
             log.debug("Adding normal rule {}", normalRule)
             result.add(normalRule)
         }
@@ -746,7 +729,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     }
 
     /**
-     * Returns true if the given CPG `Node` will result in a transition from any typestate into the
+     * Returns true if the given CPG node will result in a transition from any typestate into the
      * typestate denoted by `op`.
      *
      * @param cpgNode A CPG node - typically a `CallExpression` or anything that contains a call
@@ -756,17 +739,13 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      *
      * @return
      */
-    private fun triggersTypestateTransition(
-        cpgNode: Node,
-        markInstance: String?,
-        op: String
-    ): Boolean {
+    private fun Node.triggersTypestateTransition(markInstance: String?, op: String): Boolean {
         /*
         TODO Future improvement: This method is repeatedly called for different "ops" and thus repeats quite some work.
         The "op" paramenter should be removed and the method should return a (possibly empty) set of target typestates (=ops)
         that would be reached, so this method needs to be called only once per CPG node.
         */
-        if (markInstance == null || cpgNode.name == "") {
+        if (markInstance == null || this.name == "") {
             return false
         }
 
@@ -780,27 +759,28 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         // (=assignee)
         var assigneeVar: String? = null
         var assignerFqn: String? = null
-        if (cpgNode is VariableDeclaration) {
-            assigneeVar = cpgNode.name
-            if (cpgNode.initializer is CallExpression) {
-                assignerFqn = (cpgNode.initializer as CallExpression).fqn
+        if (this is VariableDeclaration) {
+            assigneeVar = this.name
+            if (this.initializer is CallExpression) {
+                assignerFqn = (this.initializer as CallExpression).fqn
             }
-        } else if (cpgNode is CallExpression) {
-            assignerFqn = cpgNode.fqn
+        } else if (this is CallExpression) {
+            assignerFqn = this.fqn
         }
 
         // For method calls we collect the "base", its type(s), and the method arguments.
         var types: Set<Type> = HashSet()
         val arguments: MutableList<Expression> = ArrayList()
-        if (cpgNode is CallExpression) {
-            val base: Expression? = cpgNode.base
+        if (this is CallExpression) {
+            val base: Expression? = this.base
 
             // even though base is annotated @NotNull, it sometimes is null
             if (base != null) {
                 types = base.possibleSubTypes
             }
-            arguments.addAll(cpgNode.arguments)
+            arguments.addAll(this.arguments)
         }
+
         for (o in mEntity.second!!.ops) {
             if (op != o.name) {
                 continue
@@ -819,7 +799,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                                 arguments.isEmpty() ||
                                 argumentsMatchParameters(
                                     opStatement.call.params,
-                                    (cpgNode as CallExpression).arguments
+                                    (this as CallExpression).arguments
                                 ))
                     ) {
                         return true
@@ -829,7 +809,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                         if (type.typeName.startsWith(
                                 Utils.getScope(opStatement.call.name).replace("::", ".")
                             ) // Dirty: startsWith() to ignore modifiers (such as "*").
-                            && opStatement.call.name.endsWith(cpgNode.name)
+                            && opStatement.call.name.endsWith(this.name)
                         ) {
                             // TODO should rather compare fully qualified names instead of
                             // "endsWith"
@@ -849,22 +829,12 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * @param callee
      * @return
      */
-    private fun findParamToValues(callee: FunctionDeclaration?): Map<String, Set<Pair<Val, Val>>> {
-        val result: MutableMap<String, Set<Pair<Val, Val>>> = HashMap()
-        if (callee == null) {
-            log.error("Unexpected: FunctionDeclaration of callee is null.")
-            return result
-        }
+    private fun findParamToValues(callee: FunctionDeclaration): Map<String, Set<Pair<Val, Val>>> {
+        val result = mutableMapOf<String, Set<Pair<Val, Val>>>()
         val calleeName = callee.name
 
         // the function declaration is connected to their call expressions by a DFG edge
-        val calls =
-            callee
-                .nextDFG
-                .stream()
-                .filter { obj: Node? -> CallExpression::class.java.isInstance(obj) }
-                .map { obj: Node? -> CallExpression::class.java.cast(obj) }
-                .collect(Collectors.toList())
+        val calls = callee.nextDFG.filterIsInstance<CallExpression>()
         for (ce in calls) {
             val caller = ce.containingFunction
             if (caller == null) {
@@ -897,25 +867,25 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * int bla() { return 42; }
      * ```
      *
-     * @param node
+     * @param returnStatement
      * @return
      */
-    private fun findReturnedVals(node: Node): Set<Val> {
+    private fun findReturnedVals(returnStatement: ReturnStatement): Set<Val> {
+        val returnedVals = mutableSetOf<Val>()
+
         // Follow along "DFG" edges from the return statement to the CallExpression that initiated
         // the call. Then check if there is a "DFG" edge from that CallExpression to a
         // VariableDeclaration.
-        val returnedVals = mutableSetOf<Val>()
-        val calls = node.nextDFG.filterIsInstance<CallExpression>()
+        val calls = returnStatement.nextDFG.filterIsInstance<CallExpression>()
         for (call in calls) {
             // We found the call site into our method. Now see if the return value is used.
-            val nextDfgAftercall = call.nextDFG.stream().findFirst()
-            var returnVar = ""
-            if (nextDfgAftercall.isPresent) {
-                if (nextDfgAftercall.get() is VariableDeclaration ||
-                        nextDfgAftercall.get() is DeclaredReferenceExpression
-                ) {
+            val nextDfgAfterCall = call.nextDFG.firstOrNull()
+            nextDfgAfterCall?.let {
+                var returnVar = ""
+
+                if (it is VariableDeclaration || it is DeclaredReferenceExpression) {
                     // return value is used. Remember variable name.
-                    returnVar = nextDfgAftercall.get().name
+                    returnVar = it.name
                 }
 
                 // Finally we need to find out in which function the call site actually is
@@ -924,6 +894,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 if (callerFunction != null) {
                     callerFunctionName = callerFunction.name
                 }
+
                 if (callerFunctionName != null) {
                     returnedVals.add(Val(returnVar, callerFunctionName))
                 }

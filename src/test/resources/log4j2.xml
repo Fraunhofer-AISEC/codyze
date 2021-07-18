@@ -12,7 +12,7 @@
     </Async>
   </Appenders>
   <Loggers>
-    <Logger level="DEBUG" name="de.fraunhofer.aisec.analysis.wpds"/>
+    <Logger level="DEBUG" name="de.fraunhofer.aisec.codyze.analysis.wpds"/>
     <Root level="DEBUG">
       <AppenderRef ref="STDOUT"/>
       <AppenderRef ref="FILEOUT"/>

@@ -7,11 +7,7 @@ import de.breakpointsec.pushdown.rules.NormalRule
 import de.breakpointsec.pushdown.rules.PopRule
 import de.breakpointsec.pushdown.rules.PushRule
 import de.breakpointsec.pushdown.rules.Rule
-import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
-import de.fraunhofer.aisec.codyze.analysis.ErrorValue
-import de.fraunhofer.aisec.codyze.analysis.Finding
-import de.fraunhofer.aisec.codyze.analysis.GraphInstanceContext
-import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
+import de.fraunhofer.aisec.codyze.analysis.*
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.argumentsMatchParameters
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.containingFunction
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.functions
@@ -31,7 +27,6 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.types.Type
-import de.fraunhofer.aisec.cpg.sarif.Region
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import de.fraunhofer.aisec.mark.markDsl.Terminal
 import java.io.File
@@ -71,14 +66,14 @@ import org.slf4j.LoggerFactory
 @ExperimentalGraph
 class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     private lateinit var rule: MRule
-    private lateinit var instanceContext: GraphInstanceContext
+    private lateinit var markContext: MarkContext
 
     /**
      * Starts the Typestate analysis.
      *
      * @param orderExpr the order expression
-     * @param contextID
-     * @param ctx
+     * @param markContext the MARK context
+     * @param ctx the analysis context
      * @param graph
      * @param rule
      * @return
@@ -87,14 +82,14 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     @Throws(IllegalTransitionException::class)
     fun analyze(
         orderExpr: OrderExpression,
-        contextID: Int,
+        markContext: MarkContext,
         ctx: AnalysisContext,
         graph: Graph,
         rule: MRule
     ): ConstantValue {
         log.info("Typestate analysis starting for {}", ctx)
 
-        this.instanceContext = markContextHolder.getContext(contextID).instanceContext
+        this.markContext = markContext
         this.rule = rule
 
         // Remember the order expression we are analyzing
@@ -122,7 +117,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             )
         }
 
-        /* Create typestate NFA, representing the regular expression of a MARK typestate rule. */
+        // Create typestate NFA, representing the regular expression of a MARK typestate rule.
         val tsNFA = NFA.of(orderExpr.exp)
         log.debug("Initial typestate NFA:\n{}", tsNFA)
 
@@ -137,9 +132,9 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
          */
         val currentFile = getFileFromMarkInstance(markInstance) ?: File("FIXME")
 
-        /* Create an initial automaton corresponding to the start configurations of the data flow analysis.
-          In this case, we are starting with all statements that initiate a type state transition.
-        */
+        // Create an initial automaton corresponding to the start configurations of the data flow
+        // analysis.
+        // In this case, we are starting with all statements that initiate a type state transition.
         val wnfa =
             InitialConfiguration.create({ InitialConfiguration.FIRST_TYPESTATE_EVENT(it) }, wpds)
 
@@ -151,8 +146,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         // For debugging only: Print WPDS rules
         if (log.isDebugEnabled) {
             for (r in
-                wpds.allRules.sortedBy { it.l1.region.startLine }.sortedBy {
-                    it.l1.region.startColumn
+                wpds.allRules.sortedBy { it.l1.location?.region?.startLine }.sortedBy {
+                    it.l1.location?.region?.startColumn
                 }) {
                 log.debug("rule: {}", r)
             }
@@ -174,14 +169,14 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
         val of = ConstantValue.of(findings.isEmpty())
         if (markContextHolder.isCreateFindingsDuringEvaluation) {
-            markContextHolder.getContext(contextID).isFindingAlreadyAdded = true
+            markContext.isFindingAlreadyAdded = true
         }
 
         return of
     }
 
     private fun getFileFromMarkInstance(markInstance: String): File? {
-        val node = instanceContext.getNode(markInstance)
+        val node = markContext.instanceContext.getNode(markInstance)
         if (node == null) {
             log.error("No node found for Mark instance: {}. Will not run TS analysis", markInstance)
             return null
@@ -206,7 +201,11 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         return null
     }
 
-    /** Returns the MARK instance of this order expression, if it exists. */
+    /**
+     * Returns the MARK instance of this order expression, if it exists.
+     *
+     * @return the name of the MARK instance
+     */
     private val OrderExpression.markInstance: String?
         get() {
             val treeIt = this.eAllContents()
@@ -236,32 +235,36 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * 3) If all transitions have proper type state weights but none of them leads to END, the type
      * state is correct but incomplete.
      *
-     * @param wpds
+     * @param wpds the WPDS
      * @param wnfa Weighted NFA, representing a set of configurations of the WPDS
      * @param currentFile
-     * @return
+     *
+     * @return a set of findings
      */
     private fun getFindingsFromWpds(
-        wpds: CpgWpds,
-        wnfa: WeightedAutomaton<Stmt, Val?, TypestateWeight>,
+        wpds: WPDS<Node, Val, TypestateWeight>,
+        wnfa: WeightedAutomaton<Node, Val, TypestateWeight>,
         currentFile: URI
     ): Set<Finding> {
         // Final findings
-        val findings: MutableSet<Finding> = HashSet()
+        val findings = mutableSetOf<Finding>()
+
         // We collect good findings first, but add them only if TS machine reaches END state
-        val potentialGoodFindings: MutableSet<Pair<Stmt, Val?>> = HashSet()
+        val potentialGoodFindings = mutableSetOf<Pair<Node, Val>>()
         var endReached = false
 
         // All configurations for which we have rules. Ignoring Weight.ONE
-        val wpdsConfigs: MutableSet<Pair<Stmt, Val>> = HashSet()
+        val wpdsConfigs = mutableSetOf<Pair<Node, Val>>()
         for (r in wpds.allRules) {
             if (r.weight != TypestateWeight.one()) {
                 wpdsConfigs.add(Pair(r.l1, r.s1))
                 wpdsConfigs.add(Pair(r.l2, r.s2))
             }
         }
+
         for (tran in wnfa.transitions) {
             val w = wnfa.getWeightFor(tran)
+
             if (w.value() is Set<*>) {
                 val reachableTypestates = w.value() as Set<NFATransition<StateNode>>
                 for (reachableTypestate in reachableTypestates) {
@@ -275,22 +278,20 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             } else if (w == TypestateWeight.zero()) {
                 // Check if this is actually a feasible configuration
                 val (first, second) = Pair(tran.label, tran.start)
-                if (wpdsConfigs.stream().anyMatch { (first1, second1) ->
-                        first1 == first && second1 == second
-                    }
-                ) {
-                    findings.add(createBadFinding(first, second, currentFile, java.util.Set.of()))
+                if (wpdsConfigs.any { (first1, second1) -> first1 == first && second1 == second }) {
+                    findings.add(createBadFinding(first, second, currentFile))
                 }
             }
         }
+
         if (endReached && findings.isEmpty()) {
             findings.addAll(
-                potentialGoodFindings
-                    .stream()
-                    .map { (first, second) -> createGoodFinding(first, second, currentFile) }
-                    .collect(Collectors.toSet())
+                potentialGoodFindings.map { (first, second) ->
+                    createGoodFinding(first, second, currentFile)
+                }
             )
         }
+
         return findings
     }
 
@@ -304,8 +305,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * @return
      */
     private fun createBadFinding(
-        stmt: Stmt,
-        `val`: Val?,
+        stmt: Node,
+        `val`: Val,
         currentFile: URI,
         expected: Collection<NFATransition<StateNode>> = listOf()
     ): Finding {
@@ -319,49 +320,36 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         name +=
             if (!expected.isEmpty()) {
                 " Expected one of " +
-                    expected
-                        .stream()
-                        .map { obj: NFATransition<StateNode> -> obj.toString() }
-                        .collect(Collectors.joining(", "))
+                    expected.joinToString(", ") { obj: NFATransition<StateNode> -> obj.toString() }
             } else {
                 " Expected no further operations."
             }
 
-        // lines are human-readable, i.e., off-by-one
-        val startLine = Math.toIntExact(stmt.region.startLine.toLong()) - 1
-        val endLine = Math.toIntExact(stmt.region.endLine.toLong()) - 1
-        val startColumn = Math.toIntExact(stmt.region.startColumn.toLong()) - 1
-        val endColumn = Math.toIntExact(stmt.region.endColumn.toLong()) - 1
         return Finding(
             name,
-            rule.errorMessage,
             currentFile,
-            startLine,
-            endLine,
-            startColumn,
-            endColumn
+            rule.errorMessage,
+            listOf(Utils.getRegionByNode(stmt)),
+            true
         )
     }
 
     /**
-     * Create a "non-finding" (i.e. positive confirmation) Lines are human-readable, i.e.,
+     * Creates a "non-finding" (i.e. positive confirmation). Lines are human-readable, i.e.,
      * off-by-one.
      *
-     * @param stmt
+     * @param node the node
      * @param val
      * @param currentFile
-     * @return
+     *
+     * @return a finding
      */
-    private fun createGoodFinding(stmt: Stmt, `val`: Val?, currentFile: URI): Finding {
-        val startLine = Math.toIntExact(stmt.region.startLine.toLong()) - 1
-        val endLine = Math.toIntExact(stmt.region.endLine.toLong()) - 1
-        val startColumn = Math.toIntExact(stmt.region.startColumn.toLong()) - 1
-        val endColumn = Math.toIntExact(stmt.region.endColumn.toLong()) - 1
+    private fun createGoodFinding(node: Node, `val`: Val?, currentFile: URI): Finding {
         return Finding(
-            "Good: $`val` at $stmt",
+            "Good: $`val` at $node",
             currentFile,
-            rule!!.errorMessage,
-            java.util.List.of(Region(startLine, endLine, startColumn, endColumn)),
+            rule.errorMessage,
+            listOf(Utils.getRegionByNode(node)),
             false
         )
     }
@@ -377,29 +365,29 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      *
      * @return
      */
-    private fun createWpds(graph: Graph, tsNfa: NFA): CpgWpds {
+    private fun createWpds(graph: Graph, tsNfa: NFA): WPDS<Node, Val, TypestateWeight> {
         log.info("-----  Creating WPDS ----------")
 
-        /* Create empty WPDS */
-        val wpds = CpgWpds()
+        // Create empty WPDS
+        val wpds = GraphWPDS()
 
-        /*
-         * For each function, create a WPDS.
-         *
-         * The (normal, push, pop) rules of the WPDS reflect the data flow, similar to a static taint analysis.
-         *
-         */ for (functionDeclaration in graph.functions) {
+        // For each function, create a WPDS. The (normal, push, pop) rules of the WPDS reflect the
+        // data flow, similar to a static taint analysis.
+        for (functionDeclaration in graph.functions) {
             val funcWpds = createWpds(functionDeclaration, tsNfa)
             for (r in funcWpds.allRules) {
                 wpds.addRule(r)
             }
         }
 
-        /*
-         * Typestate analysis is finished. The results are as follows: 1) Transitions in WNFA with *empty weights* or weights into an ZERO type state indicate an error.
-         * Type state requirements are violated at this point. 2) If there is a path through the automaton leading to the END state, the type state specification is
-         * completely covered by this path 3) If all transitions have proper type state weights but none of them leads to END, the type state is correct but incomplete.
-         */ return wpds
+        // Typestate analysis is finished. The results are as follows:
+        // 1) Transitions in WNFA with *empty weights* or weights into an ZERO type state indicate
+        // an error. Type state requirements are violated at this point.
+        // 2) If there is a path through the automaton leading to the END state, the type state
+        // specification is completely covered by this path
+        // 3) If all transitions have proper type state weights but none of them leads to END, the
+        // type state is correct but incomplete.
+        return wpds
     }
 
     /**
@@ -408,21 +396,19 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * @param tsNfa
      * @return
      */
-    private fun createWpds(fd: FunctionDeclaration, tsNfa: NFA): WPDS<Stmt, Val, TypestateWeight> {
+    private fun createWpds(fd: FunctionDeclaration, tsNfa: NFA): WPDS<Node, Val, TypestateWeight> {
         // To remember already visited nodes and avoid endless iteration
         val alreadySeen = HashSet<Node>()
 
         // the WPDS we are creating here
-        val wpds = CpgWpds()
+        val wpds = GraphWPDS()
         log.info("Processing function {}", fd.name)
 
         // Work list of following EOG nodes. Not all EOG nodes will result in a WPDS rule, though.
-        val worklist = ArrayDeque<Pair<Node, Set<Stmt>>>()
-        worklist.add(
-            Pair<Node, Set<Stmt>>(fd, java.util.Set.of(Stmt(fd.name, Utils.getRegion(fd))))
-        )
-        val skipTheseValsAtStmt = HashMap<Stmt, Val?>()
-        val valsInScope = HashSet<Val>()
+        val worklist = ArrayDeque<Pair<Node, Set<Node>>>()
+        worklist.add(Pair<Node, Set<Node>>(fd, setOf(fd)))
+        val skipTheseValsAtStmt = mutableMapOf<Node, Val>()
+        val valsInScope = mutableSetOf<Val>()
 
         // Make sure we track all parameters inside this function
         val params = fd.parameters
@@ -432,29 +418,29 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
         // Start creation of WPDS rules by traversing the EOG
         while (!worklist.isEmpty()) {
-            val (node, second) = worklist.pop()
-            for (previousStmt in second) {
+            val (currentNode, previousNodes) = worklist.pop()
+            for (previousStmt in previousNodes) {
                 // We consider only "Statements" and CallExpressions in the EOG
-                if (isRelevantStmt(node)) {
+                if (isRelevantStmt(currentNode)) {
                     createRulesForStmt(
                         wpds,
                         fd,
                         previousStmt,
-                        node,
+                        currentNode,
                         valsInScope,
                         skipTheseValsAtStmt,
                         tsNfa
                     )
-                } // End isRelevantStmt()
+                }
             }
 
             // Add successors to work list
-            val successors = node.getSuccessors(alreadySeen)
+            val successors = currentNode.getSuccessors(alreadySeen)
             for (succ in successors) {
-                if (isRelevantStmt(node)) {
-                    worklist.add(Pair(succ, setOf(vertexToStmt(node))))
+                if (isRelevantStmt(currentNode)) {
+                    worklist.add(Pair(succ, setOf(currentNode)))
                 } else {
-                    worklist.add(Pair(succ, second))
+                    worklist.add(Pair(succ, previousNodes))
                 }
             }
         }
@@ -462,38 +448,36 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         return wpds
     }
 
+    /** Creates rules based on [stmtNode] in the WPDS [wpds]. */
     private fun createRulesForStmt(
-        wpds: WPDS<Stmt, Val, TypestateWeight>,
-        functionVertex: FunctionDeclaration,
-        previousStmt: Stmt,
+        wpds: WPDS<Node, Val, TypestateWeight>,
+        functionDeclaration: FunctionDeclaration,
+        previousStmt: Node,
         stmtNode: Node,
         valsInScope: MutableSet<Val>,
-        skipTheseValsAtStmt: MutableMap<Stmt, Val?>,
+        skipTheseValsAtStmt: MutableMap<Node, Val>,
         tsNfa: NFA
     ) {
-        val currentFunctionName = functionVertex.name
-        val currentStmt = vertexToStmt(stmtNode)
+        val currentFunctionName = functionDeclaration.name
 
         /* First we create normal rules from previous stmt to the current stmt, simply propagating existing values. */
         val normalRules = createNormalRules(previousStmt, stmtNode, valsInScope, tsNfa)
         for (normalRule in normalRules) {
-            /*
-             If this is a call into a known method, we skip immediate propagation. In that case, data flows *into* the method.
-            */
+            // If this is a call into a known method, we skip immediate propagation. In that case,
+            // data flows *into* the method.
             val skipIt = shouldBeSkipped(normalRule, skipTheseValsAtStmt)
             if (!skipIt) {
                 wpds.addRule(normalRule)
             }
         }
 
-        /*
-         Handle calls into known methods (not a "phantom" method) by creating push rule.
-        */ if (stmtNode is CallExpression && !Utils.isPhantom(stmtNode)) {
+        // Handle calls into known methods (not a "phantom" method) by creating push rule.
+        if (stmtNode is CallExpression && !Utils.isPhantom(stmtNode)) {
             /*
              * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
              * "return site" is the statement to which flow returns after the function call.
              */
-            val pushRules = createPushRules(stmtNode, currentFunctionName, currentStmt, stmtNode)
+            val pushRules = createPushRules(stmtNode, currentFunctionName, stmtNode, stmtNode)
             for (pushRule in pushRules) {
                 log.debug("  Adding push rule: {}", pushRule)
                 wpds.addRule(pushRule)
@@ -524,12 +508,12 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                     /* Handle function/method calls whose return value is assigned to a declared variable.
                       A new data flow for the declared variable (declVal) is introduced.
                     */
-                    val normaleRuleDeclared: Rule<Stmt, Val, TypestateWeight> =
+                    val normaleRuleDeclared: Rule<Node, Val, TypestateWeight> =
                         NormalRule(
-                            Val(CpgWpds.EPSILON, currentFunctionName),
+                            Val(GraphWPDS.EPSILON, currentFunctionName),
                             previousStmt,
                             declVal,
-                            currentStmt,
+                            stmtNode,
                             TypestateWeight.one()
                         )
                     log.debug("Adding normal rule for declaration {}", normaleRuleDeclared)
@@ -551,14 +535,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
                     // Add declVal to set of currently tracked variables
                     valsInScope.add(declVal)
-                    val normalRulePropagate: Rule<Stmt, Val, TypestateWeight> =
-                        NormalRule(
-                            rhsVal,
-                            previousStmt,
-                            declVal,
-                            currentStmt,
-                            TypestateWeight.one()
-                        )
+                    val normalRulePropagate: Rule<Node, Val, TypestateWeight> =
+                        NormalRule(rhsVal, previousStmt, declVal, stmtNode, TypestateWeight.one())
                     log.debug("Adding normal rule for assignment {}", normalRulePropagate)
                     wpds.addRule(normalRulePropagate)
                 }
@@ -582,9 +560,9 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
                     // Pop Rule for actually returned value
                     val returnPopRule =
-                        PopRule(
+                        PopRule<Node, Val, TypestateWeight>(
                             Val(returnV.returnValue.name, currentFunctionName),
-                            currentStmt,
+                            stmtNode,
                             returnedVal,
                             weight
                         )
@@ -593,10 +571,16 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 }
 
                 // Pop Rules for side effects on parameters
-                val paramToValueMap = findParamToValues(functionVertex)
+                val paramToValueMap = findParamToValues(functionDeclaration)
                 if (paramToValueMap.containsKey(currentFunctionName)) {
                     for ((first, second) in paramToValueMap[currentFunctionName]!!) {
-                        val popRule = PopRule(first, currentStmt, second, TypestateWeight.one())
+                        val popRule =
+                            PopRule<Node, Val, TypestateWeight>(
+                                first,
+                                stmtNode,
+                                second,
+                                TypestateWeight.one()
+                            )
                         wpds.addRule(popRule)
                         log.debug("Adding pop rule {}", popRule)
                     }
@@ -604,12 +588,12 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             }
             // Create normal rule. Flow remains where it is.
             for (valInScope in valsInScope) {
-                val normalRule: Rule<Stmt, Val, TypestateWeight> =
+                val normalRule: Rule<Node, Val, TypestateWeight> =
                     NormalRule(
                         valInScope,
                         previousStmt,
                         valInScope,
-                        currentStmt,
+                        stmtNode,
                         TypestateWeight.one()
                     )
                 var skipIt = false
@@ -620,7 +604,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                     }
                 }
                 if (!skipIt) {
-                    log.debug("Adding normal rule!!! {}", normalRule)
+                    log.debug("Adding normal rule {}", normalRule)
                     wpds.addRule(normalRule)
                 }
             }
@@ -628,8 +612,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     }
 
     private fun shouldBeSkipped(
-        normalRule: NormalRule<Stmt, Val, TypestateWeight>,
-        skipTheseValsAtStmt: Map<Stmt, Val?>
+        normalRule: NormalRule<Node, Val, TypestateWeight>,
+        skipTheseValsAtStmt: Map<Node, Val>
     ): Boolean {
         var skipIt = false
         if (skipTheseValsAtStmt[normalRule.l2] != null) {
@@ -677,13 +661,13 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     }
 
     private fun createNormalRules(
-        previousStmt: Stmt,
+        previousStmt: Node,
         v: Node,
         valsInScope: Set<Val>,
         tsNfa: NFA
-    ): Set<NormalRule<Stmt, Val, TypestateWeight>> {
-        val currentStmt = vertexToStmt(v)
-        val result: MutableSet<NormalRule<Stmt, Val, TypestateWeight>> = HashSet()
+    ): Set<NormalRule<Node, Val, TypestateWeight>> {
+        val currentStmt = v
+        val result: MutableSet<NormalRule<Node, Val, TypestateWeight>> = HashSet()
 
         // Create normal rule. Flow remains where it is.
         for (valInScope in valsInScope) {
@@ -909,9 +893,9 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     private fun createPushRules(
         mce: CallExpression,
         currentFunctionName: String,
-        currentStmt: Stmt,
+        currentStmt: Node,
         currentStmtVertex: Node
-    ): Set<PushRule<Stmt, Val, TypestateWeight>> {
+    ): Set<PushRule<Node, Val, TypestateWeight>> {
         // Return site(s). Actually, multiple return sites will only occur in case of exception
         // handling.
         // TODO: support multiple return sites
@@ -921,7 +905,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
         // Arguments of function call
         val argVals = argumentsToVals(mce, currentFunctionName)
-        val pushRules: MutableSet<PushRule<Stmt, Val, TypestateWeight>> = HashSet()
+        val pushRules: MutableSet<PushRule<Node, Val, TypestateWeight>> = HashSet()
         for (potentialCallee in mce.invokes) {
             // Parameters of function
             if (potentialCallee.parameters.size != argVals.size) {
@@ -939,13 +923,13 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             if (firstStmt?.code != null) {
                 for (i in argVals.indices) {
                     for (returnSiteVertex in returnSites) {
-                        val stmt = vertexToStmt(returnSiteVertex)
+                        val stmt = returnSiteVertex
                         val pushRule =
                             PushRule(
                                 argVals[i],
                                 currentStmt,
                                 parmVals[i],
-                                Stmt(potentialCallee.name, Utils.getRegion(potentialCallee)),
+                                potentialCallee,
                                 stmt,
                                 TypestateWeight.one()
                             ) // A push rule does not trigger any typestate transitions.
@@ -1002,17 +986,6 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             argVals.add(Val(arg.name, currentFunctionName))
         }
         return argVals
-    }
-
-    /**
-     * Convert a CPG node into a `Stmt` in context of the WPDS.
-     *
-     * @param n CPG node
-     * @return A `Stmt`, holding the "code" and "location->region" properties of `n`>.
-     */
-    private fun vertexToStmt(n: Node): Stmt {
-        val region = Utils.getRegion(n)
-        return Stmt(n.code!!, region)
     }
 
     companion object {

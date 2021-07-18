@@ -93,7 +93,7 @@ public class InitialConfiguration {
 		for (var nr : normalRules) {
 			if (nr.getS1()
 					.getVariable()
-					.equals(GraphWPDS.EPSILON)) {
+					.equals(GraphWPDS.EPSILON_NAME)) {
 				var initialState = nr.getS2();
 				var stmt = nr.getL2();
 				initialStates.add(new Pair<>(initialState, stmt));

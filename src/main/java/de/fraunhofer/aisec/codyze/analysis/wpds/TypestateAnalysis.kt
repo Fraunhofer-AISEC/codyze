@@ -30,7 +30,6 @@ import de.fraunhofer.aisec.cpg.graph.types.Type
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import de.fraunhofer.aisec.mark.markDsl.Terminal
 import java.io.File
-import java.lang.Math
 import java.net.URI
 import java.util.ArrayDeque
 import java.util.ArrayList
@@ -38,7 +37,6 @@ import java.util.HashMap
 import java.util.HashSet
 import java.util.stream.Collectors
 import org.slf4j.LoggerFactory
-import kotlin.math.min
 
 /**
  * Implementation of a WPDS-based typestate analysis using the code property graph (CPG).
@@ -490,7 +488,6 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 handleReturnStatement(
                     stmtNode,
                     tsNfa,
-                    currentFunctionName,
                     wpds,
                     functionDeclaration,
                     valsInScope,
@@ -503,13 +500,14 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     private fun handleReturnStatement(
         returnStatement: ReturnStatement,
         tsNfa: NFA,
-        currentFunctionName: String,
         wpds: WPDS<Node, Val, TypestateWeight>,
         functionDeclaration: FunctionDeclaration,
         valsInScope: MutableSet<Val>,
         previousStmt: Node,
         skipTheseValsAtStmt: MutableMap<Node, Val>
     ) {
+        val currentFunctionName = functionDeclaration.name
+
         // return statements result in pop rules
         if (!returnStatement.isDummy) {
             val returnedVals = findReturnedVals(returnStatement)
@@ -548,6 +546,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 }
             }
         }
+
         // Create normal rule. Flow remains where it is.
         for (valInScope in valsInScope) {
             val normalRule: Rule<Node, Val, TypestateWeight> =
@@ -599,7 +598,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 */
                 val normaleRuleDeclared: Rule<Node, Val, TypestateWeight> =
                     NormalRule(
-                        Val(GraphWPDS.EPSILON, currentFunctionName),
+                        Val(GraphWPDS.EPSILON_NAME, currentFunctionName),
                         previousStmt,
                         declVal,
                         stmtNode,
@@ -660,7 +659,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         // For calls to functions whose body is known, we create push/pop rule pairs. All arguments
         // flow into the parameters of the function. The "return site" is the statement to which
         // flow returns after the function call.
-        val pushRules = createPushRules(stmtNode, currentFunctionName, stmtNode, stmtNode)
+        val pushRules = createPushRules(stmtNode, currentFunctionName, stmtNode)
         for (pushRule in pushRules) {
             log.debug("  Adding push rule: {}", pushRule)
             wpds.addRule(pushRule)
@@ -892,24 +891,21 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * In the following example, given the return statement in bla(), this method will return a Val
      * for "x".
      *
+     * ```
      * void blubb() { int x = bla(); }
      *
      * int bla() { return 42; }
+     * ```
      *
      * @param node
      * @return
      */
     private fun findReturnedVals(node: Node): Set<Val> {
-        /*
-         * Follow along "DFG" edges from the return statement to the CallExpression that initiated the call. Then check if there is a "DFG" edge from that CallExpression
-         * to a VariableDeclaration.
-         */
-        val returnedVals: MutableSet<Val> = HashSet()
-        val calls =
-            node.nextDFG
-                .stream()
-                .filter { obj: Node? -> CallExpression::class.java.isInstance(obj) }
-                .collect(Collectors.toList())
+        // Follow along "DFG" edges from the return statement to the CallExpression that initiated
+        // the call. Then check if there is a "DFG" edge from that CallExpression to a
+        // VariableDeclaration.
+        val returnedVals = mutableSetOf<Val>()
+        val calls = node.nextDFG.filterIsInstance<CallExpression>()
         for (call in calls) {
             // We found the call site into our method. Now see if the return value is used.
             val nextDfgAftercall = call.nextDFG.stream().findFirst()
@@ -933,6 +929,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 }
             }
         }
+
         return returnedVals
     }
 
@@ -943,29 +940,26 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * multiple return sites, such as when considering exception handling, the resulting set may
      * contain more than one rule.
      *
-     * @param mce
+     * @param call
      * @param currentFunctionName
      * @param currentStmt
-     * @param currentStmtVertex
      * @return
      */
     private fun createPushRules(
-        mce: CallExpression,
+        call: CallExpression,
         currentFunctionName: String,
-        currentStmt: Node,
-        currentStmtVertex: Node
+        currentStmt: Node
     ): Set<PushRule<Node, Val, TypestateWeight>> {
         // Return site(s). Actually, multiple return sites will only occur in case of exception
         // handling.
         // TODO: support multiple return sites
-        val returnSite = currentStmtVertex.nextStatement
-        val returnSites: List<Statement>
-        returnSites = returnSite?.let { listOf(it) } ?: emptyList()
+        val returnSite = currentStmt.nextStatement
+        val returnSites: List<Statement> = returnSite?.let { listOf(it) } ?: emptyList()
 
         // Arguments of function call
-        val argVals = argumentsToVals(mce, currentFunctionName)
+        val argVals = argumentsToVals(call, currentFunctionName)
         val pushRules: MutableSet<PushRule<Node, Val, TypestateWeight>> = HashSet()
-        for (potentialCallee in mce.invokes) {
+        for (potentialCallee in call.invokes) {
             // Parameters of function
             if (potentialCallee.parameters.size != argVals.size) {
                 log.warn(
@@ -1002,6 +996,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 )
             }
         }
+
         return pushRules
     }
 
@@ -1022,29 +1017,23 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         }
 
     /**
-     * Returns a (mutable) list of the function parameters of `func`, each wrapped as a `Val`.
+     * Returns a list of the function parameters of [func], each wrapped as a [Val].
      *
-     * @param func
+     * @param func the function declaration
      * @return
      */
     private fun parametersToVals(func: FunctionDeclaration): List<Val> {
-        val parmVals: MutableList<Val> = ArrayList()
-        for (p in func.parameters) {
-            parmVals.add(Val(p.name, func.name))
-        }
-        return parmVals
+        return func.parameters.map { Val(it.name, func.name) }
     }
 
-    private fun argumentsToVals(
-        callExpression: CallExpression,
-        currentFunctionName: String
-    ): List<Val> {
-        val argVals: MutableList<Val> = ArrayList()
-        val args = callExpression.arguments
-        for (arg in args) {
-            argVals.add(Val(arg.name, currentFunctionName))
-        }
-        return argVals
+    /**
+     * Returns a list of the call expression's arguments of [call], each wrapped as a [Val].
+     *
+     * @param call the call expression
+     * @return
+     */
+    private fun argumentsToVals(call: CallExpression, currentFunctionName: String): List<Val> {
+        return call.arguments.map { Val(it.name, currentFunctionName) }
     }
 
     companion object {

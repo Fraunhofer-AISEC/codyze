@@ -107,7 +107,7 @@ public class InitialConfiguration {
 		return createInitialWNFA(initialStates);
 	}
 
-	private static WeightedAutomaton<Node, Val, TypestateWeight> createInitialWNFA(HashSet<Pair<Val, Node>> initialStates) {
+	private static WeightedAutomaton<Node, Val, TypestateWeight> createInitialWNFA(Set<Pair<Val, Node>> initialStates) {
 		// Create statement for start configuration and create start CONFIG
 		// TODO make initialState a set or remove completely
 		int line = Integer.MAX_VALUE;
@@ -169,7 +169,7 @@ public class InitialConfiguration {
 		return wnfa;
 	}
 
-	private static void dumpInitialConfigurations(HashSet<Pair<Val, Node>> initialStates) {
+	private static void dumpInitialConfigurations(Set<Pair<Val, Node>> initialStates) {
 		log.debug("Initial configuration(s):");
 		for (var initialConfig : initialStates) {
 			log.debug("  {} in {} at {}", initialConfig.getFirst().getVariable(), initialConfig.getFirst().getCurrentScope(), initialConfig.getSecond());

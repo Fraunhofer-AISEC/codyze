@@ -38,6 +38,7 @@ import java.util.HashMap
 import java.util.HashSet
 import java.util.stream.Collectors
 import org.slf4j.LoggerFactory
+import kotlin.math.min
 
 /**
  * Implementation of a WPDS-based typestate analysis using the code property graph (CPG).
@@ -471,144 +472,202 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             }
         }
 
-        // Handle calls into known methods (not a "phantom" method) by creating push rule.
-        if (stmtNode is CallExpression && !Utils.isPhantom(stmtNode)) {
-            /*
-             * For calls to functions whose body is known, we create push/pop rule pairs. All arguments flow into the parameters of the function. The
-             * "return site" is the statement to which flow returns after the function call.
-             */
-            val pushRules = createPushRules(stmtNode, currentFunctionName, stmtNode, stmtNode)
-            for (pushRule in pushRules) {
-                log.debug("  Adding push rule: {}", pushRule)
-                wpds.addRule(pushRule)
+        when {
+            stmtNode is CallExpression && !Utils.isPhantom(stmtNode) ->
+                // Handle calls into known methods (not a "phantom" method) by creating push rule.
+                handleCallExpression(stmtNode, currentFunctionName, wpds, skipTheseValsAtStmt)
+            stmtNode is VariableDeclaration ->
+                handleVariableDeclaration(stmtNode, currentFunctionName, valsInScope)
+            stmtNode is DeclarationStatement ->
+                handleDeclarationStatement(
+                    stmtNode,
+                    currentFunctionName,
+                    previousStmt,
+                    wpds,
+                    valsInScope
+                )
+            stmtNode is ReturnStatement ->
+                handleReturnStatement(
+                    stmtNode,
+                    tsNfa,
+                    currentFunctionName,
+                    wpds,
+                    functionDeclaration,
+                    valsInScope,
+                    previousStmt,
+                    skipTheseValsAtStmt
+                )
+        }
+    }
 
-                // Remember that arguments flow only into callee and do not bypass it.
-                skipTheseValsAtStmt[pushRule.callSite] = pushRule.s1
+    private fun handleReturnStatement(
+        returnStatement: ReturnStatement,
+        tsNfa: NFA,
+        currentFunctionName: String,
+        wpds: WPDS<Node, Val, TypestateWeight>,
+        functionDeclaration: FunctionDeclaration,
+        valsInScope: MutableSet<Val>,
+        previousStmt: Node,
+        skipTheseValsAtStmt: MutableMap<Node, Val>
+    ) {
+        // return statements result in pop rules
+        if (!returnStatement.isDummy) {
+            val returnedVals = findReturnedVals(returnStatement)
+            for (returnedVal in returnedVals) {
+                val relevantNFATransitions =
+                    tsNfa.transitions.filter { it.target.op == returnedVal.variable }.toHashSet()
+                val weight =
+                    if (relevantNFATransitions.isEmpty()) TypestateWeight.one()
+                    else TypestateWeight(relevantNFATransitions)
+
+                // Pop Rule for actually returned value
+                val returnPopRule =
+                    PopRule<Node, Val, TypestateWeight>(
+                        Val(returnStatement.returnValue.name, currentFunctionName),
+                        returnStatement,
+                        returnedVal,
+                        weight
+                    )
+                wpds.addRule(returnPopRule)
+                log.debug("Adding pop rule {}", returnPopRule)
             }
-        } else if (stmtNode is VariableDeclaration) {
-            // Add declVal to set of currently tracked variables
-            val declVal = Val(stmtNode.name, currentFunctionName)
-            valsInScope.add(declVal)
-        } else if (stmtNode is DeclarationStatement) {
-            /* Handle declaration of new variables.
-             "DeclarationStatements" result in a normal rule, assigning rhs to lhs.
-            */
 
-            // Note: We might be a bit more gracious here to tolerate incorrect code. For example, a
-            // non-declared variable would be a "BinaryOperator".
-            log.debug("Found variable declaration {}", stmtNode.code)
-            for (decl in stmtNode.declarations) {
-                if (decl !is VariableDeclaration) {
-                    continue
-                }
-
-                val declVal = Val(decl.name, currentFunctionName)
-                val rhs: Expression? = decl.initializer
-                if (rhs is CallExpression) {
-                    /* Handle function/method calls whose return value is assigned to a declared variable.
-                      A new data flow for the declared variable (declVal) is introduced.
-                    */
-                    val normaleRuleDeclared: Rule<Node, Val, TypestateWeight> =
-                        NormalRule(
-                            Val(GraphWPDS.EPSILON, currentFunctionName),
-                            previousStmt,
-                            declVal,
-                            stmtNode,
+            // Pop Rules for side effects on parameters
+            val paramToValueMap = findParamToValues(functionDeclaration)
+            if (paramToValueMap.containsKey(currentFunctionName)) {
+                for ((first, second) in paramToValueMap[currentFunctionName]!!) {
+                    val popRule =
+                        PopRule<Node, Val, TypestateWeight>(
+                            first,
+                            returnStatement,
+                            second,
                             TypestateWeight.one()
                         )
-                    log.debug("Adding normal rule for declaration {}", normaleRuleDeclared)
-                    wpds.addRule(normaleRuleDeclared)
-
-                    // Add declVal to set of currently tracked variables
-                    valsInScope.add(declVal)
-                } else if (rhs != null) {
-                    /**
-                     * Handle assignment from right side (rhs) to left side (lhs).
-                     *
-                     * We simply take rhs.getName() as a data source. This might be imprecise and
-                     * need further differentiation. For instance, if rhs is an expression (other
-                     * than CallExpression), we might want to recursively handle data flows within
-                     * that expression. This is currently not implemented as it is not needed for
-                     * our use case and would add unneeded complexity.
-                     */
-                    val rhsVal = Val(rhs.name, currentFunctionName)
-
-                    // Add declVal to set of currently tracked variables
-                    valsInScope.add(declVal)
-                    val normalRulePropagate: Rule<Node, Val, TypestateWeight> =
-                        NormalRule(rhsVal, previousStmt, declVal, stmtNode, TypestateWeight.one())
-                    log.debug("Adding normal rule for assignment {}", normalRulePropagate)
-                    wpds.addRule(normalRulePropagate)
+                    wpds.addRule(popRule)
+                    log.debug("Adding pop rule {}", popRule)
                 }
             }
-        } else if (stmtNode is ReturnStatement) {
-            /* Return statements result in pop rules */
-            val returnV = stmtNode
-            if (!returnV.isDummy) {
-                val returnedVals = findReturnedVals(stmtNode)
-                for (returnedVal in returnedVals) {
-                    val relevantNFATransitions =
-                        tsNfa
-                            .transitions
-                            .filter { tran: NFATransition<StateNode> ->
-                                (tran.target.op == returnedVal.variable)
-                            }
-                            .toHashSet()
-                    val weight =
-                        if (relevantNFATransitions.isEmpty()) TypestateWeight.one()
-                        else TypestateWeight(relevantNFATransitions)
-
-                    // Pop Rule for actually returned value
-                    val returnPopRule =
-                        PopRule<Node, Val, TypestateWeight>(
-                            Val(returnV.returnValue.name, currentFunctionName),
-                            stmtNode,
-                            returnedVal,
-                            weight
-                        )
-                    wpds.addRule(returnPopRule)
-                    log.debug("Adding pop rule {}", returnPopRule)
-                }
-
-                // Pop Rules for side effects on parameters
-                val paramToValueMap = findParamToValues(functionDeclaration)
-                if (paramToValueMap.containsKey(currentFunctionName)) {
-                    for ((first, second) in paramToValueMap[currentFunctionName]!!) {
-                        val popRule =
-                            PopRule<Node, Val, TypestateWeight>(
-                                first,
-                                stmtNode,
-                                second,
-                                TypestateWeight.one()
-                            )
-                        wpds.addRule(popRule)
-                        log.debug("Adding pop rule {}", popRule)
-                    }
+        }
+        // Create normal rule. Flow remains where it is.
+        for (valInScope in valsInScope) {
+            val normalRule: Rule<Node, Val, TypestateWeight> =
+                NormalRule(
+                    valInScope,
+                    previousStmt,
+                    valInScope,
+                    returnStatement,
+                    TypestateWeight.one()
+                )
+            var skipIt = false
+            if (skipTheseValsAtStmt[normalRule.l2] != null) {
+                val forbiddenVal = skipTheseValsAtStmt[normalRule.l2]
+                if (normalRule.s1 != forbiddenVal) {
+                    skipIt = true
                 }
             }
-            // Create normal rule. Flow remains where it is.
-            for (valInScope in valsInScope) {
-                val normalRule: Rule<Node, Val, TypestateWeight> =
+            if (!skipIt) {
+                log.debug("Adding normal rule {}", normalRule)
+                wpds.addRule(normalRule)
+            }
+        }
+    }
+
+    private fun handleDeclarationStatement(
+        stmtNode: DeclarationStatement,
+        currentFunctionName: String,
+        previousStmt: Node,
+        wpds: WPDS<Node, Val, TypestateWeight>,
+        valsInScope: MutableSet<Val>
+    ) {
+        /* Handle declaration of new variables.
+         "DeclarationStatements" result in a normal rule, assigning rhs to lhs.
+        */
+
+        // Note: We might be a bit more gracious here to tolerate incorrect code. For example, a
+        // non-declared variable would be a "BinaryOperator".
+        log.debug("Found variable declaration {}", stmtNode.code)
+        for (decl in stmtNode.declarations) {
+            if (decl !is VariableDeclaration) {
+                continue
+            }
+
+            val declVal = Val(decl.name, currentFunctionName)
+            val rhs: Expression? = decl.initializer
+            if (rhs is CallExpression) {
+                /* Handle function/method calls whose return value is assigned to a declared variable.
+                  A new data flow for the declared variable (declVal) is introduced.
+                */
+                val normaleRuleDeclared: Rule<Node, Val, TypestateWeight> =
                     NormalRule(
-                        valInScope,
+                        Val(GraphWPDS.EPSILON, currentFunctionName),
                         previousStmt,
-                        valInScope,
+                        declVal,
                         stmtNode,
                         TypestateWeight.one()
                     )
-                var skipIt = false
-                if (skipTheseValsAtStmt[normalRule.l2] != null) {
-                    val forbiddenVal = skipTheseValsAtStmt[normalRule.l2]
-                    if (normalRule.s1 != forbiddenVal) {
-                        skipIt = true
-                    }
-                }
-                if (!skipIt) {
-                    log.debug("Adding normal rule {}", normalRule)
-                    wpds.addRule(normalRule)
-                }
+                log.debug("Adding normal rule for declaration {}", normaleRuleDeclared)
+                wpds.addRule(normaleRuleDeclared)
+
+                // Add declVal to set of currently tracked variables
+                valsInScope.add(declVal)
+            } else if (rhs != null) {
+                /**
+                 * Handle assignment from right side (rhs) to left side (lhs).
+                 *
+                 * We simply take rhs.getName() as a data source. This might be imprecise and need
+                 * further differentiation. For instance, if rhs is an expression (other than
+                 * CallExpression), we might want to recursively handle data flows within that
+                 * expression. This is currently not implemented as it is not needed for our use
+                 * case and would add unneeded complexity.
+                 */
+                /**
+                 * Handle assignment from right side (rhs) to left side (lhs).
+                 *
+                 * We simply take rhs.getName() as a data source. This might be imprecise and need
+                 * further differentiation. For instance, if rhs is an expression (other than
+                 * CallExpression), we might want to recursively handle data flows within that
+                 * expression. This is currently not implemented as it is not needed for our use
+                 * case and would add unneeded complexity.
+                 */
+                val rhsVal = Val(rhs.name, currentFunctionName)
+
+                // Add declVal to set of currently tracked variables
+                valsInScope.add(declVal)
+                val normalRulePropagate: Rule<Node, Val, TypestateWeight> =
+                    NormalRule(rhsVal, previousStmt, declVal, stmtNode, TypestateWeight.one())
+                log.debug("Adding normal rule for assignment {}", normalRulePropagate)
+                wpds.addRule(normalRulePropagate)
             }
-        } // End isReturnStatement
+        }
+    }
+
+    private fun handleVariableDeclaration(
+        stmtNode: Node,
+        currentFunctionName: String,
+        valsInScope: MutableSet<Val>
+    ) {
+        // Add declVal to set of currently tracked variables
+        val declVal = Val(stmtNode.name, currentFunctionName)
+        valsInScope.add(declVal)
+    }
+
+    private fun handleCallExpression(
+        stmtNode: CallExpression,
+        currentFunctionName: String,
+        wpds: WPDS<Node, Val, TypestateWeight>,
+        skipTheseValsAtStmt: MutableMap<Node, Val>
+    ) {
+        // For calls to functions whose body is known, we create push/pop rule pairs. All arguments
+        // flow into the parameters of the function. The "return site" is the statement to which
+        // flow returns after the function call.
+        val pushRules = createPushRules(stmtNode, currentFunctionName, stmtNode, stmtNode)
+        for (pushRule in pushRules) {
+            log.debug("  Adding push rule: {}", pushRule)
+            wpds.addRule(pushRule)
+
+            // Remember that arguments flow only into callee and do not bypass it.
+            skipTheseValsAtStmt[pushRule.callSite] = pushRule.s1
+        }
     }
 
     private fun shouldBeSkipped(
@@ -675,11 +734,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             val relevantNFATransitions =
                 tsNfa
                     .transitions
-                    .stream()
-                    .filter { tran: NFATransition<StateNode> ->
-                        triggersTypestateTransition(v, tran.target.base, tran.target.op)
-                    }
-                    .collect(Collectors.toSet())
+                    .filter { triggersTypestateTransition(v, it.target.base, it.target.op) }
+                    .toHashSet()
             val weight =
                 if (relevantNFATransitions.isEmpty()) TypestateWeight.one()
                 else TypestateWeight(relevantNFATransitions)
@@ -692,12 +748,13 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
     /**
      * Returns true if the given CPG `Node` will result in a transition from any typestate into the
-     * typestate detened by `op`.
+     * typestate denoted by `op`.
      *
      * @param cpgNode A CPG node - typically a `CallExpression` or anything that contains a call
      * (e.g., a `VariableDeclaration`)
      * @param markInstance The current MARK instance.
      * @param op The target typestate, indicated by a MARK op.
+     *
      * @return
      */
     private fun triggersTypestateTransition(
@@ -715,8 +772,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         }
 
         // Get the MARK entity of the markInstance
-        val mEntity = rule!!.entityReferences[markInstance]
-        if (mEntity == null || mEntity.second == null) {
+        val mEntity = rule.entityReferences[markInstance]
+        if (mEntity?.second == null) {
             return false
         }
 
@@ -818,9 +875,11 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             val args = ce.arguments
             val params = callee.parameters
             val pToA = HashSet<Pair<Val, Val>>()
-            for (i in 0 until Math.min(params.size, args.size)) {
+
+            for (i in 0 until params.size.coerceAtMost(args.size)) {
                 pToA.add(Pair(Val(params[i].name, calleeName), Val(args[i].name, caller.name)))
             }
+
             result[calleeName] = pToA
         }
         return result

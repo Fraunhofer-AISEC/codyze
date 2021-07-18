@@ -432,15 +432,15 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
 
         // Start creation of WPDS rules by traversing the EOG
         while (!worklist.isEmpty()) {
-            val (v, second) = worklist.pop()
+            val (node, second) = worklist.pop()
             for (previousStmt in second) {
                 // We consider only "Statements" and CallExpressions in the EOG
-                if (isRelevantStmt(v)) {
+                if (isRelevantStmt(node)) {
                     createRulesForStmt(
                         wpds,
                         fd,
                         previousStmt,
-                        v,
+                        node,
                         valsInScope,
                         skipTheseValsAtStmt,
                         tsNfa
@@ -449,15 +449,16 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             }
 
             // Add successors to work list
-            val successors = getSuccessors(v, alreadySeen)
+            val successors = node.getSuccessors(alreadySeen)
             for (succ in successors) {
-                if (isRelevantStmt(v)) {
-                    worklist.add(Pair(succ, java.util.Set.of(vertexToStmt(v))))
+                if (isRelevantStmt(node)) {
+                    worklist.add(Pair(succ, setOf(vertexToStmt(node))))
                 } else {
                     worklist.add(Pair(succ, second))
                 }
             }
         }
+
         return wpds
     }
 
@@ -571,11 +572,10 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                     val relevantNFATransitions =
                         tsNfa
                             .transitions
-                            .stream()
                             .filter { tran: NFATransition<StateNode> ->
                                 (tran.target.op == returnedVal.variable)
                             }
-                            .collect(Collectors.toSet())
+                            .toHashSet()
                     val weight =
                         if (relevantNFATransitions.isEmpty()) TypestateWeight.one()
                         else TypestateWeight(relevantNFATransitions)
@@ -642,16 +642,15 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
     }
 
     /**
-     * Returns a set of Vertices which are successors of `v` in the EOG and are not contained in
-     * `alreadySeen`.
+     * Returns a set of nodes which are successors of this node in the EOG and are not contained in
+     * [alreadySeen].
      *
-     * @param n
      * @param alreadySeen
      * @return
      */
-    private fun getSuccessors(n: Node, alreadySeen: HashSet<Node>): HashSet<Node> {
+    private fun Node.getSuccessors(alreadySeen: HashSet<Node>): HashSet<Node> {
         val unseenSuccessors = HashSet<Node>()
-        for (succ in n.nextEOG) {
+        for (succ in this.nextEOG) {
             if (!alreadySeen.contains(succ)) {
                 unseenSuccessors.add(succ)
                 alreadySeen.add(succ)

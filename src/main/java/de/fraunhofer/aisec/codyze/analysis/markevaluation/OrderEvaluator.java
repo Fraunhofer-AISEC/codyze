@@ -33,9 +33,11 @@ public class OrderEvaluator {
 			case WPDS:
 				log.info("Evaluating order with WPDS");
 				var ts = new TypestateAnalysis(markContextHolder);
+				var context = markContextHolder.getContext(contextID);
+
 				try {
 					// NOTE: rule and orderExpression might be redundant as arguments
-					result = ts.analyze(orderExpression, contextID, resultCtx, graph, rule);
+					result = ts.analyze(orderExpression, context, resultCtx, graph, rule);
 				}
 				catch (IllegalTransitionException e) {
 					log.error("Unexpected error in typestate WPDS", e);

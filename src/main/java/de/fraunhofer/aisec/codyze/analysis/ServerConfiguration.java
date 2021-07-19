@@ -1,10 +1,14 @@
 
 package de.fraunhofer.aisec.codyze.analysis;
 
+import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
+import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {
@@ -40,6 +44,9 @@ public class ServerConfiguration {
 	/** If true, no "positive" findings will be returned from the analysis. */
 	public final boolean disableGoodFindings;
 
+	/** Additional registered languages */
+	public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages;
+
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
@@ -47,7 +54,8 @@ public class ServerConfiguration {
 			@NonNull TypestateMode typestateMode,
 			boolean analyzeIncludes,
 			@NonNull File[] includePath,
-			boolean disableGoodFindings) {
+			boolean disableGoodFindings,
+			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
@@ -55,6 +63,7 @@ public class ServerConfiguration {
 		this.analyzeIncludes = analyzeIncludes;
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
+		this.additionalLanguages = additionalLanguages;
 	}
 
 	public static Builder builder() {
@@ -71,6 +80,7 @@ public class ServerConfiguration {
 		private boolean analyzeIncludes;
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
+		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -107,6 +117,11 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder registerLanguage(Class<? extends LanguageFrontend> clazz, List<String> fileExtensions) {
+			this.additionalLanguages.add(new Pair<>(clazz, fileExtensions));
+			return this;
+		}
+
 		public Builder disableGoodFindings(boolean disableGoodFindings) {
 			this.disableGoodFindings = disableGoodFindings;
 			return this;
@@ -124,7 +139,8 @@ public class ServerConfiguration {
 				typestateAnalysis,
 				analyzeIncludes,
 				includePath,
-				disableGoodFindings);
+				disableGoodFindings,
+				additionalLanguages);
 		}
 	}
 }

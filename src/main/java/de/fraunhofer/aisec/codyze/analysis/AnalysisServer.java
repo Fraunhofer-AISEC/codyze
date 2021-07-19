@@ -2,20 +2,20 @@
 package de.fraunhofer.aisec.codyze.analysis;
 
 import de.fraunhofer.aisec.codyze.JythonInterpreter;
+import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator;
 import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass;
 import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass;
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator;
+import de.fraunhofer.aisec.codyze.crymlin.builtin.Builtin;
+import de.fraunhofer.aisec.codyze.crymlin.builtin.BuiltinRegistry;
+import de.fraunhofer.aisec.codyze.crymlin.connectors.lsp.CpgLanguageServer;
+import de.fraunhofer.aisec.codyze.markmodel.Mark;
+import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader;
 import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.codyze.crymlin.builtin.Builtin;
-import de.fraunhofer.aisec.codyze.crymlin.builtin.BuiltinRegistry;
-import de.fraunhofer.aisec.codyze.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
-import de.fraunhofer.aisec.codyze.markmodel.Mark;
-import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -372,23 +372,29 @@ public class AnalysisServer {
 			files.add(f);
 		}
 
-		TranslationConfiguration.Builder tConfig = TranslationConfiguration.builder()
+		var translationConfig = TranslationConfiguration.builder()
 				.debugParser(true)
 				.failOnError(false)
 				.codeInNodes(true)
-				.loadIncludes(config.analyzeIncludes)
+				.loadIncludes(this.config.analyzeIncludes)
 				.defaultPasses()
 				.defaultLanguages()
 				.registerPass(new IdentifierPass())
 				.registerPass(new EdgeCachePass())
 				.sourceLocations(files.toArray(new File[0]));
 		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
-		for (File includePath : config.includePath) {
-			tConfig.includePath(includePath.getAbsolutePath());
+		for (File includePath : this.config.includePath) {
+			translationConfig.includePath(includePath.getAbsolutePath());
 		}
-		TranslationManager translationManager = TranslationManager.builder()
-				.config(tConfig.build())
+
+		for (var pair : this.config.additionalLanguages) {
+			translationConfig.registerLanguage(pair.getFirst(), pair.getSecond());
+		}
+
+		var translationManager = TranslationManager.builder()
+				.config(translationConfig.build())
 				.build();
+
 		return analyze(translationManager);
 	}
 

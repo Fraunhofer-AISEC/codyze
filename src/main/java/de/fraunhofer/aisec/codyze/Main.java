@@ -4,6 +4,8 @@ package de.fraunhofer.aisec.codyze;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
+import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -53,6 +55,14 @@ public class Main implements Callable<Integer> {
 			"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 	private boolean disableGoodFindings;
 
+	@Option(names = {
+			"--enable-python-support" }, description = "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README.")
+	private boolean enablePython;
+
+	@Option(names = {
+			"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
+	private boolean enableGo;
+
 	public static void main(String... args) {
 		int exitCode = new CommandLine(new Main()).execute(args);
 		System.exit(exitCode);
@@ -66,15 +76,25 @@ public class Main implements Callable<Integer> {
 			analysisMode.tsMode = TypestateMode.NFA;
 		}
 
+		var config = ServerConfiguration.builder()
+				.launchLsp(executionMode.lsp)
+				.launchConsole(executionMode.tui)
+				.typestateAnalysis(analysisMode.tsMode)
+				.disableGoodFindings(disableGoodFindings)
+				.analyzeIncludes(translationSettings.analyzeIncludes)
+				.includePath(translationSettings.includesPath)
+				.markFiles(markFolderName.getAbsolutePath());
+
+		if (enablePython) {
+			config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
+		}
+
+		if (enableGo) {
+			config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
+		}
+
 		AnalysisServer server = AnalysisServer.builder()
-				.config(ServerConfiguration.builder()
-						.launchLsp(executionMode.lsp)
-						.launchConsole(executionMode.tui)
-						.typestateAnalysis(analysisMode.tsMode)
-						.disableGoodFindings(disableGoodFindings)
-						.analyzeIncludes(translationSettings.analyzeIncludes)
-						.includePath(translationSettings.includesPath)
-						.markFiles(markFolderName.getAbsolutePath())
+				.config(config
 						.build())
 				.build();
 

@@ -1,11 +1,11 @@
 
 package de.fraunhofer.aisec.codyze.analysis;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.json.JSONPropertyIgnore;
 
 import java.io.PrintStream;
 import java.net.URI;
@@ -82,7 +82,7 @@ public class Finding {
 	/**
 	 * Returns an unmodifiable list of the associated LSP "ranges" (~regions).
 	 */
-	@JSONPropertyIgnore
+	@JsonIgnore
 	public List<Region> getRegions() {
 		return locations
 				.stream()
@@ -107,12 +107,16 @@ public class Finding {
 	}
 
 	public String toString() {
-		// simple for now
 		String addIfExists = "";
-		String descriptionShort = FindingDescription.getInstance().getDescriptionShort(onFailIdentifier);
-		if (descriptionShort != null && !descriptionShort.equals(onFailIdentifier)) {
-			addIfExists = ": " + descriptionShort;
+
+		if (onFailIdentifier != null) {
+			// simple for now
+			String descriptionShort = FindingDescription.getInstance().getDescriptionShort(onFailIdentifier);
+			if (descriptionShort != null && !descriptionShort.equals(onFailIdentifier)) {
+				addIfExists = ": " + descriptionShort;
+			}
 		}
+
 		String lines;
 		if (locations.size() == 1) {
 			lines = (locations.get(0).getRegion().getStartLine() + 1) + "";

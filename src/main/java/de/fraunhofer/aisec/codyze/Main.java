@@ -1,12 +1,9 @@
 
 package de.fraunhofer.aisec.codyze;
 
-import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
-import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
-import de.fraunhofer.aisec.codyze.analysis.Finding;
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
-import de.fraunhofer.aisec.codyze.analysis.TypestateMode;
-import org.json.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.aisec.codyze.analysis.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -18,7 +15,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -107,23 +103,20 @@ public class Main implements Callable<Integer> {
 	}
 
 	private void writeFindings(Set<Finding> findings) {
-		StringBuilder sb = new StringBuilder("[");
-		Iterator<Finding> it = findings.iterator();
-		while (it.hasNext()) {
-			Finding f = it.next();
-			JSONObject jFinding = new JSONObject(f);
-			sb.append(jFinding.toString(2));
-			if (it.hasNext()) {
-				sb.append(",");
-			}
+		var mapper = new ObjectMapper();
+		String output = null;
+		try {
+			output = mapper.writeValueAsString(findings);
 		}
-		sb.append("]");
+		catch (JsonProcessingException e) {
+			log.error("Could not serialize findings: {}", e.getMessage());
+		}
 
 		if (outputFile.equals("-")) {
-			System.out.println(sb);
+			System.out.println(output);
 		} else {
 			try (PrintWriter out = new PrintWriter(new File(outputFile))) {
-				out.println(sb);
+				out.println(output);
 			}
 			catch (FileNotFoundException e) {
 				System.out.println(e.getMessage());

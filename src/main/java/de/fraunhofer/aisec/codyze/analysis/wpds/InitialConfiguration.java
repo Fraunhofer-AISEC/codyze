@@ -4,9 +4,8 @@ package de.fraunhofer.aisec.codyze.analysis.wpds;
 import de.breakpointsec.pushdown.WPDS;
 import de.breakpointsec.pushdown.fsm.Transition;
 import de.breakpointsec.pushdown.fsm.WeightedAutomaton;
-import de.breakpointsec.pushdown.rules.NormalRule;
 import de.breakpointsec.pushdown.rules.Rule;
-import de.fraunhofer.aisec.cpg.sarif.Region;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -43,7 +42,7 @@ public class InitialConfiguration {
 		// Do not instantiate.
 	}
 
-	public static WeightedAutomaton<Stmt, Val, TypestateWeight> create(IInitialConfig creator, WPDS<Stmt, Val, TypestateWeight> wpds) {
+	public static WeightedAutomaton<Node, Val, TypestateWeight> create(IInitialConfig creator, WPDS<Node, Val, TypestateWeight> wpds) {
 		return creator.create(wpds);
 	}
 
@@ -54,32 +53,30 @@ public class InitialConfiguration {
 	 * @return
 	 */
 	@java.lang.SuppressWarnings({ "squid:S100", "squid:S1905" })
-	static final WeightedAutomaton<Stmt, Val, TypestateWeight> FIRST_TYPESTATE_EVENT(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
-		return ((IInitialConfig) myWpds -> {
-			// Get all WPDS rules have a type state transition originating in a START state.
-			Set<Rule<Stmt, Val, TypestateWeight>> startRules = getTypestateStartRules(myWpds);
+	static WeightedAutomaton<Node, Val, TypestateWeight> FIRST_TYPESTATE_EVENT(@NonNull WPDS<Node, Val, TypestateWeight> wpds) {
+		// Get all WPDS rules have a type state transition originating in a START state.
+		var startRules = getTypestateStartRules(wpds);
 
-			// Collect initial configurations from the start rules.
-			/* TODO limit to the Var that is assigned the typestate.
-				For non-OO languages the TS changes even if the operation does not affect the typestate object.
-				For instance, the following rule could indicate a TS transition:
-				<State: dec_length in (aes256_decrypt); Location: 70:5 decrypted_message = message_init(*encrypted_message -> length);> --> <State: dec_length in (aes256_decrypt); Location: 71:15 EVP_CIPHER_CTX_new()>(START.START -- [create] --> ctx.create)
-			
-				This is incorrect, as the Var in this rule is "dec_length" which is not the one that is assigned the typestate object. Correct would be "dec_ctx"
-			 */
-			Set<Pair<Val, Stmt>> initialStates = new HashSet<>();
-			for (Rule<Stmt, Val, TypestateWeight> r : startRules) {
-				Val initialState = r.getS1();
-				Stmt stmt = r.getL1();
-				initialStates.add(new Pair<>(initialState, stmt));
-			}
+		// Collect initial configurations from the start rules.
+		/* TODO limit to the Var that is assigned the typestate.
+			For non-OO languages the TS changes even if the operation does not affect the typestate object.
+			For instance, the following rule could indicate a TS transition:
+			<State: dec_length in (aes256_decrypt); Location: 70:5 decrypted_message = message_init(*encrypted_message -> length);> --> <State: dec_length in (aes256_decrypt); Location: 71:15 EVP_CIPHER_CTX_new()>(START.START -- [create] --> ctx.create)
+		
+			This is incorrect, as the Var in this rule is "dec_length" which is not the one that is assigned the typestate object. Correct would be "dec_ctx"
+		 */
+		var initialStates = new HashSet<Pair<Val, Node>>();
+		for (var r : startRules) {
+			Val initialState = r.getS1();
+			var stmt = r.getL1();
+			initialStates.add(new Pair<>(initialState, stmt));
+		}
 
-			if (initialStates.isEmpty()) {
-				log.error("Did not find initial configuration for typestate analysis. Will fail soon.");
-			}
+		if (initialStates.isEmpty()) {
+			log.error("Did not find initial configuration for typestate analysis. Will fail soon.");
+		}
 
-			return createInitialWNFA(initialStates);
-		}).create(wpds);
+		return createInitialWNFA(initialStates);
 	}
 
 	/**
@@ -88,42 +85,41 @@ public class InitialConfiguration {
 	 * @param wpds
 	 * @return
 	 */
-	@NonNull
 	@java.lang.SuppressWarnings({ "squid:S100", "squid:S1905" })
-	static final WeightedAutomaton<Stmt, Val, TypestateWeight> VAR_DECLARATIONS(@NonNull WPDS<Stmt, Val, TypestateWeight> wpds) {
-		return ((IInitialConfig) myWpds -> {
-			// Get START state from WPDS
-			Set<Pair<Val, Stmt>> initialStates = new HashSet<>();
-			Set<NormalRule<Stmt, Val, TypestateWeight>> normalRules = myWpds.getNormalRules();
-			for (NormalRule<Stmt, Val, TypestateWeight> nr : normalRules) {
-				if (nr.getS1()
-						.getVariable()
-						.equals(CpgWpds.EPSILON)) {
-					Val initialState = nr.getS2();
-					Stmt stmt = nr.getL2();
-					initialStates.add(new Pair<>(initialState, stmt));
-				}
+	static WeightedAutomaton<Node, Val, TypestateWeight> VAR_DECLARATIONS(@NonNull WPDS<Node, Val, TypestateWeight> wpds) {
+		// Get START state from WPDS
+		var initialStates = new HashSet<Pair<Val, Node>>();
+		var normalRules = wpds.getNormalRules();
+		for (var nr : normalRules) {
+			if (nr.getS1()
+					.getVariable()
+					.equals(GraphWPDS.EPSILON_NAME)) {
+				var initialState = nr.getS2();
+				var stmt = nr.getL2();
+				initialStates.add(new Pair<>(initialState, stmt));
 			}
+		}
 
-			if (initialStates.isEmpty()) {
-				log.error("Did not find initial configuration for typestate analysis. Will fail soon.");
-			}
+		if (initialStates.isEmpty()) {
+			log.error("Did not find initial configuration for typestate analysis. Will fail soon.");
+		}
 
-			return createInitialWNFA(initialStates);
-		}).create(wpds);
+		return createInitialWNFA(initialStates);
 	}
 
-	private static WeightedAutomaton<Stmt, Val, TypestateWeight> createInitialWNFA(Set<Pair<Val, Stmt>> initialStates) {
+	private static WeightedAutomaton<Node, Val, TypestateWeight> createInitialWNFA(Set<Pair<Val, Node>> initialStates) {
 		// Create statement for start configuration and create start CONFIG
 		// TODO make initialState a set or remove completely
 		int line = Integer.MAX_VALUE;
 		Val initialState = null;
-		Stmt stmt = null;
-		for (Pair<Val, Stmt> s : initialStates) {
+		Node stmt = null;
+		for (var s : initialStates) {
 			if (s.getSecond()
+					.getLocation()
 					.getRegion()
 					.getStartLine() < line) {
 				line = s.getSecond()
+						.getLocation()
 						.getRegion()
 						.getStartLine();
 				initialState = s.getFirst();
@@ -131,9 +127,9 @@ public class InitialConfiguration {
 			}
 		}
 
-		WeightedAutomaton<Stmt, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
+		WeightedAutomaton<Node, Val, TypestateWeight> wnfa = new WeightedAutomaton<>(initialState) {
 			@Override
-			public Val createState(Val val, Stmt stmt) {
+			public Val createState(Val val, Node stmt) {
 				return val;
 			}
 
@@ -143,8 +139,8 @@ public class InitialConfiguration {
 			}
 
 			@Override
-			public Stmt epsilon() {
-				return new Stmt(CpgWpds.EPSILON, new Region(-1, -1, -1, -1));
+			public Node epsilon() {
+				return new GraphWPDS.EpsilonNode();
 			}
 
 			@Override
@@ -173,9 +169,9 @@ public class InitialConfiguration {
 		return wnfa;
 	}
 
-	private static void dumpInitialConfigurations(Set<Pair<Val, Stmt>> initialStates) {
+	private static void dumpInitialConfigurations(Set<Pair<Val, Node>> initialStates) {
 		log.debug("Initial configuration(s):");
-		for (Pair<Val, Stmt> initialConfig : initialStates) {
+		for (var initialConfig : initialStates) {
 			log.debug("  {} in {} at {}", initialConfig.getFirst().getVariable(), initialConfig.getFirst().getCurrentScope(), initialConfig.getSecond());
 		}
 	}
@@ -186,10 +182,12 @@ public class InitialConfiguration {
 	 * @param wpds
 	 * @return
 	 */
-	private static Set<Rule<Stmt, Val, TypestateWeight>> getTypestateStartRules(WPDS<Stmt, Val, TypestateWeight> wpds) {
-		Set<Rule<Stmt, Val, TypestateWeight>> startRules = new HashSet<>();
-		for (Rule<Stmt, Val, TypestateWeight> rule : wpds.getAllRules()) {
-			TypestateWeight tsWeight = rule.getWeight();
+	private static Set<Rule<Node, Val, TypestateWeight>> getTypestateStartRules(WPDS<Node, Val, TypestateWeight> wpds) {
+		var startRules = new HashSet<Rule<Node, Val, TypestateWeight>>();
+
+		for (var rule : wpds.getAllRules()) {
+			var tsWeight = rule.getWeight();
+
 			if (tsWeight.value() instanceof Set) {
 				Set<NFATransition<StateNode>> tsTransitions = (Set) tsWeight.value();
 				for (NFATransition<StateNode> tsTransition : tsTransitions) {
@@ -201,6 +199,7 @@ public class InitialConfiguration {
 				}
 			}
 		}
+
 		return startRules;
 	}
 

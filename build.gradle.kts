@@ -86,6 +86,9 @@ dependencies {
     api("org.apache.logging.log4j:log4j-core:2.14.1") // impl in main; used only in test
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
 
+    // will be a transitive dependency after CPG beta.3
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3")
+
     // Code Property Graph
     //api("de.fraunhofer.aisec:cpg:3.5.1") // ok
     //implementation("com.github.Fraunhofer-AISEC:cpg:v4.0.0-beta.1")
@@ -107,15 +110,6 @@ dependencies {
     // Command line interface support
     api("info.picocli:picocli:4.6.1")
     annotationProcessor("info.picocli:picocli-codegen:4.6.1")
-
-    // JSON parser for generation of results file
-    implementation("org.json:json:20210307")
-
-    // JsonPath for querying findings description
-    implementation("com.jayway.jsonpath:json-path:2.6.0")
-
-    // Groovy
-    implementation("org.codehaus.groovy:groovy:3.0.8") // fetch a recent groovy otherwise, Java11+ has problems
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.9.11")

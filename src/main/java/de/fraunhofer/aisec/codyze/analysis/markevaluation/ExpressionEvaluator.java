@@ -482,7 +482,7 @@ public class ExpressionEvaluator {
 					result.put(entry.getKey(), cv);
 				}
 			} else {
-				MarkIntermediateResult cv = builtin.get().execute(resultCtx, new ListValue(), -1, markContextHolder, this);
+				var cv = builtin.get().execute(resultCtx, new ListValue(), -1, markContextHolder, this);
 				result.put(0, cv);
 			}
 			return result;

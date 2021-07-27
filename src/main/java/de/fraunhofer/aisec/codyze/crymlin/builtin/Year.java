@@ -29,9 +29,8 @@ public class Year implements Builtin {
 		return "_year";
 	}
 
-	@NonNull
 	@Override
-	public ConstantValue execute(
+	public MarkIntermediateResult execute(
 			@NonNull AnalysisContext ctx,
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,

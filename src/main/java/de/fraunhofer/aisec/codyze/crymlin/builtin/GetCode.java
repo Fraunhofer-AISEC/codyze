@@ -26,7 +26,7 @@ public class GetCode implements Builtin {
 		return "_get_code";
 	}
 
-	public ConstantValue execute(
+	public MarkIntermediateResult execute(
 			@NonNull AnalysisContext ctx,
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,

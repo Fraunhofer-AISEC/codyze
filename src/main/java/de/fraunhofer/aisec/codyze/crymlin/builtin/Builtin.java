@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.builtin;
 
+import de.fraunhofer.aisec.codyze.analysis.MarkIntermediateResult;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
@@ -39,7 +40,7 @@ public interface Builtin {
 	 * @param expressionEvaluator the expressionEvaluator, this builtin is called from
 	 * @return
 	 */
-	ConstantValue execute(
+	MarkIntermediateResult execute(
 			@NonNull AnalysisContext ctx,
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,

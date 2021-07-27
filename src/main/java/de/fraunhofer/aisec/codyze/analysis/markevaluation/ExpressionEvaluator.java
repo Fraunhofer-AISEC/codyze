@@ -478,11 +478,11 @@ public class ExpressionEvaluator {
 						continue;
 					}
 
-					ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
+					var cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
 					result.put(entry.getKey(), cv);
 				}
 			} else {
-				ConstantValue cv = builtin.get().execute(resultCtx, new ListValue(), -1, markContextHolder, this);
+				var cv = builtin.get().execute(resultCtx, new ListValue(), -1, markContextHolder, this);
 				result.put(0, cv);
 			}
 			return result;

@@ -157,7 +157,24 @@ public class CpgDocumentService implements TextDocumentService {
 			for (Region reg : f.getRegions()) {
 				Diagnostic diagnostic = new Diagnostic();
 				// TODO Replace HINT for verified findings with Code Lens
-				diagnostic.setSeverity(f.isProblem() ? DiagnosticSeverity.Error : DiagnosticSeverity.Information);
+
+				DiagnosticSeverity severity = DiagnosticSeverity.Information;
+				if (f.isProblem()) {
+					switch (f.getAction()) {
+						case INFO:
+							severity = DiagnosticSeverity.Information;
+							break;
+						case WARN:
+							severity = DiagnosticSeverity.Warning;
+							break;
+						case FAIL:
+							severity = DiagnosticSeverity.Error;
+							break;
+						default:
+							severity = DiagnosticSeverity.Error;
+					}
+				}
+				diagnostic.setSeverity(severity);
 
 				// Get human readable description, if available
 				String msg = FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier());

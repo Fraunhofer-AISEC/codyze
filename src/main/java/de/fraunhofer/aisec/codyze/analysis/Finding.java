@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.codyze.analysis;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
+import de.fraunhofer.aisec.mark.markDsl.Action;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -19,16 +20,41 @@ import java.util.stream.Collectors;
  *
  */
 public class Finding {
+
+	/**
+	 * Identifier following `onfail` in a MARK  rule. Identifies the
+	 * corresponding description for this finding.
+	 *
+	 * <p>
+	 *     To be removed as rule names are sufficiently unique.
+	 * </p>
+	 */
+	@Deprecated(since = "2.0.0-alpha3", forRemoval = true)
 	private final String onFailIdentifier;
 
 	/**
-	 * True, if this Finding indicates a problem/vulnerability. False, if this Finding indicates a code snippet that has been checked and verified.
+	 * True, if this finding indicates a problem/vulnerability. False, if this
+	 * finding indicates a code snippet that has been checked and verified.
 	 */
 	private boolean isProblem = true;
 
+	/**
+	 * Simplified description of this finding. Usually state that a rule was
+	 * validated or violated.
+	 */
 	private final String logMsg;
+
+	/**
+	 * Location (lines and columns) in source code files, where this finding was
+	 * produced.
+	 */
 	@NonNull
 	private final List<PhysicalLocation> locations = new ArrayList<>();
+
+	/**
+	 * 
+	 */
+	private Action action;
 
 	/**
 	 * Constructor.
@@ -48,6 +74,7 @@ public class Finding {
 			this.locations
 					.add(new PhysicalLocation(artifactUri, new Region(startLine, startColumn, endLine, endColumn)));
 		}
+		action = Action.FAIL;
 	}
 
 	/**
@@ -69,6 +96,19 @@ public class Finding {
 			}
 		}
 		this.isProblem = isProblem;
+		this.action = Action.FAIL;
+	}
+
+	public Finding(String identifier, String logMsg, @Nullable URI artifactUri, Action action, List<Region> ranges, boolean isProblem) {
+		this.onFailIdentifier = identifier;
+		this.logMsg = logMsg;
+		for (Region r : ranges) {
+			if (artifactUri != null) {
+				this.locations.add(new PhysicalLocation(artifactUri, r));
+			}
+		}
+		this.isProblem = isProblem;
+		this.action = action;
 	}
 
 	public String getLogMsg() {
@@ -104,6 +144,10 @@ public class Finding {
 
 	public String getOnfailIdentifier() {
 		return onFailIdentifier;
+	}
+
+	public Action getAction() {
+		return action;
 	}
 
 	public String toString() {
@@ -157,4 +201,5 @@ public class Finding {
 
 		out.println(lines + ": " + (isProblem ? "(BAD)  " : "(GOOD) ") + shortMsg + ": " + logMsg);
 	}
+
 }

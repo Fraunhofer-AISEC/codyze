@@ -15,6 +15,7 @@ public class MRule {
 	private String name;
 	private RuleStatement statement;
 	private String errorMessage;
+
 	/**
 	 * stores Entity-alias to Pair(Name of Entity, EntityReference). The EntityReference can be NULL if the entity is not available/parsed. E.g. for the rule rule
 	 * UseOfBotan_CipherMode { using Order as cm ensure order cm.start(), cm.finish() onfail WrongUseOfBotan_CipherMode } this would store: cm -> Pair(Order, Reference to

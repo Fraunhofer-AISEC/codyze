@@ -252,14 +252,27 @@ public class Evaluator {
 					}
 
 					boolean isRuleViolated = !(Boolean) evaluationResultUb;
-					findings.add(new Finding(
-						"Rule "
-								+ rule.getName()
-								+ (isRuleViolated ? " violated" : " verified"),
-						currentFile,
-						rule.getErrorMessage(),
-						ranges,
-						isRuleViolated));
+
+					if (rule.getErrorMessage() != null) {
+						findings.add(new Finding(
+							"Rule "
+									+ rule.getName()
+									+ (isRuleViolated ? " violated" : " verified"),
+							currentFile,
+							rule.getErrorMessage(),
+							ranges,
+							isRuleViolated));
+					} else {
+						findings.add(new Finding(
+							rule.getName(),
+							"Rule "
+									+ rule.getName()
+									+ (isRuleViolated ? " violated" : " verified"),
+							currentFile,
+							rule.getStatement().getAction(),
+							ranges,
+							isRuleViolated));
+					}
 				}
 			} else if (evaluationResultUb == null) {
 				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size()

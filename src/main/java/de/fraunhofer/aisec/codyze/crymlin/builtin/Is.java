@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.builtin;
 
+import de.fraunhofer.aisec.codyze.analysis.MarkIntermediateResult;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
@@ -23,7 +24,7 @@ public class Is implements Builtin {
 	}
 
 	@Override
-	public ConstantValue execute(
+	public MarkIntermediateResult execute(
 			@NonNull AnalysisContext ctx,
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,

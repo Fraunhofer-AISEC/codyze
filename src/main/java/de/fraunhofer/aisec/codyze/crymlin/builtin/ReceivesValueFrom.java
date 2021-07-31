@@ -27,7 +27,7 @@ public class ReceivesValueFrom implements Builtin {
 	}
 
 	@Override
-	public ConstantValue execute(
+	public MarkIntermediateResult execute(
 			@NonNull AnalysisContext ctx,
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,

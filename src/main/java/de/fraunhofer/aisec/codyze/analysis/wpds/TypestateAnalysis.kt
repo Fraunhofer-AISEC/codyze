@@ -505,7 +505,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         val currentFunctionName = functionDeclaration.name
 
         // return statements result in pop rules
-        if (!returnStatement.isDummy) {
+        if (!returnStatement.isInferred) {
             val returnedVals = findReturnedVals(returnStatement)
             for (returnedVal in returnedVals) {
                 val relevantNFATransitions =

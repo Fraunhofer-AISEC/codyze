@@ -209,15 +209,21 @@ public class OrderNFAEvaluator {
 								}
 							} else if (vertex instanceof CallExpression) {
 								// TODO: which statement?
-								var params = op.getStatements().get(0).getCall().getParams();
-								var thisPositions = IntStream.range(0, params.size())
-										.filter(i -> "this".equals(params.get(i).getVar()))
-										.toArray();
-								if (thisPositions.length == 1) {
-									refNode = getBaseOfCallExpressionUsingArgument((CallExpression) vertex, thisPositions[0]);
-									base = refNode.getName();
-									ref = refNode.getId().toString();
-								} else {
+								var foundUsingThis = false;
+								var opstmt = op.getNodesToStatements().get(vertex);
+								if (opstmt.size() == 1) {
+									var params = opstmt.iterator().next().getCall().getParams();
+									var thisPositions = IntStream.range(0, params.size())
+											.filter(i -> "this".equals(params.get(i).getVar()))
+											.toArray();
+									if (thisPositions.length == 1) {
+										refNode = getBaseOfCallExpressionUsingArgument((CallExpression) vertex, thisPositions[0]);
+										base = refNode.getName();
+										ref = refNode.getId().toString();
+										foundUsingThis = true;
+									}
+								}
+								if (!foundUsingThis) {
 									var it = vertex.getNextDFG().iterator();
 									if (it.hasNext()) {
 										var baseVertex = it.next();

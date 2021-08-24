@@ -23,7 +23,9 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getBaseOfCallExpressionUsingArgument;
 import static de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePassKt.getAstParent;
 import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getContainingFunction;
 
@@ -206,26 +208,37 @@ public class OrderNFAEvaluator {
 									}
 								}
 							} else if (vertex instanceof CallExpression) {
-								var it = vertex.getNextDFG().iterator();
-								if (it.hasNext()) {
-									var baseVertex = it.next();
-									base = baseVertex.getName();
-									if (baseVertex instanceof ConstructExpression) {
-										it = baseVertex.getNextDFG().iterator();
-										if (it.hasNext()) {
-											baseVertex = it.next();
-											base = baseVertex.getName();
+								// TODO: which statement?
+								var params = op.getStatements().get(0).getCall().getParams();
+								var thisPositions = IntStream.range(0, params.size())
+										.filter(i -> "this".equals(params.get(i).getVar()))
+										.toArray();
+								if (thisPositions.length == 1) {
+									refNode = getBaseOfCallExpressionUsingArgument((CallExpression) vertex, thisPositions[0]);
+									base = refNode.getName();
+									ref = refNode.getId().toString();
+								} else {
+									var it = vertex.getNextDFG().iterator();
+									if (it.hasNext()) {
+										var baseVertex = it.next();
+										base = baseVertex.getName();
+										if (baseVertex instanceof ConstructExpression) {
+											it = baseVertex.getNextDFG().iterator();
+											if (it.hasNext()) {
+												baseVertex = it.next();
+												base = baseVertex.getName();
+											}
 										}
-									}
-									if (baseVertex instanceof VariableDeclaration) {
-										// this is already the reference
-										refNode = baseVertex;
-										ref = refNode.getId().toString();
-									} else {
-										if (baseVertex instanceof DeclaredReferenceExpression) {
-											refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
-											if (refNode != null) {
-												ref = refNode.getId().toString();
+										if (baseVertex instanceof VariableDeclaration) {
+											// this is already the reference
+											refNode = baseVertex;
+											ref = refNode.getId().toString();
+										} else {
+											if (baseVertex instanceof DeclaredReferenceExpression) {
+												refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
+												if (refNode != null) {
+													ref = refNode.getId().toString();
+												}
 											}
 										}
 									}

@@ -8,10 +8,7 @@ import de.breakpointsec.pushdown.rules.PopRule
 import de.breakpointsec.pushdown.rules.PushRule
 import de.breakpointsec.pushdown.rules.Rule
 import de.fraunhofer.aisec.codyze.analysis.*
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.argumentsMatchParameters
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.containingFunction
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.functions
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.nextStatement
+import de.fraunhofer.aisec.codyze.analysis.markevaluation.*
 import de.fraunhofer.aisec.codyze.analysis.passes.astParent
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
@@ -31,9 +28,7 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import de.fraunhofer.aisec.mark.markDsl.Terminal
 import java.io.File
 import java.net.URI
-import java.util.ArrayDeque
-import java.util.ArrayList
-import java.util.HashSet
+import java.util.*
 import org.slf4j.LoggerFactory
 
 /**
@@ -831,7 +826,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * @return
      */
     private fun Node.typestateTransitionTrigger(tsNfa: NFA): Map<String, Set<String>> {
-        val opsMap = mutableMapOf<String, Set<String>>()
+        val opsMap = mutableMapOf<String, MutableSet<String>>()
 
         for (markInstance in tsNfa.transitions.map { it.target.base }) {
             if (markInstance == null) {
@@ -849,6 +844,16 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             // (=assignee)
             var assigneeVar: String? = null
             var assignerFqn: String? = null
+            if (this is DeclarationStatement) {
+                this.singleDeclaration?.let {
+                    assigneeVar = this.name
+                    if ((it as? VariableDeclaration)?.initializer is CallExpression) {
+                        assignerFqn =
+                            ((it as? VariableDeclaration)?.initializer as CallExpression).fqn
+                    }
+                }
+            }
+
             if (this is VariableDeclaration) {
                 assigneeVar = this.name
                 if (this.initializer is CallExpression) {
@@ -871,7 +876,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 arguments.addAll(this.arguments)
             }
 
-            val ops = opsMap.computeIfAbsent(markInstance) { mutableSetOf() }.toMutableSet()
+            val ops = opsMap.computeIfAbsent(markInstance) { mutableSetOf() }
 
             for (o in mEntity.second!!.ops) {
                 for (opStatement in o.statements) {

@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
@@ -208,7 +209,6 @@ public class OrderNFAEvaluator {
 									}
 								}
 							} else if (vertex instanceof CallExpression) {
-								// TODO: which statement?
 								var foundUsingThis = false;
 								var opstmt = op.getNodesToStatements().get(vertex);
 								if (opstmt.size() == 1) {
@@ -224,12 +224,23 @@ public class OrderNFAEvaluator {
 									}
 								}
 								if (!foundUsingThis) {
-									var it = vertex.getNextDFG().iterator();
-									if (it.hasNext()) {
-										var baseVertex = it.next();
+									// There could potentially be multiple DFG targets. this can lead to
+									// inconsistent results. Therefore, we filter the DFG targets for "interesting" types
+									// and also sort them by name to make this more consistent.
+									var next = vertex.getNextDFG()
+											.stream()
+											.filter(node -> node instanceof ConstructExpression || node instanceof VariableDeclaration
+													|| node instanceof DeclaredReferenceExpression)
+											.sorted(Comparator.comparing(Node::getName))
+											.collect(Collectors.toList());
+
+									if (!next.isEmpty()) {
+										var baseVertex = next.get(0);
+
 										base = baseVertex.getName();
 										if (baseVertex instanceof ConstructExpression) {
-											it = baseVertex.getNextDFG().iterator();
+											var it = baseVertex.getNextDFG().iterator();
+											// this potentially has the same problem as above
 											if (it.hasNext()) {
 												baseVertex = it.next();
 												base = baseVertex.getName();

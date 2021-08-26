@@ -473,7 +473,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                     currentFunctionName,
                     previousStmt,
                     wpds,
-                    valsInScope
+                    valsInScope,
+                    tsNfa
                 )
             stmtNode is ReturnStatement ->
                 handleReturnStatement(
@@ -567,7 +568,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         currentFunctionName: String,
         previousStmt: Node,
         wpds: WPDS<Node, Val, TypestateWeight>,
-        valsInScope: MutableSet<Val>
+        valsInScope: MutableSet<Val>,
+        tsNfa: NFA
     ) {
         // Handle declaration of new variables. "DeclarationStatements" result in a normal rule,
         // assigning rhs to lhs.
@@ -586,7 +588,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 // Handle function/method calls whose return value is assigned to a declared
                 // variable.
                 // A new data flow for the declared variable (declVal) is introduced.
-                val normalRuleDeclared: Rule<Node, Val, TypestateWeight> =
+                /*val normalRuleDeclared: Rule<Node, Val, TypestateWeight> =
                     NormalRule(
                         Val(GraphWPDS.EPSILON_NAME, currentFunctionName),
                         previousStmt,
@@ -595,7 +597,10 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                         TypestateWeight.one()
                     )
                 log.debug("Adding normal rule for declaration {}", normalRuleDeclared)
-                wpds.addRule(normalRuleDeclared)
+                wpds.addRule(normalRuleDeclared)*/
+
+                val rules = createNormalRules(previousStmt, rhs, valsInScope, tsNfa)
+                rules.forEach { wpds.addRule(it) }
 
                 // Add declVal to set of currently tracked variables
                 valsInScope.add(declVal)
@@ -704,16 +709,16 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         tsNfa: NFA
     ): Set<NormalRule<Node, Val, TypestateWeight>> {
         val result: MutableSet<NormalRule<Node, Val, TypestateWeight>> = HashSet()
+        val map = node.typestateTransitionTrigger(tsNfa)
 
         // Create normal rule. Flow remains where it is.
         for (valInScope in valsInScope) {
-            var map = node.typestateTransitionTrigger(tsNfa)
-
             // Determine weight
             val relevantNFATransitions =
                 tsNfa
                     .transitions
-                    .filter { node.triggersTypestateTransition(it.target.base, it.target.op) }
+                    // .filter { node.triggersTypestateTransition(it.target.base, it.target.op) }
+                    .filter { map[it.target.base]?.contains(it.target.op) == true }
                     .toHashSet()
             val weight =
                 if (relevantNFATransitions.isEmpty()) TypestateWeight.one()
@@ -734,6 +739,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      *
      * @return
      */
+    @Deprecated("Replaced by typestateTransitionTrigger")
     private fun Node.triggersTypestateTransition(markInstance: String?, op: String): Boolean {
         /*
         TODO Future improvement: This method is repeatedly called for different "ops" and thus repeats quite some work.
@@ -844,16 +850,6 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             // (=assignee)
             var assigneeVar: String? = null
             var assignerFqn: String? = null
-            if (this is DeclarationStatement) {
-                this.singleDeclaration?.let {
-                    assigneeVar = this.name
-                    if ((it as? VariableDeclaration)?.initializer is CallExpression) {
-                        assignerFqn =
-                            ((it as? VariableDeclaration)?.initializer as CallExpression).fqn
-                    }
-                }
-            }
-
             if (this is VariableDeclaration) {
                 assigneeVar = this.name
                 if (this.initializer is CallExpression) {

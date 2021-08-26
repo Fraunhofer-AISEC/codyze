@@ -58,22 +58,4 @@ class OrderIssueTest : AbstractMarkTest() {
         assertTrue(results.all { !it.isProblem })
     }
 
-    @Test
-    fun checkOrderNFARandom() {
-        // First run with WPDS (otherwise, NFA will not break)
-        this.tsMode = TypestateMode.WPDS
-        val results = performTest("unittests/order_issue.c", "unittests/order_issue.mark")
-
-        // only good findings
-        assertTrue(results.all { !it.isProblem })
-
-        // now, NFA will break randomly
-        this.tsMode = TypestateMode.NFA
-        for (i in 1..100) {
-            val results = performTest("unittests/order_issue_foo2.c", "unittests/order_issue.mark")
-
-            // only good findings
-            assertTrue(results.all { !it.isProblem })
-        }
-    }
 }

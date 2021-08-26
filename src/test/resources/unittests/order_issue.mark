@@ -1,6 +1,6 @@
 package somePackage
 
-entity SomeEntitiy {
+entity SomeEntity {
   op start {
     this = ABC_new(_);
   }
@@ -10,7 +10,7 @@ entity SomeEntitiy {
 }
 
 rule SomeRule {
-  using SomeEntitiy as e
+  using SomeEntity as e
   ensure order
   e.start(),
   e.stop()

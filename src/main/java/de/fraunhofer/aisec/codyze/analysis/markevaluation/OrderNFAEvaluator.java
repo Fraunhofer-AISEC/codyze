@@ -199,16 +199,22 @@ public class OrderNFAEvaluator {
 							} else if (vertex instanceof ConstructExpression) { // ctor
 								var initializerBase = getAstParent(vertex);
 								if (initializerBase != null) {
-									var it = initializerBase.getNextDFG().iterator();
-									if (it.hasNext()) {
-										var baseVertex = it.next();
+									var next = vertex.getNextDFG()
+											.stream()
+											.filter(node -> node instanceof VariableDeclaration
+													|| node instanceof DeclaredReferenceExpression)
+											.sorted(Comparator.comparing(Node::getName))
+											.collect(Collectors.toList());
+									if (!next.isEmpty()) {
+										var baseVertex = next.get(0);
 										base = baseVertex.getName();
 										// for ctor, the DFG points already to the variabledecl
+										// TODO: not true, it can also be a reference
 										refNode = baseVertex;
 										ref = refNode.getId().toString();
 									}
 								}
-							} else if (vertex instanceof CallExpression) {
+							} else {
 								var foundUsingThis = false;
 								var opstmt = op.getNodesToStatements().get(vertex);
 								if (opstmt.size() == 1) {
@@ -239,13 +245,18 @@ public class OrderNFAEvaluator {
 
 										base = baseVertex.getName();
 										if (baseVertex instanceof ConstructExpression) {
-											var it = baseVertex.getNextDFG().iterator();
-											// this potentially has the same problem as above
-											if (it.hasNext()) {
-												baseVertex = it.next();
+											next = baseVertex.getNextDFG()
+													.stream()
+													.filter(node -> node instanceof VariableDeclaration
+															|| node instanceof DeclaredReferenceExpression)
+													.sorted(Comparator.comparing(Node::getName))
+													.collect(Collectors.toList());
+											if (!next.isEmpty()) {
+												baseVertex = next.get(0);
 												base = baseVertex.getName();
 											}
 										}
+
 										if (baseVertex instanceof VariableDeclaration) {
 											// this is already the reference
 											refNode = baseVertex;

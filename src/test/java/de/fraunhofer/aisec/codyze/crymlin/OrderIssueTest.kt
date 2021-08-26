@@ -57,5 +57,4 @@ class OrderIssueTest : AbstractMarkTest() {
         // only good findings
         assertTrue(results.all { !it.isProblem })
     }
-
 }

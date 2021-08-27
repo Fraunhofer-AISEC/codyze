@@ -302,7 +302,7 @@ fun CallExpression.getBaseDeclaration(): Node? {
  *
  * For example, for the code `call(a, b)` and using the [argumentIndex] `0`, this will return `a`.
  */
-private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: Int): Node? {
+public fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: Int): Node? {
     val list = this.arguments.filter { it.argumentIndex == argumentIndex }
 
     if (list.size == 1) {

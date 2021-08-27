@@ -28,6 +28,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.*;
 import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
@@ -381,8 +382,25 @@ public class Evaluator {
 						// mainly for builder functions
 						ref = getSuitableDFGTarget(node);
 					} else if (node instanceof CallExpression) {
-						// Program variable is either the Base of some method call ...
-						ref = getBaseDeclaration((CallExpression) node);
+						// check for "this" style MARK call, used mainly in non-object oriented programming.
+						// this should also take priority, if we explicitly specify the "this"
+						var opstmt = op.getNodesToStatements().get(node);
+						var usingThis = false;
+						if (opstmt.size() == 1) {
+							var params = opstmt.iterator().next().getCall().getParams();
+							var thisPositions = IntStream.range(0, params.size())
+									.filter(i -> "this".equals(params.get(i).getVar()))
+									.toArray();
+							if (thisPositions.length == 1) {
+								usingThis = true;
+								ref = getBaseOfCallExpressionUsingArgument((CallExpression) node, thisPositions[0]);
+							}
+						}
+
+						if (!usingThis) {
+							// Program variable is either the Base of some method call ...
+							ref = getBaseDeclaration((CallExpression) node);
+						}
 					}
 
 					if (ref == null) { // if we did not find a base the "easy way", try to find a base using the simple-DFG

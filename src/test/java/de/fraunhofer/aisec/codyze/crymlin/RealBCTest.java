@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-// This test is disabled for now, because this test is very flaky
+// at least it breaks consistently now
 @Disabled
 class RealBCTest extends AbstractMarkTest {
 

@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
+import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
@@ -23,7 +24,9 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getBaseOfCallExpressionUsingArgument;
 import static de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePassKt.getAstParent;
 import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getContainingFunction;
 
@@ -196,36 +199,74 @@ public class OrderNFAEvaluator {
 							} else if (vertex instanceof ConstructExpression) { // ctor
 								var initializerBase = getAstParent(vertex);
 								if (initializerBase != null) {
-									var it = initializerBase.getNextDFG().iterator();
-									if (it.hasNext()) {
-										var baseVertex = it.next();
+									var next = vertex.getNextDFG()
+											.stream()
+											.filter(node -> node instanceof VariableDeclaration
+													|| node instanceof DeclaredReferenceExpression)
+											.sorted(Comparator.comparing(Node::getName))
+											.collect(Collectors.toList());
+									if (!next.isEmpty()) {
+										var baseVertex = next.get(0);
 										base = baseVertex.getName();
 										// for ctor, the DFG points already to the variabledecl
+										// TODO: not true, it can also be a reference
 										refNode = baseVertex;
 										ref = refNode.getId().toString();
 									}
 								}
-							} else if (vertex instanceof CallExpression) {
-								var it = vertex.getNextDFG().iterator();
-								if (it.hasNext()) {
-									var baseVertex = it.next();
-									base = baseVertex.getName();
-									if (baseVertex instanceof ConstructExpression) {
-										it = baseVertex.getNextDFG().iterator();
-										if (it.hasNext()) {
-											baseVertex = it.next();
-											base = baseVertex.getName();
-										}
-									}
-									if (baseVertex instanceof VariableDeclaration) {
-										// this is already the reference
-										refNode = baseVertex;
+							} else {
+								var foundUsingThis = false;
+								var opstmt = op.getNodesToStatements().get(vertex);
+								if (opstmt.size() == 1) {
+									var params = opstmt.iterator().next().getCall().getParams();
+									var thisPositions = IntStream.range(0, params.size())
+											.filter(i -> "this".equals(params.get(i).getVar()))
+											.toArray();
+									if (thisPositions.length == 1) {
+										refNode = getBaseOfCallExpressionUsingArgument((CallExpression) vertex, thisPositions[0]);
+										base = refNode.getName();
 										ref = refNode.getId().toString();
-									} else {
-										if (baseVertex instanceof DeclaredReferenceExpression) {
-											refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
-											if (refNode != null) {
-												ref = refNode.getId().toString();
+										foundUsingThis = true;
+									}
+								}
+								if (!foundUsingThis) {
+									// There could potentially be multiple DFG targets. this can lead to
+									// inconsistent results. Therefore, we filter the DFG targets for "interesting" types
+									// and also sort them by name to make this more consistent.
+									var next = vertex.getNextDFG()
+											.stream()
+											.filter(node -> node instanceof ConstructExpression || node instanceof VariableDeclaration
+													|| node instanceof DeclaredReferenceExpression)
+											.sorted(Comparator.comparing(Node::getName))
+											.collect(Collectors.toList());
+
+									if (!next.isEmpty()) {
+										var baseVertex = next.get(0);
+
+										base = baseVertex.getName();
+										if (baseVertex instanceof ConstructExpression) {
+											next = baseVertex.getNextDFG()
+													.stream()
+													.filter(node -> node instanceof VariableDeclaration
+															|| node instanceof DeclaredReferenceExpression)
+													.sorted(Comparator.comparing(Node::getName))
+													.collect(Collectors.toList());
+											if (!next.isEmpty()) {
+												baseVertex = next.get(0);
+												base = baseVertex.getName();
+											}
+										}
+
+										if (baseVertex instanceof VariableDeclaration) {
+											// this is already the reference
+											refNode = baseVertex;
+											ref = refNode.getId().toString();
+										} else {
+											if (baseVertex instanceof DeclaredReferenceExpression) {
+												refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
+												if (refNode != null) {
+													ref = refNode.getId().toString();
+												}
 											}
 										}
 									}

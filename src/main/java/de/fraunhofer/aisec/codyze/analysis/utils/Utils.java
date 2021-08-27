@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.codyze.analysis.utils;
 
 import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
@@ -294,7 +295,7 @@ public class Utils {
 	 * @return
 	 */
 	public static boolean isPhantom(CallExpression callExpression) {
-		return callExpression.getInvokes().isEmpty();
+		return callExpression.getInvokes().stream().allMatch(FunctionDeclaration::isInferred);
 	}
 
 	/**

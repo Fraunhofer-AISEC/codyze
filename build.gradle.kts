@@ -87,7 +87,7 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
 
     // will be a transitive dependency after CPG beta.3
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.4")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.5")
 
     // Code Property Graph
     //api("de.fraunhofer.aisec:cpg:3.5.1") // ok

@@ -8,10 +8,7 @@ import de.breakpointsec.pushdown.rules.PopRule
 import de.breakpointsec.pushdown.rules.PushRule
 import de.breakpointsec.pushdown.rules.Rule
 import de.fraunhofer.aisec.codyze.analysis.*
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.argumentsMatchParameters
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.containingFunction
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.functions
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.nextStatement
+import de.fraunhofer.aisec.codyze.analysis.markevaluation.*
 import de.fraunhofer.aisec.codyze.analysis.passes.astParent
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
@@ -31,9 +28,7 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import de.fraunhofer.aisec.mark.markDsl.Terminal
 import java.io.File
 import java.net.URI
-import java.util.ArrayDeque
-import java.util.ArrayList
-import java.util.HashSet
+import java.util.*
 import org.slf4j.LoggerFactory
 
 /**
@@ -478,7 +473,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                     currentFunctionName,
                     previousStmt,
                     wpds,
-                    valsInScope
+                    valsInScope,
+                    tsNfa
                 )
             stmtNode is ReturnStatement ->
                 handleReturnStatement(
@@ -572,7 +568,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         currentFunctionName: String,
         previousStmt: Node,
         wpds: WPDS<Node, Val, TypestateWeight>,
-        valsInScope: MutableSet<Val>
+        valsInScope: MutableSet<Val>,
+        tsNfa: NFA
     ) {
         // Handle declaration of new variables. "DeclarationStatements" result in a normal rule,
         // assigning rhs to lhs.
@@ -591,7 +588,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 // Handle function/method calls whose return value is assigned to a declared
                 // variable.
                 // A new data flow for the declared variable (declVal) is introduced.
-                val normalRuleDeclared: Rule<Node, Val, TypestateWeight> =
+                /*val normalRuleDeclared: Rule<Node, Val, TypestateWeight> =
                     NormalRule(
                         Val(GraphWPDS.EPSILON_NAME, currentFunctionName),
                         previousStmt,
@@ -600,7 +597,10 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                         TypestateWeight.one()
                     )
                 log.debug("Adding normal rule for declaration {}", normalRuleDeclared)
-                wpds.addRule(normalRuleDeclared)
+                wpds.addRule(normalRuleDeclared)*/
+
+                val rules = createNormalRules(previousStmt, rhs, valsInScope, tsNfa)
+                rules.forEach { wpds.addRule(it) }
 
                 // Add declVal to set of currently tracked variables
                 valsInScope.add(declVal)
@@ -709,16 +709,16 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         tsNfa: NFA
     ): Set<NormalRule<Node, Val, TypestateWeight>> {
         val result: MutableSet<NormalRule<Node, Val, TypestateWeight>> = HashSet()
+        val map = node.typestateTransitionTrigger(tsNfa)
 
         // Create normal rule. Flow remains where it is.
         for (valInScope in valsInScope) {
-            var map = node.typestateTransitionTrigger(tsNfa)
-
             // Determine weight
             val relevantNFATransitions =
                 tsNfa
                     .transitions
-                    .filter { node.triggersTypestateTransition(it.target.base, it.target.op) }
+                    // .filter { node.triggersTypestateTransition(it.target.base, it.target.op) }
+                    .filter { map[it.target.base]?.contains(it.target.op) == true }
                     .toHashSet()
             val weight =
                 if (relevantNFATransitions.isEmpty()) TypestateWeight.one()
@@ -739,6 +739,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      *
      * @return
      */
+    @Deprecated("Replaced by typestateTransitionTrigger")
     private fun Node.triggersTypestateTransition(markInstance: String?, op: String): Boolean {
         /*
         TODO Future improvement: This method is repeatedly called for different "ops" and thus repeats quite some work.
@@ -831,7 +832,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      * @return
      */
     private fun Node.typestateTransitionTrigger(tsNfa: NFA): Map<String, Set<String>> {
-        val opsMap = mutableMapOf<String, Set<String>>()
+        val opsMap = mutableMapOf<String, MutableSet<String>>()
 
         for (markInstance in tsNfa.transitions.map { it.target.base }) {
             if (markInstance == null) {
@@ -871,7 +872,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 arguments.addAll(this.arguments)
             }
 
-            val ops = opsMap.computeIfAbsent(markInstance) { mutableSetOf() }.toMutableSet()
+            val ops = opsMap.computeIfAbsent(markInstance) { mutableSetOf() }
 
             for (o in mEntity.second!!.ops) {
                 for (opStatement in o.statements) {

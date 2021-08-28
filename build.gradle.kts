@@ -90,8 +90,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.5")
 
     // Code Property Graph
-    //api("de.fraunhofer.aisec:cpg:3.5.1") // ok
-    implementation("com.github.Fraunhofer-AISEC:cpg:4.0.0")
+    api("de.fraunhofer.aisec:cpg:4.0.0") // ok
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

@@ -139,7 +139,7 @@ internal class GithubTest {
                 )
                 .build()
         var hasError = false
-        val analyze = server!!.analyze(tm)
+        val analyze = server.analyze(tm)
         try {
             val result = analyze[30, TimeUnit.MINUTES]
             Assertions.assertNotNull(result)
@@ -161,7 +161,7 @@ internal class GithubTest {
             )
         for (e in logCopy!!.getLog()) {
             writer.println(
-                e!!.timeMillis.toString() +
+                e.timeMillis.toString() +
                     " " +
                     e.level.toString() +
                     " " +
@@ -185,8 +185,8 @@ internal class GithubTest {
         val log = logCopy!!.getLog(Level.ERROR)
         val logFiltered: MutableList<LogEvent?> = ArrayList()
         var hasParseError = false
-        for (x in log!!) {
-            if (x!!.message.formattedMessage.contains(
+        for (x in log) {
+            if (x.message.formattedMessage.contains(
                     "Parsing of type class org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTProblemStatement is not supported (yet)"
                 ) || x.message.formattedMessage.contains("JavaParser could not parse file")
             ) {

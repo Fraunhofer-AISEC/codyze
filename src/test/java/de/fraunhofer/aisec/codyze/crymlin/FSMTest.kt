@@ -203,6 +203,7 @@ END (E) (4)
     companion object {
         private var mark: Mark? = null
         @BeforeAll
+        @JvmStatic
         fun startup() {
             val resource =
                 MarkLoadOutputTest::class.java.classLoader.getResource(

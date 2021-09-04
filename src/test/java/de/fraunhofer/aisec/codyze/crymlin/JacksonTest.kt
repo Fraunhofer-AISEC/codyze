@@ -11,7 +11,7 @@ internal class JacksonTest : AbstractMarkTest() {
         Assertions.assertNotNull(findings)
         Assertions.assertEquals(1, findings.size)
         val finding = findings.iterator().next()
-        Assertions.assertEquals(9, finding!!.locations[0].region.startLine)
+        Assertions.assertEquals(9, finding.locations[0].region.startLine)
         Assertions.assertEquals("FORBIDDEN", finding.onfailIdentifier)
     }
 }

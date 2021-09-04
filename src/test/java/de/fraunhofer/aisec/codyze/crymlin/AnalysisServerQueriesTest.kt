@@ -28,6 +28,7 @@ internal class AnalysisServerQueriesTest {
         private var result: AnalysisContext? = null
         @BeforeAll
         @Throws(Exception::class)
+        @JvmStatic
         fun startup() {
             val classLoader = AnalysisServerQueriesTest::class.java.classLoader
             var resource = classLoader.getResource("good/Bouncycastle.java")
@@ -67,7 +68,7 @@ internal class AnalysisServerQueriesTest {
         @AfterAll
         fun teardown() {
             // Stop the analysis server
-            server!!.stop()
+            server.stop()
         }
 
         /**

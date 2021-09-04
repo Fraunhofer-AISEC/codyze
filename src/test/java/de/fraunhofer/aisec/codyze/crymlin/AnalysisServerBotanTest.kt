@@ -20,7 +20,7 @@ import org.junit.jupiter.api.*
 internal class AnalysisServerBotanTest {
     @Test
     fun markModelTest() {
-        val markModel = server!!.markModel
+        val markModel = server.markModel
         Assertions.assertNotNull(markModel)
         val rules = markModel.rules
         Assertions.assertEquals(7, rules.size)
@@ -46,6 +46,7 @@ internal class AnalysisServerBotanTest {
         private var result: AnalysisContext? = null
         @BeforeAll
         @Throws(Exception::class)
+        @JvmStatic
         fun startup() {
             val classLoader = AnalysisServerBotanTest::class.java.classLoader
             var resource = classLoader.getResource("mark_cpp/symm_block_cipher.cpp")
@@ -85,7 +86,7 @@ internal class AnalysisServerBotanTest {
         @AfterAll
         fun teardown() {
             // Stop the analysis server
-            server!!.stop()
+            server.stop()
         }
 
         /**

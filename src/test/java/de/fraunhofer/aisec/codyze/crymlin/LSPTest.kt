@@ -40,14 +40,14 @@ internal class LSPTest {
 
                 override fun logMessage(messageParams: MessageParams) {}
             }
-        server!!.lsp.connect(lc)
+        server.lsp.connect(lc)
         val tdi = TextDocumentItem()
         tdi.languageId = "cpp"
         tdi.text = "dummy"
         tdi.version = -1
         tdi.uri = Paths.get(parentFolder, "forbidden.cpp").toUri().toString()
         val params = DidOpenTextDocumentParams(tdi)
-        server!!.lsp.textDocumentService.didOpen(params)
+        server.lsp.textDocumentService.didOpen(params)
     }
 
     @Test
@@ -70,19 +70,19 @@ internal class LSPTest {
 
                 override fun logMessage(messageParams: MessageParams) {}
             }
-        server!!.lsp.connect(lc)
+        server.lsp.connect(lc)
         val tdi = TextDocumentItem()
         tdi.languageId = "cpp"
         tdi.text = "dummy"
         tdi.version = -1
         tdi.uri = Paths.get(parentFolder, "order.cpp").toUri().toString()
         val params = DidOpenTextDocumentParams(tdi)
-        server!!.lsp.textDocumentService.didOpen(params)
+        server.lsp.textDocumentService.didOpen(params)
     }
 
     @Test
     fun testShutdown() {
-        val shutdownFuture = server!!.lsp.shutdown()
+        val shutdownFuture = server.lsp.shutdown()
         Assertions.assertTrue(shutdownFuture.isDone) // expect immediate result
     }
 
@@ -91,6 +91,7 @@ internal class LSPTest {
         private lateinit var server: AnalysisServer
 
         @BeforeAll
+        @JvmStatic
         fun setup() {
             val classLoader = AnalysisServerBotanTest::class.java.classLoader
             val resource = classLoader.getResource("unittests/order.mark")

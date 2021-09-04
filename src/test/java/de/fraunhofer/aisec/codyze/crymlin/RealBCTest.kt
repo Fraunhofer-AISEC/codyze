@@ -19,7 +19,7 @@ internal class RealBCTest : AbstractMarkTest() {
                 "real-examples/bc/rwedoff.Password-Manager/"
             )
         for (f in findings) {
-            println("  ->" + f!!.onfailIdentifier + " " + f.regions[0] + " " + f.logMsg)
+            println("  ->" + f.onfailIdentifier + " " + f.regions[0] + " " + f.logMsg)
         }
 
         // We expect three (positive) verification of the algorithm used

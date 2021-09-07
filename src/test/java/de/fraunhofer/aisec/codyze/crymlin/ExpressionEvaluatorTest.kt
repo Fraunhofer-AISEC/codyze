@@ -1,9 +1,15 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
+import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator
+import de.fraunhofer.aisec.codyze.markmodel.MRule
+import de.fraunhofer.aisec.codyze.markmodel.Mark
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.DeclarationHolder
+import de.fraunhofer.aisec.cpg.graph.Graph
 import de.fraunhofer.aisec.cpg.graph.HasType
-import de.fraunhofer.aisec.cpg.graph.NodeBuilder.*
 import de.fraunhofer.aisec.cpg.graph.StatementHolder
 import de.fraunhofer.aisec.cpg.graph.declarations.Declaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
@@ -18,6 +24,11 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import de.fraunhofer.aisec.cpg.graph.types.Type
 import de.fraunhofer.aisec.cpg.graph.types.TypeParser
 import de.fraunhofer.aisec.cpg.graph.types.UnknownType
+import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
+import de.fraunhofer.aisec.mark.markDsl.impl.comparison
+import de.fraunhofer.aisec.mark.markDsl.impl.lit
+import de.fraunhofer.aisec.mark.markDsl.impl.operand
+import java.io.File
 import org.junit.jupiter.api.Test
 
 class ExpressionEvaluatorTest : AbstractTest() {
@@ -30,12 +41,33 @@ class ExpressionEvaluatorTest : AbstractTest() {
         val main =
             function("main") {
                 body {
-                    declare { a = variable("a") }
+                    declare { a = variable("a", type("MyClass")) }
                     assign(lhs = ref("a", a), rhs = literal(1))
                 }
             }
 
         println(main)
+
+        val nodes = SubgraphWalker.flattenAST(main)
+        val graph = Graph(nodes)
+        val model: Mark = Mark()
+        val rule: MRule = MRule("myrule")
+        val context: MarkContextHolder = MarkContextHolder()
+        val resultCtx: AnalysisContext = AnalysisContext(File(""), graph)
+        val eval =
+            ExpressionEvaluator(
+                graph,
+                model,
+                rule,
+                resultCtx,
+                ServerConfiguration.builder().build(),
+                context
+            )
+
+        val markExpression = comparison(left = operand("a"), right = lit("1"), "==")
+
+        val result = eval.evaluateExpression(markExpression)
+        println(result)
     }
 }
 
@@ -62,7 +94,7 @@ private inline fun <reified T : Declaration> declare(
     return decl
 }
 
-fun typeOf(string: String): Type {
+fun type(string: String): Type {
     return TypeParser.createFrom(string, false)
 }
 
@@ -97,9 +129,10 @@ fun ref(
     return node
 }
 
-fun <T> literal(value: T, init: DeclarationStatement.() -> Unit = {}): Literal<T> {
+fun <T> literal(value: T, init: Literal<T>.() -> Unit = {}): Literal<T> {
     val node = Literal<T>()
     node.value = value
+    node.init()
     return node
 }
 
@@ -139,6 +172,7 @@ private fun <T : Statement> StatementHolder.add(tag: T, init: T.() -> Unit = {})
 
 fun DeclarationStatement.variable(
     name: String,
+    type: Type = UnknownType.getUnknownType(),
     init: VariableDeclaration.() -> Unit = {}
 ): VariableDeclaration {
     val node = declare<VariableDeclaration>(name)

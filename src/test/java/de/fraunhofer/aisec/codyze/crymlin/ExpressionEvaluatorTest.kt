@@ -4,8 +4,7 @@ import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator
-import de.fraunhofer.aisec.codyze.markmodel.MRule
-import de.fraunhofer.aisec.codyze.markmodel.Mark
+import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.DeclarationHolder
 import de.fraunhofer.aisec.cpg.graph.Graph
@@ -25,10 +24,11 @@ import de.fraunhofer.aisec.cpg.graph.types.Type
 import de.fraunhofer.aisec.cpg.graph.types.TypeParser
 import de.fraunhofer.aisec.cpg.graph.types.UnknownType
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
-import de.fraunhofer.aisec.mark.markDsl.impl.comparison
-import de.fraunhofer.aisec.mark.markDsl.impl.lit
-import de.fraunhofer.aisec.mark.markDsl.impl.operand
+import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration
+import de.fraunhofer.aisec.mark.markDsl.RuleDeclaration
+import de.fraunhofer.aisec.mark.markDsl.impl.*
 import java.io.File
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.Test
 
 class ExpressionEvaluatorTest : AbstractTest() {
@@ -50,23 +50,37 @@ class ExpressionEvaluatorTest : AbstractTest() {
 
         val nodes = SubgraphWalker.flattenAST(main)
         val graph = Graph(nodes)
-        val model: Mark = Mark()
-        val rule: MRule = MRule("myrule")
-        val context: MarkContextHolder = MarkContextHolder()
-        val resultCtx: AnalysisContext = AnalysisContext(File(""), graph)
+
+        var myEntity: EntityDeclaration? = null
+        var myRule: RuleDeclaration? = null
+        val model = mark {
+            myEntity = entity("MyEntity") {}
+            myRule =
+                rule("myRule") {
+                    statement {
+                        using(myEntity!!, "a")
+                        ensure { comparison(left = operand("a"), op = "==", right = lit("1")) }
+                    }
+                }
+        }
+
+        assertNotNull(myRule)
+
+        val context = MarkContextHolder()
+        val resultCtx = AnalysisContext(File(""), graph)
+        val convertedMark = MarkModelLoader().load(mapOf("" to model))
+        val convertedRule = convertedMark.rules.first()
         val eval =
             ExpressionEvaluator(
                 graph,
-                model,
-                rule,
+                convertedMark,
+                convertedRule,
                 resultCtx,
                 ServerConfiguration.builder().build(),
                 context
             )
 
-        val markExpression = comparison(left = operand("a"), right = lit("1"), "==")
-
-        val result = eval.evaluateExpression(markExpression)
+        val result = eval.evaluateExpression(convertedRule.statement.ensure.exp)
         println(result)
     }
 }

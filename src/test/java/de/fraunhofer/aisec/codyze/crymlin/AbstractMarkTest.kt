@@ -15,7 +15,9 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.stream.Collectors
 import kotlin.Throws
-import org.junit.jupiter.api.Assertions
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 abstract class AbstractMarkTest : AbstractTest() {
     protected var translationManager: TranslationManager? = null
@@ -41,18 +43,20 @@ abstract class AbstractMarkTest : AbstractTest() {
         val classLoader = AbstractMarkTest::class.java.classLoader
         var resource = classLoader.getResource(sourceFileName)
 
-        Assertions.assertNotNull(resource, "Resource $sourceFileName not found")
+        assertNotNull(resource, "Resource $sourceFileName not found")
         var javaFile = File(resource!!.file)
-        Assertions.assertNotNull(javaFile, "File $sourceFileName not found")
+        assertNotNull(javaFile, "File $sourceFileName not found")
         val toAnalyze = ArrayList<File>()
         toAnalyze.add(javaFile)
 
         if (additionalFiles != null) {
             for (s in additionalFiles) {
                 resource = classLoader.getResource(s)
-                Assertions.assertNotNull(resource, "Resource $s not found")
+                assertNotNull(resource, "Resource $s not found")
+
                 javaFile = File(resource.file)
-                Assertions.assertNotNull(javaFile, "File $s not found")
+                assertNotNull(javaFile, "File $s not found")
+
                 toAnalyze.add(javaFile)
             }
         }
@@ -69,9 +73,9 @@ abstract class AbstractMarkTest : AbstractTest() {
                         .normalize()
                 resource = p.toUri().toURL()
             }
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
             val markDir = File(resource.file)
-            Assertions.assertNotNull(markDir)
+            assertNotNull(markDir)
             markDirPath = markDir.absolutePath
         }
 
@@ -99,7 +103,7 @@ abstract class AbstractMarkTest : AbstractTest() {
                 throw t
             }
 
-        Assertions.assertNotNull(ctx)
+        assertNotNull(ctx)
 
         val findings = ctx?.findings ?: mutableSetOf<Finding>()
 
@@ -117,7 +121,7 @@ abstract class AbstractMarkTest : AbstractTest() {
         }
 
         for (expected in expectedFindings) {
-            Assertions.assertEquals(
+            assertEquals(
                 1,
                 findings.stream().filter { f: Finding -> f.toString() == expected }.count(),
                 "not found: \"$expected\""
@@ -132,7 +136,7 @@ abstract class AbstractMarkTest : AbstractTest() {
                 println(f.toString())
             }
         }
-        Assertions.assertEquals(
+        assertEquals(
             0,
             findings.size,
             findings.stream().map { obj: Finding -> obj.toString() }.collect(Collectors.joining())
@@ -169,6 +173,6 @@ abstract class AbstractMarkTest : AbstractTest() {
             }
         }
 
-        Assertions.assertTrue(missingFindings.isEmpty())
+        assertTrue(missingFindings.isEmpty())
     }
 }

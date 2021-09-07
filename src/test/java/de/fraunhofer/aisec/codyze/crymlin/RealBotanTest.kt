@@ -5,7 +5,9 @@ import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import java.util.stream.Collectors
-import org.junit.jupiter.api.Assertions
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -27,7 +29,7 @@ internal class RealBotanTest : AbstractMarkTest() {
                 .stream()
                 .filter { node: Node? -> node is VariableDeclaration }
                 .collect(Collectors.toList())
-        Assertions.assertTrue(variables.size > 0)
+        assertTrue(variables.size > 0)
     }
 
     @Test
@@ -46,8 +48,8 @@ internal class RealBotanTest : AbstractMarkTest() {
                 .stream()
                 .filter { f: Finding? -> f!!.onfailIdentifier == "CorrectPrivateKeyLength" }
                 .findFirst()
-        Assertions.assertTrue(correctKeyLength.isPresent)
-        Assertions.assertFalse(correctKeyLength.get().isProblem)
+        assertTrue(correctKeyLength.isPresent)
+        assertFalse(correctKeyLength.get().isProblem)
     }
 
     @Test
@@ -66,8 +68,8 @@ internal class RealBotanTest : AbstractMarkTest() {
                 .stream()
                 .filter { f: Finding? -> f!!.onfailIdentifier == "WrongPrivateKeyLength" }
                 .findFirst()
-        Assertions.assertTrue(wrongKeyLength.isPresent)
-        Assertions.assertTrue(wrongKeyLength.get().isProblem)
+        assertTrue(wrongKeyLength.isPresent)
+        assertTrue(wrongKeyLength.get().isProblem)
     }
 
     @Test
@@ -79,7 +81,7 @@ internal class RealBotanTest : AbstractMarkTest() {
                 "real-examples/botan/blockciphers/obraunsdorf.playbook-creator/pbcStorage.cpp",
                 "real-examples/botan/MARK"
             )
-        Assertions.assertTrue(findings.isEmpty())
+        assertTrue(findings.isEmpty())
     }
 
     @Test
@@ -94,13 +96,13 @@ internal class RealBotanTest : AbstractMarkTest() {
         // We expect a correct key size in line 250 and 355
         val correctKeySizes =
             findings.stream().filter { f: Finding? -> !f!!.isProblem }.collect(Collectors.toList())
-        Assertions.assertTrue(
+        assertTrue(
             correctKeySizes.stream().anyMatch { f: Finding? -> f!!.regions[0].startLine == 249 }
         )
-        Assertions.assertTrue(
+        assertTrue(
             correctKeySizes.stream().anyMatch { f: Finding? -> f!!.regions[0].startLine == 354 }
         )
-        Assertions.assertEquals(2, correctKeySizes.size)
+        assertEquals(2, correctKeySizes.size)
     }
 
     @Test
@@ -119,13 +121,9 @@ internal class RealBotanTest : AbstractMarkTest() {
                 .filter { f: Finding? -> f!!.onfailIdentifier == "WrongBlockCipher" }
                 .filter { f: Finding? -> !f!!.isProblem }
                 .collect(Collectors.toList())
-        Assertions.assertTrue(
-            blockCiphers.stream().anyMatch { f: Finding? -> f!!.regions[0].startLine == 15 }
-        )
-        Assertions.assertTrue(
-            blockCiphers.stream().anyMatch { f: Finding? -> f!!.regions[0].startLine == 21 }
-        )
-        Assertions.assertEquals(2, blockCiphers.size)
+        assertTrue(blockCiphers.stream().anyMatch { f: Finding? -> f!!.regions[0].startLine == 15 })
+        assertTrue(blockCiphers.stream().anyMatch { f: Finding? -> f!!.regions[0].startLine == 21 })
+        assertEquals(2, blockCiphers.size)
 
         // We expect an incorrect key size at line 16 and 22 because it is not explicitly set.
         val keyLengths =
@@ -134,12 +132,8 @@ internal class RealBotanTest : AbstractMarkTest() {
                 .filter { f: Finding? -> f!!.onfailIdentifier == "BadKeyLength" }
                 .filter { obj: Finding? -> obj!!.isProblem }
                 .collect(Collectors.toList())
-        Assertions.assertEquals(2, keyLengths.size)
-        Assertions.assertTrue(
-            keyLengths.stream().anyMatch { l: Finding? -> l!!.regions[0].startLine == 15 }
-        )
-        Assertions.assertTrue(
-            keyLengths.stream().anyMatch { l: Finding? -> l!!.regions[0].startLine == 21 }
-        )
+        assertEquals(2, keyLengths.size)
+        assertTrue(keyLengths.stream().anyMatch { l: Finding? -> l!!.regions[0].startLine == 15 })
+        assertTrue(keyLengths.stream().anyMatch { l: Finding? -> l!!.regions[0].startLine == 21 })
     }
 }

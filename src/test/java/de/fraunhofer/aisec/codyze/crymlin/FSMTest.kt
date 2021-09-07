@@ -9,13 +9,16 @@ import de.fraunhofer.aisec.mark.markDsl.MarkDslFactory
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import de.fraunhofer.aisec.mark.markDsl.impl.MarkDslFactoryImpl
 import java.io.*
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.*
 
 internal class FSMTest {
     @Test
     fun parseTest() {
-        Assertions.assertEquals(5, mark!!.rules.size) // 5 total
-        Assertions.assertEquals(
+        assertEquals(5, mark!!.rules.size) // 5 total
+        assertEquals(
             3,
             mark!!
                 .rules
@@ -27,15 +30,15 @@ internal class FSMTest {
                 }
                 .count()
         ) // 3 order
-        Assertions.assertEquals(
+        assertEquals(
             1,
             mark!!.rules.stream().filter { x: MRule -> x.name == "BlockCiphers" }.count()
         )
-        Assertions.assertEquals(
+        assertEquals(
             1,
             mark!!.rules.stream().filter { x: MRule -> x.name == "UseOfBotan_CipherMode" }.count()
         )
-        Assertions.assertEquals(
+        assertEquals(
             1,
             mark!!
                 .rules
@@ -43,7 +46,7 @@ internal class FSMTest {
                 .filter { x: MRule -> x.name == "SimpleUseOfBotan_CipherMode" }
                 .count()
         )
-        Assertions.assertEquals(
+        assertEquals(
             1,
             mark!!
                 .rules
@@ -51,7 +54,7 @@ internal class FSMTest {
                 .filter { x: MRule -> x.name == "SimpleUseOfBotan2_CipherMode" }
                 .count()
         )
-        Assertions.assertEquals(
+        assertEquals(
             1,
             mark!!.rules.stream().filter { x: MRule -> x.name == "UseRandomIV" }.count()
         )
@@ -74,15 +77,17 @@ internal class FSMTest {
     //  }
     private fun load(ruleName: String): FSM {
         val opt = mark!!.rules.stream().filter { x: MRule -> x.name == ruleName }.findFirst()
-        Assertions.assertTrue(opt.isPresent)
+        assertTrue(opt.isPresent)
+
         val rule = opt.get()
-        Assertions.assertNotNull(rule.statement)
-        Assertions.assertNotNull(rule.statement.ensure)
-        Assertions.assertNotNull(rule.statement.ensure.exp)
-        Assertions.assertTrue(rule.statement.ensure.exp is OrderExpression)
+        assertNotNull(rule.statement)
+        assertNotNull(rule.statement.ensure)
+        assertNotNull(rule.statement.ensure.exp)
+        assertTrue(rule.statement.ensure.exp is OrderExpression)
         val inner = rule.statement.ensure.exp as OrderExpression
         val fsm = FSM()
-        Assertions.assertNotNull(fsm)
+        assertNotNull(fsm)
+
         fsm.sequenceToFSM(inner.exp)
         return fsm
     }
@@ -90,7 +95,7 @@ internal class FSMTest {
     @Test
     fun testUseOfBotan_CipherMode() {
         val fsm = load("UseOfBotan_CipherMode")
-        Assertions.assertEquals(
+        assertEquals(
             """cm.create (0)
 	-> cm.init(1)
 cm.init (1)
@@ -116,7 +121,7 @@ cm.reset (6)
     @Test
     fun testSimpleUseOfBotan_CipherMode() {
         val fsm = load("SimpleUseOfBotan_CipherMode")
-        Assertions.assertEquals(
+        assertEquals(
             """cm.create (0)
 	-> cm.init(1)
 cm.init (1)
@@ -136,7 +141,7 @@ END (E) (4)
     @Test
     fun testSimpleUseOfBotan2_CipherMode() {
         val fsm = load("SimpleUseOfBotan2_CipherMode")
-        Assertions.assertEquals(
+        assertEquals(
             """cm.create (0)
 	-> cm.init(1)
 cm.init (1)
@@ -194,7 +199,7 @@ END (E) (4)
         fsm.sequenceToFSM(aThenTail)
         println(fsm)
         val start = fsm.start
-        Assertions.assertEquals(1, start.size)
+        assertEquals(1, start.size)
         val startNode = start.iterator().next()
         val expectB = startNode.successors
         println(expectB)
@@ -209,14 +214,14 @@ END (E) (4)
                 MarkLoadOutputTest::class.java.classLoader.getResource(
                     "mark/PoC_MS1/Botan_CipherMode.mark"
                 )
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
             val markPoC1 = File(resource.file)
-            Assertions.assertNotNull(markPoC1)
+            assertNotNull(markPoC1)
             val parser = XtextParser()
             parser.addMarkFile(markPoC1)
             val markModels = parser.parse()
             mark = MarkModelLoader().load(markModels, null)
-            Assertions.assertNotNull(mark)
+            assertNotNull(mark)
         }
     }
 }

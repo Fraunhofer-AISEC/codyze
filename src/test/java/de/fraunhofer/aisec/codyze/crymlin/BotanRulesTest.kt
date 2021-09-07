@@ -4,7 +4,7 @@ import java.lang.Exception
 import kotlin.Throws
 import org.junit.jupiter.api.Test
 
-internal class BotanRuleTR_Test : AbstractMarkTest() {
+internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_2_01() {

@@ -12,6 +12,9 @@ import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.Throws
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
 import org.python.core.Py
@@ -34,10 +37,10 @@ internal class JythonInterpreterTest {
         jlineConsole!!.getReader().completers.iterator().next().complete("\t", 0, completions)
         outContent!!.flush()
         errContent!!.flush()
-        Assertions.assertTrue(completions.contains(JythonInterpreter.PY_SERVER))
-        Assertions.assertTrue(completions.contains(JythonInterpreter.PY_S))
-        Assertions.assertTrue(completions.contains(JythonInterpreter.PY_GRAPH))
-        Assertions.assertTrue(completions.contains(JythonInterpreter.PY_G))
+        assertTrue(completions.contains(JythonInterpreter.PY_SERVER))
+        assertTrue(completions.contains(JythonInterpreter.PY_S))
+        assertTrue(completions.contains(JythonInterpreter.PY_GRAPH))
+        assertTrue(completions.contains(JythonInterpreter.PY_G))
     }
 
     /**
@@ -58,11 +61,11 @@ internal class JythonInterpreterTest {
             .complete("server.\t", 0, completions)
         outContent!!.flush()
         errContent!!.flush()
-        Assertions.assertTrue(completions.contains("help()"))
-        Assertions.assertTrue(completions.contains("show_findings()"))
-        Assertions.assertTrue(completions.contains("load_rules()"))
-        Assertions.assertTrue(completions.contains("list_rules()"))
-        Assertions.assertTrue(completions.contains("analyze()"))
+        assertTrue(completions.contains("help()"))
+        assertTrue(completions.contains("show_findings()"))
+        assertTrue(completions.contains("load_rules()"))
+        assertTrue(completions.contains("list_rules()"))
+        assertTrue(completions.contains("analyze()"))
     }
 
     /**
@@ -83,8 +86,8 @@ internal class JythonInterpreterTest {
             .complete("server.sho\t", 0, completions)
         outContent!!.flush()
         errContent!!.flush()
-        Assertions.assertTrue(completions.contains("show_findings()"))
-        Assertions.assertEquals(1, completions.size)
+        assertTrue(completions.contains("show_findings()"))
+        assertEquals(1, completions.size)
     }
 
     /**
@@ -105,8 +108,8 @@ internal class JythonInterpreterTest {
             .complete("query.cal\t", 0, completions)
         outContent!!.flush()
         errContent!!.flush()
-        Assertions.assertTrue(completions.contains("calls()"))
-        Assertions.assertEquals(2, completions.size)
+        assertTrue(completions.contains("calls()"))
+        assertEquals(2, completions.size)
     }
 
     /**
@@ -127,7 +130,7 @@ internal class JythonInterpreterTest {
             .complete("q.calls().\t", 0, completions)
         outContent!!.flush()
         errContent!!.flush()
-        Assertions.assertTrue(completions.contains("next()"))
+        assertTrue(completions.contains("next()"))
     }
 
     companion object {
@@ -196,9 +199,9 @@ internal class JythonInterpreterTest {
             // instead of running a full analysis, just provide access to an empty database
             interp!!.connect(result.graph)
             jlineConsole = Py.getConsole() as JLineConsole
-            Assertions.assertNotNull(jlineConsole)
-            Assertions.assertNotNull(outContent)
-            Assertions.assertNotNull(errContent)
+            assertNotNull(jlineConsole)
+            assertNotNull(outContent)
+            assertNotNull(errContent)
         }
 
         /*@Test

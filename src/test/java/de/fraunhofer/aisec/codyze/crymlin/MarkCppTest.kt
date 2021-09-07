@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import java.lang.Exception
 import kotlin.Throws
+import kotlin.test.assertFalse
 import org.junit.jupiter.api.*
 
 internal class MarkCppTest : AbstractMarkTest() {
@@ -57,7 +58,7 @@ internal class MarkCppTest : AbstractMarkTest() {
         for (f in findings) {
             println(f.toString())
         }
-        Assertions.assertFalse(true) // new tests!
+        assertFalse(true) // new tests!
     }
 
     @Test
@@ -82,7 +83,7 @@ internal class MarkCppTest : AbstractMarkTest() {
         for (f in findings) {
             println(f.toString())
         }
-        Assertions.assertFalse(true) // new tests!
+        assertFalse(true) // new tests!
     }
 
     @Test

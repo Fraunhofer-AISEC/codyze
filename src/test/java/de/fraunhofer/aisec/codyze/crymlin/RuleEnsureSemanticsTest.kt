@@ -18,6 +18,10 @@ import de.fraunhofer.aisec.mark.markDsl.MarkModel
 import java.io.*
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.*
 
 internal class RuleEnsureSemanticsTest {
@@ -29,7 +33,8 @@ internal class RuleEnsureSemanticsTest {
                 .stream()
                 .filter { n: String -> n.endsWith(markFileEnding) }
                 .collect(Collectors.toList())
-        Assertions.assertEquals(1, markFilePaths.size)
+        assertEquals(1, markFilePaths.size)
+
         val mark = MarkModelLoader().load(markModels, markFilePaths[0])
         val config =
             ServerConfiguration.builder()
@@ -46,18 +51,21 @@ internal class RuleEnsureSemanticsTest {
             val ee = ExpressionEvaluator(graph, mark, r, ctx, config, markContextHolder)
             val ensureExpr = r.statement.ensure.exp
             val result = ee.evaluateExpression(ensureExpr)
-            Assertions.assertEquals(1, result.size)
+
+            assertEquals(1, result.size)
+
             allResults[r.name] = result
         }
         allResults.forEach { (key: String, value: Map<Int, MarkIntermediateResult>) ->
-            Assertions.assertTrue(value[0] is ConstantValue)
+            assertTrue(value[0] is ConstantValue)
+
             val inner = value[0]
             if (key.endsWith("true")) {
-                Assertions.assertEquals(true, (inner as ConstantValue?)!!.value, key)
+                assertEquals(true, (inner as ConstantValue?)!!.value, key)
             } else if (key.endsWith("false")) {
-                Assertions.assertEquals(false, (inner as ConstantValue?)!!.value, key)
+                assertEquals(false, (inner as ConstantValue?)!!.value, key)
             } else if (key.endsWith("fail")) {
-                Assertions.assertTrue(ConstantValue.isError(inner))
+                assertTrue(ConstantValue.isError(inner))
             } else {
                 Assertions.fail<Any>("Unexpected: Rule should have failed, but is $inner: $key")
             }
@@ -88,22 +96,27 @@ internal class RuleEnsureSemanticsTest {
                 RuleEnsureSemanticsTest::class.java.classLoader.getResource(
                     "mark/rules/ensure/semantics/"
                 )
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
+
             val markFile = File(resource.file)
-            Assertions.assertNotNull(markFile)
+            assertNotNull(markFile)
+
             var directoryContent =
                 markFile.listFiles { current: File?, name: String -> name.endsWith(".mark") }
             if (directoryContent == null) {
                 directoryContent = arrayOf(markFile)
             }
-            Assertions.assertNotNull(directoryContent)
-            Assertions.assertTrue(directoryContent.isNotEmpty())
+
+            assertNotNull(directoryContent)
+            assertTrue(directoryContent.isNotEmpty())
+
             val parser = XtextParser()
             for (mf in directoryContent) {
                 parser.addMarkFile(mf)
             }
+
             markModels = parser.parse()
-            Assertions.assertFalse(markModels.isEmpty())
+            assertFalse(markModels.isEmpty())
         }
     }
 }

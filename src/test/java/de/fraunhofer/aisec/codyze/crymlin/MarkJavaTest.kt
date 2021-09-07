@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.crymlin
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import java.lang.Exception
 import kotlin.Throws
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.*
 
 internal class MarkJavaTest : AbstractMarkTest() {
@@ -23,7 +24,7 @@ internal class MarkJavaTest : AbstractMarkTest() {
                 "line 23: Rule SPLIT_SECONDELEMENT_EQUALS_FIRST verified"
             )
         for (expected in expectedFindings) {
-            Assertions.assertEquals(
+            assertEquals(
                 1,
                 findings.stream().filter { f: Finding? -> f.toString() == expected }.count(),
                 "not found: \"$expected\""
@@ -38,7 +39,7 @@ internal class MarkJavaTest : AbstractMarkTest() {
                 println(f.toString())
             }
         }
-        Assertions.assertEquals(0, findings.size)
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -53,7 +54,7 @@ internal class MarkJavaTest : AbstractMarkTest() {
         val expectedFindings =
             arrayOf("line 12: Rule HasBeenCalled verified", "line 15: Rule HasBeenCalled verified")
         for (expected in expectedFindings) {
-            Assertions.assertEquals(
+            assertEquals(
                 1,
                 findings.stream().filter { f: Finding? -> f.toString() == expected }.count(),
                 "not found: \"$expected\""
@@ -68,7 +69,7 @@ internal class MarkJavaTest : AbstractMarkTest() {
                 println(f.toString())
             }
         }
-        Assertions.assertEquals(0, findings.size)
+        assertEquals(0, findings.size)
     }
 
     @Test

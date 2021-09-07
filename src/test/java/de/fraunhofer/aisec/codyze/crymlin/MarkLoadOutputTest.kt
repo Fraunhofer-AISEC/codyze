@@ -11,6 +11,8 @@ import java.nio.file.Paths
 import java.util.ArrayList
 import java.util.HashMap
 import kotlin.Throws
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.*
 
 internal class MarkLoadOutputTest {
@@ -48,7 +50,7 @@ internal class MarkLoadOutputTest {
                     sanitizedReconstructed.append(line.strip()).append("\n")
                 }
             }
-            Assertions.assertEquals(sanitizedOriginal.toString(), sanitizedReconstructed.toString())
+            assertEquals(sanitizedOriginal.toString(), sanitizedReconstructed.toString())
         }
     }
 
@@ -60,13 +62,13 @@ internal class MarkLoadOutputTest {
                 MarkLoadOutputTest::class.java.classLoader.getResource(
                     "mark/PoC_MS1/Botan_AutoSeededRNG.mark"
                 )
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
             val markPoC1 = File(resource.file)
-            Assertions.assertNotNull(markPoC1)
+            assertNotNull(markPoC1)
             val markModelFiles = markPoC1.parent
             val directories =
                 File(markModelFiles).list { current: File?, name: String -> name.endsWith(".mark") }
-            Assertions.assertNotNull(directories)
+            assertNotNull(directories)
             val parser = XtextParser()
             for (markFile in directories) {
                 val fullName = markModelFiles + File.separator + markFile

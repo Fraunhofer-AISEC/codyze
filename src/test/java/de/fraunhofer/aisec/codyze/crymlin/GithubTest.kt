@@ -10,6 +10,7 @@ import java.nio.file.StandardCopyOption
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.Throws
+import kotlin.test.assertNotNull
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.LogEvent
 import org.junit.jupiter.api.*
@@ -32,9 +33,9 @@ internal class GithubTest : AbstractTest() {
         private fun listFiles(): List<String?> {
             // File folder = new File("/tmp/random_sources");
             val folder = File(baseFolder)
-            Assertions.assertNotNull(folder)
+            assertNotNull(folder)
             val files = folder.listFiles()
-            Assertions.assertNotNull(files)
+            assertNotNull(files)
             var ret: MutableList<String> = ArrayList()
             for (f in files) {
                 ret.add(f.absolutePath.substring(baseFolder!!.length + 1)) // only use the file name
@@ -52,9 +53,11 @@ internal class GithubTest : AbstractTest() {
         fun setup() {
             val classLoader = GithubTest::class.java.classLoader
             val resource = classLoader.getResource("unittests/order2.mark")
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
+
             val markPoC1 = File(resource.file)
-            Assertions.assertNotNull(markPoC1)
+            assertNotNull(markPoC1)
+
             server =
                 AnalysisServer.builder()
                     .config(
@@ -110,7 +113,7 @@ internal class GithubTest : AbstractTest() {
         // nicely readable
         sourceFileName = tempFile.absolutePath
         val cppFile = File(sourceFileName)
-        Assertions.assertNotNull(cppFile)
+        assertNotNull(cppFile)
         log.info("File size: {} kB", cppFile.length() / 1024)
 
         //    try (Stream<String> lines = Files.lines(cppFile.toPath(), StandardCharsets.UTF_8)) {
@@ -130,7 +133,7 @@ internal class GithubTest : AbstractTest() {
         val analyze = server.analyze(tm)
         try {
             val result = analyze[30, TimeUnit.MINUTES]
-            Assertions.assertNotNull(result)
+            assertNotNull(result)
             //      AnalysisContext ctx = (AnalysisContext) result.getScratch().get("ctx");
             //      assertNotNull(ctx);
         } catch (e: Exception) {

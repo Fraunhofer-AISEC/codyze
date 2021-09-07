@@ -14,6 +14,9 @@ import java.util.function.BinaryOperator
 import java.util.function.Function
 import java.util.stream.Collectors
 import kotlin.Throws
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.*
 
 /** Tests for WPDS-based evaluation of order expressions. */
@@ -59,10 +62,10 @@ internal class WpdsTest : AbstractMarkTest() {
         println(nfa)
         // ... and make sure they deliver same results.
         for (s in edgesFSM) {
-            Assertions.assertTrue(edgesNFA.contains(s), "$s found in FSM, but not in NFA-FSM")
+            assertTrue(edgesNFA.contains(s), "$s found in FSM, but not in NFA-FSM")
         }
         for (s in edgesNFA) {
-            Assertions.assertTrue(edgesFSM.contains(s), "$s found in NFA, but not in FSM")
+            assertTrue(edgesFSM.contains(s), "$s found in NFA, but not in FSM")
         }
     }
 
@@ -78,10 +81,7 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertEquals(
-            7,
-            findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count()
-        )
+        assertEquals(7, findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count())
     }
 
     @Test
@@ -91,10 +91,7 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertEquals(
-            0,
-            findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count()
-        )
+        assertEquals(0, findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count())
     }
 
     @Test
@@ -104,10 +101,7 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertEquals(
-            0,
-            findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count()
-        )
+        assertEquals(0, findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count())
     }
 
     @Test
@@ -153,18 +147,18 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertTrue(startLineNumbers.containsKey(10)) // create
-        Assertions.assertFalse(startLineNumbers[10]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(15)) // init
-        Assertions.assertFalse(startLineNumbers[15]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(21)) // start
-        Assertions.assertFalse(startLineNumbers[21]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(22)) // process
-        Assertions.assertFalse(startLineNumbers[22]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(24)) // process
-        Assertions.assertFalse(startLineNumbers[24]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(26)) // finish
-        Assertions.assertFalse(startLineNumbers[26]!!)
+        assertTrue(startLineNumbers.containsKey(10)) // create
+        assertFalse(startLineNumbers[10]!!)
+        assertTrue(startLineNumbers.containsKey(15)) // init
+        assertFalse(startLineNumbers[15]!!)
+        assertTrue(startLineNumbers.containsKey(21)) // start
+        assertFalse(startLineNumbers[21]!!)
+        assertTrue(startLineNumbers.containsKey(22)) // process
+        assertFalse(startLineNumbers[22]!!)
+        assertTrue(startLineNumbers.containsKey(24)) // process
+        assertFalse(startLineNumbers[24]!!)
+        assertTrue(startLineNumbers.containsKey(26)) // finish
+        assertFalse(startLineNumbers[26]!!)
     }
 
     @Test
@@ -189,20 +183,20 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertTrue(startLineNumbers.containsKey(10)) // create
-        Assertions.assertFalse(startLineNumbers[10]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(15)) // init
-        Assertions.assertFalse(startLineNumbers[15]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(17)) // start
-        Assertions.assertFalse(startLineNumbers[17]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(20)) // process
-        Assertions.assertFalse(startLineNumbers[20]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(21)) // process
-        Assertions.assertFalse(startLineNumbers[21]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(23)) // process
-        Assertions.assertFalse(startLineNumbers[23]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(25)) // finish
-        Assertions.assertFalse(startLineNumbers[25]!!)
+        assertTrue(startLineNumbers.containsKey(10)) // create
+        assertFalse(startLineNumbers[10]!!)
+        assertTrue(startLineNumbers.containsKey(15)) // init
+        assertFalse(startLineNumbers[15]!!)
+        assertTrue(startLineNumbers.containsKey(17)) // start
+        assertFalse(startLineNumbers[17]!!)
+        assertTrue(startLineNumbers.containsKey(20)) // process
+        assertFalse(startLineNumbers[20]!!)
+        assertTrue(startLineNumbers.containsKey(21)) // process
+        assertFalse(startLineNumbers[21]!!)
+        assertTrue(startLineNumbers.containsKey(23)) // process
+        assertFalse(startLineNumbers[23]!!)
+        assertTrue(startLineNumbers.containsKey(25)) // finish
+        assertFalse(startLineNumbers[25]!!)
     }
 
     @Test
@@ -227,12 +221,12 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertTrue(startLineNumbers.containsKey(9))
-        Assertions.assertFalse(startLineNumbers[9]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(21))
-        Assertions.assertFalse(startLineNumbers[21]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(24))
-        Assertions.assertFalse(startLineNumbers[24]!!)
+        assertTrue(startLineNumbers.containsKey(9))
+        assertFalse(startLineNumbers[9]!!)
+        assertTrue(startLineNumbers.containsKey(21))
+        assertFalse(startLineNumbers[21]!!)
+        assertTrue(startLineNumbers.containsKey(24))
+        assertFalse(startLineNumbers[24]!!)
     }
 
     @Test
@@ -258,14 +252,14 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertTrue(startLineNumbers.containsKey(16))
-        Assertions.assertFalse(startLineNumbers[16]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(12))
-        Assertions.assertFalse(startLineNumbers[12]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(15))
-        Assertions.assertFalse(startLineNumbers[15]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(13))
-        Assertions.assertFalse(startLineNumbers[13]!!)
+        assertTrue(startLineNumbers.containsKey(16))
+        assertFalse(startLineNumbers[16]!!)
+        assertTrue(startLineNumbers.containsKey(12))
+        assertFalse(startLineNumbers[12]!!)
+        assertTrue(startLineNumbers.containsKey(15))
+        assertFalse(startLineNumbers[15]!!)
+        assertTrue(startLineNumbers.containsKey(13))
+        assertFalse(startLineNumbers[13]!!)
     }
 
     @Test
@@ -290,10 +284,10 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertTrue(startLineNumbers.containsKey(22)) // start
-        Assertions.assertTrue(startLineNumbers[22]!!)
-        Assertions.assertTrue(startLineNumbers.containsKey(24)) // start
-        Assertions.assertTrue(startLineNumbers[24]!!)
+        assertTrue(startLineNumbers.containsKey(22)) // start
+        assertTrue(startLineNumbers[22]!!)
+        assertTrue(startLineNumbers.containsKey(24)) // start
+        assertTrue(startLineNumbers[24]!!)
         //		assertTrue(startLineNumbers.containsKey(29)); // start
         //		assertTrue(startLineNumbers.get(29));
     }
@@ -320,12 +314,12 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertTrue(startLineNumbers.containsKey(28))
-        Assertions.assertTrue(startLineNumbers[28]!!) // isProblem
-        Assertions.assertTrue(startLineNumbers.containsKey(30))
-        Assertions.assertTrue(startLineNumbers[30]!!) // isProblem
-        Assertions.assertTrue(startLineNumbers.containsKey(32))
-        Assertions.assertTrue(startLineNumbers[32]!!) // isProblem
+        assertTrue(startLineNumbers.containsKey(28))
+        assertTrue(startLineNumbers[28]!!) // isProblem
+        assertTrue(startLineNumbers.containsKey(30))
+        assertTrue(startLineNumbers[30]!!) // isProblem
+        assertTrue(startLineNumbers.containsKey(32))
+        assertTrue(startLineNumbers[32]!!) // isProblem
     }
 
     @Test
@@ -348,8 +342,8 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertTrue(startLineNumbers.containsKey(30))
-        Assertions.assertTrue(startLineNumbers[30]!!) // isProblem
+        assertTrue(startLineNumbers.containsKey(30))
+        assertTrue(startLineNumbers[30]!!) // isProblem
     }
 
     @Test
@@ -372,14 +366,14 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertTrue(startLineNumbers.containsKey(10))
-        Assertions.assertTrue(startLineNumbers[10]!!) // isProblem
-        Assertions.assertTrue(startLineNumbers.containsKey(12))
-        Assertions.assertTrue(startLineNumbers[12]!!) // isProblem
-        Assertions.assertTrue(startLineNumbers.containsKey(13))
-        Assertions.assertTrue(startLineNumbers[13]!!) // isProblem
-        Assertions.assertTrue(startLineNumbers.containsKey(15))
-        Assertions.assertTrue(startLineNumbers[15]!!) // isProblem
+        assertTrue(startLineNumbers.containsKey(10))
+        assertTrue(startLineNumbers[10]!!) // isProblem
+        assertTrue(startLineNumbers.containsKey(12))
+        assertTrue(startLineNumbers[12]!!) // isProblem
+        assertTrue(startLineNumbers.containsKey(13))
+        assertTrue(startLineNumbers[13]!!) // isProblem
+        assertTrue(startLineNumbers.containsKey(15))
+        assertTrue(startLineNumbers[15]!!) // isProblem
     }
 
     @Test
@@ -410,10 +404,10 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        Assertions.assertFalse(startLineNumbers[10]!!) // EVP_CIPHER_CTX_new
-        Assertions.assertFalse(startLineNumbers[12]!!) // EVP_EncryptInit
-        Assertions.assertFalse(startLineNumbers[15]!!) // EVP_EncryptUpdate
-        Assertions.assertFalse(startLineNumbers[18]!!) // EVP_EncryptFinal
+        assertFalse(startLineNumbers[10]!!) // EVP_CIPHER_CTX_new
+        assertFalse(startLineNumbers[12]!!) // EVP_EncryptInit
+        assertFalse(startLineNumbers[15]!!) // EVP_EncryptUpdate
+        assertFalse(startLineNumbers[18]!!) // EVP_EncryptFinal
     }
 
     init {

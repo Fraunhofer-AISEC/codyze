@@ -8,6 +8,7 @@ import java.lang.Exception
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.Throws
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.*
 
 internal class AnalysisServerQueriesTest : AbstractTest() {
@@ -16,7 +17,7 @@ internal class AnalysisServerQueriesTest : AbstractTest() {
     fun contextTest() {
         // Get analysis context from scratch
         val ctx = result
-        Assertions.assertNotNull(ctx)
+        assertNotNull(ctx)
     }
 
     companion object {
@@ -28,13 +29,17 @@ internal class AnalysisServerQueriesTest : AbstractTest() {
         fun startup() {
             val classLoader = AnalysisServerQueriesTest::class.java.classLoader
             var resource = classLoader.getResource("good/Bouncycastle.java")
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
+
             val javaFile = File(resource.file)
-            Assertions.assertNotNull(javaFile)
+            assertNotNull(javaFile)
+
             resource = classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark")
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
+
             val markPoC1 = File(resource.file)
-            Assertions.assertNotNull(markPoC1)
+            assertNotNull(markPoC1)
+
             val markModelFiles = markPoC1.parent
 
             // Start an analysis server

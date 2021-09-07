@@ -5,6 +5,9 @@ import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import java.io.*
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.MessageActionItem
 import org.eclipse.lsp4j.MessageParams
@@ -28,7 +31,7 @@ internal class LSPTest {
                         println(d.message)
                     }
                     // one finding is disabled via comment
-                    Assertions.assertEquals(4, publishDiagnosticsParams.diagnostics.size)
+                    assertEquals(4, publishDiagnosticsParams.diagnostics.size)
                 }
 
                 override fun showMessage(messageParams: MessageParams) {}
@@ -58,7 +61,7 @@ internal class LSPTest {
                 override fun publishDiagnostics(
                     publishDiagnosticsParams: PublishDiagnosticsParams
                 ) {
-                    Assertions.assertEquals(7, publishDiagnosticsParams.diagnostics.size)
+                    assertEquals(7, publishDiagnosticsParams.diagnostics.size)
                 }
 
                 override fun showMessage(messageParams: MessageParams) {}
@@ -83,7 +86,7 @@ internal class LSPTest {
     @Test
     fun testShutdown() {
         val shutdownFuture = server.lsp.shutdown()
-        Assertions.assertTrue(shutdownFuture.isDone) // expect immediate result
+        assertTrue(shutdownFuture.isDone) // expect immediate result
     }
 
     companion object {
@@ -95,9 +98,10 @@ internal class LSPTest {
         fun setup() {
             val classLoader = AnalysisServerBotanTest::class.java.classLoader
             val resource = classLoader.getResource("unittests/order.mark")
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
+
             val markPoC1 = File(resource.file)
-            Assertions.assertNotNull(markPoC1)
+            assertNotNull(markPoC1)
             parentFolder = markPoC1.parent + File.separator
 
             // Start an analysis server

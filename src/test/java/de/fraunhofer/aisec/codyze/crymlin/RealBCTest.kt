@@ -4,6 +4,7 @@ import de.fraunhofer.aisec.codyze.analysis.Finding
 import java.lang.Exception
 import java.util.stream.Collectors
 import kotlin.Throws
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.*
 
 // at least it breaks consistently now
@@ -28,8 +29,8 @@ internal class RealBCTest : AbstractMarkTest() {
                 .stream()
                 .filter { f: Finding? -> f!!.onfailIdentifier == "Wrong_Algorithm" }
                 .collect(Collectors.toSet())
-        Assertions.assertEquals(3, wrongAlgorithmsFindings.size) // 3 in total
-        Assertions.assertEquals(
+        assertEquals(3, wrongAlgorithmsFindings.size) // 3 in total
+        assertEquals(
             0,
             wrongAlgorithmsFindings
                 .stream()
@@ -44,8 +45,8 @@ internal class RealBCTest : AbstractMarkTest() {
                 .stream()
                 .filter { f: Finding? -> f!!.logMsg == "Verified Order: SecureRandomOrder" }
                 .collect(Collectors.toSet())
-        Assertions.assertEquals(3, correctOrderSecureRandom.size) // 3 in total
-        Assertions.assertEquals(
+        assertEquals(3, correctOrderSecureRandom.size) // 3 in total
+        assertEquals(
             0,
             correctOrderSecureRandom
                 .stream()
@@ -60,8 +61,8 @@ internal class RealBCTest : AbstractMarkTest() {
                 .stream()
                 .filter { f: Finding? -> f!!.logMsg == "Verified Order: SHA512DigestOrder" }
                 .collect(Collectors.toSet())
-        Assertions.assertEquals(3, correctOrderSha512.size) // 3 in total
-        Assertions.assertEquals(
+        assertEquals(3, correctOrderSha512.size) // 3 in total
+        assertEquals(
             0,
             correctOrderSha512
                 .stream()

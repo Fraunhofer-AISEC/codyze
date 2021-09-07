@@ -3,10 +3,6 @@ package de.fraunhofer.aisec.codyze.crymlin
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass
-import de.fraunhofer.aisec.cpg.TranslationConfiguration
-import de.fraunhofer.aisec.cpg.TranslationManager
 import java.io.*
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
@@ -14,7 +10,7 @@ import java.util.concurrent.TimeoutException
 import kotlin.Throws
 import org.junit.jupiter.api.*
 
-internal class AnalysisServerQueriesTest {
+internal class AnalysisServerQueriesTest : AbstractTest() {
     /** Test analysis context - additional in-memory structures used for analysis. */
     @Test
     fun contextTest() {
@@ -55,7 +51,7 @@ internal class AnalysisServerQueriesTest {
             server.start()
 
             // Start the analysis
-            val translationManager = newJavaAnalysisRun(javaFile)
+            val translationManager = newAnalysisRun(javaFile)
             val analyze = server.analyze(translationManager)
             try {
                 result = analyze[5, TimeUnit.MINUTES]
@@ -69,28 +65,6 @@ internal class AnalysisServerQueriesTest {
         fun teardown() {
             // Stop the analysis server
             server.stop()
-        }
-
-        /**
-         * Helper method for initializing an Analysis Run.
-         *
-         * @param sourceLocations
-         * @return
-         */
-        private fun newJavaAnalysisRun(vararg sourceLocations: File): TranslationManager {
-            return TranslationManager.builder()
-                .config(
-                    TranslationConfiguration.builder()
-                        .debugParser(true)
-                        .failOnError(false)
-                        .defaultPasses()
-                        .defaultLanguages()
-                        .registerPass(IdentifierPass())
-                        .registerPass(EdgeCachePass())
-                        .sourceLocations(*sourceLocations)
-                        .build()
-                )
-                .build()
         }
     }
 }

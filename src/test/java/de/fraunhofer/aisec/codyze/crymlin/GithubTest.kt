@@ -2,8 +2,6 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
-import de.fraunhofer.aisec.cpg.TranslationConfiguration
-import de.fraunhofer.aisec.cpg.TranslationManager
 import java.io.*
 import java.lang.Exception
 import java.nio.charset.StandardCharsets
@@ -21,7 +19,7 @@ import org.slf4j.LoggerFactory
 
 // TODO Remove before release or at least remove hardcoded paths
 @Disabled
-internal class GithubTest {
+internal class GithubTest : AbstractTest() {
     companion object {
         private const val FILES_OFFSET = 0
         private const val MAX_FILES_TO_SCAN = -1 // -1: all
@@ -127,17 +125,7 @@ internal class GithubTest {
 
         // Make sure we start with a clean (and connected) db
         // if this does not work, just throw
-        val tm =
-            TranslationManager.builder()
-                .config(
-                    TranslationConfiguration.builder()
-                        .debugParser(true)
-                        .failOnError(false)
-                        .defaultPasses()
-                        .sourceLocations(cppFile)
-                        .build()
-                )
-                .build()
+        val tm = newAnalysisRun()
         var hasError = false
         val analyze = server.analyze(tm)
         try {

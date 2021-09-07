@@ -2,39 +2,38 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass
-import de.fraunhofer.aisec.cpg.TranslationConfiguration
-import de.fraunhofer.aisec.cpg.TranslationManager
 import java.io.*
-import java.lang.Exception
-import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
-import kotlin.Throws
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.*
 
-internal class AnalysisServerBotanTest {
+internal class AnalysisServerBotanTest : AbstractTest() {
     @Test
     fun markModelTest() {
         val markModel = server.markModel
-        Assertions.assertNotNull(markModel)
+        assertNotNull(markModel)
+
         val rules = markModel.rules
-        Assertions.assertEquals(7, rules.size)
-        val ents = markModel.entities
-        Assertions.assertEquals(9, ents.size)
+        assertEquals(7, rules.size)
+
+        val entities = markModel.entities
+        assertEquals(9, entities.size)
     }
 
     @Test
     fun markEvaluationTest() {
         val ctx = result
-        Assertions.assertNotNull(ctx)
+        assertNotNull(ctx)
+
         val findings: MutableList<String> = ArrayList()
-        Assertions.assertNotNull(ctx!!.findings)
-        ctx.findings.forEach(Consumer { x: Finding -> findings.add(x.toString()) })
+        assertNotNull(ctx.findings)
+
+        ctx.findings.forEach(Consumer { findings.add(it.toString()) })
+
         println("Findings")
         for (finding in findings) {
             println(finding)
@@ -50,13 +49,13 @@ internal class AnalysisServerBotanTest {
         fun startup() {
             val classLoader = AnalysisServerBotanTest::class.java.classLoader
             var resource = classLoader.getResource("mark_cpp/symm_block_cipher.cpp")
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
             val cppFile = File(resource.file)
-            Assertions.assertNotNull(cppFile)
+            assertNotNull(cppFile)
             resource = classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark")
-            Assertions.assertNotNull(resource)
+            assertNotNull(resource)
             val markPoC1 = File(resource.file)
-            Assertions.assertNotNull(markPoC1)
+            assertNotNull(markPoC1)
             val markModelFiles = markPoC1.parent
 
             // Start an analysis server
@@ -87,28 +86,6 @@ internal class AnalysisServerBotanTest {
         fun teardown() {
             // Stop the analysis server
             server.stop()
-        }
-
-        /**
-         * Helper method for initializing an Analysis Run.
-         *
-         * @param sourceLocations
-         * @return
-         */
-        private fun newAnalysisRun(vararg sourceLocations: File): TranslationManager {
-            return TranslationManager.builder()
-                .config(
-                    TranslationConfiguration.builder()
-                        .debugParser(true)
-                        .failOnError(false)
-                        .defaultPasses()
-                        .registerPass(IdentifierPass())
-                        .registerPass(EdgeCachePass())
-                        .defaultLanguages()
-                        .sourceLocations(*sourceLocations)
-                        .build()
-                )
-                .build()
         }
     }
 }

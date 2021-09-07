@@ -5,23 +5,19 @@ import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass
 import de.fraunhofer.aisec.codyze.analysis.wpds.NFA
-import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 import java.io.*
 import java.lang.Exception
 import java.nio.file.Path
 import java.util.ArrayList
-import java.util.HashSet
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.stream.Collectors
 import kotlin.Throws
 import org.junit.jupiter.api.Assertions
 
-abstract class AbstractMarkTest {
+abstract class AbstractMarkTest : AbstractTest() {
     protected var translationManager: TranslationManager? = null
     protected lateinit var server: AnalysisServer
     protected var ctx: AnalysisContext? = null
@@ -44,11 +40,13 @@ abstract class AbstractMarkTest {
     ): MutableSet<Finding> {
         val classLoader = AbstractMarkTest::class.java.classLoader
         var resource = classLoader.getResource(sourceFileName)
+
         Assertions.assertNotNull(resource, "Resource $sourceFileName not found")
         var javaFile = File(resource!!.file)
         Assertions.assertNotNull(javaFile, "File $sourceFileName not found")
         val toAnalyze = ArrayList<File>()
         toAnalyze.add(javaFile)
+
         if (additionalFiles != null) {
             for (s in additionalFiles) {
                 resource = classLoader.getResource(s)
@@ -58,6 +56,7 @@ abstract class AbstractMarkTest {
                 toAnalyze.add(javaFile)
             }
         }
+
         var markDirPath = ""
         if (markFileName != null) {
             resource = classLoader.getResource(markFileName)
@@ -90,22 +89,7 @@ abstract class AbstractMarkTest {
                 )
                 .build()
         server.start()
-        translationManager =
-            TranslationManager.builder()
-                .config(
-                    TranslationConfiguration.builder()
-                        .debugParser(true)
-                        .failOnError(false)
-                        .codeInNodes(true)
-                        .defaultPasses()
-                        .defaultLanguages()
-                        .registerPass(IdentifierPass())
-                        .registerPass(EdgeCachePass())
-                        .loadIncludes(true)
-                        .sourceLocations(*toAnalyze.toTypedArray())
-                        .build()
-                )
-                .build()
+        translationManager = newAnalysisRun(*toAnalyze.toTypedArray())
         val analyze = server.analyze(translationManager)
         ctx =
             try {
@@ -131,6 +115,7 @@ abstract class AbstractMarkTest {
         for (f in findings) {
             println(f.toString())
         }
+
         for (expected in expectedFindings) {
             Assertions.assertEquals(
                 1,
@@ -162,7 +147,8 @@ abstract class AbstractMarkTest {
     protected fun containsFindings(findings: Set<Finding>, vararg expectedFindings: String) {
         println("All findings:")
         for (f in findings) println(f.toString())
-        val missingFindings: MutableSet<String> = HashSet()
+
+        val missingFindings = mutableSetOf<String>()
         for (expected in expectedFindings) {
             var found = false
             for (finding in findings) {
@@ -175,12 +161,14 @@ abstract class AbstractMarkTest {
                 missingFindings.add(expected)
             }
         }
+
         if (!missingFindings.isEmpty()) {
             println("Missing findings:")
             for (missing in missingFindings) {
                 println(missing)
             }
         }
+
         Assertions.assertTrue(missingFindings.isEmpty())
     }
 }

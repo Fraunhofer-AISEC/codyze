@@ -46,17 +46,12 @@ public class MOp {
 		return this.statements;
 	}
 
-	public Set<OpStatement> getCallStatements(Node node) {
-		if (!parsed) {
-			log.error("MOp not parsed! Do not call getCallStatements!");
-			assert false;
-		}
-
-		return nodesToStatements.get(node);
-	}
-
 	public Map<Node, Set<OpStatement>> getNodesToStatements() {
 		return nodesToStatements;
+	}
+
+	public Map<OpStatement, Set<Node>> getStatementsToNodes() {
+		return statementToNodes;
 	}
 
 	public Set<Node> getAllNodes() {

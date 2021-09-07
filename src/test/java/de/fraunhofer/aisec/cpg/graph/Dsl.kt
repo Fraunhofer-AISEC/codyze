@@ -1,89 +1,16 @@
-package de.fraunhofer.aisec.codyze.crymlin
+package de.fraunhofer.aisec.cpg.graph
 
-import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
-import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator
-import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader
-import de.fraunhofer.aisec.cpg.ExperimentalGraph
-import de.fraunhofer.aisec.cpg.graph.DeclarationHolder
-import de.fraunhofer.aisec.cpg.graph.Graph
-import de.fraunhofer.aisec.cpg.graph.HasType
-import de.fraunhofer.aisec.cpg.graph.StatementHolder
 import de.fraunhofer.aisec.cpg.graph.declarations.Declaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
+import de.fraunhofer.aisec.cpg.graph.declarations.TranslationUnitDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.CompoundStatement
 import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement
 import de.fraunhofer.aisec.cpg.graph.statements.Statement
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
 import de.fraunhofer.aisec.cpg.graph.types.TypeParser
 import de.fraunhofer.aisec.cpg.graph.types.UnknownType
-import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
-import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration
-import de.fraunhofer.aisec.mark.markDsl.RuleDeclaration
-import de.fraunhofer.aisec.mark.markDsl.impl.*
-import java.io.File
-import kotlin.test.assertNotNull
-import org.junit.jupiter.api.Test
-
-class ExpressionEvaluatorTest : AbstractTest() {
-
-    @OptIn(ExperimentalGraph::class)
-    @Test
-    fun test() {
-        var a: VariableDeclaration? = null
-
-        val main =
-            function("main") {
-                body {
-                    declare { a = variable("a", type("MyClass")) }
-                    assign(lhs = ref("a", a), rhs = literal(1))
-                }
-            }
-
-        println(main)
-
-        val nodes = SubgraphWalker.flattenAST(main)
-        val graph = Graph(nodes)
-
-        var myEntity: EntityDeclaration? = null
-        var myRule: RuleDeclaration? = null
-        val model = mark {
-            myEntity = entity("MyEntity") {}
-            myRule =
-                rule("myRule") {
-                    statement {
-                        using(myEntity!!, "a")
-                        ensure { comparison(left = operand("a"), op = "==", right = lit("1")) }
-                    }
-                }
-        }
-
-        assertNotNull(myRule)
-
-        val context = MarkContextHolder()
-        val resultCtx = AnalysisContext(File(""), graph)
-        val convertedMark = MarkModelLoader().load(mapOf("" to model))
-        val convertedRule = convertedMark.rules.first()
-        val eval =
-            ExpressionEvaluator(
-                graph,
-                convertedMark,
-                convertedRule,
-                resultCtx,
-                ServerConfiguration.builder().build(),
-                context
-            )
-
-        val result = eval.evaluateExpression(convertedRule.statement.ensure.exp)
-        println(result)
-    }
-}
 
 private operator fun DeclaredReferenceExpression.plus(rhs: Expression): BinaryOperator {
     val node = BinaryOperator()
@@ -124,9 +51,14 @@ fun DeclarationHolder.function(
     return node
 }
 
-fun function(name: String, init: FunctionDeclaration.() -> Unit): FunctionDeclaration {
-    val node = FunctionDeclaration()
-    node.name = name
+fun tu(
+    name: String? = null,
+    init: TranslationUnitDeclaration.() -> Unit
+): TranslationUnitDeclaration {
+    val node = TranslationUnitDeclaration()
+    if (name != null) {
+        node.name = name
+    }
     node.init()
     return node
 }
@@ -158,8 +90,27 @@ fun <T : Statement> FunctionDeclaration.initTag(tag: T, init: T.() -> Unit): T {
 
 fun FunctionDeclaration.body(init: StatementHolder.() -> Unit) = initTag(CompoundStatement(), init)
 
-fun StatementHolder.declare(init: DeclarationStatement.() -> Unit) =
+fun StatementHolder.declare(init: DeclarationStatement.() -> Unit): DeclarationStatement =
     add(DeclarationStatement(), init)
+
+fun HasInitializer.new(init: NewExpression.() -> Unit = {}): NewExpression {
+    val node = NewExpression()
+    node.init()
+    this.initializer = node
+    return node
+}
+
+fun HasInitializer.construct(
+    typeName: String,
+    init: ConstructExpression.() -> Unit = {}
+): ConstructExpression {
+    val node = ConstructExpression()
+    node.name = typeName
+    node.type = type(typeName)
+    node.init()
+    this.initializer = node
+    return node
+}
 
 fun StatementHolder.binaryOp(
     lhs: Expression,

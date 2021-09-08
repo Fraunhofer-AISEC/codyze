@@ -12,15 +12,11 @@ import java.util.*;
 
 public class MOp {
 
-	private static final Logger log = LoggerFactory.getLogger(MOp.class);
-
 	private String name;
 	private final MEntity parent;
 
 	@NonNull
 	private final List<OpStatement> statements = new ArrayList<>();
-
-	private boolean parsed = false;
 
 	private final Map<OpStatement, Set<Node>> statementToNodes = new HashMap<>();
 
@@ -68,7 +64,6 @@ public class MOp {
 	}
 
 	public void setParsingFinished() {
-		parsed = true;
 	}
 
 	public MEntity getParent() {
@@ -76,7 +71,6 @@ public class MOp {
 	}
 
 	public void reset() {
-		parsed = false;
 		statementToNodes.clear();
 		nodesToStatements.clear();
 		allNodes.clear();

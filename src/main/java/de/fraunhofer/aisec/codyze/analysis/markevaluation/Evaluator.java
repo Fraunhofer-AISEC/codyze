@@ -103,7 +103,7 @@ public class Evaluator {
 	 *
 	 * @param graph the Graph
 	 */
-	private void assignCallsToOps(@NonNull Graph graph) {
+	protected void assignCallsToOps(@NonNull Graph graph) {
 		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		// iterate over all entities and precalculate:
 		// - call statements to vertices
@@ -326,7 +326,7 @@ public class Evaluator {
 		markCtxHolder.setCreateFindingsDuringEvaluation(true);
 	}
 
-	private MarkContextHolder createMarkContext(List<List<Pair<String, Node>>> entities) {
+	protected MarkContextHolder createMarkContext(List<List<Pair<String, Node>>> entities) {
 		MarkContextHolder context = new MarkContextHolder();
 		for (var list : Lists.cartesianProduct(entities)) {
 			var instanceCtx = new GraphInstanceContext();
@@ -355,7 +355,7 @@ public class Evaluator {
 	 *
 	 * @return
 	 */
-	private List<List<Pair<String, Node>>> findInstancesForEntities(MRule rule) {
+	protected List<List<Pair<String, Node>>> findInstancesForEntities(MRule rule) {
 		var ruleStmt = rule.getStatement();
 		var entities = new ArrayList<List<Pair<String, Node>>>();
 

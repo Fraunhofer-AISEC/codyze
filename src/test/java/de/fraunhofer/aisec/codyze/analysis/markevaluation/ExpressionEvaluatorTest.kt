@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.analysis.markevaluation
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass
+import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.crymlin.AbstractTest
 import de.fraunhofer.aisec.codyze.markmodel.Mark
@@ -76,10 +77,9 @@ class ExpressionEvaluatorTest : AbstractTest() {
     fun test() {
         val evaluator = Evaluator(mark, ServerConfiguration.builder().build())
 
-        // let's provide the list of entities and nodes, this is normally done by
-        // findInstancesForEntities
-        // in this case, we simply point it towards our construct expression
-        val entities = listOf(listOf(Pair("MyClass", c)))
+        // Let's provide the list of entities and nodes, this is normally done by
+        // findInstancesForEntities. In this case, we simply point it towards our variable declaration
+        val entities = listOf(listOf(Pair("a", a)))
 
         val markContextHolder = evaluator.createMarkContext(entities)
         assertEquals(1, markContextHolder.allContexts.size)
@@ -125,12 +125,11 @@ class ExpressionEvaluatorTest : AbstractTest() {
         lateinit var mark: Mark
 
         lateinit var c: ConstructExpression
+        lateinit var a: VariableDeclaration
 
         @BeforeAll
         @JvmStatic
         fun setup() {
-            var a: VariableDeclaration? = null
-
             val result = TranslationResult(TranslationManager.builder().build())
             val tu = tu {
                 function("main") {
@@ -149,6 +148,9 @@ class ExpressionEvaluatorTest : AbstractTest() {
 
             // we need to run some passes, otherwise some edges will not be present
             var pass: Pass = EdgeCachePass()
+            pass.accept(result)
+
+            pass = IdentifierPass()
             pass.accept(result)
 
             pass = EvaluationOrderGraphPass()
@@ -192,7 +194,7 @@ class ExpressionEvaluatorTest : AbstractTest() {
                             statement {
                                 using(myEntity!!, "a")
                                 ensure {
-                                    comparison(left = operand("a"), op = "==", right = lit(1))
+                                    comparison(left = operand("a.field"), op = "==", right = lit(1))
                                 }
                             }
                         }

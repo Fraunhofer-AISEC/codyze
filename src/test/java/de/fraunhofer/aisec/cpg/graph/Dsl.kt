@@ -112,6 +112,14 @@ fun HasInitializer.construct(
     return node
 }
 
+fun <T> CallExpression.literal(value: T, init: Literal<T>.() -> Unit = {}): Literal<T> {
+    val node = Literal<T>()
+    node.value = value
+    node.init()
+    this.addArgument(node)
+    return node
+}
+
 fun StatementHolder.binaryOp(
     lhs: Expression,
     rhs: Expression,

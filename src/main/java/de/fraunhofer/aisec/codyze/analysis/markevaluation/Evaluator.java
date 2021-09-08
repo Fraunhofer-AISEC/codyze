@@ -326,7 +326,7 @@ public class Evaluator {
 		markCtxHolder.setCreateFindingsDuringEvaluation(true);
 	}
 
-	private MarkContextHolder createMarkContext(List<List<Pair<String, Node>>> entities) {
+	protected MarkContextHolder createMarkContext(List<List<Pair<String, Node>>> entities) {
 		MarkContextHolder context = new MarkContextHolder();
 		for (var list : Lists.cartesianProduct(entities)) {
 			var instanceCtx = new GraphInstanceContext();

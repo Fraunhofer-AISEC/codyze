@@ -22,7 +22,13 @@ fun operand(name: String): Operand {
 }
 
 fun lit(value: String): Literal {
-    val expression = LiteralImpl()
+    val expression = StringLiteralImpl()
     expression.value = value
+    return expression
+}
+
+fun lit(value: Int): Literal {
+    val expression = IntegerLiteralImpl()
+    expression.value = value.toString()
     return expression
 }

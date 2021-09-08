@@ -1,18 +1,25 @@
 package de.fraunhofer.aisec.codyze.analysis.markevaluation
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
-import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass
+import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.crymlin.AbstractTest
 import de.fraunhofer.aisec.codyze.markmodel.Mark
 import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
+import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
 import de.fraunhofer.aisec.cpg.graph.*
+import de.fraunhofer.aisec.cpg.graph.declarations.TranslationUnitDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression
+import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass
+import de.fraunhofer.aisec.cpg.passes.Pass
+import de.fraunhofer.aisec.cpg.passes.scopes.ScopeManager
+import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation
 import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration
 import de.fraunhofer.aisec.mark.markDsl.MarkModel
 import de.fraunhofer.aisec.mark.markDsl.RuleDeclaration
@@ -67,14 +74,32 @@ class ExpressionEvaluatorTest : AbstractTest() {
 
     @Test
     fun test() {
-        val markContextHolder = MarkContextHolder()
-        markContextHolder.allContexts[0] =
-            null // add a dummy, so that we get exactly one result back for this context
+        val evaluator = Evaluator(mark, ServerConfiguration.builder().build())
+
+        // let's provide the list of entities and nodes, this is normally done by
+        // findInstancesForEntities
+        // in this case, we simply point it towards our construct expression
+        val entities = listOf(listOf(Pair("MyClass", c)))
+
+        val markContextHolder = evaluator.createMarkContext(entities)
+        assertEquals(1, markContextHolder.allContexts.size)
+
+        val context = markContextHolder.getContext(0)
+        assertNotNull(context)
 
         val resultCtx = AnalysisContext(File(""), graph)
+
+        // these are the "converted" Mark classes, because for some reason the Evaluator does not
+        // directly use the xtext classes
         val convertedMark = MarkModelLoader().load(mapOf("" to model))
+        assertNotNull(convertedMark)
+
         val convertedRule = convertedMark.rules.first()
+        assertNotNull(convertedRule)
+
         val convertedEntity = convertedMark.getEntity("MyClass")
+        assertNotNull(convertedEntity)
+
         val eval =
             ExpressionEvaluator(
                 graph,
@@ -86,13 +111,20 @@ class ExpressionEvaluatorTest : AbstractTest() {
             )
 
         val result = eval.evaluateExpression(convertedRule.statement.ensure.exp)
-        println(result)
+        assertEquals(1, result.size)
+
+        val ctx = result[0]
+        assertNotNull(ctx)
+
+        assertEquals(ConstantValue.of(true), ctx)
     }
 
     companion object {
         lateinit var graph: Graph
         lateinit var model: MarkModel
         lateinit var mark: Mark
+
+        lateinit var c: ConstructExpression
 
         @BeforeAll
         @JvmStatic
@@ -104,15 +136,43 @@ class ExpressionEvaluatorTest : AbstractTest() {
                 function("main") {
                     body {
                         declare {
-                            a = variable("a", type("MyClass")) { new { construct("MyClass") } }
+                            a =
+                                variable("a", type("MyClass")) {
+                                    new { c = construct("MyClass") { literal(1) } }
+                                }
                         }
-                        assign(lhs = ref("a", a), rhs = literal(1))
+                        // assign(lhs = ref("a", a), rhs = literal(1))
                     }
                 }
             }
             result.addTranslationUnit(tu)
 
-            val pass = EdgeCachePass()
+            // we need to run some passes, otherwise some edges will not be present
+            var pass: Pass = EdgeCachePass()
+            pass.accept(result)
+
+            pass = EvaluationOrderGraphPass()
+            pass.lang =
+                object :
+                    LanguageFrontend(
+                        TranslationConfiguration.builder().build(),
+                        ScopeManager(),
+                        ""
+                    ) {
+                    override fun parse(file: File?): TranslationUnitDeclaration {
+                        return TranslationUnitDeclaration()
+                    }
+
+                    override fun <T : Any?> getCodeFromRawNode(astNode: T): String? {
+                        return null
+                    }
+
+                    override fun <T : Any?> getLocationFromRawNode(astNode: T): PhysicalLocation? {
+                        return null
+                    }
+
+                    override fun <S : Any?, T : Any?> setComment(s: S, ctx: T) {}
+                }
             pass.accept(result)
 
             graph = result.graph
@@ -122,13 +182,17 @@ class ExpressionEvaluatorTest : AbstractTest() {
 
             model =
                 mark {
-                    myEntity = entity("MyClass") { op("init") { stmt { call("MyClass") } } }
+                    myEntity =
+                        entity("MyClass") {
+                            variable("field")
+                            op("init") { stmt { call("MyClass") { param("field") } } }
+                        }
                     myRule =
                         rule("myRule") {
                             statement {
                                 using(myEntity!!, "a")
                                 ensure {
-                                    comparison(left = operand("a"), op = "==", right = lit("1"))
+                                    comparison(left = operand("a"), op = "==", right = lit(1))
                                 }
                             }
                         }

@@ -5,8 +5,6 @@ import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.*
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
-import de.fraunhofer.aisec.cpg.TranslationConfiguration
-import de.fraunhofer.aisec.cpg.TranslationManager
 import de.fraunhofer.aisec.cpg.graph.Graph
 import de.fraunhofer.aisec.cpg.graph.declarations.TypedefDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.IfStatement
@@ -24,7 +22,7 @@ import org.junit.jupiter.api.Test
 
 /** Tests structure of CPG generated from "real" source files. */
 @ExperimentalGraph
-internal class GraphTest {
+internal class GraphTest : AbstractTest() {
     @Test
     fun testMethods() {
         val methods = graph.methods.map { it.name }
@@ -142,19 +140,7 @@ internal class GraphTest {
             server.start()
 
             // Start the analysis
-            val translationManager =
-                TranslationManager.builder()
-                    .config(
-                        TranslationConfiguration.builder()
-                            .debugParser(true)
-                            .failOnError(false)
-                            .codeInNodes(true)
-                            .defaultPasses()
-                            .defaultLanguages()
-                            .sourceLocations(cppFile)
-                            .build()
-                    )
-                    .build()
+            val translationManager = newAnalysisRun(cppFile)
             val analyze = server.analyze(translationManager)
             try {
                 result = analyze[5, TimeUnit.MINUTES]

@@ -5,22 +5,16 @@ import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.mark.markDsl.OpStatement;
 import de.fraunhofer.aisec.mark.markDsl.Parameter;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class MOp {
-
-	private static final Logger log = LoggerFactory.getLogger(MOp.class);
 
 	private String name;
 	private final MEntity parent;
 
 	@NonNull
 	private final List<OpStatement> statements = new ArrayList<>();
-
-	private boolean parsed = false;
 
 	private final Map<OpStatement, Set<Node>> statementToNodes = new HashMap<>();
 
@@ -46,17 +40,12 @@ public class MOp {
 		return this.statements;
 	}
 
-	public Set<OpStatement> getCallStatements(Node node) {
-		if (!parsed) {
-			log.error("MOp not parsed! Do not call getCallStatements!");
-			assert false;
-		}
-
-		return nodesToStatements.get(node);
-	}
-
 	public Map<Node, Set<OpStatement>> getNodesToStatements() {
 		return nodesToStatements;
+	}
+
+	public Map<OpStatement, Set<Node>> getStatementsToNodes() {
+		return statementToNodes;
 	}
 
 	public Set<Node> getAllNodes() {
@@ -73,7 +62,6 @@ public class MOp {
 	}
 
 	public void setParsingFinished() {
-		parsed = true;
 	}
 
 	public MEntity getParent() {
@@ -81,7 +69,6 @@ public class MOp {
 	}
 
 	public void reset() {
-		parsed = false;
 		statementToNodes.clear();
 		nodesToStatements.clear();
 		allNodes.clear();

@@ -198,7 +198,7 @@ public class OrderNFAEvaluator {
 							} else if (vertex instanceof ConstructExpression) { // ctor
 								var initializerBase = getAstParent(vertex);
 								if (initializerBase != null) {
-									var next = getSuitableDFGTarget(vertex);
+									var next = getSuitableDFGTarget(initializerBase);
 									if (next != null) {
 										base = next.getName();
 										// for ctor, the DFG points already to the variabledecl

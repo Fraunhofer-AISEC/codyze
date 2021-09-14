@@ -78,7 +78,8 @@ class ExpressionEvaluatorTest : AbstractTest() {
         val evaluator = Evaluator(mark, ServerConfiguration.builder().build())
 
         // Let's provide the list of entities and nodes, this is normally done by
-        // findInstancesForEntities. In this case, we simply point it towards our variable declaration
+        // findInstancesForEntities. In this case, we simply point it towards our variable
+        // declaration
         val entities = listOf(listOf(Pair("a", a)))
 
         val markContextHolder = evaluator.createMarkContext(entities)

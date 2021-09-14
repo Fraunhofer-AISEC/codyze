@@ -127,12 +127,6 @@ fun Node.getSuitableDFGTarget(): Node? {
             }
             .sortedWith(Comparator.comparing(Node::name))
 
-    if (suitable.size > 1) {
-        log.warn(
-            "We still have more than one suitable DFG edges coming from {}. We are taking the first one, but this might lead to incorrect results."
-        )
-    }
-
     return suitable.firstOrNull()
 }
 

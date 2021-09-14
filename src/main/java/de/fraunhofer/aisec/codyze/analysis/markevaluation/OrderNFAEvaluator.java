@@ -201,10 +201,19 @@ public class OrderNFAEvaluator {
 									var next = getSuitableDFGTarget(initializerBase);
 									if (next != null) {
 										base = next.getName();
-										// for ctor, the DFG points already to the variabledecl
-										// TODO: not true, it can also be a reference
-										refNode = next;
-										ref = refNode.getId().toString();
+
+										if (next instanceof VariableDeclaration) {
+											// this is already the reference
+											refNode = next;
+											ref = refNode.getId().toString();
+										} else {
+											if (next instanceof DeclaredReferenceExpression) {
+												refNode = ((DeclaredReferenceExpression) next).getRefersTo();
+												if (refNode != null) {
+													ref = refNode.getId().toString();
+												}
+											}
+										}
 									}
 								}
 							} else {

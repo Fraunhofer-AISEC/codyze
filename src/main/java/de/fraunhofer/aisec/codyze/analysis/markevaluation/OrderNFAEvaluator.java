@@ -1,22 +1,24 @@
 
 package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
-import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
+import de.fraunhofer.aisec.codyze.analysis.ErrorValue;
+import de.fraunhofer.aisec.codyze.analysis.Finding;
+import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
+import de.fraunhofer.aisec.codyze.markmodel.MEntity;
+import de.fraunhofer.aisec.codyze.markmodel.MOp;
+import de.fraunhofer.aisec.codyze.markmodel.MRule;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.FSM;
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import de.fraunhofer.aisec.cpg.graph.Graph;
-import de.fraunhofer.aisec.cpg.graph.Node;
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression;
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression;
-import de.fraunhofer.aisec.codyze.markmodel.MEntity;
-import de.fraunhofer.aisec.codyze.markmodel.MOp;
-import de.fraunhofer.aisec.codyze.markmodel.MRule;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.FSM;
-import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +28,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getBaseOfCallExpressionUsingArgument;
+import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.*;
 import static de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePassKt.getAstParent;
-import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getContainingFunction;
 
 public class OrderNFAEvaluator {
 
@@ -184,34 +185,25 @@ public class OrderNFAEvaluator {
 								.stream()
 								.anyMatch(x -> Objects.equals(x.getSecond(), op.getParent()))) {
 
-							String base = null;
-							String ref = null;
-							de.fraunhofer.aisec.cpg.graph.Node refNode = null;
+							// the "base" node, on which the NFA is based on. ideally, this is a variable declaration in the end
+							de.fraunhofer.aisec.cpg.graph.Node base = null;
+
 							if (vertex instanceof MemberCallExpression) {
 								var baseVertex = ((MemberCallExpression) vertex).getBase();
-								base = baseVertex.getName();
+								base = baseVertex;
 								if (baseVertex instanceof DeclaredReferenceExpression) {
-									refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
-									if (refNode != null) {
-										ref = refNode.getId().toString();
-									}
+									base = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
 								}
 							} else if (vertex instanceof ConstructExpression) { // ctor
 								var initializerBase = getAstParent(vertex);
 								if (initializerBase != null) {
-									var next = vertex.getNextDFG()
-											.stream()
-											.filter(node -> node instanceof VariableDeclaration
-													|| node instanceof DeclaredReferenceExpression)
-											.sorted(Comparator.comparing(Node::getName))
-											.collect(Collectors.toList());
-									if (!next.isEmpty()) {
-										var baseVertex = next.get(0);
-										base = baseVertex.getName();
-										// for ctor, the DFG points already to the variabledecl
-										// TODO: not true, it can also be a reference
-										refNode = baseVertex;
-										ref = refNode.getId().toString();
+									var next = getSuitableDFGTarget(initializerBase);
+									if (next != null) {
+										base = next;
+
+										if (next instanceof DeclaredReferenceExpression) {
+											base = ((DeclaredReferenceExpression) next).getRefersTo();
+										}
 									}
 								}
 							} else {
@@ -223,51 +215,24 @@ public class OrderNFAEvaluator {
 											.filter(i -> "this".equals(params.get(i).getVar()))
 											.toArray();
 									if (thisPositions.length == 1) {
-										refNode = getBaseOfCallExpressionUsingArgument((CallExpression) vertex, thisPositions[0]);
-										base = refNode.getName();
-										ref = refNode.getId().toString();
+										base = getBaseOfCallExpressionUsingArgument((CallExpression) vertex, thisPositions[0]);
 										foundUsingThis = true;
 									}
 								}
 								if (!foundUsingThis) {
-									// There could potentially be multiple DFG targets. this can lead to
-									// inconsistent results. Therefore, we filter the DFG targets for "interesting" types
-									// and also sort them by name to make this more consistent.
-									var next = vertex.getNextDFG()
-											.stream()
-											.filter(node -> node instanceof ConstructExpression || node instanceof VariableDeclaration
-													|| node instanceof DeclaredReferenceExpression)
-											.sorted(Comparator.comparing(Node::getName))
-											.collect(Collectors.toList());
+									var next = getSuitableDFGTarget(vertex);
 
-									if (!next.isEmpty()) {
-										var baseVertex = next.get(0);
-
-										base = baseVertex.getName();
-										if (baseVertex instanceof ConstructExpression) {
-											next = baseVertex.getNextDFG()
-													.stream()
-													.filter(node -> node instanceof VariableDeclaration
-															|| node instanceof DeclaredReferenceExpression)
-													.sorted(Comparator.comparing(Node::getName))
-													.collect(Collectors.toList());
-											if (!next.isEmpty()) {
-												baseVertex = next.get(0);
-												base = baseVertex.getName();
+									if (next != null) {
+										base = next;
+										if (next instanceof ConstructExpression) {
+											next = getSuitableDFGTarget(vertex);
+											if (next != null) {
+												base = next;
 											}
 										}
 
-										if (baseVertex instanceof VariableDeclaration) {
-											// this is already the reference
-											refNode = baseVertex;
-											ref = refNode.getId().toString();
-										} else {
-											if (baseVertex instanceof DeclaredReferenceExpression) {
-												refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
-												if (refNode != null) {
-													ref = refNode.getId().toString();
-												}
-											}
+										if (next instanceof DeclaredReferenceExpression) {
+											base = ((DeclaredReferenceExpression) next).getRefersTo();
 										}
 									}
 								}
@@ -276,21 +241,19 @@ public class OrderNFAEvaluator {
 							if (base == null) {
 								log.error("base must not be null for {}", vertex.getClass().getSimpleName());
 							} else {
-								if (refNode != null
-										&& !referencedVertices.contains(refNode.getId())) {
+								if (!referencedVertices.contains(base.getId())) {
 									log.info("this call does not reference the function we are looking at, skipping.");
 								} else {
 									// if we have a reference to a node in the cpg, we add this to the prefixed
 									// base this way, we could differentiate between nodes with the same base
 									// name, but referencing different variables (e.g., if they are used in
 									// different blocks)
-									if (ref != null) {
-										base += "|" + ref;
-									}
 
-									String prefixedBase = eogPath + "." + base;
+									var baseName = base.getName() + "|" + base.getId();
 
-									if (isDisallowedBase(disallowedBases, eogPath, base)) {
+									String prefixedBase = eogPath + "." + baseName;
+
+									if (isDisallowedBase(disallowedBases, eogPath, baseName)) {
 										// we hide base errors for now!
 									} else {
 										Set<StateNode> nodesInFSM;
@@ -344,7 +307,7 @@ public class OrderNFAEvaluator {
 												ctx.getFindings().add(f);
 											}
 											log.info("Finding: {}", f);
-											disallowedBases.computeIfAbsent(base, x -> new HashSet<>()).add(eogPath);
+											disallowedBases.computeIfAbsent(baseName, x -> new HashSet<>()).add(eogPath);
 										} else {
 											var region = Utils.getRegionByNode(vertex);
 											var vertex1 = lastBaseUsage.get(prefixedBase);

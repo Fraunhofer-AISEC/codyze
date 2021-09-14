@@ -137,6 +137,12 @@ sourceSets.configureEach {
     }
 }
 
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+    }
+}
+
 // Added mark files from dist folder to test resources
 sourceSets.getByName("test").resources {
     srcDir("src/dist")

@@ -8,7 +8,6 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.*
 
 // at least it breaks consistently now
-@Disabled
 internal class RealBCTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)

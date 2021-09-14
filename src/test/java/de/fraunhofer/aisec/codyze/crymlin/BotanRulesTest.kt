@@ -254,7 +254,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun test_rule_7_2_2_1_01() {
         val findings = performTest("botan_rule_tr_test/7_2_2_1_01.cpp", "mark/botan/")
-        expected(
+        containsFindings(
             findings,
             "line 13: Rule _7_2_2_1_01_DH_KEYLEN verified", // ok
             "line 13: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified"

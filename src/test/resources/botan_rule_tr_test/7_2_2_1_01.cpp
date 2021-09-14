@@ -11,5 +11,5 @@ int main() {
     const std::vector<uint8_t> test_sig = Botan::hex_decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     Botan::AutoSeeded_RNG rng;
     Botan::DL_Group dl_group("dsa/botan/3072");
-    Botan::DH_PrivateKey(rng, dl_group);
+    Botan::DH_PrivateKey dh_private_key(rng, dl_group);
 }

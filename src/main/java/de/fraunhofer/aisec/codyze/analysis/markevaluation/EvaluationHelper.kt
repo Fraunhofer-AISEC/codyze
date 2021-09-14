@@ -20,6 +20,7 @@ import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.CompoundStatement
+import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement
 import de.fraunhofer.aisec.cpg.graph.statements.Statement
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
@@ -110,33 +111,29 @@ fun Graph.getField(fqnClassName: String, fieldName: String?): FieldDeclaration? 
 
 /**
  *
- * TODO if there are really more than one possible DFG targets we should return a list
- *
- * @param vertex
  * @return
  */
 fun Node.getSuitableDFGTarget(): Node? {
-    val it = this.nextDFG.iterator()
-    var target: Node? = null
-
-    // there are cases where there is more than one outgoing DFG edge
-    while (it.hasNext()) {
-        val v = it.next()
-        log.info("DFG target: {}", v)
-
-        // set the first find
-        if (target == null) {
-            target = v
-        } else {
-            // otherwise, look for something more useful
-            // like a declared reference expression or a variable declaration
-            if (v is DeclaredReferenceExpression || v is VariableDeclaration) {
-                target = v
+    // There could potentially be multiple DFG targets. this can lead to
+    // inconsistent results. Therefore, we filter the DFG targets for "interesting" types
+    // and also sort them by name to make this more consistent.
+    val suitable =
+        this.nextDFG
+            .filter {
+                it is DeclaredReferenceExpression ||
+                    it is ReturnStatement || // for builder-style functions
+                    it is ConstructExpression ||
+                    it is VariableDeclaration
             }
-        }
+            .sortedWith(Comparator.comparing(Node::name))
+
+    if (suitable.size > 1) {
+        log.warn(
+            "We still have more than one suitable DFG edges coming from {}. We are taking the first one, but this might lead to incorrect results."
+        )
     }
 
-    return target
+    return suitable.firstOrNull()
 }
 
 val Node.initializedNode: Node?

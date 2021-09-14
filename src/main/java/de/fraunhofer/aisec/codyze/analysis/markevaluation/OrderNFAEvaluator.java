@@ -26,9 +26,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getBaseOfCallExpressionUsingArgument;
+import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.*;
 import static de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePassKt.getAstParent;
-import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.getContainingFunction;
 
 public class OrderNFAEvaluator {
 
@@ -199,18 +198,12 @@ public class OrderNFAEvaluator {
 							} else if (vertex instanceof ConstructExpression) { // ctor
 								var initializerBase = getAstParent(vertex);
 								if (initializerBase != null) {
-									var next = vertex.getNextDFG()
-											.stream()
-											.filter(node -> node instanceof VariableDeclaration
-													|| node instanceof DeclaredReferenceExpression)
-											.sorted(Comparator.comparing(Node::getName))
-											.collect(Collectors.toList());
-									if (!next.isEmpty()) {
-										var baseVertex = next.get(0);
-										base = baseVertex.getName();
+									var next = getSuitableDFGTarget(vertex);
+									if (next != null) {
+										base = next.getName();
 										// for ctor, the DFG points already to the variabledecl
 										// TODO: not true, it can also be a reference
-										refNode = baseVertex;
+										refNode = next;
 										ref = refNode.getId().toString();
 									}
 								}
@@ -230,40 +223,24 @@ public class OrderNFAEvaluator {
 									}
 								}
 								if (!foundUsingThis) {
-									// There could potentially be multiple DFG targets. this can lead to
-									// inconsistent results. Therefore, we filter the DFG targets for "interesting" types
-									// and also sort them by name to make this more consistent.
-									var next = vertex.getNextDFG()
-											.stream()
-											.filter(node -> node instanceof ConstructExpression || node instanceof VariableDeclaration
-													|| node instanceof DeclaredReferenceExpression)
-											.sorted(Comparator.comparing(Node::getName))
-											.collect(Collectors.toList());
+									var next = getSuitableDFGTarget(vertex);
 
-									if (!next.isEmpty()) {
-										var baseVertex = next.get(0);
-
-										base = baseVertex.getName();
-										if (baseVertex instanceof ConstructExpression) {
-											next = baseVertex.getNextDFG()
-													.stream()
-													.filter(node -> node instanceof VariableDeclaration
-															|| node instanceof DeclaredReferenceExpression)
-													.sorted(Comparator.comparing(Node::getName))
-													.collect(Collectors.toList());
-											if (!next.isEmpty()) {
-												baseVertex = next.get(0);
-												base = baseVertex.getName();
+									if (next != null) {
+										base = next.getName();
+										if (next instanceof ConstructExpression) {
+											next = getSuitableDFGTarget(vertex);
+											if (next != null) {
+												base = next.getName();
 											}
 										}
 
-										if (baseVertex instanceof VariableDeclaration) {
+										if (next instanceof VariableDeclaration) {
 											// this is already the reference
-											refNode = baseVertex;
+											refNode = next;
 											ref = refNode.getId().toString();
 										} else {
-											if (baseVertex instanceof DeclaredReferenceExpression) {
-												refNode = ((DeclaredReferenceExpression) baseVertex).getRefersTo();
+											if (next instanceof DeclaredReferenceExpression) {
+												refNode = ((DeclaredReferenceExpression) next).getRefersTo();
 												if (refNode != null) {
 													ref = refNode.getId().toString();
 												}

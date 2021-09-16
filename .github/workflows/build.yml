@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of SonarQube analysis
       - uses: actions/setup-java@v2
         with:
           distribution: "zulu"
@@ -60,6 +60,16 @@ jobs:
         with:
           name: test
           path: build/reports/tests/test
+      - name: Build Visual Studio Code Plugin
+        run: |
+          pushd vscode && npm version $VERSION || true && sudo npm install -g vsce && npm install && vsce package && popd
+        env:
+          VERSION: ${{ steps.determine_version.outputs.version }}
+      - name: Archive Visual Studio Code Plugin
+        uses: actions/upload-artifact@v2
+        with:
+          name: vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
+          path: vscode/vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
       - name: Push Release Docker Image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -91,4 +101,15 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: build/distributions/codyze-${{ steps.determine_version.outputs.version }}.zip
           asset_name: codyze-${{ steps.determine_version.outputs.version }}.zip
+          asset_content_type: application/zip
+      - name: "Upload Plugin Asset"
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: vscode/vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
+          asset_name: vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
           asset_content_type: application/zip

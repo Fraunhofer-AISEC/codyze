@@ -1,28 +1,10 @@
-# vscode-codyze
-
-Heavily documented sample code for https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
+# Visual Studio Code Plugin
 
 ## Functionality
 
-This Language Server works for plain text file. It has the following language features:
-- Completions
-- Diagnostics regenerated on each file change or configuration change
+This Language Server invokes Codyze for `cpp` and `java` files.
 
 It also includes an End-to-End test.
-
-## Structure
-
-```
-.
-├── client // Language Client
-│   ├── src
-│   │   ├── test // End to End tests for Language Client / Server
-│   │   └── extension.ts // Language Client entry point
-├── package.json // The extension manifest.
-└── server // Language Server
-    └── src
-        └── server.ts // Language Server entry point
-```
 
 ## Running the Sample
 
@@ -39,8 +21,11 @@ It also includes an End-to-End test.
 
 ## Usage
 
+As a prerequisite, you need to have built Codyze in the parent folder using `./gradlew build`.
+
 ```
 npm install -g vsce
+npm install
 vsce package
-code --install-extension vscode-codyze-1.0.0.vsix
+code --install-extension vscode-codyze-*.vsix
 ```

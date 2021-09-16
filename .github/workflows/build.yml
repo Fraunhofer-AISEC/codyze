@@ -68,8 +68,8 @@ jobs:
       - name: Archive Visual Studio Code Plugin
         uses: actions/upload-artifact@v2
         with:
-          name: vscode-codyze-0.0.0.vsix
-          path: vscode/vscode-codyze.vsix
+          name: vscode-codyze.vsix
+          path: vscode/vscode-codyze-0.0.0.vsix
       - name: Push Release Docker Image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin

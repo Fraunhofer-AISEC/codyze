@@ -15,18 +15,18 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
+	let markPath = context.asAbsolutePath(path.join("codyze", "mark"))
+
 	// The server is implemented in node
 	let serverModule = context.asAbsolutePath(
 		path.join('codyze', 'bin', 'codyze')
 	);
 
-	console.log(serverModule)
-
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
 	let serverOptions: ServerOptions = {
-		run: { command: serverModule, args: ["-l"] },
-		debug: { command: serverModule, args: ["-l"] }
+		run: { command: serverModule, args: ["-l", "-m", markPath] },
+		debug: { command: serverModule, args: ["-l", "-m", markPath] }
 	};
 
 	// Options to control the language client

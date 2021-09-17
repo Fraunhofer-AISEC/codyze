@@ -316,9 +316,11 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             }
 
         return Finding(
+            rule.name,
+            rule.errorMessage,
+            rule.statement.action,
             name,
             currentFile,
-            rule.errorMessage,
             listOf(Utils.getRegionByNode(stmt)),
             true
         )
@@ -336,9 +338,11 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      */
     private fun createGoodFinding(node: Node, `val`: Val?, currentFile: URI): Finding {
         return Finding(
+            rule.name,
+            rule.errorMessage,
+            rule.statement.action,
             "Good: $`val` at $node",
             currentFile,
-            rule.errorMessage,
             listOf(Utils.getRegionByNode(node)),
             false
         )

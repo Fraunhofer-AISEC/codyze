@@ -285,6 +285,9 @@ public class OrderNFAEvaluator {
 
 											var region = Utils.getRegionByNode(vertex);
 											Finding f = new Finding(
+												rule.getName(),
+												rule.getErrorMessage(),
+												rule.getStatement().getAction(),
 												"Violation against Order: "
 														+ vertex.getCode()
 														+ " ("
@@ -297,7 +300,6 @@ public class OrderNFAEvaluator {
 														+ " ("
 														+ rule.getErrorMessage()
 														+ ")",
-												rule.getErrorMessage(),
 												new File(vertex.getFile()).toURI(),
 												region.getStartLine(),
 												region.getEndLine(),
@@ -442,6 +444,9 @@ public class OrderNFAEvaluator {
 				endCol = region.getEndColumn();
 			}
 			Finding f = new Finding(
+				rule.getName(),
+				rule.getErrorMessage(),
+				rule.getStatement().getAction(),
 				"Violation against Order: Base "
 						+ base
 						+ " is not correctly terminated. Expected one of ["
@@ -453,7 +458,6 @@ public class OrderNFAEvaluator {
 						+ " ("
 						+ rule.getErrorMessage()
 						+ ")",
-				rule.getErrorMessage(),
 				file,
 				startLine,
 				endLine,

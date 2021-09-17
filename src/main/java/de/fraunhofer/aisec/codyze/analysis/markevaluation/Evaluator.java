@@ -139,7 +139,7 @@ public class Evaluator {
 	/**
 	 * Evaluates all rules and creates findings.
 	 *
-	 * @param ctx              the result/analysis context
+	 * @param ctx   the result/analysis context
 	 * @param graph the Graph
 	 */
 	private void evaluateRules(AnalysisContext ctx, @NonNull Graph graph) {
@@ -253,26 +253,17 @@ public class Evaluator {
 
 					boolean isRuleViolated = !(Boolean) evaluationResultUb;
 
-					if (rule.getErrorMessage() != null) {
-						findings.add(new Finding(
-							"Rule "
-									+ rule.getName()
-									+ (isRuleViolated ? " violated" : " verified"),
-							currentFile,
-							rule.getErrorMessage(),
-							ranges,
-							isRuleViolated));
-					} else {
-						findings.add(new Finding(
-							rule.getName(),
-							"Rule "
-									+ rule.getName()
-									+ (isRuleViolated ? " violated" : " verified"),
-							currentFile,
-							rule.getStatement().getAction(),
-							ranges,
-							isRuleViolated));
-					}
+					findings.add(new Finding(
+						rule.getName(),
+						rule.getErrorMessage(),
+						rule.getStatement().getAction(),
+						"Rule "
+								+ rule.getName()
+								+ (isRuleViolated ? " violated" : " verified"),
+						currentFile,
+						ranges,
+						isRuleViolated));
+
 				}
 			} else if (evaluationResultUb == null) {
 				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size()
@@ -366,7 +357,6 @@ public class Evaluator {
 	 * In that case, the function will return [ [ (c1, v1) , (c1, v2), (c1, v3) ] [ (c2, c1), (c2, v2), (c2, v3) ] ]
 	 *
 	 * @param rule the MARK rule
-	 *
 	 * @return
 	 */
 	protected List<List<Pair<String, Node>>> findInstancesForEntities(MRule rule) {

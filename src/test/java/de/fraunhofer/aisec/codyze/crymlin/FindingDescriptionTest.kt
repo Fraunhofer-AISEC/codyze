@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.crymlin
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.cpg.sarif.Region
+import de.fraunhofer.aisec.mark.markDsl.Action
 import java.io.File
 import java.net.URI
 import java.net.URISyntaxException
@@ -21,7 +22,7 @@ internal class FindingDescriptionTest {
         val onFailId = "WrongUseOfBotan_CipherMode"
         val regions = listOf(Region(1, 2, 10, 12))
         val isProblem = true
-        val f = Finding(logMsg, artifactUri, onFailId, regions, isProblem)
+        val f = Finding("Test", onFailId, Action.FAIL, logMsg, artifactUri, regions, isProblem)
 
         // Initialize database with explanations
         val fd = instance

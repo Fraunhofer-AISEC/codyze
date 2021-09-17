@@ -168,10 +168,10 @@ public class CpgDocumentService implements TextDocumentService {
 							severity = DiagnosticSeverity.Warning;
 							break;
 						case FAIL:
-							severity = DiagnosticSeverity.Error;
-							break;
+							// Error
 						default:
 							severity = DiagnosticSeverity.Error;
+							break;
 					}
 				}
 				diagnostic.setSeverity(severity);

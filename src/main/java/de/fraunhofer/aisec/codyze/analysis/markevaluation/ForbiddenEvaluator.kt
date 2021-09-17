@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
 import de.fraunhofer.aisec.codyze.markmodel.MOp
 import de.fraunhofer.aisec.codyze.markmodel.Mark
+import de.fraunhofer.aisec.mark.markDsl.Action
 import de.fraunhofer.aisec.mark.markDsl.OpStatement
 import java.io.File
 import org.slf4j.LoggerFactory
@@ -65,8 +66,10 @@ class ForbiddenEvaluator(private val markModel: Mark) {
                                 node.code)
                         val f =
                             Finding(
-                                message,
+                                entity.name,
                                 "FORBIDDEN",
+                                Action.FAIL,
+                                message,
                                 File(node.file).toURI(),
                                 region.startLine,
                                 region.endLine,

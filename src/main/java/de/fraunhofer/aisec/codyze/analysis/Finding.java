@@ -17,20 +17,29 @@ import java.util.stream.Collectors;
 
 /**
  * Representation of a vulnerability/non-vulnerability found in the source code.
- *
  */
 public class Finding {
+
+	/**
+	 * Name of the rule for which this finding was generated.
+	 */
+	private String ruleName;
 
 	/**
 	 * Identifier following `onfail` in a MARK  rule. Identifies the
 	 * corresponding description for this finding.
 	 *
 	 * <p>
-	 *     To be removed as rule names are sufficiently unique.
+	 * To be removed as rule names are sufficiently unique.
 	 * </p>
 	 */
 	@Deprecated(since = "2.0.0-alpha3", forRemoval = true)
-	private final String onFailIdentifier;
+	private final String onfailIdentifier;
+
+	/**
+	 *
+	 */
+	private final Action action;
 
 	/**
 	 * True, if this finding indicates a problem/vulnerability. False, if this
@@ -52,63 +61,59 @@ public class Finding {
 	private final List<PhysicalLocation> locations = new ArrayList<>();
 
 	/**
-	 * 
-	 */
-	private Action action;
-
-	/**
 	 * Constructor.
 	 *
-	 * @param logMsg Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
-	 *        finding.
+	 * @param logMsg           Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
+	 *                         finding.
 	 * @param onfailIdentifier Identifier of the generic finding, as given by the "onfail" construct of the MARK rule.
-	 * @param startLine Line in code where the finding begins. Note that LSP starts counting at 1.
-	 * @param endLine Line in code where the finding ends.
-	 * @param startColumn Column in code where the finding begins. Note that LPS start counting at 1.
-	 * @param endColumn Column in code where the finding ends.
+	 * @param startLine        Line in code where the finding begins. Note that LSP starts counting at 1.
+	 * @param endLine          Line in code where the finding ends.
+	 * @param startColumn      Column in code where the finding begins. Note that LPS start counting at 1.
+	 * @param endColumn        Column in code where the finding ends.
 	 */
-	public Finding(String logMsg, String onfailIdentifier, @Nullable URI artifactUri, int startLine, int endLine, int startColumn, int endColumn) {
+	public Finding(String ruleName, String onfailIdentifier, Action action, String logMsg, @Nullable URI artifactUri, int startLine, int endLine, int startColumn,
+			int endColumn) {
+		this.ruleName = ruleName;
+		this.onfailIdentifier = onfailIdentifier;
+		this.action = action;
 		this.logMsg = logMsg;
-		this.onFailIdentifier = onfailIdentifier;
 		if (artifactUri != null) {
 			this.locations
 					.add(new PhysicalLocation(artifactUri, new Region(startLine, startColumn, endLine, endColumn)));
 		}
-		action = Action.FAIL;
 	}
 
 	/**
 	 * Constructor.
-	 * 
-	 * @param logMsg Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
-	 *        finding.
-	 * @param artifactUri Absolute URI of the source file.
+	 *
+	 * @param ruleName
 	 * @param onfailIdentifier Identifier of the generic finding, as given by the "onfail" construct of the MARK rule.
-	 * @param ranges List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
-	 * @param isProblem true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
+	 * @param logMsg           Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
+	 *                         finding.
+	 * @param artifactUri      Absolute URI of the source file.
+	 * @param ranges           List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
+	 * @param isProblem        true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
 	 */
-	public Finding(String logMsg, @Nullable URI artifactUri, String onfailIdentifier, List<Region> ranges, boolean isProblem) {
+	public Finding(String ruleName, String onfailIdentifier, Action action, String logMsg, @Nullable URI artifactUri, List<Region> ranges, boolean isProblem) {
+		this.ruleName = ruleName;
+		this.onfailIdentifier = onfailIdentifier;
+		this.action = action;
 		this.logMsg = logMsg;
-		this.onFailIdentifier = onfailIdentifier;
+
 		for (Region r : ranges) {
 			if (artifactUri != null) {
 				this.locations.add(new PhysicalLocation(artifactUri, r));
 			}
 		}
 		this.isProblem = isProblem;
-		this.action = Action.FAIL;
 	}
 
-	public Finding(String identifier, String logMsg, @Nullable URI artifactUri, Action action, List<Region> ranges, boolean isProblem) {
-		this.onFailIdentifier = identifier;
-		this.logMsg = logMsg;
-		for (Region r : ranges) {
-			if (artifactUri != null) {
-				this.locations.add(new PhysicalLocation(artifactUri, r));
-			}
-		}
-		this.isProblem = isProblem;
-		this.action = action;
+	public String getRuleName() {
+		return ruleName;
+	}
+
+	public Action getAction() {
+		return action;
 	}
 
 	public String getLogMsg() {
@@ -132,7 +137,7 @@ public class Finding {
 
 	/**
 	 * Returns a non-null, possibly empty list of physical locations of this finding.
-	 *
+	 * <p>
 	 * This method is required for a proper result JSON.
 	 *
 	 * @return
@@ -143,20 +148,16 @@ public class Finding {
 	}
 
 	public String getOnfailIdentifier() {
-		return onFailIdentifier;
-	}
-
-	public Action getAction() {
-		return action;
+		return onfailIdentifier;
 	}
 
 	public String toString() {
 		String addIfExists = "";
 
-		if (onFailIdentifier != null) {
+		if (onfailIdentifier != null) {
 			// simple for now
-			String descriptionShort = FindingDescription.getInstance().getDescriptionShort(onFailIdentifier);
-			if (descriptionShort != null && !descriptionShort.equals(onFailIdentifier)) {
+			String descriptionShort = FindingDescription.getInstance().getDescriptionShort(onfailIdentifier);
+			if (descriptionShort != null && !descriptionShort.equals(onfailIdentifier)) {
 				addIfExists = ": " + descriptionShort;
 			}
 		}
@@ -174,7 +175,7 @@ public class Finding {
 		if (!(obj instanceof Finding)) {
 			return false;
 		}
-		return Objects.equals(this.logMsg, ((Finding) obj).logMsg) && Objects.equals(this.onFailIdentifier, ((Finding) obj).onFailIdentifier);
+		return Objects.equals(this.logMsg, ((Finding) obj).logMsg) && Objects.equals(this.onfailIdentifier, ((Finding) obj).onfailIdentifier);
 	}
 
 	public int hashCode() {
@@ -187,9 +188,9 @@ public class Finding {
 	 * @param out
 	 */
 	public void prettyPrintShort(@NonNull PrintStream out) {
-		String shortMsg = FindingDescription.getInstance().getDescriptionShort(onFailIdentifier);
+		String shortMsg = FindingDescription.getInstance().getDescriptionShort(onfailIdentifier);
 		if (shortMsg == null) {
-			shortMsg = onFailIdentifier;
+			shortMsg = onfailIdentifier;
 		}
 
 		String lines;

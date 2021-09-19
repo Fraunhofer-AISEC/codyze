@@ -12,10 +12,10 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="DEBUG" additivity="false">
+        <Root level="WARN" additivity="false">
             <appender-ref ref="FILEOUT" />
         </Root>
-        <logger level="DEBUG" additivity="false" name="de.fraunhofer.aisec">
+        <logger level="WARN" additivity="false" name="de.fraunhofer.aisec">
             <appender-ref ref="FILEOUT" />
         </logger>
     </Loggers>

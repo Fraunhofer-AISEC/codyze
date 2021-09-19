@@ -1,6 +1,7 @@
 /* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
+ * Based on https://github.com/microsoft/vscode-extension-samples, Copyright (c) Microsoft Corporation under MIT License
+ *
+ * Adapted for Codyze. License: Apache 2.0
  * ------------------------------------------------------------------------------------------ */
 
 import * as path from 'path';
@@ -17,7 +18,6 @@ let client: LanguageClient;
 export function activate(context: ExtensionContext) {
 	let markPath = context.asAbsolutePath(path.join("codyze", "mark"))
 
-	// The server is implemented in node
 	let serverModule = context.asAbsolutePath(
 		path.join('codyze', 'bin', 'codyze')
 	);

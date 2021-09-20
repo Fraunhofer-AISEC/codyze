@@ -14,6 +14,7 @@ class FindingDescription private constructor() {
         val helpUri: String?,
         val fullDescription: Description?,
         val shortDescription: Description?,
+        val passMessage: Description?,
         val fixes: List<Fix>?
     )
 
@@ -30,6 +31,10 @@ class FindingDescription private constructor() {
 
     fun getDescriptionShort(onFailId: String): String? {
         return items?.get(onFailId)?.shortDescription?.text
+    }
+
+    fun getDescriptionPass(onFailId: String): String? {
+        return items?.get(onFailId)?.passMessage?.text
     }
 
     fun getHelpUri(onFailId: String): String? {

@@ -17,11 +17,11 @@ internal class RealBotanTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun testSimple() {
         // Just a very simple test to explore the graph
-        val findings =
-            performTest(
-                "real-examples/botan/streamciphers/bsex.cpp",
-                "real-examples/botan/streamciphers/bsex.mark"
-            )
+        performTest(
+            "real-examples/botan/streamciphers/bsex.cpp",
+            "real-examples/botan/streamciphers/bsex.mark"
+        )
+
         val graph = ctx!!.graph
         val variables =
             graph

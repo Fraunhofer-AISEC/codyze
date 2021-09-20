@@ -22,7 +22,7 @@ internal class MarkLoadOutputTest {
         for ((key, markModel) in allModels) {
             val reconstructed = StringBuilder()
             val entities = ArrayList(markModel.entities)
-            if (!entities.isEmpty()) {
+            if (entities.isNotEmpty()) {
                 // they all have the same packed name in our context
                 reconstructed.append("package ").append(entities[0].packageName).append("\n")
             }
@@ -40,14 +40,14 @@ internal class MarkLoadOutputTest {
             var full = String(Files.readAllBytes(Paths.get(key)))
             full = full.replace("(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)".toRegex(), "")
             for (line in full.split("\n").toTypedArray()) {
-                if (!line.strip().isEmpty()) {
-                    sanitizedOriginal.append(line.strip()).append("\n")
+                if (line.trim().isNotEmpty()) {
+                    sanitizedOriginal.append(line.trim()).append("\n")
                 }
             }
             val sanitizedReconstructed = StringBuilder()
             for (line in reconstructed.toString().split("\n").toTypedArray()) {
-                if (!line.strip().isEmpty()) {
-                    sanitizedReconstructed.append(line.strip()).append("\n")
+                if (line.trim().isNotEmpty()) {
+                    sanitizedReconstructed.append(line.trim()).append("\n")
                 }
             }
             assertEquals(sanitizedOriginal.toString(), sanitizedReconstructed.toString())
@@ -67,7 +67,7 @@ internal class MarkLoadOutputTest {
             assertNotNull(markPoC1)
             val markModelFiles = markPoC1.parent
             val directories =
-                File(markModelFiles).list { current: File?, name: String -> name.endsWith(".mark") }
+                File(markModelFiles).list { _: File?, name: String -> name.endsWith(".mark") }
             assertNotNull(directories)
             val parser = XtextParser()
             for (markFile in directories) {

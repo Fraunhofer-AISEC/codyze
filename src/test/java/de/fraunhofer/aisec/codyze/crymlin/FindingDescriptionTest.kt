@@ -21,7 +21,7 @@ internal class FindingDescriptionTest {
         val onFailId = "WrongUseOfBotan_CipherMode"
         val regions = listOf(Region(1, 2, 10, 12))
         val isProblem = true
-        val f = Finding(logMsg, artifactUri, onFailId, regions, isProblem)
+        Finding(logMsg, artifactUri, onFailId, regions, isProblem)
 
         // Initialize database with explanations
         val fd = instance

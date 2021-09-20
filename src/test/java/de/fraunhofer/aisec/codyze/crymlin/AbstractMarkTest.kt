@@ -5,7 +5,6 @@ import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
-import de.fraunhofer.aisec.codyze.analysis.wpds.NFA
 import de.fraunhofer.aisec.cpg.TranslationManager
 import java.io.*
 import java.lang.Exception
@@ -44,7 +43,7 @@ abstract class AbstractMarkTest : AbstractTest() {
         var resource = classLoader.getResource(sourceFileName)
 
         assertNotNull(resource, "Resource $sourceFileName not found")
-        var javaFile = File(resource!!.file)
+        var javaFile = File(resource.file)
         assertNotNull(javaFile, "File $sourceFileName not found")
         val toAnalyze = ArrayList<File>()
         toAnalyze.add(javaFile)
@@ -166,7 +165,7 @@ abstract class AbstractMarkTest : AbstractTest() {
             }
         }
 
-        if (!missingFindings.isEmpty()) {
+        if (missingFindings.isNotEmpty()) {
             println("Missing findings:")
             for (missing in missingFindings) {
                 println(missing)

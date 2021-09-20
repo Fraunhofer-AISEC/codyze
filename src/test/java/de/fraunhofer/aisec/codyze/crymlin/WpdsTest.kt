@@ -10,8 +10,6 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import java.io.*
 import java.lang.Exception
 import java.util.HashSet
-import java.util.function.BinaryOperator
-import java.util.function.Function
 import java.util.stream.Collectors
 import kotlin.Throws
 import kotlin.test.assertEquals
@@ -38,7 +36,7 @@ internal class WpdsTest : AbstractMarkTest() {
             edgesFSM.add("START.START -> " + n.name) // artificial node existing in the NFA
         }
         val seen: MutableSet<StateNode> = HashSet()
-        while (!worklist.isEmpty()) {
+        while (worklist.isNotEmpty()) {
             val nextWorkList: MutableSet<StateNode> = HashSet()
             for (n in worklist) {
                 for (succ in n.successors) {
@@ -110,19 +108,18 @@ internal class WpdsTest : AbstractMarkTest() {
         val findings = performTest("unittests/wpds-vector-example.java", "unittests/vector.mark")
 
         // Extract <line nr, isProblem> from findings
-        val startLineNumbers =
-            findings
-                .stream()
-                .collect(
-                    Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
-                            println("Several findings : $isProblemA/$isProblemB")
-                            isProblemA && isProblemB
-                        }
-                    )
+        findings
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    { f: Finding? -> f!!.regions[0].startLine },
+                    { obj: Finding? -> obj!!.isProblem },
+                    { isProblemA: Boolean, isProblemB: Boolean ->
+                        println("Several findings : $isProblemA/$isProblemB")
+                        isProblemA && isProblemB
+                    }
                 )
+            )
     }
 
     @Test
@@ -136,9 +133,9 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { f: Finding? -> f!!.regions[0].startLine },
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA && isProblemB
                         }
@@ -172,9 +169,9 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { f: Finding? -> f!!.regions[0].startLine },
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA && isProblemB
                         }
@@ -210,9 +207,9 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { f: Finding? -> f!!.regions[0].startLine },
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA && isProblemB
                         }
@@ -241,9 +238,9 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { f: Finding? -> f!!.regions[0].startLine },
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA && isProblemB
                         }
@@ -273,9 +270,9 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { f: Finding? -> f!!.regions[0].startLine },
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA && isProblemB
                         }
@@ -303,9 +300,9 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { f: Finding? -> f!!.regions[0].startLine },
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA && isProblemB
                         }
@@ -331,9 +328,9 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { f: Finding? -> f!!.regions[0].startLine },
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA && isProblemB
                         }
@@ -355,9 +352,9 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? -> f!!.regions[0].startLine },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { f: Finding? -> f!!.regions[0].startLine },
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA || isProblemB
                         }
@@ -391,11 +388,11 @@ internal class WpdsTest : AbstractMarkTest() {
                 .stream()
                 .collect(
                     Collectors.toMap(
-                        Function { f: Finding? ->
+                        { f: Finding? ->
                             if (f!!.regions.isEmpty()) -1 else f.regions[0].startLine
                         },
-                        Function { obj: Finding? -> obj!!.isProblem },
-                        BinaryOperator { isProblemA: Boolean, isProblemB: Boolean ->
+                        { obj: Finding? -> obj!!.isProblem },
+                        { isProblemA: Boolean, isProblemB: Boolean ->
                             println("Several findings : $isProblemA/$isProblemB")
                             isProblemA && isProblemB
                         }

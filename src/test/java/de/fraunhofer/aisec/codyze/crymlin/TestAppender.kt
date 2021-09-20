@@ -5,23 +5,25 @@ import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.*
 import org.apache.logging.log4j.core.appender.AbstractAppender
+import org.apache.logging.log4j.core.config.Property
 import org.apache.logging.log4j.core.config.plugins.Plugin
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute
 import org.apache.logging.log4j.core.config.plugins.PluginElement
 import org.apache.logging.log4j.core.config.plugins.PluginFactory
 
 @Plugin(name = "TestAppender", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
-class TestAppender(name: String?, filter: Filter?) : AbstractAppender(name, filter, null) {
+class TestAppender(name: String?, filter: Filter?) :
+    AbstractAppender(name, filter, null, true, Property.EMPTY_ARRAY) {
     private val events = ArrayList<LogEvent>()
     override fun append(event: LogEvent) {
         synchronized(events) { events.add(event.toImmutable()) }
     }
 
     fun getLog(vararg levels: Level?): List<LogEvent> {
-        val levelHashSet = HashSet(Arrays.asList(*levels))
+        val levelHashSet = HashSet(listOf(*levels))
         val ret: MutableList<LogEvent> = ArrayList()
         for (e in events) {
-            if (levels.size == 0 || levelHashSet.contains(e.level)) {
+            if (levels.isEmpty() || levelHashSet.contains(e.level)) {
                 ret.add(e)
             }
         }

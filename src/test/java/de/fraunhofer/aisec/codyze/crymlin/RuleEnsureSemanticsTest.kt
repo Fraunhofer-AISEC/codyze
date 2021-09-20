@@ -7,7 +7,6 @@ import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionEvaluator
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
-import de.fraunhofer.aisec.codyze.analysis.wpds.NFA
 import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.TranslationManager
@@ -102,7 +101,7 @@ internal class RuleEnsureSemanticsTest {
             assertNotNull(markFile)
 
             var directoryContent =
-                markFile.listFiles { current: File?, name: String -> name.endsWith(".mark") }
+                markFile.listFiles { _: File?, name: String -> name.endsWith(".mark") }
             if (directoryContent == null) {
                 directoryContent = arrayOf(markFile)
             }

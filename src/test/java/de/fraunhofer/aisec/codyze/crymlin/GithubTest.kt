@@ -40,9 +40,9 @@ internal class GithubTest : AbstractTest() {
             for (f in files) {
                 ret.add(f.absolutePath.substring(baseFolder!!.length + 1)) // only use the file name
             }
-            Collections.sort(ret)
+            ret.sort()
             // random!
-            Collections.shuffle(ret)
+            ret.shuffle()
             if (MAX_FILES_TO_SCAN != -1) {
                 ret = ret.subList(FILES_OFFSET, FILES_OFFSET + MAX_FILES_TO_SCAN)
             }
@@ -96,7 +96,7 @@ internal class GithubTest : AbstractTest() {
         val tmpString = sourceFileName
         val matchingFiles =
             dir.listFiles { pathname: File -> pathname.name.endsWith("$tmpString.out") }
-        if (!RESCAN && matchingFiles != null && matchingFiles.size > 0) {
+        if (!RESCAN && matchingFiles != null && matchingFiles.isNotEmpty()) {
             println("File already scanned")
             return
         }

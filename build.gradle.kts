@@ -89,6 +89,9 @@ dependencies {
     // will be a transitive dependency after CPG beta.3
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.5")
 
+    // pull in explicitly to prevent mixing versions
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.30")
+
     // Code Property Graph
     api("de.fraunhofer.aisec:cpg:4.0.4") // ok
 

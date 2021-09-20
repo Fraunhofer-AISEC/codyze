@@ -5,7 +5,6 @@ import de.fraunhofer.aisec.codyze.JythonInterpreter
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
-import de.fraunhofer.aisec.codyze.analysis.wpds.NFA
 import java.io.*
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.*

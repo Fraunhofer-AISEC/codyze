@@ -13,6 +13,9 @@
           "text": "Just fix it!"
         }
       }
-    ]
+    ],
+    "passMessage": {
+      "text": "Order of Botan methods validated."
+    }
   }
 }

@@ -158,6 +158,7 @@ public class CpgDocumentService implements TextDocumentService {
 				Diagnostic diagnostic = new Diagnostic();
 				// TODO Replace HINT for verified findings with Code Lens
 
+				// Everything is informational until it becomes a problem
 				DiagnosticSeverity severity = DiagnosticSeverity.Information;
 				if (f.isProblem()) {
 					switch (f.getAction()) {
@@ -177,14 +178,17 @@ public class CpgDocumentService implements TextDocumentService {
 				diagnostic.setSeverity(severity);
 
 				// Get human readable description, if available
-				String msg = FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier());
+				String msg = (f.isProblem() ? FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier())
+						: FindingDescription.getInstance().getDescriptionPass(f.getOnfailIdentifier()));
 				if (msg == null) {
 					msg = f.getLogMsg();
 				}
 
-				String longDesc = FindingDescription.getInstance().getDescriptionFull(f.getOnfailIdentifier());
-				if (longDesc != null) {
-					msg += ": " + longDesc;
+				if (f.isProblem()) {
+					String longDesc = FindingDescription.getInstance().getDescriptionFull(f.getOnfailIdentifier());
+					if (longDesc != null) {
+						msg += ": " + longDesc;
+					}
 				}
 
 				diagnostic.setCode(Either.forLeft(f.getOnfailIdentifier()));

@@ -154,10 +154,11 @@ public class Finding {
 	public String toString() {
 		String addIfExists = "";
 
-		if (onfailIdentifier != null) {
+		String identifier = (onfailIdentifier != null ? onfailIdentifier : ruleName);
+		if (identifier != null) {
 			// simple for now
-			String descriptionShort = FindingDescription.getInstance().getDescriptionShort(onfailIdentifier);
-			if (descriptionShort != null && !descriptionShort.equals(onfailIdentifier)) {
+			String descriptionShort = FindingDescription.getInstance().getDescriptionShort(identifier);
+			if (descriptionShort != null && !descriptionShort.equals(identifier)) {
 				addIfExists = ": " + descriptionShort;
 			}
 		}
@@ -175,7 +176,8 @@ public class Finding {
 		if (!(obj instanceof Finding)) {
 			return false;
 		}
-		return Objects.equals(this.logMsg, ((Finding) obj).logMsg) && Objects.equals(this.onfailIdentifier, ((Finding) obj).onfailIdentifier);
+		return Objects.equals(this.logMsg, ((Finding) obj).logMsg)
+				&& (Objects.equals(this.ruleName, ((Finding) obj).ruleName) || Objects.equals(this.onfailIdentifier, ((Finding) obj).onfailIdentifier));
 	}
 
 	public int hashCode() {
@@ -188,9 +190,11 @@ public class Finding {
 	 * @param out
 	 */
 	public void prettyPrintShort(@NonNull PrintStream out) {
-		String shortMsg = FindingDescription.getInstance().getDescriptionShort(onfailIdentifier);
+		String identifier = (onfailIdentifier != null ? onfailIdentifier : ruleName);
+
+		String shortMsg = FindingDescription.getInstance().getDescriptionShort(identifier);
 		if (shortMsg == null) {
-			shortMsg = onfailIdentifier;
+			shortMsg = identifier;
 		}
 
 		String lines;

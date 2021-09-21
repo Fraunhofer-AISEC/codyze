@@ -49,7 +49,7 @@ internal class AnalysisServerQueriesTest : AbstractTest() {
                         ServerConfiguration.builder()
                             .launchConsole(false)
                             .launchLsp(false)
-                            .markFiles(markModelFiles)
+                            .markFiles(arrayOf(markModelFiles))
                             .build()
                     )
                     .build()

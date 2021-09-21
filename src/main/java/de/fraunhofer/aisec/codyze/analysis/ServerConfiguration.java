@@ -20,8 +20,8 @@ public class ServerConfiguration {
 	public final boolean launchLsp;
 
 	/** Directory or file with MARK entities/rules. */
-	@Nullable
-	public final String markModelFiles;
+	@NonNull
+	public final String[] markModelFiles;
 
 	/** Which type of typestate analysis do we want? */
 	@NonNull
@@ -50,7 +50,7 @@ public class ServerConfiguration {
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
-			@Nullable String markModelFiles,
+			@NonNull String[] markModelFiles,
 			@NonNull TypestateMode typestateMode,
 			boolean analyzeIncludes,
 			@NonNull File[] includePath,
@@ -73,8 +73,8 @@ public class ServerConfiguration {
 	public static class Builder {
 		private boolean launchConsole = true;
 		private boolean launchLsp = true;
-		@Nullable
-		private String markModelFiles = ""; // Path of a file or directory
+		@NonNull
+		private String[] markModelFiles = new String[0]; // Path of a file or directory
 		@NonNull
 		private TypestateMode typestateAnalysis = TypestateMode.NFA;
 		private boolean analyzeIncludes;
@@ -92,7 +92,7 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder markFiles(@Nullable String markModelFiles) {
+		public Builder markFiles(String[] markModelFiles) {
 			this.markModelFiles = markModelFiles;
 			return this;
 		}

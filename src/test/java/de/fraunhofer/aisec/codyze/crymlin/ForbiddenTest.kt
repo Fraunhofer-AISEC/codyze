@@ -12,7 +12,7 @@ internal class ForbiddenTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testJava() {
-        val results = performTest("unittests/forbidden.java", "unittests/forbidden.mark")
+        val results = performTest("unittests/forbidden.java", arrayOf("unittests/forbidden.mark"))
         val findings =
             results.stream().map { obj: Finding? -> obj.toString() }.collect(Collectors.toSet())
         assertEquals(

@@ -75,7 +75,8 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppRegression88() {
-        val findings = performTest("unittests/regression88.cpp", "../../src/dist/mark/botan")
+        val findings =
+            performTest("unittests/regression88.cpp", arrayOf("../../src/dist/mark/botan"))
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
@@ -85,7 +86,8 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppInterprocOk1() {
-        val findings = performTest("unittests/orderInterprocOk1.cpp", "unittests/order2.mark")
+        val findings =
+            performTest("unittests/orderInterprocOk1.cpp", arrayOf("unittests/order2.mark"))
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
@@ -95,7 +97,8 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppInterprocOk1Legacy() {
-        val findings = performTest("unittests/orderInterprocOk1.cpp", null, "unittests/order2.mark")
+        val findings =
+            performTest("unittests/orderInterprocOk1.cpp", null, arrayOf("unittests/order2.mark"))
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
@@ -105,7 +108,8 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsVector() {
-        val findings = performTest("unittests/wpds-vector-example.java", "unittests/vector.mark")
+        val findings =
+            performTest("unittests/wpds-vector-example.java", arrayOf("unittests/vector.mark"))
 
         // Extract <line nr, isProblem> from findings
         findings
@@ -125,7 +129,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsOK1() {
-        val findings = performTest("unittests/wpds-ok1.cpp", "unittests/order2.mark")
+        val findings = performTest("unittests/wpds-ok1.cpp", arrayOf("unittests/order2.mark"))
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -161,7 +165,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsOK2() {
-        val findings = performTest("unittests/wpds-ok2.cpp", "unittests/order2.mark")
+        val findings = performTest("unittests/wpds-ok2.cpp", arrayOf("unittests/order2.mark"))
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -199,7 +203,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsOk3() {
-        val findings = performTest("unittests/wpds-ok3.cpp", "unittests/wpds-3.mark")
+        val findings = performTest("unittests/wpds-ok3.cpp", arrayOf("unittests/wpds-3.mark"))
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -230,7 +234,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun // @Disabled // Disabled as if-branches are not yet correctly translated into WPDS rules
     testWpdsOk4() {
-        val findings = performTest("unittests/wpds-ok4.cpp", "unittests/wpds-4.mark")
+        val findings = performTest("unittests/wpds-ok4.cpp", arrayOf("unittests/wpds-4.mark"))
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -262,7 +266,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsNOK1() {
-        val findings = performTest("unittests/wpds-nok1.cpp", "unittests/order2.mark")
+        val findings = performTest("unittests/wpds-nok1.cpp", arrayOf("unittests/order2.mark"))
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -292,7 +296,8 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppInterprocNOk1() {
-        val findings = performTest("unittests/orderInterprocNOk1.cpp", "unittests/order2.mark")
+        val findings =
+            performTest("unittests/orderInterprocNOk1.cpp", arrayOf("unittests/order2.mark"))
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -322,7 +327,8 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppInterprocNOk2() {
-        val findings = performTest("unittests/orderInterprocNOk2.cpp", "unittests/order2.mark")
+        val findings =
+            performTest("unittests/orderInterprocNOk2.cpp", arrayOf("unittests/order2.mark"))
         val startLineNumbers =
             findings
                 .stream()
@@ -346,7 +352,8 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testJavaMethodArgs() {
-        val findings = performTest("java/jca/AESCBC.java", "../../src/dist/mark/bouncycastle")
+        val findings =
+            performTest("java/jca/AESCBC.java", arrayOf("../../src/dist/mark/bouncycastle"))
         val startLineNumbers =
             findings
                 .stream()
@@ -379,7 +386,7 @@ internal class WpdsTest : AbstractMarkTest() {
         val findings =
             performTest(
                 "openssl/github.com/DaniloVlad/OpenSSL-AES/aes-simplified.c",
-                "openssl/github.com/DaniloVlad/OpenSSL-AES/mark"
+                arrayOf("openssl/github.com/DaniloVlad/OpenSSL-AES/mark")
             )
 
         // Extract <line nr, isProblem> from findings

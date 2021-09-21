@@ -23,21 +23,25 @@ abstract class AbstractMarkTest : AbstractTest() {
     protected lateinit var server: AnalysisServer
     protected var ctx: AnalysisContext? = null
     protected var tsMode = TypestateMode.NFA
+
     @Throws(Exception::class)
     protected fun performTest(sourceFileName: String): MutableSet<Finding> {
-        return performTest(sourceFileName, null)
+        return performTest(sourceFileName, arrayOf(), arrayOf())
     }
 
     @Throws(Exception::class)
-    protected fun performTest(sourceFileName: String, markFileName: String?): MutableSet<Finding> {
-        return performTest(sourceFileName, null, markFileName)
+    protected fun performTest(
+        sourceFileName: String,
+        markFileNames: Array<String>?
+    ): MutableSet<Finding> {
+        return performTest(sourceFileName, arrayOf(), markFileNames)
     }
 
     @Throws(Exception::class)
     protected fun performTest(
         sourceFileName: String,
         additionalFiles: Array<String>?,
-        markFileName: String?
+        markFileNames: Array<String>?
     ): MutableSet<Finding> {
         val classLoader = AbstractMarkTest::class.java.classLoader
         var resource = classLoader.getResource(sourceFileName)
@@ -60,23 +64,23 @@ abstract class AbstractMarkTest : AbstractTest() {
             }
         }
 
-        var markDirPath = ""
-        if (markFileName != null) {
-            resource = classLoader.getResource(markFileName)
-            if (resource == null) {
-                // Assume `markFileName` is relative to project base `src` folder
-                val p =
-                    Path.of(classLoader.getResource(".").toURI())
-                        .resolve(Path.of("..", "..", "..", "src"))
-                        .resolve(markFileName)
-                        .normalize()
-                resource = p.toUri().toURL()
+        var markDirPaths: List<String>? =
+            markFileNames?.map {
+                resource = classLoader.getResource(it)
+                if (resource == null) {
+                    // Assume `markFileName` is relative to project base `src` folder
+                    val p =
+                        Path.of(classLoader.getResource(".").toURI())
+                            .resolve(Path.of("..", "..", "..", "src"))
+                            .resolve(it)
+                            .normalize()
+                    resource = p.toUri().toURL()
+                }
+                assertNotNull(resource)
+                val markDir = File(resource.file)
+                assertNotNull(markDir)
+                markDir.absolutePath
             }
-            assertNotNull(resource)
-            val markDir = File(resource.file)
-            assertNotNull(markDir)
-            markDirPath = markDir.absolutePath
-        }
 
         // Start an analysis server
         server =
@@ -86,7 +90,7 @@ abstract class AbstractMarkTest : AbstractTest() {
                         .launchConsole(false)
                         .launchLsp(false)
                         .typestateAnalysis(tsMode)
-                        .markFiles(markDirPath)
+                        .markFiles(markDirPaths?.toTypedArray())
                         .useLegacyEvaluator()
                         .build()
                 )

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.*
 internal class OrderTestComplex : AbstractMarkTest() {
     @Throws(Exception::class)
     private fun performTestAndCheck(sourceFileName: String) {
-        val results = performTest(sourceFileName, "unittests/order2.mark")
+        val results = performTest(sourceFileName, arrayOf("unittests/order2.mark"))
         val findings =
             results.stream().map { obj: Finding? -> obj.toString() }.collect(Collectors.toSet())
         assertEquals(

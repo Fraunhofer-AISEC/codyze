@@ -20,7 +20,7 @@ internal class CommandsTest {
                         .launchLsp(false)
                         .launchConsole(true)
                         .typestateAnalysis(TypestateMode.NFA)
-                        .markFiles(File("src/test/resources/mark_java").absolutePath)
+                        .markFiles(arrayOf(File("src/test/resources/mark_java").absolutePath))
                         .useLegacyEvaluator()
                         .build()
                 )

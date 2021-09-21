@@ -29,9 +29,8 @@ public class Finding {
 	 * Identifier following `onfail` in a MARK  rule. Identifies the
 	 * corresponding description for this finding.
 	 *
-	 * <p>
-	 * To be removed as rule names are sufficiently unique.
-	 * </p>
+	 * @deprecated
+	 * Rule names are sufficiently unique.
 	 */
 	@Deprecated(since = "2.0.0-alpha3", forRemoval = true)
 	private final String onfailIdentifier;

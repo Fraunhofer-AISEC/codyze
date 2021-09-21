@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -42,8 +43,8 @@ public class Main implements Callable<Integer> {
 	private File analysisInput;
 
 	@Option(names = { "-m",
-			"--mark" }, paramLabel = "<path>", description = "Load MARK policy files from folder", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-	private File markFolderName;
+			"--mark" }, paramLabel = "<path>[,<path>...]", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
+	private File[] markFolderNames;
 
 	@Option(names = { "-o",
 			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
@@ -85,7 +86,7 @@ public class Main implements Callable<Integer> {
 				.disableGoodFindings(disableGoodFindings)
 				.analyzeIncludes(translationSettings.analyzeIncludes)
 				.includePath(translationSettings.includesPath)
-				.markFiles(new String[] { markFolderName.getAbsolutePath() });
+				.markFiles(Arrays.stream(markFolderNames).map(f -> f.getAbsolutePath()).toArray(String[]::new));
 
 		if (enablePython) {
 			config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);

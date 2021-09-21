@@ -19,10 +19,10 @@ internal class FindingDescriptionTest {
         // Create some Finding object
         val logMsg = "Variable cm not initialized"
         val artifactUri = URI.create("file:///tmp/test.cpp")
-        val onFailId = "WrongUseOfBotan_CipherMode"
+        val id = "WrongUseOfBotan_CipherMode"
         val regions = listOf(Region(1, 2, 10, 12))
         val isProblem = true
-        Finding("Test", onFailId, Action.FAIL, logMsg, artifactUri, regions, isProblem)
+        Finding(id, Action.FAIL, logMsg, artifactUri, regions, isProblem)
 
         // Initialize database with explanations
         val fd = instance
@@ -32,12 +32,12 @@ internal class FindingDescriptionTest {
 
         fd.init(File(url.toURI()))
 
-        val item = fd.get(onFailId)
-        val fullDescription = fd.getDescriptionFull(onFailId)
-        val shortDescription = fd.getDescriptionShort(onFailId)
-        val passMessage = fd.getDescriptionPass(onFailId)
-        val helpUri = fd.getHelpUri(onFailId)
-        val fixes = fd.getFixes(onFailId)
+        val item = fd.get(id)
+        val fullDescription = fd.getDescriptionFull(id)
+        val shortDescription = fd.getDescriptionShort(id)
+        val passMessage = fd.getDescriptionPass(id)
+        val helpUri = fd.getHelpUri(id)
+        val fixes = fd.getFixes(id)
 
         assertNotNull(item)
         assertEquals("Full description", fullDescription)

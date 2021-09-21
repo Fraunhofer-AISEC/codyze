@@ -316,8 +316,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             }
 
         return Finding(
-            rule.name,
-            rule.errorMessage,
+            rule.errorMessage ?: rule.name,
             rule.statement.action,
             name,
             currentFile,
@@ -338,8 +337,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
      */
     private fun createGoodFinding(node: Node, `val`: Val?, currentFile: URI): Finding {
         return Finding(
-            rule.name,
-            rule.errorMessage,
+            rule.errorMessage ?: rule.name,
             rule.statement.action,
             "Good: $`val` at $node",
             currentFile,

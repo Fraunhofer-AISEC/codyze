@@ -254,8 +254,7 @@ public class Evaluator {
 					boolean isRuleViolated = !(Boolean) evaluationResultUb;
 
 					findings.add(new Finding(
-						rule.getName(),
-						rule.getErrorMessage(),
+						rule.getErrorMessage() != null ? rule.getErrorMessage() : rule.getName(),
 						rule.getStatement().getAction(),
 						"Rule "
 								+ rule.getName()

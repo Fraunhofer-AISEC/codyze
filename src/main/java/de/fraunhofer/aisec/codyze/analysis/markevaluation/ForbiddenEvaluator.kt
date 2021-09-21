@@ -66,8 +66,7 @@ class ForbiddenEvaluator(private val markModel: Mark) {
                                 node.code)
                         val f =
                             Finding(
-                                entity.name,
-                                "FORBIDDEN",
+                                "FORBIDDEN_" + entity.name,
                                 Action.FAIL,
                                 message,
                                 File(node.file).toURI(),

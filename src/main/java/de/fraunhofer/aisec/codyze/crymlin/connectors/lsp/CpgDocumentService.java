@@ -177,24 +177,21 @@ public class CpgDocumentService implements TextDocumentService {
 				}
 				diagnostic.setSeverity(severity);
 
-				// Backward compatibility for onfail identifier and rule name
-				String identifier = (f.getOnfailIdentifier() != null ? f.getOnfailIdentifier() : f.getRuleName());
-
 				// Get human readable description, if available
-				String msg = (f.isProblem() ? FindingDescription.getInstance().getDescriptionShort(identifier)
-						: FindingDescription.getInstance().getDescriptionPass(identifier));
+				String msg = (f.isProblem() ? FindingDescription.getInstance().getDescriptionShort(f.getIdentifier())
+						: FindingDescription.getInstance().getDescriptionPass(f.getIdentifier()));
 				if (msg == null) {
 					msg = f.getLogMsg();
 				}
 
 				if (f.isProblem()) {
-					String longDesc = FindingDescription.getInstance().getDescriptionFull(identifier);
+					String longDesc = FindingDescription.getInstance().getDescriptionFull(f.getIdentifier());
 					if (longDesc != null) {
 						msg += ": " + longDesc;
 					}
 				}
 
-				diagnostic.setCode(Either.forLeft(identifier));
+				diagnostic.setCode(Either.forLeft(f.getIdentifier()));
 				diagnostic.setSource("Codyze");
 				diagnostic.setMessage(msg);
 				Range r = new Range(
@@ -205,7 +202,7 @@ public class CpgDocumentService implements TextDocumentService {
 				String line = ignoredLines.get(r.getStart().getLine());
 				if (line == null
 						|| (!line.contains(DISABLE_FINDING_ALL)
-								&& !line.contains(DISABLE_FINDING_PREFIX + identifier))) {
+								&& !line.contains(DISABLE_FINDING_PREFIX + f.getIdentifier()))) {
 					allDiags.add(diagnostic);
 				} else {
 					log.warn("Skipping finding {}, disabled via comment", f);

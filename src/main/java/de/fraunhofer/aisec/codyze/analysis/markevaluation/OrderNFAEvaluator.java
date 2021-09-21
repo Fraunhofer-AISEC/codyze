@@ -285,8 +285,7 @@ public class OrderNFAEvaluator {
 
 											var region = Utils.getRegionByNode(vertex);
 											Finding f = new Finding(
-												rule.getName(),
-												rule.getErrorMessage(),
+												rule.getErrorMessage() != null ? rule.getErrorMessage() : rule.getName(),
 												rule.getStatement().getAction(),
 												"Violation against Order: "
 														+ vertex.getCode()
@@ -444,8 +443,7 @@ public class OrderNFAEvaluator {
 				endCol = region.getEndColumn();
 			}
 			Finding f = new Finding(
-				rule.getName(),
-				rule.getErrorMessage(),
+				rule.getErrorMessage() != null ? rule.getErrorMessage() : rule.getName(),
 				rule.getStatement().getAction(),
 				"Violation against Order: Base "
 						+ base

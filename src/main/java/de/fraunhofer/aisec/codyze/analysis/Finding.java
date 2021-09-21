@@ -21,19 +21,9 @@ import java.util.stream.Collectors;
 public class Finding {
 
 	/**
-	 * Name of the rule for which this finding was generated.
+	 * Identifier for this finding.
 	 */
-	private String ruleName;
-
-	/**
-	 * Identifier following `onfail` in a MARK  rule. Identifies the
-	 * corresponding description for this finding.
-	 *
-	 * @deprecated
-	 * Rule names are sufficiently unique.
-	 */
-	@Deprecated(since = "2.0.0-alpha3", forRemoval = true)
-	private final String onfailIdentifier;
+	private String id;
 
 	/**
 	 *
@@ -64,16 +54,14 @@ public class Finding {
 	 *
 	 * @param logMsg           Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
 	 *                         finding.
-	 * @param onfailIdentifier Identifier of the generic finding, as given by the "onfail" construct of the MARK rule.
 	 * @param startLine        Line in code where the finding begins. Note that LSP starts counting at 1.
 	 * @param endLine          Line in code where the finding ends.
 	 * @param startColumn      Column in code where the finding begins. Note that LPS start counting at 1.
 	 * @param endColumn        Column in code where the finding ends.
 	 */
-	public Finding(String ruleName, String onfailIdentifier, Action action, String logMsg, @Nullable URI artifactUri, int startLine, int endLine, int startColumn,
+	public Finding(String id, Action action, String logMsg, @Nullable URI artifactUri, int startLine, int endLine, int startColumn,
 			int endColumn) {
-		this.ruleName = ruleName;
-		this.onfailIdentifier = onfailIdentifier;
+		this.id = id;
 		this.action = action;
 		this.logMsg = logMsg;
 		if (artifactUri != null) {
@@ -85,17 +73,15 @@ public class Finding {
 	/**
 	 * Constructor.
 	 *
-	 * @param ruleName
-	 * @param onfailIdentifier Identifier of the generic finding, as given by the "onfail" construct of the MARK rule.
+	 * @param id
 	 * @param logMsg           Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
 	 *                         finding.
 	 * @param artifactUri      Absolute URI of the source file.
 	 * @param ranges           List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
 	 * @param isProblem        true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
 	 */
-	public Finding(String ruleName, String onfailIdentifier, Action action, String logMsg, @Nullable URI artifactUri, List<Region> ranges, boolean isProblem) {
-		this.ruleName = ruleName;
-		this.onfailIdentifier = onfailIdentifier;
+	public Finding(String id, Action action, String logMsg, @Nullable URI artifactUri, List<Region> ranges, boolean isProblem) {
+		this.id = id;
 		this.action = action;
 		this.logMsg = logMsg;
 
@@ -107,8 +93,8 @@ public class Finding {
 		this.isProblem = isProblem;
 	}
 
-	public String getRuleName() {
-		return ruleName;
+	public String getIdentifier() {
+		return id;
 	}
 
 	public Action getAction() {
@@ -146,20 +132,13 @@ public class Finding {
 		return this.locations;
 	}
 
-	public String getOnfailIdentifier() {
-		return onfailIdentifier;
-	}
-
 	public String toString() {
 		String addIfExists = "";
 
-		String identifier = (onfailIdentifier != null ? onfailIdentifier : ruleName);
-		if (identifier != null) {
-			// simple for now
-			String descriptionShort = FindingDescription.getInstance().getDescriptionShort(identifier);
-			if (descriptionShort != null && !descriptionShort.equals(identifier)) {
-				addIfExists = ": " + descriptionShort;
-			}
+		// simple for now
+		String descriptionShort = FindingDescription.getInstance().getDescriptionShort(id);
+		if (descriptionShort != null && !descriptionShort.equals(id)) {
+			addIfExists = ": " + descriptionShort;
 		}
 
 		String lines;
@@ -176,7 +155,7 @@ public class Finding {
 			return false;
 		}
 		return Objects.equals(this.logMsg, ((Finding) obj).logMsg)
-				&& (Objects.equals(this.ruleName, ((Finding) obj).ruleName) || Objects.equals(this.onfailIdentifier, ((Finding) obj).onfailIdentifier));
+				&& Objects.equals(this.id, ((Finding) obj).id);
 	}
 
 	public int hashCode() {
@@ -189,11 +168,9 @@ public class Finding {
 	 * @param out
 	 */
 	public void prettyPrintShort(@NonNull PrintStream out) {
-		String identifier = (onfailIdentifier != null ? onfailIdentifier : ruleName);
-
-		String shortMsg = FindingDescription.getInstance().getDescriptionShort(identifier);
+		String shortMsg = FindingDescription.getInstance().getDescriptionShort(id);
 		if (shortMsg == null) {
-			shortMsg = identifier;
+			shortMsg = id;
 		}
 
 		String lines;

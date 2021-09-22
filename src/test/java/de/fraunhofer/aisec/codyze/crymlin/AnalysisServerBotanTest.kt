@@ -65,7 +65,7 @@ internal class AnalysisServerBotanTest : AbstractTest() {
                         ServerConfiguration.builder()
                             .launchConsole(false)
                             .launchLsp(false)
-                            .markFiles(arrayOf(markModelFiles))
+                            .markFiles(markModelFiles)
                             .build()
                     )
                     .build()

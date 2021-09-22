@@ -37,7 +37,7 @@ internal class RuleEnsureSemanticsTest {
         val mark = MarkModelLoader().load(markModels, markFilePaths[0])
         val config =
             ServerConfiguration.builder()
-                .markFiles(arrayOf(markFilePaths[0]))
+                .markFiles(markFilePaths[0])
                 .typestateAnalysis(TypestateMode.NFA)
                 .build()
         val graph = TranslationResult(TranslationManager.builder().build()).graph

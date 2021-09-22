@@ -64,7 +64,7 @@ internal class GithubTest : AbstractTest() {
                         ServerConfiguration.builder()
                             .launchConsole(false)
                             .launchLsp(false)
-                            .markFiles(arrayOf(markPoC1.absolutePath))
+                            .markFiles(markPoC1.absolutePath)
                             .build()
                     )
                     .build()

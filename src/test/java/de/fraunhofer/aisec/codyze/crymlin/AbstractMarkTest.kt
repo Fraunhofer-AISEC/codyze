@@ -62,23 +62,25 @@ abstract class AbstractMarkTest : AbstractTest() {
             toAnalyze.add(javaFile)
         }
 
-        var markDirPaths: List<String>? =
-            markFileNames.map {
-                resource = classLoader.getResource(it)
-                if (resource == null) {
-                    // Assume `markFileName` is relative to project base `src` folder
-                    val p =
-                        Path.of(classLoader.getResource(".").toURI())
-                            .resolve(Path.of("..", "..", "..", "src"))
-                            .resolve(it)
-                            .normalize()
-                    resource = p.toUri().toURL()
+        var markDirPaths =
+            markFileNames
+                .map {
+                    resource = classLoader.getResource(it)
+                    if (resource == null) {
+                        // Assume `markFileName` is relative to project base `src` folder
+                        val p =
+                            Path.of(classLoader.getResource(".").toURI())
+                                .resolve(Path.of("..", "..", "..", "src"))
+                                .resolve(it)
+                                .normalize()
+                        resource = p.toUri().toURL()
+                    }
+                    assertNotNull(resource)
+                    val markDir = File(resource.file)
+                    assertNotNull(markDir)
+                    markDir.absolutePath
                 }
-                assertNotNull(resource)
-                val markDir = File(resource.file)
-                assertNotNull(markDir)
-                markDir.absolutePath
-            }
+                .toTypedArray()
 
         // Start an analysis server
         server =
@@ -88,7 +90,7 @@ abstract class AbstractMarkTest : AbstractTest() {
                         .launchConsole(false)
                         .launchLsp(false)
                         .typestateAnalysis(tsMode)
-                        .markFiles(markDirPaths?.toTypedArray())
+                        .markFiles(*markDirPaths)
                         .useLegacyEvaluator()
                         .build()
                 )

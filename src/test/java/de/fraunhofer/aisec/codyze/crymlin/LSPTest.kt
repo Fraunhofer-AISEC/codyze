@@ -111,7 +111,7 @@ internal class LSPTest {
                         ServerConfiguration.builder()
                             .launchConsole(false)
                             .launchLsp(true)
-                            .markFiles(arrayOf(parentFolder))
+                            .markFiles(parentFolder)
                             .build()
                     )
                     .build()

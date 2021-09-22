@@ -43,7 +43,7 @@ public class Main implements Callable<Integer> {
 	private File analysisInput;
 
 	@Option(names = { "-m",
-			"--mark" }, paramLabel = "<path>[,<path>...]", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
+			"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
 	private File[] markFolderNames;
 
 	@Option(names = { "-o",

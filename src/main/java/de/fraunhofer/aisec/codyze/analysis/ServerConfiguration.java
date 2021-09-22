@@ -19,7 +19,7 @@ public class ServerConfiguration {
 	/** Should the server launch an LSP server? */
 	public final boolean launchLsp;
 
-	/** Directory or file with MARK entities/rules. */
+	/** Directories or files with MARK entities/rules. */
 	@NonNull
 	public final String[] markModelFiles;
 
@@ -92,7 +92,7 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder markFiles(String[] markModelFiles) {
+		public Builder markFiles(String... markModelFiles) {
 			this.markModelFiles = markModelFiles;
 			return this;
 		}

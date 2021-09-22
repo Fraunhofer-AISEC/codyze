@@ -8,7 +8,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_2_01() {
-        val findings = performTest("botan_rule_tr_test/2_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/2_01.cpp", "mark/botan/")
         expected(
             findings,
             "line 15: Rule _2_01_BlockCiphers verified", // ok
@@ -23,7 +23,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_2_1_01() {
-        val findings = performTest("botan_rule_tr_test/2_1_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/2_1_01.cpp", "mark/botan/")
         expected(
             findings,
             "line 15: Rule _2_01_BlockCiphers verified", // ok
@@ -38,7 +38,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_2_1_2_1_02() {
-        val findings = performTest("botan_rule_tr_test/2_1_2_1_02.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/2_1_2_1_02.cpp", "mark/botan/")
         expected(
             findings,
             "line 15: Rule _2_01_BlockCiphers verified", // ok
@@ -54,7 +54,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_2_1_2_2_03() {
-        val findings = performTest("botan_rule_tr_test/2_1_2_2_03.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/2_1_2_2_03.cpp", "mark/botan/")
         expected(
             findings,
             "line 15: Rule _2_01_BlockCiphers verified", // ok
@@ -70,7 +70,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_2_1_2_3_01() {
-        val findings = performTest("botan_rule_tr_test/2_1_2_3_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/2_1_2_3_01.cpp", "mark/botan/")
 
         /* missing
         	"line XX: Rule _2_1_2_3_01_CBC_RandomIV verified" // requires _receives_value_from builtin which requires a data flow analysis
@@ -88,7 +88,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_3_3_02() {
-        val findings = performTest("botan_rule_tr_test/3_3_02.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/3_3_02.cpp", "mark/botan/")
         expected(
             findings,
             "line 21: Rule _3_3_03_ECIES_KDF verified", // ok
@@ -100,7 +100,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_3_3_03() {
-        val findings = performTest("botan_rule_tr_test/3_3_03.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/3_3_03.cpp", "mark/botan/")
         expected(
             findings,
             "line 22: Rule _3_3_03_ECIES_KDF verified", // ok
@@ -112,7 +112,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_3_4_01() {
-        val findings = performTest("botan_rule_tr_test/3_4_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/3_4_01.cpp", "mark/botan/")
         expected(
             findings,
             "line 30: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
@@ -130,7 +130,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_3_4_02() {
-        val findings = performTest("botan_rule_tr_test/3_4_02.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/3_4_02.cpp", "mark/botan/")
         expected(
             findings,
             "line 17: Rule _3_4_02_DLIES_KEYLEN_2022 verified", // ok
@@ -147,7 +147,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_4_01() {
-        val findings = performTest("botan_rule_tr_test/4_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/4_01.cpp", "mark/botan/")
         expected(
             findings,
             "line 8: Verified Order: HashOrder", // ok
@@ -162,7 +162,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_5_3_01() {
-        val findings = performTest("botan_rule_tr_test/5_3_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/5_3_01.cpp", "mark/botan/")
         expected(
             findings,
             "line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
@@ -174,7 +174,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_5_3_02() {
-        val findings = performTest("botan_rule_tr_test/5_3_02.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/5_3_02.cpp", "mark/botan/")
         expected(
             findings,
             "line 11: Rule _5_3_02_MAC_KEYLEN verified", // ok
@@ -187,7 +187,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_5_3_03() {
-        val findings = performTest("botan_rule_tr_test/5_3_03.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/5_3_03.cpp", "mark/botan/")
         expected(
             findings,
             "line 12: Rule _5_3_02_MAC_KEYLEN verified", // ok
@@ -200,7 +200,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_5_4_1_01() {
-        val findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/5_4_1_01.cpp", "mark/botan/")
         expected(
             findings,
             "line 10: Verified Order: PrivKeyOrder",
@@ -214,7 +214,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_5_4_1_02() {
-        val findings = performTest("botan_rule_tr_test/5_4_1_02.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/5_4_1_02.cpp", "mark/botan/")
         expected(
             findings,
             "line 11: Rule _5_4_1_02_RSA_SIG_KeyLen_2022 verified", // ok
@@ -228,7 +228,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_5_4_2_01() {
-        val findings = performTest("botan_rule_tr_test/5_4_2_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/5_4_2_01.cpp", "mark/botan/")
         expected(
             findings,
             "line 14: Verified Order: SignatureOrder", // ok
@@ -241,7 +241,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_5_4_3_01() {
-        val findings = performTest("botan_rule_tr_test/5_4_3_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/5_4_3_01.cpp", "mark/botan/")
         expected(
             findings,
             "line 14: Verified Order: SignatureOrder", // ok
@@ -253,7 +253,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun test_rule_7_2_2_1_01() {
-        val findings = performTest("botan_rule_tr_test/7_2_2_1_01.cpp", arrayOf("mark/botan/"))
+        val findings = performTest("botan_rule_tr_test/7_2_2_1_01.cpp", "mark/botan/")
         containsFindings(
             findings,
             "line 13: Rule _7_2_2_1_01_DH_KEYLEN verified", // ok

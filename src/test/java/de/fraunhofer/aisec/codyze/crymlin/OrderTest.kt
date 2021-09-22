@@ -12,7 +12,7 @@ internal class OrderTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun checkJava() {
-        val results = performTest("unittests/order.java", arrayOf("unittests/order.mark"))
+        val results = performTest("unittests/order.java", "unittests/order.mark")
         val findings =
             results.stream().map { obj: Finding? -> obj.toString() }.collect(Collectors.toSet())
         check(findings)
@@ -21,7 +21,7 @@ internal class OrderTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun checkCpp() {
-        val results = performTest("unittests/order.cpp", arrayOf("unittests/order.mark"))
+        val results = performTest("unittests/order.cpp", "unittests/order.mark")
         val findings =
             results.stream().map { obj: Finding? -> obj.toString() }.collect(Collectors.toSet())
         check(findings)

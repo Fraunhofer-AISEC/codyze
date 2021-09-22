@@ -8,7 +8,7 @@ internal class JacksonTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testBasic() {
-        val findings = performTest("java/jackson/Serialization.java", arrayOf("mark/jackson/"))
+        val findings = performTest("java/jackson/Serialization.java", "mark/jackson/")
         assertNotNull(findings)
         assertEquals(1, findings.size)
 

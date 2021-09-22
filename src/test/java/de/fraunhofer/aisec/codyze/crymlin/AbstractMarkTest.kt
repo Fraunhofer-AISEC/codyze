@@ -26,22 +26,22 @@ abstract class AbstractMarkTest : AbstractTest() {
 
     @Throws(Exception::class)
     protected fun performTest(sourceFileName: String): MutableSet<Finding> {
-        return performTest(sourceFileName, arrayOf(), arrayOf())
+        return performTest(sourceFileName, arrayOf())
     }
 
     @Throws(Exception::class)
     protected fun performTest(
         sourceFileName: String,
-        markFileNames: Array<String>?
+        vararg markFileNames: String
     ): MutableSet<Finding> {
-        return performTest(sourceFileName, arrayOf(), markFileNames)
+        return performTest(sourceFileName, arrayOf(), *markFileNames)
     }
 
     @Throws(Exception::class)
     protected fun performTest(
         sourceFileName: String,
-        additionalFiles: Array<String>?,
-        markFileNames: Array<String>?
+        additionalFiles: Array<String>,
+        vararg markFileNames: String
     ): MutableSet<Finding> {
         val classLoader = AbstractMarkTest::class.java.classLoader
         var resource = classLoader.getResource(sourceFileName)
@@ -52,20 +52,18 @@ abstract class AbstractMarkTest : AbstractTest() {
         val toAnalyze = ArrayList<File>()
         toAnalyze.add(javaFile)
 
-        if (additionalFiles != null) {
-            for (s in additionalFiles) {
-                resource = classLoader.getResource(s)
-                assertNotNull(resource, "Resource $s not found")
+        for (s in additionalFiles) {
+            resource = classLoader.getResource(s)
+            assertNotNull(resource, "Resource $s not found")
 
-                javaFile = File(resource.file)
-                assertNotNull(javaFile, "File $s not found")
+            javaFile = File(resource.file)
+            assertNotNull(javaFile, "File $s not found")
 
-                toAnalyze.add(javaFile)
-            }
+            toAnalyze.add(javaFile)
         }
 
         var markDirPaths: List<String>? =
-            markFileNames?.map {
+            markFileNames.map {
                 resource = classLoader.getResource(it)
                 if (resource == null) {
                     // Assume `markFileName` is relative to project base `src` folder

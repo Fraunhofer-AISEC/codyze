@@ -16,7 +16,7 @@ internal class RealBCTest : AbstractMarkTest() {
         val findings =
             performTest(
                 "real-examples/bc/rwedoff.Password-Manager/Main.java",
-                arrayOf("real-examples/bc/rwedoff.Password-Manager/")
+                "real-examples/bc/rwedoff.Password-Manager/"
             )
         for (f in findings) {
             println("  ->" + f.onfailIdentifier + " " + f.regions[0] + " " + f.logMsg)

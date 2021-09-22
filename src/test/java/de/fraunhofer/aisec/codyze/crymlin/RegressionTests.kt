@@ -16,7 +16,7 @@ internal class RegressionTests : AbstractMarkTest() {
         val findings =
             performTest(
                 "unittests/regression/nested_constructors/NestedConstructor.java",
-                arrayOf("unittests/regression/nested_constructors/")
+                "unittests/regression/nested_constructors/"
             )
         expected(findings, "line 8: Rule PublicKeyInstanceOfVerifier violated")
     }
@@ -32,7 +32,7 @@ internal class RegressionTests : AbstractMarkTest() {
         val findings =
             performTest(
                 "unittests/regression/nested_constructors/nested_constructor.cpp",
-                arrayOf("unittests/regression/nested_constructors/")
+                "unittests/regression/nested_constructors/"
             )
         expected(findings, "line 31: Rule PublicKeyInstanceOfVerifier violated")
     }

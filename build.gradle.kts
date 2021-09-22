@@ -10,9 +10,9 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "5.15.0"
+    id("com.diffplug.spotless") version "5.15.1"
     id("com.github.hierynomus.license") version "0.16.1"
-    kotlin("jvm") version "1.5.30" // we can only upgrade to Kotlin 1.5, if CPG does
+    kotlin("jvm") version "1.5.31" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
 group = "de.fraunhofer.aisec"
@@ -88,6 +88,9 @@ dependencies {
 
     // will be a transitive dependency after CPG beta.3
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.5")
+
+    // pull in explicitly to prevent mixing versions
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
     api("de.fraunhofer.aisec:cpg:4.0.4") // ok

@@ -4,7 +4,6 @@ package de.fraunhofer.aisec.codyze.analysis;
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,9 +18,9 @@ public class ServerConfiguration {
 	/** Should the server launch an LSP server? */
 	public final boolean launchLsp;
 
-	/** Directory or file with MARK entities/rules. */
-	@Nullable
-	public final String markModelFiles;
+	/** Directories or files with MARK entities/rules. */
+	@NonNull
+	public final String[] markModelFiles;
 
 	/** Which type of typestate analysis do we want? */
 	@NonNull
@@ -50,7 +49,7 @@ public class ServerConfiguration {
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
-			@Nullable String markModelFiles,
+			@NonNull String[] markModelFiles,
 			@NonNull TypestateMode typestateMode,
 			boolean analyzeIncludes,
 			@NonNull File[] includePath,
@@ -73,8 +72,8 @@ public class ServerConfiguration {
 	public static class Builder {
 		private boolean launchConsole = true;
 		private boolean launchLsp = true;
-		@Nullable
-		private String markModelFiles = ""; // Path of a file or directory
+		@NonNull
+		private String[] markModelFiles = new String[0]; // Path of a file or directory
 		@NonNull
 		private TypestateMode typestateAnalysis = TypestateMode.NFA;
 		private boolean analyzeIncludes;
@@ -92,7 +91,7 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder markFiles(@Nullable String markModelFiles) {
+		public Builder markFiles(String... markModelFiles) {
 			this.markModelFiles = markModelFiles;
 			return this;
 		}

@@ -23,21 +23,20 @@ abstract class AbstractMarkTest : AbstractTest() {
     protected lateinit var server: AnalysisServer
     protected var ctx: AnalysisContext? = null
     protected var tsMode = TypestateMode.NFA
-    @Throws(Exception::class)
-    protected fun performTest(sourceFileName: String): MutableSet<Finding> {
-        return performTest(sourceFileName, null)
-    }
 
     @Throws(Exception::class)
-    protected fun performTest(sourceFileName: String, markFileName: String?): MutableSet<Finding> {
-        return performTest(sourceFileName, null, markFileName)
+    protected fun performTest(
+        sourceFileName: String,
+        vararg markFileNames: String
+    ): MutableSet<Finding> {
+        return performTest(sourceFileName, arrayOf(), *markFileNames)
     }
 
     @Throws(Exception::class)
     protected fun performTest(
         sourceFileName: String,
-        additionalFiles: Array<String>?,
-        markFileName: String?
+        additionalFiles: Array<String>,
+        vararg markFileNames: String
     ): MutableSet<Finding> {
         val classLoader = AbstractMarkTest::class.java.classLoader
         var resource = classLoader.getResource(sourceFileName)
@@ -48,35 +47,35 @@ abstract class AbstractMarkTest : AbstractTest() {
         val toAnalyze = ArrayList<File>()
         toAnalyze.add(javaFile)
 
-        if (additionalFiles != null) {
-            for (s in additionalFiles) {
-                resource = classLoader.getResource(s)
-                assertNotNull(resource, "Resource $s not found")
+        for (s in additionalFiles) {
+            resource = classLoader.getResource(s)
+            assertNotNull(resource, "Resource $s not found")
 
-                javaFile = File(resource.file)
-                assertNotNull(javaFile, "File $s not found")
+            javaFile = File(resource.file)
+            assertNotNull(javaFile, "File $s not found")
 
-                toAnalyze.add(javaFile)
-            }
+            toAnalyze.add(javaFile)
         }
 
-        var markDirPath = ""
-        if (markFileName != null) {
-            resource = classLoader.getResource(markFileName)
-            if (resource == null) {
-                // Assume `markFileName` is relative to project base `src` folder
-                val p =
-                    Path.of(classLoader.getResource(".").toURI())
-                        .resolve(Path.of("..", "..", "..", "src"))
-                        .resolve(markFileName)
-                        .normalize()
-                resource = p.toUri().toURL()
-            }
-            assertNotNull(resource)
-            val markDir = File(resource.file)
-            assertNotNull(markDir)
-            markDirPath = markDir.absolutePath
-        }
+        val markDirPaths =
+            markFileNames
+                .map {
+                    resource = classLoader.getResource(it)
+                    if (resource == null) {
+                        // Assume `markFileName` is relative to project base `src` folder
+                        val p =
+                            Path.of(classLoader.getResource(".").toURI())
+                                .resolve(Path.of("..", "..", "..", "src"))
+                                .resolve(it)
+                                .normalize()
+                        resource = p.toUri().toURL()
+                    }
+                    assertNotNull(resource)
+                    val markDir = File(resource.file)
+                    assertNotNull(markDir)
+                    markDir.absolutePath
+                }
+                .toTypedArray()
 
         // Start an analysis server
         server =
@@ -86,7 +85,7 @@ abstract class AbstractMarkTest : AbstractTest() {
                         .launchConsole(false)
                         .launchLsp(false)
                         .typestateAnalysis(tsMode)
-                        .markFiles(markDirPath)
+                        .markFiles(*markDirPaths)
                         .useLegacyEvaluator()
                         .build()
                 )

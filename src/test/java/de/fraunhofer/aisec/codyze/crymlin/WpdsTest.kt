@@ -95,7 +95,8 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppInterprocOk1Legacy() {
-        val findings = performTest("unittests/orderInterprocOk1.cpp", null, "unittests/order2.mark")
+        val findings =
+            performTest("unittests/orderInterprocOk1.cpp", arrayOf(), "unittests/order2.mark")
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping

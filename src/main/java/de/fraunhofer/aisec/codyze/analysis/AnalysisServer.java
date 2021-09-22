@@ -226,9 +226,11 @@ public class AnalysisServer {
 		/*
 		 * Load MARK model as given in configuration, if it has not been set manually before.
 		 */
-		if (config.markModelFiles != null && !config.markModelFiles.isEmpty()) {
-			File markModelLocation = new File(config.markModelFiles);
-			loadMarkRules(markModelLocation);
+		for (String markModelFile : config.markModelFiles) {
+			if (markModelFile != null && !markModelFile.isEmpty()) {
+				File markModelLocation = new File(markModelFile);
+				loadMarkRules(markModelLocation);
+			}
 		}
 	}
 

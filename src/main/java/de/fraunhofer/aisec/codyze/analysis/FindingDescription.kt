@@ -14,30 +14,35 @@ class FindingDescription private constructor() {
         val helpUri: String?,
         val fullDescription: Description?,
         val shortDescription: Description?,
+        val passMessage: Description?,
         val fixes: List<Fix>?
     )
 
     class Fix(val description: Description)
     class Description(val text: String)
 
-    fun get(onFailId: String): FindingDescriptionItem? {
-        return items?.get(onFailId)
+    fun get(id: String): FindingDescriptionItem? {
+        return items?.get(id)
     }
 
-    fun getDescriptionFull(onFailId: String): String? {
-        return items?.get(onFailId)?.fullDescription?.text
+    fun getDescriptionFull(id: String): String? {
+        return items?.get(id)?.fullDescription?.text
     }
 
-    fun getDescriptionShort(onFailId: String): String? {
-        return items?.get(onFailId)?.shortDescription?.text
+    fun getDescriptionShort(id: String): String? {
+        return items?.get(id)?.shortDescription?.text
     }
 
-    fun getHelpUri(onFailId: String): String? {
-        return items?.get(onFailId)?.helpUri
+    fun getDescriptionPass(id: String): String? {
+        return items?.get(id)?.passMessage?.text
     }
 
-    fun getFixes(onFailId: String): List<String>? {
-        return items?.get(onFailId)?.fixes?.map { it.description.text }
+    fun getHelpUri(id: String): String? {
+        return items?.get(id)?.helpUri
+    }
+
+    fun getFixes(id: String): List<String>? {
+        return items?.get(id)?.fixes?.map { it.description.text }
     }
 
     fun init(descriptionFile: File) {

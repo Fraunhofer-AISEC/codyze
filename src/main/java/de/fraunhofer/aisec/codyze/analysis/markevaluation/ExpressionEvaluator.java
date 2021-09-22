@@ -128,9 +128,10 @@ public class ExpressionEvaluator {
 					if (node != null) {
 						var ranges = List.of(Utils.getRegionByNode(node));
 						Finding f = new Finding(
+							(this.markRule.getErrorMessage() != null ? this.markRule.getErrorMessage() : this.markRule.getName()),
+							this.markRule.getStatement().getAction(),
 							"Verified Order: " + this.markRule.getName(),
 							new File(node.getFile()).toURI(),
-							"",
 							ranges,
 							false);
 						this.resultCtx.getFindings().add(f);

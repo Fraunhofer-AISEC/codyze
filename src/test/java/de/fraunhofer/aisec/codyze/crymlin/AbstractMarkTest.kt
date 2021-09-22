@@ -25,11 +25,6 @@ abstract class AbstractMarkTest : AbstractTest() {
     protected var tsMode = TypestateMode.NFA
 
     @Throws(Exception::class)
-    protected fun performTest(sourceFileName: String): MutableSet<Finding> {
-        return performTest(sourceFileName, arrayOf())
-    }
-
-    @Throws(Exception::class)
     protected fun performTest(
         sourceFileName: String,
         vararg markFileNames: String
@@ -62,7 +57,7 @@ abstract class AbstractMarkTest : AbstractTest() {
             toAnalyze.add(javaFile)
         }
 
-        var markDirPaths =
+        val markDirPaths =
             markFileNames
                 .map {
                     resource = classLoader.getResource(it)

@@ -4,7 +4,6 @@ package de.fraunhofer.aisec.codyze.analysis;
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;

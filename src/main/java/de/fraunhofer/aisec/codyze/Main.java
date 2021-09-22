@@ -86,7 +86,7 @@ public class Main implements Callable<Integer> {
 				.disableGoodFindings(disableGoodFindings)
 				.analyzeIncludes(translationSettings.analyzeIncludes)
 				.includePath(translationSettings.includesPath)
-				.markFiles(Arrays.stream(markFolderNames).map(f -> f.getAbsolutePath()).toArray(String[]::new));
+				.markFiles(Arrays.stream(markFolderNames).map(File::getAbsolutePath).toArray(String[]::new));
 
 		if (enablePython) {
 			config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);

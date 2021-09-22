@@ -17,11 +17,14 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-/** Start point of the standalone analysis server. */
+/**
+ * Start point of the standalone analysis server.
+ */
 @SuppressWarnings("java:S106")
 @Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 public class Main implements Callable<Integer> {
@@ -40,8 +43,8 @@ public class Main implements Callable<Integer> {
 	private File analysisInput;
 
 	@Option(names = { "-m",
-			"--mark" }, paramLabel = "<path>", description = "Load MARK policy files from folder", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-	private File markFolderName;
+			"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
+	private File[] markFolderNames;
 
 	@Option(names = { "-o",
 			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
@@ -83,7 +86,7 @@ public class Main implements Callable<Integer> {
 				.disableGoodFindings(disableGoodFindings)
 				.analyzeIncludes(translationSettings.analyzeIncludes)
 				.includePath(translationSettings.includesPath)
-				.markFiles(markFolderName.getAbsolutePath());
+				.markFiles(Arrays.stream(markFolderNames).map(File::getAbsolutePath).toArray(String[]::new));
 
 		if (enablePython) {
 			config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
@@ -148,11 +151,11 @@ public class Main implements Callable<Integer> {
 
 /**
  * Codyze runs in any of three modes:
- *
+ * <p>
  * CLI: Non-interactive command line client. Accepts arguments from command line and runs analysis.
- *
+ * <p>
  * LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE support.
- *
+ * <p>
  * TUI: The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries.
  */
 class ExecutionMode {

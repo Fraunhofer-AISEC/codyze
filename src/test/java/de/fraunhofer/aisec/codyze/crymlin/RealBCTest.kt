@@ -19,14 +19,14 @@ internal class RealBCTest : AbstractMarkTest() {
                 "real-examples/bc/rwedoff.Password-Manager/"
             )
         for (f in findings) {
-            println("  ->" + f.onfailIdentifier + " " + f.regions[0] + " " + f.logMsg)
+            println("  ->" + f.identifier + " " + f.regions[0] + " " + f.logMsg)
         }
 
         // We expect three (positive) verification of the algorithm used
         val wrongAlgorithmsFindings =
             findings
                 .stream()
-                .filter { f: Finding? -> f!!.onfailIdentifier == "Wrong_Algorithm" }
+                .filter { f: Finding? -> f!!.identifier == "Wrong_Algorithm" }
                 .collect(Collectors.toSet())
         assertEquals(3, wrongAlgorithmsFindings.size) // 3 in total
         assertEquals(

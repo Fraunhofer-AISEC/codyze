@@ -46,7 +46,7 @@ internal class RealBotanTest : AbstractMarkTest() {
         val correctKeyLength =
             findings
                 .stream()
-                .filter { f: Finding? -> f!!.onfailIdentifier == "CorrectPrivateKeyLength" }
+                .filter { f: Finding? -> f!!.identifier == "CorrectPrivateKeyLength" }
                 .findFirst()
         assertTrue(correctKeyLength.isPresent)
         assertFalse(correctKeyLength.get().isProblem)
@@ -66,7 +66,7 @@ internal class RealBotanTest : AbstractMarkTest() {
         val wrongKeyLength =
             findings
                 .stream()
-                .filter { f: Finding? -> f!!.onfailIdentifier == "WrongPrivateKeyLength" }
+                .filter { f: Finding? -> f!!.identifier == "WrongPrivateKeyLength" }
                 .findFirst()
         assertTrue(wrongKeyLength.isPresent)
         assertTrue(wrongKeyLength.get().isProblem)
@@ -118,7 +118,7 @@ internal class RealBotanTest : AbstractMarkTest() {
         val blockCiphers =
             findings
                 .stream()
-                .filter { f: Finding? -> f!!.onfailIdentifier == "WrongBlockCipher" }
+                .filter { f: Finding? -> f!!.identifier == "WrongBlockCipher" }
                 .filter { f: Finding? -> !f!!.isProblem }
                 .collect(Collectors.toList())
         assertTrue(blockCiphers.stream().anyMatch { f: Finding? -> f!!.regions[0].startLine == 15 })
@@ -129,7 +129,7 @@ internal class RealBotanTest : AbstractMarkTest() {
         val keyLengths =
             findings
                 .stream()
-                .filter { f: Finding? -> f!!.onfailIdentifier == "BadKeyLength" }
+                .filter { f: Finding? -> f!!.identifier == "BadKeyLength" }
                 .filter { obj: Finding? -> obj!!.isProblem }
                 .collect(Collectors.toList())
         assertEquals(2, keyLengths.size)

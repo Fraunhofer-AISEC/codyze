@@ -157,20 +157,41 @@ public class CpgDocumentService implements TextDocumentService {
 			for (Region reg : f.getRegions()) {
 				Diagnostic diagnostic = new Diagnostic();
 				// TODO Replace HINT for verified findings with Code Lens
-				diagnostic.setSeverity(f.isProblem() ? DiagnosticSeverity.Error : DiagnosticSeverity.Information);
+
+				// Everything is informational until it becomes a problem
+				DiagnosticSeverity severity = DiagnosticSeverity.Information;
+				if (f.isProblem()) {
+					switch (f.getAction()) {
+						case INFO:
+							severity = DiagnosticSeverity.Information;
+							break;
+						case WARN:
+							severity = DiagnosticSeverity.Warning;
+							break;
+						case FAIL:
+							// Error
+						default:
+							severity = DiagnosticSeverity.Error;
+							break;
+					}
+				}
+				diagnostic.setSeverity(severity);
 
 				// Get human readable description, if available
-				String msg = FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier());
+				String msg = (f.isProblem() ? FindingDescription.getInstance().getDescriptionShort(f.getIdentifier())
+						: FindingDescription.getInstance().getDescriptionPass(f.getIdentifier()));
 				if (msg == null) {
 					msg = f.getLogMsg();
 				}
 
-				String longDesc = FindingDescription.getInstance().getDescriptionFull(f.getOnfailIdentifier());
-				if (longDesc != null) {
-					msg += ": " + longDesc;
+				if (f.isProblem()) {
+					String longDesc = FindingDescription.getInstance().getDescriptionFull(f.getIdentifier());
+					if (longDesc != null) {
+						msg += ": " + longDesc;
+					}
 				}
 
-				diagnostic.setCode(Either.forLeft(f.getOnfailIdentifier()));
+				diagnostic.setCode(Either.forLeft(f.getIdentifier()));
 				diagnostic.setSource("Codyze");
 				diagnostic.setMessage(msg);
 				Range r = new Range(
@@ -181,7 +202,7 @@ public class CpgDocumentService implements TextDocumentService {
 				String line = ignoredLines.get(r.getStart().getLine());
 				if (line == null
 						|| (!line.contains(DISABLE_FINDING_ALL)
-								&& !line.contains(DISABLE_FINDING_PREFIX + f.getOnfailIdentifier()))) {
+								&& !line.contains(DISABLE_FINDING_PREFIX + f.getIdentifier()))) {
 					allDiags.add(diagnostic);
 				} else {
 					log.warn("Skipping finding {}, disabled via comment", f);

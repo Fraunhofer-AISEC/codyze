@@ -226,12 +226,8 @@ public class AnalysisServer {
 		/*
 		 * Load MARK model as given in configuration, if it has not been set manually before.
 		 */
-		for (String markModelFile : config.markModelFiles) {
-			if (markModelFile != null && !markModelFile.isEmpty()) {
-				File markModelLocation = new File(markModelFile);
-				loadMarkRules(markModelLocation);
-			}
-		}
+		File[] markModelLocations = Arrays.stream(config.markModelFiles).map(File::new).toArray(File[]::new);
+		loadMarkRules(markModelLocations);
 	}
 
 	/**
@@ -261,38 +257,41 @@ public class AnalysisServer {
 	/**
 	 * Loads all MARK rules from a file or a directory.
 	 *
-	 * @param markFile load all mark entities/rules from this file
+	 * @param markFiles load all mark entities/rules from these files
 	 */
-	public void loadMarkRules(@NonNull File markFile) {
+	public void loadMarkRules(@NonNull File... markFiles) {
 		File markDescriptionFile = null;
-
-		log.info("Parsing MARK files in {}", markFile.getAbsolutePath());
-		Instant start = Instant.now();
 
 		XtextParser parser = new XtextParser();
 
-		if (!markFile.exists() || !markFile.canRead()) {
-			log.warn("Cannot read MARK file(s) {}", markFile.getAbsolutePath());
-		}
+		Instant start = Instant.now();
 
-		if (markFile.isDirectory()) {
-			log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
-			ArrayList<File> allMarkFiles = new ArrayList<>();
-			try {
-				getMarkFileLocations(markFile, allMarkFiles);
-				for (File f : allMarkFiles) {
-					log.info("  Loading MARK file {}", f.getAbsolutePath());
-					parser.addMarkFile(f);
+		for (File markFile : markFiles) {
+			log.info("Parsing MARK files in {}", markFile.getAbsolutePath());
+
+			if (!markFile.exists() || !markFile.canRead()) {
+				log.warn("Cannot read MARK file(s) {}", markFile.getAbsolutePath());
+			}
+
+			if (markFile.isDirectory()) {
+				log.info("Loading MARK from directory {}", markFile.getAbsolutePath());
+				ArrayList<File> allMarkFiles = new ArrayList<>();
+				try {
+					getMarkFileLocations(markFile, allMarkFiles);
+					for (File f : allMarkFiles) {
+						log.info("  Loading MARK file {}", f.getAbsolutePath());
+						parser.addMarkFile(f);
+					}
 				}
+				catch (IOException e) {
+					log.error("Failed to load MARK file", e);
+				}
+				markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + FINDING_DESCRIPTION_FILE);
+			} else {
+				log.info("Loading MARK from file {}", markFile.getAbsolutePath());
+				parser.addMarkFile(markFile);
+				markDescriptionFile = new File(markFile.getParent() + File.separator + FINDING_DESCRIPTION_FILE);
 			}
-			catch (IOException e) {
-				log.error("Failed to load MARK file", e);
-			}
-			markDescriptionFile = new File(markFile.getAbsolutePath() + File.separator + FINDING_DESCRIPTION_FILE);
-		} else {
-			log.info("Loading MARK from file {}", markFile.getAbsolutePath());
-			parser.addMarkFile(markFile);
-			markDescriptionFile = new File(markFile.getParent() + File.separator + FINDING_DESCRIPTION_FILE);
 		}
 
 		HashMap<String, MarkModel> markModels = parser.parse();

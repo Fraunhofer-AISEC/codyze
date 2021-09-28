@@ -11,7 +11,7 @@
 	"publisher": "fraunhofer-aisec",
 	"categories": [],
 	"engines": {
-		"vscode": "1.60.0"
+		"vscode": "1.999.0"
 	},
 	"dependencies": {
 		"vscode-languageclient": "^7.0.0"

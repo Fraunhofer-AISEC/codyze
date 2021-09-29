@@ -470,7 +470,7 @@ public class ExpressionEvaluator {
 
 			Map<Integer, MarkIntermediateResult> result = new HashMap<>();
 
-			if (builtin.get().hasParameters()) {
+			if (builtin.get().hasParameters() && arguments.size() > 0) {
 				for (Map.Entry<Integer, MarkIntermediateResult> entry : arguments.entrySet()) {
 					if (!(entry.getValue() instanceof ListValue)) {
 						log.error("Arguments must be a list");
@@ -482,9 +482,13 @@ public class ExpressionEvaluator {
 					var cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
 					result.put(entry.getKey(), cv);
 				}
+			} else if (builtin.isPresent()) {
+				// catch a builtin with parameters not being executed because of arguments.size() == 0
+				result.put(-1, ErrorValue.newErrorValue("Builtin was not executed because no matching \"arguments\" were found.")); // key -1 because we do not have a context to refer to
 			} else {
 				var cv = builtin.get().execute(resultCtx, new ListValue(), -1, markContextHolder, this);
 				result.put(0, cv);
+
 			}
 			return result;
 		}

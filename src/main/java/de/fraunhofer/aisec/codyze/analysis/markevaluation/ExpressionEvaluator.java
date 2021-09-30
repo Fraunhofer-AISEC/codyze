@@ -482,7 +482,7 @@ public class ExpressionEvaluator {
 					var cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
 					result.put(entry.getKey(), cv);
 				}
-			} else if (builtin.isPresent()) {
+			} else if (builtin.get().hasParameters()) {
 				// catch a builtin with parameters not being executed because of arguments.size() == 0
 				result.put(-1, ErrorValue.newErrorValue("Builtin was not executed because no matching \"arguments\" were found.")); // key -1 because we do not have a context to refer to
 			} else {

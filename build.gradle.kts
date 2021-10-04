@@ -113,7 +113,7 @@ dependencies {
     annotationProcessor("info.picocli:picocli-codegen:4.6.1")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
-    implementation("org.reflections", "reflections", "0.9.12")
+    implementation("org.reflections", "reflections", "0.10")
 
     // Unit tests
     testImplementation("org.jetbrains.kotlin:kotlin-test")

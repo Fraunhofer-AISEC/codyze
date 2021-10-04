@@ -10,7 +10,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "5.15.2"
+    id("com.diffplug.spotless") version "5.16.0"
     id("com.github.hierynomus.license") version "0.16.1"
     kotlin("jvm") version "1.5.31" // we can only upgrade to Kotlin 1.5, if CPG does
 }
@@ -87,7 +87,7 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
 
     // will be a transitive dependency after CPG beta.3
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.5")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
 
     // pull in explicitly to prevent mixing versions
     implementation("org.jetbrains.kotlin:kotlin-reflect")

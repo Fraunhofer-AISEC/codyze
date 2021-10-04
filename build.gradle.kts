@@ -87,7 +87,7 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
 
     // will be a transitive dependency after CPG beta.3
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.5")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
 
     // pull in explicitly to prevent mixing versions
     implementation("org.jetbrains.kotlin:kotlin-reflect")

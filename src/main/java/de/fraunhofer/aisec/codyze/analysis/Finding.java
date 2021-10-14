@@ -26,7 +26,7 @@ public class Finding {
 	private String id;
 
 	/**
-	 *
+	 * Enumeration: [INFO, WARN, FAIL]
 	 */
 	private final Action action;
 
@@ -77,7 +77,7 @@ public class Finding {
 	 * @param logMsg           Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
 	 *                         finding.
 	 * @param artifactUri      Absolute URI of the source file.
-	 * @param ranges           List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
+	 * @param ranges           List of LSP "ranges" determining the position(s) in code of this finding. Note that an LSP range starts counting at 1, while a CPG "region" starts
 	 * @param isProblem        true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
 	 */
 	public Finding(String id, Action action, String logMsg, @Nullable URI artifactUri, List<Region> ranges, boolean isProblem) {

@@ -13,6 +13,9 @@ plugins {
     id("com.diffplug.spotless") version "5.16.0"
     id("com.github.hierynomus.license") version "0.16.1"
     kotlin("jvm") version "1.5.31" // we can only upgrade to Kotlin 1.5, if CPG does
+
+    // parser for the SARIF schema (https://github.com/joelittlejohn/jsonschema2pojo/tree/master/jsonschema2pojo-gradle-plugin)
+    id("org.jsonschema2dataclass") version "3.0.0"
 }
 
 group = "de.fraunhofer.aisec"
@@ -193,4 +196,15 @@ compileKotlin.kotlinOptions {
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
     jvmTarget = "11"
+}
+
+// TODO: fine-tweak options
+jsonSchema2Pojo {
+    targetPackage = "de.fraunhofer.aisec.codyze.analysis.generated"
+    source.setFrom("${project.rootDir}/src/main/resources/json")
+    // targetDirectoryPrefix.set(file("${project.rootDir}/src/main/java/de/fraunhofer/aisec/codyze/analysis"))
+    targetDirectoryPrefix.set(file("${project.rootDir}"))
+
+
+    // ... more options
 }

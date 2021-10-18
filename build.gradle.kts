@@ -198,13 +198,12 @@ compileTestKotlin.kotlinOptions {
     jvmTarget = "11"
 }
 
-// TODO: fine-tweak options
+// TODO: fine-tweak options (navigate into "java"-Directory without breaking automatic package imports)
 jsonSchema2Pojo {
     targetPackage = "de.fraunhofer.aisec.codyze.analysis.generated"
     source.setFrom("${project.rootDir}/src/main/resources/json")
-    // targetDirectoryPrefix.set(file("${project.rootDir}/src/main/java/de/fraunhofer/aisec/codyze/analysis"))
-    targetDirectoryPrefix.set(file("${project.rootDir}"))
 
+    // targetDirectoryPrefix.set(file("${project.buildDir}/src/main/java"))
 
     // ... more options
 }

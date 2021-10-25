@@ -92,7 +92,7 @@ public class SarifInstantiator {
      *
      * @param id        an id that UNIQUELY identifies the node within the graph
      * @param label     a short description of the node
-     * @param location  specifies the location associated with the node
+     * @param location  specifies the code location associated with the node
      * @param children  a (possibly empty) set of child nodes, forming a nested graph
      * @return          the resulting node
      */
@@ -129,6 +129,108 @@ public class SarifInstantiator {
     }
 
     /**
+     * generates a Location object with possible annotations and relationships (currently only supports physical locations)
+     *
+     * @param id                the (non-negative) identifier unique within the result object this belongs to (-1 if not set)
+     * @param physicalLocation  the physical location identifying the file of the location
+     * @param message           a message relevant to the location
+     * @param annotations       regions within the file relevant to the location (each one should contain a message)
+     * @param relationships     relationships to other location objects
+     * @return                  the resulting location
+     */
+    private Location generateLocation(Integer id, PhysicalLocation physicalLocation, @Nullable Message message,
+                                      Set<Region> annotations, Set<LocationRelationship> relationships) {
+        Location location = new Location();
+
+        location.setId(id);
+        location.setPhysicalLocation(physicalLocation);
+        location.setMessage(message);
+        location.setAnnotations(annotations);
+        location.setRelationships(relationships);
+
+        return location;
+    }
+
+    /**
+     * generates a physical location with variable precision
+     *
+     * @param artifactLocation  the location of the file
+     * @param region            the region within the file (if applicable)
+     * @param contextRegion     a superset of the region giving additional context (only when a region is specified)
+     * @return                  the resulting physical location
+     */
+    private PhysicalLocation generatePhysicalLocation(ArtifactLocation artifactLocation, @Nullable Region region,
+                                                      @Nullable Region contextRegion) {
+        PhysicalLocation physicalLocation = new PhysicalLocation();
+
+        physicalLocation.setArtifactLocation(artifactLocation);
+        physicalLocation.setRegion(region);
+        physicalLocation.setContextRegion(contextRegion);
+
+        return physicalLocation;
+    }
+
+    /**
+     * generates an artifact location to specify a file location. Either uri or index SHALL be present (or both)
+     *
+     * @param uri           the URI specifying the location, relative to the root
+     * @param uriBaseId     the URI of the root directory (absent if uri is an absolute path)
+     * @param index         the index within the artifacts array of the run which describes this artifact (-1 if not set)
+     * @param description   a description for this artifact
+     * @return              the resulting artifact location
+     */
+    private ArtifactLocation generateArtifactLocation(@Nullable String uri, @Nullable String uriBaseId, Integer index,
+                                                      @Nullable Message description) {
+        ArtifactLocation artifactLocation = new ArtifactLocation();
+
+        artifactLocation.setUri(uri);
+        artifactLocation.setUriBaseId(uriBaseId);
+        artifactLocation.setIndex(index);
+        artifactLocation.setDescription(description);
+
+        return artifactLocation;
+    }
+
+    /**
+     * generates a text region defined by line and column number (both starting at 1)
+     *
+     * @param startLine     the line number where the region starts
+     * @param endLine       the line number where the region ends
+     * @param startColumn   the column number where the region starts within the startLine
+     * @param endColumn     the column number where the region ends (excluding the character specified by this)
+     * @return              the resulting region
+     */
+    private Region generateRegion(Integer startLine, Integer endLine, Integer startColumn, Integer endColumn) {
+        Region region = new Region();
+
+        region.setStartLine(startLine);
+        region.setEndLine(endLine);
+        region.setStartColumn(startColumn);
+        region.setEndColumn(endColumn);
+
+        return region;
+    }
+
+    /**
+     * generates a relationship between two locations
+     *
+     * @param target        the id which identifies the target among all location objects in the result (equal to target id)
+     * @param kinds         the kind of relationship (one or more from: "includes", "isIncludedBy", "relevant")
+     * @param description   an additional description for the relationship
+     * @return              the resulting relationship
+     */
+    private LocationRelationship generateLocationRelationship(Integer target, Set<String> kinds, @Nullable Message description) {
+        LocationRelationship locationRelationship = new LocationRelationship();
+
+        locationRelationship.setTarget(target);
+        locationRelationship.setKinds(kinds);
+        locationRelationship.setDescription(description);
+
+        return locationRelationship;
+    }
+
+    /**
+     * generates a Tool object from a driver and extensions
      *
      * @param driver        the tool's primary executable
      * @param extensions    possibly used extensions (empty set if none were used)
@@ -136,12 +238,15 @@ public class SarifInstantiator {
      */
     private Tool generateTool(ToolComponent driver, @Nullable Set<ToolComponent> extensions) {
         Tool tool = new Tool();
+
         tool.setDriver(driver);
         tool.setExtensions(extensions);
+
         return tool;
     }
 
     /**
+     * generates a ToolComponent specified by name, version, organization and the downloadURI
      *
      * @param name          the name of the component
      * @param version       the version of the component
@@ -152,6 +257,7 @@ public class SarifInstantiator {
     private ToolComponent generateToolComponent(String name, String version, URI downloadURI,
                                                 String organization) {
         ToolComponent toolC = new ToolComponent();
+
         toolC.setName(name);
         toolC.setVersion(version);
         toolC.setDownloadUri(downloadURI);

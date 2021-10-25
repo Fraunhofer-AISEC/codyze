@@ -70,6 +70,169 @@ public class SarifInstantiator {
     }
 
     /**
+     * generates a result object
+     *
+     * @param ruleId            the identifier of the rule that was evaluated
+     * @param kind              the kind of the result (e.g. PASS, INFORMATIONAL, FAIL, ...)
+     * @param level             the severity level of the result (NONE if kind is not FAIL)
+     * @param message           a description of the result, shall include the following:
+     *                              - analysis target and problem location
+     *                              - condition that led to the problem being reported
+     *                              - potential risks associated when not fixing the problem
+     *                              - full range of possible responses the end user could take
+     * @param locations         specifies location(s) where the result occurred.
+     *                          Only more than one if condition can only be corrected by making a change at every location.
+     *                          Explicitly NOT for distinct occurrences of the same result.
+     * @param analysisTarget    the analysis target, only applicable analysis target and result file differ
+     * @param relatedLocations  locations related to understanding the problem
+     * @param attachments       artifacts relevant to the detection of the result
+     * @param fixes             possible fixes for the problem
+     * @return                  the resulting result object
+     */
+    // TODO: rules here and in the ToolComponent
+    private Result generateResult(@Nullable String ruleId, Result.Kind kind, Result.Level level, Message message,
+                                  List<Location> locations, @Nullable ArtifactLocation analysisTarget,
+                                  // List<CodeFlow> codeFlows, GraphTraversal graphTraversal, Stack stacks
+                                  Set<Location> relatedLocations, Set<Attachment> attachments, Set<Fix> fixes) {
+        Result result = new Result();
+
+        result.setRuleId(ruleId);
+        result.setKind(kind);
+        result.setLevel(level);
+        result.setMessage(message);
+        result.setLocations(locations);
+        result.setAnalysisTarget(analysisTarget);
+        result.setRelatedLocations(relatedLocations);
+        result.setAttachments(attachments);
+        result.setFixes(fixes);
+
+        return result;
+    }
+
+    /**
+     * generates an attachment object that is relevant to a result
+     *
+     * @param description   a message describing the role played by the attachment
+     * @param location      the location of the attachment
+     * @param regions       regions of interest within the attachment (should contain a message each)
+     * @param rectangles    rectangles specifying an area of interest ONLY if the attachment is an image
+     * @return              the resulting attachment
+     */
+    private Attachment generateAttachment(Message description, ArtifactLocation location, Set<Region> regions,
+                                          Set<Rectangle> rectangles) {
+        Attachment attachment = new Attachment();
+
+        attachment.setDescription(description);
+        attachment.setArtifactLocation(location);
+        attachment.setRegions(regions);
+        attachment.setRectangles(rectangles);
+
+        return attachment;
+    }
+
+    /**
+     * generates a rectangle for highlighting purposes within an image file
+     *
+     * @param message   a message relevant to this area of the image
+     * @param top       the Y coordinate of the top edge of the rectangle, measured in the image's natural units.
+     * @param left      the X coordinate of the left edge of the rectangle, measured in the image's natural units.
+     * @param bottom    the Y coordinate of the bottom edge of the rectangle, measured in the image's natural units.
+     * @param right     the X coordinate of the right edge of the rectangle, measured in the image's natural units.
+     * @return          the resulting rectangle object
+     */
+    private Rectangle rectangle(Message message, Double top, Double left, Double bottom, Double right) {
+        Rectangle rectangle = new Rectangle();
+
+        rectangle.setMessage(message);
+        rectangle.setTop(top);
+        rectangle.setLeft(left);
+        rectangle.setBottom(bottom);
+        rectangle.setRight(right);
+
+        return rectangle;
+    }
+
+    /**
+     * generates a fix object composed of one or more changes
+     *
+     * @param description       a description for the fix
+     * @param artifactChanges   one or more changes in files
+     * @return                  the resulting fix
+     */
+    private Fix generateFix(@Nullable Message description,Set<ArtifactChange> artifactChanges) {
+        Fix fix = new Fix();
+
+        fix.setDescription(description);
+        fix.setArtifactChanges(artifactChanges);
+
+        return fix;
+    }
+
+    /**
+     * generates an artifactChange object composed of an artifact location and replacement details
+     *
+     * @param artifactLocation  the location of the file
+     * @param replacements      the changes done in the file
+     * @return                  the resulting artifactChange object
+     */
+    private ArtifactChange generateArtifactChange(ArtifactLocation artifactLocation, List<Replacement> replacements) {
+        ArtifactChange artifactChange = new ArtifactChange();
+
+        artifactChange.setArtifactLocation(artifactLocation);
+        artifactChange.setReplacements(replacements);
+
+        return artifactChange;
+    }
+
+    /**
+     * generates a replacement in a file
+     *
+     * @param deletedRegion     the region to delete (if the length is 0, it specifies an insertion point)
+     * @param insertedContent   specifies the content to insert in place of the region specified by deleteRegion
+     * @return                  the resulting replacement
+     */
+    private Replacement generateReplacement(Region deletedRegion, @Nullable ArtifactContent insertedContent) {
+        Replacement replacement = new Replacement();
+
+        replacement.setDeletedRegion(deletedRegion);
+        replacement.setInsertedContent(insertedContent);
+
+        return replacement;
+    }
+
+    /**
+     * generates an artifactContent object
+     *
+     * @param text      the relevant text in UTF-8 minding any characters that JSON requires to be escaped
+     * @param rendered  a rendered view of the contents
+     * @return          the resulting artifactContent object
+     */
+    private ArtifactContent generateArtifactContent(String text, @Nullable MultiformatMessageString rendered) {
+        ArtifactContent artifactContent = new ArtifactContent();
+
+        artifactContent.setText(text);
+        artifactContent.setRendered(rendered);
+
+        return artifactContent;
+    }
+
+    /**
+     * generates a multiformatMessageString grouping all available textual formats
+     *
+     * @param text      a plain representation of the message
+     * @param markdown  the formatted message expressed in GitHub-Flavored Markdown [GFM]
+     * @return          the resulting multiformatMessageString object
+     */
+    private MultiformatMessageString generateMultiformatMessageString(String text, @Nullable String markdown) {
+        MultiformatMessageString multiformatMessageString = new MultiformatMessageString();
+
+        multiformatMessageString.setText(text);
+        multiformatMessageString.setMarkdown(markdown);
+
+        return multiformatMessageString;
+    }
+
+    /**
      * generates a graph (intended for cpg)
      *
      * @param description   description of the resulting graph

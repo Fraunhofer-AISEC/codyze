@@ -10,7 +10,7 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "5.17.0"
+    id("com.diffplug.spotless") version "5.17.1"
     id("com.github.hierynomus.license") version "0.16.1"
     kotlin("jvm") version "1.5.31" // we can only upgrade to Kotlin 1.5, if CPG does
 }

@@ -100,8 +100,7 @@ class SarifInstantiator internal constructor() {
      * @param rectangles    rectangles specifying an area of interest ONLY if the attachment is an image
      * @return              the resulting attachment
      */
-    private fun generateAttachment(description: Message, location: ArtifactLocation, regions:
-    Set<Region>,
+    private fun generateAttachment(description: Message, location: ArtifactLocation, regions: Set<Region>,
                                    rectangles: Set<Rectangle>): Attachment {
         val attachment = Attachment()
         attachment.description = description
@@ -121,8 +120,7 @@ class SarifInstantiator internal constructor() {
      * @param right     the X coordinate of the right edge of the rectangle, measured in the image's natural units.
      * @return          the resulting rectangle object
      */
-    private fun generateRectangle(message: Message, top: Double, left: Double, bottom: Double,
-                                  right: Double): Rectangle {
+    private fun generateRectangle(message: Message, top: Double, left: Double, bottom: Double, right: Double): Rectangle {
         val rectangle = Rectangle()
         rectangle.message = message
         rectangle.top = top
@@ -153,8 +151,7 @@ class SarifInstantiator internal constructor() {
      * @param replacements      the changes done in the file
      * @return                  the resulting artifactChange object
      */
-    private fun generateArtifactChange(artifactLocation: ArtifactLocation, replacements:
-    List<Replacement>): ArtifactChange {
+    private fun generateArtifactChange(artifactLocation: ArtifactLocation, replacements: List<Replacement>): ArtifactChange {
         val artifactChange = ArtifactChange()
         artifactChange.artifactLocation = artifactLocation
         artifactChange.replacements = replacements
@@ -168,8 +165,7 @@ class SarifInstantiator internal constructor() {
      * @param insertedContent   specifies the content to insert in place of the region specified by deleteRegion
      * @return                  the resulting replacement
      */
-    private fun generateReplacement(deletedRegion: Region, insertedContent: ArtifactContent?):
-            Replacement {
+    private fun generateReplacement(deletedRegion: Region, insertedContent: ArtifactContent?): Replacement {
         val replacement = Replacement()
         replacement.deletedRegion = deletedRegion
         replacement.insertedContent = insertedContent
@@ -183,8 +179,7 @@ class SarifInstantiator internal constructor() {
      * @param rendered  a rendered view of the contents
      * @return          the resulting artifactContent object
      */
-    private fun generateArtifactContent(text: String, rendered: MultiformatMessageString?):
-            ArtifactContent {
+    private fun generateArtifactContent(text: String, rendered: MultiformatMessageString?): ArtifactContent {
         val artifactContent = ArtifactContent()
         artifactContent.text = text
         artifactContent.rendered = rendered
@@ -198,8 +193,7 @@ class SarifInstantiator internal constructor() {
      * @param markdown  the formatted message expressed in GitHub-Flavored Markdown (GFM)
      * @return          the resulting multiformatMessageString object
      */
-    private fun generateMultiformatMessageString(text: String, markdown: String?):
-            MultiformatMessageString {
+    private fun generateMultiformatMessageString(text: String, markdown: String?): MultiformatMessageString {
         val multiformatMessageString = MultiformatMessageString()
         multiformatMessageString.text = text
         multiformatMessageString.markdown = markdown
@@ -231,8 +225,7 @@ class SarifInstantiator internal constructor() {
      * @param children  a (possibly empty) set of child nodes, forming a nested graph
      * @return          the resulting node
      */
-    private fun generateNode(id: String, label: Message, location: Location, children: Set<Node>):
-            Node {
+    private fun generateNode(id: String, label: Message, location: Location, children: Set<Node>): Node {
         val node = Node()
         node.id = id
         node.label = label
@@ -251,8 +244,7 @@ class SarifInstantiator internal constructor() {
      * @param arguments List of arguments for placeholders used in either text, markdown or id parameters
      * @return          the resulting message object
      */
-    private fun generateMessage(text: String, markdown: String?, id: String, arguments:
-    List<String>): Message {
+    private fun generateMessage(text: String, markdown: String?, id: String, arguments: List<String>): Message {
         val message = Message()
         message.text = text
         message.markdown = markdown
@@ -329,8 +321,7 @@ class SarifInstantiator internal constructor() {
      * @param endColumn     the column number where the region ends (excluding the character specified by this)
      * @return              the resulting region
      */
-    private fun generateRegion(startLine: Int, endLine: Int, startColumn: Int, endColumn: Int):
-            Region {
+    private fun generateRegion(startLine: Int, endLine: Int, startColumn: Int, endColumn: Int): Region {
         val region = Region()
         region.startLine = startLine
         region.endLine = endLine
@@ -347,8 +338,7 @@ class SarifInstantiator internal constructor() {
      * @param description   an additional description for the relationship
      * @return              the resulting relationship
      */
-    private fun generateLocationRelationship(target: Int, kinds: Set<String>, description:
-    Message?): LocationRelationship {
+    private fun generateLocationRelationship(target: Int, kinds: Set<String>, description: Message?): LocationRelationship {
         val locationRelationship = LocationRelationship()
         locationRelationship.target = target
         locationRelationship.kinds = kinds
@@ -381,8 +371,7 @@ class SarifInstantiator internal constructor() {
      * @return              the resulting tool component
      */
     private fun generateToolComponent(name: String, version: String, downloadURI: URI?,
-                                      organization: String, rules: Set<ReportingDescriptor>):
-            ToolComponent {
+                                      organization: String, rules: Set<ReportingDescriptor>): ToolComponent {
         val toolC = ToolComponent()
         toolC.name = name
         toolC.version = version
@@ -403,8 +392,7 @@ class SarifInstantiator internal constructor() {
      */
     private fun generateReportingDescriptor(id: String, deprecatedIds: Set<String>,
                                             shortDescription: MultiformatMessageString,
-                                            fullDescription: MultiformatMessageString):
-            ReportingDescriptor {
+                                            fullDescription: MultiformatMessageString): ReportingDescriptor {
         val reportingDescriptor = ReportingDescriptor()
         reportingDescriptor.id = id
         reportingDescriptor.deprecatedIds = deprecatedIds
@@ -447,13 +435,10 @@ class SarifInstantiator internal constructor() {
                 possibleFindings?.map { (id, item) ->
                     generateReportingDescriptor(id, setOf(),
                             generateMultiformatMessageString(item.shortDescription?.text ?: "", null),
-                            generateMultiformatMessageString(item.fullDescription?.text ?: "",
-                                    null))
-                }?.toSet()
-                        ?: setOf()
+                            generateMultiformatMessageString(item.fullDescription?.text ?: "", null))
+                }?.toSet() ?: setOf()
 
-        val driver = generateToolComponent(driverName, version, downloadURI, "Fraunhofer AISEC",
-                rules)
+        val driver = generateToolComponent(driverName, version, downloadURI, "Fraunhofer AISEC", rules)
         val tool = generateTool(driver, setOf())
         val run = generateRun(tool, setOf(), setOf(), listOf())
         sarif.runs = listOf(run)

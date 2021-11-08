@@ -2,8 +2,10 @@ package de.fraunhofer.aisec.codyze.analysis
 
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.analysis.generated.*
+import de.fraunhofer.aisec.mark.markDsl.Action
 import java.net.URI
 import java.net.URISyntaxException
+import java.util.*
 
 /**
  * This class was created to bundle operations regarding the Sarif Template instead of spreading them all over the code
@@ -29,6 +31,79 @@ class SarifInstantiator internal constructor() {
     }
 
     // TODO: (Kotlin) specify default parameters
+
+    /**
+     * appends the given parameters as a new run to the end of the Sarif Object
+     *
+     *
+     */
+    fun pushRun(findings: Set<Finding>) {
+        // tries to parse the downloadURI
+        val downloadURI: URI? = try {
+            URI(download)
+        } catch (e: URISyntaxException) {
+            null
+        }
+
+        /*
+        imports the rules as parsed from FindingDescription.kt
+        assumes that important fields like shortDescription DO NOT return null, otherwise they will be empty (not null)
+         */
+        val possibleFindings = instance.getItems()
+        val rules: Set<ReportingDescriptor> =
+                possibleFindings?.map { (id, item) ->
+                    generateReportingDescriptor(id, setOf(),
+                            generateMultiformatMessageString(item.shortDescription?.text ?: "", null),
+                            generateMultiformatMessageString(item.fullDescription?.text ?: "", null))
+                }?.toSet() ?: setOf()
+
+        // IMPORTANT TODO: revise and change over time, this is just an initial draft
+        // annotation: not satisfied with limited information passed by "Finding" -> need to get to the source of it
+
+        // driver set and no extensions by default (not changeable as of now)
+        val driver = generateToolComponent(driverName, version, downloadURI, "Fraunhofer AISEC", rules)
+        val tool = generateTool(driver, setOf())
+        // changes the given set of findings into a sarif compliant list of results
+        val results = LinkedList<Result>()
+        for ((messageIdCounter, finding) in findings.withIndex()) {
+            // tries to determine kind and level (only two kinds at the moment since it is implemented as a bool)
+            val kind = if (finding.isProblem) Result.Kind.FAIL else Result.Kind.PASS
+            val level = when (finding.action) {
+                Action.FAIL -> Result.Level.ERROR
+                Action.WARN -> Result.Level.WARNING
+                Action.INFO -> Result.Level.NOTE
+                else        -> Result.Level.NONE
+            }
+            // the message has the pass or fail description and a unique id composed
+            val id = finding.identifier + "Message" + messageIdCounter
+            val messageText = when (kind) {
+                Result.Kind.PASS -> instance.getDescriptionPass(finding.identifier) ?: ""
+                else             -> instance.getDescriptionFull(finding.identifier) ?: ""
+            }
+            // this far no markdown is supported
+            val message = generateMessage(messageText, null, id, listOf())
+            // the locations can be taken from the corresponding parameter
+            val locations = LinkedList<Location>()
+            for ((locationIdCounter, location) in finding.locations.withIndex()) {
+                val reg = generateRegion(location.region.startLine, location.region.endLine,
+                        location.region.startColumn, location.region.endColumn)
+                val aLoc = generateArtifactLocation(location.artifactLocation.toString(), null, -1, null)
+                val pLoc = generatePhysicalLocation(aLoc, reg, null)
+                // simple location object without an own message or any annotations/relationships
+                locations.add(generateLocation(locationIdCounter, pLoc, null, setOf(), setOf()))
+            }
+            // combine all of the parameters into a Result and add it to the result List
+            results.add(generateResult(finding.identifier, kind, level, message, locations, null, setOf(), setOf(), setOf()))
+        }
+
+        // generates the run with the results (no artifacts and graphs yet) and adds it to the List of runs
+        val run = generateRun(tool, setOf(), setOf(), results)
+        sarif.runs.add(run)
+    }
+
+    fun popRun(): Run {
+        return sarif.runs.removeLast()
+    }
 
     /**
      * generates a single run in the SARIF schema
@@ -71,7 +146,6 @@ class SarifInstantiator internal constructor() {
      * @param fixes             possible fixes for the problem
      * @return                  the resulting result object
      */
-    // TODO: include fixes somehow
     private fun generateResult(ruleId: String?, kind: Result.Kind,
                                level: Result.Level, message: Message,
                                locations: List<Location>, analysisTarget: ArtifactLocation?,
@@ -417,30 +491,5 @@ class SarifInstantiator internal constructor() {
             null
         }
         sarif.`$schema` = schemaURI
-
-        // TODO: determine how much will be done in the constructor and what in the method calls ---------------------
-        val downloadURI: URI? = try {
-            URI(download)
-        } catch (e: URISyntaxException) {
-            null
-        }
-
-        /*
-         imports the rules as parsed from FindingDescription.kt
-         assumes that important fields like shortDescription DO NOT return null, otherwise they will be empty (not null)
-         */
-        val possibleFindings = instance.getItems()
-
-        val rules: Set<ReportingDescriptor> =
-                possibleFindings?.map { (id, item) ->
-                    generateReportingDescriptor(id, setOf(),
-                            generateMultiformatMessageString(item.shortDescription?.text ?: "", null),
-                            generateMultiformatMessageString(item.fullDescription?.text ?: "", null))
-                }?.toSet() ?: setOf()
-
-        val driver = generateToolComponent(driverName, version, downloadURI, "Fraunhofer AISEC", rules)
-        val tool = generateTool(driver, setOf())
-        val run = generateRun(tool, setOf(), setOf(), listOf())
-        sarif.runs = listOf(run)
     }
 }

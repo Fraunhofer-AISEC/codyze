@@ -60,10 +60,11 @@ jobs:
         with:
           name: test
           path: build/reports/tests/test
-      - name: Build Visual Studio Code Plugin
+      - name: Prepare Node.js
         uses: actions/setup-node@v2
         with: 
           node-version: "16"
+      - name: Build Visual Studio Code Plugin
         run: |
           pushd plugins/vscode && npm version $VERSION || true && npm install -g vsce && npm install && vsce package && popd
         env:

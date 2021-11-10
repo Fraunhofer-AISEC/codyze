@@ -60,9 +60,13 @@ jobs:
         with:
           name: test
           path: build/reports/tests/test
+      - name: Prepare Node.js
+        uses: actions/setup-node@v2
+        with: 
+          node-version: "16"
       - name: Build Visual Studio Code Plugin
         run: |
-          pushd plugins/vscode && npm version $VERSION || true && sudo npm install -g vsce && npm install && vsce package && popd
+          pushd plugins/vscode && npm version $VERSION || true && npm install -g vsce && npm install && vsce package && popd
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
       - name: Archive Visual Studio Code Plugin

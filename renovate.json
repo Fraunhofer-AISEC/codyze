@@ -18,7 +18,7 @@
   "packageRules": [
     {
       "groupName": "picocli packages",
-      "packagePatterns": ["^info.picocli:"]
+      "matchPackagePatterns": ["^info.picocli:"]
     },
     {
       "matchPackagePatterns": ["@types/vscode"],

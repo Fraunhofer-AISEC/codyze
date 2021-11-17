@@ -11,7 +11,7 @@
 	"publisher": "fraunhofer-aisec",
 	"categories": [],
 	"engines": {
-		"vscode": "1.60.0"
+		"vscode": "^1.60.0"
 	},
 	"dependencies": {
 		"vscode-languageclient": "^7.0.0"
@@ -55,8 +55,8 @@
 	"devDependencies": {
 		"@types/mocha": "9.0.0",
 		"@types/node": "16.11.7",
-		"@types/vscode": "1.60.0",
-		"@typescript-eslint/parser": "5.3.1",
+		"@types/vscode": "^1.60.0",
+		"@typescript-eslint/parser": "5.4.0",
 		"eslint": "8.2.0",
 		"mocha": "9.1.3",
 		"ts-loader": "9.2.6",

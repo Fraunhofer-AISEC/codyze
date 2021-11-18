@@ -661,10 +661,13 @@ class SarifInstantiator internal constructor() {
         return gson.toJson(sarif)
     }
 
-    fun generateOutput(filepath: String = "src/main/resources/output.sarif"): File {
-        val file = File(filepath)
-        file.writeText(toString())
-        return file
+    /**
+     * overwrites the specifie file with the SARIF output,
+     * creates a new file if it doesn't already exist
+     * @param path the file that should contain the output
+     */
+    fun generateOutput(path: File = File("src/main/resources/output.sarif")) {
+        path.writeText(toString())
     }
 
     init {

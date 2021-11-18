@@ -81,7 +81,7 @@ internal class SarifInstantiatorTest {
         val file = File(filepath)
         file.delete()
 
-        s.generateOutput(filepath)
+        s.generateOutput(file)
 
         assertTrue(file.exists(), "There was no output file created!")
     }

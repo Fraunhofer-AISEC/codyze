@@ -4,13 +4,14 @@ import com.google.gson.GsonBuilder
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.analysis.generated.*
 import de.fraunhofer.aisec.mark.markDsl.Action
+import java.io.File
 import java.net.URI
 import java.net.URISyntaxException
 import java.util.*
 
 /**
- * This class was created to provide an easy-to-use interface with which correct SARIF output can be produced.
- * The ToString() returns the formatted output using the previously given Results.
+ * This class was created to provide an easy-to-use interface with which correct SARIF output can be
+ * produced. The ToString() returns the formatted output using the previously given Results.
  */
 class SarifInstantiator internal constructor() {
     /** class members definitely need to be reviewed/changed after parsing a new SARIF template */
@@ -58,7 +59,8 @@ class SarifInstantiator internal constructor() {
                 ?.toSet()
                 ?: setOf()
 
-        // IMPORTANT TODO: revise and change over time (which fields to set, what information to use, ...)
+        // IMPORTANT TODO: revise and change over time (which fields to set, what information to
+        // use, ...)
 
         // generate Tool with set driver and no extensions
         val driver =
@@ -81,7 +83,8 @@ class SarifInstantiator internal constructor() {
                     else -> Result.Level.NONE
                 }
 
-            // the message has the pass or fail description and a unique id (enforced through a counter)
+            // the message has the pass or fail description and a unique id (enforced through a
+            // counter)
             val id = finding.identifier + "Message" + messageIdCounter
             val messageText =
                 when (kind) {
@@ -180,7 +183,8 @@ class SarifInstantiator internal constructor() {
         val run = Run()
         run.columnKind =
             Run.ColumnKind
-                .UTF_16_CODE_UNITS // TODO: in reality it if UTF-8, check how this affects the result
+                .UTF_16_CODE_UNITS // TODO: in reality it if UTF-8, check how this affects the
+        // result
         run.redactionTokens = setOf("[REDACTED]")
         run.tool = tool
         run.artifacts = artifacts
@@ -203,13 +207,11 @@ class SarifInstantiator internal constructor() {
      *                  - potential risks associated when not fixing the problem
      *                  - full range of possible responses the end user could take
      * ```
-     * @param locations specifies location(s) where the result occurred.
-     * ```
-     *                  Only more than one if condition can only be corrected by making a change at every location.
-     *                  Explicitly NOT for distinct occurrences of the same result.
-     * @param analysisTarget
-     * ```
-     * the analysis target, only applicable analysis target and result file differ
+     * @param locations specifies location(s) where the result occurred. Only more than one if
+     * condition can only be corrected by making a change at every location. Explicitly NOT for
+     * distinct occurrences of the same result.
+     * @param analysisTarget the analysis target, only applicable analysis target and result file
+     * differ
      * @param relatedLocations locations related to understanding the problem
      * @param attachments artifacts relevant to the detection of the result
      * @param fixes possible fixes for the problem
@@ -652,10 +654,17 @@ class SarifInstantiator internal constructor() {
     /**
      * toString that uses GSON to create pretty output. Note that it doesn't display null values,
      * but it will show any empty value (String, Set, etc.)
+     * @return formatted, sarif-compliant String
      */
     override fun toString(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.toJson(sarif)
+    }
+
+    fun generateOutput(filepath: String = "src/main/resources/output.sarif"): File {
+        val file = File(filepath)
+        file.writeText(toString())
+        return file
     }
 
     init {

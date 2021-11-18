@@ -1,8 +1,5 @@
 package de.fraunhofer.aisec.codyze.analysis
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
 import com.google.gson.GsonBuilder
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.analysis.generated.*
@@ -12,9 +9,8 @@ import java.net.URISyntaxException
 import java.util.*
 
 /**
- * This class was created to bundle operations regarding the Sarif Template instead of spreading
- * them all over the code e.g. The URI and name of the generated class differ between each SARIF
- * version.
+ * This class was created to provide an easy-to-use interface with which correct SARIF output can be produced.
+ * The ToString() returns the formatted output using the previously given Results.
  */
 class SarifInstantiator internal constructor() {
     /** class members definitely need to be reviewed/changed after parsing a new SARIF template */
@@ -62,15 +58,15 @@ class SarifInstantiator internal constructor() {
                 ?.toSet()
                 ?: setOf()
 
-        // IMPORTANT TODO: revise and change over time, this is just an initial draft
-        // annotation: not satisfied with limited information passed by "Finding" -> need to get to
-        // the source of it
+        // IMPORTANT TODO: revise and change over time (which fields to set, what information to use, ...)
 
-        // driver set and no extensions by default (not changeable as of now)
+        // generate Tool with set driver and no extensions
         val driver =
             generateToolComponent(driverName, version, downloadURI, "Fraunhofer AISEC", rules)
         val tool = generateTool(driver, setOf())
+
         // changes the given set of findings into a sarif compliant list of results
+        // by iterating over each result and convert it
         val results = LinkedList<Result>()
         for ((messageIdCounter, finding) in findings.withIndex()) {
             // TODO: more than binary kind from Finding
@@ -84,19 +80,21 @@ class SarifInstantiator internal constructor() {
                     Action.INFO -> Result.Level.NOTE
                     else -> Result.Level.NONE
                 }
-            // the message has the pass or fail description and a unique id
+
+            // the message has the pass or fail description and a unique id (enforced through a counter)
             val id = finding.identifier + "Message" + messageIdCounter
             val messageText =
                 when (kind) {
                     Result.Kind.PASS -> instance.getDescriptionPass(finding.identifier) ?: ""
                     else -> instance.getDescriptionFull(finding.identifier) ?: ""
                 }
-            // this far no markdown is supported
+
+            // this far no markdown is supported -> message only consists of plain text
             val message = generateMessage(messageText, null, id, listOf())
             // the locations can be taken from the corresponding parameter
             val locations = LinkedList<Location>()
             /**
-             * add one every region parameter (except -1) since they start at 0 instead of 1
+             * add one to every region parameter (except -1) since they start at 0 instead of 1
              * @see de.fraunhofer.aisec.codyze.analysis.utils.Utils.getRegionByNode
              */
             for ((locationIdCounter, location) in finding.locations.withIndex()) {
@@ -108,14 +106,17 @@ class SarifInstantiator internal constructor() {
                         else location.region.startColumn + 1,
                         if (location.region.endColumn == -1) -1 else location.region.endColumn + 1
                     )
-                // TODO: find out if URIs in codyze are relative or absolute
+
+                // TODO: find out if URIs in codyze are given as relative or absolute
                 // generate exact physical location for the result
                 val aLoc =
                     generateArtifactLocation(location.artifactLocation.toString(), null, null, null)
                 val pLoc = generatePhysicalLocation(aLoc, reg, null)
-                // simple location object without an own message or any annotations/relationships
+
+                // simple location object without its own message or any annotations/relationships
                 locations.add(generateLocation(locationIdCounter, pLoc, null, setOf(), setOf()))
             }
+
             // tries to find the index of the rule in the corresponding Component array
             val index =
                 rules.indexOf(
@@ -132,6 +133,7 @@ class SarifInstantiator internal constructor() {
                         )
                     )
                 )
+
             // combine all of the parameters into a Result and add it to the result List
             results.add(
                 generateResult(
@@ -178,8 +180,7 @@ class SarifInstantiator internal constructor() {
         val run = Run()
         run.columnKind =
             Run.ColumnKind
-                .UTF_16_CODE_UNITS // TODO: in reality it if UTF-8, check how this affects the
-        // result
+                .UTF_16_CODE_UNITS // TODO: in reality it if UTF-8, check how this affects the result
         run.redactionTokens = setOf("[REDACTED]")
         run.tool = tool
         run.artifacts = artifacts
@@ -516,7 +517,7 @@ class SarifInstantiator internal constructor() {
      * @param uri the URI specifying the location, relative to the root
      * @param uriBaseId the URI of the root directory (absent if uri is an absolute path)
      * @param index the index within the artifacts array of the run which describes this artifact
-     * (-1 if not set)
+     * (-1 if not set, absent if array does not exist)
      * @param description a description for this artifact
      * @return the resulting artifact location
      */

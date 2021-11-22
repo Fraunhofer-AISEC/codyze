@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze.analysis
 
-import com.google.gson.GsonBuilder
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.analysis.generated.*
 import de.fraunhofer.aisec.mark.markDsl.Action
@@ -15,15 +16,17 @@ import java.util.*
  */
 class SarifInstantiator internal constructor() {
     /** class members definitely need to be reviewed/changed after parsing a new SARIF template */
-    private val sarif = Sarif210Rtm4()
+    private val sarif = Sarif210()
 
-    // TODO: get schema automatically(?)
-    private val schema = "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.4.json"
+    // TODO: get schema/version automatically(?)
+    private val schema = "https://json.schemastore.org/sarif-2.1.0.json"
+    private val sarifVersion = Sarif210.Version._2_1_0
 
     // TODO: automate getting the name/version/schema
     private val driverName = "codyze"
-    private val version = "2.0.0-alpha4"
-    private val download = "https://github.com/Fraunhofer-AISEC/codyze"
+    private val codyzeVersion = "2.0.0-alpha4"
+    private val download = "https://github.com/Fraunhofer-AISEC/codyze/releases"
+    private val information = "https://www.codyze.io/docs/"
 
     // TODO: (Kotlin) maybe specify default parameters
 
@@ -37,6 +40,14 @@ class SarifInstantiator internal constructor() {
         val downloadURI: URI? =
             try {
                 URI(download)
+            } catch (e: URISyntaxException) {
+                null
+            }
+
+        // tries to parse the downloadURI
+        val informationURI: URI? =
+            try {
+                URI(information)
             } catch (e: URISyntaxException) {
                 null
             }
@@ -59,12 +70,16 @@ class SarifInstantiator internal constructor() {
                 ?.toSet()
                 ?: setOf()
 
-        // IMPORTANT TODO: revise and change over time (which fields to set, what information to
-        // use, ...)
-
         // generate Tool with set driver and no extensions
         val driver =
-            generateToolComponent(driverName, version, downloadURI, "Fraunhofer AISEC", rules)
+            generateToolComponent(
+                driverName,
+                codyzeVersion,
+                downloadURI,
+                informationURI,
+                "Fraunhofer AISEC",
+                rules
+            )
         val tool = generateTool(driver, setOf())
 
         // changes the given set of findings into a sarif compliant list of results
@@ -117,7 +132,7 @@ class SarifInstantiator internal constructor() {
                 val pLoc = generatePhysicalLocation(aLoc, reg, null)
 
                 // simple location object without its own message or any annotations/relationships
-                locations.add(generateLocation(locationIdCounter, pLoc, null, setOf(), setOf()))
+                locations.add(generateLocation(locationIdCounter, pLoc, null, null, null))
             }
 
             // tries to find the index of the rule in the corresponding Component array
@@ -147,16 +162,17 @@ class SarifInstantiator internal constructor() {
                     message,
                     locations,
                     null,
-                    setOf(),
-                    setOf(),
-                    setOf()
+                    null,
+                    null,
+                    null,
+                    null
                 )
             )
         }
 
         // generates the run with the results (no artifacts and graphs yet) and adds it to the List
         // of runs
-        val run = generateRun(tool, setOf(), setOf(), results)
+        val run = generateRun(tool, null, null, results)
         sarif.runs.add(run)
     }
 
@@ -176,8 +192,8 @@ class SarifInstantiator internal constructor() {
      */
     private fun generateRun(
         tool: Tool,
-        artifacts: Set<Artifact>,
-        graphs: Set<Graph>,
+        artifacts: Set<Artifact>?,
+        graphs: Set<Graph>?,
         results: List<Result>?
     ): Run {
         val run = Run()
@@ -190,6 +206,18 @@ class SarifInstantiator internal constructor() {
         run.artifacts = artifacts
         run.graphs = graphs
         run.results = results
+        // null unnecessary fields:
+        run.threadFlowLocations = null
+        run.taxonomies = null
+        run.addresses = null
+        run.translations = null
+        run.policies = null
+        run.webRequests = null
+        run.webResponses = null
+        run.runAggregates = null
+        run.invocations = null
+        run.versionControlProvenance = null
+        run.logicalLocations = null
         return run
     }
 
@@ -225,9 +253,10 @@ class SarifInstantiator internal constructor() {
         message: Message,
         locations: List<Location>,
         analysisTarget: ArtifactLocation?,
-        relatedLocations: Set<Location>,
-        attachments: Set<Attachment>,
-        fixes: Set<Fix>
+        relatedLocations: Set<Location>?,
+        attachments: Set<Attachment>?,
+        fixes: Set<Fix>?,
+        traversals: Set<GraphTraversal>?
     ): Result {
         val result = Result()
         result.ruleId = ruleId
@@ -240,6 +269,14 @@ class SarifInstantiator internal constructor() {
         result.relatedLocations = relatedLocations
         result.attachments = attachments
         result.fixes = fixes
+        result.graphTraversals = traversals
+        // null unnecessary fields:
+        result.stacks = null
+        result.codeFlows = null
+        result.graphs = null
+        result.suppressions = null
+        result.workItemUris = null
+        result.taxa = null
         return result
     }
 
@@ -479,8 +516,8 @@ class SarifInstantiator internal constructor() {
         id: Int,
         physicalLocation: PhysicalLocation,
         message: Message?,
-        annotations: Set<Region>,
-        relationships: Set<LocationRelationship>
+        annotations: Set<Region>?,
+        relationships: Set<LocationRelationship>?
     ): Location {
         val location = Location()
         location.id = id
@@ -488,6 +525,8 @@ class SarifInstantiator internal constructor() {
         location.message = message
         location.annotations = annotations
         location.relationships = relationships
+        // null unnecessary fields:
+        location.logicalLocations = null
         return location
     }
 
@@ -614,6 +653,7 @@ class SarifInstantiator internal constructor() {
         name: String,
         version: String,
         downloadURI: URI?,
+        informationURI: URI?,
         organization: String,
         rules: Set<ReportingDescriptor>
     ): ToolComponent {
@@ -621,8 +661,13 @@ class SarifInstantiator internal constructor() {
         toolC.name = name
         toolC.version = version
         toolC.downloadUri = downloadURI
+        toolC.informationUri = informationURI
         toolC.organization = organization
         toolC.rules = rules
+        // null unnecessary fields:
+        toolC.notifications = null
+        toolC.taxa = null
+        toolC.locations = null
         return toolC
     }
 
@@ -648,6 +693,9 @@ class SarifInstantiator internal constructor() {
         reportingDescriptor.deprecatedIds = deprecatedIds
         reportingDescriptor.shortDescription = shortDescription
         reportingDescriptor.fullDescription = fullDescription
+        // null unnecessary fields:
+        reportingDescriptor.deprecatedGuids = null
+        reportingDescriptor.deprecatedNames = null
         return reportingDescriptor
     }
 
@@ -657,13 +705,15 @@ class SarifInstantiator internal constructor() {
      * @return formatted, sarif-compliant String
      */
     override fun toString(): String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        return gson.toJson(sarif)
+        // Jackson approach (GSON kept ignoring @JsonValue on enums):
+        val mapper = ObjectMapper()
+        mapper.enable(SerializationFeature.INDENT_OUTPUT)
+        return mapper.writeValueAsString(sarif)
     }
 
     /**
-     * overwrites the specifie file with the SARIF output,
-     * creates a new file if it doesn't already exist
+     * overwrites the specifie file with the SARIF output, creates a new file if it doesn't already
+     * exist
      * @param path the file that should contain the output
      */
     fun generateOutput(path: File = File("src/main/resources/output.sarif")) {
@@ -678,5 +728,6 @@ class SarifInstantiator internal constructor() {
                 null
             }
         sarif.`$schema` = schemaURI
+        sarif.version = sarifVersion
     }
 }

@@ -28,7 +28,7 @@ internal class MarkCppTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun testNewExpression() {
         val findings = performTest("mark_cpp/new.cpp", "mark_cpp/new.mark")
-        expected(findings, "line 10: Rule MustBeOne violated")
+        expected(findings, "line 9: Rule MustBeOne violated", "line 10: Rule MustBeOne violated")
     }
 
     @Test

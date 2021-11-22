@@ -52,12 +52,12 @@ public class Finding {
 	/**
 	 * Constructor.
 	 *
-	 * @param logMsg           Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
-	 *                         finding.
-	 * @param startLine        Line in code where the finding begins. Note that LSP starts counting at 1.
-	 * @param endLine          Line in code where the finding ends.
-	 * @param startColumn      Column in code where the finding begins. Note that LPS start counting at 1.
-	 * @param endColumn        Column in code where the finding ends.
+	 * @param logMsg      Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
+	 *                    finding.
+	 * @param startLine   Line in code where the finding begins. Note that LSP starts counting at 1.
+	 * @param endLine     Line in code where the finding ends.
+	 * @param startColumn Column in code where the finding begins. Note that LPS start counting at 1.
+	 * @param endColumn   Column in code where the finding ends.
 	 */
 	public Finding(String id, Action action, String logMsg, @Nullable URI artifactUri, int startLine, int endLine, int startColumn,
 			int endColumn) {
@@ -74,11 +74,11 @@ public class Finding {
 	 * Constructor.
 	 *
 	 * @param id
-	 * @param logMsg           Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
-	 *                         finding.
-	 * @param artifactUri      Absolute URI of the source file.
-	 * @param ranges           List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
-	 * @param isProblem        true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
+	 * @param logMsg      Log message for that specific finding. This message is created by the analysis module and may contain further descriptions and details of the
+	 *                    finding.
+	 * @param artifactUri Absolute URI of the source file.
+	 * @param ranges      List of LSP "ranges" determining the position(s) in code of this finding. Note that a LSP range starts counting at 1, while a CPG "region" starts
+	 * @param isProblem   true, if this Finding represents a vulnerability/weakness. False, if the Finding confirms that the code is actually correct.
 	 */
 	public Finding(String id, Action action, String logMsg, @Nullable URI artifactUri, List<Region> ranges, boolean isProblem) {
 		this.id = id;
@@ -136,9 +136,9 @@ public class Finding {
 		String addIfExists = "";
 
 		// simple for now
-		String descriptionShort = FindingDescription.getInstance().getDescriptionShort(id);
-		if (descriptionShort != null && !descriptionShort.equals(id)) {
-			addIfExists = ": " + descriptionShort;
+		String description = isProblem() ? FindingDescription.getInstance().getDescriptionShort(id) : FindingDescription.getInstance().getDescriptionPass(id);
+		if (description != null && !description.equals(id)) {
+			addIfExists = ": " + description;
 		}
 
 		return toShortMessage() + addIfExists;

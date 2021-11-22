@@ -97,6 +97,7 @@ public class Main implements Callable<Integer> {
 			}
 			catch (UnrecognizedPropertyException e) {
 				printConfigErrorMessage(e);
+				System.out.println("Continue without configurations from configuration file.");
 			}
 		}
 
@@ -183,8 +184,8 @@ public class Main implements Callable<Integer> {
 
 		// standardize string array of languages
 		String[] languages = null;
-		if (codyzeConfig != null) {
-			languages = codyzeConfig.getAdditionalLanguages();
+		if (cpgConfig != null) {
+			languages = cpgConfig.getAdditionalLanguages();
 			if (languages != null)
 				Arrays.stream(languages).map(String::toLowerCase);
 		}
@@ -214,15 +215,17 @@ public class Main implements Callable<Integer> {
 							timeout = codyzeConfig.getTimeout();
 						break;
 					case ("--no-good-findings"):
-						disableGoodFindings = codyzeConfig.isNoGoodFindings();
+						if (codyzeConfig != null)
+							disableGoodFindings = codyzeConfig.isNoGoodFindings();
 						break;
 					case ("--enable-python-support"):
-						if (languages != null && Arrays.stream(languages).anyMatch(x -> x == "python"))
+						if (languages != null && Arrays.stream(languages).anyMatch(x -> x.equals("python")))
 							enablePython = true;
 						break;
 					case ("--enable-go-support"):
-						if (languages != null && Arrays.stream(languages).anyMatch(x -> x == "go"))
+						if (languages != null && Arrays.stream(languages).anyMatch(x -> x.equals("go")))
 							enableGo = true;
+						break;
 					case ("--typestate"):
 						if (codyzeConfig != null && codyzeConfig.getTypestateAnalysis() != null)
 							analysisMode.tsMode = codyzeConfig.getTypestateAnalysis();

@@ -125,7 +125,10 @@ abstract class AbstractMarkTest : AbstractTest() {
                 "not found: \"$expected\""
             )
             val first =
-                findings.stream().filter { f: Finding -> f.toShortMessage() == expected }.findFirst()
+                findings
+                    .stream()
+                    .filter { f: Finding -> f.toShortMessage() == expected }
+                    .findFirst()
             findings.remove(first.get())
         }
         if (findings.size > 0) {
@@ -137,7 +140,10 @@ abstract class AbstractMarkTest : AbstractTest() {
         assertEquals(
             0,
             findings.size,
-            findings.stream().map { obj: Finding -> obj.toShortMessage() }.collect(Collectors.joining())
+            findings
+                .stream()
+                .map { obj: Finding -> obj.toShortMessage() }
+                .collect(Collectors.joining())
         )
     }
 

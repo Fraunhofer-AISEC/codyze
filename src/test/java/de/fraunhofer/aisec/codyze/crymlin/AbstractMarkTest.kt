@@ -115,29 +115,29 @@ abstract class AbstractMarkTest : AbstractTest() {
     protected fun expected(findings: MutableSet<Finding>, vararg expectedFindings: String) {
         println("All findings:")
         for (f in findings) {
-            println(f.toString())
+            println(f.toShortMessage())
         }
 
         for (expected in expectedFindings) {
             assertEquals(
                 1,
-                findings.stream().filter { f: Finding -> f.toString() == expected }.count(),
+                findings.stream().filter { f: Finding -> f.toShortMessage() == expected }.count(),
                 "not found: \"$expected\""
             )
             val first =
-                findings.stream().filter { f: Finding -> f.toString() == expected }.findFirst()
+                findings.stream().filter { f: Finding -> f.toShortMessage() == expected }.findFirst()
             findings.remove(first.get())
         }
         if (findings.size > 0) {
             println("Additional Findings:")
             for (f in findings) {
-                println(f.toString())
+                println(f.toShortMessage())
             }
         }
         assertEquals(
             0,
             findings.size,
-            findings.stream().map { obj: Finding -> obj.toString() }.collect(Collectors.joining())
+            findings.stream().map { obj: Finding -> obj.toShortMessage() }.collect(Collectors.joining())
         )
     }
 
@@ -148,13 +148,13 @@ abstract class AbstractMarkTest : AbstractTest() {
      */
     protected fun containsFindings(findings: Set<Finding>, vararg expectedFindings: String) {
         println("All findings:")
-        for (f in findings) println(f.toString())
+        for (f in findings) println(f.toShortMessage())
 
         val missingFindings = mutableSetOf<String>()
         for (expected in expectedFindings) {
             var found = false
             for (finding in findings) {
-                if (expected == finding.toString()) {
+                if (expected == finding.toShortMessage()) {
                     found = true
                     break
                 }

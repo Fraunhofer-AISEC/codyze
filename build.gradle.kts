@@ -14,7 +14,6 @@ plugins {
     id("com.github.hierynomus.license") version "0.16.1"
     kotlin("jvm") version "1.5.31" // we can only upgrade to Kotlin 1.5, if CPG does
 
-    // parser for the SARIF schema (https://github.com/joelittlejohn/jsonschema2pojo/tree/master/jsonschema2pojo-gradle-plugin)
     id("org.jsonschema2dataclass") version "3.0.0"
 }
 
@@ -208,12 +207,9 @@ compileTestKotlin.kotlinOptions {
     jvmTarget = "11"
 }
 
-// TODO: fine-tweak options
 jsonSchema2Pojo {
     source.setFrom("${project.rootDir}/src/main/resources/json")
-
     targetPackage = "de.fraunhofer.aisec.codyze.analysis.generated"
-    // targetDirectoryPrefix.set(file("${project.buildDir}/src/main/java"))
-
+    removeOldOutput = true
     // ... more options
 }

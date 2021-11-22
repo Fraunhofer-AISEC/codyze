@@ -38,14 +38,16 @@ internal class SarifInstantiatorTest {
 
         val output = s.toString()
 
+        print(output)
+
         val startOfResults = output.indexOf("results")
-        val substring1 = output.substring(startOfResults + 33, startOfResults + 39)
+        val substring1 = output.substring(startOfResults + 23, startOfResults + 29)
         assertEquals(
             "ruleId",
             substring1,
             "The ruleId of the first Result is not in the expected place!"
         )
-        val substring2 = output.substring(startOfResults + 43, startOfResults + 69)
+        val substring2 = output.substring(startOfResults + 34, startOfResults + 60)
         assertEquals(
             "WrongUseOfBotan_CipherMode",
             substring2,

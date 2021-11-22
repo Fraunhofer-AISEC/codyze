@@ -17,7 +17,6 @@ public class CodyzeConfigurationFile {
 	private boolean noGoodFindings;
 	@NonNull
 	private TypestateMode typestateAnalysis;
-	private String[] additionalLanguages;
 
 	public File getSource() {
 		return source;
@@ -65,13 +64,5 @@ public class CodyzeConfigurationFile {
 
 	public void setTypestateAnalysis(TypestateMode typestateAnalysis) {
 		this.typestateAnalysis = typestateAnalysis;
-	}
-
-	public String[] getAdditionalLanguages() {
-		return additionalLanguages;
-	}
-
-	public void setAdditionalLanguages(String[] additionalLanguages) {
-		this.additionalLanguages = additionalLanguages;
 	}
 }

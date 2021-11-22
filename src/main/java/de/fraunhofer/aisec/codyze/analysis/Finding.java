@@ -141,13 +141,7 @@ public class Finding {
 			addIfExists = ": " + descriptionShort;
 		}
 
-		String lines;
-		if (locations.size() == 1) {
-			lines = (locations.get(0).getRegion().getStartLine() + 1) + "";
-		} else {
-			lines = "[" + locations.stream().map(loc -> "" + (loc.getRegion().getStartLine() + 1)).sorted().distinct().collect(Collectors.joining(", ")) + "]";
-		}
-		return "line " + lines + ": " + logMsg + addIfExists;
+		return toShortMessage() + addIfExists;
 	}
 
 	public boolean equals(Object obj) {
@@ -181,6 +175,16 @@ public class Finding {
 		}
 
 		out.println(lines + ": " + (isProblem ? "(BAD)  " : "(GOOD) ") + shortMsg + ": " + logMsg);
+	}
+
+	public String toShortMessage() {
+		String lines;
+		if (locations.size() == 1) {
+			lines = (locations.get(0).getRegion().getStartLine() + 1) + "";
+		} else {
+			lines = "[" + locations.stream().map(loc -> "" + (loc.getRegion().getStartLine() + 1)).sorted().distinct().collect(Collectors.joining(", ")) + "]";
+		}
+		return "line " + lines + ": " + logMsg;
 	}
 
 }

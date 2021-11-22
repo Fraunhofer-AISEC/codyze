@@ -10,9 +10,9 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "6.0.0"
+    id("com.diffplug.spotless") version "5.17.1"
     id("com.github.hierynomus.license") version "0.16.1"
-    kotlin("jvm") version "1.6.0" // we can only upgrade to Kotlin 1.5, if CPG does
+    kotlin("jvm") version "1.5.31" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
 group = "de.fraunhofer.aisec"
@@ -109,8 +109,8 @@ dependencies {
     implementation("org.python:jython-standalone:2.7.2") // ok
 
     // Command line interface support
-    api("info.picocli:picocli:4.6.2")
-    annotationProcessor("info.picocli:picocli-codegen:4.6.2")
+    api("info.picocli:picocli:4.6.1")
+    annotationProcessor("info.picocli:picocli-codegen:4.6.1")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.10.2")
@@ -122,6 +122,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     implementation(kotlin("stdlib-jdk8"))
+
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.13.0")
 }
 
 application {

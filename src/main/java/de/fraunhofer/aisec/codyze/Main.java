@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
@@ -14,6 +15,7 @@ import picocli.CommandLine.Option;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
@@ -21,6 +23,12 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+
+import com.fasterxml.jackson.dataformat.toml.TomlMapper;
+import picocli.CommandLine.ParseResult;
+import picocli.CommandLine.Spec;
+import picocli.CommandLine.Model.CommandSpec;
+import java.util.List;
 
 /**
  * Start point of the standalone analysis server.
@@ -50,6 +58,11 @@ public class Main implements Callable<Integer> {
 			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 	private String outputFile;
 
+	// TODO: Maybe default value?
+	@Option(names = {
+			"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
+	private File configFile;
+
 	@Option(names = {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
 	private long timeout;
@@ -66,6 +79,9 @@ public class Main implements Callable<Integer> {
 			"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
 	private boolean enableGo;
 
+	@Spec
+	CommandSpec spec;
+
 	public static void main(String... args) {
 		int exitCode = new CommandLine(new Main()).execute(args);
 		System.exit(exitCode);
@@ -75,6 +91,16 @@ public class Main implements Callable<Integer> {
 	public Integer call() throws Exception {
 		Instant start = Instant.now();
 
+		if (configFile != null && configFile.isFile()) {
+			try {
+				parseConfigFile();
+			}
+			catch (UnrecognizedPropertyException e) {
+				printConfigErrorMessage(e);
+			}
+		}
+
+		// TODO: Maybe not needed, because default value is set in Option
 		if (analysisMode.tsMode == null) {
 			analysisMode.tsMode = TypestateMode.NFA;
 		}
@@ -146,6 +172,80 @@ public class Main implements Callable<Integer> {
 			}
 		}
 
+	}
+
+	private void parseConfigFile() throws IOException {
+		// parse toml configuration file with jackson
+		TomlMapper mapper = new TomlMapper();
+		var configuration = mapper.readValue(configFile, ConfigurationFile.class);
+		var codyzeConfig = configuration.getCodyzeConfig();
+		var cpgConfig = configuration.getCpgConfig();
+
+		// standardize string array of languages
+		String[] languages = null;
+		if (codyzeConfig != null) {
+			languages = codyzeConfig.getAdditionalLanguages();
+			if (languages != null)
+				Arrays.stream(languages).map(String::toLowerCase);
+		}
+
+		// check for all command line arguments if they
+		// 1. were explicitly stated in the program call and
+		// 2. if not, whether there is a value in the configuration file for that argument
+		ParseResult pr = spec.commandLine().getParseResult();
+		List<CommandLine.Model.OptionSpec> options = spec.options();
+		for (CommandLine.Model.OptionSpec o : options) {
+			if (!pr.hasMatchedOption(o)) {
+				switch (o.shortestName()) {
+					case ("-s"):
+						if (codyzeConfig != null && codyzeConfig.getSource() != null)
+							analysisInput = codyzeConfig.getSource();
+						break;
+					case ("-m"):
+						if (codyzeConfig != null && codyzeConfig.getMark() != null)
+							markFolderNames = codyzeConfig.getMark();
+						break;
+					case ("-o"):
+						if (codyzeConfig != null && codyzeConfig.getOutput() != null)
+							outputFile = codyzeConfig.getOutput();
+						break;
+					case ("--timeout"):
+						if (codyzeConfig != null && codyzeConfig.getTimeout() != null)
+							timeout = codyzeConfig.getTimeout();
+						break;
+					case ("--no-good-findings"):
+						disableGoodFindings = codyzeConfig.isNoGoodFindings();
+						break;
+					case ("--enable-python-support"):
+						if (languages != null && Arrays.stream(languages).anyMatch(x -> x == "python"))
+							enablePython = true;
+						break;
+					case ("--enable-go-support"):
+						if (languages != null && Arrays.stream(languages).anyMatch(x -> x == "go"))
+							enableGo = true;
+					case ("--typestate"):
+						if (codyzeConfig != null && codyzeConfig.getTypestateAnalysis() != null)
+							analysisMode.tsMode = codyzeConfig.getTypestateAnalysis();
+						break;
+					case ("--analyze-includes"):
+						if (cpgConfig != null)
+							translationSettings.analyzeIncludes = cpgConfig.isAnalyzeIncludes();
+						break;
+					case ("--includes"):
+						if (cpgConfig != null && cpgConfig.getIncludePaths() != null)
+							translationSettings.includesPath = cpgConfig.getIncludePaths();
+						break;
+					default:
+				}
+			}
+		}
+	}
+
+	private void printConfigErrorMessage(UnrecognizedPropertyException e) {
+		System.out.printf("Could not parse configuration file correctly " +
+				"because '%s' is not a valid argument name for %s configurations.%n" +
+				"Valid argument names are%n%s",
+			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
 	}
 }
 

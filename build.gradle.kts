@@ -124,6 +124,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.13.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties:2.13.0")
 }
 
 application {

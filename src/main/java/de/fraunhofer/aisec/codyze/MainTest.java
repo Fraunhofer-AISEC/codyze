@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
@@ -47,59 +48,89 @@ public class MainTest {
 			new CommandLine(new Main()).printVersionHelp(System.out);
 		} else {
 			// final pass
-			int exitCode = new CommandLine(new FinalPass()).setDefaultValueProvider(new ConfigProvider(firstPass.configFile))
+			ConfigurationFile config;
+			if (firstPass.configFile != null && firstPass.configFile.isFile()) {
+				try {
+					config = parseFile(firstPass.configFile);
+				}
+				catch (UnrecognizedPropertyException e) {
+					printErrorMessage(e);
+					System.out.println("Continue without configurations from configuration file.");
+					config = new ConfigurationFile();
+					config.setCodyze(new CodyzeConfigurationFile());
+					config.setCpg(new CpgConfigurationFile());
+				}
+			} else {
+				config = new ConfigurationFile();
+				config.setCodyze(new CodyzeConfigurationFile());
+				config.setCpg(new CpgConfigurationFile());
+			}
+
+			int exitCode = new CommandLine(new FinalPass(config.getCodyzeConfig(), config.getCpgConfig()))
+					.setDefaultValueProvider(new ConfigProvider(config.getCodyzeConfig(), config.getCpgConfig()))
 					.execute(args);
 			System.exit(exitCode);
 		}
 	}
 
+	private static ConfigurationFile parseFile(File configFile) throws IOException {
+		// parse toml configuration file with jackson
+		TomlMapper mapper = new TomlMapper();
+		mapper.setPropertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy());
+		var configuration = mapper.readValue(configFile, ConfigurationFile.class);
+		configuration.getCpgConfig().standardizeLanguages();
+		return configuration;
+	}
+
+	private static void printErrorMessage(UnrecognizedPropertyException e) {
+		System.out.printf("Could not parse configuration file correctly " +
+				"because '%s' is not a valid argument name for %s configurations.%n" +
+				"Valid argument names are%n%s",
+			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
+	}
+
 	@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 	static class FinalPass implements Callable<Integer> {
 		private static final Logger log = LoggerFactory.getLogger(Main.class);
-
-		@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
-		private ExecutionMode executionMode;
-
 		@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
 		private final AnalysisMode analysisMode = new AnalysisMode();
-
 		@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
 		private final TranslationSettings translationSettings = new TranslationSettings();
-
+		@Spec
+		CommandSpec spec;
+		@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
+		private ExecutionMode executionMode;
 		@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 		private File analysisInput;
-
 		@Option(names = { "-m",
 				"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
 		private File[] markFolderNames;
-
 		@Option(names = { "-o",
 				"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 		private String outputFile;
-
 		// TODO: Maybe default value?
 		@Option(names = {
 				"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
 		private File configFile;
-
 		@Option(names = {
 				"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
 		private long timeout;
-
 		@Option(names = {
 				"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 		private boolean disableGoodFindings;
-
 		@Option(names = {
 				"--enable-python-support" }, description = "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README.")
 		private boolean enablePython;
-
 		@Option(names = {
 				"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
 		private boolean enableGo;
+		private CodyzeConfigurationFile codyzeConfig;
+		private CpgConfigurationFile cpgConfig;
 
-		@Spec
-		CommandSpec spec;
+		public FinalPass(CodyzeConfigurationFile codyzeConfig, CpgConfigurationFile cpgConfig) {
+			this.codyzeConfig = codyzeConfig;
+			this.cpgConfig = cpgConfig;
+		}
 
 		@Override
 		public Integer call() throws Exception {

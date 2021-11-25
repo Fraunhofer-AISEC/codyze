@@ -36,8 +36,7 @@ import picocli.CommandLine.Unmatched;
  * Start point of the standalone analysis server.
  */
 @SuppressWarnings("java:S106")
-public class MainTest {
-
+public class Main2 {
 
 	// TODO: Idea -> Configuration classes populated by config -> then populated by picocli (with options)
 

@@ -126,26 +126,13 @@ public class Main implements Callable<Integer> {
 	}
 
 	private void writeFindings(Set<Finding> findings) {
-		var mapper = new ObjectMapper();
-		String output = null;
-		try {
-			output = mapper.writeValueAsString(findings);
-		}
-		catch (JsonProcessingException e) {
-			log.error("Could not serialize findings: {}", e.getMessage());
-		}
-
+		SarifInstantiator si = new SarifInstantiator();
+		si.pushRun(findings);
 		if (outputFile.equals("-")) {
-			System.out.println(output);
+			System.out.println(si);
 		} else {
-			try (PrintWriter out = new PrintWriter(new File(outputFile))) {
-				out.println(output);
-			}
-			catch (FileNotFoundException e) {
-				System.out.println(e.getMessage());
-			}
+			si.generateOutput(new File(outputFile));
 		}
-
 	}
 }
 

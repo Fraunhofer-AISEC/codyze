@@ -9,13 +9,13 @@ import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
+import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.ParseResult;
 import picocli.CommandLine.Spec;
 
 import java.io.File;
@@ -37,6 +37,9 @@ import picocli.CommandLine.Unmatched;
  */
 @SuppressWarnings("java:S106")
 public class MainTest {
+
+
+	// TODO: Idea -> Configuration classes populated by config -> then populated by picocli (with options)
 
 	public static void main(String... args) throws Exception {
 		FirstPass firstPass = new FirstPass();
@@ -66,6 +69,8 @@ public class MainTest {
 				config.setCpg(new CpgConfigurationFile());
 			}
 
+			ConfigTest c = new ConfigTest();
+			int a = new CommandLine(c).execute(args);
 			int exitCode = new CommandLine(new FinalPass(config.getCodyzeConfig(), config.getCpgConfig()))
 					.setDefaultValueProvider(new ConfigProvider(config.getCodyzeConfig(), config.getCpgConfig()))
 					.execute(args);
@@ -78,7 +83,6 @@ public class MainTest {
 		TomlMapper mapper = new TomlMapper();
 		mapper.setPropertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy());
 		var configuration = mapper.readValue(configFile, ConfigurationFile.class);
-		configuration.getCpgConfig().standardizeLanguages();
 		return configuration;
 	}
 
@@ -91,39 +95,42 @@ public class MainTest {
 
 	@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 	static class FinalPass implements Callable<Integer> {
-		private static final Logger log = LoggerFactory.getLogger(Main.class);
-		@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-		private final AnalysisMode analysisMode = new AnalysisMode();
-		@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
-		private final TranslationSettings translationSettings = new TranslationSettings();
-		@Spec
-		CommandSpec spec;
-		@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
-		private ExecutionMode executionMode;
-		@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
-		private File analysisInput;
-		@Option(names = { "-m",
-				"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
-		private File[] markFolderNames;
-		@Option(names = { "-o",
-				"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-		private String outputFile;
-		// TODO: Maybe default value?
-		@Option(names = {
-				"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
-		private File configFile;
-		@Option(names = {
-				"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-		private long timeout;
-		@Option(names = {
-				"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-		private boolean disableGoodFindings;
-		@Option(names = {
-				"--enable-python-support" }, description = "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README.")
-		private boolean enablePython;
-		@Option(names = {
-				"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
-		private boolean enableGo;
+		//		private static final Logger log = LoggerFactory.getLogger(Main.class);
+		//		@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
+		//		private final AnalysisMode analysisMode = new AnalysisMode();
+		//		@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
+		//		private final TranslationSettings translationSettings = new TranslationSettings();
+		//		@Spec
+		//		CommandSpec spec;
+		//		@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
+		//		private ExecutionMode executionMode;
+		//		@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
+		//		private File analysisInput;
+		//		@Option(names = { "-m",
+		//				"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
+		//		private File[] markFolderNames;
+		//		@Option(names = { "-o",
+		//				"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+		//		private String outputFile;
+		//		// TODO: Maybe default value?
+		//		@Option(names = {
+		//				"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
+		//		private File configFile;
+		//		@Option(names = {
+		//				"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
+		//		private long timeout;
+		//		@Option(names = {
+		//				"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+		//		private boolean disableGoodFindings;
+		//		@Option(names = {
+		//				"--enable-python-support" }, description = "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README.")
+		//		private boolean enablePython;
+		//		@Option(names = {
+		//				"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
+		//		private boolean enableGo;
+
+		private ConfigTest c;
+
 		private CodyzeConfigurationFile codyzeConfig;
 		private CpgConfigurationFile cpgConfig;
 
@@ -137,24 +144,24 @@ public class MainTest {
 			Instant start = Instant.now();
 
 			// TODO: Maybe not needed, because default value is set in Option
-			if (analysisMode.tsMode == null) {
-				analysisMode.tsMode = TypestateMode.NFA;
+			if (c.analysisMode.tsMode == null) {
+				c.analysisMode.tsMode = TypestateMode.NFA;
 			}
 
 			var config = ServerConfiguration.builder()
-					.launchLsp(executionMode.lsp)
-					.launchConsole(executionMode.tui)
-					.typestateAnalysis(analysisMode.tsMode)
-					.disableGoodFindings(disableGoodFindings)
-					.analyzeIncludes(translationSettings.analyzeIncludes)
-					.includePath(translationSettings.includesPath)
-					.markFiles(Arrays.stream(markFolderNames).map(File::getAbsolutePath).toArray(String[]::new));
+					.launchLsp(c.executionMode.lsp)
+					.launchConsole(c.executionMode.tui)
+					.typestateAnalysis(c.analysisMode.tsMode)
+					.disableGoodFindings(c.disableGoodFindings)
+					.analyzeIncludes(c.translationSettings.analyzeIncludes)
+					.includePath(c.translationSettings.includesPath)
+					.markFiles(Arrays.stream(c.markFolderNames).map(File::getAbsolutePath).toArray(String[]::new));
 
-			if (enablePython) {
+			if (c.enablePython) {
 				config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
 			}
 
-			if (enableGo) {
+			if (c.enableGo) {
 				config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
 			}
 
@@ -164,22 +171,22 @@ public class MainTest {
 					.build();
 
 			server.start();
-			log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
+			c.log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-			if (!executionMode.lsp && analysisInput != null) {
-				log.info("Analyzing {}", analysisInput);
-				AnalysisContext ctx = server.analyze(analysisInput.getAbsolutePath())
-						.get(timeout, TimeUnit.MINUTES);
+			if (!c.executionMode.lsp && c.analysisInput != null) {
+				c.log.info("Analyzing {}", c.analysisInput);
+				AnalysisContext ctx = server.analyze(c.analysisInput.getAbsolutePath())
+						.get(c.timeout, TimeUnit.MINUTES);
 
 				var findings = ctx.getFindings();
 
 				writeFindings(findings);
 
-				if (executionMode.cli) {
+				if (c.executionMode.cli) {
 					// Return code based on the existence of violations
 					return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
 				}
-			} else if (executionMode.lsp) {
+			} else if (c.executionMode.lsp) {
 				// Block main thread. Work is done in
 				Thread.currentThread().join();
 			}
@@ -194,13 +201,13 @@ public class MainTest {
 				output = mapper.writeValueAsString(findings);
 			}
 			catch (JsonProcessingException e) {
-				log.error("Could not serialize findings: {}", e.getMessage());
+				c.log.error("Could not serialize findings: {}", e.getMessage());
 			}
 
-			if (outputFile.equals("-")) {
+			if (c.outputFile.equals("-")) {
 				System.out.println(output);
 			} else {
-				try (PrintWriter out = new PrintWriter(new File(outputFile))) {
+				try (PrintWriter out = new PrintWriter(new File(c.outputFile))) {
 					out.println(output);
 				}
 				catch (FileNotFoundException e) {

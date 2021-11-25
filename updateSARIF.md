@@ -16,6 +16,6 @@ Whenever the SARIF version of the output needs to be changed, the following step
      - Even better yet, use the tool with some of the files in the [test resources folder](https://github.com/Fraunhofer-AISEC/codyze/tree/rh/sarif-compliency/src/test/resources) and validate the output
 
 
-**When the result was validated, the SARIF version has been updated successfully!**
+**After the validation was finished successfully, the SARIF version has now been updated!**
 
 If there are any new errors while validating the files, additional adaptions in SarifInstantiator.kt may be needed (especially the pushRun(Set\<Finding\>) method), however this should NOT be the case unless the new SARIF version has made big changes to the overall structure.

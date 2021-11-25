@@ -87,7 +87,7 @@ class SarifInstantiator internal constructor() {
         // by iterating over each result and convert it
         val results = LinkedList<Result>()
         for ((messageIdCounter, finding) in findings.withIndex()) {
-            // TODO: more than binary kind from Finding
+            // TODO: more than binary kind ---> Finding
             // tries to determine kind and level (only two kinds at the moment since it is
             // implemented as a bool)
             val kind = if (finding.isProblem) Result.Kind.FAIL else Result.Kind.PASS
@@ -126,10 +126,10 @@ class SarifInstantiator internal constructor() {
                         if (location.region.endColumn == -1) -1 else location.region.endColumn + 1
                     )
 
-                // TODO: find out if URIs in codyze are given as relative or absolute
-                // generate exact physical location for the result
+                // generate exact physical location for the result (absolute URI with no further
+                // base URI)
                 val aLoc =
-                    generateArtifactLocation(location.artifactLocation.toString(), null, null, null)
+                    generateArtifactLocation(location.artifactLocation.uri.path, null, null, null)
                 val pLoc = generatePhysicalLocation(aLoc, reg, null)
 
                 // simple location object without its own message or any annotations/relationships

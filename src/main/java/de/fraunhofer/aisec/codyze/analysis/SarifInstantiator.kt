@@ -1,10 +1,13 @@
 package de.fraunhofer.aisec.codyze.analysis
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.analysis.generated.*
+import de.fraunhofer.aisec.codyze.analysis.markevaluation.ForbiddenEvaluator
 import de.fraunhofer.aisec.mark.markDsl.Action
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URI
 import java.net.URISyntaxException
@@ -173,10 +176,12 @@ class SarifInstantiator internal constructor() {
         // generates the run with the results (no artifacts and graphs yet) and adds it to the List
         // of runs
         val run = generateRun(tool, null, null, results)
+        log.info("Adding new run to the sarif output")
         sarif.runs.add(run)
     }
 
     fun popRun(): Run {
+        log.info("Removing run from the sarif output")
         return sarif.runs.removeLast()
     }
 
@@ -705,10 +710,15 @@ class SarifInstantiator internal constructor() {
      * @return formatted, sarif-compliant String
      */
     override fun toString(): String {
-        // Jackson approach (GSON kept ignoring @JsonValue on enums):
         val mapper = ObjectMapper()
         mapper.enable(SerializationFeature.INDENT_OUTPUT)
-        return mapper.writeValueAsString(sarif)
+        var output = ""
+        try {
+            output = mapper.writeValueAsString(sarif)
+        } catch (e : JsonProcessingException) {
+            log.error("Could not serialize sarif: {}", e.message)
+        }
+        return output
     }
 
     /**
@@ -717,6 +727,7 @@ class SarifInstantiator internal constructor() {
      * @param path the file that should contain the output
      */
     fun generateOutput(path: File = File("src/main/resources/output.sarif")) {
+        log.info("Writing sarif output to {}", path.path)
         path.writeText(toString())
     }
 
@@ -729,5 +740,9 @@ class SarifInstantiator internal constructor() {
             }
         sarif.`$schema` = schemaURI
         sarif.version = sarifVersion
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(ForbiddenEvaluator::class.java)
     }
 }

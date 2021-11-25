@@ -47,7 +47,7 @@ public class Main implements Callable<Integer> {
 	private File[] markFolderNames;
 
 	@Option(names = { "-o",
-			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.sarif", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 	private String outputFile;
 
 	@Option(names = {

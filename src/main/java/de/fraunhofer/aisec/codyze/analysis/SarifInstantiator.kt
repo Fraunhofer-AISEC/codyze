@@ -7,11 +7,11 @@ import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.analysis.generated.*
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ForbiddenEvaluator
 import de.fraunhofer.aisec.mark.markDsl.Action
-import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URI
 import java.net.URISyntaxException
 import java.util.*
+import org.slf4j.LoggerFactory
 
 /**
  * This class was created to provide an easy-to-use interface with which correct SARIF output can be
@@ -30,8 +30,6 @@ class SarifInstantiator internal constructor() {
     private val codyzeVersion = "2.0.0-alpha4"
     private val download = "https://github.com/Fraunhofer-AISEC/codyze/releases"
     private val information = "https://www.codyze.io/docs/"
-
-    // TODO: (Kotlin) maybe specify default parameters
 
     /**
      * appends the given parameters as a new run to the end of the Sarif Object
@@ -715,7 +713,7 @@ class SarifInstantiator internal constructor() {
         var output = ""
         try {
             output = mapper.writeValueAsString(sarif)
-        } catch (e : JsonProcessingException) {
+        } catch (e: JsonProcessingException) {
             log.error("Could not serialize sarif: {}", e.message)
         }
         return output

@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
@@ -20,6 +21,7 @@ import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -97,7 +99,6 @@ public class Main implements Callable<Integer> {
 			}
 			catch (UnrecognizedPropertyException e) {
 				printConfigErrorMessage(e);
-				System.out.println("Continue without configurations from configuration file.");
 			}
 		}
 
@@ -178,22 +179,29 @@ public class Main implements Callable<Integer> {
 	private void parseConfigFile() throws IOException {
 		// parse toml configuration file with jackson
 		TomlMapper mapper = new TomlMapper();
+		mapper.setPropertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy());
 		var configuration = mapper.readValue(configFile, ConfigurationFile.class);
 		var codyzeConfig = configuration.getCodyzeConfig();
 		var cpgConfig = configuration.getCpgConfig();
 
 		// standardize string array of languages
-		String[] languages = null;
+		EnumSet<Language> languages = null;
 		if (cpgConfig != null) {
 			languages = cpgConfig.getAdditionalLanguages();
-			if (languages != null)
-				Arrays.stream(languages).map(String::toLowerCase);
 		}
 
 		// check for all command line arguments if they
 		// 1. were explicitly stated in the program call and
 		// 2. if not, whether there is a value in the configuration file for that argument
 		ParseResult pr = spec.commandLine().getParseResult();
+
+		//		List<CommandLine.Model.ArgSpec> matched = pr.matchedArgs();
+		//		for(CommandLine.Model.ArgSpec arg : matched) {
+		//			if(arg.isOption()) {
+		//				CommandLine.Model.OptionSpec o = (CommandLine.Model.OptionSpec) arg;
+		//			}
+		//		}
+
 		List<CommandLine.Model.OptionSpec> options = spec.options();
 		for (CommandLine.Model.OptionSpec o : options) {
 			if (!pr.hasMatchedOption(o)) {
@@ -219,11 +227,11 @@ public class Main implements Callable<Integer> {
 							disableGoodFindings = codyzeConfig.isNoGoodFindings();
 						break;
 					case ("--enable-python-support"):
-						if (languages != null && Arrays.stream(languages).anyMatch(x -> x.equals("python")))
+						if (languages != null && languages.contains(Language.PYTHON))
 							enablePython = true;
 						break;
 					case ("--enable-go-support"):
-						if (languages != null && Arrays.stream(languages).anyMatch(x -> x.equals("go")))
+						if (languages != null && languages.contains(Language.GO))
 							enableGo = true;
 						break;
 					case ("--typestate"):
@@ -249,6 +257,7 @@ public class Main implements Callable<Integer> {
 				"because '%s' is not a valid argument name for %s configurations.%n" +
 				"Valid argument names are%n%s",
 			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
+		System.out.println("Continue without configurations from configuration file.");
 	}
 }
 

@@ -1,12 +1,12 @@
 
 package de.fraunhofer.aisec.codyze;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class CpgConfigurationFile {
@@ -18,15 +18,11 @@ public class CpgConfigurationFile {
 	private List<String> includeBlacklist;
 	private boolean defaultPasses;
 	private List<Pass> passes;
-	private String[] additionalLanguages;
-	private Map<String, String> symbols;
 
-	public void standardizeLanguages() {
-		if (additionalLanguages != null)
-			for (int i = 0; i < additionalLanguages.length; i++) {
-				additionalLanguages[i] = additionalLanguages[i].toLowerCase();
-			}
-	}
+	@JsonDeserialize(using = LanguageDeseralizer.class)
+	private EnumSet<Language> additionalLanguages;
+
+	private Map<String, String> symbols;
 
 	public boolean isAnalyzeIncludes() {
 		return analyzeIncludes;
@@ -44,11 +40,11 @@ public class CpgConfigurationFile {
 		this.includePaths = includePaths;
 	}
 
-	public String[] getAdditionalLanguages() {
+	public EnumSet<Language> getAdditionalLanguages() {
 		return additionalLanguages;
 	}
 
-	public void setAdditionalLanguages(String[] additionalLanguages) {
+	public void setAdditionalLanguages(EnumSet<Language> additionalLanguages) {
 		this.additionalLanguages = additionalLanguages;
 	}
 

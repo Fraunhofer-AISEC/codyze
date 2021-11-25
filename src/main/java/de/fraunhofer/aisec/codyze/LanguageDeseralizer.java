@@ -4,13 +4,10 @@ package de.fraunhofer.aisec.codyze;
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
 import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.Set;
 
 public class LanguageDeseralizer extends StdDeserializer<EnumSet<Language>> {
 

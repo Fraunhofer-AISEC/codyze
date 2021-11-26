@@ -9,12 +9,13 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "5.16.0"
-    id("com.github.hierynomus.license") version "0.16.1"
-    kotlin("jvm") version "1.5.31" // we can only upgrade to Kotlin 1.5, if CPG does
-
     id("org.jsonschema2dataclass") version "3.0.0"
+
+    id("org.sonarqube") version "3.3"
+    id("com.diffplug.spotless") version "6.0.0"
+    id("com.github.hierynomus.license") version "0.16.1"
+
+    kotlin("jvm") version "1.6.0" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
 group = "de.fraunhofer.aisec"
@@ -95,7 +96,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:4.0.4") // ok
+    api("de.fraunhofer.aisec:cpg:4.1.1") // ok
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
@@ -111,11 +112,11 @@ dependencies {
     implementation("org.python:jython-standalone:2.7.2") // ok
 
     // Command line interface support
-    api("info.picocli:picocli:4.6.1")
-    annotationProcessor("info.picocli:picocli-codegen:4.6.1")
+    api("info.picocli:picocli:4.6.2")
+    annotationProcessor("info.picocli:picocli-codegen:4.6.2")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
-    implementation("org.reflections", "reflections", "0.10")
+    implementation("org.reflections", "reflections", "0.10.2")
 
     // Unit tests
     testImplementation("org.jetbrains.kotlin:kotlin-test")

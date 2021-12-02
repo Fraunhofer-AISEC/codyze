@@ -38,8 +38,6 @@ internal class SarifInstantiatorTest {
 
         val output = s.toString()
 
-        print(output)
-
         val startOfResults = output.indexOf("results")
         val substring1 = output.substring(startOfResults + 23, startOfResults + 29)
         assertEquals(

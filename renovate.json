@@ -18,7 +18,16 @@
   "packageRules": [
     {
       "groupName": "picocli packages",
-      "packagePatterns": ["^info.picocli:"]
+      "matchPackagePatterns": ["^info.picocli:"]
+    },
+    {
+      "groupName": "Codyze VSCode plugin",
+      "matchPaths": ["plugins/vscode/**"],
+      "extends": ["schedule:earlyMondays"]
+    },
+    {
+      "matchPackageNames": ["vscode"],
+      "rangeStrategy": "bump"
     }
   ]
 }

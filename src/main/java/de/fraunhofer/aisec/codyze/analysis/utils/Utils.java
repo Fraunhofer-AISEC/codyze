@@ -284,7 +284,7 @@ public class Utils {
 		int startLine = n.getLocation().getRegion().getStartLine() - 1;
 		int endLine = n.getLocation().getRegion().getEndLine() - 1;
 		int startColumn = n.getLocation().getRegion().getStartColumn() - 1;
-		int endColumn = n.getLocation().getRegion().getEndLine() - 1;
+		int endColumn = n.getLocation().getRegion().getEndColumn() - 1;
 		return new Region(startLine, startColumn, endLine, endColumn);
 	}
 

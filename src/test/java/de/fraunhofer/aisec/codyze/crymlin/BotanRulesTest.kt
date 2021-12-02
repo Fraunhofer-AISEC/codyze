@@ -16,7 +16,9 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 21: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // default ctor-problem in CPG
             "line 21: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.set_key (Cipher_Mode_Order)", // ok
             "line 15: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
-            "line 15: Rule _2_01_KeyLength violated" // ok
+            "line 15: Rule _2_01_KeyLength violated", // ok
+            "line [10, 15]: Rule _2_1_2_3_01_CBC_RandomIV violated",
+            "line 15: Rule UseOfPipe violated"
         )
     }
 
@@ -31,7 +33,9 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 21: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // default ctor-problem in CPG
             "line 21: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.set_key (Cipher_Mode_Order)", // ok
             "line 15: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
-            "line 15: Rule _2_01_KeyLength violated" // ok
+            "line 15: Rule _2_01_KeyLength violated", // ok
+            "line [10, 15]: Rule _2_1_2_3_01_CBC_RandomIV violated",
+            "line 15: Rule UseOfPipe violated"
         )
     }
 
@@ -47,7 +51,8 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 15: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
             "line 15: Rule _2_1_01_Modes violated", // ok
             "line 15: Rule _2_01_KeyLength violated", // ok
-            "line 15: Rule _2_1_2_1_02_CCM_TagSize verified" // ok
+            "line 15: Rule _2_1_2_1_02_CCM_TagSize verified", // ok
+            "line 15: Rule UseOfPipe violated"
         )
     }
 
@@ -63,7 +68,8 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 15: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
             "line 15: Rule _2_1_01_Modes violated", // ok
             "line 15: Rule _2_01_KeyLength violated", // ok
-            "line 15: Rule _2_1_2_2_03_GCM_TagSize verified" // ok
+            "line 15: Rule _2_1_2_2_03_GCM_TagSize verified", // ok
+            "line 15: Rule UseOfPipe violated"
         )
     }
 
@@ -81,7 +87,9 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 21: Violation against Order: rng.random_vec(enc->default_nonce_length()) (get_random) is not allowed. Expected one of: r.create (RNGOrder)", // default ctor-problem in CPG
             "line 21: Violation against Order: enc->start(rng.random_vec(enc->default_nonce_length())); (start_iv) is not allowed. Expected one of: cm.set_key (Cipher_Mode_Order)", // ok
             "line 15: Violation against Order: Base enc is not correctly terminated. Expected one of [cm.set_key] to follow the correct last call on this base. (Cipher_Mode_Order)", // ok
-            "line 15: Rule _2_01_KeyLength violated" // ok
+            "line 15: Rule _2_01_KeyLength violated", // ok
+            "line [10, 15]: Rule _2_1_2_3_01_CBC_RandomIV violated",
+            "line 15: Rule UseOfPipe violated"
         )
     }
 
@@ -93,8 +101,8 @@ internal class BotanRulesTest : AbstractMarkTest() {
             findings,
             "line 21: Rule _3_3_03_ECIES_KDF verified", // ok
             "line 17: Rule _3_3_02_CurveParams verified", // ok
-            "line 19: Verified Order: PrivKeyOrder"
-        ) // ok
+            "line 19: Verified Order: PrivKeyOrder" // ok
+        )
     }
 
     @Test
@@ -123,7 +131,9 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 19: Rule _3_4_02_DLIES_KEYLEN verified", // ok
             "line 30: Rule _5_3_01_MAC verified", // ok
             "line 19: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified", // ok
-            "line 19: Rule _7_2_2_1_01_DH_KEYLEN verified" // ok
+            "line 19: Rule _7_2_2_1_01_DH_KEYLEN verified", // ok
+            "line 30: Rule _5_3_02_MAC_KEYLEN violated",
+            "line 30: Rule _5_3_03_MAC_NONCELEN violated"
         )
     }
 
@@ -140,7 +150,9 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 27: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
             "line 24: Rule _3_4_01_DLIES_KDF verified", // ok
             "line 17: Rule _7_2_2_1_01_DH_KEYLEN_2022 verified", // ok
-            "line 17: Rule _7_2_2_1_01_DH_KEYLEN verified" // ok
+            "line 17: Rule _7_2_2_1_01_DH_KEYLEN verified", // ok
+            "line 27: Rule _5_3_03_MAC_NONCELEN violated",
+            "line 27: Rule _5_3_02_MAC_KEYLEN violated"
         )
     }
 
@@ -167,7 +179,9 @@ internal class BotanRulesTest : AbstractMarkTest() {
             findings,
             "line 12: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
             "line 22: Violation against Order: mac->start(iv); (start) is not allowed. Expected one of: END (MACOrder)", // ok
-            "line 12: Rule _5_3_01_MAC verified" // ok
+            "line 12: Rule _5_3_01_MAC verified", // ok
+            "line 12: Rule _5_3_03_MAC_NONCELEN violated",
+            "line 12: Rule _5_3_02_MAC_KEYLEN violated"
         )
     }
 
@@ -180,7 +194,8 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 11: Rule _5_3_02_MAC_KEYLEN verified", // ok
             "line 14: Rule _5_3_01_MAC verified", // ok
             "line 14: Violation against Order: Base mac is not correctly terminated. Expected one of [m.init] to follow the correct last call on this base. (MACOrder)", // ok
-            "line 24: Violation against Order: mac->start(iv); (start) is not allowed. Expected one of: END (MACOrder)" // ok
+            "line 24: Violation against Order: mac->start(iv); (start) is not allowed. Expected one of: END (MACOrder)", // ok
+            "line 14: Rule _5_3_03_MAC_NONCELEN violated"
         )
     }
 

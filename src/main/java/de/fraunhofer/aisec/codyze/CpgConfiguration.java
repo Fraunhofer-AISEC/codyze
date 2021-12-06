@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
@@ -11,8 +12,9 @@ import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
-public class CpgConfiguration {
+public class CpgConfiguration implements Callable<Integer> {
 
 	private boolean debugParser;
 	private List<String> includeWhitelist;
@@ -35,6 +37,15 @@ public class CpgConfiguration {
 	@JsonIgnore
 	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
 	private TranslationSettings translationSettings = new TranslationSettings();
+
+	public TranslationConfiguration buildTranslationSettings() {
+		TranslationConfiguration.Builder builder = new TranslationConfiguration.Builder()
+				.debugParser(debugParser)
+				.codeInNodes(false)
+				.loadIncludes(analyzeIncludes);
+
+		return null;
+	}
 
 	public boolean isAnalyzeIncludes() {
 		return analyzeIncludes;
@@ -114,5 +125,10 @@ public class CpgConfiguration {
 
 	public void setSymbols(Map<String, String> symbols) {
 		this.symbols = symbols;
+	}
+
+	@Override
+	public Integer call() throws Exception {
+		return 0;
 	}
 }

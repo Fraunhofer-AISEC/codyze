@@ -82,8 +82,8 @@ public class Main {
 				config.setCpg(new CpgConfiguration());
 			}
 
-			new CommandLine(config.getCodyzeConfig()).execute(args);
-			new CommandLine(config.getCpgConfig()).execute(args);
+			new CommandLine(config.getCodyzeConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
+			new CommandLine(config.getCpgConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
 			int exitCode = new FinalPass(config.getCodyzeConfig(), config.getCpgConfig()).call();
 			System.exit(exitCode);
 		}
@@ -104,6 +104,10 @@ public class Main {
 			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
 	}
 
+	// Three places with cli options:
+	// 1. FirstPass
+	// 2. CodyzeConfiguration
+	// 3. CpgConfiguration
 	@Command(name = "codyze", version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 	static class FinalPass implements Callable<Integer> {
 		private static final Logger log = LoggerFactory.getLogger(Main.class);

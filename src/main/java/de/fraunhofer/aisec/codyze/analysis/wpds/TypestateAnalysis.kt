@@ -8,6 +8,7 @@ import de.breakpointsec.pushdown.rules.PopRule
 import de.breakpointsec.pushdown.rules.PushRule
 import de.breakpointsec.pushdown.rules.Rule
 import de.fraunhofer.aisec.codyze.analysis.*
+import de.fraunhofer.aisec.codyze.analysis.generated.Result
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.*
 import de.fraunhofer.aisec.codyze.analysis.passes.astParent
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
@@ -321,7 +322,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             name,
             currentFile,
             listOf(Utils.getRegionByNode(stmt)),
-            true
+            Result.Kind.FAIL
         )
     }
 
@@ -342,7 +343,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             "Good: $`val` at $node",
             currentFile,
             listOf(Utils.getRegionByNode(node)),
-            false
+            Result.Kind.PASS
         )
     }
 

@@ -87,17 +87,17 @@ class SarifInstantiator internal constructor() {
         // by iterating over each result and convert it
         val results = LinkedList<Result>()
         for ((messageIdCounter, finding) in findings.withIndex()) {
-            // TODO: more than binary kind ---> Finding
-            // tries to determine kind and level (only two kinds at the moment since it is
-            // implemented as a bool)
-            val kind = if (finding.isProblem) Result.Kind.FAIL else Result.Kind.PASS
+            // tries to determine kind and level (level is ignored if kind != FAIL)
+            val kind = finding.kind
             val level =
-                when (finding.action) {
-                    Action.FAIL -> Result.Level.ERROR
-                    Action.WARN -> Result.Level.WARNING
-                    Action.INFO -> Result.Level.NOTE
-                    else -> Result.Level.NONE
-                }
+                if (kind == Result.Kind.FAIL)
+                    when (finding.action) {
+                        Action.FAIL -> Result.Level.ERROR
+                        Action.WARN -> Result.Level.WARNING
+                        Action.INFO -> Result.Level.NOTE
+                        else -> Result.Level.NONE
+                    }
+                else Result.Level.NONE
 
             // the message has the pass or fail description and a unique id (enforced through a
             // counter)

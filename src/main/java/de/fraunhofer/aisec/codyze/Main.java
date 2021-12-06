@@ -50,6 +50,9 @@ public class Main implements Callable<Integer> {
 			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.sarif", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 	private String outputFile;
 
+	@Option(names = { "--legacy" }, description = "Enables the legacy output (not SARIF compliant).")
+	private boolean legacyOutput;
+
 	@Option(names = {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
 	private long timeout;
@@ -126,12 +129,36 @@ public class Main implements Callable<Integer> {
 	}
 
 	private void writeFindings(Set<Finding> findings) {
+		// Option to generate legacy output
+		String output = null;
 		SarifInstantiator si = new SarifInstantiator();
-		si.pushRun(findings);
-		if (outputFile.equals("-")) {
-			System.out.println(si);
+		if (legacyOutput) {
+			var mapper = new ObjectMapper();
+			try {
+				output = mapper.writeValueAsString(findings);
+			}
+			catch (JsonProcessingException e) {
+				log.error("Could not serialize findings: {}", e.getMessage());
+			}
 		} else {
-			si.generateOutput(new File(outputFile));
+			si.pushRun(findings);
+			output = si.toString();
+		}
+
+
+		// Whether to write in file or on stdout
+		if (outputFile.equals("-")) {
+			System.out.println(output);
+		} else {
+			if (legacyOutput) {
+				try (PrintWriter out = new PrintWriter(outputFile)) {
+					out.println(output);
+				}
+				catch (FileNotFoundException e) {
+					System.out.println(e.getMessage());
+				}
+			} else
+				si.generateOutput(new File(outputFile));
 		}
 	}
 }

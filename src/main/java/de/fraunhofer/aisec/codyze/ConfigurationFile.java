@@ -2,22 +2,22 @@
 package de.fraunhofer.aisec.codyze;
 
 public class ConfigurationFile {
-	private CodyzeConfigurationFile codyze;
-	private CpgConfigurationFile cpg;
+	private CodyzeConfiguration codyze;
+	private CpgConfiguration cpg;
 
-	public CodyzeConfigurationFile getCodyzeConfig() {
+	public CodyzeConfiguration getCodyzeConfig() {
 		return codyze;
 	}
 
-	public void setCodyze(CodyzeConfigurationFile codyze) {
+	public void setCodyze(CodyzeConfiguration codyze) {
 		this.codyze = codyze;
 	}
 
-	public CpgConfigurationFile getCpgConfig() {
+	public CpgConfiguration getCpgConfig() {
 		return cpg;
 	}
 
-	public void setCpg(CpgConfigurationFile cpg) {
+	public void setCpg(CpgConfiguration cpg) {
 		this.cpg = cpg;
 	}
 }

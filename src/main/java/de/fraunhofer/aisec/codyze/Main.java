@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
@@ -13,6 +14,14 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.ArgGroup;
+import picocli.CommandLine.Model.ArgGroupSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Help;
+import picocli.CommandLine.Model.OptionSpec;
+
+import java.util.List;
+import java.util.Set;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,243 +30,236 @@ import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.dataformat.toml.TomlMapper;
-import picocli.CommandLine.ParseResult;
-import picocli.CommandLine.Spec;
-import picocli.CommandLine.Model.CommandSpec;
-import java.util.List;
+import picocli.CommandLine.Unmatched;
+
+import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
 
 /**
  * Start point of the standalone analysis server.
  */
 @SuppressWarnings("java:S106")
-@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
-public class Main implements Callable<Integer> {
-	private static final Logger log = LoggerFactory.getLogger(Main.class);
+public class Main {
 
-	@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
-	private ExecutionMode executionMode;
+	// TODO: Idea -> Configuration classes populated by config -> then populated by picocli (with options)
 
-	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-	private final AnalysisMode analysisMode = new AnalysisMode();
-
-	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
-	private final TranslationSettings translationSettings = new TranslationSettings();
-
-	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
-	private File analysisInput;
-
-	@Option(names = { "-m",
-			"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
-	private File[] markFolderNames;
-
-	@Option(names = { "-o",
-			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-	private String outputFile;
-
-	// TODO: Maybe default value?
-	@Option(names = {
-			"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
-	private File configFile;
-
-	@Option(names = {
-			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-	private long timeout;
-
-	@Option(names = {
-			"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-	private boolean disableGoodFindings;
-
-	@Option(names = {
-			"--enable-python-support" }, description = "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README.")
-	private boolean enablePython;
-
-	@Option(names = {
-			"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
-	private boolean enableGo;
-
-	@Spec
-	CommandSpec spec;
-
-	public static void main(String... args) {
-		int exitCode = new CommandLine(new Main()).execute(args);
-		System.exit(exitCode);
-	}
-
-	@Override
-	public Integer call() throws Exception {
-		Instant start = Instant.now();
-
-		if (configFile != null && configFile.isFile()) {
-			try {
-				parseConfigFile();
-			}
-			catch (UnrecognizedPropertyException e) {
-				printConfigErrorMessage(e);
-			}
-		}
-
-		// TODO: Maybe not needed, because default value is set in Option
-		if (analysisMode.tsMode == null) {
-			analysisMode.tsMode = TypestateMode.NFA;
-		}
-
-		var config = ServerConfiguration.builder()
-				.launchLsp(executionMode.lsp)
-				.launchConsole(executionMode.tui)
-				.typestateAnalysis(analysisMode.tsMode)
-				.disableGoodFindings(disableGoodFindings)
-				.analyzeIncludes(translationSettings.analyzeIncludes)
-				.includePath(translationSettings.includesPath)
-				.markFiles(Arrays.stream(markFolderNames).map(File::getAbsolutePath).toArray(String[]::new));
-
-		if (enablePython) {
-			config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
-		}
-
-		if (enableGo) {
-			config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
-		}
-
-		AnalysisServer server = AnalysisServer.builder()
-				.config(config
-						.build())
-				.build();
-
-		server.start();
-		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
-
-		if (!executionMode.lsp && analysisInput != null) {
-			log.info("Analyzing {}", analysisInput);
-			AnalysisContext ctx = server.analyze(analysisInput.getAbsolutePath())
-					.get(timeout, TimeUnit.MINUTES);
-
-			var findings = ctx.getFindings();
-
-			writeFindings(findings);
-
-			if (executionMode.cli) {
-				// Return code based on the existence of violations
-				return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
-			}
-		} else if (executionMode.lsp) {
-			// Block main thread. Work is done in
-			Thread.currentThread().join();
-		}
-
-		return 0;
-	}
-
-	private void writeFindings(Set<Finding> findings) {
-		var mapper = new ObjectMapper();
-		String output = null;
-		try {
-			output = mapper.writeValueAsString(findings);
-		}
-		catch (JsonProcessingException e) {
-			log.error("Could not serialize findings: {}", e.getMessage());
-		}
-
-		if (outputFile.equals("-")) {
-			System.out.println(output);
+	// Order of main:
+	// 1. Parse config file option with FirstPass
+	// 2a. If help is requested, print help
+	// 2b. If version is requested, print version
+	// 2c. If config file is available, parse it into ConfigurationFile
+	// 3. Parse cli options into CodyzeConfiguration and CpgConfiguration
+	// 4. Call run() to start analysis setup
+	public static void main(String... args) throws Exception {
+		FirstPass firstPass = new FirstPass();
+		CommandLine cmd = new CommandLine(firstPass);
+		cmd.parseArgs(args); // first pass
+		if (cmd.isUsageHelpRequested()) {
+			CommandLine a = new CommandLine(new FinalPass());
+			a.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
+			a.usage(System.out);
+		} else if (cmd.isVersionHelpRequested()) {
+			new CommandLine(new FinalPass()).printVersionHelp(System.out);
 		} else {
-			try (PrintWriter out = new PrintWriter(new File(outputFile))) {
-				out.println(output);
+			ConfigurationFile config;
+			if (firstPass.configFile != null && firstPass.configFile.isFile()) {
+				try {
+					config = parseFile(firstPass.configFile);
+				}
+				catch (UnrecognizedPropertyException e) {
+					printErrorMessage(e);
+					System.out.println("Continue without configurations from configuration file.");
+					config = new ConfigurationFile();
+					config.setCodyze(new CodyzeConfiguration());
+					config.setCpg(new CpgConfiguration());
+				}
+			} else {
+				config = new ConfigurationFile();
+				config.setCodyze(new CodyzeConfiguration());
+				config.setCpg(new CpgConfiguration());
 			}
-			catch (FileNotFoundException e) {
-				System.out.println(e.getMessage());
-			}
-		}
 
+			new CommandLine(config.getCodyzeConfig()).execute(args);
+			new CommandLine(config.getCpgConfig()).execute(args);
+			int exitCode = new FinalPass(config.getCodyzeConfig(), config.getCpgConfig()).call();
+			System.exit(exitCode);
+		}
 	}
 
-	private void parseConfigFile() throws IOException {
+	private static ConfigurationFile parseFile(File configFile) throws IOException {
 		// parse toml configuration file with jackson
 		TomlMapper mapper = new TomlMapper();
 		mapper.setPropertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy());
 		var configuration = mapper.readValue(configFile, ConfigurationFile.class);
-		var codyzeConfig = configuration.getCodyzeConfig();
-		var cpgConfig = configuration.getCpgConfig();
-
-		// standardize string array of languages
-		EnumSet<Language> languages = null;
-		if (cpgConfig != null) {
-			languages = cpgConfig.getAdditionalLanguages();
-		}
-
-		// check for all command line arguments if they
-		// 1. were explicitly stated in the program call and
-		// 2. if not, whether there is a value in the configuration file for that argument
-		ParseResult pr = spec.commandLine().getParseResult();
-
-		//		List<CommandLine.Model.ArgSpec> matched = pr.matchedArgs();
-		//		for(CommandLine.Model.ArgSpec arg : matched) {
-		//			if(arg.isOption()) {
-		//				CommandLine.Model.OptionSpec o = (CommandLine.Model.OptionSpec) arg;
-		//			}
-		//		}
-
-		List<CommandLine.Model.OptionSpec> options = spec.options();
-		for (CommandLine.Model.OptionSpec o : options) {
-			if (!pr.hasMatchedOption(o)) {
-				switch (o.shortestName()) {
-					case ("-s"):
-						if (codyzeConfig != null && codyzeConfig.getSource() != null)
-							analysisInput = codyzeConfig.getSource();
-						break;
-					case ("-m"):
-						if (codyzeConfig != null && codyzeConfig.getMark() != null)
-							markFolderNames = codyzeConfig.getMark();
-						break;
-					case ("-o"):
-						if (codyzeConfig != null && codyzeConfig.getOutput() != null)
-							outputFile = codyzeConfig.getOutput();
-						break;
-					case ("--timeout"):
-						if (codyzeConfig != null && codyzeConfig.getTimeout() != null)
-							timeout = codyzeConfig.getTimeout();
-						break;
-					case ("--no-good-findings"):
-						if (codyzeConfig != null)
-							disableGoodFindings = codyzeConfig.isNoGoodFindings();
-						break;
-					case ("--enable-python-support"):
-						if (languages != null && languages.contains(Language.PYTHON))
-							enablePython = true;
-						break;
-					case ("--enable-go-support"):
-						if (languages != null && languages.contains(Language.GO))
-							enableGo = true;
-						break;
-					case ("--typestate"):
-						if (codyzeConfig != null && codyzeConfig.getTypestateAnalysis() != null)
-							analysisMode.tsMode = codyzeConfig.getTypestateAnalysis();
-						break;
-					case ("--analyze-includes"):
-						if (cpgConfig != null)
-							translationSettings.analyzeIncludes = cpgConfig.isAnalyzeIncludes();
-						break;
-					case ("--includes"):
-						if (cpgConfig != null && cpgConfig.getIncludePaths() != null)
-							translationSettings.includesPath = cpgConfig.getIncludePaths();
-						break;
-					default:
-				}
-			}
-		}
+		return configuration;
 	}
 
-	private void printConfigErrorMessage(UnrecognizedPropertyException e) {
+	private static void printErrorMessage(UnrecognizedPropertyException e) {
 		System.out.printf("Could not parse configuration file correctly " +
 				"because '%s' is not a valid argument name for %s configurations.%n" +
 				"Valid argument names are%n%s",
 			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
-		System.out.println("Continue without configurations from configuration file.");
+	}
+
+	@Command(name = "codyze", version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+	static class FinalPass implements Callable<Integer> {
+		private static final Logger log = LoggerFactory.getLogger(Main.class);
+
+		@CommandLine.Mixin
+		private FirstPass fp;
+
+		// ArgGroup only for display purposes
+		@ArgGroup(validate = false, heading = "Codyze Options\n")
+		private CodyzeConfiguration codyzeConfig;
+
+		// ArgGroup only for display purposes
+		@ArgGroup(validate = false, heading = "CPG Options\n")
+		private CpgConfiguration cpgConfig;
+
+		@Option(names = { "-x", "--xtre" }, paramLabel = "<path>", description = "x.")
+		private int t = 324;
+
+		public FinalPass(CodyzeConfiguration codyzeConfig, CpgConfiguration cpgConfig) {
+			this.codyzeConfig = codyzeConfig;
+			this.cpgConfig = cpgConfig;
+		}
+
+		public FinalPass() {
+		}
+
+		@Override
+		public Integer call() throws Exception {
+			Instant start = Instant.now();
+
+			var config = ServerConfiguration.builder()
+					.launchLsp(codyzeConfig.getExecutionMode().lsp)
+					.launchConsole(codyzeConfig.getExecutionMode().tui)
+					.typestateAnalysis(codyzeConfig.getTypestateAnalysis())
+					.disableGoodFindings(codyzeConfig.isNoGoodFindings())
+					.analyzeIncludes(cpgConfig.isAnalyzeIncludes())
+					.includePath(cpgConfig.getIncludePaths())
+					.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
+
+			if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON)) {
+				config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
+			}
+
+			if (cpgConfig.getAdditionalLanguages().contains(Language.GO)) {
+				config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
+			}
+
+			AnalysisServer server = AnalysisServer.builder()
+					.config(config
+							.build())
+					.build();
+
+			server.start();
+			log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
+
+			if (!codyzeConfig.getExecutionMode().lsp && codyzeConfig.getSource() != null) {
+				log.info("Analyzing {}", codyzeConfig.getSource());
+				AnalysisContext ctx = server.analyze(codyzeConfig.getSource().getAbsolutePath())
+						.get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
+
+				var findings = ctx.getFindings();
+
+				writeFindings(findings);
+
+				if (codyzeConfig.getExecutionMode().cli) {
+					// Return code based on the existence of violations
+					return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
+				}
+			} else if (codyzeConfig.getExecutionMode().lsp) {
+				// Block main thread. Work is done in
+				Thread.currentThread().join();
+			}
+
+			return 0;
+		}
+
+		private void writeFindings(Set<Finding> findings) {
+			var mapper = new ObjectMapper();
+			String output = null;
+			try {
+				output = mapper.writeValueAsString(findings);
+			}
+			catch (JsonProcessingException e) {
+				log.error("Could not serialize findings: {}", e.getMessage());
+			}
+
+			if (codyzeConfig.getOutput().equals("-")) {
+				System.out.println(output);
+			} else {
+				try (PrintWriter out = new PrintWriter(new File(codyzeConfig.getOutput()))) {
+					out.println(output);
+				}
+				catch (FileNotFoundException e) {
+					System.out.println(e.getMessage());
+				}
+			}
+
+		}
+	}
+
+}
+
+/**
+ *
+ */
+@Command(mixinStandardHelpOptions = true)
+class FirstPass {
+	@Option(names = {
+			"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
+	File configFile;
+
+	@Unmatched
+	List<String> remainder;
+}
+
+// Custom renderer to add nesting optically with indents in help message
+class HelpRenderer implements CommandLine.IHelpSectionRenderer {
+
+	private CommandSpec spec;
+	private Help help;
+
+	@Override
+	public String render(CommandLine.Help help) {
+
+		spec = help.commandSpec();
+		this.help = help;
+
+		Map<String, CommandSpec> mix = spec.mixins();
+		StringBuilder sb = new StringBuilder();
+		for (CommandSpec c : mix.values()) {
+			Help h = new Help(c, help.colorScheme());
+			sb.append(h.optionList());
+		}
+
+		for (ArgGroupSpec group : spec.argGroups()) {
+			sb.append("\n");
+			addHierachy(group, sb, "");
+		}
+
+		return sb.toString();
+	}
+
+	private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb, String indent) {
+		sb.append(indent);
+		sb.append(argGroupSpec.heading());
+
+		for (OptionSpec o : argGroupSpec.options()) {
+			sb.append(indent);
+			sb.append(help.optionListExcludingGroups(List.of(o)));
+
+		}
+
+		for (ArgGroupSpec group : argGroupSpec.subgroups()) {
+			addHierachy(group, sb, indent + "    ");
+		}
+
 	}
 }
 

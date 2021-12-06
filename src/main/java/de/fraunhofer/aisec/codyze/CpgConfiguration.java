@@ -1,28 +1,40 @@
 
 package de.fraunhofer.aisec.codyze;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.fraunhofer.aisec.cpg.passes.Pass;
+import picocli.CommandLine;
+import picocli.CommandLine.Option;
 
 import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
-public class CpgConfigurationFile {
+public class CpgConfiguration {
 
 	private boolean debugParser;
-	private boolean analyzeIncludes;
-	private File[] includePaths;
 	private List<String> includeWhitelist;
 	private List<String> includeBlacklist;
 	private boolean defaultPasses;
 	private List<Pass> passes;
-
+	private Map<String, String> symbols;
+	private boolean analyzeIncludes;
+	private File[] includePaths;
 	@JsonDeserialize(using = LanguageDeseralizer.class)
 	private EnumSet<Language> additionalLanguages;
-
-	private Map<String, String> symbols;
+	@JsonIgnore
+	@Option(names = {
+			"--enable-python-support" }, description = "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README.")
+	private boolean enablePython;
+	@JsonIgnore
+	@Option(names = {
+			"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
+	private boolean enableGo;
+	@JsonIgnore
+	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
+	private TranslationSettings translationSettings = new TranslationSettings();
 
 	public boolean isAnalyzeIncludes() {
 		return analyzeIncludes;
@@ -38,6 +50,14 @@ public class CpgConfigurationFile {
 
 	public void setIncludePaths(File[] includePaths) {
 		this.includePaths = includePaths;
+	}
+
+	public TranslationSettings getTranslationSettings() {
+		return translationSettings;
+	}
+
+	public void setTranslationSettings(TranslationSettings translationSettings) {
+		this.translationSettings = translationSettings;
 	}
 
 	public EnumSet<Language> getAdditionalLanguages() {

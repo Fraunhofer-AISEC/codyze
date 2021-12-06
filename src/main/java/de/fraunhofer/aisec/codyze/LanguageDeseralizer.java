@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import java.io.IOException;
 import java.util.EnumSet;
 
+/**
+ * Custom deserializer for languages to turn them directly into enums
+ */
 public class LanguageDeseralizer extends StdDeserializer<EnumSet<Language>> {
 
 	public LanguageDeseralizer() {
@@ -37,9 +40,8 @@ public class LanguageDeseralizer extends StdDeserializer<EnumSet<Language>> {
 			while (!current.equals(JsonToken.END_ARRAY)) {
 				if (current.equals(JsonToken.VALUE_STRING)) {
 					String s = jp.getValueAsString();
-					String upper = s.toUpperCase();
 					try {
-						result.add(Language.valueOf(upper));
+						result.add(Language.valueOf(s.toUpperCase()));
 					}
 					catch (IllegalArgumentException e) {
 						System.out.println("Could not parse configuration file correctly because "

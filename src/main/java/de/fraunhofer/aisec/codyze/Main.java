@@ -42,6 +42,9 @@ public class Main implements Callable<Integer> {
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File analysisInput;
 
+	@Option(names = { "--unity" }, description = "Enables unity builds (C++ only) for files in the path. Enabled by default.")
+	private boolean unityBuild = true;
+
 	@Option(names = { "-m",
 			"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
 	private File[] markFolderNames;
@@ -86,6 +89,7 @@ public class Main implements Callable<Integer> {
 				.disableGoodFindings(disableGoodFindings)
 				.analyzeIncludes(translationSettings.analyzeIncludes)
 				.includePath(translationSettings.includesPath)
+				.unityBuild(unityBuild)
 				.markFiles(Arrays.stream(markFolderNames).map(File::getAbsolutePath).toArray(String[]::new));
 
 		if (enablePython) {

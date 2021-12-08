@@ -52,6 +52,7 @@ public class ServerConfiguration {
 			@NonNull String[] markModelFiles,
 			@NonNull TypestateMode typestateMode,
 			boolean analyzeIncludes,
+			boolean unityBuild,
 			@NonNull File[] includePath,
 			boolean disableGoodFindings,
 			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages) {
@@ -77,6 +78,7 @@ public class ServerConfiguration {
 		@NonNull
 		private TypestateMode typestateAnalysis = TypestateMode.NFA;
 		private boolean analyzeIncludes;
+		private boolean unityBuild = true;
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
 		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
@@ -103,6 +105,11 @@ public class ServerConfiguration {
 
 		public Builder analyzeIncludes(boolean analyzeIncludes) {
 			this.analyzeIncludes = analyzeIncludes;
+			return this;
+		}
+
+		public Builder unityBuild(boolean unityBuild) {
+			this.unityBuild = unityBuild;
 			return this;
 		}
 
@@ -137,6 +144,7 @@ public class ServerConfiguration {
 				markModelFiles,
 				typestateAnalysis,
 				analyzeIncludes,
+				unityBuild,
 				includePath,
 				disableGoodFindings,
 				additionalLanguages);

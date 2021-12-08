@@ -100,7 +100,7 @@ public class Main {
 	private static void printErrorMessage(UnrecognizedPropertyException e) {
 		System.out.printf("Could not parse configuration file correctly " +
 				"because '%s' is not a valid argument name for %s configurations.%n" +
-				"Valid argument names are%n%s",
+				"Valid argument names are%n%s%n",
 			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
 	}
 
@@ -141,7 +141,7 @@ public class Main {
 			var config = ServerConfiguration.builder()
 					.launchLsp(codyzeConfig.getExecutionMode().lsp)
 					.launchConsole(codyzeConfig.getExecutionMode().tui)
-					.typestateAnalysis(codyzeConfig.getTypestateAnalysis())
+					.typestateAnalysis(codyzeConfig.getTypestateAnalysis().tsMode)
 					.disableGoodFindings(codyzeConfig.isNoGoodFindings())
 					.analyzeIncludes(cpgConfig.isAnalyzeIncludes())
 					.includePath(cpgConfig.getIncludePaths())
@@ -286,10 +286,15 @@ class ExecutionMode {
 }
 
 class AnalysisMode {
+	AnalysisMode() {
+	}
 
-	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", defaultValue = "NFA", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
-	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
-	protected TypestateMode tsMode = TypestateMode.NFA;
+	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: ${DEFAULT-VALUE})")
+	protected static TypestateMode tsMode = TypestateMode.NFA;
+
+	public void setTsMode(TypestateMode tsMode) {
+		this.tsMode = tsMode;
+	}
 }
 
 class TranslationSettings {
@@ -299,4 +304,12 @@ class TranslationSettings {
 
 	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
 	protected File[] includesPath;
+
+	public void setAnalyzeIncludes(boolean analyzeIncludes) {
+		this.analyzeIncludes = analyzeIncludes;
+	}
+
+	public void setIncludesPath(File[] includesPath) {
+		this.includesPath = includesPath;
+	}
 }

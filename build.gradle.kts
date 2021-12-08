@@ -93,7 +93,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:4.1.1") // ok
+    //api("de.fraunhofer.aisec:cpg:4.1.1") // ok
+    api("com.github.Fraunhofer-AISEC:cpg:3ca9ce5c6")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

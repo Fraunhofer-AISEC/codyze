@@ -1,22 +1,14 @@
-<Configuration status="ERROR">
+<Configuration status="WARN">
     <Appenders>
-        <File name="FILEOUT" fileName="crymlin.log">
+        <Console name="STDOUT" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss,SSS} %-5p %C{1} %m%n"/>
-        </File>
-        <Async name="Async">
-            <AppenderRef ref="FILEOUT"/>
-        </Async>
-
-        <Console name="CONSOLE" target="SYSTEM_OUT">
-            <PatternLayout   pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n" />
+            <ThresholdFilter level="DEBUG"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="WARN" additivity="false">
-            <appender-ref ref="FILEOUT" />
+        <Logger level="INFO" name="de.fraunhofer.aisec"/>
+        <Root level="INFO">
+            <AppenderRef ref="STDOUT"/>
         </Root>
-        <logger level="WARN" additivity="false" name="de.fraunhofer.aisec">
-            <appender-ref ref="FILEOUT" />
-        </logger>
     </Loggers>
 </Configuration>

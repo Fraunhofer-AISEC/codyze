@@ -42,8 +42,8 @@ public class Main implements Callable<Integer> {
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File analysisInput;
 
-	@Option(names = { "--unity" }, description = "Enables unity builds (C++ only) for files in the path. Enabled by default in CLI mode.")
-	private Boolean useUnityBuild;
+	@Option(names = { "--unity" }, description = "Enables unity builds (C++ only) for files in the path")
+	private boolean useUnityBuild = false;
 
 	@Option(names = { "-m",
 			"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
@@ -80,12 +80,6 @@ public class Main implements Callable<Integer> {
 
 		if (analysisMode.tsMode == null) {
 			analysisMode.tsMode = TypestateMode.NFA;
-		}
-
-		// check, if unity build was not explicitly set
-		if (useUnityBuild == null) {
-			// set it to true, if we are in CLI mode
-			useUnityBuild = executionMode.cli;
 		}
 
 		// we need to force load includes for unity builds, otherwise nothing will be parsed

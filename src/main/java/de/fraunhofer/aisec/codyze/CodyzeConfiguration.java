@@ -2,9 +2,6 @@
 package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
-import de.fraunhofer.aisec.codyze.analysis.TypestateMode;
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
@@ -14,14 +11,13 @@ import java.util.concurrent.Callable;
 
 public class CodyzeConfiguration implements Callable<Integer> {
 	// TODO: names
-	// TODO: remove picocli legacy stuff
 
 	@JsonIgnore
 	@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
 	private ExecutionMode executionMode;
 
 	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-	private final AnalysisMode typestateAnalysis = new AnalysisMode();
+	private AnalysisMode typestateAnalysis;
 
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File source;
@@ -43,11 +39,6 @@ public class CodyzeConfiguration implements Callable<Integer> {
 	@Option(names = {
 			"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations\n\t(Default: ${DEFAULT-VALUE})")
 	private static boolean noGoodFindings;
-
-	public ServerConfiguration buildServerConfiguration(TranslationConfiguration tc) {
-
-		return null;
-	}
 
 	public ExecutionMode getExecutionMode() {
 		return executionMode;
@@ -93,12 +84,12 @@ public class CodyzeConfiguration implements Callable<Integer> {
 		this.noGoodFindings = noGoodFindings;
 	}
 
-	public TypestateMode getTypestateAnalysis() {
-		return typestateAnalysis.tsMode;
+	public AnalysisMode getTypestateAnalysis() {
+		return typestateAnalysis;
 	}
 
-	public void setTypestateAnalysis(TypestateMode typestateAnalysis) {
-		this.typestateAnalysis.tsMode = typestateAnalysis;
+	public void setTypestateAnalysis(AnalysisMode typestateAnalysis) {
+		this.typestateAnalysis = typestateAnalysis;
 	}
 
 	@Override

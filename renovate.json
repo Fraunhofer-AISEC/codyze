@@ -23,7 +23,7 @@
     {
       "matchPackageNames": ["vscode"],
       "rangeStrategy": "bump",
-      "allowdVersions": "<1.999.0"
+      "allowedVersions": "<1.999.0"
     }
   ]
 }

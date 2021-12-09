@@ -30,23 +30,28 @@ internal class SarifInstantiatorTest {
         // Initialize database with explanations
         val fd = FindingDescription.instance
         val url = this.javaClass.classLoader.getResource("unittests/findingDescription.json")
-
         assertNotNull(url)
-
         fd.init(File(url.toURI()))
-
         s.pushRun(setOf(f1))
 
         val output = s.toString()
-
         val startOfResults = output.indexOf("results")
+        val substring0 = output.substring(startOfResults, startOfResults + 7)
         val substring1 = output.substring(startOfResults + 23, startOfResults + 29)
+        val substring2 = output.substring(startOfResults + 34, startOfResults + 60)
+
+        println(output)
+
+        assertEquals(
+                "results",
+                substring0,
+                "The starting point of the result block was not initialized correctly"
+        )
         assertEquals(
             "ruleId",
             substring1,
             "The ruleId of the first Result is not in the expected place!"
         )
-        val substring2 = output.substring(startOfResults + 34, startOfResults + 60)
         assertEquals(
             "WrongUseOfBotan_CipherMode",
             substring2,

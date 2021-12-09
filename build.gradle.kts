@@ -1,4 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.java.archives.Manifest
+import org.gradle.kotlin.dsl.attributes
+
+project.version = "2.0.0-alpha4"
 
 plugins {
     // built-in
@@ -22,6 +26,14 @@ group = "de.fraunhofer.aisec"
  */
 gradle.startParameter.excludedTaskNames += "licenseMain"
 gradle.startParameter.excludedTaskNames += "licenseTest"
+
+tasks {
+    jar {
+        manifest {
+            attributes(Pair("CodyzeVersion", project.version))
+        }
+    }
+}
 
 tasks.jacocoTestReport {
     reports {

@@ -43,9 +43,9 @@ internal class SarifInstantiatorTest {
         println(output)
 
         assertEquals(
-                "results",
-                substring0,
-                "The starting point of the result block was not initialized correctly"
+            "results",
+            substring0,
+            "The starting point of the result block was not initialized correctly"
         )
         assertEquals(
             "ruleId",

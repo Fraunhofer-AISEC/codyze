@@ -291,8 +291,7 @@ public class Evaluator {
 			rule.getStatement().getAction(),
 			"Rule "
 					+ rule.getName()
-					+ " "
-					+ kind.value(),
+					+ (kind != Result.Kind.PASS ? " violated" : " verified"),
 			currentFile,
 			ranges,
 			kind);

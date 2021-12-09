@@ -50,8 +50,8 @@ public class Main implements Callable<Integer> {
 			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.sarif", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 	private String outputFile;
 
-	@Option(names = { "--legacy" }, description = "Enables the legacy output (not SARIF compliant).")
-	private boolean legacyOutput;
+	@Option(names = { "--sarif" }, description = "Enables the SARIF output.")
+	private boolean sarifOutput;
 
 	@Option(names = {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
@@ -132,7 +132,7 @@ public class Main implements Callable<Integer> {
 		// Option to generate legacy output
 		String output = null;
 		SarifInstantiator si = new SarifInstantiator();
-		if (legacyOutput) {
+		if (!sarifOutput) {
 			var mapper = new ObjectMapper();
 			try {
 				output = mapper.writeValueAsString(findings);
@@ -150,7 +150,7 @@ public class Main implements Callable<Integer> {
 		if (outputFile.equals("-")) {
 			System.out.println(output);
 		} else {
-			if (legacyOutput) {
+			if (!sarifOutput) {
 				try (PrintWriter out = new PrintWriter(outputFile)) {
 					out.println(output);
 				}

@@ -145,7 +145,6 @@ public class Main implements Callable<Integer> {
 			output = si.toString();
 		}
 
-
 		// Whether to write in file or on stdout
 		if (outputFile.equals("-")) {
 			System.out.println(output);

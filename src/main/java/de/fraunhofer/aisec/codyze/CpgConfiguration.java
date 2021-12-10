@@ -32,8 +32,9 @@ public class CpgConfiguration implements Callable<Integer> {
 	private List<Pass> passes;
 
 	@JsonDeserialize(using = LanguageDeseralizer.class)
-	private EnumSet<Language> additionalLanguages;
+	private EnumSet<Language> additionalLanguages = EnumSet.noneOf(Language.class);
 
+	// TODO: maybe change to enum set instead of booleans for each language
 	@JsonIgnore
 	@Option(names = {
 			"--enable-python-support" }, description = "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README.")

@@ -156,6 +156,14 @@ public class CpgConfiguration implements Callable<Integer> {
 		this.typeSystemActiveInFrontend = typeSystemActiveInFrontend;
 	}
 
+	public boolean isEnablePython() {
+		return enablePython;
+	}
+
+	public boolean isEnableGo() {
+		return enableGo;
+	}
+
 	@Override
 	public Integer call() throws Exception {
 		return 0;

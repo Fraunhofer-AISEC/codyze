@@ -149,11 +149,11 @@ public class Main {
 					.includePath(cpgConfig.getIncludePaths())
 					.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
 
-			if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON)) {
+			if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON) || cpgConfig.isEnablePython()) {
 				config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
 			}
 
-			if (cpgConfig.getAdditionalLanguages().contains(Language.GO)) {
+			if (cpgConfig.getAdditionalLanguages().contains(Language.GO) || cpgConfig.isEnableGo()) {
 				config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
 			}
 

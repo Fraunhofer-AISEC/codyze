@@ -2,8 +2,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.java.archives.Manifest
 import org.gradle.kotlin.dsl.attributes
 
-project.version = "2.0.0-alpha4"
-
 plugins {
     // built-in
     java
@@ -30,8 +28,10 @@ gradle.startParameter.excludedTaskNames += "licenseTest"
 tasks {
     jar {
         manifest {
-            attributes(Pair("Implementation-Title", "codyze"))
-            attributes(Pair("Implementation-Version", project.version))
+            attributes("Implementation-Title" to "codyze",
+                    "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev"),
+                    "Main-Class" to "de.fraunhofer.aisec.codyze.Main",
+                    "Class-Path" to configurations.compileClasspath.get().asPath)
         }
     }
 }

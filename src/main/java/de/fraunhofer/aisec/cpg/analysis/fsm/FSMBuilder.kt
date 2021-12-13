@@ -2,13 +2,9 @@ package de.fraunhofer.aisec.cpg.analysis.fsm
 
 import de.fraunhofer.aisec.mark.markDsl.*
 
-/**
- * Class to build an [FSM] based on some input.
- */
+/** Class to build an [FSM] based on some input. */
 class FSMBuilder {
-    /**
-     * Constructs a [DFA] based on the given [expr].
-     */
+    /** Constructs a [DFA] based on the given [expr]. */
     fun sequenceToDFA(expr: OrderExpression): DFA {
         val dfa = DFA()
         val q1 = dfa.addState(isStart = true)
@@ -20,13 +16,13 @@ class FSMBuilder {
     }
 
     /**
-     * Constructs a [DFA] from the given [expression] by incrementally adding states and edges
-     * to [dfa]. [previousStates] is the set of predecessor states for the next edge in the DFA.
+     * Constructs a [DFA] from the given [expression] by incrementally adding states and edges to
+     * [dfa]. [previousStates] is the set of predecessor states for the next edge in the DFA.
      *
      * For each processed expression, it returns an [EdgeAddResult] which keeps:
      * - The last states. This is where the next edges have to be added.
-     * - The first states of the expression and the label to reach it. These are the states
-     *   where a potential loop (with * or +) would end in if the given label is followed.
+     * - The first states of the expression and the label to reach it. These are the states where a
+     * potential loop (with * or +) would end in if the given label is followed.
      */
     private fun addEdgesToDFA(
         expression: Expression,
@@ -38,7 +34,9 @@ class FSMBuilder {
             // We take the last state(s) and add the respective edge.
             // We return q as possible target for a loop (* or +) with label l of the edge.
             val newState = dfa.addState()
-            previousStates.forEach { prev -> dfa.addEdge(prev, newState, expression.op, expression.entity) }
+            previousStates.forEach { prev ->
+                dfa.addEdge(prev, newState, expression.op, expression.entity)
+            }
             return EdgeAddResult(
                 mutableSetOf(newState),
                 mutableSetOf(LoopTarget(newState, expression.op, expression.entity))
@@ -49,7 +47,8 @@ class FSMBuilder {
             // edges. q is also the target of a potential loop (actually, q depends on what
             // the lhs of the SequenceExpression is and could also be a set of nodes).
             val lhsStartEndStates = addEdgesToDFA(expression.left, dfa, previousStates)
-            val rhsStartEndStates = addEdgesToDFA(expression.right, dfa, lhsStartEndStates.endStates)
+            val rhsStartEndStates =
+                addEdgesToDFA(expression.right, dfa, lhsStartEndStates.endStates)
             return EdgeAddResult(rhsStartEndStates.endStates, lhsStartEndStates.possibleLoopTargets)
         } else if (expression is AlternativeExpression) {
             // We have two possible branches of execution, lhs and rhs. So, we build the

@@ -8,6 +8,7 @@ import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class FSMBuilderTest {
 
@@ -129,5 +130,29 @@ class FSMBuilderTest {
         expected.addEdge(q6, q7, "reset", "cm")
 
         assertEquals(expected, dfa)
+    }
+
+    @Test
+    fun testFailOrder() {
+        val resource =
+            MarkLoadOutputTest::class.java.classLoader.getResource(
+                "unittests/fsm_builder/order_fail.mark"
+            )
+        assertNotNull(resource)
+        val markPoC1 = File(resource.file)
+        assertNotNull(markPoC1)
+        val parser = XtextParser()
+        parser.addMarkFile(markPoC1)
+        val markModels = parser.parse()
+        val mark = MarkModelLoader().load(markModels, null)
+        assertNotNull(mark)
+        var dfa = DFA()
+        for (rule in mark.rules) {
+            if (rule.statement.ensure.exp is OrderExpression) {
+                assertThrows<FSMBuilderException> {
+                    dfa = FSMBuilder().sequenceToDFA(rule.statement.ensure.exp as OrderExpression)
+                }
+            }
+        }
     }
 }

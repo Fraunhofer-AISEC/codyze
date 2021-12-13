@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.fasterxml.jackson.dataformat.toml.TomlMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
@@ -61,8 +61,10 @@ public class Main {
 			CommandLine a = new CommandLine(new FinalPass());
 			a.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
 			a.usage(System.out);
+			System.exit(0);
 		} else if (cmd.isVersionHelpRequested()) {
 			new CommandLine(new FinalPass()).printVersionHelp(System.out);
+			System.exit(0);
 		} else {
 			ConfigurationFile config;
 			if (firstPass.configFile != null && firstPass.configFile.isFile()) {
@@ -90,8 +92,8 @@ public class Main {
 	}
 
 	private static ConfigurationFile parseFile(File configFile) throws IOException {
-		// parse toml configuration file with jackson
-		TomlMapper mapper = new TomlMapper();
+		// parse yaml configuration file with jackson
+		YAMLMapper mapper = new YAMLMapper();
 		mapper.setPropertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy());
 		var configuration = mapper.readValue(configFile, ConfigurationFile.class);
 		return configuration;

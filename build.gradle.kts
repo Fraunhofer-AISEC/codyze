@@ -86,8 +86,8 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:1.8.0-beta4") // ok
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
-    api("org.apache.logging.log4j:log4j-core:2.14.1") // impl in main; used only in test
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
+    api("org.apache.logging.log4j:log4j-core:2.15.0") // impl in main; used only in test
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.15.0")
 
     // will be a transitive dependency after CPG beta.3
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")

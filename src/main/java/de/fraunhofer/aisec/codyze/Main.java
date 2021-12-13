@@ -14,8 +14,6 @@ import picocli.CommandLine.Option;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -202,11 +200,12 @@ class ManifestVersionProvider implements CommandLine.IVersionProvider {
 					return new String[] { get(attr, "Implementation-Title") + " version \"" +
 							get(attr, "Implementation-Version") + "\"" };
 				}
-			} catch (IOException ex) {
+			}
+			catch (IOException ex) {
 				return new String[] { "Unable to read from " + url + ": " + ex };
 			}
 		}
-		return new String[] { "Unable to find manifest file."};
+		return new String[] { "Unable to find manifest file." };
 	}
 
 	private boolean isApplicableManifest(Manifest manifest) {

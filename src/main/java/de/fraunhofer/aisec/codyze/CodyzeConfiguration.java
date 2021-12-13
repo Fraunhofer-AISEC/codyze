@@ -17,7 +17,7 @@ public class CodyzeConfiguration implements Callable<Integer> {
 	private ExecutionMode executionMode;
 
 	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-	private AnalysisMode typestateAnalysis;
+	private AnalysisMode typestateAnalysis = new AnalysisMode();
 
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File source;

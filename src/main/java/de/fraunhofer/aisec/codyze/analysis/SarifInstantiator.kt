@@ -752,6 +752,6 @@ class SarifInstantiator internal constructor() {
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(ForbiddenEvaluator::class.java)
+        private val log = LoggerFactory.getLogger(SarifInstantiator::class.java)
     }
 }

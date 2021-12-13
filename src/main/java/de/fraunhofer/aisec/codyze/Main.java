@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * Start point of the standalone analysis server.
  */
 @SuppressWarnings("java:S106")
-@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+@Command(name = "codyze", mixinStandardHelpOptions = true, version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 public class Main implements Callable<Integer> {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -41,6 +41,9 @@ public class Main implements Callable<Integer> {
 
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File analysisInput;
+
+	@Option(names = { "--unity" }, description = "Enables unity builds (C++ only) for files in the path")
+	private boolean useUnityBuild = false;
 
 	@Option(names = { "-m",
 			"--mark" }, paramLabel = "<path>", description = "Loads MARK policy files", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND, split = ",")
@@ -82,6 +85,11 @@ public class Main implements Callable<Integer> {
 			analysisMode.tsMode = TypestateMode.NFA;
 		}
 
+		// we need to force load includes for unity builds, otherwise nothing will be parsed
+		if (useUnityBuild) {
+			translationSettings.analyzeIncludes = true;
+		}
+
 		var config = ServerConfiguration.builder()
 				.launchLsp(executionMode.lsp)
 				.launchConsole(executionMode.tui)
@@ -89,6 +97,7 @@ public class Main implements Callable<Integer> {
 				.disableGoodFindings(disableGoodFindings)
 				.analyzeIncludes(translationSettings.analyzeIncludes)
 				.includePath(translationSettings.includesPath)
+				.useUnityBuild(useUnityBuild)
 				.markFiles(Arrays.stream(markFolderNames).map(File::getAbsolutePath).toArray(String[]::new));
 
 		if (enablePython) {
@@ -189,7 +198,7 @@ class AnalysisMode {
 
 class TranslationSettings {
 	@Option(names = {
-			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree.")
+			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used.")
 	protected boolean analyzeIncludes = false;
 
 	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")

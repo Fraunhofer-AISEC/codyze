@@ -148,8 +148,8 @@ public class Main {
 					.launchConsole(codyzeConfig.getExecutionMode().tui)
 					.typestateAnalysis(codyzeConfig.getTypestateAnalysis().tsMode)
 					.disableGoodFindings(codyzeConfig.isNoGoodFindings())
-					.analyzeIncludes(cpgConfig.isAnalyzeIncludes())
-					.includePath(cpgConfig.getIncludePaths())
+					.analyzeIncludes(cpgConfig.getTranslationSettings().analyzeIncludes)
+					.includePath(cpgConfig.getTranslationSettings().includesPath)
 					.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
 
 			if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON) || cpgConfig.isEnablePython()) {

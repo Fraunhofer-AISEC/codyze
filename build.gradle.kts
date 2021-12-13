@@ -30,7 +30,8 @@ gradle.startParameter.excludedTaskNames += "licenseTest"
 tasks {
     jar {
         manifest {
-            attributes(Pair("CodyzeVersion", project.version))
+            attributes(Pair("Implementation-Title", "codyze"))
+            attributes(Pair("Implementation-Version", project.version))
         }
     }
 }

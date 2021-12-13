@@ -66,7 +66,7 @@ public class Main {
 			new CommandLine(new FinalPass()).printVersionHelp(System.out);
 			System.exit(0);
 		} else {
-			ConfigurationFile config;
+			ConfigurationFile config = null;
 			if (firstPass.configFile != null && firstPass.configFile.isFile()) {
 				try {
 					config = parseFile(firstPass.configFile);
@@ -78,11 +78,14 @@ public class Main {
 					config.setCodyze(new CodyzeConfiguration());
 					config.setCpg(new CpgConfiguration());
 				}
-			} else {
-				config = new ConfigurationFile();
-				config.setCodyze(new CodyzeConfiguration());
-				config.setCpg(new CpgConfiguration());
 			}
+			if(config == null)
+				config = new ConfigurationFile();
+			if(config.getCodyzeConfig() == null)
+				config.setCodyze(new CodyzeConfiguration());
+			if(config.getCpgConfig() == null)
+				config.setCpg(new CpgConfiguration());
+
 
 			new CommandLine(config.getCodyzeConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
 			new CommandLine(config.getCpgConfig()).setUnmatchedArgumentsAllowed(true).execute(args);

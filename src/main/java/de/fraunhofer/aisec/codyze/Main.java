@@ -189,20 +189,32 @@ class TranslationSettings {
 
 class ManifestVersionProvider implements CommandLine.IVersionProvider {
 
+	// adapted example from https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java
 	@Override
 	public String[] getVersion() throws Exception {
-		String basePath = Paths.get("").toAbsolutePath().toString();
-		System.out.println(basePath);
-		String appendPath = "/../../tmp/jar/MANIFEST.MD";
-		System.out.println(basePath + appendPath);
-		URL url = Path.of(basePath, appendPath).toUri().toURL();
-		try {
-			Manifest manifest = new Manifest(url.openStream());
-			Attributes attr = manifest.getMainAttributes();
-			return new String[] { attr.getValue("CodyzeVersion") };
+		Enumeration<URL> resources = CommandLine.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+		while (resources.hasMoreElements()) {
+			URL url = resources.nextElement();
+			try {
+				Manifest manifest = new Manifest(url.openStream());
+				if (isApplicableManifest(manifest)) {
+					Attributes attr = manifest.getMainAttributes();
+					return new String[] { get(attr, "Implementation-Title") + " version \"" +
+							get(attr, "Implementation-Version") + "\"" };
+				}
+			} catch (IOException ex) {
+				return new String[] { "Unable to read from " + url + ": " + ex };
+			}
 		}
-		catch (Exception ex) {
-			return new String[] { "Unable to read from " + url + ": " + ex };
-		}
+		return new String[] { "Unable to find manifest file."};
+	}
+
+	private boolean isApplicableManifest(Manifest manifest) {
+		Attributes attributes = manifest.getMainAttributes();
+		return "codyze".equals(get(attributes, "Implementation-Name"));
+	}
+
+	private static Object get(Attributes attributes, String key) {
+		return attributes.get(new Attributes.Name(key));
 	}
 }

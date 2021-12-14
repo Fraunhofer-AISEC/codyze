@@ -84,7 +84,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:1.8.0-beta4") // ok
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
     api("org.apache.logging.log4j:log4j-core:2.16.0") // impl in main; used only in test
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.15.0")
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.16.0")
 
     // pull in explicitly to prevent mixing versions
     implementation("org.jetbrains.kotlin:kotlin-reflect")

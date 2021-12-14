@@ -119,7 +119,6 @@ class FSMBuilderTest {
         expected.addEdge(q2, q4, "start", "cm")
         expected.addEdge(q3, q3, "bigStep", "cm")
         expected.addEdge(q3, q4, "start", "cm")
-        expected.addEdge(q3, q5, "start", "cm")
         expected.addEdge(q3, q7, "reset", "cm")
         expected.addEdge(q4, q5, "process", "cm")
         expected.addEdge(q4, q6, "finish", "cm")
@@ -146,11 +145,10 @@ class FSMBuilderTest {
         val markModels = parser.parse()
         val mark = MarkModelLoader().load(markModels, null)
         assertNotNull(mark)
-        var dfa = DFA()
         for (rule in mark.rules) {
             if (rule.statement.ensure.exp is OrderExpression) {
                 assertThrows<FSMBuilderException> {
-                    dfa = FSMBuilder().sequenceToDFA(rule.statement.ensure.exp as OrderExpression)
+                    FSMBuilder().sequenceToDFA(rule.statement.ensure.exp as OrderExpression)
                 }
             }
         }

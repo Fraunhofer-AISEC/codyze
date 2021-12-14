@@ -45,6 +45,11 @@ public class OrderNFAEvaluator {
 	@SuppressWarnings({ "java:S1905", "java:S125" })
 	public ConstantValue evaluate(OrderExpression orderExpression, Integer contextID, AnalysisContext ctx,
 			Graph graph) {
+		return new OrderEvaluation().evaluate(rule, markContextHolder, orderExpression, contextID, ctx);
+	}
+
+	public ConstantValue oldFoo(OrderExpression orderExpression, Integer contextID, AnalysisContext ctx,
+			Graph graph) {
 		// We also look through forbidden nodes. The fact that these are forbidden is checked elsewhere
 		// Any function calls to functions which are not specified in an entity are _ignored_
 

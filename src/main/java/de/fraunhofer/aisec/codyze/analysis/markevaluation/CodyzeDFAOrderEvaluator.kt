@@ -22,18 +22,27 @@ class CodyzeDFAOrderEvaluator(
 
     override fun actionMissingTransitionForNode(node: Node, fsm: FSM?) {
         val region = Utils.getRegionByNode(node)
-        val f = Finding(
-            if (rule.errorMessage != null) rule.errorMessage else rule.name,
-            rule.statement.action,
-            "Violation against Order: ${node.code} (${nodesToOp[node]}) is not allowed. Expected one of: "
-                    + fsm?.currentState?.outgoingEdges?.map { toString() }?.sorted()?.joinToString(", ")
-                    + " ($rule.errorMessage)",
-            File(node.file!!).toURI(),
-            region.startLine,
-            region.endLine,
-            region.startColumn,
-            region.endColumn
-        )
+        var outgoing =
+            fsm?.currentState?.outgoingEdges?.map { e ->
+                if (e.base != null) "${e.base}.${e.op}" else e.op
+            }
+        if (outgoing.isNullOrEmpty()) {
+            outgoing = listOf("END")
+        }
+
+        val f =
+            Finding(
+                if (rule.errorMessage != null) rule.errorMessage else rule.name,
+                rule.statement.action,
+                "Violation against Order: ${node.code} (${nodesToOp[node]}) is not allowed. Expected one of: " +
+                    outgoing.sorted().joinToString(", ") +
+                    " (${rule.errorMessage})",
+                File(node.file!!).toURI(),
+                region.startLine,
+                region.endLine,
+                region.startColumn,
+                region.endColumn
+            )
         if (markContextHolder.isCreateFindingsDuringEvaluation) {
             ctx.findings.add(f)
         }
@@ -41,23 +50,33 @@ class CodyzeDFAOrderEvaluator(
     }
 
     override fun actionNonAcceptingTermination(base: String, fsm: FSM) {
+        val baseDeclName = base.split("|")[1].split(".")[0]
         val node = fsm.executionTrace.last().second
         val region = Utils.getRegionByNode(node)
-        val f = Finding(
-            if (rule.errorMessage != null) rule.errorMessage else rule.name,
-            rule.statement.action,
-            "Violation against Order: Base $base is not correctly terminated. Expected one of ["
-                    + fsm.states.filter { s -> s.isAcceptingState }.joinToString(", ")
-                    + "] to follow the correct last call on this base. (${rule.errorMessage})",
-            File(node.file!!).toURI(),
-            region.startLine,
-            region.endLine,
-            region.startColumn,
-            region.endColumn
-        )
+
+        var outgoing =
+            fsm.currentState?.outgoingEdges?.map { e ->
+                if (e.base != null) "${e.base}.${e.op}" else e.op
+            }
+        if (outgoing.isNullOrEmpty()) {
+            outgoing = listOf("END")
+        }
+
+        val f =
+            Finding(
+                if (rule.errorMessage != null) rule.errorMessage else rule.name,
+                rule.statement.action,
+                "Violation against Order: Base $baseDeclName is not correctly terminated. Expected one of [" +
+                    outgoing.joinToString(", ") +
+                    "] to follow the correct last call on this base. (${rule.errorMessage})",
+                File(node.file!!).toURI(),
+                region.startLine,
+                region.endLine,
+                region.startColumn,
+                region.endColumn
+            )
         if (markContextHolder.isCreateFindingsDuringEvaluation) {
-            ctx.findings
-                .add(f)
+            ctx.findings.add(f)
         }
         log.info("Finding: {}", f)
     }

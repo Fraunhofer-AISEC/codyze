@@ -103,8 +103,8 @@ public class Main {
 
 	private static void printErrorMessage(UnrecognizedPropertyException e) {
 		log.warn("Could not parse configuration file correctly " +
-				"because '%s' is not a valid argument name for %s configurations.%n" +
-				"Valid argument names are%n%s%n",
+				"because {} is not a valid argument name for {} configurations.\n" +
+				"Valid argument names are\n{}",
 			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
 		log.warn("Continue without configurations from configuration file.\n");
 	}

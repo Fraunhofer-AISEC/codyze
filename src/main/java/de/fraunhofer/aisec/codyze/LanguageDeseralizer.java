@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -13,6 +15,7 @@ import java.util.EnumSet;
  * Custom deserializer for languages to turn them directly into enums
  */
 public class LanguageDeseralizer extends StdDeserializer<EnumSet<Language>> {
+	private static final Logger log = LoggerFactory.getLogger(LanguageDeseralizer.class);
 
 	public LanguageDeseralizer() {
 		super((JavaType) null);
@@ -44,9 +47,10 @@ public class LanguageDeseralizer extends StdDeserializer<EnumSet<Language>> {
 						result.add(Language.valueOf(s.toUpperCase()));
 					}
 					catch (IllegalArgumentException e) {
-						System.out.println("Could not parse configuration file correctly because "
-								+ s + " is not a supported programming language.");
-						System.out.println("Continue with parsing rest of configuration file.");
+						log.warn("Could not parse configuration file correctly because " +
+								"{} is not a supported programming language.",
+							s);
+						log.warn("Continue with parsing rest of configuration file.");
 					}
 				}
 				current = jp.nextToken();

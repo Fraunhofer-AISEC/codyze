@@ -75,7 +75,6 @@ public class Main {
 				}
 				catch (UnrecognizedPropertyException e) {
 					printErrorMessage(e);
-					System.out.println("Continue without configurations from configuration file.");
 					config = new ConfigurationFile();
 					config.setCodyze(new CodyzeConfiguration());
 					config.setCpg(new CpgConfiguration());
@@ -104,10 +103,11 @@ public class Main {
 	}
 
 	private static void printErrorMessage(UnrecognizedPropertyException e) {
-		System.out.printf("Could not parse configuration file correctly " +
+		log.warn("Could not parse configuration file correctly " +
 				"because '%s' is not a valid argument name for %s configurations.%n" +
 				"Valid argument names are%n%s%n",
 			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
+		log.warn("Continue without configurations from configuration file.\n");
 	}
 
 	// Three places with cli options:
@@ -116,7 +116,6 @@ public class Main {
 	// 3. CpgConfiguration
 	@Command(name = "codyze", version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 	static class FinalPass implements Callable<Integer> {
-		private static final Logger log = LoggerFactory.getLogger(Main.class);
 
 		@CommandLine.Mixin
 		private FirstPass fp;

@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,34 +56,6 @@ public class NFA {
 	 */
 	public Set<NFATransition<StateNode>> getTransitions() {
 		return Set.copyOf(this.transitions);
-	}
-
-	public void clear() {
-		this.transitions.clear();
-	}
-
-	public void addTransition(NFATransition<StateNode> t) {
-		this.transitions.add(t);
-	}
-
-	public boolean handleEvent(NFATransition<StateNode> event) {
-		boolean didTransition = false;
-		Iterator<StateNode> it = currentConfiguration.iterator();
-		while (it.hasNext()) {
-			StateNode currentConfig = it.next();
-			List<StateNode> possibleTargets = this.transitions.stream()
-					.filter(t -> t.getSource().equals(currentConfig) && t.getSource().equals(event.getSource()) && t.getLabel().equals(event.getLabel()))
-					.map(
-						NFATransition::getTarget)
-					.collect(Collectors.toList());
-			if (!possibleTargets.isEmpty()) {
-				it.remove();
-				currentConfiguration.addAll(possibleTargets);
-				didTransition = true;
-			}
-		}
-
-		return didTransition;
 	}
 
 	/**
@@ -280,15 +251,6 @@ public class NFA {
 
 	public Set<StateNode> getCurrentConfiguration() {
 		return currentConfiguration;
-	}
-
-	/**
-	 * Returns all transitions leading from the START state to the first <i>real/i> states.
-	 *
-	 * @return
-	 */
-	public Set<NFATransition<StateNode>> getInitialTransitions() {
-		return getTransitions().stream().filter(tr -> tr.getSource().equals(START)).collect(Collectors.toSet());
 	}
 
 	private static class Head {

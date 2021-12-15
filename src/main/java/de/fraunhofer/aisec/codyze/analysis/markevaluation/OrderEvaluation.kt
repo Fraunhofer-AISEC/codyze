@@ -11,11 +11,11 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import java.util.stream.IntStream
 import org.slf4j.LoggerFactory
 
-/** This is mostly copy and paste from [OrderNFAEvaluator]. Should start the analysis. */
+/** This is mostly copy and paste from the old OrderNFAEvaluator. Should start the analysis. */
 class OrderEvaluation {
     private val log = LoggerFactory.getLogger(OrderEvaluation::class.java)
 
-    fun evaluate(
+    fun evaluateDFA(
         rule: MRule,
         markContextHolder: MarkContextHolder,
         orderExpression: OrderExpression,
@@ -108,7 +108,7 @@ class OrderEvaluation {
                 markContextHolder,
                 ctx
             )
-        val isOrderValid = dfaEvaluator.evaluateOrder(dfa, variableDecl)
+        val isOrderValid = dfaEvaluator.evaluateOrder(dfa, variableDecl.containingFunction!!)
 
         val of = ConstantValue.of(isOrderValid)
         if (markContextHolder.isCreateFindingsDuringEvaluation) {

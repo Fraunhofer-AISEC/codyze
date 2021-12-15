@@ -22,12 +22,18 @@ class CodyzeDFAOrderEvaluator(
 
     override fun actionMissingTransitionForNode(node: Node, fsm: FSM?) {
         val region = Utils.getRegionByNode(node)
-        var outgoing =
+        val outgoing = mutableListOf<String>()
+        if (fsm?.currentState?.isAcceptingState == true) {
+            outgoing.add("END")
+        }
+
+        val possibleNextEdges =
             fsm?.currentState?.outgoingEdges?.map { e ->
                 if (e.base != null) "${e.base}.${e.op}" else e.op
             }
-        if (outgoing.isNullOrEmpty()) {
-            outgoing = listOf("END")
+        if (possibleNextEdges != null) {
+            // We are in an accepting state, so doing nothing should be an option
+            outgoing.addAll(possibleNextEdges.sorted())
         }
 
         val f =
@@ -50,24 +56,25 @@ class CodyzeDFAOrderEvaluator(
     }
 
     override fun actionNonAcceptingTermination(base: String, fsm: FSM) {
+        if (fsm.executionTrace.size == 1)
+            return // We have not really started yet, so no output here.
+
         val baseDeclName = base.split("|")[1].split(".")[0]
         val node = fsm.executionTrace.last().second
         val region = Utils.getRegionByNode(node)
 
-        var outgoing =
-            fsm.currentState?.outgoingEdges?.map { e ->
-                if (e.base != null) "${e.base}.${e.op}" else e.op
-            }
-        if (outgoing.isNullOrEmpty()) {
-            outgoing = listOf("END")
-        }
+        val possibleNextEdges =
+            fsm.currentState
+                ?.outgoingEdges
+                ?.map { e -> if (e.base != null) "${e.base}.${e.op}" else e.op }
+                ?.sorted()
 
         val f =
             Finding(
                 if (rule.errorMessage != null) rule.errorMessage else rule.name,
                 rule.statement.action,
                 "Violation against Order: Base $baseDeclName is not correctly terminated. Expected one of [" +
-                    outgoing.joinToString(", ") +
+                    possibleNextEdges?.joinToString(", ") +
                     "] to follow the correct last call on this base. (${rule.errorMessage})",
                 File(node.file!!).toURI(),
                 region.startLine,

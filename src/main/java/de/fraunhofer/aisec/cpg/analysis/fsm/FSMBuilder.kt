@@ -23,6 +23,8 @@ class FSMBuilder {
      * - The last states. This is where the next edges have to be added.
      * - The first states of the expression and the label to reach it. These are the states where a
      * potential loop (with * or +) would end in if the given label is followed.
+     *
+     * TODO: Actually, this constructs an NFA but in most cases, it should also work for a DFA.
      */
     private fun addEdgesToDFA(
         expression: Expression,

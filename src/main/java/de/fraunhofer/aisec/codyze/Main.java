@@ -76,7 +76,7 @@ public class Main implements Callable<Integer> {
 		Instant start = Instant.now();
 
 		if (analysisMode.tsMode == null) {
-			analysisMode.tsMode = TypestateMode.NFA;
+			analysisMode.tsMode = TypestateMode.DFA;
 		}
 
 		var config = ServerConfiguration.builder()
@@ -171,7 +171,7 @@ class AnalysisMode {
 
 	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", defaultValue = "NFA", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
 	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
-	protected TypestateMode tsMode = TypestateMode.NFA;
+	protected TypestateMode tsMode = TypestateMode.DFA;
 }
 
 class TranslationSettings {

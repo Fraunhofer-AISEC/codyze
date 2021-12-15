@@ -119,11 +119,11 @@ public class Main {
 		private FirstPass fp;
 
 		// ArgGroup only for display purposes
-		@ArgGroup(validate = false, heading = "Codyze Options\n")
+		@ArgGroup(heading = "Codyze Options\n", exclusive = false)
 		private CodyzeConfiguration codyzeConfig;
 
 		// ArgGroup only for display purposes
-		@ArgGroup(validate = false, heading = "CPG Options\n")
+		@ArgGroup(heading = "CPG Options\n", exclusive = false)
 		private CpgConfiguration cpgConfig;
 
 		public FinalPass(CodyzeConfiguration codyzeConfig, CpgConfiguration cpgConfig) {

@@ -114,7 +114,7 @@ public class Main {
 	// 1. FirstPass
 	// 2. CodyzeConfiguration
 	// 3. CpgConfiguration
-	@Command(name = "codyze", mixinStandardHelpOptions = true, version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+	@Command(name = "codyze", version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 	static class FinalPass implements Callable<Integer> {
 		private static final Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -128,9 +128,6 @@ public class Main {
 		// ArgGroup only for display purposes
 		@ArgGroup(validate = false, heading = "CPG Options\n")
 		private CpgConfiguration cpgConfig;
-
-		@Option(names = { "-x", "--xtre" }, paramLabel = "<path>", description = "x.")
-		private int t = 324;
 
 		public FinalPass(CodyzeConfiguration codyzeConfig, CpgConfiguration cpgConfig) {
 			this.codyzeConfig = codyzeConfig;

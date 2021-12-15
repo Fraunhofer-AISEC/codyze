@@ -47,8 +47,6 @@ public class Main {
 
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-	// TODO: Idea -> Configuration classes populated by config -> then populated by picocli (with options)
-
 	// Order of main:
 	// 1. Parse config file option with FirstPass
 	// 2a. If help is requested, print help
@@ -59,26 +57,26 @@ public class Main {
 	public static void main(String... args) throws Exception {
 		FirstPass firstPass = new FirstPass();
 		CommandLine cmd = new CommandLine(firstPass);
-		cmd.parseArgs(args); // first pass
+		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
+			// print help message
 			CommandLine a = new CommandLine(new FinalPass());
 			a.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
 			a.usage(System.out);
 			System.exit(0);
 		} else if (cmd.isVersionHelpRequested()) {
+			// print version message
 			new CommandLine(new FinalPass()).printVersionHelp(System.out);
 			System.exit(0);
 		} else {
 			ConfigurationFile config = null;
 			if (firstPass.configFile != null && firstPass.configFile.isFile()) {
+				// parse config file
 				try {
 					config = parseFile(firstPass.configFile);
 				}
 				catch (UnrecognizedPropertyException e) {
 					printErrorMessage(e);
-					config = new ConfigurationFile();
-					config.setCodyze(new CodyzeConfiguration());
-					config.setCpg(new CpgConfiguration());
 				}
 			}
 			if (config == null)
@@ -133,9 +131,11 @@ public class Main {
 			this.cpgConfig = cpgConfig;
 		}
 
+		// Use this constructor only for printing help
 		public FinalPass() {
 		}
 
+		// Setup and start of actual analysis
 		@Override
 		public Integer call() throws Exception {
 			Instant start = Instant.now();

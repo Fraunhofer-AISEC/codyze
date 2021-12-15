@@ -9,7 +9,7 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.jsonschema2dataclass") version "3.0.0"
+    id("org.jsonschema2dataclass") version "4.1.0"
 
     id("org.sonarqube") version "3.3"
     id("com.diffplug.spotless") version "6.0.4"
@@ -167,9 +167,9 @@ tasks.named("compileKotlin") {
     dependsOn(":generateJsonSchema2DataClass")
 }
 
-tasks.named("processTestResources") {
-    dependsOn(":generateJsonSchema2DataClass")
-}
+//tasks.named("processTestResources") {
+//    dependsOn(":generateJsonSchema2DataClass")
+//}
 
 tasks.named("sonarqube") {
     dependsOn(":jacocoTestReport")
@@ -212,7 +212,7 @@ compileTestKotlin.kotlinOptions {
 
 jsonSchema2Pojo {
     source.setFrom("${project.rootDir}/src/main/resources/json")
-    targetPackage = "de.fraunhofer.aisec.codyze.analysis.generated"
-    removeOldOutput = true
+    targetPackage.set("de.fraunhofer.aisec.codyze.analysis.generated")
+    removeOldOutput.set(true)
     // ... more options
 }

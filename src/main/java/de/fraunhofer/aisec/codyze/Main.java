@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.codyze;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -147,7 +148,7 @@ public class Main {
 			var config = ServerConfiguration.builder()
 					.launchLsp(codyzeConfig.getExecutionMode().lsp)
 					.launchConsole(codyzeConfig.getExecutionMode().tui)
-					.typestateAnalysis(codyzeConfig.getTypestateAnalysis().tsMode)
+					.typestateAnalysis(AnalysisMode.tsMode)
 					.disableGoodFindings(codyzeConfig.isNoGoodFindings())
 					.analyzeIncludes(cpgConfig.getTranslationSettings().analyzeIncludes)
 					.includePath(cpgConfig.getTranslationSettings().includesPath)
@@ -292,12 +293,11 @@ class ExecutionMode {
 }
 
 class AnalysisMode {
-	AnalysisMode() {
-	}
 
 	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: ${DEFAULT-VALUE})")
 	protected static TypestateMode tsMode = TypestateMode.NFA;
 
+	@JsonProperty("typestate")
 	public void setTsMode(TypestateMode tsMode) {
 		AnalysisMode.tsMode = tsMode;
 	}

@@ -98,8 +98,7 @@ public class Main {
 		// parse yaml configuration file with jackson
 		YAMLMapper mapper = new YAMLMapper();
 		mapper.setPropertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy());
-		var configuration = mapper.readValue(configFile, ConfigurationFile.class);
-		return configuration;
+		return mapper.readValue(configFile, ConfigurationFile.class);
 	}
 
 	private static void printErrorMessage(UnrecognizedPropertyException e) {
@@ -234,13 +233,12 @@ class FirstPass {
 // Custom renderer to add nesting optically with indents in help message
 class HelpRenderer implements CommandLine.IHelpSectionRenderer {
 
-	private CommandSpec spec;
 	private Help help;
 
 	@Override
 	public String render(CommandLine.Help help) {
 
-		spec = help.commandSpec();
+		CommandSpec spec = help.commandSpec();
 		this.help = help;
 
 		Map<String, CommandSpec> mix = spec.mixins();

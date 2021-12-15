@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.fraunhofer.aisec.cpg.passes.Pass;
 import org.slf4j.Logger;
@@ -32,6 +33,9 @@ public class CpgConfiguration implements Callable<Integer> {
 	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
 	private TranslationSettings translationSettings = new TranslationSettings();
 
+	@Option(names = { "--unity" }, description = "Enables unity builds (C++ only) for files in the path")
+	private boolean useUnityBuild = false;
+
 	public TranslationSettings getTranslationSettings() {
 		return translationSettings;
 	}
@@ -54,6 +58,15 @@ public class CpgConfiguration implements Callable<Integer> {
 
 	public boolean isEnableGo() {
 		return enableGo;
+	}
+
+	public boolean isUseUnityBuild() {
+		return useUnityBuild;
+	}
+
+	@JsonProperty("unity")
+	public void setUseUnityBuild(boolean useUnityBuild) {
+		this.useUnityBuild = useUnityBuild;
 	}
 
 	@Override

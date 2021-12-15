@@ -81,13 +81,12 @@ public class Main {
 					config.setCpg(new CpgConfiguration());
 				}
 			}
-			if(config == null)
+			if (config == null)
 				config = new ConfigurationFile();
-			if(config.getCodyzeConfig() == null)
+			if (config.getCodyzeConfig() == null)
 				config.setCodyze(new CodyzeConfiguration());
-			if(config.getCpgConfig() == null)
+			if (config.getCpgConfig() == null)
 				config.setCpg(new CpgConfiguration());
-
 
 			new CommandLine(config.getCodyzeConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
 			new CommandLine(config.getCpgConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
@@ -126,9 +125,6 @@ public class Main {
 		@ArgGroup(validate = false, heading = "Codyze Options\n")
 		private CodyzeConfiguration codyzeConfig;
 
-	@Option(names = { "--unity" }, description = "Enables unity builds (C++ only) for files in the path")
-	private boolean useUnityBuild = false;
-
 		// ArgGroup only for display purposes
 		@ArgGroup(validate = false, heading = "CPG Options\n")
 		private CpgConfiguration cpgConfig;
@@ -148,11 +144,11 @@ public class Main {
 		public Integer call() throws Exception {
 			Instant start = Instant.now();
 
-      // we need to force load includes for unity builds, otherwise nothing will be parsed
-		  if (useUnityBuild) {
-		  	cpgConfig.getTranslationSettings().analyzeIncludes = true;
-		  }
-      
+			// we need to force load includes for unity builds, otherwise nothing will be parsed
+			if (cpgConfig.isUseUnityBuild()) {
+				cpgConfig.getTranslationSettings().analyzeIncludes = true;
+			}
+
 			var config = ServerConfiguration.builder()
 					.launchLsp(codyzeConfig.getExecutionMode().lsp)
 					.launchConsole(codyzeConfig.getExecutionMode().tui)
@@ -160,7 +156,7 @@ public class Main {
 					.disableGoodFindings(codyzeConfig.isNoGoodFindings())
 					.analyzeIncludes(cpgConfig.getTranslationSettings().analyzeIncludes)
 					.includePath(cpgConfig.getTranslationSettings().includesPath)
-          .useUnityBuild(useUnityBuild)
+					.useUnityBuild(cpgConfig.isUseUnityBuild())
 					.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
 
 			if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON) || cpgConfig.isEnablePython()) {

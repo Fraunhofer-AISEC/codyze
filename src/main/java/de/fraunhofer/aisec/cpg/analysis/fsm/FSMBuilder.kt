@@ -2,7 +2,7 @@ package de.fraunhofer.aisec.cpg.analysis.fsm
 
 import de.fraunhofer.aisec.mark.markDsl.*
 
-/** Class to build an [FSM] based on some input. */
+/** Class to build a FSM based on some input. */
 class FSMBuilder {
     /** Constructs a [DFA] based on the given [expr]. */
     fun sequenceToDFA(expr: OrderExpression): DFA {

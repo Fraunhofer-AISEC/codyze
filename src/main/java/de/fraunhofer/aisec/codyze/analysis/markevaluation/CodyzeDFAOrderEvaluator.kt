@@ -6,8 +6,8 @@ import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator.log
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
 import de.fraunhofer.aisec.codyze.markmodel.MRule
+import de.fraunhofer.aisec.cpg.analysis.fsm.DFA
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFAOrderEvaluator
-import de.fraunhofer.aisec.cpg.analysis.fsm.FSM
 import de.fraunhofer.aisec.cpg.graph.Node
 import java.io.File
 
@@ -20,7 +20,7 @@ class CodyzeDFAOrderEvaluator(
     val ctx: AnalysisContext
 ) : DFAOrderEvaluator(referencedVertices, nodesToOp, thisPositionOfNode) {
 
-    override fun actionMissingTransitionForNode(node: Node, fsm: FSM?) {
+    override fun actionMissingTransitionForNode(node: Node, fsm: DFA?) {
         val region = Utils.getRegionByNode(node)
         val outgoing = mutableListOf<String>()
         if (fsm?.currentState?.isAcceptingState == true) {
@@ -55,7 +55,7 @@ class CodyzeDFAOrderEvaluator(
         log.info("Finding: {}", f)
     }
 
-    override fun actionNonAcceptingTermination(base: String, fsm: FSM) {
+    override fun actionNonAcceptingTermination(base: String, fsm: DFA) {
         if (fsm.executionTrace.size == 1)
             return // We have not really started yet, so no output here.
 

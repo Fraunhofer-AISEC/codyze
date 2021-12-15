@@ -34,7 +34,7 @@ public class LanguageDeseralizer extends StdDeserializer<EnumSet<Language>> {
 	}
 
 	@Override
-	public EnumSet<Language> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JacksonException {
+	public EnumSet<Language> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
 
 		EnumSet<Language> result = EnumSet.noneOf(Language.class);
 		JsonToken current = jp.getCurrentToken();

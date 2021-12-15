@@ -44,6 +44,8 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST
 @SuppressWarnings("java:S106")
 public class Main {
 
+	private static final Logger log = LoggerFactory.getLogger(Main.class);
+
 	// TODO: Idea -> Configuration classes populated by config -> then populated by picocli (with options)
 
 	// Order of main:
@@ -113,7 +115,7 @@ public class Main {
 	// 1. FirstPass
 	// 2. CodyzeConfiguration
 	// 3. CpgConfiguration
-	@Command(name = "codyze", version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+	@Command(name = "codyze", mixinStandardHelpOptions = true, version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 	static class FinalPass implements Callable<Integer> {
 		private static final Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -123,6 +125,9 @@ public class Main {
 		// ArgGroup only for display purposes
 		@ArgGroup(validate = false, heading = "Codyze Options\n")
 		private CodyzeConfiguration codyzeConfig;
+
+	@Option(names = { "--unity" }, description = "Enables unity builds (C++ only) for files in the path")
+	private boolean useUnityBuild = false;
 
 		// ArgGroup only for display purposes
 		@ArgGroup(validate = false, heading = "CPG Options\n")
@@ -143,6 +148,11 @@ public class Main {
 		public Integer call() throws Exception {
 			Instant start = Instant.now();
 
+      // we need to force load includes for unity builds, otherwise nothing will be parsed
+		  if (useUnityBuild) {
+		  	cpgConfig.getTranslationSettings().analyzeIncludes = true;
+		  }
+      
 			var config = ServerConfiguration.builder()
 					.launchLsp(codyzeConfig.getExecutionMode().lsp)
 					.launchConsole(codyzeConfig.getExecutionMode().tui)
@@ -150,6 +160,7 @@ public class Main {
 					.disableGoodFindings(codyzeConfig.isNoGoodFindings())
 					.analyzeIncludes(cpgConfig.getTranslationSettings().analyzeIncludes)
 					.includePath(cpgConfig.getTranslationSettings().includesPath)
+          .useUnityBuild(useUnityBuild)
 					.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
 
 			if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON) || cpgConfig.isEnablePython()) {
@@ -304,7 +315,7 @@ class AnalysisMode {
 
 class TranslationSettings {
 	@Option(names = {
-			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree.")
+			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used.")
 	protected boolean analyzeIncludes = false;
 
 	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")

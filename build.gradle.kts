@@ -10,9 +10,9 @@ plugins {
     `java-library`
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "5.17.1"
+    id("com.diffplug.spotless") version "6.0.4"
     id("com.github.hierynomus.license") version "0.16.1"
-    kotlin("jvm") version "1.5.31" // we can only upgrade to Kotlin 1.5, if CPG does
+    kotlin("jvm") version "1.6.10" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
 group = "de.fraunhofer.aisec"
@@ -83,21 +83,21 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:1.8.0-beta4") // ok
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
-    api("org.apache.logging.log4j:log4j-core:2.14.1") // impl in main; used only in test
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
-
-    // will be a transitive dependency after CPG beta.3
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
+    api("org.apache.logging.log4j:log4j-core:2.16.0") // impl in main; used only in test
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.16.0")
 
     // pull in explicitly to prevent mixing versions
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg:4.1.1") // ok
+
+    api("de.fraunhofer.aisec:cpg-core:4.2.0")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
-    api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:bbd54a7b11:repackaged") // pin to specific commit before annotations
+    //api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:bbd54a7b11:repackaged") // pin to specific commit before annotations
+    api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:2.0.0:repackaged") // use GitHub release via JitPack
+
 
     // Pushdown Systems
     api("de.breakpointsec:pushdown:1.1") // ok
@@ -118,9 +118,9 @@ dependencies {
     // Unit tests
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     implementation(kotlin("stdlib-jdk8"))
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.0")

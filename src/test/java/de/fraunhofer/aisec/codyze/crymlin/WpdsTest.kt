@@ -79,7 +79,7 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        assertEquals(7, findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count())
+        assertEquals(9, findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count())
     }
 
     @Test

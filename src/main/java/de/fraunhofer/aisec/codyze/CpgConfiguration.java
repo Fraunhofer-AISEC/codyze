@@ -4,13 +4,9 @@ package de.fraunhofer.aisec.codyze;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import de.fraunhofer.aisec.cpg.passes.Pass;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.Callable;
 

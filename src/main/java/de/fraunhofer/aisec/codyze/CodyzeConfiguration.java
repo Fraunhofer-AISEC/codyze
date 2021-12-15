@@ -57,7 +57,7 @@ public class CodyzeConfiguration implements Callable<Integer> {
 	}
 
 	public void setOutput(String output) {
-		this.output = output;
+		CodyzeConfiguration.output = output;
 	}
 
 	public File[] getMark() {
@@ -65,7 +65,7 @@ public class CodyzeConfiguration implements Callable<Integer> {
 	}
 
 	public void setMark(File[] markModelFiles) {
-		this.mark = markModelFiles;
+		CodyzeConfiguration.mark = markModelFiles;
 	}
 
 	public Long getTimeout() {
@@ -73,7 +73,7 @@ public class CodyzeConfiguration implements Callable<Integer> {
 	}
 
 	public void setTimeout(Long timeout) {
-		this.timeout = timeout;
+		CodyzeConfiguration.timeout = timeout;
 	}
 
 	public boolean isNoGoodFindings() {
@@ -81,7 +81,7 @@ public class CodyzeConfiguration implements Callable<Integer> {
 	}
 
 	public void setNoGoodFindings(boolean noGoodFindings) {
-		this.noGoodFindings = noGoodFindings;
+		CodyzeConfiguration.noGoodFindings = noGoodFindings;
 	}
 
 	public AnalysisMode getTypestateAnalysis() {

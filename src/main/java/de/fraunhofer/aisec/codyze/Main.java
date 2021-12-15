@@ -302,7 +302,7 @@ class AnalysisMode {
 	protected static TypestateMode tsMode = TypestateMode.NFA;
 
 	public void setTsMode(TypestateMode tsMode) {
-		this.tsMode = tsMode;
+		AnalysisMode.tsMode = tsMode;
 	}
 }
 

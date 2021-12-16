@@ -47,7 +47,8 @@ internal class SarifInstantiatorTest {
             substring0,
             "The starting point of the result block was not initialized correctly."
         )
-        // one char in each direction as buffer because for some reason the test randomly fails by one character
+        // one char in each direction as buffer because for some reason the test randomly fails by
+        // one character
         assertTrue(substring1.contains("ruleId"), "The ruleId-field was not in the expected place.")
         assertTrue(
             substring2.contains("WrongUseOfBotan_CipherMode"),

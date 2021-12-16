@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
 public class CpgConfiguration implements Callable<Integer> {
 
 	@JsonDeserialize(using = LanguageDeseralizer.class)
-	private EnumSet<Language> additionalLanguages = EnumSet.noneOf(Language.class);
+	private Set<Language> additionalLanguages = EnumSet.noneOf(Language.class);
 
 	// TODO: maybe change to enum set instead of booleans for each language
 	@JsonIgnore
@@ -40,11 +40,11 @@ public class CpgConfiguration implements Callable<Integer> {
 		this.translationSettings = translationSettings;
 	}
 
-	public EnumSet<Language> getAdditionalLanguages() {
+	public Set<Language> getAdditionalLanguages() {
 		return additionalLanguages;
 	}
 
-	public void setAdditionalLanguages(EnumSet<Language> additionalLanguages) {
+	public void setAdditionalLanguages(Set<Language> additionalLanguages) {
 		this.additionalLanguages = additionalLanguages;
 	}
 

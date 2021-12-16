@@ -361,23 +361,14 @@ public class AnalysisServer {
 
 	public CompletableFuture<AnalysisContext> analyze(String url) {
 		List<File> files = new ArrayList<>();
-		File f = new File(url);
-		if (f.isDirectory()) {
-			File[] list = f.listFiles();
-			if (list != null) {
-				files.addAll(Arrays.asList(list));
-			} else {
-				log.error("Null file list");
-			}
-		} else {
-			files.add(f);
-		}
+		files.add(new File(url));
 
 		var translationConfig = TranslationConfiguration.builder()
 				.debugParser(true)
 				.failOnError(false)
 				.codeInNodes(true)
 				.loadIncludes(this.config.analyzeIncludes)
+				.useUnityBuild(this.config.useUnityBuild)
 				.defaultPasses()
 				.defaultLanguages()
 				.registerPass(new IdentifierPass())

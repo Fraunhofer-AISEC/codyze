@@ -197,8 +197,7 @@ class ManifestVersionProvider implements CommandLine.IVersionProvider {
 				Manifest manifest = new Manifest(url.openStream());
 				if (isApplicableManifest(manifest)) {
 					Attributes attr = manifest.getMainAttributes();
-					return new String[] { get(attr, "Implementation-Title") + " version \"" +
-							get(attr, "Implementation-Version") + "\"" };
+					return new String[] { get(attr, "Implementation-Version").toString() };
 				}
 			}
 			catch (IOException ex) {
@@ -210,7 +209,7 @@ class ManifestVersionProvider implements CommandLine.IVersionProvider {
 
 	private boolean isApplicableManifest(Manifest manifest) {
 		Attributes attributes = manifest.getMainAttributes();
-		return "codyze".equals(get(attributes, "Implementation-Name"));
+		return "codyze".equals(get(attributes, "Implementation-Title"));
 	}
 
 	private static Object get(Attributes attributes, String key) {

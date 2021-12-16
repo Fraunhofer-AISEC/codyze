@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription
 import de.fraunhofer.aisec.codyze.analysis.SarifInstantiator
@@ -37,24 +38,26 @@ internal class SarifInstantiatorTest {
         s.pushRun(setOf(f1))
 
         val output = s.toString()
-        val startOfResults = output.indexOf("results")
-        val substring0 = output.substring(startOfResults, startOfResults + 7)
-        val substring1 = output.substring(startOfResults + 22, startOfResults + 30)
-        val substring2 = output.substring(startOfResults + 33, startOfResults + 61)
-
         println(output)
 
+        // parse the output string again and match the fields
+        val mapper = ObjectMapper()
+        val parsed = mapper.readTree(output)
         assertEquals(
-            "results",
-            substring0,
-            "The starting point of the result block was not initialized correctly."
+            "\"codyze\"",
+            parsed.get("runs").get(0).get("tool").get("driver").get("name").toString()
         )
-        // one char in each direction as buffer because for some reason the test randomly fails by
-        // one character
-        assertTrue(substring1.contains("ruleId"), "The ruleId-field was not in the expected place.")
-        assertTrue(
-            substring2.contains("WrongUseOfBotan_CipherMode"),
-            "The ruleId-value was not in the expected place."
+        assertEquals(
+            "\"WrongUseOfBotan_CipherMode\"",
+            parsed.get("runs").get(0).get("results").get(0).get("ruleId").toString()
+        )
+        assertEquals(
+            "\"fail\"",
+            parsed.get("runs").get(0).get("results").get(0).get("kind").toString()
+        )
+        assertEquals(
+            "\"error\"",
+            parsed.get("runs").get(0).get("results").get(0).get("level").toString()
         )
     }
 

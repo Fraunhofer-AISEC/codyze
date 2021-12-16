@@ -48,9 +48,9 @@ public class LanguageDeseralizer extends StdDeserializer<EnumSet<Language>> {
 					}
 					catch (IllegalArgumentException e) {
 						log.warn("Could not parse configuration file correctly because " +
-								"{} is not a supported programming language.",
+								"\"{}\" is not a supported programming language. " +
+								"Continue with parsing rest of configuration file.",
 							s);
-						log.warn("Continue with parsing rest of configuration file.");
 					}
 				}
 				current = jp.nextToken();

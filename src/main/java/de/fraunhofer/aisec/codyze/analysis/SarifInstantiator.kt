@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.analysis.generated.*
-import de.fraunhofer.aisec.codyze.analysis.markevaluation.ForbiddenEvaluator
 import de.fraunhofer.aisec.mark.markDsl.Action
 import java.io.File
 import java.net.URI

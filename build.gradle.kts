@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.gradle.api.java.archives.Manifest
 import org.gradle.kotlin.dsl.attributes
 
 plugins {
@@ -29,9 +28,7 @@ tasks {
     jar {
         manifest {
             attributes("Implementation-Title" to "codyze",
-                    "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev"),
-                    "Main-Class" to "de.fraunhofer.aisec.codyze.Main",
-                    "Class-Path" to configurations.compileClasspath.get().asPath)
+                    "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev"))
         }
     }
 }

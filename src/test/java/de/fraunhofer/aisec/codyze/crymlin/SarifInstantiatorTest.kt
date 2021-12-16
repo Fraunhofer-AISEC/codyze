@@ -11,6 +11,8 @@ import java.net.URI
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 
 internal class SarifInstantiatorTest {
@@ -79,13 +81,31 @@ internal class SarifInstantiatorTest {
 
         s.pushRun(setOf(f1))
 
-        val filepath = "src/test/resources/unittests/testOutput.sarif"
-
         val file = File(filepath)
-        file.delete()
+
+        try {
+            file.delete()
+        } catch (se: SecurityException) {
+            fail("The File already exists and could not be deleted beforehand!")
+        }
 
         s.generateOutput(file)
 
         assertTrue(file.exists(), "There was no output file created!")
+    }
+
+    companion object {
+        private const val filepath = "src/test/resources/unittests/testOutput.sarif"
+
+        @AfterAll
+        @JvmStatic
+        fun removeFile() {
+            val file = File(filepath)
+            try {
+                file.delete()
+            } catch (se: SecurityException) {
+                se.printStackTrace()
+            }
+        }
     }
 }

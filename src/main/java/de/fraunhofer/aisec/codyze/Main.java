@@ -47,27 +47,29 @@ public class Main {
 
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-	// Order of main:
-	// 1. Parse config file option with FirstPass
-	// 2a. If help is requested, print help
-	// 2b. If version is requested, print version
-	// 2c. If config file is available, parse it into ConfigurationFile
-	// 3. Parse cli options into CodyzeConfiguration and CpgConfiguration
-	// 4. Call run() to start analysis setup
+	/*	Order of main:
+	 * 	1. Parse config file option with FirstPass
+	 * 	2a. If help is requested, print help
+	 * 	2b. If version is requested, print version
+	 * 	2c. If config file is available, parse it into ConfigurationFile
+	 * 	3. Parse cli options into CodyzeConfiguration and CpgConfiguration
+	 * 	4. Call run() to start analysis setup
+	*/
 	public static void main(String... args) throws Exception {
 		FirstPass firstPass = new FirstPass();
 		CommandLine cmd = new CommandLine(firstPass);
 		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
 			// print help message
-			CommandLine a = new CommandLine(new FinalPass());
-			a.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
-			a.usage(System.out);
-			System.exit(0);
+			CommandLine c = new CommandLine(new FinalPass());
+			c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
+			c.usage(System.out);
+			System.exit(c.getCommandSpec().exitCodeOnUsageHelp());
 		} else if (cmd.isVersionHelpRequested()) {
 			// print version message
-			new CommandLine(new FinalPass()).printVersionHelp(System.out);
-			System.exit(0);
+			CommandLine c = new CommandLine(new FinalPass());
+			c.printVersionHelp(System.out);
+			System.exit(c.getCommandSpec().exitCodeOnVersionHelp());
 		} else {
 			ConfigurationFile config = null;
 			if (firstPass.configFile != null && firstPass.configFile.isFile()) {
@@ -79,6 +81,7 @@ public class Main {
 					printErrorMessage(e);
 				}
 			}
+
 			if (config == null)
 				config = new ConfigurationFile();
 			if (config.getCodyzeConfig() == null)
@@ -86,8 +89,13 @@ public class Main {
 			if (config.getCpgConfig() == null)
 				config.setCpg(new CpgConfiguration());
 
+			// Parse arguments to correct config class
+			// setUnmatchedArgumentsAllowed is true because both classes don't have the complete set of options and would cause exceptions
+			// side effect is that all unknown options are ignored
 			new CommandLine(config.getCodyzeConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
 			new CommandLine(config.getCpgConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
+
+			// Start analysis setup
 			int exitCode = new FinalPass(config.getCodyzeConfig(), config.getCpgConfig()).call();
 			System.exit(exitCode);
 		}

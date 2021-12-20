@@ -109,7 +109,8 @@ public class Main {
 		}
 
 		// Use this constructor only for printing help
-		public FinalPass() {}
+		public FinalPass() {
+		}
 
 
 		// Setup and start of actual analysis
@@ -168,37 +169,37 @@ public class Main {
 			return 0;
 		}
 
-    private void writeFindings(Set<Finding> findings) {
-      // Option to generate legacy output
-      String output = null;
-      SarifInstantiator si = new SarifInstantiator();
-      if (!codyze.isSarifOutput()) {
-        var mapper = new ObjectMapper();
-        try {
-          output = mapper.writeValueAsString(findings);
-        }
-        catch (JsonProcessingException e) {
-          log.error("Could not serialize findings: {}", e.getMessage());
-        }
-      } else {
-        si.pushRun(findings);
-        output = si.toString();
-      }
+		private void writeFindings(Set<Finding> findings) {
+			// Option to generate legacy output
+			String output = null;
+			SarifInstantiator si = new SarifInstantiator();
+			if (!codyzeConfig.isSarifOutput()) {
+				var mapper = new ObjectMapper();
+				try {
+					output = mapper.writeValueAsString(findings);
+				} catch (JsonProcessingException e) {
+					log.error("Could not serialize findings: {}", e.getMessage());
+				}
+			} else {
+				si.pushRun(findings);
+				output = si.toString();
+			}
 
-      // Whether to write in file or on stdout
-      if (outputFile.equals("-")) {
-        System.out.println(output);
-      } else {
-        if (!sarifOutput) {
-          try (PrintWriter out = new PrintWriter(outputFile)) {
-            out.println(output);
-          }
-          catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
-          }
-        } else
-          si.generateOutput(new File(outputFile));
-    }
+			// Whether to write in file or on stdout
+			String outputFile = codyzeConfig.getOutput();
+			if (outputFile.equals("-")) {
+				System.out.println(output);
+			} else {
+				if (!codyzeConfig.isSarifOutput()) {
+					try (PrintWriter out = new PrintWriter(outputFile)) {
+						out.println(output);
+					} catch (FileNotFoundException e) {
+						System.out.println(e.getMessage());
+					}
+				} else
+					si.generateOutput(new File(outputFile));
+			}
+		}
 	}
 
 	// Custom renderer to add nesting optically with indents in help message

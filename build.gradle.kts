@@ -9,9 +9,12 @@ plugins {
     `maven-publish`
     `java-library`
 
+    id("org.jsonschema2dataclass") version "4.2.0"
+
     id("org.sonarqube") version "3.3"
     id("com.diffplug.spotless") version "6.0.5"
     id("com.github.hierynomus.license") version "0.16.1"
+
     kotlin("jvm") version "1.6.10" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
@@ -157,13 +160,19 @@ tasks.named("compileJava") {
     dependsOn(":spotlessApply")
 }
 
+// state that JSON schema parser must run before compiling Kotlin
+tasks.named("compileKotlin") {
+    dependsOn(":generateJsonSchema2DataClass")
+}
+
 tasks.named("sonarqube") {
     dependsOn(":jacocoTestReport")
 }
 
-
 spotless {
     java {
+        // exclude automatically generated files
+        targetExclude("build/generated/**/*.java")
         eclipse().configFile(rootProject.file("formatter-settings.xml"))
     }
 
@@ -195,4 +204,11 @@ compileKotlin.kotlinOptions {
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
     jvmTarget = "11"
+}
+
+jsonSchema2Pojo {
+    source.setFrom("${project.rootDir}/src/main/resources/json")
+    targetPackage.set("de.fraunhofer.aisec.codyze.sarif.schema")
+    removeOldOutput.set(true)
+    // ... more options
 }

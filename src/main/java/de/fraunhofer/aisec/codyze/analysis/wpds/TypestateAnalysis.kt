@@ -14,6 +14,7 @@ import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
 import de.fraunhofer.aisec.codyze.markmodel.MRule
 import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode
+import de.fraunhofer.aisec.codyze.sarif.schema.Result
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.Graph
 import de.fraunhofer.aisec.cpg.graph.Node
@@ -321,7 +322,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             name,
             currentFile,
             listOf(Utils.getRegionByNode(stmt)),
-            true
+            Result.Kind.FAIL
         )
     }
 
@@ -342,7 +343,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             "Good: $`val` at $node",
             currentFile,
             listOf(Utils.getRegionByNode(node)),
-            false
+            Result.Kind.PASS
         )
     }
 

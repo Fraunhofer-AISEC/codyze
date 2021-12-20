@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
 import org.slf4j.Logger;
@@ -110,6 +111,7 @@ public class Main {
 		// Use this constructor only for printing help
 		public FinalPass() {}
 
+
 		// Setup and start of actual analysis
 		public Integer call() throws Exception {
 			Instant start = Instant.now();
@@ -166,27 +168,37 @@ public class Main {
 			return 0;
 		}
 
-		private void writeFindings(Set<Finding> findings) {
-			var mapper = new ObjectMapper();
-			String output = null;
-			try {
-				output = mapper.writeValueAsString(findings);
-			}
-			catch (JsonProcessingException e) {
-				log.error("Could not serialize findings: {}", e.getMessage());
-			}
+    private void writeFindings(Set<Finding> findings) {
+      // Option to generate legacy output
+      String output = null;
+      SarifInstantiator si = new SarifInstantiator();
+      if (!codyze.isSarifOutput()) {
+        var mapper = new ObjectMapper();
+        try {
+          output = mapper.writeValueAsString(findings);
+        }
+        catch (JsonProcessingException e) {
+          log.error("Could not serialize findings: {}", e.getMessage());
+        }
+      } else {
+        si.pushRun(findings);
+        output = si.toString();
+      }
 
-			if (codyzeConfig.getOutput().equals("-")) {
-				System.out.println(output);
-			} else {
-				try (PrintWriter out = new PrintWriter(new File(codyzeConfig.getOutput()))) {
-					out.println(output);
-				}
-				catch (FileNotFoundException e) {
-					System.out.println(e.getMessage());
-				}
-			}
-		}
+      // Whether to write in file or on stdout
+      if (outputFile.equals("-")) {
+        System.out.println(output);
+      } else {
+        if (!sarifOutput) {
+          try (PrintWriter out = new PrintWriter(outputFile)) {
+            out.println(output);
+          }
+          catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+          }
+        } else
+          si.generateOutput(new File(outputFile));
+    }
 	}
 
 	// Custom renderer to add nesting optically with indents in help message
@@ -228,7 +240,6 @@ public class Main {
 			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
 				addHierachy(group, sb, indent + "    ");
 			}
-
 		}
 	}
 }

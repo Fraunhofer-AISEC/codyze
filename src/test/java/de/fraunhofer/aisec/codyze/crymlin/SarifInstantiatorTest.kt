@@ -3,8 +3,8 @@ package de.fraunhofer.aisec.codyze.crymlin
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription
-import de.fraunhofer.aisec.codyze.analysis.SarifInstantiator
-import de.fraunhofer.aisec.codyze.analysis.generated.Result
+import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator
+import de.fraunhofer.aisec.codyze.sarif.schema.Result
 import de.fraunhofer.aisec.cpg.sarif.Region
 import de.fraunhofer.aisec.mark.markDsl.Action
 import java.io.File

@@ -8,13 +8,13 @@ import de.breakpointsec.pushdown.rules.PopRule
 import de.breakpointsec.pushdown.rules.PushRule
 import de.breakpointsec.pushdown.rules.Rule
 import de.fraunhofer.aisec.codyze.analysis.*
-import de.fraunhofer.aisec.codyze.analysis.generated.Result
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.*
 import de.fraunhofer.aisec.codyze.analysis.passes.astParent
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
 import de.fraunhofer.aisec.codyze.markmodel.MRule
 import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode
+import de.fraunhofer.aisec.codyze.sarif.schema.Result
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.Graph
 import de.fraunhofer.aisec.cpg.graph.Node

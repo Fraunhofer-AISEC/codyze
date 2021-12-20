@@ -2,7 +2,7 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
-import de.fraunhofer.aisec.codyze.analysis.generated.Result
+import de.fraunhofer.aisec.codyze.sarif.schema.Result
 import de.fraunhofer.aisec.cpg.sarif.Region
 import de.fraunhofer.aisec.mark.markDsl.Action
 import java.io.File

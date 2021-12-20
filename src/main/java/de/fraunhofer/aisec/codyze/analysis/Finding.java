@@ -4,7 +4,7 @@ package de.fraunhofer.aisec.codyze.analysis;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation;
 import de.fraunhofer.aisec.cpg.sarif.Region;
-import de.fraunhofer.aisec.codyze.analysis.generated.Result.Kind;
+import de.fraunhofer.aisec.codyze.sarif.schema.Result.Kind;
 import de.fraunhofer.aisec.mark.markDsl.Action;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;

@@ -2,7 +2,7 @@
 package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
 import de.fraunhofer.aisec.codyze.analysis.*;
-import de.fraunhofer.aisec.codyze.analysis.generated.Result;
+import de.fraunhofer.aisec.codyze.sarif.schema.Result;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;

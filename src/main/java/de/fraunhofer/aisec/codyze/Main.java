@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.codyze;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
 import org.slf4j.Logger;

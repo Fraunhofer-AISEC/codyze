@@ -7,10 +7,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
+import java.io.File;
 import java.util.*;
-import java.util.concurrent.Callable;
 
-public class CpgConfiguration implements Callable<Integer> {
+public class CpgConfiguration {
 
 	@JsonDeserialize(using = LanguageDeseralizer.class)
 	private Set<Language> additionalLanguages = EnumSet.noneOf(Language.class);
@@ -44,7 +44,7 @@ public class CpgConfiguration implements Callable<Integer> {
 		return additionalLanguages;
 	}
 
-	public void setAdditionalLanguages(Set<Language> additionalLanguages) {
+	public void setAdditionalLanguages(EnumSet<Language> additionalLanguages) {
 		this.additionalLanguages = additionalLanguages;
 	}
 
@@ -64,9 +64,21 @@ public class CpgConfiguration implements Callable<Integer> {
 	public void setUseUnityBuild(boolean useUnityBuild) {
 		this.useUnityBuild = useUnityBuild;
 	}
+}
 
-	@Override
-	public Integer call() throws Exception {
-		return 0;
+class TranslationSettings {
+	@Option(names = {
+			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used.")
+	protected boolean analyzeIncludes = false;
+
+	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
+	protected File[] includesPath;
+
+	public void setAnalyzeIncludes(boolean analyzeIncludes) {
+		this.analyzeIncludes = analyzeIncludes;
+	}
+
+	public void setIncludesPath(File[] includesPath) {
+		this.includesPath = includesPath;
 	}
 }

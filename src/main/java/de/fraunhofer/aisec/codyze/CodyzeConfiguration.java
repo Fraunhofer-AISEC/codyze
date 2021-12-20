@@ -2,14 +2,15 @@
 package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import de.fraunhofer.aisec.codyze.analysis.TypestateMode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
-public class CodyzeConfiguration implements Callable<Integer> {
+public class CodyzeConfiguration {
 	// TODO: names
 
 	@JsonIgnore
@@ -91,9 +92,33 @@ public class CodyzeConfiguration implements Callable<Integer> {
 	public void setTypestateAnalysis(AnalysisMode typestateAnalysis) {
 		this.typestateAnalysis = typestateAnalysis;
 	}
+}
 
-	@Override
-	public Integer call() throws Exception {
-		return 0;
+/**
+ * Codyze runs in any of three modes:
+ * <p>
+ * CLI: Non-interactive command line client. Accepts arguments from command line and runs analysis.
+ * <p>
+ * LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE support.
+ * <p>
+ * TUI: The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries.
+ */
+class ExecutionMode {
+	@Option(names = "-c", required = true, description = "Start in command line mode.")
+	boolean cli;
+	@Option(names = "-l", required = true, description = "Start in language server protocol (LSP) mode.")
+	boolean lsp;
+	@Option(names = "-t", required = true, description = "Start interactive console (Text-based User Interface).")
+	boolean tui;
+}
+
+class AnalysisMode {
+
+	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: ${DEFAULT-VALUE})")
+	protected static TypestateMode tsMode = TypestateMode.NFA;
+
+	@JsonProperty("typestate")
+	public void setTsMode(TypestateMode tsMode) {
+		AnalysisMode.tsMode = tsMode;
 	}
 }

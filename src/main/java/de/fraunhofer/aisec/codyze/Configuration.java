@@ -61,8 +61,8 @@ public class Configuration {
 		// Parse arguments to correct config class by calling execute
 		// setUnmatchedArgumentsAllowed is true because both classes don't have the complete set of options and would cause exceptions
 		// side effect is that all unknown options are ignored
-		new CommandLine(codyze).setUnmatchedArgumentsAllowed(true).execute(args);
-		new CommandLine(cpg).setUnmatchedArgumentsAllowed(true).execute(args);
+		new CommandLine(codyze).setUnmatchedArgumentsAllowed(true).parseArgs(args);
+		new CommandLine(cpg).setUnmatchedArgumentsAllowed(true).parseArgs(args);
 	}
 
 	public CodyzeConfiguration getCodyzeConfig() {

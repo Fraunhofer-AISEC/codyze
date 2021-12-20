@@ -7,11 +7,10 @@ import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.sarif.schema.*
 import de.fraunhofer.aisec.mark.markDsl.Action
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URI
-import java.net.URISyntaxException
 import java.util.*
-import org.slf4j.LoggerFactory
 
 /**
  * This class was created to provide an easy-to-use interface with which correct SARIF output can be

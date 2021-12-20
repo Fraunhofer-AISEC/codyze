@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.codyze;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
 import org.slf4j.Logger;
@@ -50,8 +51,11 @@ public class Main implements Callable<Integer> {
 	private File[] markFolderNames;
 
 	@Option(names = { "-o",
-			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.sarif", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 	private String outputFile;
+
+	@Option(names = { "--sarif" }, description = "Enables the SARIF output.")
+	private boolean sarifOutput;
 
 	@Option(names = {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
@@ -135,26 +139,36 @@ public class Main implements Callable<Integer> {
 	}
 
 	private void writeFindings(Set<Finding> findings) {
-		var mapper = new ObjectMapper();
+		// Option to generate legacy output
 		String output = null;
-		try {
-			output = mapper.writeValueAsString(findings);
-		}
-		catch (JsonProcessingException e) {
-			log.error("Could not serialize findings: {}", e.getMessage());
+		SarifInstantiator si = new SarifInstantiator();
+		if (!sarifOutput) {
+			var mapper = new ObjectMapper();
+			try {
+				output = mapper.writeValueAsString(findings);
+			}
+			catch (JsonProcessingException e) {
+				log.error("Could not serialize findings: {}", e.getMessage());
+			}
+		} else {
+			si.pushRun(findings);
+			output = si.toString();
 		}
 
+		// Whether to write in file or on stdout
 		if (outputFile.equals("-")) {
 			System.out.println(output);
 		} else {
-			try (PrintWriter out = new PrintWriter(new File(outputFile))) {
-				out.println(output);
-			}
-			catch (FileNotFoundException e) {
-				System.out.println(e.getMessage());
-			}
+			if (!sarifOutput) {
+				try (PrintWriter out = new PrintWriter(outputFile)) {
+					out.println(output);
+				}
+				catch (FileNotFoundException e) {
+					System.out.println(e.getMessage());
+				}
+			} else
+				si.generateOutput(new File(outputFile));
 		}
-
 	}
 }
 

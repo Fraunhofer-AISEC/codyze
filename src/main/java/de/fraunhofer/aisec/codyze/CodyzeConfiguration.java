@@ -31,11 +31,14 @@ public class CodyzeConfiguration {
 	// TODO output standard stdout?
 	@Option(names = { "-o",
 			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.\n\t(Default: ${DEFAULT-VALUE})")
-	private static String output = "findings.json";
+	private static String output = "findings.sarif";
+
+	@Option(names = { "--sarif" }, description = "Enables the SARIF output.")
+	private boolean sarifOutput;
 
 	@Option(names = {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout\n\t(Default: ${DEFAULT-VALUE})")
-	private static Long timeout = 120L;
+	private static long timeout = 120L;
 
 	@Option(names = {
 			"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations\n\t(Default: ${DEFAULT-VALUE})")
@@ -69,11 +72,11 @@ public class CodyzeConfiguration {
 		CodyzeConfiguration.mark = markModelFiles;
 	}
 
-	public Long getTimeout() {
+	public long getTimeout() {
 		return timeout;
 	}
 
-	public void setTimeout(Long timeout) {
+	public void setTimeout(long timeout) {
 		CodyzeConfiguration.timeout = timeout;
 	}
 
@@ -92,6 +95,10 @@ public class CodyzeConfiguration {
 	public void setTypestateAnalysis(AnalysisMode typestateAnalysis) {
 		this.typestateAnalysis = typestateAnalysis;
 	}
+
+	public boolean isSarifOutput() { return sarifOutput; }
+
+	public void setSarifOutput(boolean sarifOutput) { this.sarifOutput = sarifOutput; }
 }
 
 /**

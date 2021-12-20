@@ -22,14 +22,15 @@ class SarifInstantiator internal constructor() {
     private val sarif = Sarif210()
 
     // TODO: get schema/version automatically(?)
-    private val schema = "https://json.schemastore.org/sarif-2.1.0.json"
+    private val schemaURI = URI.create("https://json.schemastore.org/sarif-2.1.0.json")
     private val sarifVersion = Sarif210.Version._2_1_0
 
     // TODO: automate getting the name/version/schema
+    private val organization = "Fraunhofer AISEC"
     private val driverName = "codyze"
-    private val codyzeVersion = "2.0.0-alpha4"
-    private val download = "https://github.com/Fraunhofer-AISEC/codyze/releases"
-    private val information = "https://www.codyze.io/docs/"
+    private val codyzeVersion = "2.0.0-beta"
+    private val downloadURI = URI.create("https://github.com/Fraunhofer-AISEC/codyze/releases")
+    private val informationURI = URI.create("https://www.codyze.io/docs/")
 
     /**
      * appends the given parameters as a new run to the end of the Sarif Object
@@ -37,22 +38,6 @@ class SarifInstantiator internal constructor() {
      * @param findings a set of Findings as produced by the code analysis
      */
     fun pushRun(findings: Set<Finding>) {
-        // tries to parse the downloadURI
-        val downloadURI: URI? =
-            try {
-                URI(download)
-            } catch (e: URISyntaxException) {
-                null
-            }
-
-        // tries to parse the downloadURI
-        val informationURI: URI? =
-            try {
-                URI(information)
-            } catch (e: URISyntaxException) {
-                null
-            }
-
         /*
         imports the rules as parsed from FindingDescription.kt
         assumes that important fields like shortDescription DO NOT return null, otherwise they will be empty (not null)
@@ -78,7 +63,7 @@ class SarifInstantiator internal constructor() {
                 codyzeVersion,
                 downloadURI,
                 informationURI,
-                "Fraunhofer AISEC",
+                organization,
                 rules
             )
         val tool = generateTool(driver, setOf())
@@ -741,12 +726,6 @@ class SarifInstantiator internal constructor() {
     }
 
     init {
-        val schemaURI: URI? =
-            try {
-                URI(schema)
-            } catch (e: URISyntaxException) {
-                null
-            }
         sarif.`$schema` = schemaURI
         sarif.version = sarifVersion
     }

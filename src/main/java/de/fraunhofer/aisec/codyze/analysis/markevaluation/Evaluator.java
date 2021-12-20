@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.schema.Result;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -211,9 +212,10 @@ public class Evaluator {
 				 * responsible vertices.
 				 */
 				var c = markCtxHolder.getContext(markCtx);
-
+				// since we are receiving a boolean, only PASS and FAIL are passed on here
+				Result.Kind kind = !(Boolean) evaluationResultUb ? Result.Kind.FAIL : Result.Kind.PASS;
 				if (!c.isFindingAlreadyAdded()) {
-					Finding f = createFinding(evalResult, c, rule, !(Boolean) evaluationResultUb);
+					Finding f = createFinding(evalResult, c, rule, kind);
 					findings.add(f);
 				}
 			} else if (evaluationResultUb == null) {
@@ -229,8 +231,8 @@ public class Evaluator {
 				var c = markCtxHolder.getContext(markCtx);
 
 				if (!c.isFindingAlreadyAdded()) {
-					// assume error in `ensure` is violation of rule; rationale: errors usually mean that some analysis couldn't succeed, it's better to check
-					Finding f = createFinding(evalResult, c, rule, true);
+					// pass on OPEN kind since the rule could not be evaluated
+					Finding f = createFinding(evalResult, c, rule, Result.Kind.OPEN);
 					findings.add(f);
 				}
 			} else {
@@ -242,7 +244,7 @@ public class Evaluator {
 		return findings;
 	}
 
-	private Finding createFinding(ConstantValue evalResult, MarkContext c, MRule rule, boolean isRuleViolated) {
+	private Finding createFinding(ConstantValue evalResult, MarkContext c, MRule rule, Result.Kind kind) {
 		/*
 		 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
 		 * responsible vertices.
@@ -289,10 +291,10 @@ public class Evaluator {
 			rule.getStatement().getAction(),
 			"Rule "
 					+ rule.getName()
-					+ (isRuleViolated ? " violated" : " verified"),
+					+ (kind != Result.Kind.PASS ? " violated" : " verified"),
 			currentFile,
 			ranges,
-			isRuleViolated);
+			kind);
 	}
 
 	/**

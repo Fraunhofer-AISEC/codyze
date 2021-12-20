@@ -28,7 +28,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import picocli.CommandLine.Unmatched;
@@ -75,12 +74,14 @@ public class Main {
 		}
 	}
 
-	private static void printErrorMessage(UnrecognizedPropertyException e) {
-		log.warn("Could not parse configuration file correctly " +
-				"because {} is not a valid argument name for {} configurations.\n" +
-				"Valid argument names are\n{}",
-			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
-		log.warn("Continue without configurations from configuration file.\n");
+	@Command(mixinStandardHelpOptions = true)
+	static class FirstPass {
+		@Option(names = {
+				"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
+		File configFile;
+
+		@Unmatched
+		List<String> remainder;
 	}
 
 	// Three places with cli options:
@@ -88,7 +89,7 @@ public class Main {
 	// 2. CodyzeConfiguration
 	// 3. CpgConfiguration
 	@Command(name = "codyze", version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
-	static class FinalPass implements Callable<Integer> {
+	static class FinalPass {
 
 		@CommandLine.Mixin
 		private FirstPass fp;
@@ -107,11 +108,9 @@ public class Main {
 		}
 
 		// Use this constructor only for printing help
-		public FinalPass() {
-		}
+		public FinalPass() {}
 
 		// Setup and start of actual analysis
-		@Override
 		public Integer call() throws Exception {
 			Instant start = Instant.now();
 
@@ -187,64 +186,53 @@ public class Main {
 					System.out.println(e.getMessage());
 				}
 			}
-
 		}
 	}
 
-}
+	// Custom renderer to add nesting optically with indents in help message
+	static class HelpRenderer implements CommandLine.IHelpSectionRenderer {
 
-/**
- *
- */
-@Command(mixinStandardHelpOptions = true)
-class FirstPass {
-	@Option(names = {
-			"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
-	File configFile;
+		private Help help;
 
-	@Unmatched
-	List<String> remainder;
-}
+		@Override
+		public String render(CommandLine.Help help) {
 
-// Custom renderer to add nesting optically with indents in help message
-class HelpRenderer implements CommandLine.IHelpSectionRenderer {
+			CommandSpec spec = help.commandSpec();
+			this.help = help;
 
-	private Help help;
+			Map<String, CommandSpec> mix = spec.mixins();
+			StringBuilder sb = new StringBuilder();
+			for (CommandSpec c : mix.values()) {
+				Help h = new Help(c, help.colorScheme());
+				sb.append(h.optionList());
+			}
 
-	@Override
-	public String render(CommandLine.Help help) {
+			for (ArgGroupSpec group : spec.argGroups()) {
+				sb.append("\n");
+				addHierachy(group, sb, "");
+			}
 
-		CommandSpec spec = help.commandSpec();
-		this.help = help;
-
-		Map<String, CommandSpec> mix = spec.mixins();
-		StringBuilder sb = new StringBuilder();
-		for (CommandSpec c : mix.values()) {
-			Help h = new Help(c, help.colorScheme());
-			sb.append(h.optionList());
+			return sb.toString();
 		}
 
-		for (ArgGroupSpec group : spec.argGroups()) {
-			sb.append("\n");
-			addHierachy(group, sb, "");
-		}
-
-		return sb.toString();
-	}
-
-	private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb, String indent) {
-		sb.append(indent);
-		sb.append(argGroupSpec.heading());
-
-		for (OptionSpec o : argGroupSpec.options()) {
+		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb, String indent) {
 			sb.append(indent);
-			sb.append(help.optionListExcludingGroups(List.of(o)));
+			sb.append(argGroupSpec.heading());
+
+			for (OptionSpec o : argGroupSpec.options()) {
+				sb.append(indent);
+				sb.append(help.optionListExcludingGroups(List.of(o)));
+
+			}
+
+			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
+				addHierachy(group, sb, indent + "    ");
+			}
 
 		}
-
-		for (ArgGroupSpec group : argGroupSpec.subgroups()) {
-			addHierachy(group, sb, indent + "    ");
-		}
-
 	}
 }
+
+
+
+

@@ -20,7 +20,7 @@ public class Configuration {
 	private CodyzeConfiguration codyze = new CodyzeConfiguration();
 	private CpgConfiguration cpg = new CpgConfiguration();
 
-	public static Configuration initConfig(File configFile, String[] args) throws IOException {
+	public static Configuration initConfig(File configFile, String... args) throws IOException {
 		Configuration config;
 		if (configFile != null && configFile.isFile()) {
 			// parse config file
@@ -57,7 +57,7 @@ public class Configuration {
 		log.warn("Continue without configurations from configuration file.\n");
 	}
 
-	private void parseCLI(String[] args) {
+	private void parseCLI(String... args) {
 		// Parse arguments to correct config class by calling execute
 		// setUnmatchedArgumentsAllowed is true because both classes don't have the complete set of options and would cause exceptions
 		// side effect is that all unknown options are ignored

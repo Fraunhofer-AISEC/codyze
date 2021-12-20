@@ -719,7 +719,7 @@ class SarifInstantiator internal constructor() {
      * exist
      * @param path the file that should contain the output
      */
-    fun generateOutput(path: File = File("src/main/resources/output.sarif")) {
+    fun generateOutput(path: File) {
         log.info("Writing sarif output to {}", path.path)
         path.writeText(toString())
     }

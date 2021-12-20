@@ -1,12 +1,9 @@
 
 package de.fraunhofer.aisec.codyze;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
@@ -26,7 +23,6 @@ import java.util.Set;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
@@ -71,41 +67,12 @@ public class Main {
 			c.printVersionHelp(System.out);
 			System.exit(c.getCommandSpec().exitCodeOnVersionHelp());
 		} else {
-			ConfigurationFile config = null;
-			if (firstPass.configFile != null && firstPass.configFile.isFile()) {
-				// parse config file
-				try {
-					config = parseFile(firstPass.configFile);
-				}
-				catch (UnrecognizedPropertyException e) {
-					printErrorMessage(e);
-				}
-			}
-
-			if (config == null)
-				config = new ConfigurationFile();
-			if (config.getCodyzeConfig() == null)
-				config.setCodyze(new CodyzeConfiguration());
-			if (config.getCpgConfig() == null)
-				config.setCpg(new CpgConfiguration());
-
-			// Parse arguments to correct config class
-			// setUnmatchedArgumentsAllowed is true because both classes don't have the complete set of options and would cause exceptions
-			// side effect is that all unknown options are ignored
-			new CommandLine(config.getCodyzeConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
-			new CommandLine(config.getCpgConfig()).setUnmatchedArgumentsAllowed(true).execute(args);
+			Configuration config = Configuration.initConfig(firstPass.configFile, args);
 
 			// Start analysis setup
 			int exitCode = new FinalPass(config.getCodyzeConfig(), config.getCpgConfig()).call();
 			System.exit(exitCode);
 		}
-	}
-
-	private static ConfigurationFile parseFile(File configFile) throws IOException {
-		// parse yaml configuration file with jackson
-		YAMLMapper mapper = new YAMLMapper();
-		mapper.setPropertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy());
-		return mapper.readValue(configFile, ConfigurationFile.class);
 	}
 
 	private static void printErrorMessage(UnrecognizedPropertyException e) {
@@ -279,51 +246,5 @@ class HelpRenderer implements CommandLine.IHelpSectionRenderer {
 			addHierachy(group, sb, indent + "    ");
 		}
 
-	}
-}
-
-/**
- * Codyze runs in any of three modes:
- * <p>
- * CLI: Non-interactive command line client. Accepts arguments from command line and runs analysis.
- * <p>
- * LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE support.
- * <p>
- * TUI: The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries.
- */
-class ExecutionMode {
-	@Option(names = "-c", required = true, description = "Start in command line mode.")
-	boolean cli;
-	@Option(names = "-l", required = true, description = "Start in language server protocol (LSP) mode.")
-	boolean lsp;
-	@Option(names = "-t", required = true, description = "Start interactive console (Text-based User Interface).")
-	boolean tui;
-}
-
-class AnalysisMode {
-
-	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: ${DEFAULT-VALUE})")
-	protected static TypestateMode tsMode = TypestateMode.NFA;
-
-	@JsonProperty("typestate")
-	public void setTsMode(TypestateMode tsMode) {
-		AnalysisMode.tsMode = tsMode;
-	}
-}
-
-class TranslationSettings {
-	@Option(names = {
-			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used.")
-	protected boolean analyzeIncludes = false;
-
-	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
-	protected File[] includesPath;
-
-	public void setAnalyzeIncludes(boolean analyzeIncludes) {
-		this.analyzeIncludes = analyzeIncludes;
-	}
-
-	public void setIncludesPath(File[] includesPath) {
-		this.includesPath = includesPath;
 	}
 }

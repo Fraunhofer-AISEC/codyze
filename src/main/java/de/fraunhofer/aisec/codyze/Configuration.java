@@ -21,22 +21,8 @@ public class Configuration {
 	private CpgConfiguration cpg = new CpgConfiguration();
 
 	public static Configuration initConfig(File configFile, String... args) throws IOException {
-		Configuration config;
-		if (configFile != null && configFile.isFile()) {
-			// parse config file
-			try {
-				config = Configuration.parseFile(configFile);
-			}
-			catch (UnrecognizedPropertyException e) {
-				printErrorMessage(e);
-				config = new Configuration();
-			}
-		} else {
-			config = new Configuration();
-		}
-
+		Configuration config = parseFile(configFile);
 		config.parseCLI(args);
-
 		return config;
 	}
 
@@ -46,19 +32,33 @@ public class Configuration {
 		mapper.enable(JsonParser.Feature.IGNORE_UNDEFINED);
 		mapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
 		mapper.setPropertyNamingStrategy(new PropertyNamingStrategies.KebabCaseStrategy());
-		return mapper.readValue(configFile, Configuration.class);
+
+		Configuration config = null;
+		try {
+			config = mapper.readValue(configFile, Configuration.class);
+		} catch (UnrecognizedPropertyException e) {
+			printErrorMessage(
+					String.format(
+							"Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
+							e.getPropertyName(),
+							e.getPath().get(0).getFieldName()));
+		} catch (StreamReadException e) {
+			printErrorMessage(e.getMessage());
+		} catch (DatabindException e) {
+			printErrorMessage(e.getMessage());
+		} catch (IOException e) {
+			printErrorMessage(e.getMessage());
+		}
+
+		return config != null ? config : new Configuration();
 	}
 
-	private static void printErrorMessage(UnrecognizedPropertyException e) {
-		log.warn("Could not parse configuration file correctly " +
-				"because {} is not a valid argument name for {} configurations.\n" +
-				"Valid argument names are\n{}",
-			e.getPropertyName(), e.getPath().get(0).getFieldName(), e.getKnownPropertyIds());
-		log.warn("Continue without configurations from configuration file.\n");
+	private static void printErrorMessage(String msg) {
+		log.warn(msg + " Continue without configurations from file.");
 	}
 
+	// Parse arguments to correct config class
 	private void parseCLI(String... args) {
-		// Parse arguments to correct config class by calling execute
 		// setUnmatchedArgumentsAllowed is true because both classes don't have the complete set of options and would cause exceptions
 		// side effect is that all unknown options are ignored
 		new CommandLine(codyze).setUnmatchedArgumentsAllowed(true).parseArgs(args);

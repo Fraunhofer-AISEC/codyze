@@ -1,9 +1,7 @@
-
 package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
@@ -16,7 +14,6 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Model.ArgGroupSpec;
 import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Help;
 import picocli.CommandLine.Model.OptionSpec;
 
 import java.util.List;
@@ -38,211 +35,206 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST
 /**
  * Start point of the standalone analysis server.
  */
+
+/*
+	Three places with cli options:
+	1. FirstPass
+	2. CodyzeConfiguration
+	3. CpgConfiguration
+ */
 @SuppressWarnings("java:S106")
 public class Main {
+    private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-	private static final Logger log = LoggerFactory.getLogger(Main.class);
+    /*	Order of main:
+     * 	1. Parse config file option with FirstPass
+     * 	2.1 If help is requested, print help
+     * 	2.2 If version is requested, print version
+     * 	2.3.1 Else parse and merge file and cli options into ConfigurationFile
+     * 	2.3.2 Call start() to start analysis setup
+     */
+    public static void main(String... args) throws Exception {
+        FirstPass firstPass = new FirstPass();
+        CommandLine cmd = new CommandLine(firstPass);
+        cmd.parseArgs(args); // first pass to get potential config file path
+        if (cmd.isUsageHelpRequested()) {
+            // print help message
+            CommandLine c = new CommandLine(new Help());
+            c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
+            c.usage(System.out);
+            System.exit(c.getCommandSpec().exitCodeOnUsageHelp());
+        } else if (cmd.isVersionHelpRequested()) {
+            // print version message
+            CommandLine c = new CommandLine(new Help());
+            c.printVersionHelp(System.out);
+            System.exit(c.getCommandSpec().exitCodeOnVersionHelp());
+        } else {
+            Configuration config = Configuration.initConfig(firstPass.configFile, args);
 
-	/*	Order of main:
-	 * 	1. Parse config file option with FirstPass
-	 * 	2a. If help is requested, print help
-	 * 	2b. If version is requested, print version
-	 * 	2c. If config file is available, parse it into ConfigurationFile
-	 * 	3. Parse cli options into CodyzeConfiguration and CpgConfiguration
-	 * 	4. Call run() to start analysis setup
-	*/
-	public static void main(String... args) throws Exception {
-		FirstPass firstPass = new FirstPass();
-		CommandLine cmd = new CommandLine(firstPass);
-		cmd.parseArgs(args); // first pass to get potential config file path
-		if (cmd.isUsageHelpRequested()) {
-			// print help message
-			CommandLine c = new CommandLine(new FinalPass());
-			c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
-			c.usage(System.out);
-			System.exit(c.getCommandSpec().exitCodeOnUsageHelp());
-		} else if (cmd.isVersionHelpRequested()) {
-			// print version message
-			CommandLine c = new CommandLine(new FinalPass());
-			c.printVersionHelp(System.out);
-			System.exit(c.getCommandSpec().exitCodeOnVersionHelp());
-		} else {
-			Configuration config = Configuration.initConfig(firstPass.configFile, args);
+            // Start analysis setup
+            System.exit(start(config));
+        }
+    }
 
-			// Start analysis setup
-			int exitCode = new FinalPass(config.getCodyzeConfig(), config.getCpgConfig()).call();
-			System.exit(exitCode);
-		}
-	}
+    // Setup and start of actual analysis
+    private static int start(Configuration configuration) throws Exception {
+        Instant start = Instant.now();
 
-	@Command(mixinStandardHelpOptions = true)
-	static class FirstPass {
-		@Option(names = {
-				"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
-		File configFile;
+        CpgConfiguration cpgConfig = configuration.getCpgConfig();
+        CodyzeConfiguration codyzeConfig = configuration.getCodyzeConfig();
 
-		@Unmatched
-		List<String> remainder;
-	}
+        // we need to force load includes for unity builds, otherwise nothing will be parsed
+        if (cpgConfig.isUseUnityBuild()) {
+            cpgConfig.getTranslationSettings().analyzeIncludes = true;
+        }
 
-	// Three places with cli options:
-	// 1. FirstPass
-	// 2. CodyzeConfiguration
-	// 3. CpgConfiguration
-	@Command(name = "codyze", version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
-	static class FinalPass {
+        var config = ServerConfiguration.builder()
+                .launchLsp(codyzeConfig.getExecutionMode().lsp)
+                .launchConsole(codyzeConfig.getExecutionMode().tui)
+                .typestateAnalysis(AnalysisMode.tsMode)
+                .disableGoodFindings(codyzeConfig.isNoGoodFindings())
+                .analyzeIncludes(cpgConfig.getTranslationSettings().analyzeIncludes)
+                .includePath(cpgConfig.getTranslationSettings().includesPath)
+                .useUnityBuild(cpgConfig.isUseUnityBuild())
+                .markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
 
-		@CommandLine.Mixin
-		private FirstPass fp;
+        if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON) || cpgConfig.isEnablePython()) {
+            config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
+        }
 
-		// ArgGroup only for display purposes
-		@ArgGroup(heading = "Codyze Options\n", exclusive = false)
-		private CodyzeConfiguration codyzeConfig;
+        if (cpgConfig.getAdditionalLanguages().contains(Language.GO) || cpgConfig.isEnableGo()) {
+            config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
+        }
 
-		// ArgGroup only for display purposes
-		@ArgGroup(heading = "CPG Options\n", exclusive = false)
-		private CpgConfiguration cpgConfig;
+        AnalysisServer server = AnalysisServer.builder()
+                .config(config
+                        .build())
+                .build();
 
-		public FinalPass(CodyzeConfiguration codyzeConfig, CpgConfiguration cpgConfig) {
-			this.codyzeConfig = codyzeConfig;
-			this.cpgConfig = cpgConfig;
-		}
+        server.start();
+        log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		// Use this constructor only for printing help
-		public FinalPass() {
-		}
+        if (!codyzeConfig.getExecutionMode().lsp && codyzeConfig.getSource() != null) {
+            log.info("Analyzing {}", codyzeConfig.getSource());
+            AnalysisContext ctx = server.analyze(codyzeConfig.getSource().getAbsolutePath())
+                    .get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
 
+            var findings = ctx.getFindings();
 
-		// Setup and start of actual analysis
-		public Integer call() throws Exception {
-			Instant start = Instant.now();
+            writeFindings(findings, codyzeConfig);
 
-			// we need to force load includes for unity builds, otherwise nothing will be parsed
-			if (cpgConfig.isUseUnityBuild()) {
-				cpgConfig.getTranslationSettings().analyzeIncludes = true;
-			}
+            if (codyzeConfig.getExecutionMode().cli) {
+                // Return code based on the existence of violations
+                return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
+            }
+        } else if (codyzeConfig.getExecutionMode().lsp) {
+            // Block main thread. Work is done in
+            Thread.currentThread().join();
+        }
 
-			var config = ServerConfiguration.builder()
-					.launchLsp(codyzeConfig.getExecutionMode().lsp)
-					.launchConsole(codyzeConfig.getExecutionMode().tui)
-					.typestateAnalysis(AnalysisMode.tsMode)
-					.disableGoodFindings(codyzeConfig.isNoGoodFindings())
-					.analyzeIncludes(cpgConfig.getTranslationSettings().analyzeIncludes)
-					.includePath(cpgConfig.getTranslationSettings().includesPath)
-					.useUnityBuild(cpgConfig.isUseUnityBuild())
-					.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
+        return 0;
+    }
 
-			if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON) || cpgConfig.isEnablePython()) {
-				config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
-			}
+    private static void writeFindings(Set<Finding> findings, CodyzeConfiguration codyzeConfig) {
+        // Option to generate legacy output
+        String output = null;
+        SarifInstantiator si = new SarifInstantiator();
+        if (!codyzeConfig.isSarifOutput()) {
+            var mapper = new ObjectMapper();
+            try {
+                output = mapper.writeValueAsString(findings);
+            } catch (JsonProcessingException e) {
+                log.error("Could not serialize findings: {}", e.getMessage());
+            }
+        } else {
+            si.pushRun(findings);
+            output = si.toString();
+        }
 
-			if (cpgConfig.getAdditionalLanguages().contains(Language.GO) || cpgConfig.isEnableGo()) {
-				config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
-			}
+        // Whether to write in file or on stdout
+        String outputFile = codyzeConfig.getOutput();
+        if (outputFile.equals("-")) {
+            System.out.println(output);
+        } else {
+            if (!codyzeConfig.isSarifOutput()) {
+                try (PrintWriter out = new PrintWriter(outputFile)) {
+                    out.println(output);
+                } catch (FileNotFoundException e) {
+                    System.out.println(e.getMessage());
+                }
+            } else
+                si.generateOutput(new File(outputFile));
+        }
+    }
 
-			AnalysisServer server = AnalysisServer.builder()
-					.config(config
-							.build())
-					.build();
+    //
+    @Command(mixinStandardHelpOptions = true)
+    static class FirstPass {
+        @Option(names = {
+                "--config"}, paramLabel = "<path>", description = "Parse configuration settings from file")
+        File configFile;
 
-			server.start();
-			log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
+        @Unmatched
+        List<String> remainder;
+    }
 
-			if (!codyzeConfig.getExecutionMode().lsp && codyzeConfig.getSource() != null) {
-				log.info("Analyzing {}", codyzeConfig.getSource());
-				AnalysisContext ctx = server.analyze(codyzeConfig.getSource().getAbsolutePath())
-						.get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
+    // Combines all CLI Options from the different classes to be able to render a complete help message
+    @Command(name = "codyze", version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+    static class Help {
 
-				var findings = ctx.getFindings();
+        @CommandLine.Mixin
+        private FirstPass fp;
 
-				writeFindings(findings);
+        // ArgGroup only for display purposes
+        @ArgGroup(heading = "Codyze Options\n", exclusive = false)
+        private CodyzeConfiguration codyzeConfig;
 
-				if (codyzeConfig.getExecutionMode().cli) {
-					// Return code based on the existence of violations
-					return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
-				}
-			} else if (codyzeConfig.getExecutionMode().lsp) {
-				// Block main thread. Work is done in
-				Thread.currentThread().join();
-			}
+        // ArgGroup only for display purposes
+        @ArgGroup(heading = "CPG Options\n", exclusive = false)
+        private CpgConfiguration cpgConfig;
+    }
 
-			return 0;
-		}
+    // Custom renderer to add nesting optically with indents in help message
+    static class HelpRenderer implements CommandLine.IHelpSectionRenderer {
 
-		private void writeFindings(Set<Finding> findings) {
-			// Option to generate legacy output
-			String output = null;
-			SarifInstantiator si = new SarifInstantiator();
-			if (!codyzeConfig.isSarifOutput()) {
-				var mapper = new ObjectMapper();
-				try {
-					output = mapper.writeValueAsString(findings);
-				} catch (JsonProcessingException e) {
-					log.error("Could not serialize findings: {}", e.getMessage());
-				}
-			} else {
-				si.pushRun(findings);
-				output = si.toString();
-			}
+        private CommandLine.Help help;
 
-			// Whether to write in file or on stdout
-			String outputFile = codyzeConfig.getOutput();
-			if (outputFile.equals("-")) {
-				System.out.println(output);
-			} else {
-				if (!codyzeConfig.isSarifOutput()) {
-					try (PrintWriter out = new PrintWriter(outputFile)) {
-						out.println(output);
-					} catch (FileNotFoundException e) {
-						System.out.println(e.getMessage());
-					}
-				} else
-					si.generateOutput(new File(outputFile));
-			}
-		}
-	}
+        @Override
+        public String render(CommandLine.Help help) {
 
-	// Custom renderer to add nesting optically with indents in help message
-	static class HelpRenderer implements CommandLine.IHelpSectionRenderer {
+            CommandSpec spec = help.commandSpec();
+            this.help = help;
 
-		private Help help;
+            Map<String, CommandSpec> mix = spec.mixins();
+            StringBuilder sb = new StringBuilder();
+            for (CommandSpec c : mix.values()) {
+                CommandLine.Help h = new CommandLine.Help(c, help.colorScheme());
+                sb.append(h.optionList());
+            }
 
-		@Override
-		public String render(CommandLine.Help help) {
+            for (ArgGroupSpec group : spec.argGroups()) {
+                sb.append("\n");
+                addHierachy(group, sb, "");
+            }
 
-			CommandSpec spec = help.commandSpec();
-			this.help = help;
+            return sb.toString();
+        }
 
-			Map<String, CommandSpec> mix = spec.mixins();
-			StringBuilder sb = new StringBuilder();
-			for (CommandSpec c : mix.values()) {
-				Help h = new Help(c, help.colorScheme());
-				sb.append(h.optionList());
-			}
+        private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb, String indent) {
+            sb.append(indent);
+            sb.append(argGroupSpec.heading());
 
-			for (ArgGroupSpec group : spec.argGroups()) {
-				sb.append("\n");
-				addHierachy(group, sb, "");
-			}
+            for (OptionSpec o : argGroupSpec.options()) {
+                sb.append(indent);
+                sb.append(help.optionListExcludingGroups(List.of(o)));
 
-			return sb.toString();
-		}
+            }
 
-		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb, String indent) {
-			sb.append(indent);
-			sb.append(argGroupSpec.heading());
-
-			for (OptionSpec o : argGroupSpec.options()) {
-				sb.append(indent);
-				sb.append(help.optionListExcludingGroups(List.of(o)));
-
-			}
-
-			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
-				addHierachy(group, sb, indent + "    ");
-			}
-		}
-	}
+            for (ArgGroupSpec group : argGroupSpec.subgroups()) {
+                addHierachy(group, sb, indent + "    ");
+            }
+        }
+    }
 }
 
 

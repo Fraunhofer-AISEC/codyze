@@ -2,18 +2,19 @@
 package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import picocli.CommandLine;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class Configuration {
@@ -28,7 +29,7 @@ public class Configuration {
 		return config;
 	}
 
-	private static Configuration parseFile(File configFile) throws IOException {
+	private static Configuration parseFile(File configFile) {
 		// parse yaml configuration file with jackson
 		YAMLMapper mapper = YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build();
 		mapper.enable(JsonParser.Feature.IGNORE_UNDEFINED);
@@ -44,10 +45,8 @@ public class Configuration {
 							"Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
 							e.getPropertyName(),
 							e.getPath().get(0).getFieldName()));
-		} catch (StreamReadException e) {
-			printErrorMessage(e.getMessage());
-		} catch (DatabindException e) {
-			printErrorMessage(e.getMessage());
+		} catch(FileNotFoundException e) {
+			printErrorMessage(String.format("File at %s not found.", configFile.getAbsolutePath()));
 		} catch (IOException e) {
 			printErrorMessage(e.getMessage());
 		}
@@ -56,7 +55,7 @@ public class Configuration {
 	}
 
 	private static void printErrorMessage(String msg) {
-		log.warn(msg + " Continue without configurations from file.");
+		log.warn("{} Continue without configurations from file.", msg);
 	}
 
 	// Parse arguments to correct config class

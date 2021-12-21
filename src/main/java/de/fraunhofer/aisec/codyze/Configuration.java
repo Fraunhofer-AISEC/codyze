@@ -66,7 +66,7 @@ public class Configuration {
 		new CommandLine(cpg).setUnmatchedArgumentsAllowed(true).parseArgs(args);
 	}
 
-	public CodyzeConfiguration getCodyzeConfig() {
+	public CodyzeConfiguration getCodyze() {
 		return codyze;
 	}
 
@@ -74,7 +74,7 @@ public class Configuration {
 		this.codyze = codyze;
 	}
 
-	public CpgConfiguration getCpgConfig() {
+	public CpgConfiguration getCpg() {
 		return cpg;
 	}
 

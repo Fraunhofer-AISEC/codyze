@@ -13,21 +13,23 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Start point of the standalone analysis server.
  */
 @SuppressWarnings("java:S106")
-@Command(name = "codyze", mixinStandardHelpOptions = true, version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+@Command(name = "codyze", mixinStandardHelpOptions = true, versionProvider = ManifestVersionProvider.class, description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 public class Main implements Callable<Integer> {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -166,8 +168,9 @@ public class Main implements Callable<Integer> {
 				catch (FileNotFoundException e) {
 					System.out.println(e.getMessage());
 				}
-			} else
+			} else {
 				si.generateOutput(new File(outputFile));
+			}
 		}
 	}
 }
@@ -204,4 +207,36 @@ class TranslationSettings {
 
 	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
 	protected File[] includesPath;
+}
+
+class ManifestVersionProvider implements CommandLine.IVersionProvider {
+
+	// adapted example from https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java
+	@Override
+	public String[] getVersion() throws Exception {
+		Enumeration<URL> resources = CommandLine.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+		while (resources.hasMoreElements()) {
+			URL url = resources.nextElement();
+			try {
+				Manifest manifest = new Manifest(url.openStream());
+				if (isApplicableManifest(manifest)) {
+					Attributes attr = manifest.getMainAttributes();
+					return new String[] { get(attr, "Implementation-Version").toString() };
+				}
+			}
+			catch (IOException ex) {
+				return new String[] { "Unable to read from " + url + ": " + ex };
+			}
+		}
+		return new String[] { "Unable to find manifest file." };
+	}
+
+	private boolean isApplicableManifest(Manifest manifest) {
+		Attributes attributes = manifest.getMainAttributes();
+		return "codyze".equals(get(attributes, "Implementation-Title"));
+	}
+
+	private static Object get(Attributes attributes, String key) {
+		return attributes.get(new Attributes.Name(key));
+	}
 }

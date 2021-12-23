@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.codyze;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
 import org.slf4j.Logger;
@@ -12,21 +13,23 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Start point of the standalone analysis server.
  */
 @SuppressWarnings("java:S106")
-@Command(name = "codyze", mixinStandardHelpOptions = true, version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+@Command(name = "codyze", mixinStandardHelpOptions = true, versionProvider = ManifestVersionProvider.class, description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 public class Main implements Callable<Integer> {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -50,8 +53,11 @@ public class Main implements Callable<Integer> {
 	private File[] markFolderNames;
 
 	@Option(names = { "-o",
-			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
+			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.sarif", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
 	private String outputFile;
+
+	@Option(names = { "--sarif" }, description = "Enables the SARIF output.")
+	private boolean sarifOutput;
 
 	@Option(names = {
 			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
@@ -135,26 +141,37 @@ public class Main implements Callable<Integer> {
 	}
 
 	private void writeFindings(Set<Finding> findings) {
-		var mapper = new ObjectMapper();
+		// Option to generate legacy output
 		String output = null;
-		try {
-			output = mapper.writeValueAsString(findings);
-		}
-		catch (JsonProcessingException e) {
-			log.error("Could not serialize findings: {}", e.getMessage());
+		SarifInstantiator si = new SarifInstantiator();
+		if (!sarifOutput) {
+			var mapper = new ObjectMapper();
+			try {
+				output = mapper.writeValueAsString(findings);
+			}
+			catch (JsonProcessingException e) {
+				log.error("Could not serialize findings: {}", e.getMessage());
+			}
+		} else {
+			si.pushRun(findings);
+			output = si.toString();
 		}
 
+		// Whether to write in file or on stdout
 		if (outputFile.equals("-")) {
 			System.out.println(output);
 		} else {
-			try (PrintWriter out = new PrintWriter(new File(outputFile))) {
-				out.println(output);
-			}
-			catch (FileNotFoundException e) {
-				System.out.println(e.getMessage());
+			if (!sarifOutput) {
+				try (PrintWriter out = new PrintWriter(outputFile)) {
+					out.println(output);
+				}
+				catch (FileNotFoundException e) {
+					System.out.println(e.getMessage());
+				}
+			} else {
+				si.generateOutput(new File(outputFile));
 			}
 		}
-
 	}
 }
 
@@ -190,4 +207,36 @@ class TranslationSettings {
 
 	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
 	protected File[] includesPath;
+}
+
+class ManifestVersionProvider implements CommandLine.IVersionProvider {
+
+	// adapted example from https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java
+	@Override
+	public String[] getVersion() throws Exception {
+		Enumeration<URL> resources = CommandLine.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+		while (resources.hasMoreElements()) {
+			URL url = resources.nextElement();
+			try {
+				Manifest manifest = new Manifest(url.openStream());
+				if (isApplicableManifest(manifest)) {
+					Attributes attr = manifest.getMainAttributes();
+					return new String[] { get(attr, "Implementation-Version").toString() };
+				}
+			}
+			catch (IOException ex) {
+				return new String[] { "Unable to read from " + url + ": " + ex };
+			}
+		}
+		return new String[] { "Unable to find manifest file." };
+	}
+
+	private boolean isApplicableManifest(Manifest manifest) {
+		Attributes attributes = manifest.getMainAttributes();
+		return "codyze".equals(get(attributes, "Implementation-Title"));
+	}
+
+	private static Object get(Attributes attributes, String key) {
+		return attributes.get(new Attributes.Name(key));
+	}
 }

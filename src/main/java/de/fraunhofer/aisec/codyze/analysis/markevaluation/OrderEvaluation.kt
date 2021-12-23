@@ -45,10 +45,10 @@ class OrderEvaluation {
         val variableDecl = instanceContext.getNode(markVar)
         if (variableDecl == null) {
             log.warn(
-                "No instance for markvar $markVar set in the instancecontext. Invalid evaluation."
+                "No instance for markvar $markVar set in the instance context. Invalid evaluation."
             )
             return ErrorValue.newErrorValue(
-                "No instance for markvar $markVar set in the instancecontext. Invalid evaluation."
+                "No instance for markvar $markVar set in the instance context. Invalid evaluation."
             )
         }
 
@@ -56,7 +56,7 @@ class OrderEvaluation {
         val entityReferences = mutableSetOf<String>()
         ExpressionHelper.collectMarkInstances(orderExpression.exp, entityReferences)
 
-        val referencedNodes = mutableSetOf<Long?>()
+        val referencedNodes = mutableSetOf<Long>()
         for (alias in entityReferences) {
             val node = instanceContext.getNode(alias)
             if (node == null) {
@@ -65,7 +65,14 @@ class OrderEvaluation {
                     "Alias $alias is not referenced in this rule ${rule.name}"
                 )
             }
-            referencedNodes.add(node.id)
+
+            val id = node.id
+
+            if (id == null) {
+                return ErrorValue.newErrorValue("Node $node does not have an identifier")
+            } else {
+                referencedNodes.add(id)
+            }
         }
 
         val dfa = FSMBuilder().sequenceToDFA(orderExpression)

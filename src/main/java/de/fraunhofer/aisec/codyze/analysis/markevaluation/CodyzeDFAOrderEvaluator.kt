@@ -12,7 +12,7 @@ import de.fraunhofer.aisec.cpg.graph.Node
 import java.io.File
 
 class CodyzeDFAOrderEvaluator(
-    referencedVertices: Set<Long?>,
+    referencedVertices: Set<Long>,
     nodesToOp: Map<Node, String>,
     thisPositionOfNode: Map<Node, Int>,
     val rule: MRule,
@@ -20,15 +20,15 @@ class CodyzeDFAOrderEvaluator(
     val ctx: AnalysisContext
 ) : DFAOrderEvaluator(referencedVertices, nodesToOp, thisPositionOfNode) {
 
-    override fun actionMissingTransitionForNode(node: Node, fsm: DFA?) {
+    override fun actionMissingTransitionForNode(node: Node, fsm: DFA) {
         val region = Utils.getRegionByNode(node)
         val outgoing = mutableListOf<String>()
-        if (fsm?.currentState?.isAcceptingState == true) {
+        if (fsm.currentState?.isAcceptingState == true) {
             outgoing.add("END")
         }
 
         val possibleNextEdges =
-            fsm?.currentState?.outgoingEdges?.map { e ->
+            fsm.currentState?.outgoingEdges?.map { e ->
                 if (e.base != null) "${e.base}.${e.op}" else e.op
             }
         if (possibleNextEdges != null) {
@@ -40,7 +40,7 @@ class CodyzeDFAOrderEvaluator(
             Finding(
                 if (rule.errorMessage != null) rule.errorMessage else rule.name,
                 rule.statement.action,
-                "Violation against Order: ${node.code} (${nodesToOp[node]}) is not allowed. Expected one of: " +
+                "Violation against Order: ${node.code} (${nodeToRelevantMethod[node]}) is not allowed. Expected one of: " +
                     outgoing.sorted().joinToString(", ") +
                     " (${rule.errorMessage})",
                 File(node.file!!).toURI(),

@@ -26,18 +26,18 @@ public class CpgConfiguration {
 			"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
 	private boolean enableGo;
 
-	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
-	private TranslationSettings translationSettings = new TranslationSettings();
+	@CommandLine.ArgGroup(exclusive = false, heading = "Translation Options\n")
+	private TranslationSettings translation = new TranslationSettings();
 
 	@Option(names = { "--unity" }, description = "Enables unity builds (C++ only) for files in the path")
 	private boolean useUnityBuild = false;
 
-	public TranslationSettings getTranslationSettings() {
-		return translationSettings;
+	public TranslationSettings getTranslation() {
+		return translation;
 	}
 
-	public void setTranslationSettings(TranslationSettings translationSettings) {
-		this.translationSettings = translationSettings;
+	public void setTranslation(TranslationSettings translation) {
+		this.translation = translation;
 	}
 
 	public Set<Language> getAdditionalLanguages() {

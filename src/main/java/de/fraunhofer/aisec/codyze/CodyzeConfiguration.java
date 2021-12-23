@@ -14,11 +14,11 @@ public class CodyzeConfiguration {
 	// TODO: names
 
 	@JsonIgnore
-	@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
+	@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
 	private ExecutionMode executionMode;
 
-	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-	private AnalysisMode typestateAnalysis = new AnalysisMode();
+	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis Options\n")
+	private AnalysisMode analysis = new AnalysisMode();
 
 	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
 	private File source;
@@ -88,17 +88,21 @@ public class CodyzeConfiguration {
 		CodyzeConfiguration.noGoodFindings = noGoodFindings;
 	}
 
-	public AnalysisMode getTypestateAnalysis() {
-		return typestateAnalysis;
+	public AnalysisMode getAnalysis() {
+		return analysis;
 	}
 
-	public void setTypestateAnalysis(AnalysisMode typestateAnalysis) {
-		this.typestateAnalysis = typestateAnalysis;
+	public void setAnalysis(AnalysisMode analysis) {
+		this.analysis = analysis;
 	}
 
-	public boolean isSarifOutput() { return sarifOutput; }
+	public boolean isSarifOutput() {
+		return sarifOutput;
+	}
 
-	public void setSarifOutput(boolean sarifOutput) { this.sarifOutput = sarifOutput; }
+	public void setSarifOutput(boolean sarifOutput) {
+		this.sarifOutput = sarifOutput;
+	}
 }
 
 /**

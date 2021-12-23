@@ -1,3 +1,4 @@
+
 package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -88,7 +89,7 @@ public class Main {
 
 		// we need to force load includes for unity builds, otherwise nothing will be parsed
 		if (cpgConfig.isUseUnityBuild()) {
-			cpgConfig.getTranslationSettings().analyzeIncludes = true;
+			cpgConfig.getTranslation().analyzeIncludes = true;
 		}
 
 		var config = ServerConfiguration.builder()
@@ -96,8 +97,8 @@ public class Main {
 				.launchConsole(codyzeConfig.getExecutionMode().tui)
 				.typestateAnalysis(AnalysisMode.tsMode)
 				.disableGoodFindings(codyzeConfig.isNoGoodFindings())
-				.analyzeIncludes(cpgConfig.getTranslationSettings().analyzeIncludes)
-				.includePath(cpgConfig.getTranslationSettings().includesPath)
+				.analyzeIncludes(cpgConfig.getTranslation().analyzeIncludes)
+				.includePath(cpgConfig.getTranslation().includesPath)
 				.useUnityBuild(cpgConfig.isUseUnityBuild())
 				.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
 
@@ -146,7 +147,8 @@ public class Main {
 			var mapper = new ObjectMapper();
 			try {
 				output = mapper.writeValueAsString(findings);
-			} catch (JsonProcessingException e) {
+			}
+			catch (JsonProcessingException e) {
 				log.error("Could not serialize findings: {}", e.getMessage());
 			}
 		} else {
@@ -162,7 +164,8 @@ public class Main {
 			if (!codyzeConfig.isSarifOutput()) {
 				try (PrintWriter out = new PrintWriter(outputFile)) {
 					out.println(output);
-				} catch (FileNotFoundException e) {
+				}
+				catch (FileNotFoundException e) {
 					System.out.println(e.getMessage());
 				}
 			} else
@@ -174,7 +177,7 @@ public class Main {
 	@Command(mixinStandardHelpOptions = true)
 	static class FirstPass {
 		@Option(names = {
-				"--config"}, paramLabel = "<path>", description = "Parse configuration settings from file")
+				"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
 		File configFile;
 
 		@Unmatched
@@ -239,7 +242,3 @@ public class Main {
 		}
 	}
 }
-
-
-
-

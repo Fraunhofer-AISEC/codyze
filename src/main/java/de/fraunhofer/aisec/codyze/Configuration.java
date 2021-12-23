@@ -39,15 +39,18 @@ public class Configuration {
 		Configuration config = null;
 		try {
 			config = mapper.readValue(configFile, Configuration.class);
-		} catch (UnrecognizedPropertyException e) {
+		}
+		catch (UnrecognizedPropertyException e) {
 			printErrorMessage(
-					String.format(
-							"Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
-							e.getPropertyName(),
-							e.getPath().get(0).getFieldName()));
-		} catch(FileNotFoundException e) {
+				String.format(
+					"Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
+					e.getPropertyName(),
+					e.getPath().get(0).getFieldName()));
+		}
+		catch (FileNotFoundException e) {
 			printErrorMessage(String.format("File at %s not found.", configFile.getAbsolutePath()));
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			printErrorMessage(e.getMessage());
 		}
 

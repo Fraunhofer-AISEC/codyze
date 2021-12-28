@@ -32,7 +32,7 @@ public class NFA {
 	}
 
 	/* Set of transitions between states */
-	private final Set<NFATransition<StateNode>> transitions = new HashSet<>();
+	private final Set<NFATransition> transitions = new HashSet<>();
 
 	/* The set of states with tokens. */
 	private final Set<StateNode> currentConfiguration = new HashSet<>();
@@ -54,7 +54,7 @@ public class NFA {
 	 *
 	 * @return
 	 */
-	public Set<NFATransition<StateNode>> getTransitions() {
+	public Set<NFATransition> getTransitions() {
 		return Set.copyOf(this.transitions);
 	}
 
@@ -109,7 +109,7 @@ public class NFA {
 
 		// Create transitions from artificial START state into start nodes
 		for (StateNode startNode : startNodes) {
-			NFATransition<StateNode> initialTransition = new NFATransition<>(START, startNode, startNode.getOp());
+			NFATransition initialTransition = new NFATransition(START, startNode, startNode.getOp());
 			this.transitions.add(initialTransition);
 		}
 		// Set NFA to START state
@@ -151,7 +151,7 @@ public class NFA {
 						if (!seen.contains(s)) {
 							newWork.add(s);
 						}
-						transitions.add(new NFATransition<>(n, s, s.getOp()));
+						transitions.add(new NFATransition(n, s, s.getOp()));
 					}
 					seen.add(n);
 				}
@@ -241,7 +241,7 @@ public class NFA {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (NFATransition<StateNode> t : transitions) {
+		for (NFATransition t : transitions) {
 			sb.append("\t");
 			sb.append(t.toString());
 			sb.append("\n");

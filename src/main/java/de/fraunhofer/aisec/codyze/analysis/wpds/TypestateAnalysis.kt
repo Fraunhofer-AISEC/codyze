@@ -9,7 +9,6 @@ import de.breakpointsec.pushdown.rules.PushRule
 import de.breakpointsec.pushdown.rules.Rule
 import de.fraunhofer.aisec.codyze.analysis.*
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.*
-import de.fraunhofer.aisec.codyze.analysis.passes.astParent
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
 import de.fraunhofer.aisec.codyze.markmodel.MRule
@@ -24,6 +23,7 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.types.Type
+import de.fraunhofer.aisec.cpg.passes.astParent
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import de.fraunhofer.aisec.mark.markDsl.Terminal
 import java.io.File

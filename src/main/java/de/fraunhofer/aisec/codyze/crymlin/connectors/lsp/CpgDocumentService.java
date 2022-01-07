@@ -1,8 +1,8 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.connectors.lsp;
 
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass;
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass;
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass;
+import de.fraunhofer.aisec.cpg.passes.IdentifierPass;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
 import de.fraunhofer.aisec.codyze.analysis.Finding;

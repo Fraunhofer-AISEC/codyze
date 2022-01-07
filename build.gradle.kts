@@ -13,7 +13,7 @@ plugins {
     id("org.jsonschema2dataclass") version "4.2.0"
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "6.0.5"
+    id("com.diffplug.spotless") version "6.1.0"
     id("com.github.hierynomus.license") version "0.16.1"
 
     kotlin("jvm") version "1.6.10" // we can only upgrade to Kotlin 1.5, if CPG does
@@ -96,8 +96,8 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:1.8.0-beta4") // ok
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
-    api("org.apache.logging.log4j:log4j-core:2.17.0") // impl in main; used only in test
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.0")
+    api("org.apache.logging.log4j:log4j-core:2.17.1") // impl in main; used only in test
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.1")
 
     // pull in explicitly to prevent mixing versions
     implementation("org.jetbrains.kotlin:kotlin-reflect")

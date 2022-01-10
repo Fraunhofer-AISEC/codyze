@@ -98,7 +98,7 @@ public class Main {
 				.typestateAnalysis(AnalysisMode.tsMode)
 				.disableGoodFindings(codyzeConfig.isNoGoodFindings())
 				.analyzeIncludes(cpgConfig.getTranslation().analyzeIncludes)
-				.includePath(cpgConfig.getTranslation().includesPath)
+				.includePath(cpgConfig.getTranslation().includes)
 				.useUnityBuild(cpgConfig.isUseUnityBuild())
 				.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
 

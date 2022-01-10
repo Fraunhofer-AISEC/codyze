@@ -16,6 +16,7 @@ import picocli.CommandLine;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Configuration {
 	private static final Logger log = LoggerFactory.getLogger(Configuration.class);
@@ -23,14 +24,21 @@ public class Configuration {
 	private CodyzeConfiguration codyze = new CodyzeConfiguration();
 	private CpgConfiguration cpg = new CpgConfiguration();
 
-	public static Configuration initConfig(File configFile, String... args) throws IOException {
-		Configuration config = parseFile(configFile);
+	public static Configuration initConfig(File configFile, String... args) {
+		Configuration config;
+
+		if (configFile != null)
+			config = parseFile(configFile);
+		else
+			config = new Configuration();
+
 		config.parseCLI(args);
+
 		return config;
 	}
 
+	// parse yaml configuration file with jackson
 	private static Configuration parseFile(File configFile) {
-		// parse yaml configuration file with jackson
 		YAMLMapper mapper = YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build();
 		mapper.enable(JsonParser.Feature.IGNORE_UNDEFINED);
 		mapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
@@ -83,5 +91,15 @@ public class Configuration {
 
 	public void setCpg(CpgConfiguration cpg) {
 		this.cpg = cpg;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		Configuration that = (Configuration) o;
+		return Objects.equals(codyze, that.codyze) && Objects.equals(cpg, that.cpg);
 	}
 }

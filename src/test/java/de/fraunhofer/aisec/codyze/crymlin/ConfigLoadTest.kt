@@ -1,16 +1,16 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
-import de.fraunhofer.aisec.codyze.CodyzeConfiguration
-import de.fraunhofer.aisec.codyze.Configuration
-import de.fraunhofer.aisec.codyze.CpgConfiguration
-import de.fraunhofer.aisec.codyze.Language
+import de.fraunhofer.aisec.codyze.config.CodyzeConfiguration
+import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze.config.CpgConfiguration
+import de.fraunhofer.aisec.codyze.config.Language
 import java.io.File
+import kotlin.Exception
 import kotlin.Throws
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
-import kotlin.Exception
 
 internal class ConfigLoadTest {
 
@@ -35,10 +35,8 @@ internal class ConfigLoadTest {
         assertFalse(codyze.isNoGoodFindings)
 
         val expectedCpg = CpgConfiguration()
-        expectedCpg.setTranslation(
-            false,
-            arrayOf("include1", "include2").map { s -> File(s) }.toTypedArray()
-        )
+        expectedCpg.setAnalyzeIncludes(false)
+        expectedCpg.setIncludes(arrayOf("include1", "include2").map { s -> File(s) }.toTypedArray())
         assertEquals(expectedCpg.translation, config.cpg.translation)
         assertEquals(
             1,

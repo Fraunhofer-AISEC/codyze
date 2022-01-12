@@ -61,6 +61,16 @@ public class CpgConfiguration {
 		this.useUnityBuild = useUnityBuild;
 	}
 
+	@JsonIgnore
+	public void setAnalyzeIncludes(boolean analyzeIncludes) {
+		this.translation.analyzeIncludes = analyzeIncludes;
+	}
+
+	@JsonIgnore
+	public void setIncludes(File[] includes) {
+		this.translation.includes = includes;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)

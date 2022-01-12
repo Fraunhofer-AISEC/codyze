@@ -96,6 +96,27 @@ public class CodyzeConfiguration {
 		AnalysisMode.tsMode = tsMode;
 	}
 
+	public boolean isCli() {
+		return executionMode.cli;
+	}
+
+	public boolean isLsp() {
+		return executionMode.lsp;
+	}
+
+	public boolean isTui() {
+		return executionMode.tui;
+	}
+
+	@JsonIgnore
+	public void setExecutionMode(boolean cli, boolean lsp, boolean tui) {
+		if ((cli ^ lsp ^ tui) && !(cli && lsp && tui)) {
+			executionMode.cli = cli;
+			executionMode.lsp = lsp;
+			executionMode.tui = tui;
+		}
+	}
+
 	public boolean isSarifOutput() {
 		return sarifOutput;
 	}

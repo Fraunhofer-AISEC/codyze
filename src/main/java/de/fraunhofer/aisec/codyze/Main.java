@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.config.*;
 import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
-import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
-import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +18,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -90,36 +87,18 @@ public class Main {
 
 		// we need to force load includes for unity builds, otherwise nothing will be parsed
 		if (cpgConfig.isUseUnityBuild()) {
-			cpgConfig.getTranslation().analyzeIncludes = true;
-		}
-
-		var config = ServerConfiguration.builder()
-				.launchLsp(codyzeConfig.getExecutionMode().lsp)
-				.launchConsole(codyzeConfig.getExecutionMode().tui)
-				.typestateAnalysis(AnalysisMode.tsMode)
-				.disableGoodFindings(codyzeConfig.isNoGoodFindings())
-				.analyzeIncludes(cpgConfig.getTranslation().analyzeIncludes)
-				.includePath(cpgConfig.getTranslation().includes)
-				.useUnityBuild(cpgConfig.isUseUnityBuild())
-				.markFiles(Arrays.stream(codyzeConfig.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
-
-		if (cpgConfig.getAdditionalLanguages().contains(Language.PYTHON) || cpgConfig.isEnablePython()) {
-			config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
-		}
-
-		if (cpgConfig.getAdditionalLanguages().contains(Language.GO) || cpgConfig.isEnableGo()) {
-			config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
+			cpgConfig.setAnalyzeIncludes(true);
 		}
 
 		AnalysisServer server = AnalysisServer.builder()
-				.config(config
-						.build())
+				.config(configuration
+						.buildServerConfiguration())
 				.build();
 
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!codyzeConfig.getExecutionMode().lsp && codyzeConfig.getSource() != null) {
+		if (!codyzeConfig.isLsp() && codyzeConfig.getSource() != null) {
 			log.info("Analyzing {}", codyzeConfig.getSource());
 			AnalysisContext ctx = server.analyze(codyzeConfig.getSource().getAbsolutePath())
 					.get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
@@ -128,11 +107,11 @@ public class Main {
 
 			writeFindings(findings, codyzeConfig);
 
-			if (codyzeConfig.getExecutionMode().cli) {
+			if (codyzeConfig.isCli()) {
 				// Return code based on the existence of violations
 				return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
 			}
-		} else if (codyzeConfig.getExecutionMode().lsp) {
+		} else if (codyzeConfig.isLsp()) {
 			// Block main thread. Work is done in
 			Thread.currentThread().join();
 		}

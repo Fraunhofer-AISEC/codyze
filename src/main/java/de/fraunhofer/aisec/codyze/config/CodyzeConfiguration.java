@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.codyze;
+package de.fraunhofer.aisec.codyze.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +14,6 @@ import java.util.Objects;
 public class CodyzeConfiguration {
 	// TODO: names
 
-	@JsonIgnore
 	@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
 	private ExecutionMode executionMode;
 
@@ -94,17 +93,7 @@ public class CodyzeConfiguration {
 	}
 
 	public void setAnalysis(TypestateMode tsMode) {
-		this.analysis.setTsMode(tsMode);
-	}
-
-	public void setExecutionMode(boolean cli, boolean lsp, boolean tui) {
-		if (executionMode == null)
-			executionMode = new ExecutionMode();
-		if ((cli ^ lsp ^ tui) && !(cli && lsp && tui)) {
-			executionMode.cli = cli;
-			executionMode.lsp = lsp;
-			executionMode.tui = tui;
-		}
+		AnalysisMode.tsMode = tsMode;
 	}
 
 	public boolean isSarifOutput() {
@@ -137,11 +126,11 @@ public class CodyzeConfiguration {
  * TUI: The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries.
  */
 class ExecutionMode {
-	@Option(names = "-c", required = true, description = "Start in command line mode.")
+	@CommandLine.Option(names = "-c", required = true, description = "Start in command line mode.")
 	boolean cli;
-	@Option(names = "-l", required = true, description = "Start in language server protocol (LSP) mode.")
+	@CommandLine.Option(names = "-l", required = true, description = "Start in language server protocol (LSP) mode.")
 	boolean lsp;
-	@Option(names = "-t", required = true, description = "Start interactive console (Text-based User Interface).")
+	@CommandLine.Option(names = "-t", required = true, description = "Start interactive console (Text-based User Interface).")
 	boolean tui;
 
 	@Override
@@ -157,7 +146,7 @@ class ExecutionMode {
 
 class AnalysisMode {
 
-	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: ${DEFAULT-VALUE})")
+	@CommandLine.Option(names = "--typestate", paramLabel = "<NFA|WPDS>", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: ${DEFAULT-VALUE})")
 	protected static TypestateMode tsMode = TypestateMode.NFA;
 
 	@JsonProperty("typestate")

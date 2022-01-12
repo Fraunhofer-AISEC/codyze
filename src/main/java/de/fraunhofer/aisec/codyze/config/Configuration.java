@@ -1,5 +1,12 @@
 
-package de.fraunhofer.aisec.codyze;
+package de.fraunhofer.aisec.codyze.config;
+
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration;
+import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass;
+import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass;
+import de.fraunhofer.aisec.cpg.TranslationConfiguration;
+import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
+import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -16,6 +23,9 @@ import picocli.CommandLine;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class Configuration {
@@ -75,6 +85,60 @@ public class Configuration {
 		// side effect is that all unknown options are ignored
 		new CommandLine(codyze).setUnmatchedArgumentsAllowed(true).parseArgs(args);
 		new CommandLine(cpg).setUnmatchedArgumentsAllowed(true).parseArgs(args);
+	}
+
+	public ServerConfiguration buildServerConfiguration() {
+		var config = ServerConfiguration.builder()
+				.launchLsp(codyze.getExecutionMode().lsp)
+				.launchConsole(codyze.getExecutionMode().tui)
+				.typestateAnalysis(AnalysisMode.tsMode)
+				.disableGoodFindings(codyze.isNoGoodFindings())
+				.markFiles(Arrays.stream(codyze.getMark()).map(File::getAbsolutePath).toArray(String[]::new));
+
+		config.analyzeIncludes(cpg.getTranslation().analyzeIncludes)
+				.includePath(cpg.getTranslation().includes)
+				.useUnityBuild(cpg.isUseUnityBuild());
+
+		if (cpg.getAdditionalLanguages().contains(Language.PYTHON) || cpg.isEnablePython()) {
+			config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
+		}
+
+		if (cpg.getAdditionalLanguages().contains(Language.GO) || cpg.isEnableGo()) {
+			config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
+		}
+
+		return config.build();
+	}
+
+	public TranslationConfiguration buildTranslationConfiguration() {
+		List<File> files = new ArrayList<>();
+		files.add(new File(codyze.getSource().getAbsolutePath()));
+
+		var translationConfig = TranslationConfiguration.builder()
+				.debugParser(true)
+				.failOnError(false)
+				.codeInNodes(true)
+				.loadIncludes(cpg.getTranslation().analyzeIncludes)
+				.useUnityBuild(cpg.isUseUnityBuild())
+				.defaultPasses()
+				.defaultLanguages()
+				.registerPass(new IdentifierPass())
+				.registerPass(new EdgeCachePass())
+				.sourceLocations(files.toArray(new File[0]));
+
+		if (cpg.getAdditionalLanguages().contains(Language.PYTHON) || cpg.isEnablePython()) {
+			translationConfig.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
+		}
+
+		if (cpg.getAdditionalLanguages().contains(Language.GO) || cpg.isEnableGo()) {
+			translationConfig.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
+		}
+
+		for (File file : cpg.getTranslation().includes)
+			translationConfig.includePath(file.getAbsolutePath());
+
+		return translationConfig.build();
+
 	}
 
 	public CodyzeConfiguration getCodyze() {

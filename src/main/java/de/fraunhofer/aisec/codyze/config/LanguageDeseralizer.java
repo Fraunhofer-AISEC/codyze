@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.codyze;
+package de.fraunhofer.aisec.codyze.config;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.DeserializationContext;

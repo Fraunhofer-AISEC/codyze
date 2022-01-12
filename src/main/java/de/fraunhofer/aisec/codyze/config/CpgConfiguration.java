@@ -1,5 +1,5 @@
 
-package de.fraunhofer.aisec.codyze;
+package de.fraunhofer.aisec.codyze.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,11 +34,6 @@ public class CpgConfiguration {
 
 	public TranslationSettings getTranslation() {
 		return translation;
-	}
-
-	public void setTranslation(boolean analyzeIncludes, File[] includesPath) {
-		this.translation.analyzeIncludes = analyzeIncludes;
-		this.translation.includes = includesPath;
 	}
 
 	public Set<Language> getAdditionalLanguages() {
@@ -79,11 +74,11 @@ public class CpgConfiguration {
 }
 
 class TranslationSettings {
-	@Option(names = {
+	@CommandLine.Option(names = {
 			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used.")
 	protected boolean analyzeIncludes = false;
 
-	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
+	@CommandLine.Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
 	protected File[] includes;
 
 	public void setAnalyzeIncludes(boolean analyzeIncludes) {

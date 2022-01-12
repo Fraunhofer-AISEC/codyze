@@ -42,7 +42,7 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST
 
 /*
 	Three places with cli options:
-	1. FirstPass
+	1. ConfigFilePath
 	2. CodyzeConfiguration
 	3. CpgConfiguration
  */
@@ -51,7 +51,7 @@ public class Main {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
 	/*	Order of main:
-	 * 	1. Parse config file option with FirstPass
+	 * 	1. Parse config file option with ConfigFilePath
 	 * 	2.1 If help is requested, print help
 	 * 	2.2 If version is requested, print version
 	 * 	2.3.1 Else parse and merge file and cli options into ConfigurationFile

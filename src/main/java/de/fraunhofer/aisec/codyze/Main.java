@@ -58,7 +58,7 @@ public class Main {
 	 * 	2.3.2 Call start() to start analysis setup
 	 */
 	public static void main(String... args) throws Exception {
-		FirstPass firstPass = new FirstPass();
+		ConfigFilePath firstPass = new ConfigFilePath();
 		CommandLine cmd = new CommandLine(firstPass);
 		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
@@ -175,7 +175,7 @@ public class Main {
 
 	// Stores path to config file given as cli option
 	@Command(mixinStandardHelpOptions = true)
-	static class FirstPass {
+	static class ConfigFilePath {
 		@Option(names = {
 				"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
 		File configFile;
@@ -189,7 +189,7 @@ public class Main {
 	static class Help {
 
 		@CommandLine.Mixin
-		private FirstPass fp;
+		private ConfigFilePath configFilePath;
 
 		// ArgGroup only for display purposes
 		@ArgGroup(heading = "Codyze Options\n", exclusive = false)

@@ -86,8 +86,8 @@ public class Main {
 		CodyzeConfiguration codyzeConfig = configuration.getCodyze();
 
 		// we need to force load includes for unity builds, otherwise nothing will be parsed
-		if (cpgConfig.isUseUnityBuild()) {
-			cpgConfig.setAnalyzeIncludes(true);
+		if (cpgConfig.getUseUnityBuild()) {
+			cpgConfig.getTranslation().setAnalyzeIncludes(true);
 		}
 
 		AnalysisServer server = AnalysisServer.builder()
@@ -98,7 +98,7 @@ public class Main {
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!codyzeConfig.isLsp() && codyzeConfig.getSource() != null) {
+		if (!codyzeConfig.getExecutionMode().isCli() && codyzeConfig.getSource() != null) {
 			log.info("Analyzing {}", codyzeConfig.getSource());
 			AnalysisContext ctx = server.analyze(codyzeConfig.getSource().getAbsolutePath())
 					.get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
@@ -107,11 +107,11 @@ public class Main {
 
 			writeFindings(findings, codyzeConfig);
 
-			if (codyzeConfig.isCli()) {
+			if (codyzeConfig.getExecutionMode().isCli()) {
 				// Return code based on the existence of violations
 				return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
 			}
-		} else if (codyzeConfig.isLsp()) {
+		} else if (codyzeConfig.getExecutionMode().isLsp()) {
 			// Block main thread. Work is done in
 			Thread.currentThread().join();
 		}
@@ -123,7 +123,7 @@ public class Main {
 		// Option to generate legacy output
 		String output = null;
 		SarifInstantiator si = new SarifInstantiator();
-		if (!codyzeConfig.isSarifOutput()) {
+		if (!codyzeConfig.getSarifOutput()) {
 			var mapper = new ObjectMapper();
 			try {
 				output = mapper.writeValueAsString(findings);
@@ -141,7 +141,7 @@ public class Main {
 		if (outputFile.equals("-")) {
 			System.out.println(output);
 		} else {
-			if (!codyzeConfig.isSarifOutput()) {
+			if (!codyzeConfig.getSarifOutput()) {
 				try (PrintWriter out = new PrintWriter(outputFile)) {
 					out.println(output);
 				}
@@ -173,11 +173,11 @@ public class Main {
 
 		// ArgGroup only for display purposes
 		@ArgGroup(heading = "Codyze Options\n", exclusive = false)
-		private CodyzeConfiguration codyzeConfig;
+		private CodyzeConfiguration codyzeConfig = new CodyzeConfiguration();
 
 		// ArgGroup only for display purposes
 		@ArgGroup(heading = "CPG Options\n", exclusive = false)
-		private CpgConfiguration cpgConfig;
+		private CpgConfiguration cpgConfig = new CpgConfiguration();
 	}
 
 	// Custom renderer to add nesting optically with indents in help message

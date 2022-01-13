@@ -12,7 +12,7 @@ class CpgConfiguration {
     @ArgGroup(exclusive = false, heading = "Translation Options\n")
     var translation = TranslationSettings()
 
-    @JsonDeserialize(using = LanguageDeseralizer::class)
+    @JsonDeserialize(using = LanguageDeserializer::class)
     var additionalLanguages: Set<Language> = EnumSet.noneOf(Language::class.java)
 
     // TODO: maybe change to enum set instead of booleans for each language

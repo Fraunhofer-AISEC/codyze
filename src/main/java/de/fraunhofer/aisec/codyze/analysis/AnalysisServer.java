@@ -3,8 +3,6 @@ package de.fraunhofer.aisec.codyze.analysis;
 
 import de.fraunhofer.aisec.codyze.JythonInterpreter;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator;
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass;
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass;
 import de.fraunhofer.aisec.codyze.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.codyze.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.codyze.crymlin.connectors.lsp.CpgLanguageServer;
@@ -14,6 +12,8 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass;
+import de.fraunhofer.aisec.cpg.passes.IdentifierPass;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 import kotlin.Pair;

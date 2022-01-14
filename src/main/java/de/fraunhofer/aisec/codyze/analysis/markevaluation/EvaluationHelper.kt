@@ -4,8 +4,6 @@ import de.fraunhofer.aisec.codyze.analysis.ErrorValue
 import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
 import de.fraunhofer.aisec.codyze.analysis.NodeWithValue
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator.log
-import de.fraunhofer.aisec.codyze.analysis.passes.astParent
-import de.fraunhofer.aisec.codyze.analysis.passes.followNextEOG
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantResolver
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.resolution.SimpleConstantResolver
@@ -24,6 +22,8 @@ import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement
 import de.fraunhofer.aisec.cpg.graph.statements.Statement
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
+import de.fraunhofer.aisec.cpg.passes.astParent
+import de.fraunhofer.aisec.cpg.passes.followNextEOG
 import de.fraunhofer.aisec.mark.markDsl.OpStatement
 import de.fraunhofer.aisec.mark.markDsl.Parameter
 import java.util.*

@@ -82,7 +82,7 @@ public class ServerConfiguration {
 		@NonNull
 		private String[] markModelFiles = new String[0]; // Path of a file or directory
 		@NonNull
-		private TypestateMode typestateAnalysis = TypestateMode.NFA;
+		private TypestateMode typestateAnalysis = TypestateMode.DFA;
 		private boolean analyzeIncludes;
 		private boolean useUnityBuild;
 		private File[] includePath = new File[0];

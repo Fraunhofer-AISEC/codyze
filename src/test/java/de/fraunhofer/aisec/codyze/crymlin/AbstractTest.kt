@@ -1,9 +1,9 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.IdentifierPass
 import java.io.File
 
 abstract class AbstractTest {

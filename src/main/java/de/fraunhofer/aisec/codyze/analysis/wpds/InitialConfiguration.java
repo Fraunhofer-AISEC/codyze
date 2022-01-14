@@ -161,7 +161,7 @@ public class InitialConfiguration {
 			return wnfa;
 		}
 		wnfa.addTransition(new Transition<>(initialState, stmt, accepting),
-			new TypestateWeight(Set.of(new NFATransition<StateNode>(new StateNode(START, START), new StateNode(START, START), "constructor"))));
+			new TypestateWeight(Set.of(new NFATransition(new StateNode(START, START), new StateNode(START, START), "constructor"))));
 
 		// Add final ("accepting") states to NFA.
 		wnfa.addFinalState(accepting);
@@ -189,8 +189,8 @@ public class InitialConfiguration {
 			var tsWeight = rule.getWeight();
 
 			if (tsWeight.value() instanceof Set) {
-				Set<NFATransition<StateNode>> tsTransitions = (Set) tsWeight.value();
-				for (NFATransition<StateNode> tsTransition : tsTransitions) {
+				Set<NFATransition> tsTransitions = (Set) tsWeight.value();
+				for (NFATransition tsTransition : tsTransitions) {
 					if (tsTransition.getSource()
 							.toString()
 							.equals("START.START")) {

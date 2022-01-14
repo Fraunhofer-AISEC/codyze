@@ -11,10 +11,15 @@ import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import java.util.stream.IntStream
 import org.slf4j.LoggerFactory
 
-/** This is mostly copy and paste from the old OrderNFAEvaluator. Should start the analysis. */
+/** This class starts the order evaluation based on the [CodyzeDFAOrderEvaluator].*/
 class OrderEvaluation {
     private val log = LoggerFactory.getLogger(OrderEvaluation::class.java)
 
+    /**
+     * Collects the mark instances of the [orderExpression], maps CPG nodes
+     * to the string representation of the MARK-Operators and starts the order
+     * evaluation.
+     */
     fun evaluateDFA(
         rule: MRule,
         markContextHolder: MarkContextHolder,

@@ -27,17 +27,6 @@ class CpgConfiguration {
     @set:JsonProperty("unity")
     @CommandLine.Option(names = ["--unity"], description = ["Enables unity builds (C++ only) for files in the path"])
     var useUnityBuild = false
-
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val that = o as CpgConfiguration
-        return (useUnityBuild == that.useUnityBuild &&
-                enablePython == that.enablePython &&
-                enableGo == that.enableGo &&
-                translation == that.translation &&
-                additionalLanguages == that.additionalLanguages)
-    }
 }
 
 class TranslationSettings {
@@ -46,11 +35,4 @@ class TranslationSettings {
 
     @CommandLine.Option(names = ["--includes"], description = ["Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)"], split = ":|;")
     var includes: Array<File>? = null
-
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val that = o as TranslationSettings
-        return analyzeIncludes == that.analyzeIncludes && Arrays.equals(includes, that.includes)
-    }
 }

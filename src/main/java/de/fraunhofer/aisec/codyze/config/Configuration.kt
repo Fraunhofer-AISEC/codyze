@@ -39,8 +39,8 @@ class Configuration {
     fun buildServerConfiguration(): ServerConfiguration {
         val config =
                 ServerConfiguration.builder()
-                        .launchLsp(codyze.executionMode!!.isLsp)
-                        .launchConsole(codyze.executionMode!!.isTui)
+                        .launchLsp(codyze.executionMode.isLsp)
+                        .launchConsole(codyze.executionMode.isTui)
                         .typestateAnalysis(codyze.analysis.tsMode)
                         .disableGoodFindings(codyze.noGoodFindings)
                         .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
@@ -94,13 +94,6 @@ class Configuration {
         }
         for (file in cpg.translation.includes!!) translationConfig.includePath(file.absolutePath)
         return translationConfig.build()
-    }
-
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val that = o as Configuration
-        return codyze == that.codyze && cpg == that.cpg
     }
 
     companion object {

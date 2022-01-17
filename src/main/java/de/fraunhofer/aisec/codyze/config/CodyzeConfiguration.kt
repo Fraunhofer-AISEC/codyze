@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze.config
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import java.io.File
@@ -9,8 +10,9 @@ import picocli.CommandLine.ArgGroup
 class CodyzeConfiguration {
 
     // TODO: names
+    @JsonIgnore
     @ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
-    var executionMode: ExecutionMode = ExecutionMode()
+    val executionMode: ExecutionMode = ExecutionMode()
 
     @ArgGroup(exclusive = false, heading = "Analysis Options\n")
     var analysis = AnalysisMode()
@@ -31,15 +33,9 @@ class CodyzeConfiguration {
     @CommandLine.Option(names = ["--no-good-findings"], description = ["Disable output of \"positive\" findings which indicate correct implementations\n\t(Default: \${DEFAULT-VALUE})"])
     var noGoodFindings = false
 
+    @JsonProperty("sarif")
     @CommandLine.Option(names = ["--sarif"], description = ["Enables the SARIF output."])
     var sarifOutput: Boolean = false
-
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val that = o as CodyzeConfiguration
-        return (sarifOutput == that.sarifOutput && executionMode == that.executionMode && analysis == that.analysis && source == that.source)
-    }
 }
 
 /**
@@ -61,13 +57,6 @@ class ExecutionMode {
 
     @CommandLine.Option(names = ["-t"], required = true, description = ["Start interactive console (Text-based User Interface)."])
     var isTui = false
-
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val that = o as ExecutionMode
-        return isCli == that.isCli && isLsp == that.isLsp && isTui == that.isTui
-    }
 }
 
 class AnalysisMode {
@@ -76,8 +65,4 @@ class AnalysisMode {
     @JsonProperty("typestate")
     @CommandLine.Option(names = ["--typestate"], paramLabel = "<NFA|WPDS>", type = [TypestateMode::class], description = ["Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"])
     var tsMode = TypestateMode.DFA
-
-    override fun equals(o: Any?): Boolean {
-        return !(o == null || javaClass != o.javaClass)
-    }
 }

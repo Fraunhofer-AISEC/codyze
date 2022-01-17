@@ -25,6 +25,9 @@ internal class ConfigLoadTest {
             codyze.mark
         )
         assertEquals("result.out", codyze.output)
+        assertEquals(140L, codyze.timeout)
+        assertTrue(codyze.sarifOutput)
+        assertEquals(TypestateMode.WPDS, codyze.analysis.tsMode)
 
         assertFalse(cpg.translation.analyzeIncludes)
         assertContentEquals(
@@ -39,9 +42,6 @@ internal class ConfigLoadTest {
         assertContains(cpg.additionalLanguages, Language.PYTHON)
 
         // assert that nothing else was changed from the default values
-        assertEquals(120L, codyze.timeout)
-        assertFalse(codyze.sarifOutput)
-        assertEquals(TypestateMode.DFA, codyze.analysis.tsMode)
         assertFalse(codyze.noGoodFindings)
         assertFalse(cpg.useUnityBuild)
     }

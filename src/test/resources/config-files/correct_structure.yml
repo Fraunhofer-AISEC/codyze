@@ -6,6 +6,10 @@ codyze:
     - mark4
     - mark3
     - mark2
+  timeout: 140
+  sarif: true
+  analysis:
+    typestate: WPDS
 
 cpg:
   additional-languages:

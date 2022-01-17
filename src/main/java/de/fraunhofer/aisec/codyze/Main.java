@@ -18,7 +18,6 @@ import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.Unmatched;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
 
-
 import java.io.*;
 import java.net.URL;
 import java.time.Duration;
@@ -165,7 +164,7 @@ public class Main {
 	}
 
 	// Combines all CLI Options from the different classes to be able to render a complete help message
-	@Command(name = "codyze", mixinStandardHelpOptions = true, versionProvider = ManifestVersionProvider.class, description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+	@Command(name = "codyze", versionProvider = ManifestVersionProvider.class, description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 	static class Help {
 
 		@CommandLine.Mixin

@@ -126,7 +126,8 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     implementation(kotlin("stdlib-jdk8"))
 
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.0")
+    // Parser for yaml configuration file
+    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.0")
 }
 
 application {

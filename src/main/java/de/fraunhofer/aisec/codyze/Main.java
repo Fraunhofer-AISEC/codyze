@@ -1,27 +1,13 @@
+
 package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.config.*;
 import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -30,8 +16,22 @@ import picocli.CommandLine.Model.ArgGroupSpec;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.Unmatched;
-
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
+
+
+import java.io.*;
+import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Enumeration;
+import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
  * Start point of the standalone analysis server.
@@ -97,7 +97,7 @@ public class Main {
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!codyzeConfig.getExecutionMode().isCli() && codyzeConfig.getSource() != null) {
+		if (!codyzeConfig.getExecutionMode().isLsp() && codyzeConfig.getSource() != null) {
 			log.info("Analyzing {}", codyzeConfig.getSource());
 			AnalysisContext ctx = server
 					.analyze(codyzeConfig.getSource().getAbsolutePath())
@@ -148,8 +148,9 @@ public class Main {
 				catch (FileNotFoundException e) {
 					System.out.println(e.getMessage());
 				}
-			} else
+			} else {
 				si.generateOutput(new File(outputFile));
+			}
 		}
 	}
 
@@ -164,7 +165,7 @@ public class Main {
 	}
 
 	// Combines all CLI Options from the different classes to be able to render a complete help message
-	@Command(name = "codyze", version = "2.0.0-beta1", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+	@Command(name = "codyze", mixinStandardHelpOptions = true, versionProvider = ManifestVersionProvider.class, description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
 	static class Help {
 
 		@CommandLine.Mixin
@@ -219,5 +220,37 @@ public class Main {
 				addHierachy(group, sb, indent + "    ");
 			}
 		}
+	}
+}
+
+class ManifestVersionProvider implements CommandLine.IVersionProvider {
+
+	// adapted example from https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java
+	@Override
+	public String[] getVersion() throws Exception {
+		Enumeration<URL> resources = CommandLine.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+		while (resources.hasMoreElements()) {
+			URL url = resources.nextElement();
+			try {
+				Manifest manifest = new Manifest(url.openStream());
+				if (isApplicableManifest(manifest)) {
+					Attributes attr = manifest.getMainAttributes();
+					return new String[] { get(attr, "Implementation-Version").toString() };
+				}
+			}
+			catch (IOException ex) {
+				return new String[] { "Unable to read from " + url + ": " + ex };
+			}
+		}
+		return new String[] { "Unable to find manifest file." };
+	}
+
+	private boolean isApplicableManifest(Manifest manifest) {
+		Attributes attributes = manifest.getMainAttributes();
+		return "codyze".equals(get(attributes, "Implementation-Title"));
+	}
+
+	private static Object get(Attributes attributes, String key) {
+		return attributes.get(new Attributes.Name(key));
 	}
 }

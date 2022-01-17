@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.kotlin.dsl.attributes
 
 plugins {
     // built-in
@@ -12,7 +13,7 @@ plugins {
     id("org.jsonschema2dataclass") version "4.2.0"
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "6.0.5"
+    id("com.diffplug.spotless") version "6.2.0"
     id("com.github.hierynomus.license") version "0.16.1"
 
     kotlin("jvm") version "1.6.10" // we can only upgrade to Kotlin 1.5, if CPG does
@@ -25,6 +26,15 @@ group = "de.fraunhofer.aisec"
  */
 gradle.startParameter.excludedTaskNames += "licenseMain"
 gradle.startParameter.excludedTaskNames += "licenseTest"
+
+tasks {
+    jar {
+        manifest {
+            attributes("Implementation-Title" to "codyze",
+                    "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev"))
+        }
+    }
+}
 
 tasks.jacocoTestReport {
     reports {
@@ -86,15 +96,15 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:1.8.0-beta4") // ok
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
-    api("org.apache.logging.log4j:log4j-core:2.17.0") // impl in main; used only in test
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.0")
+    api("org.apache.logging.log4j:log4j-core:2.17.1") // impl in main; used only in test
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.1")
 
     // pull in explicitly to prevent mixing versions
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-
-    api("de.fraunhofer.aisec:cpg-core:4.2.0")
+    api("de.fraunhofer.aisec:cpg-core:4.2.1")
+    api("de.fraunhofer.aisec:cpg-analysis:4.2.1")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

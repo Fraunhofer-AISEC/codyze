@@ -72,9 +72,10 @@ class ExecutionMode {
 
 class AnalysisMode {
 
+    // TODO: Rename description and paramLabel to DFA
     @JsonProperty("typestate")
     @CommandLine.Option(names = ["--typestate"], paramLabel = "<NFA|WPDS>", type = [TypestateMode::class], description = ["Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"])
-    var tsMode = TypestateMode.NFA
+    var tsMode = TypestateMode.DFA
 
     override fun equals(o: Any?): Boolean {
         return !(o == null || javaClass != o.javaClass)

@@ -7,13 +7,13 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass
 import de.fraunhofer.aisec.cpg.ExperimentalGolang
 import de.fraunhofer.aisec.cpg.ExperimentalPython
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.IdentifierPass
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException

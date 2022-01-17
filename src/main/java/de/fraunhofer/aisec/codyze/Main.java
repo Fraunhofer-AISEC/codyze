@@ -1,4 +1,3 @@
-
 package de.fraunhofer.aisec.codyze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -100,7 +99,8 @@ public class Main {
 
 		if (!codyzeConfig.getExecutionMode().isCli() && codyzeConfig.getSource() != null) {
 			log.info("Analyzing {}", codyzeConfig.getSource());
-			AnalysisContext ctx = server.analyze(codyzeConfig.getSource().getAbsolutePath())
+			AnalysisContext ctx = server
+					.analyze(codyzeConfig.getSource().getAbsolutePath())
 					.get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
 
 			var findings = ctx.getFindings();
@@ -156,8 +156,7 @@ public class Main {
 	// Stores path to config file given as cli option
 	@Command(mixinStandardHelpOptions = true)
 	static class ConfigFilePath {
-		@Option(names = {
-				"--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
+		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
 		File configFile;
 
 		@Unmatched

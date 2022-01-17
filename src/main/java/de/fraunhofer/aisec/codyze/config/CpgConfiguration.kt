@@ -17,28 +17,15 @@ class CpgConfiguration {
 
     // TODO: maybe change to enum set instead of booleans for each language
     @JsonIgnore
-    @CommandLine.Option(
-        names = ["--enable-python-support"],
-        description =
-            [
-                "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README."]
-    )
+    @CommandLine.Option(names = ["--enable-python-support"], description = ["Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README."])
     var enablePython = false
 
     @JsonIgnore
-    @CommandLine.Option(
-        names = ["--enable-go-support"],
-        description =
-            [
-                "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README."]
-    )
+    @CommandLine.Option(names = ["--enable-go-support"], description = ["Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README."])
     var enableGo = false
 
     @set:JsonProperty("unity")
-    @CommandLine.Option(
-        names = ["--unity"],
-        description = ["Enables unity builds (C++ only) for files in the path"]
-    )
+    @CommandLine.Option(names = ["--unity"], description = ["Enables unity builds (C++ only) for files in the path"])
     var useUnityBuild = false
 
     override fun equals(o: Any?): Boolean {
@@ -46,29 +33,18 @@ class CpgConfiguration {
         if (o == null || javaClass != o.javaClass) return false
         val that = o as CpgConfiguration
         return (useUnityBuild == that.useUnityBuild &&
-            enablePython == that.enablePython &&
-            enableGo == that.enableGo &&
-            translation == that.translation &&
-            additionalLanguages == that.additionalLanguages)
+                enablePython == that.enablePython &&
+                enableGo == that.enableGo &&
+                translation == that.translation &&
+                additionalLanguages == that.additionalLanguages)
     }
 }
 
 class TranslationSettings {
-    @CommandLine.Option(
-        names = ["--analyze-includes"],
-        description =
-            [
-                "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used."]
-    )
+    @CommandLine.Option(names = ["--analyze-includes"], description = ["Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used."])
     var analyzeIncludes = false
 
-    @CommandLine.Option(
-        names = ["--includes"],
-        description =
-            [
-                "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)"],
-        split = ":|;"
-    )
+    @CommandLine.Option(names = ["--includes"], description = ["Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)"], split = ":|;")
     var includes: Array<File>? = null
 
     override fun equals(o: Any?): Boolean {

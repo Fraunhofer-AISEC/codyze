@@ -26,10 +26,10 @@ class LanguageDeserializer : StdDeserializer<EnumSet<Language>?> {
                         result.add(Language.valueOf(s.uppercase(Locale.getDefault())))
                     } catch (e: IllegalArgumentException) {
                         log.warn(
-                            "Could not parse configuration file correctly because " +
-                                "\"{}\" is not a supported programming language. " +
-                                "Continue with parsing rest of configuration file.",
-                            s
+                                "Could not parse configuration file correctly because " +
+                                        "\"{}\" is not a supported programming language. " +
+                                        "Continue with parsing rest of configuration file.",
+                                s
                         )
                     }
                 }

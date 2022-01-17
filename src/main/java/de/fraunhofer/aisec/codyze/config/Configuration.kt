@@ -38,26 +38,26 @@ class Configuration {
     @ExperimentalPython
     fun buildServerConfiguration(): ServerConfiguration {
         val config =
-            ServerConfiguration.builder()
-                .launchLsp(codyze.executionMode!!.isLsp)
-                .launchConsole(codyze.executionMode!!.isTui)
-                .typestateAnalysis(codyze.analysis.tsMode)
-                .disableGoodFindings(codyze.noGoodFindings)
-                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-        config
-            .analyzeIncludes(cpg.translation.analyzeIncludes)
-            .includePath(cpg.translation.includes)
-            .useUnityBuild(cpg.useUnityBuild)
+                ServerConfiguration.builder()
+                        .launchLsp(codyze.executionMode!!.isLsp)
+                        .launchConsole(codyze.executionMode!!.isTui)
+                        .typestateAnalysis(codyze.analysis.tsMode)
+                        .disableGoodFindings(codyze.noGoodFindings)
+                        .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+                        // TODO: remove all cpg config and replace with TranslationConfiguration
+                        .analyzeIncludes(cpg.translation.analyzeIncludes)
+                        .includePath(cpg.translation.includes)
+                        .useUnityBuild(cpg.useUnityBuild)
         if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
             config.registerLanguage(
-                PythonLanguageFrontend::class.java,
-                PythonLanguageFrontend.PY_EXTENSIONS
+                    PythonLanguageFrontend::class.java,
+                    PythonLanguageFrontend.PY_EXTENSIONS
             )
         }
         if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
             config.registerLanguage(
-                GoLanguageFrontend::class.java,
-                GoLanguageFrontend.GOLANG_EXTENSIONS
+                    GoLanguageFrontend::class.java,
+                    GoLanguageFrontend.GOLANG_EXTENSIONS
             )
         }
         return config.build()
@@ -69,27 +69,27 @@ class Configuration {
         val files: MutableList<File> = ArrayList()
         files.add(File(codyze.source!!.absolutePath))
         val translationConfig =
-            TranslationConfiguration.builder()
-                .debugParser(true)
-                .failOnError(false)
-                .codeInNodes(true)
-                .loadIncludes(cpg.translation.analyzeIncludes)
-                .useUnityBuild(cpg.useUnityBuild)
-                .defaultPasses()
-                .defaultLanguages()
-                .registerPass(IdentifierPass())
-                .registerPass(EdgeCachePass())
-                .sourceLocations(*files.toTypedArray())
+                TranslationConfiguration.builder()
+                        .debugParser(true)
+                        .failOnError(false)
+                        .codeInNodes(true)
+                        .loadIncludes(cpg.translation.analyzeIncludes)
+                        .useUnityBuild(cpg.useUnityBuild)
+                        .defaultPasses()
+                        .defaultLanguages()
+                        .registerPass(IdentifierPass())
+                        .registerPass(EdgeCachePass())
+                        .sourceLocations(*files.toTypedArray())
         if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
             translationConfig.registerLanguage(
-                PythonLanguageFrontend::class.java,
-                PythonLanguageFrontend.PY_EXTENSIONS
+                    PythonLanguageFrontend::class.java,
+                    PythonLanguageFrontend.PY_EXTENSIONS
             )
         }
         if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
             translationConfig.registerLanguage(
-                GoLanguageFrontend::class.java,
-                GoLanguageFrontend.GOLANG_EXTENSIONS
+                    GoLanguageFrontend::class.java,
+                    GoLanguageFrontend.GOLANG_EXTENSIONS
             )
         }
         for (file in cpg.translation.includes!!) translationConfig.includePath(file.absolutePath)
@@ -108,16 +108,14 @@ class Configuration {
 
         @JvmStatic
         fun initConfig(configFile: File?, vararg args: String?): Configuration {
-            val config: Configuration =
-                if (configFile != null) parseFile(configFile) else Configuration()
+            val config: Configuration = if (configFile != null) parseFile(configFile) else Configuration()
             config.parseCLI(*args)
             return config
         }
 
         // parse yaml configuration file with jackson
         private fun parseFile(configFile: File): Configuration {
-            val mapper =
-                YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
+            val mapper = YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
             mapper.enable(JsonParser.Feature.IGNORE_UNDEFINED)
             mapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
@@ -126,11 +124,11 @@ class Configuration {
                 config = mapper.readValue(configFile, Configuration::class.java)
             } catch (e: UnrecognizedPropertyException) {
                 printErrorMessage(
-                    String.format(
-                        "Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
-                        e.propertyName,
-                        e.path[0].fieldName
-                    )
+                        String.format(
+                                "Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
+                                e.propertyName,
+                                e.path[0].fieldName
+                        )
                 )
             } catch (e: FileNotFoundException) {
                 printErrorMessage(String.format("File at %s not found.", configFile.absolutePath))

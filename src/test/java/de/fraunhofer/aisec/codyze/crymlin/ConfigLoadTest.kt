@@ -1,16 +1,13 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
-import de.fraunhofer.aisec.codyze.config.CodyzeConfiguration
+import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.config.Configuration
-import de.fraunhofer.aisec.codyze.config.CpgConfiguration
 import de.fraunhofer.aisec.codyze.config.Language
 import java.io.File
 import kotlin.Exception
 import kotlin.Throws
 import kotlin.test.*
-import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
-import org.slf4j.LoggerFactory
 
 internal class ConfigLoadTest {
 
@@ -21,39 +18,54 @@ internal class ConfigLoadTest {
         val codyze = config.codyze
         val cpg = config.cpg
 
-        val expectedCodyze = CodyzeConfiguration()
-        expectedCodyze.source = File("source.java")
-        expectedCodyze.output = "result.out"
-        expectedCodyze.setExecutionMode(true, false, false)
-        assertEquals(expectedCodyze, codyze)
-        // test static fields
+        // assert that the data in the config file was parsed and set correctly
+        assertEquals(File("source.java"), codyze.source)
         assertContentEquals(
             arrayOf("mark1", "mark4", "mark3", "mark2").map { s -> File(s) }.toTypedArray(),
             codyze.mark
         )
-        assertEquals(120L, codyze.timeout)
-        assertFalse(codyze.isNoGoodFindings)
+        assertEquals("result.out", codyze.output)
 
-        val expectedCpg = CpgConfiguration()
-        expectedCpg.setAnalyzeIncludes(false)
-        expectedCpg.setIncludes(arrayOf("include1", "include2").map { s -> File(s) }.toTypedArray())
-        assertEquals(expectedCpg.translation, config.cpg.translation)
+        assertFalse(cpg.translation.analyzeIncludes)
+        assertContentEquals(
+            arrayOf("include1", "include2").map { s -> File(s) }.toTypedArray(),
+            cpg.translation.includes
+        )
         assertEquals(
             1,
             cpg.additionalLanguages.size,
             "Size of set of additional languages is not 1"
         )
         assertContains(cpg.additionalLanguages, Language.PYTHON)
-        assertFalse(cpg.isUseUnityBuild)
+
+        // assert that nothing else was changed from the default values
+        assertEquals(120L, codyze.timeout)
+        assertFalse(codyze.sarifOutput)
+        assertEquals(TypestateMode.DFA, codyze.analysis.tsMode)
+        assertFalse(codyze.noGoodFindings)
+        assertFalse(cpg.useUnityBuild)
     }
 
     @Test
     @Throws(Exception::class)
     fun incorrectConfigFileTest() {
         val config = Configuration.initConfig(incorrectFile, "-c")
-        val expected = Configuration()
-        expected.codyze.setExecutionMode(true, false, false)
-        assertEquals(expected, config)
+        val codyze = config.codyze
+        val cpg = config.cpg
+
+        // assert that nothing was changed from the default values
+        assertNull(codyze.source)
+        assertContentEquals(arrayOf("./").map { s -> File(s) }.toTypedArray(), codyze.mark)
+        assertEquals("findings.sarif", codyze.output)
+        assertEquals(TypestateMode.DFA, codyze.analysis.tsMode)
+        assertEquals(120L, codyze.timeout)
+        assertFalse(codyze.noGoodFindings)
+        assertFalse(codyze.sarifOutput)
+
+        assertFalse(cpg.translation.analyzeIncludes)
+        assertNull(cpg.translation.includes)
+        assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
+        assertFalse(cpg.useUnityBuild)
     }
 
     companion object {
@@ -73,9 +85,5 @@ internal class ConfigLoadTest {
                     .getResource("config-files/incorrect_structure.yml")
                     .toURI()
             )
-        @BeforeAll
-        fun startup() {
-            val logger = LoggerFactory.getLogger(Configuration::class.java)
-        }
     }
 }

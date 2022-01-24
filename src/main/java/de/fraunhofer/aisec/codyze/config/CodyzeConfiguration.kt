@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import java.io.File
-import picocli.CommandLine.Option
 import picocli.CommandLine.ArgGroup
+import picocli.CommandLine.Option
 
 class CodyzeConfiguration {
 
@@ -14,7 +14,6 @@ class CodyzeConfiguration {
     @ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
 
-    @ArgGroup(exclusive = false, heading = "Analysis Options\n")
     var analysis = AnalysisMode()
 
     @Option(

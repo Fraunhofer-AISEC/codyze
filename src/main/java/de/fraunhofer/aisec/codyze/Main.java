@@ -170,13 +170,18 @@ public class Main {
 		@CommandLine.Mixin
 		private ConfigFilePath configFilePath;
 
-		// ArgGroup only for display purposes
-		@ArgGroup(heading = "Codyze Options\n", exclusive = false)
+		// ArgGroups only for display purposes
+		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false)
 		private CodyzeConfiguration codyzeConfig = new CodyzeConfiguration();
 
-		// ArgGroup only for display purposes
-		@ArgGroup(heading = "CPG Options\n", exclusive = false)
+		@ArgGroup(exclusive = false, heading = "Analysis Options\n")
+		AnalysisMode analysis = new AnalysisMode();
+
+		@ArgGroup(heading = "@|bold,underline CPG Options|@\n", exclusive = false)
 		private CpgConfiguration cpgConfig = new CpgConfiguration();
+
+		@ArgGroup(exclusive = false, heading = "Translation Options\n")
+		private TranslationSettings translation = new TranslationSettings();
 	}
 
 	// Custom renderer to add nesting optically with indents in help message
@@ -196,28 +201,27 @@ public class Main {
 				CommandLine.Help h = new CommandLine.Help(c, help.colorScheme());
 				sb.append(h.optionList());
 			}
-
+			sb.append("\n");
 			for (ArgGroupSpec group : spec.argGroups()) {
-				sb.append("\n");
-				addHierachy(group, sb, "");
+				addHierachy(group, sb);
 			}
 
 			return sb.toString();
 		}
 
-		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb, String indent) {
-			sb.append(indent);
-			sb.append(argGroupSpec.heading());
+		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb) {
+
+			sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
 
 			for (OptionSpec o : argGroupSpec.options()) {
-				sb.append(indent);
 				sb.append(help.optionListExcludingGroups(List.of(o)));
 
 			}
-
+			sb.append("\n");
 			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
-				addHierachy(group, sb, indent + "    ");
+				addHierachy(group, sb);
 			}
+
 		}
 	}
 }

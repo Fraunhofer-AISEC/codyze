@@ -17,25 +17,61 @@ class CodyzeConfiguration {
     @ArgGroup(exclusive = false, heading = "Analysis Options\n")
     var analysis = AnalysisMode()
 
-    @Option(names = ["-s", "--source"], paramLabel = "<path>", description = ["Source file or folder to analyze."])
+    @Option(
+        names = ["-s", "--source"],
+        paramLabel = "<path>",
+        description = ["Source file or folder to analyze."]
+    )
     var source: File? = null
 
-    @Option(names = ["-m", "--mark"], paramLabel = "<path>", description = ["Loads MARK policy files\n\t(Default: \${DEFAULT-VALUE})"], split = ",")
-    var mark = arrayOf(File("./"))
+    @Option(
+        names = ["-m", "--mark"],
+        paramLabel = "<path>",
+        description = ["Loads MARK policy files\n\t(Default: \${DEFAULT-VALUE})"],
+        split = ","
+    )
+    var mark: Array<File> = arrayOf(File("./"))
 
     // TODO output standard stdout?
-    @Option(names = ["-o", "--output"], paramLabel = "<file>", description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"])
+    @Option(
+        names = ["-o", "--output"],
+        paramLabel = "<file>",
+        description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"]
+    )
     var output = "findings.sarif"
 
-    @Option(names = ["--timeout"], paramLabel = "<minutes>", description = ["Terminate analysis after timeout\n\t(Default: \${DEFAULT-VALUE})"])
+    @Option(
+        names = ["--timeout"],
+        paramLabel = "<minutes>",
+        description = ["Terminate analysis after timeout\n\t(Default: \${DEFAULT-VALUE})"]
+    )
     var timeout = 120L
 
-    @Option(names = ["--no-good-findings"], description = ["Disable output of \"positive\" findings which indicate correct implementations\n\t(Default: \${DEFAULT-VALUE})"], fallbackValue = "true")
+    @Option(
+        names = ["--no-good-findings"],
+        description =
+            [
+                "Disable output of \"positive\" findings which indicate correct implementations\n\t(Default: \${DEFAULT-VALUE})"],
+        fallbackValue = "true"
+    )
     var noGoodFindings = false
 
     @JsonProperty("sarif")
-    @Option(names = ["--sarif"], description = ["Enables the SARIF output."], fallbackValue = "true")
+    @Option(
+        names = ["--sarif"],
+        description = ["Enables the SARIF output."],
+        fallbackValue = "true"
+    )
     var sarifOutput: Boolean = false
+
+    @Option(
+        names = ["--mark-blacklist"],
+        description =
+            ["The specified mark rules will be excluded from being parsed amd processed."],
+        split = ","
+    )
+    var markBlacklist: List<String>? = null
+
 }
 
 /**
@@ -52,10 +88,18 @@ class ExecutionMode {
     @Option(names = ["-c"], required = true, description = ["Start in command line mode."])
     var isCli = false
 
-    @Option(names = ["-l"], required = true, description = ["Start in language server protocol (LSP) mode."])
+    @Option(
+        names = ["-l"],
+        required = true,
+        description = ["Start in language server protocol (LSP) mode."]
+    )
     var isLsp = false
 
-    @Option(names = ["-t"], required = true, description = ["Start interactive console (Text-based User Interface)."])
+    @Option(
+        names = ["-t"],
+        required = true,
+        description = ["Start interactive console (Text-based User Interface)."]
+    )
     var isTui = false
 }
 
@@ -63,6 +107,13 @@ class AnalysisMode {
 
     // TODO: Rename description and paramLabel to DFA
     @JsonProperty("typestate")
-    @Option(names = ["--typestate"], paramLabel = "<NFA|WPDS>", type = [TypestateMode::class], description = ["Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"])
+    @Option(
+        names = ["--typestate"],
+        paramLabel = "<NFA|WPDS>",
+        type = [TypestateMode::class],
+        description =
+            [
+                "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"]
+    )
     var tsMode = TypestateMode.DFA
 }

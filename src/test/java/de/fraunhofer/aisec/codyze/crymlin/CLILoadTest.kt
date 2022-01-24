@@ -52,8 +52,4 @@ internal class CLILoadTest {
         assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
         assertFalse(cpg.useUnityBuild)
     }
-
-    companion object {
-        @BeforeAll fun startup() {}
-    }
 }

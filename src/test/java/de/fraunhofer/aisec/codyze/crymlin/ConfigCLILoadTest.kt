@@ -82,7 +82,5 @@ class ConfigCLILoadTest {
                     .getResource("config-files/incorrect_structure.yml")
                     .toURI()
             )
-
-        @BeforeAll fun startup() {}
     }
 }

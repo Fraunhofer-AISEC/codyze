@@ -65,13 +65,12 @@ class CodyzeConfiguration {
     var sarifOutput: Boolean = false
 
     @Option(
-        names = ["--mark-blacklist"],
+        names = ["--disabled-mark"],
         description =
             ["The specified mark rules will be excluded from being parsed amd processed."],
         split = ","
     )
-    var markBlacklist: List<String>? = null
-
+    var disabledMark: List<String>? = null
 }
 
 /**
@@ -109,11 +108,11 @@ class AnalysisMode {
     @JsonProperty("typestate")
     @Option(
         names = ["--typestate"],
-        paramLabel = "<NFA|WPDS>",
+        paramLabel = "<DFA|WPDS>",
         type = [TypestateMode::class],
         description =
             [
-                "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"]
+                "Typestate analysis mode\nDFA:  Deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var tsMode = TypestateMode.DFA
 }

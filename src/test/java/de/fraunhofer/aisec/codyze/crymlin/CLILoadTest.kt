@@ -16,7 +16,7 @@ internal class CLILoadTest {
     @Throws(Exception::class)
     fun noArgsTest() {
         Assertions.assertThrows(CommandLine.MissingParameterException::class.java) {
-            Configuration.initConfig(null, "")
+            Configuration.initConfig(null, *emptyArray())
         }
     }
 

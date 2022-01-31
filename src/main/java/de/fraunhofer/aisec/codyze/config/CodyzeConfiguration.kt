@@ -64,12 +64,12 @@ class CodyzeConfiguration {
     var sarifOutput: Boolean = false
 
     @Option(
-        names = ["--disabled-mark"],
+        names = ["--disabled-mark-rules"],
         description =
-            ["The specified mark rules will be excluded from being parsed amd processed."],
+            ["The specified mark rules will be excluded from being parsed and processed."],
         split = ","
     )
-    var disabledMark: List<String>? = null
+    var disabledMarkRules: List<String> = emptyList()
 }
 
 /**
@@ -103,7 +103,6 @@ class ExecutionMode {
 
 class AnalysisMode {
 
-    // TODO: Rename description and paramLabel to DFA
     @JsonProperty("typestate")
     @Option(
         names = ["--typestate"],

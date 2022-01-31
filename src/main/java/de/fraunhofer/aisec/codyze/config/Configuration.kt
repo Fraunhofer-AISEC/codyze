@@ -19,7 +19,6 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
-import picocli.CommandLine.Model.ISetter
 
 class Configuration {
 
@@ -27,18 +26,27 @@ class Configuration {
     @CommandLine.Mixin var codyze = CodyzeConfiguration()
     @CommandLine.Mixin var cpg = CpgConfiguration()
 
-    // Parse arguments to correct config class
+    // Parse CLI arguments into config class
     private fun parseCLI(vararg args: String?) {
-        // setUnmatchedArgumentsAllowed is true because both classes don't have the config path option
-        // side effect is that all unknown options are ignored
+
         CommandLine(this)
+            // Added as Mixin so the already initialized objects are used instead of new ones
+            // created
             .addMixin("analysis", codyze.analysis)
             .addMixin("translation", cpg.translation)
             .setCaseInsensitiveEnumValuesAllowed(true)
+            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
+            // option which would result in exceptions, side effect is that all unknown options are
+            // ignored
             .setUnmatchedArgumentsAllowed(true)
             .parseArgs(*args)
     }
 
+    /**
+     * Builds ServerConfiguration object with available configurations
+     *
+     * @return ServerConfiguration
+     */
     @ExperimentalGolang
     @ExperimentalPython
     fun buildServerConfiguration(): ServerConfiguration {
@@ -68,6 +76,11 @@ class Configuration {
         return config.build()
     }
 
+    /**
+     * Builds TranslationConfiguration object with available configurations
+     *
+     * @return TranslationConfiguration
+     */
     @ExperimentalGolang
     @ExperimentalPython
     fun buildTranslationConfiguration(): TranslationConfiguration {
@@ -104,6 +117,14 @@ class Configuration {
     companion object {
         private val log = LoggerFactory.getLogger(Configuration::class.java)
 
+        /**
+         * Initializes a new Configuration object populated with the configurations specified in the
+         * configFile and in the CLI args
+         *
+         * @param configFile a yaml file with configurations for codyze
+         * @param args CLI arguments
+         * @return the new Configuration object
+         */
         @JvmStatic
         fun initConfig(configFile: File?, vararg args: String?): Configuration {
             val config: Configuration =
@@ -138,6 +159,7 @@ class Configuration {
             return config ?: Configuration()
         }
 
+        // print error message to log
         private fun printErrorMessage(msg: String?) {
             log.warn("{} Continue without configurations from file.", msg)
         }

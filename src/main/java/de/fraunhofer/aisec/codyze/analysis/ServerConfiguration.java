@@ -27,10 +27,15 @@ public class ServerConfiguration {
 	public final TypestateMode typestateAnalysis;
 
 	/**
-	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether or not to
+	 * Passed down to {@link de.fraunhofer.aisec.cpg.TranslationConfiguration}. Whether to
 	 * parse include files.
 	 */
 	public final boolean analyzeIncludes;
+
+	/**
+	 * Enables or disables unity builds (for C++ only).
+	 */
+	public final boolean useUnityBuild;
 
 	/**
 	 * Path(s) containing include files.
@@ -52,6 +57,7 @@ public class ServerConfiguration {
 			@NonNull String[] markModelFiles,
 			@NonNull TypestateMode typestateMode,
 			boolean analyzeIncludes,
+			boolean useUnityBuild,
 			@NonNull File[] includePath,
 			boolean disableGoodFindings,
 			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages) {
@@ -60,6 +66,7 @@ public class ServerConfiguration {
 		this.markModelFiles = markModelFiles;
 		this.typestateAnalysis = typestateMode;
 		this.analyzeIncludes = analyzeIncludes;
+		this.useUnityBuild = useUnityBuild;
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
 		this.additionalLanguages = additionalLanguages;
@@ -75,8 +82,9 @@ public class ServerConfiguration {
 		@NonNull
 		private String[] markModelFiles = new String[0]; // Path of a file or directory
 		@NonNull
-		private TypestateMode typestateAnalysis = TypestateMode.NFA;
+		private TypestateMode typestateAnalysis = TypestateMode.DFA;
 		private boolean analyzeIncludes;
+		private boolean useUnityBuild;
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
 		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
@@ -103,6 +111,11 @@ public class ServerConfiguration {
 
 		public Builder analyzeIncludes(boolean analyzeIncludes) {
 			this.analyzeIncludes = analyzeIncludes;
+			return this;
+		}
+
+		public Builder useUnityBuild(boolean useUnityBuild) {
+			this.useUnityBuild = useUnityBuild;
 			return this;
 		}
 
@@ -137,6 +150,7 @@ public class ServerConfiguration {
 				markModelFiles,
 				typestateAnalysis,
 				analyzeIncludes,
+				useUnityBuild,
 				includePath,
 				disableGoodFindings,
 				additionalLanguages);

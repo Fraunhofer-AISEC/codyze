@@ -9,11 +9,10 @@ import de.breakpointsec.pushdown.rules.PushRule
 import de.breakpointsec.pushdown.rules.Rule
 import de.fraunhofer.aisec.codyze.analysis.*
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.*
-import de.fraunhofer.aisec.codyze.analysis.passes.astParent
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils
 import de.fraunhofer.aisec.codyze.markmodel.MRule
-import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode
+import de.fraunhofer.aisec.codyze.sarif.schema.Result
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.Graph
 import de.fraunhofer.aisec.cpg.graph.Node
@@ -24,6 +23,7 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.types.Type
+import de.fraunhofer.aisec.cpg.passes.astParent
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import de.fraunhofer.aisec.mark.markDsl.Terminal
 import java.io.File
@@ -256,7 +256,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             val w = wnfa.getWeightFor(tran)
 
             if (w.value() is Set<*>) {
-                val reachableTypestates = w.value() as Set<NFATransition<StateNode>>
+                val reachableTypestates = w.value() as Set<NFATransition>
                 for (reachableTypestate in reachableTypestates) {
                     if (reachableTypestate.target.isError) {
                         findings.add(createBadFinding(tran.label, tran.start, currentFile))
@@ -298,7 +298,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         stmt: Node,
         `val`: Val,
         currentFile: URI,
-        expected: Collection<NFATransition<StateNode>> = listOf()
+        expected: Collection<NFATransition> = listOf()
     ): Finding {
         var name =
             "Invalid typestate of variable " +
@@ -309,8 +309,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                 rule.name
         name +=
             if (!expected.isEmpty()) {
-                " Expected one of " +
-                    expected.joinToString(", ") { obj: NFATransition<StateNode> -> obj.toString() }
+                " Expected one of " + expected.joinToString(", ") { obj -> obj.toString() }
             } else {
                 " Expected no further operations."
             }
@@ -321,7 +320,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             name,
             currentFile,
             listOf(Utils.getRegionByNode(stmt)),
-            true
+            Result.Kind.FAIL
         )
     }
 
@@ -342,7 +341,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
             "Good: $`val` at $node",
             currentFile,
             listOf(Utils.getRegionByNode(node)),
-            false
+            Result.Kind.PASS
         )
     }
 

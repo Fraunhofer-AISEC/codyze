@@ -45,6 +45,10 @@ class FindingDescription private constructor() {
         return items?.get(id)?.fixes?.map { it.description.text }
     }
 
+    fun getItems(): Map<String, FindingDescriptionItem>? {
+        return items
+    }
+
     fun init(descriptionFile: File) {
         log.info("Parsing MARK description file from {}", descriptionFile.absolutePath)
         try {

@@ -2,8 +2,6 @@ package de.fraunhofer.aisec.codyze.analysis.markevaluation
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.crymlin.AbstractTest
 import de.fraunhofer.aisec.codyze.markmodel.Mark
@@ -17,7 +15,9 @@ import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.TranslationUnitDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.EvaluationOrderGraphPass
+import de.fraunhofer.aisec.cpg.passes.IdentifierPass
 import de.fraunhofer.aisec.cpg.passes.Pass
 import de.fraunhofer.aisec.cpg.passes.scopes.ScopeManager
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation

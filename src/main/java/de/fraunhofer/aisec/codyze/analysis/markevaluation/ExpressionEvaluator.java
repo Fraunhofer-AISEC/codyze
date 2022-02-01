@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.schema.Result;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
@@ -133,7 +134,7 @@ public class ExpressionEvaluator {
 							"Verified Order: " + this.markRule.getName(),
 							new File(node.getFile()).toURI(),
 							ranges,
-							false);
+							Result.Kind.PASS);
 						this.resultCtx.getFindings().add(f);
 					}
 				}

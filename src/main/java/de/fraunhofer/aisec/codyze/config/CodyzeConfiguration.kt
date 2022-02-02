@@ -26,7 +26,7 @@ class CodyzeConfiguration {
     @Option(
         names = ["-m", "--mark"],
         paramLabel = "<path>",
-        description = ["Loads MARK policy files\n\t(Default: \${DEFAULT-VALUE})"],
+        description = ["Loads MARK policy files.\n\t(Default: \${DEFAULT-VALUE})"],
         split = ","
     )
     var mark: Array<File> = arrayOf(File("./"))
@@ -42,7 +42,7 @@ class CodyzeConfiguration {
     @Option(
         names = ["--timeout"],
         paramLabel = "<minutes>",
-        description = ["Terminate analysis after timeout\n\t(Default: \${DEFAULT-VALUE})"]
+        description = ["Terminate analysis after timeout.\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var timeout = 120L
 
@@ -65,8 +65,10 @@ class CodyzeConfiguration {
 
     @Option(
         names = ["--disabled-mark-rules"],
+        paramLabel = "<package.rule>",
         description =
-            ["The specified mark rules will be excluded from being parsed and processed."],
+            [
+                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by the package and the rule name."],
         split = ","
     )
     var disabledMarkRules: List<String> = emptyList()
@@ -110,7 +112,7 @@ class AnalysisMode {
         type = [TypestateMode::class],
         description =
             [
-                "Typestate analysis mode\nDFA:  Deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"]
+                "Typestate analysis mode.\nDFA:  Deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var tsMode = TypestateMode.DFA
 }

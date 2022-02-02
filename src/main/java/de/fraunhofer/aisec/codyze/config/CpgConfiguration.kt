@@ -11,6 +11,7 @@ class CpgConfiguration {
 
     var translation: TranslationSettings = TranslationSettings()
 
+    // TODO: this or other PR
     @Option(
         names = ["--additional-languages"],
         split = ",",
@@ -44,7 +45,7 @@ class CpgConfiguration {
     @set:JsonProperty("unity")
     @Option(
         names = ["--unity"],
-        description = ["Enables unity builds (C++ only) for files in the path"]
+        description = ["Enables unity builds (C++ only) for files in the path."]
     )
     var useUnityBuild = false
 }
@@ -63,7 +64,7 @@ class TranslationSettings {
         names = ["--includes"],
         description =
             [
-                "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)"],
+                "Path(s) containing include files. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
         split = ":|;"
     )
     var includes: Array<File>? = null

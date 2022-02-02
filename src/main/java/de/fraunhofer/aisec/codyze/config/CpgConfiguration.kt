@@ -45,7 +45,8 @@ class CpgConfiguration {
     @set:JsonProperty("unity")
     @Option(
         names = ["--unity"],
-        description = ["Enables unity builds (C++ only) for files in the path."]
+        description = ["Enables unity builds (C++ only) for files in the path."],
+        fallbackValue = "true"
     )
     var useUnityBuild = false
 }

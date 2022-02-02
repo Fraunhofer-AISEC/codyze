@@ -156,7 +156,7 @@ public class Main {
 	// Stores path to config file given as cli option
 	@Command(mixinStandardHelpOptions = true)
 	static class ConfigFilePath {
-		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from file")
+		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.")
 		File configFile;
 
 		@Unmatched
@@ -199,7 +199,7 @@ public class Main {
 			StringBuilder sb = new StringBuilder();
 			for (CommandSpec c : mix.values()) {
 				CommandLine.Help h = new CommandLine.Help(c, help.colorScheme());
-				sb.append(h.optionList());
+				sb.append(h.optionList(help.createDefaultLayout(), null, help.parameterLabelRenderer()));
 			}
 			sb.append("\n");
 			for (ArgGroupSpec group : spec.argGroups()) {

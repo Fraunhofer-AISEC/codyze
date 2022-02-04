@@ -69,10 +69,24 @@ public class Main {
 			c.printVersionHelp(System.out);
 			System.exit(c.getCommandSpec().exitCodeOnVersionHelp());
 		} else {
-			Configuration config = Configuration.initConfig(firstPass.configFile, args);
+			int returnCode = 0;
 
-			// Start analysis setup
-			System.exit(start(config));
+			try {
+				Configuration config = Configuration.initConfig(firstPass.configFile, args);
+				// Start analysis setup
+				returnCode = start(config);
+			}
+			catch (CommandLine.MissingParameterException missingParameterException) {
+				missingParameterException.getCommandLine().getErr().println(missingParameterException.getMessage());
+
+				// print help message
+				CommandLine c = new CommandLine(new Help());
+				c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
+				c.usage(c.getErr());
+
+				returnCode = missingParameterException.getCommandLine().getCommandSpec().exitCodeOnInvalidInput();
+			}
+			System.exit(returnCode);
 		}
 	}
 
@@ -191,7 +205,6 @@ public class Main {
 
 		@Override
 		public String render(CommandLine.Help help) {
-
 			CommandSpec spec = help.commandSpec();
 			this.help = help;
 
@@ -210,18 +223,15 @@ public class Main {
 		}
 
 		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb) {
-
 			sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
 
 			for (OptionSpec o : argGroupSpec.options()) {
 				sb.append(help.optionListExcludingGroups(List.of(o)));
-
 			}
 			sb.append("\n");
 			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
 				addHierachy(group, sb);
 			}
-
 		}
 	}
 }

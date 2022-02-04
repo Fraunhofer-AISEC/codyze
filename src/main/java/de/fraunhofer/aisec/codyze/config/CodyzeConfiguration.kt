@@ -14,7 +14,7 @@ class CodyzeConfiguration {
     @ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
 
-    var analysis = AnalysisMode()
+    val analysis = AnalysisMode()
 
     @Option(
         names = ["-s", "--source"],
@@ -50,7 +50,8 @@ class CodyzeConfiguration {
         names = ["--no-good-findings"],
         description =
             [
-                "Disable output of \"positive\" findings which indicate correct implementations\n\t(Default: \${DEFAULT-VALUE})"],
+                "Disable output of \"positive\" findings which indicate correct implementations\n" +
+                    "\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var noGoodFindings = false
@@ -76,12 +77,11 @@ class CodyzeConfiguration {
 
 /**
  * Codyze runs in any of three modes:
- *
- * CLI: Non-interactive command line client. Accepts arguments from command line and runs analysis.
- *
- * LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE support.
- *
- * TUI: The text based user interface (TUI) is an interactive console that allows exploring the
+ * - CLI: Non-interactive command line client. Accepts arguments from command line and runs
+ * analysis.
+ * - LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE
+ * support.
+ * - TUI: The text based user interface (TUI) is an interactive console that allows exploring the
  * analyzed source code by manual queries.
  */
 class ExecutionMode {
@@ -103,6 +103,11 @@ class ExecutionMode {
     var isTui = false
 }
 
+/**
+ * Codyze offers two modes af analyzing typestates:
+ * - DFA: Based on a deterministic finite automaton (faster, intraprocedural)
+ * - WPDS: Based on a weighted pushdown system (slower, interprocedural)
+ */
 class AnalysisMode {
 
     @JsonProperty("typestate")
@@ -112,7 +117,10 @@ class AnalysisMode {
         type = [TypestateMode::class],
         description =
             [
-                "Typestate analysis mode.\nDFA:  Deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)\n\t(Default: \${DEFAULT-VALUE})"]
+                "Typestate analysis mode.\n" +
+                    "DFA:  Deterministic finite automaton (faster, intraprocedural)\n" +
+                    "WPDS: Weighted pushdown system (slower, interprocedural)\n" +
+                    "\t(Default: \${DEFAULT-VALUE})"]
     )
     var tsMode = TypestateMode.DFA
 }

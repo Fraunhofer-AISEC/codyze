@@ -7,11 +7,11 @@ import java.io.File
 import java.util.*
 import picocli.CommandLine.Option
 
+/** This class consists of configuration settings for CPG. */
 class CpgConfiguration {
 
-    var translation: TranslationSettings = TranslationSettings()
+    val translation: TranslationSettings = TranslationSettings()
 
-    // TODO: this or other PR
     @Option(
         names = ["--additional-languages"],
         split = ",",
@@ -51,6 +51,7 @@ class CpgConfiguration {
     var useUnityBuild = false
 }
 
+/** This class consists of settings that control how CPG will process includes. */
 class TranslationSettings {
     @Option(
         names = ["--analyze-includes"],

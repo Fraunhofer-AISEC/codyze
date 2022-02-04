@@ -14,6 +14,7 @@
     {
       "matchPackagePrefixes": ["de.fraunhofer.aisec:cpg"],
       "groupName": "CPG packages"
+    },
     {
       "groupName": "picocli packages",
       "matchPackagePatterns": ["^info.picocli:"]

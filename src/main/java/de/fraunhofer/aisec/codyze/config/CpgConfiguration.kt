@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.codyze.config
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import de.fraunhofer.aisec.cpg.passes.Pass
@@ -23,25 +22,6 @@ class CpgConfiguration {
     )
     @JsonDeserialize(using = LanguageDeserializer::class)
     var additionalLanguages: Set<Language> = EnumSet.noneOf(Language::class.java)
-
-    // TODO: maybe change to enum set instead of booleans for each language
-    @JsonIgnore
-    @Option(
-        names = ["--enable-python-support"],
-        description =
-            [
-                "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README."]
-    )
-    var enablePython = false
-
-    @JsonIgnore
-    @Option(
-        names = ["--enable-go-support"],
-        description =
-            [
-                "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README."]
-    )
-    var enableGo = false
 
     @set:JsonProperty("unity")
     @Option(

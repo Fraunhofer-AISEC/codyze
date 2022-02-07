@@ -61,13 +61,13 @@ class Configuration {
                 .analyzeIncludes(cpg.translation.analyzeIncludes)
                 .includePath(cpg.translation.includes)
                 .useUnityBuild(cpg.useUnityBuild)
-        if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
+        if (cpg.additionalLanguages.contains(Language.PYTHON)) {
             config.registerLanguage(
                 PythonLanguageFrontend::class.java,
                 PythonLanguageFrontend.PY_EXTENSIONS
             )
         }
-        if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
+        if (cpg.additionalLanguages.contains(Language.GO)) {
             config.registerLanguage(
                 GoLanguageFrontend::class.java,
                 GoLanguageFrontend.GOLANG_EXTENSIONS
@@ -107,18 +107,10 @@ class Configuration {
 
         for (p in cpg.passes) translationConfig.registerPass(p)
 
-        if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
-            translationConfig.registerLanguage(
-                PythonLanguageFrontend::class.java,
-                PythonLanguageFrontend.PY_EXTENSIONS
-            )
-        }
-        if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
-            translationConfig.registerLanguage(
-                GoLanguageFrontend::class.java,
-                GoLanguageFrontend.GOLANG_EXTENSIONS
-            )
-        }
+        for (l in cpg.additionalLanguages) translationConfig.registerLanguage(
+                l.frontend.get(),
+                l.fileTypes.get()
+        )
 
         for (file in cpg.translation.includes) translationConfig.includePath(file.absolutePath)
 

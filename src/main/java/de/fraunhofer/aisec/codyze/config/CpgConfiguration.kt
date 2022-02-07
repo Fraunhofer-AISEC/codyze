@@ -124,6 +124,8 @@ class CpgConfiguration {
     )
     var useParallelFrontends = false
 
+    @JsonDeserialize(using = PassListDeserializer::class)
+    @Option(names = ["--passes"], split = ",")
     var passes: List<Pass> = ArrayList()
 }
 

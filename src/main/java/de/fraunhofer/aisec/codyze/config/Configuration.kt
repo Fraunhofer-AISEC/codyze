@@ -12,8 +12,7 @@ import de.fraunhofer.aisec.cpg.ExperimentalPython
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
-import de.fraunhofer.aisec.cpg.passes.IdentifierPass
+import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -34,6 +33,7 @@ class Configuration {
             // created
             .addMixin("analysis", codyze.analysis)
             .addMixin("translation", cpg.translation)
+            .registerConverter(Pass::class.java, PassTypeConverter())
             .setCaseInsensitiveEnumValuesAllowed(true)
             // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
             // option which would result in exceptions, side effect is that all unknown options are

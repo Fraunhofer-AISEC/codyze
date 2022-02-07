@@ -15,11 +15,7 @@ import org.python.jline.internal.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Parses a MarkModel provided by XText in the form of an ECore hierarchy into a simple (ECore-free) {@code Mark} model that the analysis server can work with.
@@ -31,7 +27,7 @@ public class MarkModelLoader {
 	private static final Logger log = LoggerFactory.getLogger(MarkModelLoader.class);
 
 	@NonNull
-	public Mark load(Map<String, MarkModel> markModels, @Nullable String onlyfromthisfile) {
+	public Mark load(Map<String, MarkModel> markModels, Map<String, Pair<Boolean, Set<String>>> disabledMarkRules, @Nullable String onlyfromthisfile) {
 		Mark m = new Mark();
 
 		for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
@@ -59,10 +55,21 @@ public class MarkModelLoader {
 				continue;
 			}
 			MarkModel markModel = entry.getValue();
+			Pair<Boolean, Set<String>> disabledRules = disabledMarkRules.getOrDefault(markModel.getPackage().getName(), new Pair<>(false, new HashSet<>()));
+			if (disabledRules.getFirst()) {
+				log.info("Disabled all mark rules in package {}", markModel.getPackage().getName());
+				continue;
+			}
+
 			// Parse rules
 			for (RuleDeclaration r : markModel.getRule()) {
 				// todo @FW: should rules also have package names? what is the exact reasoning behind
 				// packages?
+				if (disabledRules.getSecond().contains(r.getName())) {
+					log.info("Disabled mark rule {} in package {}", r.getName(), markModel.getPackage().getName());
+					continue;
+				}
+
 				MRule rule = parseRule(r, m, entry.getKey());
 				m.getRules().add(rule);
 			}
@@ -96,8 +103,18 @@ public class MarkModelLoader {
 	}
 
 	@NonNull
+	public Mark load(Map<String, MarkModel> markModels, Map<String, Pair<Boolean, Set<String>>> disabledMarkRules) {
+		return load(markModels, disabledMarkRules, null);
+	}
+
+	@NonNull
+	public Mark load(Map<String, MarkModel> markModels, @Nullable String onlyfromthisfile) {
+		return load(markModels, Collections.emptyMap(), onlyfromthisfile);
+	}
+
+	@NonNull
 	public Mark load(Map<String, MarkModel> markModels) {
-		return load(markModels, null);
+		return load(markModels, Collections.emptyMap(), null);
 	}
 
 	private MRule parseRule(RuleDeclaration rule, Mark mark, String containedInThisFile) {

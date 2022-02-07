@@ -307,7 +307,7 @@ public class AnalysisServer {
 
 		start = Instant.now();
 		log.info("Transforming MARK Xtext to internal format");
-		this.markModel = new MarkModelLoader().load(markModels);
+		this.markModel = new MarkModelLoader().load(markModels, config.disabledMarkRules);
 		log.info(
 			"Done Transforming MARK Xtext to internal format in {} ms",
 			Duration.between(start, Instant.now()).toMillis());

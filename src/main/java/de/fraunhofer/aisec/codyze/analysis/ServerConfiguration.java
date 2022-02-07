@@ -54,7 +54,7 @@ public class ServerConfiguration {
 	public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages;
 
 	/** Disabled Mark rules */
-	public final Map<String, Pair<Boolean, Set<String>>> disabledMark;
+	public final Map<String, Pair<Boolean, Set<String>>> disabledMarkRules;
 
 	private ServerConfiguration(
 			boolean launchConsole,
@@ -66,7 +66,7 @@ public class ServerConfiguration {
 			@NonNull File[] includePath,
 			boolean disableGoodFindings,
 			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages,
-			Map<String, Pair<Boolean, Set<String>>> disabledMark) {
+			Map<String, Pair<Boolean, Set<String>>> disabledMarkRules) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
@@ -76,7 +76,7 @@ public class ServerConfiguration {
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
 		this.additionalLanguages = additionalLanguages;
-		this.disabledMark = disabledMark;
+		this.disabledMarkRules = disabledMarkRules;
 	}
 
 	public static Builder builder() {
@@ -95,7 +95,7 @@ public class ServerConfiguration {
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
 		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
-		private Map<String, Pair<Boolean, Set<String>>> disabledMark;
+		private Map<String, Pair<Boolean, Set<String>>> disabledMarkRules;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -151,8 +151,8 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder disableMark(Map<String, Pair<Boolean, Set<String>>> disabledMark) {
-			this.disabledMark = disabledMark;
+		public Builder disableMark(Map<String, Pair<Boolean, Set<String>>> disabledMarkRules) {
+			this.disabledMarkRules = disabledMarkRules;
 			return this;
 		}
 
@@ -167,7 +167,7 @@ public class ServerConfiguration {
 				includePath,
 				disableGoodFindings,
 				additionalLanguages,
-				disabledMark);
+				disabledMarkRules);
 		}
 	}
 }

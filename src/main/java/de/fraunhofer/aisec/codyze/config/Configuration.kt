@@ -73,6 +73,24 @@ class Configuration {
                 GoLanguageFrontend.GOLANG_EXTENSIONS
             )
         }
+
+        val disabledRulesMap = mutableMapOf<String, Pair<Boolean, MutableSet<String>>>()
+        for (mName in codyze.disabledMarkRules) {
+            val index = mName.lastIndexOf('.')
+            val packageName = mName.subSequence(0, index).toString()
+            val markName = mName.subSequence(index + 1, mName.length).toString()
+            if (!markName.isEmpty()) {
+                disabledRulesMap.putIfAbsent(packageName, Pair(false, mutableSetOf()))
+                if (markName == "*")
+                    disabledRulesMap.replace(
+                        packageName,
+                        disabledRulesMap.getValue(packageName).copy(first = true)
+                    )
+                else disabledRulesMap[packageName]?.second?.add(markName)
+            }
+        }
+        config.disableMark(disabledRulesMap)
+
         return config.build()
     }
 

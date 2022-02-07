@@ -8,6 +8,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {
@@ -51,6 +53,9 @@ public class ServerConfiguration {
 	/** Additional registered languages */
 	public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages;
 
+	/** Disabled Mark rules */
+	public final Map<String, Pair<Boolean, Set<String>>> disabledMark;
+
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
@@ -60,7 +65,8 @@ public class ServerConfiguration {
 			boolean useUnityBuild,
 			@NonNull File[] includePath,
 			boolean disableGoodFindings,
-			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages) {
+			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages,
+			Map<String, Pair<Boolean, Set<String>>> disabledMark) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
@@ -70,6 +76,7 @@ public class ServerConfiguration {
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
 		this.additionalLanguages = additionalLanguages;
+		this.disabledMark = disabledMark;
 	}
 
 	public static Builder builder() {
@@ -88,6 +95,7 @@ public class ServerConfiguration {
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
 		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
+		private Map<String, Pair<Boolean, Set<String>>> disabledMark;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -143,6 +151,11 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder disableMark(Map<String, Pair<Boolean, Set<String>>> disabledMark) {
+			this.disabledMark = disabledMark;
+			return this;
+		}
+
 		public ServerConfiguration build() {
 			return new ServerConfiguration(
 				launchConsole,
@@ -153,7 +166,8 @@ public class ServerConfiguration {
 				useUnityBuild,
 				includePath,
 				disableGoodFindings,
-				additionalLanguages);
+				additionalLanguages,
+				disabledMark);
 		}
 	}
 }

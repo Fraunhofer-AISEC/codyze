@@ -37,8 +37,7 @@ class CpgConfiguration {
         negatable = true,
         description =
             [
-                """If false, type listener is only activated after the frontends are done building the initial AST structure.
-	(Default: ${"$"}{DEFAULT-VALUE})"""]
+                "If false, type listener is only activated after the frontends are done building the initial AST structure.(Default: \${DEFAULT-VALUE})"]
     )
     var typeSystemActiveInFrontend = true
 
@@ -46,13 +45,14 @@ class CpgConfiguration {
     @Option(
         names = ["--no-default-passes"],
         negatable = true,
-        description = ["Enables default passes for cpg.\n\t(Default: \${DEFAULT-VALUE})"]
+        description =
+            ["Controls the usage of default passes for cpg.\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var defaultPasses = true
 
     @Option(
         names = ["--debug-parser"],
-        description = ["Enables debug output generation for the cpg parser"]
+        description = ["Controls debug output generation for the cpg parser"]
     )
     var debugParser = false
 
@@ -60,15 +60,16 @@ class CpgConfiguration {
         names = ["--no-cleanup"],
         description =
             [
-                "Switch off cleaning up TypeManager memory after the analysis. " +
-                    "Set to true only for testing"]
+                "Switch off cleaning up TypeManager memory after the analysis. Set to true only for testing"]
     )
     var disableCleanup = false
 
     @Option(
         names = ["--code-in-nodes"],
         negatable = true,
-        description = ["Enables showing the code of a node as parameter in the node"]
+        description =
+            [
+                "Controls showing the code of a node as parameter in the node\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var codeInNodes = true
 
@@ -82,8 +83,7 @@ class CpgConfiguration {
         names = ["--fail-on-error"],
         description =
             [
-                "Should the parser/translation fail on errors (true) " +
-                    "or try to continue in a best-effort manner (false, default)"]
+                "Should the parser/translation fail on errors (true) or try to continue in a best-effort manner (false)\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var failOnError = false
 
@@ -99,13 +99,19 @@ class CpgConfiguration {
         names = ["--parallel-frontends"],
         description =
             [
-                "Enables parsing the ASTs for the source files in parallel, " +
-                    "but the passes afterwards will still run in a single thread"]
+                "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread"]
     )
     var useParallelFrontends = false
 
     @JsonDeserialize(using = PassListDeserializer::class)
-    @Option(names = ["--passes"], split = ",")
+    @Option(
+        names = ["--passes"],
+        paramLabel = "pass",
+        description =
+            [
+                "CPG passes in the order in which they should be executed. If default-passes is specified, the default passes are executed first."],
+        split = ","
+    )
     var passes: List<Pass> = ArrayList()
 }
 
@@ -134,9 +140,7 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, only the specified " +
-                    "files will be parsed and processed in the cpg, unless it is a port(?) of the blacklist, in which it will " +
-                    "be ignored. Path must be separated by : (Mac/Linux) or ; (Windows)"],
+                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a port(?) of the blacklist, in which it will be ignored. Path must be separated by : (Mac/Linux) or ; (Windows)"],
         split = ":|;"
     )
     var enabledIncludes: List<String> = ArrayList()
@@ -146,9 +150,7 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, the specified " +
-                    "files will be excluded from being parsed and processed in the cpg. The blacklist entries always take " +
-                    "priority over the whitelist entries. Path must be separated by : (Mac/Linux) or ; (Windows)"],
+                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The blacklist entries always take priority over the whitelist entries. Path must be separated by : (Mac/Linux) or ; (Windows)"],
         split = ":|;"
     )
     var disabledIncludes: List<String> = ArrayList()

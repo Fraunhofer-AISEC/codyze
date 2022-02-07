@@ -8,8 +8,10 @@ import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.IOException
+import org.slf4j.LoggerFactory
 
 class PassListDeserializer : StdDeserializer<List<Pass?>?> {
+    private val log = LoggerFactory.getLogger(PassListDeserializer::class.java)
     private val passTypeConverter = PassTypeConverter()
 
     constructor() : super(MutableList::class.java) {}
@@ -29,17 +31,16 @@ class PassListDeserializer : StdDeserializer<List<Pass?>?> {
                     try {
                         result.add(passTypeConverter.convertHelper(s))
                     } catch (e: ClassNotFoundException) {
-                        println(
-                            "Could not parse configuration file correctly because " +
-                                s +
-                                " is not the name of a CPG Pass."
+                        log.warn(
+                            "ConfigFile error: {} is not a known class. Continue with parsing rest of configuration file.",
+                            e.toString()
                         )
-                        println("Continue with parsing rest of configuration file.")
                     } catch (e: ReflectiveOperationException) {
-                        println("Could not parse configuration file correctly.")
-                        if (e.message != null) println(e.message)
                         e.printStackTrace()
-                        println("Continue with parsing rest of configuration file.")
+                        log.warn(
+                            "ConfigFile error: {}. Continue with parsing rest of configuration file.",
+                            e.toString()
+                        )
                     }
                 }
                 current = jp.nextToken()

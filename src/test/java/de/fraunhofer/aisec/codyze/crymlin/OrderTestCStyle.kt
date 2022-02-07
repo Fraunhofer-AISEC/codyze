@@ -42,7 +42,7 @@ class OrderTestCStyle : AbstractMarkTest() {
 
     @Test
     fun checkOrderNFA_foo1() {
-        this.tsMode = TypestateMode.NFA
+        this.tsMode = TypestateMode.DFA
         val results = performTest("unittests/order_foo1.c", "unittests/order_cstyle.mark")
 
         // only good findings
@@ -50,7 +50,7 @@ class OrderTestCStyle : AbstractMarkTest() {
     }
     @Test
     fun checkOrderNFA_foo2() {
-        this.tsMode = TypestateMode.NFA
+        this.tsMode = TypestateMode.DFA
         val results = performTest("unittests/order_foo2.c", "unittests/order_cstyle.mark")
 
         // only good findings
@@ -58,7 +58,7 @@ class OrderTestCStyle : AbstractMarkTest() {
     }
     @Test
     fun checkOrderNFA_both() {
-        this.tsMode = TypestateMode.NFA
+        this.tsMode = TypestateMode.DFA
         val results = performTest("unittests/order.c", "unittests/order_cstyle.mark")
 
         // only good findings

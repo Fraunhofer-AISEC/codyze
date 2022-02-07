@@ -22,7 +22,7 @@ abstract class AbstractMarkTest : AbstractTest() {
     protected var translationManager: TranslationManager? = null
     protected lateinit var server: AnalysisServer
     protected var ctx: AnalysisContext? = null
-    protected var tsMode = TypestateMode.NFA
+    protected var tsMode = TypestateMode.DFA
 
     @Throws(Exception::class)
     protected fun performTest(

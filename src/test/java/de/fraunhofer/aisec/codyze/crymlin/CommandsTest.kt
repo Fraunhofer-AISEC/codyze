@@ -19,7 +19,7 @@ internal class CommandsTest {
                     ServerConfiguration.builder()
                         .launchLsp(false)
                         .launchConsole(true)
-                        .typestateAnalysis(TypestateMode.NFA)
+                        .typestateAnalysis(TypestateMode.DFA)
                         .markFiles(File("src/test/resources/mark_java").absolutePath)
                         .useLegacyEvaluator()
                         .build()

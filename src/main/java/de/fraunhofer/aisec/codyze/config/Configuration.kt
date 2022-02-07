@@ -88,16 +88,25 @@ class Configuration {
         files.add(File(codyze.source!!.absolutePath))
         val translationConfig =
             TranslationConfiguration.builder()
-                .debugParser(true)
-                .failOnError(false)
-                .codeInNodes(true)
+                .debugParser(cpg.debugParser)
+                .failOnError(cpg.failOnError)
+                .codeInNodes(cpg.codeInNodes)
                 .loadIncludes(cpg.translation.analyzeIncludes)
                 .useUnityBuild(cpg.useUnityBuild)
-                .defaultPasses()
+                .processAnnotations(cpg.processAnnotations)
+                .symbols(cpg.symbols)
+                .useParallelFrontends(cpg.useParallelFrontends)
+                .typeSystemActiveInFrontend(cpg.typeSystemActiveInFrontend)
                 .defaultLanguages()
-                .registerPass(IdentifierPass())
-                .registerPass(EdgeCachePass())
                 .sourceLocations(*files.toTypedArray())
+        for (s in cpg.translation.enabledIncludes) translationConfig.includeWhitelist(s)
+        for (s in cpg.translation.disabledIncludes) translationConfig.includeBlacklist(s)
+
+        if (cpg.disableCleanup) translationConfig.disableCleanup()
+        if (cpg.defaultPasses) translationConfig.defaultPasses()
+
+        for (p in cpg.passes) translationConfig.registerPass(p)
+
         if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
             translationConfig.registerLanguage(
                 PythonLanguageFrontend::class.java,
@@ -110,7 +119,9 @@ class Configuration {
                 GoLanguageFrontend.GOLANG_EXTENSIONS
             )
         }
-        for (file in cpg.translation.includes!!) translationConfig.includePath(file.absolutePath)
+
+        for (file in cpg.translation.includes) translationConfig.includePath(file.absolutePath)
+
         return translationConfig.build()
     }
 

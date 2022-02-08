@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.sarif
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import de.fraunhofer.aisec.codyze.ManifestVersionProvider
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription.Companion.instance
 import de.fraunhofer.aisec.codyze.sarif.schema.*
@@ -24,10 +25,9 @@ class SarifInstantiator internal constructor() {
     private val schemaURI = URI.create("https://json.schemastore.org/sarif-2.1.0.json")
     private val sarifVersion = Sarif210.Version._2_1_0
 
-    // TODO: automate getting the name/version/schema
     private val organization = "Fraunhofer AISEC"
     private val driverName = "codyze"
-    private val codyzeVersion = "2.0.0-beta"
+    private val codyzeVersion = ManifestVersionProvider().version.joinToString()
     private val downloadURI = URI.create("https://github.com/Fraunhofer-AISEC/codyze/releases")
     private val informationURI = URI.create("https://www.codyze.io/docs/")
 

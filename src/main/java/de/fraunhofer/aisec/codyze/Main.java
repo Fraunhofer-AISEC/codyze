@@ -19,18 +19,14 @@ import picocli.CommandLine.Unmatched;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
 
 import java.io.*;
-import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Enumeration;
 import java.util.Set;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 /**
  * Start point of the standalone analysis server.
@@ -233,37 +229,5 @@ public class Main {
 				addHierachy(group, sb);
 			}
 		}
-	}
-}
-
-class ManifestVersionProvider implements CommandLine.IVersionProvider {
-
-	// adapted example from https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java
-	@Override
-	public String[] getVersion() throws Exception {
-		Enumeration<URL> resources = CommandLine.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
-		while (resources.hasMoreElements()) {
-			URL url = resources.nextElement();
-			try {
-				Manifest manifest = new Manifest(url.openStream());
-				if (isApplicableManifest(manifest)) {
-					Attributes attr = manifest.getMainAttributes();
-					return new String[] { get(attr, "Implementation-Version").toString() };
-				}
-			}
-			catch (IOException ex) {
-				return new String[] { "Unable to read from " + url + ": " + ex };
-			}
-		}
-		return new String[] { "Unable to find manifest file." };
-	}
-
-	private boolean isApplicableManifest(Manifest manifest) {
-		Attributes attributes = manifest.getMainAttributes();
-		return "codyze".equals(get(attributes, "Implementation-Title"));
-	}
-
-	private static Object get(Attributes attributes, String key) {
-		return attributes.get(new Attributes.Name(key));
 	}
 }

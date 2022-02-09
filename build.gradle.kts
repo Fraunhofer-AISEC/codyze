@@ -122,8 +122,8 @@ dependencies {
     implementation("org.python:jython-standalone:2.7.2") // ok
 
     // Command line interface support
-    api("info.picocli:picocli:4.6.2")
-    annotationProcessor("info.picocli:picocli-codegen:4.6.2")
+    api("info.picocli:picocli:4.6.3")
+    annotationProcessor("info.picocli:picocli-codegen:4.6.3")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.10.2")

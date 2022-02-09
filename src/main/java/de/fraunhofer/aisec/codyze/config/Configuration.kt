@@ -101,13 +101,22 @@ class Configuration {
         for (s in cpg.translation.disabledIncludes) translationConfig.includeBlacklist(s)
 
         if (cpg.disableCleanup) translationConfig.disableCleanup()
-        if (cpg.defaultPasses) translationConfig.defaultPasses()
+
+        if (cpg.defaultPasses == null && cpg.passes.isEmpty()) translationConfig.defaultPasses()
+        else {
+            if (cpg.defaultPasses!!) translationConfig.defaultPasses()
+            else {
+                if (cpg.passes.isEmpty()) {
+                    // TODO: error handling for no passes if needed
+                }
+            }
+        }
 
         for (p in cpg.passes) translationConfig.registerPass(p)
 
         for (l in cpg.additionalLanguages) translationConfig.registerLanguage(
-                l.frontend.get(),
-                l.fileTypes.get()
+            l.frontend.get(),
+            l.fileTypes.get()
         )
 
         for (file in cpg.translation.includes) translationConfig.includePath(file.absolutePath)
@@ -138,8 +147,9 @@ class Configuration {
         private fun parseFile(configFile: File): Configuration {
             val mapper =
                 YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
-            mapper.enable(JsonParser.Feature.IGNORE_UNDEFINED)
-            mapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            mapper
+                .enable(JsonParser.Feature.IGNORE_UNDEFINED)
+                .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
             var config: Configuration? = null
             try {

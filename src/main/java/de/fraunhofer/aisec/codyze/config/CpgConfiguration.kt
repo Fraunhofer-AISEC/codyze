@@ -42,15 +42,25 @@ class CpgConfiguration {
     )
     var typeSystemActiveInFrontend = true
 
-    // TODO: default value true or false?
     @Option(
         names = ["--default-passes"],
         negatable = true,
-        description =
-            ["Controls the usage of default passes for cpg.\n\t(Default: \${DEFAULT-VALUE})"],
+        description = ["Controls the usage of default passes for cpg.\n\t(Default: true)"],
         fallbackValue = "true"
     )
-    var defaultPasses = true
+    // Set to null to differentiate if it was set or not
+    var defaultPasses: Boolean? = null
+
+    @JsonDeserialize(using = PassListDeserializer::class)
+    @Option(
+        names = ["--passes"],
+        paramLabel = "pass",
+        description =
+            [
+                "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
+        split = ","
+    )
+    var passes: List<Pass> = ArrayList()
 
     @Option(
         names = ["--debug-parser"],
@@ -110,17 +120,6 @@ class CpgConfiguration {
         fallbackValue = "true"
     )
     var useParallelFrontends = false
-
-    @JsonDeserialize(using = PassListDeserializer::class)
-    @Option(
-        names = ["--passes"],
-        paramLabel = "pass",
-        description =
-            [
-                "CPG passes in the order in which they should be executed. If default-passes is specified, the default passes are executed first."],
-        split = ","
-    )
-    var passes: List<Pass> = ArrayList()
 }
 
 /** This class consists of settings that control how CPG will process includes. */

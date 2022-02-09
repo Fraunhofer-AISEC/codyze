@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze.config.Language
 import java.io.File
 import java.lang.Exception
 import kotlin.Throws
@@ -59,6 +60,15 @@ internal class CLILoadTest {
 
     @Test
     @Throws(Exception::class)
+    fun languageOptionTest() {
+        val config = Configuration.initConfig(null, "-c", "--additional-languages=PYTHON")
+        val cpg = config.cpg
+        assertEquals(1, cpg.additionalLanguages.size, "Expected size 1 but was ${cpg.passes.size}")
+        assertTrue(cpg.additionalLanguages.contains(Language.PYTHON))
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun passesOptionTest() {
         val config =
             Configuration.initConfig(
@@ -89,5 +99,17 @@ internal class CLILoadTest {
             )
         val cpg = config.cpg
         assertEquals(0, cpg.passes.size, "Expected to be empty but size was ${cpg.passes.size}")
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun symbolsOptionTest() {
+        val config = Configuration.initConfig(null, "-c", "--symbols=#=hash,*=star")
+        val cpg = config.cpg
+        assertEquals(2, cpg.symbols.size, "Expected size 2 but was ${cpg.passes.size}")
+        assertTrue(cpg.symbols.containsKey("#"), "Did not contain \'#\' as a key")
+        assertEquals("hash", cpg.symbols["#"])
+        assertTrue(cpg.symbols.containsKey("*"), "Did not contain \'*\' as a key")
+        assertEquals("star", cpg.symbols["*"])
     }
 }

@@ -31,15 +31,12 @@ class PassListDeserializer : StdDeserializer<List<Pass?>?> {
                     try {
                         result.add(passTypeConverter.convertHelper(s))
                     } catch (e: ClassNotFoundException) {
-                        log.warn(
-                            "ConfigFile error: {} is not a known class. Continue with parsing rest of configuration file.",
-                            e.toString()
+                        printLogWarning(
+                            "${e.toString()} is not a know class ${ctxt.instantiationException(Pass::class.java, e).location.toString()}"
                         )
                     } catch (e: ReflectiveOperationException) {
-                        e.printStackTrace()
-                        log.warn(
-                            "ConfigFile error: {}. Continue with parsing rest of configuration file.",
-                            e.toString()
+                        printLogWarning(
+                            "${e.toString()} ${ctxt.instantiationException(Pass::class.java, e).location.toString()}"
                         )
                     }
                 }
@@ -47,5 +44,12 @@ class PassListDeserializer : StdDeserializer<List<Pass?>?> {
             }
         }
         return result
+    }
+
+    private fun printLogWarning(msg: String) {
+        log.warn(
+            "An error occurred while parsing configuration file: {}. Continue with parsing rest of configuration file.",
+            msg
+        )
     }
 }

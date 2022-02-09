@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.cpg.ExperimentalGolang
@@ -14,7 +13,6 @@ import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
@@ -146,25 +144,18 @@ class Configuration {
             var config: Configuration? = null
             try {
                 config = mapper.readValue(configFile, Configuration::class.java)
-            } catch (e: UnrecognizedPropertyException) {
-                printErrorMessage(
-                    String.format(
-                        "Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
-                        e.propertyName,
-                        e.path[0].fieldName
-                    )
-                )
-            } catch (e: FileNotFoundException) {
-                printErrorMessage(String.format("File at %s not found.", configFile.absolutePath))
             } catch (e: IOException) {
-                printErrorMessage(e.message)
+                printErrorMessage(e.toString())
             }
             return config ?: Configuration()
         }
 
         // print error message to log
         private fun printErrorMessage(msg: String?) {
-            log.warn("{} Continue without configurations from file.", msg)
+            log.warn(
+                "Parsing configuration file failed: {}. Continue without configurations from file.",
+                msg
+            )
         }
     }
 }

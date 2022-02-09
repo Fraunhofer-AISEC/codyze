@@ -48,8 +48,46 @@ internal class CLILoadTest {
         assertFalse(codyze.sarifOutput)
 
         assertFalse(cpg.translation.analyzeIncludes)
-        assertNull(cpg.translation.includes)
+        assertEquals(
+            0,
+            cpg.translation.includes.size,
+            "Expected to be empty but size was ${cpg.translation.includes.size}"
+        )
         assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
         assertFalse(cpg.useUnityBuild)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun passesOptionTest() {
+        val config =
+            Configuration.initConfig(
+                null,
+                "-c",
+                "--passes=de.fraunhofer.aisec.cpg.passes.EdgeCachePass," +
+                    "de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
+                    "de.fraunhofer.aisec.cpg.passes.CallResolver"
+            )
+        val cpg = config.cpg
+        val expectedPassesNames = arrayOf("EdgeCachePass", "FilenameMapper", "CallResolver")
+        val passesNames = cpg.passes.map { s -> s.javaClass.simpleName }
+        assertEquals(3, cpg.passes.size, "Expected size 3 but was ${cpg.passes.size}")
+        assertContentEquals(expectedPassesNames, passesNames.toTypedArray())
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun invalidPassesOptionTest() {
+        val config =
+            Configuration.initConfig(
+                null,
+                "-c",
+                "--passes=de.fraunhofer.aisec.cpg.passes.MyPass," +
+                    "de.fraunhofer.aisec.cpg.passes.Pass," +
+                    "de.fraunhofer.aisec.cpg.passes.scopes.BlockScope," +
+                    "MyPass2"
+            )
+        val cpg = config.cpg
+        assertEquals(0, cpg.passes.size, "Expected to be empty but size was ${cpg.passes.size}")
     }
 }

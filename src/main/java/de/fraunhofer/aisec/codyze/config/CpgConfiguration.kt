@@ -33,7 +33,7 @@ class CpgConfiguration {
 
     // TODO: name!!!!!
     @Option(
-        names = ["--no-type-system-in-frontend"],
+        names = ["--type-system-in-frontend"],
         negatable = true,
         description =
             [
@@ -44,7 +44,7 @@ class CpgConfiguration {
 
     // TODO: default value true or false?
     @Option(
-        names = ["--no-default-passes"],
+        names = ["--default-passes"],
         negatable = true,
         description =
             ["Controls the usage of default passes for cpg.\n\t(Default: \${DEFAULT-VALUE})"],

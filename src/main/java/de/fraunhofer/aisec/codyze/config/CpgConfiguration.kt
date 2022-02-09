@@ -52,6 +52,8 @@ class CpgConfiguration {
     var defaultPasses: Boolean? = null
 
     @JsonDeserialize(using = PassListDeserializer::class)
+    var passes: List<Pass> = ArrayList()
+
     @Option(
         names = ["--passes"],
         paramLabel = "pass",
@@ -60,7 +62,10 @@ class CpgConfiguration {
                 "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
         split = ","
     )
-    var passes: List<Pass> = ArrayList()
+    @JvmName("setPassesNull")
+    fun setPasses(passes: List<Pass?>) {
+        this.passes = passes.filterNotNull()
+    }
 
     @Option(
         names = ["--debug-parser"],

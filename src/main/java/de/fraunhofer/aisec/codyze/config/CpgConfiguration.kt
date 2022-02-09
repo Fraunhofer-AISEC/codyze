@@ -21,7 +21,7 @@ class CpgConfiguration {
                 "Enables the experimental support for additional languages (currently \${COMPLETION-CANDIDATES}). Additional files need to be placed in certain locations. Please follow the CPG README."]
     )
     @JsonDeserialize(using = LanguageDeserializer::class)
-    var additionalLanguages: Set<Language> = EnumSet.noneOf(Language::class.java)
+    var additionalLanguages: EnumSet<Language> = EnumSet.noneOf(Language::class.java)
 
     @set:JsonProperty("unity")
     @Option(
@@ -51,8 +51,7 @@ class CpgConfiguration {
     // Set to null to differentiate if it was set or not
     var defaultPasses: Boolean? = null
 
-    @JsonDeserialize(using = PassListDeserializer::class)
-    var passes: List<Pass> = ArrayList()
+    @JsonDeserialize(using = PassListDeserializer::class) var passes: List<Pass> = ArrayList()
 
     @Option(
         names = ["--passes"],

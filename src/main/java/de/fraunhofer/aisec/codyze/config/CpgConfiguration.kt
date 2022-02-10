@@ -40,7 +40,7 @@ class CpgConfiguration {
                 "If false, type listener is only activated after the frontends are done building the initial AST structure.(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
-    var typeSystemActiveInFrontend = true
+    var typeSystemInFrontend = true
 
     @Option(
         names = ["--default-passes"],
@@ -50,8 +50,6 @@ class CpgConfiguration {
     )
     // Set to null to differentiate if it was set or not
     var defaultPasses: Boolean? = null
-
-    @JsonDeserialize(using = PassListDeserializer::class) var passes: List<Pass> = ArrayList()
 
     @Option(
         names = ["--passes"],
@@ -65,6 +63,7 @@ class CpgConfiguration {
     fun setPasses(passes: List<Pass?>) {
         this.passes = passes.filterNotNull()
     }
+    @JsonDeserialize(using = PassListDeserializer::class) var passes: List<Pass> = ArrayList()
 
     @Option(
         names = ["--debug-parser"],
@@ -146,6 +145,7 @@ class TranslationSettings {
     )
     var includes: Array<File> = emptyArray()
 
+    // TODO: what does a port mean? typo for a part?
     @Option(
         names = ["--enabled-includes"],
         paramLabel = "<path>",
@@ -154,7 +154,7 @@ class TranslationSettings {
                 "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a port(?) of the blacklist, in which it will be ignored. Path must be separated by : (Mac/Linux) or ; (Windows)"],
         split = ":|;"
     )
-    var enabledIncludes: List<String> = ArrayList()
+    var enabledIncludes: Array<File> = emptyArray()
 
     @Option(
         names = ["--disabled-includes"],
@@ -164,5 +164,5 @@ class TranslationSettings {
                 "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The blacklist entries always take priority over the whitelist entries. Path must be separated by : (Mac/Linux) or ; (Windows)"],
         split = ":|;"
     )
-    var disabledIncludes: List<String> = ArrayList()
+    var disabledIncludes: Array<File> = emptyArray()
 }

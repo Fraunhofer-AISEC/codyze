@@ -7,6 +7,7 @@ import java.io.File
 import kotlin.Exception
 import kotlin.Throws
 import kotlin.test.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
 internal class ConfigLoadTest {
@@ -63,27 +64,87 @@ internal class ConfigLoadTest {
         assertFalse(codyze.sarifOutput)
 
         assertFalse(cpg.translation.analyzeIncludes)
-        assertNull(cpg.translation.includes)
+        assertTrue(
+            cpg.translation.includes.isEmpty(),
+            "Expected empty list but size was ${cpg.translation.includes}"
+        )
         assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
         assertFalse(cpg.useUnityBuild)
     }
 
+    @Test
+    @Throws(java.lang.Exception::class)
+    fun additionalOptionsConfigFileTest() {
+        val config = Configuration.initConfig(additionalOptionFile, "-c")
+        val cpg = config.cpg
+
+        assertFalse(cpg.typeSystemInFrontend)
+        assertNotNull(cpg.defaultPasses)
+        assertFalse(cpg.defaultPasses!!)
+
+        val expectedPassesNames =
+            arrayOf(
+                "de.fraunhofer.aisec.cpg.passes.EdgeCachePass",
+                "de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass"
+            )
+        assertEquals(2, cpg.passes.size, "Expected size 2 but was ${cpg.passes.size}")
+        val passesNames = cpg.passes.map { s -> s.javaClass.name }
+        assertContentEquals(expectedPassesNames, passesNames.toTypedArray())
+
+        assertEquals(3, cpg.symbols.size, "Expected size 3 but was ${cpg.passes.size}")
+        assertTrue(cpg.symbols.containsKey("#"), "Did not contain \'#\' as a key")
+        assertEquals("hash", cpg.symbols["#"])
+        assertTrue(cpg.symbols.containsKey("$"), "Did not contain \'$\' as a key")
+        assertEquals("dollar", cpg.symbols["$"])
+        assertTrue(cpg.symbols.containsKey("*"), "Did not contain \'*\' as a key")
+        assertEquals("star", cpg.symbols["*"])
+
+        val expectedIncludes =
+            arrayOf("include1", "include7", "include3", "include5")
+                .map { s -> File(s) }
+                .toTypedArray()
+        assertContentEquals(expectedIncludes, cpg.translation.includes)
+
+        val expectedEnabledIncludes =
+            arrayOf("include3", "include5", "include1").map { s -> File(s) }.toTypedArray()
+        assertContentEquals(expectedEnabledIncludes, cpg.translation.enabledIncludes)
+
+        val expectedDisabledIncludes =
+            arrayOf("include7", "include3").map { s -> File(s) }.toTypedArray()
+        assertContentEquals(expectedDisabledIncludes, cpg.translation.disabledIncludes)
+    }
+
     companion object {
-        private val correctFile =
-            File(
-                ConfigLoadTest::class
-                    .java
-                    .classLoader
-                    .getResource("config-files/correct_structure.yml")
-                    .toURI()
-            )
-        private val incorrectFile =
-            File(
-                ConfigLoadTest::class
-                    .java
-                    .classLoader
-                    .getResource("config-files/incorrect_structure.yml")
-                    .toURI()
-            )
+        private lateinit var correctFile: File
+        private lateinit var incorrectFile: File
+        private lateinit var additionalOptionFile: File
+
+        @BeforeAll
+        @JvmStatic
+        fun startup() {
+            val correctStructureResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/correct_structure.yml"
+                )
+            assertNotNull(correctStructureResource)
+            correctFile = File(correctStructureResource.file)
+            assertNotNull(correctFile)
+
+            val incorrectStructureResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/incorrect_structure.yml"
+                )
+            assertNotNull(incorrectStructureResource)
+            incorrectFile = File(incorrectStructureResource.file)
+            assertNotNull(incorrectFile)
+
+            val additionalOptionResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/additional_options.yml"
+                )
+            assertNotNull(additionalOptionResource)
+            additionalOptionFile = File(additionalOptionResource.file)
+            assertNotNull(additionalOptionFile)
+        }
     }
 }

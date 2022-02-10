@@ -95,11 +95,17 @@ class Configuration {
                 .processAnnotations(cpg.processAnnotations)
                 .symbols(cpg.symbols)
                 .useParallelFrontends(cpg.useParallelFrontends)
-                .typeSystemActiveInFrontend(cpg.typeSystemActiveInFrontend)
+                .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
                 .sourceLocations(*files.toTypedArray())
-        for (s in cpg.translation.enabledIncludes) translationConfig.includeWhitelist(s)
-        for (s in cpg.translation.disabledIncludes) translationConfig.includeBlacklist(s)
+
+        for (file in cpg.translation.includes) translationConfig.includePath(file.absolutePath)
+        for (s in cpg.translation.enabledIncludes) translationConfig.includeWhitelist(
+            s.absolutePath
+        )
+        for (s in cpg.translation.disabledIncludes) translationConfig.includeBlacklist(
+            s.absolutePath
+        )
 
         if (cpg.disableCleanup) translationConfig.disableCleanup()
 
@@ -119,8 +125,6 @@ class Configuration {
             l.frontend.get(),
             l.fileTypes.get()
         )
-
-        for (file in cpg.translation.includes) translationConfig.includePath(file.absolutePath)
 
         return translationConfig.build()
     }

@@ -13,7 +13,7 @@ plugins {
     id("org.jsonschema2dataclass") version "4.2.0"
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "6.2.1"
+    id("com.diffplug.spotless") version "6.2.2"
     id("com.github.hierynomus.license") version "0.16.1"
 
     kotlin("jvm") version "1.6.10" // we can only upgrade to Kotlin 1.5, if CPG does
@@ -122,8 +122,8 @@ dependencies {
     implementation("org.python:jython-standalone:2.7.2") // ok
 
     // Command line interface support
-    api("info.picocli:picocli:4.6.2")
-    annotationProcessor("info.picocli:picocli-codegen:4.6.2")
+    api("info.picocli:picocli:4.6.3")
+    annotationProcessor("info.picocli:picocli-codegen:4.6.3")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.10.2")
@@ -137,7 +137,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Parser for yaml configuration file
-    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.0")
+    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.1")
 }
 
 application {

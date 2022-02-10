@@ -79,9 +79,15 @@ internal class CLILoadTest {
                     "de.fraunhofer.aisec.cpg.passes.CallResolver"
             )
         val cpg = config.cpg
-        val expectedPassesNames = arrayOf("EdgeCachePass", "FilenameMapper", "CallResolver")
-        val passesNames = cpg.passes.map { s -> s.javaClass.simpleName }
+
+        val expectedPassesNames =
+            arrayOf(
+                "de.fraunhofer.aisec.cpg.passes.EdgeCachePass",
+                "de.fraunhofer.aisec.cpg.passes.FilenameMapper",
+                "de.fraunhofer.aisec.cpg.passes.CallResolver"
+            )
         assertEquals(3, cpg.passes.size, "Expected size 3 but was ${cpg.passes.size}")
+        val passesNames = cpg.passes.map { s -> s.javaClass.name }
         assertContentEquals(expectedPassesNames, passesNames.toTypedArray())
     }
 
@@ -95,10 +101,12 @@ internal class CLILoadTest {
                 "--passes=de.fraunhofer.aisec.cpg.passes.MyPass," +
                     "de.fraunhofer.aisec.cpg.passes.Pass," +
                     "de.fraunhofer.aisec.cpg.passes.scopes.BlockScope," +
+                    "de.fraunhofer.aisec.cpg.passes.EdgeCachePass," +
                     "MyPass2"
             )
         val cpg = config.cpg
-        assertEquals(0, cpg.passes.size, "Expected to be empty but size was ${cpg.passes.size}")
+        assertEquals(1, cpg.passes.size, "Expected to have size 1 but was ${cpg.passes.size}")
+        assertEquals("de.fraunhofer.aisec.cpg.passes.EdgeCachePass", cpg.passes[0].javaClass.name)
     }
 
     @Test

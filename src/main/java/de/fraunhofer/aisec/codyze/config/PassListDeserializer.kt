@@ -30,13 +30,10 @@ class PassListDeserializer : StdDeserializer<List<Pass?>?> {
                     val s = jp.valueAsString
                     try {
                         result.add(passTypeConverter.convertHelper(s))
-                    } catch (e: ClassNotFoundException) {
-                        printLogWarning(
-                            "${e.toString()} is not a know class ${ctxt.instantiationException(Pass::class.java, e).location.toString()}"
-                        )
                     } catch (e: ReflectiveOperationException) {
                         printLogWarning(
-                            "${e.toString()} ${ctxt.instantiationException(Pass::class.java, e).location.toString()}"
+                            Configuration.getLocation(jp.tokenLocation),
+                            ctxt.instantiationException(Pass::class.java, e).toString()
                         )
                     }
                 }
@@ -46,9 +43,10 @@ class PassListDeserializer : StdDeserializer<List<Pass?>?> {
         return result
     }
 
-    private fun printLogWarning(msg: String) {
+    private fun printLogWarning(source: String, msg: String) {
         log.warn(
-            "An error occurred while parsing configuration file: {}. Continue with parsing rest of configuration file.",
+            "An error occurred while parsing configuration file{}: {}. Continue with parsing rest of configuration file.",
+            source,
             msg
         )
     }

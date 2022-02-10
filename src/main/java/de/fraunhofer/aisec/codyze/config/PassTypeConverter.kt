@@ -12,11 +12,6 @@ class PassTypeConverter : CommandLine.ITypeConverter<Pass> {
         var result: Pass? = null
         try {
             result = convertHelper(value)
-        } catch (e: ClassNotFoundException) {
-            log.warn(
-                "An error occurred while parsing arguments: {} is not a known class. Continue with parsing arguments.",
-                e.toString()
-            )
         } catch (e: ReflectiveOperationException) {
             log.warn(
                 "An error occurred while parsing arguments: {}. Continue with parsing arguments.",
@@ -28,13 +23,15 @@ class PassTypeConverter : CommandLine.ITypeConverter<Pass> {
 
     @Throws(ReflectiveOperationException::class)
     fun convertHelper(className: String): Pass {
-        val clazz = Class.forName(className)
-        if (Pass::class.java.isAssignableFrom(clazz))
-            try {
+        try {
+            val clazz = Class.forName(className)
+            if (Pass::class.java.isAssignableFrom(clazz))
                 return clazz.getDeclaredConstructor().newInstance() as Pass
-            } catch (e: InstantiationException) {
-                throw InstantiationException("$className cannot be instantiated")
-            }
-        else throw ReflectiveOperationException("$className is not a CPG Pass")
+            else throw ReflectiveOperationException("$className is not a CPG Pass")
+        } catch (e: InstantiationException) {
+            throw InstantiationException("$className cannot be instantiated")
+        } catch (e: ClassNotFoundException) {
+            throw ClassNotFoundException("$className is not a known class", e)
+        }
     }
 }

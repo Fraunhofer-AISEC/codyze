@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze.config
 
+import com.fasterxml.jackson.core.JsonLocation
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
@@ -155,17 +156,26 @@ class Configuration {
             try {
                 config = mapper.readValue(configFile, Configuration::class.java)
             } catch (e: IOException) {
-                printErrorMessage(e.toString())
+                printErrorMessage(configFile.absolutePath, e.toString())
             }
             return config ?: Configuration()
         }
 
         // print error message to log
-        private fun printErrorMessage(msg: String?) {
+        private fun printErrorMessage(source: String, msg: String) {
             log.warn(
-                "Parsing configuration file failed: {}. Continue without configurations from file.",
+                "Parsing configuration file failed ({}): {}. Continue without configurations from file.",
+                source,
                 msg
             )
+        }
+
+        fun getLocation(tokenLocation: JsonLocation): String {
+            return if (tokenLocation.contentReference() != null &&
+                    tokenLocation.contentReference().rawContent is File
+            )
+                " (${(tokenLocation.contentReference().rawContent as File).absolutePath})"
+            else ""
         }
     }
 }

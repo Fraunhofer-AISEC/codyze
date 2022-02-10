@@ -1,6 +1,5 @@
 cpg:
   type-system-in-frontend: false
-  default-passes: false
   passes:
     - de.fraunhofer.aisec.cpg.passes.MyPass
     - de.fraunhofer.aisec.cpg.passes.EdgeCachePass

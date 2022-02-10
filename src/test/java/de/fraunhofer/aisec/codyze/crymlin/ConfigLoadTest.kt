@@ -79,8 +79,7 @@ internal class ConfigLoadTest {
         val cpg = config.cpg
 
         assertFalse(cpg.typeSystemInFrontend)
-        assertNotNull(cpg.defaultPasses)
-        assertFalse(cpg.defaultPasses!!)
+        assertNull(cpg.defaultPasses)
 
         val expectedPassesNames =
             arrayOf(

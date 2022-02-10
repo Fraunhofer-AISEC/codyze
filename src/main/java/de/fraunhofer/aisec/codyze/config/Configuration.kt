@@ -90,7 +90,8 @@ class Configuration {
                 .debugParser(cpg.debugParser)
                 .failOnError(cpg.failOnError)
                 .codeInNodes(cpg.codeInNodes)
-                .loadIncludes(cpg.translation.analyzeIncludes)
+                // we need to force load includes for unity builds, otherwise nothing will be parsed
+                .loadIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)
                 .useUnityBuild(cpg.useUnityBuild)
                 .processAnnotations(cpg.processAnnotations)
                 .symbols(cpg.symbols)

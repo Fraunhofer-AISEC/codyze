@@ -37,7 +37,7 @@ class CpgConfiguration {
         negatable = true,
         description =
             [
-                "If false, type listener is only activated after the frontends are done building the initial AST structure.(Default: \${DEFAULT-VALUE})"],
+                "If false, type listener system is only activated after the frontends are done building the initial AST structure.(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var typeSystemInFrontend = true
@@ -145,13 +145,12 @@ class TranslationSettings {
     )
     var includes: Array<File> = emptyArray()
 
-    // TODO: what does a port mean? typo for a part?
     @Option(
         names = ["--enabled-includes"],
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a port(?) of the blacklist, in which it will be ignored. Path must be separated by : (Mac/Linux) or ; (Windows)"],
+                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the blacklist, in which it will be ignored. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
         split = ":|;"
     )
     var enabledIncludes: Array<File> = emptyArray()
@@ -161,7 +160,7 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The blacklist entries always take priority over the whitelist entries. Path must be separated by : (Mac/Linux) or ; (Windows)"],
+                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The blacklist entries always take priority over the whitelist entries. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
         split = ":|;"
     )
     var disabledIncludes: Array<File> = emptyArray()

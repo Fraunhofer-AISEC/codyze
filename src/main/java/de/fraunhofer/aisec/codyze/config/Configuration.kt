@@ -110,8 +110,9 @@ class Configuration {
 
         if (cpg.disableCleanup) translationConfig.disableCleanup()
 
-        if (cpg.defaultPasses == null && cpg.passes.isEmpty()) translationConfig.defaultPasses()
-        else {
+        if (cpg.defaultPasses == null) {
+            if (cpg.passes.isEmpty()) translationConfig.defaultPasses()
+        } else {
             if (cpg.defaultPasses!!) translationConfig.defaultPasses()
             else {
                 if (cpg.passes.isEmpty()) {
@@ -119,7 +120,6 @@ class Configuration {
                 }
             }
         }
-
         for (p in cpg.passes) translationConfig.registerPass(p)
 
         for (l in cpg.additionalLanguages) translationConfig.registerLanguage(

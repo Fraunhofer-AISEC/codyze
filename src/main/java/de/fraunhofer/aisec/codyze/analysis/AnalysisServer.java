@@ -70,8 +70,6 @@ public class AnalysisServer {
 
 	private ServerConfiguration serverConfig;
 
-	private TranslationConfiguration translationConfig;
-
 	private JythonInterpreter interp;
 
 	private CpgLanguageServer lsp;
@@ -80,8 +78,9 @@ public class AnalysisServer {
 
 	private Mark markModel = new Mark();
 
-	private AnalysisServer(ServerConfiguration serverConfig) {
+	private AnalysisServer(ServerConfiguration serverConfig, Configuration config) {
 		this.serverConfig = serverConfig;
+		this.config = config;
 		AnalysisServer.instance = this;
 
 		// Register built-in functions
@@ -369,28 +368,8 @@ public class AnalysisServer {
 		List<File> files = new ArrayList<>();
 		files.add(new File(url));
 
-		var translationConfig = TranslationConfiguration.builder()
-				.debugParser(true)
-				.failOnError(false)
-				.codeInNodes(true)
-				.loadIncludes(this.serverConfig.analyzeIncludes)
-				.useUnityBuild(this.serverConfig.useUnityBuild)
-				.defaultPasses()
-				.defaultLanguages()
-				.registerPass(new IdentifierPass())
-				.registerPass(new EdgeCachePass())
-				.sourceLocations(files.toArray(new File[0]));
-		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
-		for (File includePath : this.serverConfig.includePath) {
-			translationConfig.includePath(includePath.getAbsolutePath());
-		}
-
-		for (var pair : this.serverConfig.additionalLanguages) {
-			translationConfig.registerLanguage(pair.getFirst(), pair.getSecond());
-		}
-
 		var translationManager = TranslationManager.builder()
-				.config(translationConfig.build())
+				.config(config.buildTranslationConfiguration(files))
 				.build();
 
 		return analyze(translationManager);
@@ -405,11 +384,12 @@ public class AnalysisServer {
 
 		public Builder config(Configuration config) {
 			this.serverConfig = config.buildServerConfiguration();
+			this.config = config;
 			return this;
 		}
 
 		public AnalysisServer build() {
-			return new AnalysisServer(this.serverConfig);
+			return new AnalysisServer(this.serverConfig, this.config);
 		}
 	}
 }

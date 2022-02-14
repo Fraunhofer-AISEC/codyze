@@ -83,9 +83,7 @@ class Configuration {
      */
     @ExperimentalGolang
     @ExperimentalPython
-    fun buildTranslationConfiguration(): TranslationConfiguration {
-        val files: MutableList<File> = ArrayList()
-        files.add(File(codyze.source!!.absolutePath))
+    fun buildTranslationConfiguration(sources : List<File> ): TranslationConfiguration {
         val translationConfig =
             TranslationConfiguration.builder()
                 .debugParser(true)
@@ -97,7 +95,7 @@ class Configuration {
                 .defaultLanguages()
                 .registerPass(IdentifierPass())
                 .registerPass(EdgeCachePass())
-                .sourceLocations(*files.toTypedArray())
+                .sourceLocations(sources)
         if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
             translationConfig.registerLanguage(
                 PythonLanguageFrontend::class.java,

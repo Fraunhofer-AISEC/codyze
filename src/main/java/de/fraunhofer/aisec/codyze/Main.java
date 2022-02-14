@@ -99,8 +99,7 @@ public class Main {
 		}
 
 		AnalysisServer server = AnalysisServer.builder()
-				.config(configuration
-						.buildServerConfiguration())
+				.config(configuration)
 				.build();
 
 		server.start();

@@ -83,7 +83,7 @@ class Configuration {
      */
     @ExperimentalGolang
     @ExperimentalPython
-    fun buildTranslationConfiguration(sources : List<File> ): TranslationConfiguration {
+    fun buildTranslationConfiguration(vararg sources: File): TranslationConfiguration {
         val translationConfig =
             TranslationConfiguration.builder()
                 .debugParser(true)
@@ -95,7 +95,7 @@ class Configuration {
                 .defaultLanguages()
                 .registerPass(IdentifierPass())
                 .registerPass(EdgeCachePass())
-                .sourceLocations(sources)
+                .sourceLocations(*sources)
         if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
             translationConfig.registerLanguage(
                 PythonLanguageFrontend::class.java,

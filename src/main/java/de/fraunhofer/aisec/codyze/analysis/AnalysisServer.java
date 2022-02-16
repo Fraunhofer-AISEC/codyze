@@ -365,11 +365,8 @@ public class AnalysisServer {
 	}
 
 	public CompletableFuture<AnalysisContext> analyze(String url) {
-		List<File> files = new ArrayList<>();
-		files.add(new File(url));
-
 		var translationManager = TranslationManager.builder()
-				.config(config.buildTranslationConfiguration(files))
+				.config(config.buildTranslationConfiguration(new File(url)))
 				.build();
 
 		return analyze(translationManager);

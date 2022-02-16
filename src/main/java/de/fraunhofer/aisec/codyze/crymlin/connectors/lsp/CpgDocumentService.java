@@ -87,7 +87,7 @@ public class CpgDocumentService implements TextDocumentService {
 							.build())
 				.build();
 
-		CompletableFuture<AnalysisContext> analyze = instance.analyze(tm);
+		CompletableFuture<AnalysisContext> analyze = instance.analyze(file.getAbsolutePath());
 
 		try {
 			AnalysisContext ctx = analyze.get(5, TimeUnit.MINUTES);

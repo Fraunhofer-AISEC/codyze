@@ -74,19 +74,15 @@ class Configuration {
             )
         }
 
-        val disabledRulesMap = mutableMapOf<String, Pair<Boolean, MutableSet<String>>>()
+        val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
         for (mName in codyze.disabledMarkRules) {
             val index = mName.lastIndexOf('.')
             val packageName = mName.subSequence(0, index).toString()
             val markName = mName.subSequence(index + 1, mName.length).toString()
-            if (!markName.isEmpty()) {
-                disabledRulesMap.putIfAbsent(packageName, Pair(false, mutableSetOf()))
-                if (markName == "*")
-                    disabledRulesMap.replace(
-                        packageName,
-                        disabledRulesMap.getValue(packageName).copy(first = true)
-                    )
-                else disabledRulesMap[packageName]?.second?.add(markName)
+            if (markName.isNotEmpty()) {
+                disabledRulesMap.putIfAbsent(packageName, DisabledMarkRulesValue())
+                if (markName == "*") disabledRulesMap.getValue(packageName).isDisablePackage = true
+                else disabledRulesMap[packageName]?.disabledMarkRuleNames?.add(markName)
             }
         }
         config.disableMark(disabledRulesMap)

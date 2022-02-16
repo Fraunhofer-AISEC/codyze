@@ -1,6 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.analysis;
 
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue;
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -9,7 +10,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {
@@ -53,8 +53,8 @@ public class ServerConfiguration {
 	/** Additional registered languages */
 	public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages;
 
-	/** Disabled Mark rules */
-	public final Map<String, Pair<Boolean, Set<String>>> disabledMarkRules;
+	/** Disabled Mark rules. key=package, value=(disableEntirePackage, markRulesToDisable) */
+	public final Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules;
 
 	private ServerConfiguration(
 			boolean launchConsole,
@@ -66,7 +66,7 @@ public class ServerConfiguration {
 			@NonNull File[] includePath,
 			boolean disableGoodFindings,
 			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages,
-			Map<String, Pair<Boolean, Set<String>>> disabledMarkRules) {
+			Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
@@ -76,7 +76,7 @@ public class ServerConfiguration {
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
 		this.additionalLanguages = additionalLanguages;
-		this.disabledMarkRules = disabledMarkRules;
+		this.packageToDisabledMarkRules = packageToDisabledMarkRules;
 	}
 
 	public static Builder builder() {
@@ -95,7 +95,7 @@ public class ServerConfiguration {
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
 		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
-		private Map<String, Pair<Boolean, Set<String>>> disabledMarkRules;
+		private Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -151,8 +151,8 @@ public class ServerConfiguration {
 			return this;
 		}
 
-		public Builder disableMark(Map<String, Pair<Boolean, Set<String>>> disabledMarkRules) {
-			this.disabledMarkRules = disabledMarkRules;
+		public Builder disableMark(Map<String, DisabledMarkRulesValue> disabledMarkRules) {
+			this.packageToDisabledMarkRules = disabledMarkRules;
 			return this;
 		}
 
@@ -167,7 +167,7 @@ public class ServerConfiguration {
 				includePath,
 				disableGoodFindings,
 				additionalLanguages,
-				disabledMarkRules);
+				packageToDisabledMarkRules);
 		}
 	}
 }

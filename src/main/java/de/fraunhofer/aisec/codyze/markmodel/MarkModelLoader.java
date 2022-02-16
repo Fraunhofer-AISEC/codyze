@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.codyze.markmodel;
 
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionHelper;
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue;
 import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration;
 import de.fraunhofer.aisec.mark.markDsl.EntityStatement;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
@@ -27,7 +28,7 @@ public class MarkModelLoader {
 	private static final Logger log = LoggerFactory.getLogger(MarkModelLoader.class);
 
 	@NonNull
-	public Mark load(Map<String, MarkModel> markModels, Map<String, Pair<Boolean, Set<String>>> disabledMarkRules, @Nullable String onlyfromthisfile) {
+	public Mark load(Map<String, MarkModel> markModels, Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules, @Nullable String onlyfromthisfile) {
 		Mark m = new Mark();
 
 		for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
@@ -55,8 +56,9 @@ public class MarkModelLoader {
 				continue;
 			}
 			MarkModel markModel = entry.getValue();
-			Pair<Boolean, Set<String>> disabledRules = disabledMarkRules.getOrDefault(markModel.getPackage().getName(), new Pair<>(false, new HashSet<>()));
-			if (disabledRules.getFirst()) {
+			DisabledMarkRulesValue disabledRules = packageToDisabledMarkRules.getOrDefault(markModel.getPackage().getName(),
+				new DisabledMarkRulesValue(false, new HashSet<>()));
+			if (disabledRules.isDisablePackage()) {
 				log.info("Disabled all mark rules in package {}", markModel.getPackage().getName());
 				continue;
 			}
@@ -65,7 +67,7 @@ public class MarkModelLoader {
 			for (RuleDeclaration r : markModel.getRule()) {
 				// todo @FW: should rules also have package names? what is the exact reasoning behind
 				// packages?
-				if (disabledRules.getSecond().contains(r.getName())) {
+				if (disabledRules.getDisabledMarkRuleNames().contains(r.getName())) {
 					log.info("Disabled mark rule {} in package {}", r.getName(), markModel.getPackage().getName());
 					continue;
 				}
@@ -103,8 +105,8 @@ public class MarkModelLoader {
 	}
 
 	@NonNull
-	public Mark load(Map<String, MarkModel> markModels, Map<String, Pair<Boolean, Set<String>>> disabledMarkRules) {
-		return load(markModels, disabledMarkRules, null);
+	public Mark load(Map<String, MarkModel> markModels, Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules) {
+		return load(markModels, packageToDisabledMarkRules, null);
 	}
 
 	@NonNull

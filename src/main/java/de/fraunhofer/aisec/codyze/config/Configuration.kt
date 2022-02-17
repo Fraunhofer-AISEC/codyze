@@ -83,7 +83,10 @@ class Configuration {
                 disabledRulesMap.putIfAbsent(packageName, DisabledMarkRulesValue())
                 if (markName == "*") disabledRulesMap.getValue(packageName).isDisablePackage = true
                 else disabledRulesMap[packageName]?.disabledMarkRuleNames?.add(markName)
-            }
+            } else
+                log.warn(
+                    "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
+                )
         }
         config.disableMark(disabledRulesMap)
 

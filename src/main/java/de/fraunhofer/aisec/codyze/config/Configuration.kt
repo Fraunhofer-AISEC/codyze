@@ -126,14 +126,10 @@ class Configuration {
                 config = mapper.readValue(configFile, Configuration::class.java)
             } catch (e: UnrecognizedPropertyException) {
                 printErrorMessage(
-                    String.format(
-                        "Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
-                        e.propertyName,
-                        e.path[0].fieldName
-                    )
+                        "Could not parse configuration file correctly because \"${e.propertyName}\" is not a valid argument name for ${e.path[0].fieldName} configurations."
                 )
             } catch (e: FileNotFoundException) {
-                printErrorMessage(String.format("File at %s not found.", configFile.absolutePath))
+                printErrorMessage("File at ${configFile.absolutePath} not found.")
             } catch (e: IOException) {
                 printErrorMessage(e.message)
             }

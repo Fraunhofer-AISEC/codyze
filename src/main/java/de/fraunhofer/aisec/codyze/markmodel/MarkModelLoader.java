@@ -56,8 +56,10 @@ public class MarkModelLoader {
 				continue;
 			}
 			MarkModel markModel = entry.getValue();
+
 			DisabledMarkRulesValue disabledRules = packageToDisabledMarkRules.getOrDefault(markModel.getPackage().getName(),
 				new DisabledMarkRulesValue(false, new HashSet<>()));
+			// check if entire package should be disabled
 			if (disabledRules.isDisablePackage()) {
 				log.info("Disabled all mark rules in package {}", markModel.getPackage().getName());
 				continue;
@@ -67,6 +69,8 @@ public class MarkModelLoader {
 			for (RuleDeclaration r : markModel.getRule()) {
 				// todo @FW: should rules also have package names? what is the exact reasoning behind
 				// packages?
+
+				// check if rule should be disabled
 				if (disabledRules.getDisabledMarkRuleNames().contains(r.getName())) {
 					log.info("Disabled mark rule {} in package {}", r.getName(), markModel.getPackage().getName());
 					continue;

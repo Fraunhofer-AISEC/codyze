@@ -23,8 +23,8 @@ import picocli.CommandLine
 class Configuration {
 
     // Added as Mixin so the already initialized objects are used instead of new ones created
-    @CommandLine.Mixin var codyze = CodyzeConfiguration()
-    @CommandLine.Mixin var cpg = CpgConfiguration()
+    @CommandLine.Mixin val codyze = CodyzeConfiguration()
+    @CommandLine.Mixin val cpg = CpgConfiguration()
 
     // Parse CLI arguments into config class
     private fun parseCLI(vararg args: String?) {
@@ -50,30 +50,13 @@ class Configuration {
     @ExperimentalGolang
     @ExperimentalPython
     fun buildServerConfiguration(): ServerConfiguration {
-        val config =
-            ServerConfiguration.builder()
-                .launchLsp(codyze.executionMode.isLsp)
-                .launchConsole(codyze.executionMode.isTui)
-                .typestateAnalysis(codyze.analysis.tsMode)
-                .disableGoodFindings(codyze.noGoodFindings)
-                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-                // TODO: remove all cpg config and replace with TranslationConfiguration
-                .analyzeIncludes(cpg.translation.analyzeIncludes)
-                .includePath(cpg.translation.includes)
-                .useUnityBuild(cpg.useUnityBuild)
-        if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
-            config.registerLanguage(
-                PythonLanguageFrontend::class.java,
-                PythonLanguageFrontend.PY_EXTENSIONS
-            )
-        }
-        if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
-            config.registerLanguage(
-                GoLanguageFrontend::class.java,
-                GoLanguageFrontend.GOLANG_EXTENSIONS
-            )
-        }
-        return config.build()
+        return ServerConfiguration.builder()
+            .launchLsp(codyze.executionMode.isLsp)
+            .launchConsole(codyze.executionMode.isTui)
+            .typestateAnalysis(codyze.analysis.tsMode)
+            .disableGoodFindings(codyze.noGoodFindings)
+            .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+            .build()
     }
 
     /**

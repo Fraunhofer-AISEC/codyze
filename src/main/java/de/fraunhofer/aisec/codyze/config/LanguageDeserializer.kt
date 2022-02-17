@@ -25,9 +25,7 @@ class LanguageDeserializer : StdDeserializer<EnumSet<Language>?>(null as JavaTyp
                     try {
                         result.add(Language.valueOf(s.uppercase(Locale.getDefault())))
                     } catch (e: IllegalArgumentException) {
-                        log.warn(
-                            "An error occurred while parsing configuration file{}: {}. Continue with parsing rest of configuration file.",
-                            Configuration.getLocation(jp.tokenLocation),
+                        val instantiationError =
                             ctxt.instantiationException(
                                 Language::class.java,
                                 IllegalArgumentException(
@@ -35,6 +33,10 @@ class LanguageDeserializer : StdDeserializer<EnumSet<Language>?>(null as JavaTyp
                                     e
                                 )
                             )
+                        log.warn(
+                            "An error occurred while parsing configuration file{}: {}. Continue with parsing rest of configuration file.",
+                            Configuration.getLocation(jp.tokenLocation),
+                            instantiationError
                         )
                     }
                 }

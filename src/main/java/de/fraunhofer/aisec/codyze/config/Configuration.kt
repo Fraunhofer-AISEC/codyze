@@ -100,32 +100,40 @@ class Configuration {
                 .defaultLanguages()
                 .sourceLocations(*files.toTypedArray())
 
-        for (file in cpg.translation.includes) translationConfig.includePath(file.absolutePath)
-        for (s in cpg.translation.enabledIncludes) translationConfig.includeWhitelist(
-            s.absolutePath
-        )
-        for (s in cpg.translation.disabledIncludes) translationConfig.includeBlacklist(
-            s.absolutePath
-        )
+        for (file in cpg.translation.includes) {
+            translationConfig.includePath(file.absolutePath)
+        }
+        for (s in cpg.translation.enabledIncludes) {
+            translationConfig.includeWhitelist(s.absolutePath)
+        }
+        for (s in cpg.translation.disabledIncludes) {
+            translationConfig.includeBlacklist(s.absolutePath)
+        }
 
-        if (cpg.disableCleanup) translationConfig.disableCleanup()
+        if (cpg.disableCleanup) {
+            translationConfig.disableCleanup()
+        }
 
         if (cpg.defaultPasses == null) {
-            if (cpg.passes.isEmpty()) translationConfig.defaultPasses()
+            if (cpg.passes.isEmpty()) {
+                translationConfig.defaultPasses()
+            }
         } else {
-            if (cpg.defaultPasses!!) translationConfig.defaultPasses()
-            else {
+            if (cpg.defaultPasses!!) {
+                translationConfig.defaultPasses()
+            } else {
                 if (cpg.passes.isEmpty()) {
                     // TODO: error handling for no passes if needed
                 }
             }
         }
-        for (p in cpg.passes) translationConfig.registerPass(p)
+        for (p in cpg.passes) {
+            translationConfig.registerPass(p)
+        }
 
-        for (l in cpg.additionalLanguages) translationConfig.registerLanguage(
-            l.frontend.get(),
-            l.fileTypes.get()
-        )
+        for (l in cpg.additionalLanguages) {
+            translationConfig.registerLanguage(l.frontend.get(), l.fileTypes.get())
+        }
 
         return translationConfig.build()
     }

@@ -69,7 +69,7 @@ class CodyzeConfiguration {
         paramLabel = "<package.rule>",
         description =
             [
-                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by the package and the rule name. Use \'*\' to disable an entire package."],
+                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (package.rule). Use \'*\' to disable an entire package."],
         split = ","
     )
     var disabledMarkRules: List<String> = emptyList()

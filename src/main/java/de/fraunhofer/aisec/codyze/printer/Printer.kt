@@ -14,7 +14,7 @@ abstract class Printer(val findings: Set<Finding>) {
         log.info("printed output to console")
     }
 
-    open fun printToFile(path: String) {
+    fun printToFile(path: String) {
         try {
             PrintWriter(path).use { out -> out.println(output) }
             log.info("printed output to file: {}", path)

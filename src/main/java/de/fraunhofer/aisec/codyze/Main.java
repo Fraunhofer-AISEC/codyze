@@ -3,9 +3,7 @@ package de.fraunhofer.aisec.codyze;
 
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.config.*;
-import de.fraunhofer.aisec.codyze.printer.LegacyPrinter;
-import de.fraunhofer.aisec.codyze.printer.Printer;
-import de.fraunhofer.aisec.codyze.printer.SarifPrinter;
+import de.fraunhofer.aisec.codyze.printer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;

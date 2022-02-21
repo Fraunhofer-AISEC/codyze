@@ -50,7 +50,13 @@ class Configuration {
                 .launchLsp(codyze.executionMode.isLsp)
                 .launchConsole(codyze.executionMode.isTui)
                 .typestateAnalysis(codyze.analysis.tsMode)
-                .disableGoodFindings(codyze.noGoodFindings)
+                .disableGoodFindings(
+                    if (codyze.pedantic) {
+                        false
+                    } else {
+                        codyze.noGoodFindings
+                    }
+                )
                 .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
                 // TODO: remove all cpg config and replace with TranslationConfiguration
                 .analyzeIncludes(cpg.translation.analyzeIncludes)

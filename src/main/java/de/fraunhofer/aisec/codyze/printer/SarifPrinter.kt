@@ -7,7 +7,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class SarifPrinter(findings: Set<Finding>) : Printer(findings) {
-    var si = SarifInstantiator()
+    private var si = SarifInstantiator()
 
     override var log: Logger = LoggerFactory.getLogger(SarifPrinter::class.java)
     override var output: String = si.toString()

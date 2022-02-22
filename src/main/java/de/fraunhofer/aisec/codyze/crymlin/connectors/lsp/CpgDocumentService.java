@@ -97,7 +97,7 @@ public class CpgDocumentService implements TextDocumentService {
 
 			// check if there are disabled findings
 			@NonNull
-			Map<Integer, String> ignoredLines = getIgnoredLines(file);
+			Map<Integer, String> ignoredLines = instance.getServerConfiguration().pedantic ? Map.of() : getIgnoredLines(file);
 
 			List<Diagnostic> allDiags = findingsToDiagnostics(ctx.getFindings(), ignoredLines);
 
@@ -133,6 +133,7 @@ public class CpgDocumentService implements TextDocumentService {
 	@NonNull
 	private Map<Integer, String> getIgnoredLines(@NonNull File file) {
 		Map<Integer, String> ignoredLines = new HashMap<>();
+
 		try {
 			List<String> allLines = Files.readAllLines(Paths.get(file.getAbsolutePath()));
 			for (int i = 0; i < allLines.size(); i++) {

@@ -48,6 +48,11 @@ public class ServerConfiguration {
 	/** If true, no "positive" findings will be returned from the analysis. */
 	public final boolean disableGoodFindings;
 
+	/**
+	 * Enables pedantic mode analyzing all MARK rules and reporting all findings regardless of other configuration options.
+	 */
+	public final boolean pedantic;
+
 	/** Additional registered languages */
 	public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages;
 
@@ -60,6 +65,7 @@ public class ServerConfiguration {
 			boolean useUnityBuild,
 			@NonNull File[] includePath,
 			boolean disableGoodFindings,
+			boolean pedantic,
 			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
@@ -69,6 +75,7 @@ public class ServerConfiguration {
 		this.useUnityBuild = useUnityBuild;
 		this.includePath = includePath;
 		this.disableGoodFindings = disableGoodFindings;
+		this.pedantic = pedantic;
 		this.additionalLanguages = additionalLanguages;
 	}
 
@@ -87,6 +94,7 @@ public class ServerConfiguration {
 		private boolean useUnityBuild;
 		private File[] includePath = new File[0];
 		private boolean disableGoodFindings;
+		private boolean pedantic;
 		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
 
 		public Builder launchConsole(boolean launchConsole) {
@@ -139,6 +147,11 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder pedantic(boolean pedantic) {
+			this.pedantic = pedantic;
+			return this;
+		}
+
 		public Builder useLegacyEvaluator() {
 			return this;
 		}
@@ -153,6 +166,7 @@ public class ServerConfiguration {
 				useUnityBuild,
 				includePath,
 				disableGoodFindings,
+				pedantic,
 				additionalLanguages);
 		}
 	}

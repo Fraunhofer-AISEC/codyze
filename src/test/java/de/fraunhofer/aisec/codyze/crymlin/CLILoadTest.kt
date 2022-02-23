@@ -46,6 +46,7 @@ internal class CLILoadTest {
         assertEquals(TypestateMode.DFA, codyze.analysis.tsMode)
         assertEquals(120L, codyze.timeout)
         assertFalse(codyze.noGoodFindings)
+        assertFalse(codyze.pedantic)
         assertFalse(codyze.sarifOutput)
 
         assertFalse(cpg.translation.analyzeIncludes)

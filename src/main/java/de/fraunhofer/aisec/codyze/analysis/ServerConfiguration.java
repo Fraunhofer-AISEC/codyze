@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -103,7 +104,7 @@ public class ServerConfiguration {
 		private boolean disableGoodFindings;
 		private boolean pedantic;
 		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
-		private Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules;
+		private Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules = Collections.emptyMap();
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;

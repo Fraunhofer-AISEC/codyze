@@ -2,8 +2,8 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.*
+import de.fraunhofer.aisec.codyze.config.Configuration
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.graph.Graph
 import de.fraunhofer.aisec.cpg.graph.declarations.TypedefDeclaration
@@ -131,12 +131,11 @@ internal class GraphTest : AbstractTest() {
             assertNotNull(cppFile)
 
             // Start an analysis server
-            server =
-                AnalysisServer.builder()
-                    .config(
-                        ServerConfiguration.builder().launchConsole(false).launchLsp(false).build()
-                    )
-                    .build()
+            val config = Configuration()
+            config.codyze.executionMode.isCli = false
+            config.codyze.executionMode.isLsp = false
+
+            server = AnalysisServer.builder().config(config).build()
             server.start()
 
             // Start the analysis

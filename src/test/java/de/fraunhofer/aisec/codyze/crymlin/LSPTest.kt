@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.config.Configuration
 import java.io.*
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
@@ -105,16 +105,12 @@ internal class LSPTest {
             parentFolder = markPoC1.parent + File.separator
 
             // Start an analysis server
-            server =
-                AnalysisServer.builder()
-                    .config(
-                        ServerConfiguration.builder()
-                            .launchConsole(false)
-                            .launchLsp(true)
-                            .markFiles(parentFolder)
-                            .build()
-                    )
-                    .build()
+            val config = Configuration()
+            config.codyze.executionMode.isCli = false
+            config.codyze.executionMode.isLsp = true
+            config.codyze.mark = arrayOf(File(parentFolder))
+
+            server = AnalysisServer.builder().config(config).build()
             server.start()
         }
     }

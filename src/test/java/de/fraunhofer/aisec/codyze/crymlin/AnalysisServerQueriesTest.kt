@@ -2,7 +2,7 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.config.Configuration
 import java.io.*
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
@@ -43,16 +43,12 @@ internal class AnalysisServerQueriesTest : AbstractTest() {
             val markModelFiles = markPoC1.parent
 
             // Start an analysis server
-            server =
-                AnalysisServer.builder()
-                    .config(
-                        ServerConfiguration.builder()
-                            .launchConsole(false)
-                            .launchLsp(false)
-                            .markFiles(markModelFiles)
-                            .build()
-                    )
-                    .build()
+            val config = Configuration()
+            config.codyze.executionMode.isCli = false
+            config.codyze.executionMode.isLsp = false
+            config.codyze.mark = arrayOf(File(markModelFiles))
+
+            server = AnalysisServer.builder().config(config).build()
             server.start()
 
             // Start the analysis

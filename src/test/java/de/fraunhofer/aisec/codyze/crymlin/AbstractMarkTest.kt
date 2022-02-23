@@ -3,8 +3,8 @@ package de.fraunhofer.aisec.codyze.crymlin
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.Finding
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
+import de.fraunhofer.aisec.codyze.config.Configuration
 import de.fraunhofer.aisec.cpg.TranslationManager
 import java.io.*
 import java.lang.Exception
@@ -78,18 +78,13 @@ abstract class AbstractMarkTest : AbstractTest() {
                 .toTypedArray()
 
         // Start an analysis server
-        server =
-            AnalysisServer.builder()
-                .config(
-                    ServerConfiguration.builder()
-                        .launchConsole(false)
-                        .launchLsp(false)
-                        .typestateAnalysis(tsMode)
-                        .markFiles(*markDirPaths)
-                        .useLegacyEvaluator()
-                        .build()
-                )
-                .build()
+        val config = Configuration()
+        config.codyze.executionMode.isCli = false
+        config.codyze.executionMode.isLsp = false
+        config.codyze.analysis.tsMode = tsMode
+        config.codyze.mark = markDirPaths.map { s -> File(s) }.toTypedArray()
+
+        server = AnalysisServer.builder().config(config).build()
         server.start()
         translationManager = newAnalysisRun(*toAnalyze.toTypedArray())
         val analyze = server.analyze(translationManager)

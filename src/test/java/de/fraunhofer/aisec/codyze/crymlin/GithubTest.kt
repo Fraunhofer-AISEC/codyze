@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.config.Configuration
 import java.io.*
 import java.lang.Exception
 import java.nio.charset.StandardCharsets
@@ -58,16 +58,12 @@ internal class GithubTest : AbstractTest() {
             val markPoC1 = File(resource.file)
             assertNotNull(markPoC1)
 
-            server =
-                AnalysisServer.builder()
-                    .config(
-                        ServerConfiguration.builder()
-                            .launchConsole(false)
-                            .launchLsp(false)
-                            .markFiles(markPoC1.absolutePath)
-                            .build()
-                    )
-                    .build()
+            val config = Configuration()
+            config.codyze.executionMode.isCli = false
+            config.codyze.executionMode.isLsp = false
+            config.codyze.mark = arrayOf(markPoC1)
+
+            server = AnalysisServer.builder().config(config).build()
             server.start()
             logCopy = TestAppender("logCopy", null)
             logCopy!!.injectIntoLogger()

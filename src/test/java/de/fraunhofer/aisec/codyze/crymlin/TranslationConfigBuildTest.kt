@@ -1,8 +1,6 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.config.Configuration
-import de.fraunhofer.aisec.cpg.ExperimentalGolang
-import de.fraunhofer.aisec.cpg.ExperimentalPython
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
@@ -15,7 +13,6 @@ import org.junit.jupiter.api.Test
 
 internal class TranslationConfigBuildTest {
 
-    @OptIn(ExperimentalGolang::class, ExperimentalPython::class)
     @Test
     @Throws(Exception::class)
     fun noneTest() {
@@ -29,7 +26,6 @@ internal class TranslationConfigBuildTest {
         )
     }
 
-    @OptIn(ExperimentalGolang::class, ExperimentalPython::class)
     @Test
     @Throws(Exception::class)
     fun defaultTest() {
@@ -44,7 +40,6 @@ internal class TranslationConfigBuildTest {
         )
     }
 
-    @OptIn(ExperimentalGolang::class, ExperimentalPython::class)
     @Test
     @Throws(Exception::class)
     fun noDefaultTest() {
@@ -58,7 +53,6 @@ internal class TranslationConfigBuildTest {
         )
     }
 
-    @OptIn(ExperimentalGolang::class, ExperimentalPython::class)
     @Test
     @Throws(Exception::class)
     fun passesAndNoneTest() {
@@ -76,7 +70,6 @@ internal class TranslationConfigBuildTest {
         )
     }
 
-    @OptIn(ExperimentalGolang::class, ExperimentalPython::class)
     @Test
     @Throws(Exception::class)
     fun passesAndDefaultTest() {

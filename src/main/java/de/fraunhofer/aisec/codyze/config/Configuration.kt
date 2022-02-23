@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
-import de.fraunhofer.aisec.cpg.passes.Pass
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
+import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.io.IOException
 import org.slf4j.LoggerFactory
@@ -61,8 +61,8 @@ class Configuration {
                 .analyzeIncludes(cpg.translation.analyzeIncludes)
                 .includePath(cpg.translation.includes)
                 .useUnityBuild(cpg.useUnityBuild)
-                
-        if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
+
+        if (cpg.additionalLanguages.contains(Language.PYTHON)) {
             val pythonFrontendClazz =
                 try {
                     @Suppress("UNCHECKED_CAST")
@@ -84,7 +84,7 @@ class Configuration {
                 config.registerLanguage(pythonFrontendClazz, extensions)
             }
         }
-        if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
+        if (cpg.additionalLanguages.contains(Language.GO)) {
             val golangFrontendClazz =
                 try {
                     @Suppress("UNCHECKED_CAST")
@@ -162,7 +162,7 @@ class Configuration {
             translationConfig.registerPass(p)
         }
 
-        if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
+        if (cpg.additionalLanguages.contains(Language.PYTHON)) {
             val pythonFrontendClazz =
                 try {
                     @Suppress("UNCHECKED_CAST")
@@ -184,7 +184,7 @@ class Configuration {
                 translationConfig.registerLanguage(pythonFrontendClazz, extensions)
             }
         }
-        if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
+        if (cpg.additionalLanguages.contains(Language.GO)) {
             val golangFrontendClazz =
                 try {
                     @Suppress("UNCHECKED_CAST")

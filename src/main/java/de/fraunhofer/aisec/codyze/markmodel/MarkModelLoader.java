@@ -57,8 +57,14 @@ public class MarkModelLoader {
 			}
 			MarkModel markModel = entry.getValue();
 
-			DisabledMarkRulesValue disabledRules = packageToDisabledMarkRules.getOrDefault(markModel.getPackage().getName(),
-				new DisabledMarkRulesValue(false, new HashSet<>()));
+			DisabledMarkRulesValue disabledRules;
+			if (markModel.getPackage() == null) {
+				disabledRules = packageToDisabledMarkRules.getOrDefault("", new DisabledMarkRulesValue(false, new HashSet<>()));
+			} else {
+				disabledRules = packageToDisabledMarkRules.getOrDefault(markModel.getPackage().getName(),
+					new DisabledMarkRulesValue(false, new HashSet<>()));
+			}
+
 			// check if entire package should be disabled
 			if (disabledRules.isDisablePackage()) {
 				log.info("Disabled all mark rules in package {}", markModel.getPackage().getName());

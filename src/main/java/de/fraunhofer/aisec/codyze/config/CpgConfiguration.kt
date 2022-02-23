@@ -69,5 +69,5 @@ class TranslationSettings {
                 "Path(s) containing include files. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
         split = ":|;"
     )
-    var includes: Array<File>? = null
+    var includes: Array<File>? = emptyArray()
 }

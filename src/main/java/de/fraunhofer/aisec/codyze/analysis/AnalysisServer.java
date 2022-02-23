@@ -111,6 +111,11 @@ public class AnalysisServer {
 		return instance;
 	}
 
+	@NonNull
+	public ServerConfiguration getServerConfiguration() {
+		return config;
+	}
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -214,7 +219,7 @@ public class AnalysisServer {
 				.thenApply(
 					ctx -> {
 						Benchmark bench = new Benchmark(AnalysisServer.class, "  Filtering results");
-						if (config.disableGoodFindings) {
+						if (!config.pedantic && config.disableGoodFindings) {
 							// Filter out "positive" results
 							ctx.getFindings().removeIf(finding -> !finding.isProblem());
 						}

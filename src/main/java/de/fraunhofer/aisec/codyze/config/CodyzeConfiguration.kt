@@ -73,6 +73,14 @@ class CodyzeConfiguration {
         split = ","
     )
     var disabledMarkRules: List<String> = emptyList()
+
+    @Option(
+        names = ["--pedantic"],
+        description =
+            [
+                "Activates pedantic analysis mode. In this mode, Codyze analyzes all MARK rules and report all findings. This option overrides `disabledMarkRules` and `noGoodFinding` and ignores any Codyze source code comments."]
+    )
+    var pedantic = false
 }
 
 /**

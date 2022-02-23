@@ -78,7 +78,7 @@ public class MarkModelLoader {
 
 				// check if rule should be disabled
 				if (disabledRules.getDisabledMarkRuleNames().contains(r.getName())) {
-					log.info("Disabled mark rule {} in package {}", r.getName(), markModel.getPackage().getName());
+					log.info("Disabled mark rule {} in package {}", r.getName(), markModel.getPackage() == null ? "" : markModel.getPackage().getName());
 					continue;
 				}
 

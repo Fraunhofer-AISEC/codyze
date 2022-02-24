@@ -9,7 +9,7 @@ internal class CLITest {
     fun enablePythonSupport() {
         val cliParameters = arrayOf("-c", "--enable-python-support")
         val config = Configuration.initConfig(null, *cliParameters)
-        config.buildServerConfiguration()
+        config.buildTranslationConfiguration()
 
         // able to handle missing frontends without crashing
         assert(true)
@@ -19,7 +19,7 @@ internal class CLITest {
     fun useAdditionalLanguagePython() {
         val cliParameters = arrayOf("-c", "--additional-languages=python")
         val config = Configuration.initConfig(null, *cliParameters)
-        config.buildServerConfiguration()
+        config.buildTranslationConfiguration()
 
         // able to handle missing frontends without crashing
         assert(true)

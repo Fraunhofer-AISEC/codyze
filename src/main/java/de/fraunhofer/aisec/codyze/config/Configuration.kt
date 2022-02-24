@@ -121,7 +121,7 @@ class Configuration {
                 translationConfig.registerLanguage(golangFrontendClazz, extensions)
             }
         }
-        for (file in cpg.translation.includes!!) translationConfig.includePath(file.absolutePath)
+        for (file in cpg.translation.includes) translationConfig.includePath(file.absolutePath)
         return translationConfig.build()
     }
 

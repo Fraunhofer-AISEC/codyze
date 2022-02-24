@@ -57,33 +57,30 @@ public class MarkModelLoader {
 			}
 			MarkModel markModel = entry.getValue();
 
-			DisabledMarkRulesValue disabledRules;
-			if (markModel.getPackage() == null) {
-				disabledRules = packageToDisabledMarkRules.getOrDefault("", new DisabledMarkRulesValue(false, new HashSet<>()));
-			} else {
-				disabledRules = packageToDisabledMarkRules.getOrDefault(markModel.getPackage().getName(),
-					new DisabledMarkRulesValue(false, new HashSet<>()));
-			}
+			// For mark files without package the key is an empty string in the map
+			String key = markModel.getPackage() == null ? "" : markModel.getPackage().getName();
+
+			DisabledMarkRulesValue disabledRules = packageToDisabledMarkRules.getOrDefault(key,
+				new DisabledMarkRulesValue(false, Collections.emptySet()));
 
 			// check if entire package should be disabled
 			if (disabledRules.isDisablePackage()) {
 				log.info("Disabled all mark rules in package {}", markModel.getPackage().getName());
-				continue;
-			}
+			} else {
+				// Parse rules
+				for (RuleDeclaration r : markModel.getRule()) {
+					// todo @FW: should rules also have package names? what is the exact reasoning behind
+					// packages?
 
-			// Parse rules
-			for (RuleDeclaration r : markModel.getRule()) {
-				// todo @FW: should rules also have package names? what is the exact reasoning behind
-				// packages?
+					// check if rule should be disabled
+					if (disabledRules.getDisabledMarkRuleNames().contains(r.getName())) {
+						log.info("Disabled mark rule {} in package {}", r.getName(), markModel.getPackage() == null ? "" : markModel.getPackage().getName());
+						continue;
+					}
 
-				// check if rule should be disabled
-				if (disabledRules.getDisabledMarkRuleNames().contains(r.getName())) {
-					log.info("Disabled mark rule {} in package {}", r.getName(), markModel.getPackage() == null ? "" : markModel.getPackage().getName());
-					continue;
+					MRule rule = parseRule(r, m, entry.getKey());
+					m.getRules().add(rule);
 				}
-
-				MRule rule = parseRule(r, m, entry.getKey());
-				m.getRules().add(rule);
 			}
 		}
 

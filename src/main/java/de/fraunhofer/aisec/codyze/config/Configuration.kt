@@ -9,7 +9,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
-import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.io.IOException
 import org.slf4j.LoggerFactory
@@ -20,23 +19,6 @@ class Configuration {
     // Added as Mixin so the already initialized objects are used instead of new ones created
     @CommandLine.Mixin var codyze = CodyzeConfiguration()
     @CommandLine.Mixin var cpg = CpgConfiguration()
-
-    // Parse CLI arguments into config class
-    private fun parseCLI(vararg args: String?) {
-
-        CommandLine(this)
-            // Added as Mixin so the already initialized objects are used instead of new ones
-            // created
-            .addMixin("analysis", codyze.analysis)
-            .addMixin("translation", cpg.translation)
-            .registerConverter(Pass::class.java, PassTypeConverter())
-            .setCaseInsensitiveEnumValuesAllowed(true)
-            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
-            // option which would result in exceptions, side effect is that all unknown options are
-            // ignored
-            .setUnmatchedArgumentsAllowed(true)
-            .parseArgs(*args)
-    }
 
     /**
      * Builds ServerConfiguration object with available configurations
@@ -180,6 +162,33 @@ class Configuration {
         }
 
         return translationConfig.build()
+    }
+
+    // Parse CLI arguments into config class
+    private fun parseCLI(vararg args: String?) {
+
+        CommandLine(this)
+            // Added as Mixin so the already initialized objects are used instead of new ones
+            // created
+            .addMixin("analysis", codyze.analysis)
+            .addMixin("translation", cpg.translation)
+            .setCaseInsensitiveEnumValuesAllowed(true)
+            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
+            // option which would result in exceptions, side effect is that all unknown options are
+            // ignored
+            .setUnmatchedArgumentsAllowed(true)
+            .parseArgs(*args)
+    }
+
+    private fun normalize() {
+        // In pedantic analysis mode all MARK rules are analyzed and all findings reported
+        if (codyze.pedantic) {
+            codyze.noGoodFindings = false
+            codyze.disabledMarkRules = emptyList()
+        }
+
+        // we need to force load includes for unity builds, otherwise nothing will be parsed
+        if (cpg.useUnityBuild) cpg.translation.analyzeIncludes = true
     }
 
     companion object {

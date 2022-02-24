@@ -29,17 +29,24 @@ public class ServerConfiguration {
 	/** If true, no "positive" findings will be returned from the analysis. */
 	public final boolean disableGoodFindings;
 
+	/**
+	 * Enables pedantic mode analyzing all MARK rules and reporting all findings regardless of other configuration options.
+	 */
+	public final boolean pedantic;
+
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
 			@NonNull String[] markModelFiles,
 			@NonNull TypestateMode typestateMode,
-			boolean disableGoodFindings) {
+			boolean disableGoodFindings,
+			boolean pedantic) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
 		this.markModelFiles = markModelFiles;
 		this.typestateAnalysis = typestateMode;
 		this.disableGoodFindings = disableGoodFindings;
+		this.pedantic = pedantic;
 	}
 
 	public static Builder builder() {
@@ -54,6 +61,7 @@ public class ServerConfiguration {
 		@NonNull
 		private TypestateMode typestateAnalysis = TypestateMode.DFA;
 		private boolean disableGoodFindings;
+		private boolean pedantic;
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -80,6 +88,11 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder pedantic(boolean pedantic) {
+			this.pedantic = pedantic;
+			return this;
+		}
+
 		public Builder useLegacyEvaluator() {
 			return this;
 		}
@@ -90,7 +103,8 @@ public class ServerConfiguration {
 				launchLsp,
 				markModelFiles,
 				typestateAnalysis,
-				disableGoodFindings);
+				disableGoodFindings,
+				pedantic);
 		}
 	}
 }

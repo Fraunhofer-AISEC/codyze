@@ -7,11 +7,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
-import de.fraunhofer.aisec.cpg.ExperimentalGolang
-import de.fraunhofer.aisec.cpg.ExperimentalPython
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
-import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend
-import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
+import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.IdentifierPass
 import java.io.File
@@ -47,16 +44,20 @@ class Configuration {
      *
      * @return ServerConfiguration
      */
-    @ExperimentalGolang
-    @ExperimentalPython
     fun buildServerConfiguration(): ServerConfiguration {
         return ServerConfiguration.builder()
-            .launchLsp(codyze.executionMode.isLsp)
-            .launchConsole(codyze.executionMode.isTui)
-            .typestateAnalysis(codyze.analysis.tsMode)
-            .disableGoodFindings(codyze.noGoodFindings)
-            .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-            .build()
+                .launchLsp(codyze.executionMode.isLsp)
+                .launchConsole(codyze.executionMode.isTui)
+                .typestateAnalysis(codyze.analysis.tsMode)
+                .disableGoodFindings(
+                    if (codyze.pedantic) {
+                        false
+                    } else {
+                        codyze.noGoodFindings
+                    }
+                )
+                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+                .build()
     }
 
     /**
@@ -64,8 +65,6 @@ class Configuration {
      *
      * @return TranslationConfiguration
      */
-    @ExperimentalGolang
-    @ExperimentalPython
     fun buildTranslationConfiguration(vararg sources: File): TranslationConfiguration {
         val translationConfig =
             TranslationConfiguration.builder()
@@ -80,16 +79,47 @@ class Configuration {
                 .registerPass(EdgeCachePass())
                 .sourceLocations(*sources)
         if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
-            translationConfig.registerLanguage(
-                PythonLanguageFrontend::class.java,
-                PythonLanguageFrontend.PY_EXTENSIONS
-            )
+            val pythonFrontendClazz =
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    Class.forName(Language.PYTHON.frontendClassName) as Class<LanguageFrontend>
+                } catch (e: Throwable) {
+                    log.warn("Unable to initialize Python frontend for CPG")
+                    null
+                }
+
+            if (pythonFrontendClazz != null) {
+                @Suppress("UNCHECKED_CAST")
+                val extensions =
+                    pythonFrontendClazz
+                        .fields
+                        .find { f -> f.name.endsWith("_EXTENSIONS") }
+                        ?.get(null) as
+                        List<String>
+
+                translationConfig.registerLanguage(pythonFrontendClazz, extensions)
+            }
         }
         if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
-            translationConfig.registerLanguage(
-                GoLanguageFrontend::class.java,
-                GoLanguageFrontend.GOLANG_EXTENSIONS
-            )
+            val golangFrontendClazz =
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    Class.forName(Language.GO.frontendClassName) as Class<LanguageFrontend>
+                } catch (e: Throwable) {
+                    log.warn("Unable to initialize Golang frontend for CPG")
+                    null
+                }
+            if (golangFrontendClazz != null) {
+                @Suppress("UNCHECKED_CAST")
+                val extensions =
+                    golangFrontendClazz
+                        .fields
+                        .find { f -> f.name.endsWith("_EXTENSIONS") }
+                        ?.get(null) as
+                        List<String>
+
+                translationConfig.registerLanguage(golangFrontendClazz, extensions)
+            }
         }
         for (file in cpg.translation.includes!!) translationConfig.includePath(file.absolutePath)
         return translationConfig.build()

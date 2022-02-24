@@ -1,11 +1,9 @@
 
 package de.fraunhofer.aisec.codyze;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.config.*;
-import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
+import de.fraunhofer.aisec.codyze.printer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -128,38 +126,19 @@ public class Main {
 	}
 
 	private static void writeFindings(Set<Finding> findings, CodyzeConfiguration codyzeConfig) {
-		// Option to generate legacy output
-		String output = null;
-		SarifInstantiator si = new SarifInstantiator();
-		if (!codyzeConfig.getSarifOutput()) {
-			var mapper = new ObjectMapper();
-			try {
-				output = mapper.writeValueAsString(findings);
-			}
-			catch (JsonProcessingException e) {
-				log.error("Could not serialize findings: {}", e.getMessage());
-			}
-		} else {
-			si.pushRun(findings);
-			output = si.toString();
-		}
+		Printer printer;
+		// whether to print sarif output or not
+		if (!codyzeConfig.getSarifOutput())
+			printer = new LegacyPrinter(findings);
+		else
+			printer = new SarifPrinter(findings);
 
-		// Whether to write in file or on stdout
 		String outputFile = codyzeConfig.getOutput();
-		if (outputFile.equals("-")) {
-			System.out.println(output);
-		} else {
-			if (!codyzeConfig.getSarifOutput()) {
-				try (PrintWriter out = new PrintWriter(outputFile)) {
-					out.println(output);
-				}
-				catch (FileNotFoundException e) {
-					System.out.println(e.getMessage());
-				}
-			} else {
-				si.generateOutput(new File(outputFile));
-			}
-		}
+		// Whether to write in file or on stdout
+		if (outputFile.equals("-"))
+			printer.printToConsole();
+		else
+			printer.printToFile(outputFile);
 	}
 
 	// Stores path to config file given as cli option

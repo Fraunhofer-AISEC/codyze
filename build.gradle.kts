@@ -13,7 +13,7 @@ plugins {
     id("org.jsonschema2dataclass") version "4.2.0"
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "6.2.1"
+    id("com.diffplug.spotless") version "6.3.0"
     id("com.github.hierynomus.license") version "0.16.1"
 
     kotlin("jvm") version "1.6.10" // we can only upgrade to Kotlin 1.5, if CPG does
@@ -103,8 +103,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.3.0")
-    api("de.fraunhofer.aisec:cpg-analysis:4.3.0")
+    api("de.fraunhofer.aisec:cpg-core:4.3.1")
+    api("de.fraunhofer.aisec:cpg-analysis:4.3.1")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
@@ -122,8 +122,8 @@ dependencies {
     implementation("org.python:jython-standalone:2.7.2") // ok
 
     // Command line interface support
-    api("info.picocli:picocli:4.6.2")
-    annotationProcessor("info.picocli:picocli-codegen:4.6.2")
+    api("info.picocli:picocli:4.6.3")
+    annotationProcessor("info.picocli:picocli-codegen:4.6.3")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections", "reflections", "0.10.2")

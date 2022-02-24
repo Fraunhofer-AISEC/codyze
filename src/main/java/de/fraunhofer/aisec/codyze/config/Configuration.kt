@@ -62,49 +62,26 @@ class Configuration {
                 .includePath(cpg.translation.includes)
                 .useUnityBuild(cpg.useUnityBuild)
 
-        if (cpg.additionalLanguages.contains(Language.PYTHON)) {
-            val pythonFrontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.PYTHON.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize Python frontend for CPG")
-                    null
-                }
+        for (l in cpg.additionalLanguages) {
+            val frontendClazz =
+                    try {
+                        @Suppress("UNCHECKED_CAST")
+                        Class.forName(l.frontendClassName) as Class<LanguageFrontend>
+                    } catch (e: Throwable) {
+                        log.warn("Unable to initialize {} frontend for CPG", l.name)
+                        null
+                    }
 
-            if (pythonFrontendClazz != null) {
+            if (frontendClazz != null) {
                 @Suppress("UNCHECKED_CAST")
                 val extensions =
-                    pythonFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
-                        List<String>
+                        frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
+                                List<String>
 
-                config.registerLanguage(pythonFrontendClazz, extensions)
+                config.registerLanguage(frontendClazz, extensions)
             }
         }
-        if (cpg.additionalLanguages.contains(Language.GO)) {
-            val golangFrontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.GO.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize Golang frontend for CPG")
-                    null
-                }
-            if (golangFrontendClazz != null) {
-                @Suppress("UNCHECKED_CAST")
-                val extensions =
-                    golangFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
-                        List<String>
 
-                config.registerLanguage(golangFrontendClazz, extensions)
-            }
-        }
         return config.build()
     }
 
@@ -162,47 +139,23 @@ class Configuration {
             translationConfig.registerPass(p)
         }
 
-        if (cpg.additionalLanguages.contains(Language.PYTHON)) {
-            val pythonFrontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.PYTHON.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize Python frontend for CPG")
-                    null
-                }
+        for (l in cpg.additionalLanguages) {
+            val frontendClazz =
+                    try {
+                        @Suppress("UNCHECKED_CAST")
+                        Class.forName(l.frontendClassName) as Class<LanguageFrontend>
+                    } catch (e: Throwable) {
+                        log.warn("Unable to initialize {} frontend for CPG", l.name)
+                        null
+                    }
 
-            if (pythonFrontendClazz != null) {
+            if (frontendClazz != null) {
                 @Suppress("UNCHECKED_CAST")
                 val extensions =
-                    pythonFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
-                        List<String>
+                        frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
+                                List<String>
 
-                translationConfig.registerLanguage(pythonFrontendClazz, extensions)
-            }
-        }
-        if (cpg.additionalLanguages.contains(Language.GO)) {
-            val golangFrontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.GO.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize Golang frontend for CPG")
-                    null
-                }
-            if (golangFrontendClazz != null) {
-                @Suppress("UNCHECKED_CAST")
-                val extensions =
-                    golangFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
-                        List<String>
-
-                translationConfig.registerLanguage(golangFrontendClazz, extensions)
+                translationConfig.registerLanguage(frontendClazz, extensions)
             }
         }
 

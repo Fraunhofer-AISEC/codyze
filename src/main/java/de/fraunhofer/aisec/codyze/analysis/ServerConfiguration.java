@@ -1,13 +1,7 @@
 
 package de.fraunhofer.aisec.codyze.analysis;
 
-import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
-import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {

@@ -9,12 +9,9 @@ import de.fraunhofer.aisec.codyze.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.codyze.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.codyze.markmodel.Mark;
 import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader;
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass;
-import de.fraunhofer.aisec.cpg.passes.IdentifierPass;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
 

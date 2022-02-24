@@ -34,6 +34,7 @@ class Configuration {
                 .typestateAnalysis(codyze.analysis.tsMode)
                 .disableGoodFindings(codyze.noGoodFindings)
                 .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+                .pedantic(codyze.pedantic)
                 // TODO: remove all cpg config and replace with TranslationConfiguration
                 // we need to force load includes for unity builds, otherwise nothing will be parsed
                 .analyzeIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)

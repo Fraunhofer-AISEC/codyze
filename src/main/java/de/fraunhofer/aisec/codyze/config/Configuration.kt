@@ -26,6 +26,7 @@ class Configuration {
      * @return ServerConfiguration
      */
     fun buildServerConfiguration(): ServerConfiguration {
+        this.normalize()
         val config =
             ServerConfiguration.builder()
                 .launchLsp(codyze.executionMode.isLsp)
@@ -93,6 +94,8 @@ class Configuration {
      * @return TranslationConfiguration
      */
     fun buildTranslationConfiguration(): TranslationConfiguration {
+        this.normalize()
+
         val files: MutableList<File> = ArrayList()
         files.add(File(codyze.source!!.absolutePath))
         val translationConfig =

@@ -46,18 +46,18 @@ class Configuration {
      */
     fun buildServerConfiguration(): ServerConfiguration {
         return ServerConfiguration.builder()
-                .launchLsp(codyze.executionMode.isLsp)
-                .launchConsole(codyze.executionMode.isTui)
-                .typestateAnalysis(codyze.analysis.tsMode)
-                .disableGoodFindings(
-                    if (codyze.pedantic) {
-                        false
-                    } else {
-                        codyze.noGoodFindings
-                    }
-                )
-                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-                .build()
+            .launchLsp(codyze.executionMode.isLsp)
+            .launchConsole(codyze.executionMode.isTui)
+            .typestateAnalysis(codyze.analysis.tsMode)
+            .disableGoodFindings(
+                if (codyze.pedantic) {
+                    false
+                } else {
+                    codyze.noGoodFindings
+                }
+            )
+            .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+            .build()
     }
 
     /**

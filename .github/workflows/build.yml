@@ -61,7 +61,7 @@ jobs:
           name: test
           path: build/reports/tests/test
       - name: Prepare Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with: 
           node-version: "16"
       - name: Build Visual Studio Code Plugin

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * Start point of the standalone analysis server.
@@ -180,8 +181,7 @@ public class Main {
 			Map<String, CommandSpec> mix = spec.mixins();
 			StringBuilder sb = new StringBuilder();
 			for (CommandSpec c : mix.values()) {
-				CommandLine.Help h = new CommandLine.Help(c, help.colorScheme());
-				sb.append(h.optionList(help.createDefaultLayout(), null, help.parameterLabelRenderer()));
+				sb.append(help.optionListExcludingGroups(c.options().stream().filter(optionSpec -> optionSpec.group() == null).collect(Collectors.toList())));
 			}
 			sb.append("\n");
 			for (ArgGroupSpec group : spec.argGroups()) {
@@ -194,9 +194,10 @@ public class Main {
 		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb) {
 			sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
 
-			for (OptionSpec o : argGroupSpec.options()) {
-				sb.append(help.optionListExcludingGroups(List.of(o)));
-			}
+			// render all options that are not in subgroups
+			sb.append(help.optionListExcludingGroups(
+				argGroupSpec.options().stream().filter(optionSpec -> optionSpec.group().equals(argGroupSpec)).collect(Collectors.toList())));
+
 			sb.append("\n");
 			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
 				addHierachy(group, sb);

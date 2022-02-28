@@ -132,8 +132,8 @@ internal class GraphTest : AbstractTest() {
 
             // Start an analysis server
             val config = Configuration()
-            config.codyze.executionMode.isCli = false
-            config.codyze.executionMode.isLsp = false
+            config.executionMode.isCli = false
+            config.executionMode.isLsp = false
 
             server = AnalysisServer.builder().config(config).build()
             server.start()

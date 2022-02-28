@@ -32,25 +32,35 @@ internal class CLILoadTest {
     @Throws(Exception::class)
     fun unknownOptionTest() {
         val config = Configuration.initConfig(null, "-c", "-z")
-        val codyze = config.codyze
-        val cpg = config.cpg
+        val serverConfig = config.buildServerConfiguration()
+        val translationConfig = config.buildTranslationConfiguration()
 
         // assert that nothing was changed from the default values
-        assertTrue(codyze.executionMode.isCli)
-        assertFalse(codyze.executionMode.isLsp)
-        assertFalse(codyze.executionMode.isTui)
-        assertNull(codyze.source)
-        assertContentEquals(arrayOf("./").map { s -> File(s) }.toTypedArray(), codyze.mark)
-        assertEquals("findings.sarif", codyze.output)
-        assertEquals(TypestateMode.DFA, codyze.analysis.tsMode)
-        assertEquals(120L, codyze.timeout)
-        assertFalse(codyze.noGoodFindings)
-        assertFalse(codyze.pedantic)
-        assertFalse(codyze.sarifOutput)
+        assertTrue(config.executionMode.isCli)
+        assertFalse(config.executionMode.isLsp)
+        assertFalse(config.executionMode.isTui)
+        assertNull(config.source)
+        assertEquals(120L, config.timeout)
+        assertEquals("findings.sarif", config.output)
+        assertFalse(config.sarifOutput)
 
-        assertFalse(cpg.translation.analyzeIncludes)
-        assertEquals(0, cpg.translation.includes.size, "Array of includes was not empty")
-        assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages was not empty")
-        assertFalse(cpg.useUnityBuild)
+        assertContentEquals(
+            arrayOf("./").map { s -> File(s).absolutePath }.toTypedArray(),
+            serverConfig.markModelFiles
+        )
+        assertEquals(TypestateMode.DFA, serverConfig.typestateAnalysis)
+        assertFalse(serverConfig.disableGoodFindings)
+        assertFalse(serverConfig.pedantic)
+
+        assertFalse(translationConfig.loadIncludes)
+        assertEquals(0, translationConfig.includePaths.size, "Array of includes was not empty")
+        assertEquals(
+            2,
+            translationConfig.frontends.size,
+            "List of frontends did not only contain default frontends"
+        )
+
+        // no way to access useUnityBuild in TranslationConfiguration
+        //        assertFalse(translationConfig.useUnityBuild)
     }
 }

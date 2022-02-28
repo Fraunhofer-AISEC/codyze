@@ -4,7 +4,9 @@ import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
+import de.fraunhofer.aisec.codyze.config.CodyzeConfiguration
 import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze.config.CpgConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 import java.io.*
 import java.lang.Exception
@@ -78,11 +80,13 @@ abstract class AbstractMarkTest : AbstractTest() {
                 .toTypedArray()
 
         // Start an analysis server
-        val config = Configuration()
-        config.codyze.executionMode.isCli = false
-        config.codyze.executionMode.isLsp = false
-        config.codyze.analysis.tsMode = tsMode
-        config.codyze.mark = markDirPaths.map { s -> File(s) }.toTypedArray()
+        val codyze = CodyzeConfiguration()
+        codyze.analysis.tsMode = tsMode
+        codyze.mark = markDirPaths.map { s -> File(s) }.toTypedArray()
+
+        val config = Configuration(codyze, CpgConfiguration())
+        config.executionMode.isCli = false
+        config.executionMode.isLsp = false
 
         server = AnalysisServer.builder().config(config).build()
         server.start()

@@ -4,7 +4,9 @@ import de.fraunhofer.aisec.codyze.Commands
 import de.fraunhofer.aisec.codyze.JythonInterpreter
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
+import de.fraunhofer.aisec.codyze.config.CodyzeConfiguration
 import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze.config.CpgConfiguration
 import java.io.*
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.*
@@ -13,11 +15,13 @@ import org.junit.jupiter.api.*
 internal class CommandsTest {
     @Test
     fun commandConsoleTest() {
-        val config = Configuration()
-        config.codyze.executionMode.isLsp = false
-        config.codyze.executionMode.isCli = true
-        config.codyze.analysis.tsMode = TypestateMode.DFA
-        config.codyze.mark = arrayOf(File("src/test/resources/mark_java"))
+        val codyze = CodyzeConfiguration()
+        codyze.analysis.tsMode = TypestateMode.DFA
+        codyze.mark = arrayOf(File("src/test/resources/mark_java"))
+
+        val config = Configuration(codyze, CpgConfiguration())
+        config.executionMode.isCli = true
+        config.executionMode.isLsp = false
 
         val server = AnalysisServer.builder().config(config).build()
         server.start()

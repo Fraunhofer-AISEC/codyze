@@ -2,7 +2,6 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.config.Configuration
-import de.fraunhofer.aisec.codyze.config.Language
 import java.io.File
 import kotlin.Exception
 import kotlin.Throws
@@ -15,57 +14,76 @@ internal class ConfigLoadTest {
     @Throws(Exception::class)
     fun correctConfigFileTest() {
         val config = Configuration.initConfig(correctFile, "-c")
-        val codyze = config.codyze
-        val cpg = config.cpg
+        val serverConfig = config.buildServerConfiguration()
+        val translationConfig = config.buildTranslationConfiguration()
 
         // assert that the data in the config file was parsed and set correctly
-        assertEquals(File("source.java"), codyze.source)
+        assertEquals(File("source.java"), config.source)
         assertContentEquals(
-            arrayOf("mark1", "mark4", "mark3", "mark2").map { s -> File(s) }.toTypedArray(),
-            codyze.mark
+            arrayOf("mark1", "mark4", "mark3", "mark2")
+                .map { s -> File(s).absolutePath }
+                .toTypedArray(),
+            serverConfig.markModelFiles
         )
-        assertEquals("result.out", codyze.output)
-        assertEquals(140L, codyze.timeout)
-        assertTrue(codyze.sarifOutput)
-        assertEquals(TypestateMode.WPDS, codyze.analysis.tsMode)
+        assertEquals("result.out", config.output)
+        assertEquals(140L, config.timeout)
+        assertTrue(config.sarifOutput)
+        assertEquals(TypestateMode.WPDS, serverConfig.typestateAnalysis)
 
-        assertFalse(cpg.translation.analyzeIncludes)
+        assertFalse(translationConfig.loadIncludes)
         assertContentEquals(
-            arrayOf("include1", "include2").map { s -> File(s) }.toTypedArray(),
-            cpg.translation.includes
+            arrayOf("include1", "include2").map { s -> File(s).absolutePath }.toTypedArray(),
+            translationConfig.includePaths
         )
-        assertEquals(
-            1,
-            cpg.additionalLanguages.size,
-            "Size of set of additional languages is not 1"
-        )
-        assertContains(cpg.additionalLanguages, Language.PYTHON)
+
+        // Test for additional languages doesn't really work because the LanguageFrontends
+        // are not in the library, so they won't be registered
+        //        assertEquals(
+        //            1,
+        //            translationConfig.frontends.size,
+        //            "Size of set of additional languages is not 1"
+        //        )
+        //        assertTrue(translationConfig.frontends.containsKey())
 
         // assert that nothing else was changed from the default values
-        assertFalse(codyze.noGoodFindings)
-        assertFalse(cpg.useUnityBuild)
+        assertFalse(serverConfig.disableGoodFindings)
+        assertFalse(serverConfig.pedantic)
+
+        // no way to access useUnityBuild in TranslationConfiguration
+        //        assertFalse(translationConfig.useUnityBuild)
     }
 
     @Test
     @Throws(Exception::class)
     fun incorrectConfigFileTest() {
         val config = Configuration.initConfig(incorrectFile, "-c")
-        val codyze = config.codyze
-        val cpg = config.cpg
+        val serverConfig = config.buildServerConfiguration()
+        val translationConfig = config.buildTranslationConfiguration()
 
         // assert that nothing was changed from the default values
-        assertNull(codyze.source)
-        assertContentEquals(arrayOf("./").map { s -> File(s) }.toTypedArray(), codyze.mark)
-        assertEquals("findings.sarif", codyze.output)
-        assertEquals(TypestateMode.DFA, codyze.analysis.tsMode)
-        assertEquals(120L, codyze.timeout)
-        assertFalse(codyze.noGoodFindings)
-        assertFalse(codyze.sarifOutput)
+        assertNull(config.source)
+        assertEquals(120L, config.timeout)
+        assertEquals("findings.sarif", config.output)
+        assertFalse(config.sarifOutput)
 
-        assertFalse(cpg.translation.analyzeIncludes)
-        assertEquals(0, cpg.translation.includes.size, "Array of includes was not empty")
-        assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
-        assertFalse(cpg.useUnityBuild)
+        assertContentEquals(
+            arrayOf("./").map { s -> File(s).absolutePath }.toTypedArray(),
+            serverConfig.markModelFiles
+        )
+        assertEquals(TypestateMode.DFA, serverConfig.typestateAnalysis)
+        assertFalse(serverConfig.disableGoodFindings)
+        assertFalse(serverConfig.pedantic)
+
+        assertFalse(translationConfig.loadIncludes)
+        assertEquals(0, translationConfig.includePaths.size, "Array of includes was not empty")
+        assertEquals(
+            2,
+            translationConfig.frontends.size,
+            "List of frontends did not only contain default frontends"
+        )
+
+        // no way to access useUnityBuild in TranslationConfiguration
+        //        assertFalse(translationConfig.useUnityBuild)
     }
 
     companion object {

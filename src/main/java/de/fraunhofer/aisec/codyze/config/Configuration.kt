@@ -57,8 +57,15 @@ class Configuration {
     )
     var sarifOutput: Boolean = false
 
-    private val codyze = CodyzeConfiguration()
-    private val cpg = CpgConfiguration()
+    private var codyze = CodyzeConfiguration()
+    private var cpg = CpgConfiguration()
+
+    constructor()
+
+    constructor(codyzeConfiguration: CodyzeConfiguration, cpgConfiguration: CpgConfiguration) {
+        this.codyze = codyzeConfiguration
+        this.cpg = cpgConfiguration
+    }
 
     // Parse CLI arguments into config class
     private fun parseCLI(vararg args: String?) {

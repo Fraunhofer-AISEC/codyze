@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.codyze.crymlin
 import de.fraunhofer.aisec.codyze.config.Configuration
 import org.junit.jupiter.api.Test
 
-internal class CLITest {
+internal class BuildTranslationConfigTest {
 
     @Test
     fun enablePythonSupport() {

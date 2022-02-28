@@ -1,27 +1,14 @@
 package de.fraunhofer.aisec.codyze.config
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import java.io.File
-import picocli.CommandLine.ArgGroup
 import picocli.CommandLine.Option
 
 class CodyzeConfiguration {
 
     // TODO: names
-    @JsonIgnore
-    @ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
-    val executionMode: ExecutionMode = ExecutionMode()
-
     val analysis = AnalysisMode()
-
-    @Option(
-        names = ["-s", "--source"],
-        paramLabel = "<path>",
-        description = ["Source file or folder to analyze."]
-    )
-    var source: File? = null
 
     @Option(
         names = ["-m", "--mark"],
@@ -31,21 +18,7 @@ class CodyzeConfiguration {
     )
     var mark: Array<File> = arrayOf(File("./"))
 
-    // TODO output standard stdout?
-    @Option(
-        names = ["-o", "--output"],
-        paramLabel = "<file>",
-        description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"]
-    )
-    var output = "findings.sarif"
-
-    @Option(
-        names = ["--timeout"],
-        paramLabel = "<minutes>",
-        description = ["Terminate analysis after timeout.\n\t(Default: \${DEFAULT-VALUE})"]
-    )
-    var timeout = 120L
-
+    // TODO: change name or make into warning levels
     @Option(
         names = ["--no-good-findings"],
         description =
@@ -55,14 +28,6 @@ class CodyzeConfiguration {
         fallbackValue = "true"
     )
     var noGoodFindings = false
-
-    @JsonProperty("sarif")
-    @Option(
-        names = ["--sarif"],
-        description = ["Enables the SARIF output."],
-        fallbackValue = "true"
-    )
-    var sarifOutput: Boolean = false
 
     @Option(
         names = ["--disabled-mark-rules"],

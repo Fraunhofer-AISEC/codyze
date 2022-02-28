@@ -88,14 +88,6 @@ public class Main {
 	private static int start(Configuration configuration) throws ExecutionException, InterruptedException, TimeoutException {
 		Instant start = Instant.now();
 
-		CpgConfiguration cpgConfig = configuration.getCpg();
-		CodyzeConfiguration codyzeConfig = configuration.getCodyze();
-
-		// we need to force load includes for unity builds, otherwise nothing will be parsed
-		if (cpgConfig.getUseUnityBuild()) {
-			cpgConfig.getTranslation().setAnalyzeIncludes(true);
-		}
-
 		AnalysisServer server = AnalysisServer.builder()
 				.config(configuration)
 				.build();
@@ -103,21 +95,21 @@ public class Main {
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!codyzeConfig.getExecutionMode().isLsp() && codyzeConfig.getSource() != null) {
-			log.info("Analyzing {}", codyzeConfig.getSource());
+		if (!configuration.getExecutionMode().isLsp() && configuration.getSource() != null) {
+			log.info("Analyzing {}", configuration.getSource());
 			AnalysisContext ctx = server
-					.analyze(codyzeConfig.getSource().getAbsolutePath())
-					.get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
+					.analyze(configuration.getSource().getAbsolutePath())
+					.get(configuration.getTimeout(), TimeUnit.MINUTES);
 
 			var findings = ctx.getFindings();
 
-			writeFindings(findings, codyzeConfig);
+			writeFindings(findings, configuration);
 
-			if (codyzeConfig.getExecutionMode().isCli()) {
+			if (configuration.getExecutionMode().isCli()) {
 				// Return code based on the existence of violations
 				return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
 			}
-		} else if (codyzeConfig.getExecutionMode().isLsp()) {
+		} else if (configuration.getExecutionMode().isLsp()) {
 			// Block main thread. Work is done in
 			Thread.currentThread().join();
 		}
@@ -125,15 +117,15 @@ public class Main {
 		return 0;
 	}
 
-	private static void writeFindings(Set<Finding> findings, CodyzeConfiguration codyzeConfig) {
+	private static void writeFindings(Set<Finding> findings, Configuration configuration) {
 		Printer printer;
 		// whether to print sarif output or not
-		if (!codyzeConfig.getSarifOutput())
+		if (!configuration.getSarifOutput())
 			printer = new LegacyPrinter(findings);
 		else
 			printer = new SarifPrinter(findings);
 
-		String outputFile = codyzeConfig.getOutput();
+		String outputFile = configuration.getOutput();
 		// Whether to write in file or on stdout
 		if (outputFile.equals("-"))
 			printer.printToConsole();
@@ -157,6 +149,9 @@ public class Main {
 
 		@CommandLine.Mixin
 		private ConfigFilePath configFilePath;
+
+		@CommandLine.Mixin
+		private Configuration configuration = new Configuration();
 
 		// ArgGroups only for display purposes
 		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false)

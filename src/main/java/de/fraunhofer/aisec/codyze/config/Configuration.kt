@@ -1,5 +1,8 @@
 package de.fraunhofer.aisec.codyze.config
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
@@ -17,11 +20,45 @@ import java.io.IOException
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class Configuration {
 
-    // Added as Mixin so the already initialized objects are used instead of new ones created
-    @CommandLine.Mixin val codyze = CodyzeConfiguration()
-    @CommandLine.Mixin val cpg = CpgConfiguration()
+    @JsonIgnore
+    @CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
+    val executionMode: ExecutionMode = ExecutionMode()
+
+    @CommandLine.Option(
+        names = ["-s", "--source"],
+        paramLabel = "<path>",
+        description = ["Source file or folder to analyze."]
+    )
+    var source: File? = null
+
+    // TODO output standard stdout?
+    @CommandLine.Option(
+        names = ["-o", "--output"],
+        paramLabel = "<file>",
+        description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"]
+    )
+    var output = "findings.sarif"
+
+    @CommandLine.Option(
+        names = ["--timeout"],
+        paramLabel = "<minutes>",
+        description = ["Terminate analysis after timeout.\n\t(Default: \${DEFAULT-VALUE})"]
+    )
+    var timeout = 120L
+
+    @JsonProperty("sarif")
+    @CommandLine.Option(
+        names = ["--sarif"],
+        description = ["Enables the SARIF output."],
+        fallbackValue = "true"
+    )
+    var sarifOutput: Boolean = false
+
+    private val codyze = CodyzeConfiguration()
+    private val cpg = CpgConfiguration()
 
     // Parse CLI arguments into config class
     private fun parseCLI(vararg args: String?) {
@@ -29,6 +66,8 @@ class Configuration {
         CommandLine(this)
             // Added as Mixin so the already initialized objects are used instead of new ones
             // created
+            .addMixin("codyze", codyze)
+            .addMixin("cpg", cpg)
             .addMixin("analysis", codyze.analysis)
             .addMixin("translation", cpg.translation)
             .setCaseInsensitiveEnumValuesAllowed(true)
@@ -46,8 +85,8 @@ class Configuration {
      */
     fun buildServerConfiguration(): ServerConfiguration {
         return ServerConfiguration.builder()
-            .launchLsp(codyze.executionMode.isLsp)
-            .launchConsole(codyze.executionMode.isTui)
+            .launchLsp(executionMode.isLsp)
+            .launchConsole(executionMode.isTui)
             .typestateAnalysis(codyze.analysis.tsMode)
             .disableGoodFindings(
                 if (codyze.pedantic) {
@@ -71,7 +110,8 @@ class Configuration {
                 .debugParser(true)
                 .failOnError(false)
                 .codeInNodes(true)
-                .loadIncludes(cpg.translation.analyzeIncludes)
+                // we need to force load includes for unity builds, otherwise nothing will be parsed
+                .loadIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)
                 .useUnityBuild(cpg.useUnityBuild)
                 .defaultPasses()
                 .defaultLanguages()

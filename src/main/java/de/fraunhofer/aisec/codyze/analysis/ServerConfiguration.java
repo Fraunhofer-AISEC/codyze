@@ -1,13 +1,16 @@
 
 package de.fraunhofer.aisec.codyze.analysis;
 
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue;
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {
@@ -56,6 +59,9 @@ public class ServerConfiguration {
 	/** Additional registered languages */
 	public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages;
 
+	/** Disabled Mark rules. key=package, value=(disableEntirePackage, markRulesToDisable) */
+	public final Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules;
+
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
@@ -65,6 +71,7 @@ public class ServerConfiguration {
 			boolean useUnityBuild,
 			@NonNull File[] includePath,
 			boolean disableGoodFindings,
+			Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules,
 			boolean pedantic,
 			List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages) {
 		this.launchConsole = launchConsole;
@@ -77,6 +84,7 @@ public class ServerConfiguration {
 		this.disableGoodFindings = disableGoodFindings;
 		this.pedantic = pedantic;
 		this.additionalLanguages = additionalLanguages;
+		this.packageToDisabledMarkRules = packageToDisabledMarkRules;
 	}
 
 	public static Builder builder() {
@@ -96,6 +104,7 @@ public class ServerConfiguration {
 		private boolean disableGoodFindings;
 		private boolean pedantic;
 		public final List<Pair<Class<? extends LanguageFrontend>, List<String>>> additionalLanguages = new ArrayList<>();
+		private Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules = Collections.emptyMap();
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -156,6 +165,11 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder disableMark(Map<String, DisabledMarkRulesValue> disabledMarkRules) {
+			this.packageToDisabledMarkRules = disabledMarkRules;
+			return this;
+		}
+
 		public ServerConfiguration build() {
 			return new ServerConfiguration(
 				launchConsole,
@@ -166,6 +180,7 @@ public class ServerConfiguration {
 				useUnityBuild,
 				includePath,
 				disableGoodFindings,
+				packageToDisabledMarkRules,
 				pedantic,
 				additionalLanguages);
 		}

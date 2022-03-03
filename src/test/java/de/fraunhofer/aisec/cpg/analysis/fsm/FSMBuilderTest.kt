@@ -24,7 +24,7 @@ class FSMBuilderTest {
         val parser = XtextParser()
         parser.addMarkFile(markPoC1)
         val markModels = parser.parse()
-        val mark = MarkModelLoader().load(markModels, null)
+        val mark = MarkModelLoader().load(markModels)
         assertNotNull(mark)
         var dfa = DFA()
         for (rule in mark.rules) {
@@ -55,7 +55,7 @@ class FSMBuilderTest {
         val parser = XtextParser()
         parser.addMarkFile(markPoC1)
         val markModels = parser.parse()
-        val mark = MarkModelLoader().load(markModels, null)
+        val mark = MarkModelLoader().load(markModels)
         assertNotNull(mark)
         var dfa = DFA()
         for (rule in mark.rules) {
@@ -97,7 +97,7 @@ class FSMBuilderTest {
         val parser = XtextParser()
         parser.addMarkFile(markPoC1)
         val markModels = parser.parse()
-        val mark = MarkModelLoader().load(markModels, null)
+        val mark = MarkModelLoader().load(markModels)
         assertNotNull(mark)
         var dfa = DFA()
         for (rule in mark.rules) {
@@ -143,7 +143,7 @@ class FSMBuilderTest {
         val parser = XtextParser()
         parser.addMarkFile(markPoC1)
         val markModels = parser.parse()
-        val mark = MarkModelLoader().load(markModels, null)
+        val mark = MarkModelLoader().load(markModels)
         assertNotNull(mark)
         for (rule in mark.rules) {
             if (rule.statement.ensure.exp is OrderExpression) {

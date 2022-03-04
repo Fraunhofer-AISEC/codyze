@@ -56,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Archive test reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test
           path: build/reports/tests/test
@@ -70,7 +70,7 @@ jobs:
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
       - name: Archive Visual Studio Code Plugin
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: vscode-codyze.vsix
           path: plugins/vscode/vscode-codyze-0.0.0.vsix

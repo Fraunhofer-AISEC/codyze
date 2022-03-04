@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.analysis;
 
 import de.fraunhofer.aisec.codyze.JythonInterpreter;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator;
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue;
 import de.fraunhofer.aisec.codyze.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.codyze.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.codyze.crymlin.connectors.lsp.CpgLanguageServer;
@@ -232,7 +233,7 @@ public class AnalysisServer {
 		 * Load MARK model as given in configuration, if it has not been set manually before.
 		 */
 		File[] markModelLocations = Arrays.stream(config.markModelFiles).map(File::new).toArray(File[]::new);
-		loadMarkRules(markModelLocations);
+		loadMarkRules(config.packageToDisabledMarkRules, markModelLocations);
 	}
 
 	/**
@@ -265,6 +266,16 @@ public class AnalysisServer {
 	 * @param markFiles load all mark entities/rules from these files
 	 */
 	public void loadMarkRules(@NonNull File... markFiles) {
+		loadMarkRules(new HashMap<>(), markFiles);
+	}
+
+	/**
+	 * Loads all MARK rules from a file or a directory but skips files specified in packageToDisabledMarkRules map
+	 *
+	 * @param markFiles load all mark entities/rules from these files
+	 * @param packageToDisabledMarkRules skip specified files during loading
+	 */
+	public void loadMarkRules(Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules, @NonNull File... markFiles) {
 		File markDescriptionFile = null;
 
 		XtextParser parser = new XtextParser();
@@ -312,7 +323,7 @@ public class AnalysisServer {
 
 		start = Instant.now();
 		log.info("Transforming MARK Xtext to internal format");
-		this.markModel = new MarkModelLoader().load(markModels);
+		this.markModel = new MarkModelLoader().load(markModels, packageToDisabledMarkRules);
 		log.info(
 			"Done Transforming MARK Xtext to internal format in {} ms",
 			Duration.between(start, Instant.now()).toMillis());

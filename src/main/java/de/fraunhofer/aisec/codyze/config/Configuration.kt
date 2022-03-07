@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer.builder
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
@@ -91,19 +92,40 @@ class Configuration {
      * @return ServerConfiguration
      */
     fun buildServerConfiguration(): ServerConfiguration {
-        return ServerConfiguration.builder()
-            .launchLsp(executionMode.isLsp)
-            .launchConsole(executionMode.isTui)
-            .typestateAnalysis(codyze.analysis.tsMode)
-            .disableGoodFindings(
-                if (codyze.pedantic) {
-                    false
-                } else {
-                    codyze.noGoodFindings
-                }
-            )
-            .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-            .build()
+        val config =
+            ServerConfiguration.builder()
+                .launchLsp(executionMode.isLsp)
+                .launchConsole(executionMode.isTui)
+                .typestateAnalysis(codyze.analysis.tsMode)
+                .disableGoodFindings(
+                    if (codyze.pedantic) {
+                        false
+                    } else {
+                        codyze.noGoodFindings
+                    }
+                )
+                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+
+        if (!codyze.pedantic) {
+            val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
+            for (mName in codyze.disabledMarkRules) {
+                val index = mName.lastIndexOf('.')
+                val packageName = mName.subSequence(0, index).toString()
+                val markName = mName.subSequence(index + 1, mName.length).toString()
+                if (markName.isNotEmpty()) {
+                    disabledRulesMap.putIfAbsent(packageName, DisabledMarkRulesValue())
+                    if (markName == "*")
+                        disabledRulesMap.getValue(packageName).isDisablePackage = true
+                    else disabledRulesMap[packageName]?.disabledMarkRuleNames?.add(markName)
+                } else
+                    log.warn(
+                        "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
+                    )
+            }
+            config.disableMark(disabledRulesMap)
+        }
+
+        return config.build()
     }
 
     /**

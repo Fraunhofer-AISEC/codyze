@@ -2,6 +2,14 @@
 package de.fraunhofer.aisec.codyze.analysis;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue;
+import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
+import kotlin.Pair;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */
 public class ServerConfiguration {
@@ -28,12 +36,16 @@ public class ServerConfiguration {
 	 */
 	public final boolean pedantic;
 
+	/** Disabled Mark rules. key=package, value=(disableEntirePackage, markRulesToDisable) */
+	public final Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules;
+
 	private ServerConfiguration(
 			boolean launchConsole,
 			boolean launchLsp,
 			@NonNull String[] markModelFiles,
 			@NonNull TypestateMode typestateMode,
 			boolean disableGoodFindings,
+			Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules,
 			boolean pedantic) {
 		this.launchConsole = launchConsole;
 		this.launchLsp = launchLsp;
@@ -41,6 +53,7 @@ public class ServerConfiguration {
 		this.typestateAnalysis = typestateMode;
 		this.disableGoodFindings = disableGoodFindings;
 		this.pedantic = pedantic;
+		this.packageToDisabledMarkRules = packageToDisabledMarkRules;
 	}
 
 	public static Builder builder() {
@@ -56,6 +69,7 @@ public class ServerConfiguration {
 		private TypestateMode typestateAnalysis = TypestateMode.DFA;
 		private boolean disableGoodFindings;
 		private boolean pedantic;
+		private Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules = Collections.emptyMap();
 
 		public Builder launchConsole(boolean launchConsole) {
 			this.launchConsole = launchConsole;
@@ -91,6 +105,11 @@ public class ServerConfiguration {
 			return this;
 		}
 
+		public Builder disableMark(Map<String, DisabledMarkRulesValue> disabledMarkRules) {
+			this.packageToDisabledMarkRules = disabledMarkRules;
+			return this;
+		}
+
 		public ServerConfiguration build() {
 			return new ServerConfiguration(
 				launchConsole,
@@ -98,6 +117,7 @@ public class ServerConfiguration {
 				markModelFiles,
 				typestateAnalysis,
 				disableGoodFindings,
+				packageToDisabledMarkRules,
 				pedantic);
 		}
 	}

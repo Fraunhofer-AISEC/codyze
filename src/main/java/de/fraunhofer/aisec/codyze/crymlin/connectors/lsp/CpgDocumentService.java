@@ -72,20 +72,6 @@ public class CpgDocumentService implements TextDocumentService {
 			log.error("Server instance is null.");
 			return;
 		}
-		TranslationManager tm = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder()
-							.debugParser(false)
-							.failOnError(false)
-							.codeInNodes(true)
-							.defaultPasses()
-							.defaultLanguages()
-							.registerPass(new FilenameMapper())
-							.registerPass(new IdentifierPass())
-							.registerPass(new EdgeCachePass())
-							.sourceLocations(file)
-							.build())
-				.build();
 
 		CompletableFuture<AnalysisContext> analyze = instance.analyze(file.getAbsolutePath());
 

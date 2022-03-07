@@ -113,10 +113,20 @@ internal class ConfigLoadTest {
         assertContentEquals(expectedDisabledIncludes, cpg.translation.disabledIncludes)
     }
 
+    @Test
+    @Throws(Exception::class)
+    fun unknownLanguageTest() {
+        val config = Configuration.initConfig(unknownLanguageFile, "-c")
+
+        // able to handle unknown languages
+        assert(true)
+    }
+
     companion object {
         private lateinit var correctFile: File
         private lateinit var incorrectFile: File
         private lateinit var additionalOptionFile: File
+        private lateinit var unknownLanguageFile: File
 
         @BeforeAll
         @JvmStatic
@@ -144,6 +154,14 @@ internal class ConfigLoadTest {
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
+
+            val unknownLanguageResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/unknown_language.yml"
+                )
+            assertNotNull(unknownLanguageResource)
+            unknownLanguageFile = File(unknownLanguageResource.file)
+            assertNotNull(unknownLanguageFile)
         }
     }
 }

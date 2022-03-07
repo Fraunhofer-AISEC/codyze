@@ -13,7 +13,7 @@ codyze:
 
 cpg:
   additional-languages:
-    - python
+    - goo
   translation:
     analyze-includes: false
     includes:

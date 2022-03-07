@@ -29,7 +29,7 @@ class LanguageDeserializer : StdDeserializer<EnumSet<Language>?>(null as JavaTyp
                             ctxt.instantiationException(
                                 Language::class.java,
                                 IllegalArgumentException(
-                                    "No enum with the name de.fraunhofer.aisec.codyze.config.Language.$s",
+                                    "No support for language with the name \"$s\"",
                                     e
                                 )
                             )

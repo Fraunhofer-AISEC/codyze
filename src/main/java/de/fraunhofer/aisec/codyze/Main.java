@@ -12,7 +12,6 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Model.ArgGroupSpec;
 import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.Unmatched;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
 

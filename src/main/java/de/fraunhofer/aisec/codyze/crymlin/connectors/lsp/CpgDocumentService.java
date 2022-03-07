@@ -1,16 +1,11 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.connectors.lsp;
 
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass;
-import de.fraunhofer.aisec.cpg.passes.IdentifierPass;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
 import de.fraunhofer.aisec.codyze.analysis.Finding;
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription;
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;

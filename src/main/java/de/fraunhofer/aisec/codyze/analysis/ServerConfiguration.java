@@ -3,12 +3,8 @@ package de.fraunhofer.aisec.codyze.analysis;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue;
-import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend;
-import kotlin.Pair;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 /** The configuration for the {@link AnalysisServer} holds all values used by the server. */

@@ -11,7 +11,7 @@ import kotlin.test.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-internal class TranslationConfigBuildTest {
+internal class BuildTranslationConfigTest {
 
     @Test
     @Throws(Exception::class)

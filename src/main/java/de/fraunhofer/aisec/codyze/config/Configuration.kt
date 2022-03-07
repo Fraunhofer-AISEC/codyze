@@ -114,7 +114,7 @@ class Configuration {
     fun buildTranslationConfiguration(vararg sources: File): TranslationConfiguration {
         val translationConfig =
             TranslationConfiguration.builder()
-                .debugParser(true)
+                .debugParser(!executionMode.isLsp)
                 .failOnError(false)
                 .codeInNodes(true)
                 // we need to force load includes for unity builds, otherwise nothing will be parsed

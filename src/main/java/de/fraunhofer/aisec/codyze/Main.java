@@ -150,12 +150,12 @@ public class Main {
 		@CommandLine.Mixin
 		private ConfigFilePath configFilePath;
 
-		@CommandLine.Mixin
-		private Configuration configuration = new Configuration();
-
 		// ArgGroups only for display purposes
 		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false)
 		private CodyzeConfiguration codyzeConfig = new CodyzeConfiguration();
+
+		@ArgGroup(heading = "", exclusive = false)
+		private Configuration configuration = new Configuration();
 
 		@ArgGroup(exclusive = false, heading = "Analysis Options\n")
 		AnalysisMode analysis = new AnalysisMode();

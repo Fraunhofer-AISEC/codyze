@@ -33,6 +33,7 @@ class Configuration {
         description = ["Source file or folder to analyze."]
     )
     var source: File? = null
+        private set
 
     // TODO output standard stdout?
     @CommandLine.Option(
@@ -41,6 +42,7 @@ class Configuration {
         description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var output = "findings.sarif"
+        private set
 
     @CommandLine.Option(
         names = ["--timeout"],
@@ -48,6 +50,7 @@ class Configuration {
         description = ["Terminate analysis after timeout.\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var timeout = 120L
+        private set
 
     @JsonProperty("sarif")
     @CommandLine.Option(
@@ -56,6 +59,7 @@ class Configuration {
         fallbackValue = "true"
     )
     var sarifOutput: Boolean = false
+        private set
 
     private var codyze = CodyzeConfiguration()
     private var cpg = CpgConfiguration()
@@ -239,4 +243,36 @@ class Configuration {
             log.warn("{} Continue without configurations from file.", msg)
         }
     }
+}
+
+/**
+ * Codyze runs in any of three modes:
+ * - CLI: Non-interactive command line client. Accepts arguments from command line and runs
+ * analysis.
+ * - LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE
+ * support.
+ * - TUI: The text based user interface (TUI) is an interactive console that allows exploring the
+ * analyzed source code by manual queries.
+ */
+class ExecutionMode {
+    @CommandLine.Option(
+        names = ["-c"],
+        required = true,
+        description = ["Start in command line mode."]
+    )
+    var isCli = false
+
+    @CommandLine.Option(
+        names = ["-l"],
+        required = true,
+        description = ["Start in language server protocol (LSP) mode."]
+    )
+    var isLsp = false
+
+    @CommandLine.Option(
+        names = ["-t"],
+        required = true,
+        description = ["Start interactive console (Text-based User Interface)."]
+    )
+    var isTui = false
 }

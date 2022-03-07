@@ -49,34 +49,6 @@ class CodyzeConfiguration {
 }
 
 /**
- * Codyze runs in any of three modes:
- * - CLI: Non-interactive command line client. Accepts arguments from command line and runs
- * analysis.
- * - LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE
- * support.
- * - TUI: The text based user interface (TUI) is an interactive console that allows exploring the
- * analyzed source code by manual queries.
- */
-class ExecutionMode {
-    @Option(names = ["-c"], required = true, description = ["Start in command line mode."])
-    var isCli = false
-
-    @Option(
-        names = ["-l"],
-        required = true,
-        description = ["Start in language server protocol (LSP) mode."]
-    )
-    var isLsp = false
-
-    @Option(
-        names = ["-t"],
-        required = true,
-        description = ["Start interactive console (Text-based User Interface)."]
-    )
-    var isTui = false
-}
-
-/**
  * Codyze offers two modes af analyzing typestates:
  * - DFA: Based on a deterministic finite automaton (faster, intraprocedural)
  * - WPDS: Based on a weighted pushdown system (slower, interprocedural)

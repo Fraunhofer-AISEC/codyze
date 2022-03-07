@@ -64,19 +64,19 @@ class Configuration {
 
         for (l in cpg.additionalLanguages) {
             val frontendClazz =
-                    try {
-                        @Suppress("UNCHECKED_CAST")
-                        Class.forName(l.frontendClassName) as Class<LanguageFrontend>
-                    } catch (e: Throwable) {
-                        log.warn("Unable to initialize {} frontend for CPG", l.name)
-                        null
-                    }
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    Class.forName(l.frontendClassName) as Class<LanguageFrontend>
+                } catch (e: Throwable) {
+                    log.warn("Unable to initialize {} frontend for CPG", l.name)
+                    null
+                }
 
             if (frontendClazz != null) {
                 @Suppress("UNCHECKED_CAST")
                 val extensions =
-                        frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
-                                List<String>
+                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
+                        List<String>
 
                 config.registerLanguage(frontendClazz, extensions)
             }
@@ -160,19 +160,19 @@ class Configuration {
 
         for (l in cpg.additionalLanguages) {
             val frontendClazz =
-                    try {
-                        @Suppress("UNCHECKED_CAST")
-                        Class.forName(l.frontendClassName) as Class<LanguageFrontend>
-                    } catch (e: Throwable) {
-                        log.warn("Unable to initialize {} frontend for CPG", l.name)
-                        null
-                    }
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    Class.forName(l.frontendClassName) as Class<LanguageFrontend>
+                } catch (e: Throwable) {
+                    log.warn("Unable to initialize {} frontend for CPG", l.name)
+                    null
+                }
 
             if (frontendClazz != null) {
                 @Suppress("UNCHECKED_CAST")
                 val extensions =
-                        frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
-                                List<String>
+                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
+                        List<String>
 
                 translationConfig.registerLanguage(frontendClazz, extensions)
             }

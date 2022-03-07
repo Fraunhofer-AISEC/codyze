@@ -150,7 +150,7 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the blacklist, in which it will be ignored. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
+                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
         split = ":|;"
     )
     var enabledIncludes: Array<File> = emptyArray()
@@ -160,7 +160,7 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The blacklist entries always take priority over the whitelist entries. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
+                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
         split = ":|;"
     )
     var disabledIncludes: Array<File> = emptyArray()

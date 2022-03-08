@@ -58,7 +58,8 @@ class Configuration {
                 )
                 .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
                 // TODO: remove all cpg config and replace with TranslationConfiguration
-                .analyzeIncludes(cpg.translation.analyzeIncludes)
+                // we need to force load includes for unity builds, otherwise nothing will be parsed
+                .analyzeIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)
                 .includePath(cpg.translation.includes)
                 .useUnityBuild(cpg.useUnityBuild)
 

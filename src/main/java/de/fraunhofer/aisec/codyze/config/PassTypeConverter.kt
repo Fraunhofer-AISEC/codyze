@@ -4,6 +4,7 @@ import de.fraunhofer.aisec.cpg.passes.Pass
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
 
+/** Custom type converter for fully qualified CPG pass names to their respective objects */
 class PassTypeConverter : CommandLine.ITypeConverter<Pass> {
     private val log = LoggerFactory.getLogger(PassTypeConverter::class.java)
 

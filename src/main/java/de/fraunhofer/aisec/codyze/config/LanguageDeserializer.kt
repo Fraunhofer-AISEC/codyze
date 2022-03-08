@@ -9,9 +9,8 @@ import java.io.IOException
 import java.util.*
 import org.slf4j.LoggerFactory
 
-/** Custom deserializer for languages to turn them directly into enums */
+/** Custom deserializer to populate a list of languages derived from strings from the Jackson parser */
 class LanguageDeserializer : StdDeserializer<EnumSet<Language>?>(null as JavaType?) {
-    // constructor() : super(null as JavaType?) {}
 
     @Throws(IOException::class)
     override fun deserialize(jp: JsonParser, ctxt: DeserializationContext): EnumSet<Language>? {

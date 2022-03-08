@@ -10,14 +10,13 @@ import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.IOException
 import org.slf4j.LoggerFactory
 
-class PassListDeserializer : StdDeserializer<List<Pass?>?> {
+/**
+ * Custom deserializer to populate a list of CPG passes with the objects derived from the fully
+ * qualified names from the Jackson parser
+ */
+class PassListDeserializer : StdDeserializer<List<Pass?>?>(null as JavaType?) {
     private val log = LoggerFactory.getLogger(PassListDeserializer::class.java)
     private val passTypeConverter = PassTypeConverter()
-
-    constructor() : super(MutableList::class.java) {}
-    constructor(vc: Class<*>?) : super(vc) {}
-    constructor(valueType: JavaType?) : super(valueType) {}
-    constructor(src: StdDeserializer<*>?) : super(src) {}
 
     @Throws(IOException::class, JacksonException::class)
     override fun deserialize(jp: JsonParser, ctxt: DeserializationContext): List<Pass> {

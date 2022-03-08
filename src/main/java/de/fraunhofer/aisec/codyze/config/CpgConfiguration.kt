@@ -73,7 +73,7 @@ class CpgConfiguration {
     var debugParser = false
 
     @Option(
-        names = ["--no-cleanup"],
+        names = ["--disable-cleanup"],
         description =
             [
                 "Switch off cleaning up TypeManager memory after the analysis. Set to true only for testing"],

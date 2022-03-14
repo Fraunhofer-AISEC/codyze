@@ -63,4 +63,89 @@ internal class CLILoadTest {
         // no way to access useUnityBuild in TranslationConfiguration
         //        assertFalse(translationConfig.useUnityBuild)
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun languageOptionTest() {
+        val config = Configuration.initConfig(null, "-c", "--additional-languages=PYTHON")
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        // language frontends are not imported as library so the test won't work
+        // assertEquals(3, translationConfiguration.frontends.size, "Expected size 1 but was
+        // ${translationConfiguration.frontends.size}")
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun passesOptionTest() {
+        val config =
+            Configuration.initConfig(
+                null,
+                "-c",
+                "--passes=de.fraunhofer.aisec.cpg.passes.EdgeCachePass," +
+                    "de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
+                    "de.fraunhofer.aisec.cpg.passes.CallResolver"
+            )
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+
+        val expectedPassesNames =
+            arrayOf(
+                "de.fraunhofer.aisec.cpg.passes.EdgeCachePass",
+                "de.fraunhofer.aisec.cpg.passes.FilenameMapper",
+                "de.fraunhofer.aisec.cpg.passes.CallResolver"
+            )
+        assertEquals(
+            3,
+            translationConfiguration.registeredPasses.size,
+            "Expected size 3 but was ${translationConfiguration.registeredPasses.size}"
+        )
+        val passesNames = translationConfiguration.registeredPasses.map { s -> s.javaClass.name }
+        assertContentEquals(expectedPassesNames, passesNames.toTypedArray())
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun invalidPassesOptionTest() {
+        val config =
+            Configuration.initConfig(
+                null,
+                "-c",
+                "--passes=de.fraunhofer.aisec.cpg.passes.MyPass," +
+                    "de.fraunhofer.aisec.cpg.passes.Pass," +
+                    "de.fraunhofer.aisec.cpg.passes.scopes.BlockScope," +
+                    "de.fraunhofer.aisec.cpg.passes.EdgeCachePass," +
+                    "MyPass2"
+            )
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        assertEquals(
+            1,
+            translationConfiguration.registeredPasses.size,
+            "Expected to have size 1 but was ${translationConfiguration.registeredPasses.size}"
+        )
+        assertEquals(
+            "de.fraunhofer.aisec.cpg.passes.EdgeCachePass",
+            translationConfiguration.registeredPasses[0].javaClass.name
+        )
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun symbolsOptionTest() {
+        val config = Configuration.initConfig(null, "-c", "--symbols=#=hash,*=star")
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        assertEquals(
+            2,
+            translationConfiguration.symbols.size,
+            "Expected size 2 but was ${translationConfiguration.symbols.size}"
+        )
+        assertTrue(
+            translationConfiguration.symbols.containsKey("#"),
+            "Did not contain \'#\' as a key"
+        )
+        assertEquals("hash", translationConfiguration.symbols["#"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("*"),
+            "Did not contain \'*\' as a key"
+        )
+        assertEquals("star", translationConfiguration.symbols["*"])
+    }
 }

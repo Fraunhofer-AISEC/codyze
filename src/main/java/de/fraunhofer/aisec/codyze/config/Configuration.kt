@@ -3,19 +3,17 @@ package de.fraunhofer.aisec.codyze.config
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.core.JsonLocation
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
-import de.fraunhofer.aisec.cpg.passes.IdentifierPass
+import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
@@ -81,6 +79,7 @@ class Configuration {
             .addMixin("cpg", cpg)
             .addMixin("analysis", codyze.analysis)
             .addMixin("translation", cpg.translation)
+            .registerConverter(Pass::class.java, PassTypeConverter())
             .setCaseInsensitiveEnumValuesAllowed(true)
             // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
             // option which would result in exceptions, side effect is that all unknown options are
@@ -139,61 +138,70 @@ class Configuration {
     fun buildTranslationConfiguration(vararg sources: File): TranslationConfiguration {
         val translationConfig =
             TranslationConfiguration.builder()
-                .debugParser(!executionMode.isLsp)
-                .failOnError(false)
-                .codeInNodes(true)
+                .debugParser(if (executionMode.isLsp) false else cpg.debugParser)
+                .failOnError(cpg.failOnError)
+                .codeInNodes(cpg.codeInNodes)
                 // we need to force load includes for unity builds, otherwise nothing will be parsed
                 .loadIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)
                 .useUnityBuild(cpg.useUnityBuild)
-                .defaultPasses()
+                .processAnnotations(cpg.processAnnotations)
+                .symbols(cpg.symbols)
+                .useParallelFrontends(cpg.useParallelFrontends)
+                .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
-                .registerPass(IdentifierPass())
-                .registerPass(EdgeCachePass())
                 .sourceLocations(*sources)
-        if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
-            val pythonFrontendClazz =
+
+        for (file in cpg.translation.includes) {
+            translationConfig.includePath(file.absolutePath)
+        }
+        for (s in cpg.translation.enabledIncludes) {
+            translationConfig.includeWhitelist(s.absolutePath)
+        }
+        for (s in cpg.translation.disabledIncludes) {
+            translationConfig.includeBlacklist(s.absolutePath)
+        }
+
+        if (cpg.disableCleanup) {
+            translationConfig.disableCleanup()
+        }
+
+        if (cpg.defaultPasses == null) {
+            if (cpg.passes.isEmpty()) {
+                translationConfig.defaultPasses()
+            }
+        } else {
+            if (cpg.defaultPasses!!) {
+                translationConfig.defaultPasses()
+            } else {
+                if (cpg.passes.isEmpty()) {
+                    // TODO: error handling for no passes if needed
+                }
+            }
+        }
+        for (p in cpg.passes) {
+            translationConfig.registerPass(p)
+        }
+
+        for (l in cpg.additionalLanguages) {
+            val frontendClazz =
                 try {
                     @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.PYTHON.frontendClassName) as Class<LanguageFrontend>
+                    Class.forName(l.frontendClassName) as Class<LanguageFrontend>
                 } catch (e: Throwable) {
-                    log.warn("Unable to initialize Python frontend for CPG")
+                    log.warn("Unable to initialize {} frontend for CPG", l.name)
                     null
                 }
 
-            if (pythonFrontendClazz != null) {
+            if (frontendClazz != null) {
                 @Suppress("UNCHECKED_CAST")
                 val extensions =
-                    pythonFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
+                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
                         List<String>
 
-                translationConfig.registerLanguage(pythonFrontendClazz, extensions)
+                translationConfig.registerLanguage(frontendClazz, extensions)
             }
         }
-        if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
-            val golangFrontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.GO.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize Golang frontend for CPG")
-                    null
-                }
-            if (golangFrontendClazz != null) {
-                @Suppress("UNCHECKED_CAST")
-                val extensions =
-                    golangFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
-                        List<String>
 
-                translationConfig.registerLanguage(golangFrontendClazz, extensions)
-            }
-        }
-        for (file in cpg.translation.includes) translationConfig.includePath(file.absolutePath)
         return translationConfig.build()
     }
 
@@ -220,27 +228,34 @@ class Configuration {
         private fun parseFile(configFile: File): Configuration {
             val mapper =
                 YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
-            mapper.enable(JsonParser.Feature.IGNORE_UNDEFINED)
-            mapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            mapper
+                .enable(JsonParser.Feature.IGNORE_UNDEFINED)
+                .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
             var config: Configuration? = null
             try {
                 config = mapper.readValue(configFile, Configuration::class.java)
-            } catch (e: UnrecognizedPropertyException) {
-                printErrorMessage(
-                    "Could not parse configuration file correctly because \"${e.propertyName}\" is not a valid argument name for ${e.path[0].fieldName} configurations."
-                )
-            } catch (e: FileNotFoundException) {
-                printErrorMessage("File at ${configFile.absolutePath} not found.")
             } catch (e: IOException) {
-                printErrorMessage(e.message)
+                printErrorMessage(configFile.absolutePath, e.toString())
             }
             return config ?: Configuration()
         }
 
         // print error message to log
-        private fun printErrorMessage(msg: String?) {
-            log.warn("{} Continue without configurations from file.", msg)
+        private fun printErrorMessage(source: String, msg: String) {
+            log.warn(
+                "Parsing configuration file failed ({}): {}. Continue without configurations from file.",
+                source,
+                msg
+            )
+        }
+
+        fun getLocation(tokenLocation: JsonLocation): String {
+            return if (tokenLocation.contentReference() != null &&
+                    tokenLocation.contentReference().rawContent is File
+            )
+                " (${(tokenLocation.contentReference().rawContent as File).absolutePath})"
+            else ""
         }
     }
 }

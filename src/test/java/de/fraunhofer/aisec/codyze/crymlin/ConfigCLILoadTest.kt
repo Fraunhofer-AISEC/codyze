@@ -2,6 +2,9 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.cpg.TranslationConfiguration
+import de.fraunhofer.aisec.cpg.passes.CallResolver
+import de.fraunhofer.aisec.cpg.passes.FilenameMapper
 import java.io.File
 import java.lang.Exception
 import kotlin.Throws
@@ -70,22 +73,102 @@ class ConfigCLILoadTest {
         assertFalse(serverConfig.disableGoodFindings)
     }
 
+    @Test
+    @Throws(java.lang.Exception::class)
+    fun additionalOptionsConfigFileTest() {
+        val config =
+            Configuration.initConfig(
+                additionalOptionFile,
+                "-c",
+                "--passes=de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
+                    "de.fraunhofer.aisec.cpg.passes.CallResolver",
+                "--symbols=&=and,+=plus",
+                "--no-type-system-in-frontend",
+                "--default-passes"
+            )
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        val expectedTranslationConfig =
+            TranslationConfiguration.builder()
+                .defaultPasses()
+                .registerPass(FilenameMapper())
+                .registerPass(CallResolver())
+                .build()
+
+        // Can't test typeSystemActiveInFrontend
+
+        assertEquals(
+            expectedTranslationConfig.registeredPasses.size,
+            translationConfiguration.registeredPasses.size,
+            "Expected size 2 but was ${translationConfiguration.registeredPasses.size}"
+        )
+        val passesNames =
+            translationConfiguration.registeredPasses.map { s -> s.javaClass.name }.toTypedArray()
+        val expectedPassesNames =
+            expectedTranslationConfig.registeredPasses.map { s -> s.javaClass.name }.toTypedArray()
+        assertContentEquals(expectedPassesNames, passesNames)
+
+        assertEquals(
+            2,
+            translationConfiguration.symbols.size,
+            "Expected size 2 but was ${translationConfiguration.symbols.size}"
+        )
+        assertTrue(
+            translationConfiguration.symbols.containsKey("&"),
+            "Did not contain \'&\' as a key"
+        )
+        assertEquals("and", translationConfiguration.symbols["&"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("+"),
+            "Did not contain \'=\' as a key"
+        )
+        assertEquals("plus", translationConfiguration.symbols["+"])
+
+        val expectedIncludes =
+            arrayOf("include1", "include7", "include3", "include5")
+                .map { s -> File(s).absolutePath }
+                .toTypedArray()
+        assertContentEquals(expectedIncludes, translationConfiguration.includePaths)
+
+        val expectedEnabledIncludes =
+            arrayOf("include3", "include5", "include1").map { s -> File(s).absolutePath }
+        assertContentEquals(expectedEnabledIncludes, translationConfiguration.includeWhitelist)
+
+        val expectedDisabledIncludes =
+            arrayOf("include7", "include3").map { s -> File(s).absolutePath }
+        assertContentEquals(expectedDisabledIncludes, translationConfiguration.includeBlacklist)
+    }
+
     companion object {
-        private val correctFile =
-            File(
-                ConfigLoadTest::class
-                    .java
-                    .classLoader
-                    .getResource("config-files/correct_structure.yml")
-                    .toURI()
-            )
-        private val incorrectFile =
-            File(
-                ConfigLoadTest::class
-                    .java
-                    .classLoader
-                    .getResource("config-files/incorrect_structure.yml")
-                    .toURI()
-            )
+        private lateinit var correctFile: File
+        private lateinit var incorrectFile: File
+        private lateinit var additionalOptionFile: File
+
+        @BeforeAll
+        @JvmStatic
+        fun startup() {
+            val correctStructureResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/correct_structure.yml"
+                )
+            assertNotNull(correctStructureResource)
+            correctFile = File(correctStructureResource.file)
+            assertNotNull(correctFile)
+
+            val incorrectStructureResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/incorrect_structure.yml"
+                )
+            assertNotNull(incorrectStructureResource)
+            incorrectFile = File(incorrectStructureResource.file)
+            assertNotNull(incorrectFile)
+
+            val additionalOptionResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/additional_options.yml"
+                )
+            assertNotNull(additionalOptionResource)
+            additionalOptionFile = File(additionalOptionResource.file)
+            assertNotNull(additionalOptionFile)
+        }
     }
 }

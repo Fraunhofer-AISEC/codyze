@@ -21,7 +21,8 @@
         },
         "sarif": {
             "description": "Enables the SARIF output",
-            "type": "boolean"
+            "type": "boolean",
+            "default": "false"
         },
         "codyze": {
             "description": "Configurations for codyze",
@@ -38,7 +39,8 @@
                 },
                 "no-good-findings": {
                     "description": "Disables output of \"positive\" findings",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": "false"
                 },
                 "disabled-mark-rules": {
                     "description": "The specified mark rules will be excluded from being parsed and processed.",

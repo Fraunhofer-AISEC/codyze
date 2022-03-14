@@ -88,7 +88,6 @@ internal class BuildTranslationConfigTest {
         )
     }
 
-
     @Test
     fun useAdditionalLanguagePython() {
         val cliParameters = arrayOf("-c", "--additional-languages=python")
@@ -106,8 +105,20 @@ internal class BuildTranslationConfigTest {
         val translationConfig = config.buildTranslationConfiguration()
 
         assertTrue(
-                translationConfig.loadIncludes,
-                "LoadIncludes has to be set to true if unityBuild is enabled"
+            translationConfig.loadIncludes,
+            "LoadIncludes has to be set to true if unityBuild is enabled"
+        )
+    }
+
+    @Test
+    fun lspTest() {
+        val cliParameters = arrayOf("-l", "--debug-parser", "--source=test.java")
+        val config = Configuration.initConfig(null, *cliParameters)
+        val translationConfig = config.buildTranslationConfiguration()
+
+        assertFalse(
+            translationConfig.debugParser,
+            "DebugParser has to be set to false if in lsp mode"
         )
     }
 

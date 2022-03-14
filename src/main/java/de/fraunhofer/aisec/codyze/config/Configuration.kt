@@ -159,6 +159,22 @@ class Configuration {
         return translationConfig.build()
     }
 
+    private fun normalize() {
+        // In pedantic analysis mode all MARK rules are analyzed and all findings reported
+        if (codyze.pedantic) {
+            codyze.noGoodFindings = false
+            codyze.disabledMarkRules = emptyList()
+        }
+
+        // we need to force load includes for unity builds, otherwise nothing will be parsed
+        if (cpg.useUnityBuild) cpg.translation.analyzeIncludes = true
+
+        if (codyze.executionMode.isLsp) {
+            // we don't want the parser to print stuff to the terminal when in LSP mode
+            cpg.debugParser = false
+        }
+    }
+
     // Parse CLI arguments into config class
     private fun parseCLI(vararg args: String?) {
 
@@ -173,17 +189,6 @@ class Configuration {
             // ignored
             .setUnmatchedArgumentsAllowed(true)
             .parseArgs(*args)
-    }
-
-    private fun normalize() {
-        // In pedantic analysis mode all MARK rules are analyzed and all findings reported
-        if (codyze.pedantic) {
-            codyze.noGoodFindings = false
-            codyze.disabledMarkRules = emptyList()
-        }
-
-        // we need to force load includes for unity builds, otherwise nothing will be parsed
-        if (cpg.useUnityBuild) cpg.translation.analyzeIncludes = true
     }
 
     companion object {

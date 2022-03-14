@@ -65,22 +65,86 @@ class ConfigCLILoadTest {
         assertFalse(codyze.noGoodFindings)
     }
 
+    @Test
+    @Throws(java.lang.Exception::class)
+    fun additionalOptionsConfigFileTest() {
+        val config =
+            Configuration.initConfig(
+                additionalOptionFile,
+                "-c",
+                "--passes=de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
+                    "de.fraunhofer.aisec.cpg.passes.CallResolver",
+                "--symbols=&=and,+=plus",
+                "--no-type-system-in-frontend",
+                "--default-passes"
+            )
+        val cpg = config.cpg
+
+        assertFalse(cpg.typeSystemInFrontend)
+        assertNotNull(cpg.defaultPasses)
+        assertTrue(cpg.defaultPasses!!)
+
+        val expectedPassesNames =
+            arrayOf(
+                "de.fraunhofer.aisec.cpg.passes.FilenameMapper",
+                "de.fraunhofer.aisec.cpg.passes.CallResolver"
+            )
+        assertEquals(2, cpg.passes.size, "Expected size 2 but was ${cpg.passes.size}")
+        val passesNames = cpg.passes.map { s -> s.javaClass.name }
+        assertContentEquals(expectedPassesNames, passesNames.toTypedArray())
+
+        assertEquals(2, cpg.symbols.size, "Expected size 2 but was ${cpg.passes.size}")
+        assertTrue(cpg.symbols.containsKey("&"), "Did not contain \'&\' as a key")
+        assertEquals("and", cpg.symbols["&"])
+        assertTrue(cpg.symbols.containsKey("+"), "Did not contain \'=\' as a key")
+        assertEquals("plus", cpg.symbols["+"])
+
+        val expectedIncludes =
+            arrayOf("include1", "include7", "include3", "include5")
+                .map { s -> File(s) }
+                .toTypedArray()
+        assertContentEquals(expectedIncludes, cpg.translation.includes)
+
+        val expectedEnabledIncludes =
+            arrayOf("include3", "include5", "include1").map { s -> File(s) }.toTypedArray()
+        assertContentEquals(expectedEnabledIncludes, cpg.translation.enabledIncludes)
+
+        val expectedDisabledIncludes =
+            arrayOf("include7", "include3").map { s -> File(s) }.toTypedArray()
+        assertContentEquals(expectedDisabledIncludes, cpg.translation.disabledIncludes)
+    }
+
     companion object {
-        private val correctFile =
-            File(
-                ConfigLoadTest::class
-                    .java
-                    .classLoader
-                    .getResource("config-files/correct_structure.yml")
-                    .toURI()
-            )
-        private val incorrectFile =
-            File(
-                ConfigLoadTest::class
-                    .java
-                    .classLoader
-                    .getResource("config-files/incorrect_structure.yml")
-                    .toURI()
-            )
+        private lateinit var correctFile: File
+        private lateinit var incorrectFile: File
+        private lateinit var additionalOptionFile: File
+
+        @BeforeAll
+        @JvmStatic
+        fun startup() {
+            val correctStructureResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/correct_structure.yml"
+                )
+            assertNotNull(correctStructureResource)
+            correctFile = File(correctStructureResource.file)
+            assertNotNull(correctFile)
+
+            val incorrectStructureResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/incorrect_structure.yml"
+                )
+            assertNotNull(incorrectStructureResource)
+            incorrectFile = File(incorrectStructureResource.file)
+            assertNotNull(incorrectFile)
+
+            val additionalOptionResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/additional_options.yml"
+                )
+            assertNotNull(additionalOptionResource)
+            additionalOptionFile = File(additionalOptionResource.file)
+            assertNotNull(additionalOptionFile)
+        }
     }
 }

@@ -88,13 +88,7 @@ public class Main {
 	private static int start(Configuration configuration) throws ExecutionException, InterruptedException, TimeoutException {
 		Instant start = Instant.now();
 
-		CpgConfiguration cpgConfig = configuration.getCpg();
 		CodyzeConfiguration codyzeConfig = configuration.getCodyze();
-
-		// we need to force load includes for unity builds, otherwise nothing will be parsed
-		if (cpgConfig.getUseUnityBuild()) {
-			cpgConfig.getTranslation().setAnalyzeIncludes(true);
-		}
 
 		AnalysisServer server = AnalysisServer.builder()
 				.config(configuration

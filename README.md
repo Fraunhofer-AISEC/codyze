@@ -12,7 +12,7 @@ Codyze is a static code analyzer that focuses on verifying security compliance i
 
 Documentation: https://www.codyze.io
 
-## Build & run Codyze
+## Build & Run Codyze
 
 Java 11 (OpenJDK) is a prerequisite.
 
@@ -22,16 +22,20 @@ To build an executable version of Codyze, use the `installDist` task:
 $ ./gradlew installDist
 ```
 
-This will provide you with an executable Codyze installation under `build/install/codyze`. Change to that directory and run Codyze:
+This will provide you with an executable Codyze installation under `build/install/codyze`.
+To start Codyze, change to the directory and run Codyze.
+
+Codyze has three execution modes, commando line interface mode, language server protocol mode and interactive console mode.
+One of these modes has to be specified as command line option when running Codyze.
+An exemplary call to start the interactive console mode would be:
 
 ```shell
 $ cd build/install/codyze
-$ ./bin/codyze
+$ ./bin/codyze -t
 ```
 
-Codyze can be configured with either command line arguments or a YAML configuration file.
-
-For further information about the configurations, please refer to the [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Usage) and https://www.codyze.io.
+Codyze can be further configured with more command line arguments or a YAML configuration file.
+For more information about the usage and configurations, please refer to https://www.codyze.io and the [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Usage).
 
 
 ## Research & Student Work

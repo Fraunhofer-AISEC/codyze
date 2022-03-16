@@ -1,10 +1,6 @@
 FROM openjdk:11-jre-slim
 
-LABEL org.opencontainers.image.authors="Fraunhofer AISEC <codyze@aisec.fraunhofer.de>" \
-      org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.source="https://github.com/Fraunhofer-AISEC/codyze" \
-      org.opencontainers.image.vendor="Fraunhofer AISEC" \
-      org.opencontainers.image.base.name="openjdk:11-jre-slim"
+LABEL org.opencontainers.image.authors="Fraunhofer AISEC <codyze@aisec.fraunhofer.de>"
 
 # JVM monitoring and profiling
 EXPOSE 9000

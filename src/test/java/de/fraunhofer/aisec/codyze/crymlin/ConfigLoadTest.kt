@@ -64,7 +64,10 @@ internal class ConfigLoadTest {
         assertFalse(codyze.sarifOutput)
 
         assertFalse(cpg.translation.analyzeIncludes)
-        assertEquals(0, cpg.translation.includes.size, "List of includes is not empty")
+        assertTrue(
+            cpg.translation.includes.isEmpty(),
+            "Expected empty list but size was ${cpg.translation.includes}"
+        )
         assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
         assertFalse(cpg.useUnityBuild)
     }

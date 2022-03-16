@@ -50,7 +50,11 @@ internal class CLILoadTest {
         assertFalse(codyze.sarifOutput)
 
         assertFalse(cpg.translation.analyzeIncludes)
-        assertEquals(0, cpg.translation.includes.size, "List of includes is not empty")
+        assertEquals(
+            0,
+            cpg.translation.includes.size,
+            "Expected to be empty but size was ${cpg.translation.includes.size}"
+        )
         assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
         assertFalse(cpg.useUnityBuild)
     }

@@ -36,8 +36,7 @@ class Configuration {
                 .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
                 .pedantic(codyze.pedantic)
                 // TODO: remove all cpg config and replace with TranslationConfiguration
-                // we need to force load includes for unity builds, otherwise nothing will be parsed
-                .analyzeIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)
+                .analyzeIncludes(cpg.translation.analyzeIncludes)
                 .includePath(cpg.translation.includes)
                 .useUnityBuild(cpg.useUnityBuild)
 
@@ -95,8 +94,7 @@ class Configuration {
                 .debugParser(cpg.debugParser)
                 .failOnError(cpg.failOnError)
                 .codeInNodes(cpg.codeInNodes)
-                // we need to force load includes for unity builds, otherwise nothing will be parsed
-                .loadIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)
+                .loadIncludes(cpg.translation.analyzeIncludes)
                 .useUnityBuild(cpg.useUnityBuild)
                 .processAnnotations(cpg.processAnnotations)
                 .symbols(cpg.symbols)
@@ -170,7 +168,7 @@ class Configuration {
         if (cpg.useUnityBuild) cpg.translation.analyzeIncludes = true
 
         if (codyze.executionMode.isLsp) {
-            // we don't want the parser to print stuff to the terminal when in LSP mode
+            // we don't want the parser to print to the terminal when in LSP mode
             cpg.debugParser = false
         }
     }

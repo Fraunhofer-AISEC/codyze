@@ -25,8 +25,13 @@ $ ./gradlew installDist
 This will provide you with an executable Codyze installation under `build/install/codyze`.
 To start Codyze, change to the directory and run Codyze.
 
-Codyze has three execution modes, commando line interface mode, language server protocol mode and interactive console mode.
+Codyze has three execution modes:
+* commando line interface mode (`-c`)
+* language server protocol mode (`-l`)
+* interactive console mode (`-t`).
+
 One of these modes has to be specified as command line option when running Codyze.
+
 An exemplary call to start the interactive console mode would be:
 
 ```shell
@@ -35,7 +40,7 @@ $ ./bin/codyze -t
 ```
 
 Codyze can be further configured with more command line arguments or a YAML configuration file.
-For more information about the usage and configurations, please refer to https://www.codyze.io and the [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Usage).
+For more information about the usage and configurations, please refer to https://www.codyze.io and the corresponding [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Usage).
 
 
 ## Research & Student Work

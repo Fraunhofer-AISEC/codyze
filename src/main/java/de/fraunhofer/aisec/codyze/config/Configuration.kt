@@ -77,14 +77,13 @@ class Configuration {
     fun buildServerConfiguration(): ServerConfiguration {
         this.normalize()
         val config =
-                ServerConfiguration.builder()
-                        .launchLsp(executionMode.isLsp)
-                        .launchConsole(executionMode.isTui)
-                        .typestateAnalysis(codyze.analysis.tsMode)
-                        .disableGoodFindings(codyze.noGoodFindings)
-                        .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-                        .pedantic(codyze.pedantic)
-
+            ServerConfiguration.builder()
+                .launchLsp(executionMode.isLsp)
+                .launchConsole(executionMode.isTui)
+                .typestateAnalysis(codyze.analysis.tsMode)
+                .disableGoodFindings(codyze.noGoodFindings)
+                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+                .pedantic(codyze.pedantic)
 
         val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
         for (mName in codyze.disabledMarkRules) {
@@ -202,8 +201,8 @@ class Configuration {
         CommandLine(this)
             // Added as Mixin so the already initialized objects are used instead of new ones
             // created
-                .addMixin("codyze", codyze)
-                .addMixin("cpg", cpg)
+            .addMixin("codyze", codyze)
+            .addMixin("cpg", cpg)
             .addMixin("analysis", codyze.analysis)
             .addMixin("translation", cpg.translation)
             .registerConverter(Pass::class.java, PassTypeConverter())

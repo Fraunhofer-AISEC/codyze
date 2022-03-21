@@ -12,7 +12,6 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Model.ArgGroupSpec;
 import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.Unmatched;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
 
@@ -25,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * Start point of the standalone analysis server.
@@ -88,31 +88,26 @@ public class Main {
 	private static int start(Configuration configuration) throws ExecutionException, InterruptedException, TimeoutException {
 		Instant start = Instant.now();
 
-		CodyzeConfiguration codyzeConfig = configuration.getCodyze();
-
-		AnalysisServer server = AnalysisServer.builder()
-				.config(configuration
-						.buildServerConfiguration())
-				.build();
+		AnalysisServer server = new AnalysisServer(configuration);
 
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!codyzeConfig.getExecutionMode().isLsp() && codyzeConfig.getSource() != null) {
-			log.info("Analyzing {}", codyzeConfig.getSource());
+		if (!configuration.getExecutionMode().isLsp() && configuration.getSource() != null) {
+			log.info("Analyzing {}", configuration.getSource());
 			AnalysisContext ctx = server
-					.analyze(codyzeConfig.getSource().getAbsolutePath())
-					.get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
+					.analyze(configuration.getSource().getAbsolutePath())
+					.get(configuration.getTimeout(), TimeUnit.MINUTES);
 
 			var findings = ctx.getFindings();
 
-			writeFindings(findings, codyzeConfig);
+			writeFindings(findings, configuration);
 
-			if (codyzeConfig.getExecutionMode().isCli()) {
+			if (configuration.getExecutionMode().isCli()) {
 				// Return code based on the existence of violations
 				return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
 			}
-		} else if (codyzeConfig.getExecutionMode().isLsp()) {
+		} else if (configuration.getExecutionMode().isLsp()) {
 			// Block main thread. Work is done in
 			Thread.currentThread().join();
 		}
@@ -120,15 +115,15 @@ public class Main {
 		return 0;
 	}
 
-	private static void writeFindings(Set<Finding> findings, CodyzeConfiguration codyzeConfig) {
+	private static void writeFindings(Set<Finding> findings, Configuration configuration) {
 		Printer printer;
 		// whether to print sarif output or not
-		if (!codyzeConfig.getSarifOutput())
+		if (!configuration.getSarifOutput())
 			printer = new LegacyPrinter(findings);
 		else
 			printer = new SarifPrinter(findings);
 
-		String outputFile = codyzeConfig.getOutput();
+		String outputFile = configuration.getOutput();
 		// Whether to write in file or on stdout
 		if (outputFile.equals("-"))
 			printer.printToConsole();
@@ -157,6 +152,9 @@ public class Main {
 		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false)
 		private CodyzeConfiguration codyzeConfig = new CodyzeConfiguration();
 
+		@ArgGroup(heading = "", exclusive = false)
+		private Configuration configuration = new Configuration();
+
 		@ArgGroup(exclusive = false, heading = "Analysis Options\n")
 		AnalysisMode analysis = new AnalysisMode();
 
@@ -180,8 +178,7 @@ public class Main {
 			Map<String, CommandSpec> mix = spec.mixins();
 			StringBuilder sb = new StringBuilder();
 			for (CommandSpec c : mix.values()) {
-				CommandLine.Help h = new CommandLine.Help(c, help.colorScheme());
-				sb.append(h.optionList(help.createDefaultLayout(), null, help.parameterLabelRenderer()));
+				sb.append(help.optionListExcludingGroups(c.options().stream().filter(optionSpec -> optionSpec.group() == null).collect(Collectors.toList())));
 			}
 			sb.append("\n");
 			for (ArgGroupSpec group : spec.argGroups()) {
@@ -194,9 +191,10 @@ public class Main {
 		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb) {
 			sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
 
-			for (OptionSpec o : argGroupSpec.options()) {
-				sb.append(help.optionListExcludingGroups(List.of(o)));
-			}
+			// render all options that are not in subgroups
+			sb.append(help.optionListExcludingGroups(
+				argGroupSpec.options().stream().filter(optionSpec -> optionSpec.group().equals(argGroupSpec)).collect(Collectors.toList())));
+
 			sb.append("\n");
 			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
 				addHierachy(group, sb);

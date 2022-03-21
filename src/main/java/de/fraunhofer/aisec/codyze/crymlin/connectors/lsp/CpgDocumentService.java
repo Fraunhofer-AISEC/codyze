@@ -1,16 +1,11 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.connectors.lsp;
 
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass;
-import de.fraunhofer.aisec.cpg.passes.IdentifierPass;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
 import de.fraunhofer.aisec.codyze.analysis.Finding;
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription;
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -72,22 +67,8 @@ public class CpgDocumentService implements TextDocumentService {
 			log.error("Server instance is null.");
 			return;
 		}
-		TranslationManager tm = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder()
-							.debugParser(false)
-							.failOnError(false)
-							.codeInNodes(true)
-							.defaultPasses()
-							.defaultLanguages()
-							.registerPass(new FilenameMapper())
-							.registerPass(new IdentifierPass())
-							.registerPass(new EdgeCachePass())
-							.sourceLocations(file)
-							.build())
-				.build();
 
-		CompletableFuture<AnalysisContext> analyze = instance.analyze(tm);
+		CompletableFuture<AnalysisContext> analyze = instance.analyze(file.getAbsolutePath());
 
 		try {
 			AnalysisContext ctx = analyze.get(5, TimeUnit.MINUTES);

@@ -3,8 +3,10 @@ package de.fraunhofer.aisec.codyze.crymlin
 import de.fraunhofer.aisec.codyze.Commands
 import de.fraunhofer.aisec.codyze.JythonInterpreter
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
+import de.fraunhofer.aisec.codyze.config.CodyzeConfiguration
+import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze.config.CpgConfiguration
 import java.io.*
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.*
@@ -13,18 +15,15 @@ import org.junit.jupiter.api.*
 internal class CommandsTest {
     @Test
     fun commandConsoleTest() {
-        val server =
-            AnalysisServer.builder()
-                .config(
-                    ServerConfiguration.builder()
-                        .launchLsp(false)
-                        .launchConsole(true)
-                        .typestateAnalysis(TypestateMode.DFA)
-                        .markFiles(File("src/test/resources/mark_java").absolutePath)
-                        .useLegacyEvaluator()
-                        .build()
-                )
-                .build()
+        val codyze = CodyzeConfiguration()
+        codyze.analysis.tsMode = TypestateMode.DFA
+        codyze.mark = arrayOf(File("src/test/resources/mark_java"))
+
+        val config = Configuration(codyze, CpgConfiguration())
+        config.executionMode.isCli = true
+        config.executionMode.isLsp = false
+
+        val server = AnalysisServer(config)
         server.start()
         val oldOut = System.out
         val oldErr = System.err

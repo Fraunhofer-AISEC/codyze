@@ -1,5 +1,8 @@
 package de.fraunhofer.aisec.codyze.config
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonLocation
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -15,11 +18,56 @@ import java.io.IOException
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class Configuration {
 
-    // Added as Mixin so the already initialized objects are used instead of new ones created
-    @CommandLine.Mixin var codyze = CodyzeConfiguration()
-    @CommandLine.Mixin var cpg = CpgConfiguration()
+    @JsonIgnore
+    @CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
+    val executionMode: ExecutionMode = ExecutionMode()
+
+    @CommandLine.Option(
+        names = ["-s", "--source"],
+        paramLabel = "<path>",
+        description = ["Source file or folder to analyze."]
+    )
+    var source: File? = null
+        private set
+
+    // TODO output standard stdout?
+    @CommandLine.Option(
+        names = ["-o", "--output"],
+        paramLabel = "<file>",
+        description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"]
+    )
+    var output = "findings.sarif"
+        private set
+
+    @CommandLine.Option(
+        names = ["--timeout"],
+        paramLabel = "<minutes>",
+        description = ["Terminate analysis after timeout.\n\t(Default: \${DEFAULT-VALUE})"]
+    )
+    var timeout = 120L
+        private set
+
+    @JsonProperty("sarif")
+    @CommandLine.Option(
+        names = ["--sarif"],
+        description = ["Enables the SARIF output."],
+        fallbackValue = "true"
+    )
+    var sarifOutput: Boolean = false
+        private set
+
+    private var codyze = CodyzeConfiguration()
+    private var cpg = CpgConfiguration()
+
+    constructor()
+
+    constructor(codyzeConfiguration: CodyzeConfiguration, cpgConfiguration: CpgConfiguration) {
+        this.codyze = codyzeConfiguration
+        this.cpg = cpgConfiguration
+    }
 
     // Parse CLI arguments into config class
     private fun parseCLI(vararg args: String?) {
@@ -27,6 +75,8 @@ class Configuration {
         CommandLine(this)
             // Added as Mixin so the already initialized objects are used instead of new ones
             // created
+            .addMixin("codyze", codyze)
+            .addMixin("cpg", cpg)
             .addMixin("analysis", codyze.analysis)
             .addMixin("translation", cpg.translation)
             .registerConverter(Pass::class.java, PassTypeConverter())
@@ -46,8 +96,8 @@ class Configuration {
     fun buildServerConfiguration(): ServerConfiguration {
         val config =
             ServerConfiguration.builder()
-                .launchLsp(codyze.executionMode.isLsp)
-                .launchConsole(codyze.executionMode.isTui)
+                .launchLsp(executionMode.isLsp)
+                .launchConsole(executionMode.isTui)
                 .typestateAnalysis(codyze.analysis.tsMode)
                 .disableGoodFindings(
                     if (codyze.pedantic) {
@@ -57,31 +107,6 @@ class Configuration {
                     }
                 )
                 .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-                // TODO: remove all cpg config and replace with TranslationConfiguration
-                // we need to force load includes for unity builds, otherwise nothing will be parsed
-                .analyzeIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)
-                .includePath(cpg.translation.includes)
-                .useUnityBuild(cpg.useUnityBuild)
-
-        for (l in cpg.additionalLanguages) {
-            val frontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(l.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize {} frontend for CPG", l.name)
-                    null
-                }
-
-            if (frontendClazz != null) {
-                @Suppress("UNCHECKED_CAST")
-                val extensions =
-                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
-                        List<String>
-
-                config.registerLanguage(frontendClazz, extensions)
-            }
-        }
 
         if (!codyze.pedantic) {
             val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
@@ -110,12 +135,10 @@ class Configuration {
      *
      * @return TranslationConfiguration
      */
-    fun buildTranslationConfiguration(): TranslationConfiguration {
-        val files: MutableList<File> = ArrayList()
-        files.add(File(codyze.source!!.absolutePath))
+    fun buildTranslationConfiguration(vararg sources: File): TranslationConfiguration {
         val translationConfig =
             TranslationConfiguration.builder()
-                .debugParser(cpg.debugParser)
+                .debugParser(if (executionMode.isLsp) false else cpg.debugParser)
                 .failOnError(cpg.failOnError)
                 .codeInNodes(cpg.codeInNodes)
                 // we need to force load includes for unity builds, otherwise nothing will be parsed
@@ -126,7 +149,7 @@ class Configuration {
                 .useParallelFrontends(cpg.useParallelFrontends)
                 .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
-                .sourceLocations(*files.toTypedArray())
+                .sourceLocations(*sources)
 
         for (file in cpg.translation.includes) {
             translationConfig.includePath(file.absolutePath)
@@ -235,4 +258,36 @@ class Configuration {
             else ""
         }
     }
+}
+
+/**
+ * Codyze runs in any of three modes:
+ * - CLI: Non-interactive command line client. Accepts arguments from command line and runs
+ * analysis.
+ * - LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE
+ * support.
+ * - TUI: The text based user interface (TUI) is an interactive console that allows exploring the
+ * analyzed source code by manual queries.
+ */
+class ExecutionMode {
+    @CommandLine.Option(
+        names = ["-c"],
+        required = true,
+        description = ["Start in command line mode."]
+    )
+    var isCli = false
+
+    @CommandLine.Option(
+        names = ["-l"],
+        required = true,
+        description = ["Start in language server protocol (LSP) mode."]
+    )
+    var isLsp = false
+
+    @CommandLine.Option(
+        names = ["-t"],
+        required = true,
+        description = ["Start interactive console (Text-based User Interface)."]
+    )
+    var isTui = false
 }

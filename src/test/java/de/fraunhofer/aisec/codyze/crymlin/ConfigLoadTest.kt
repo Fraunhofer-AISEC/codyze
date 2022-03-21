@@ -2,7 +2,9 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.config.Configuration
-import de.fraunhofer.aisec.codyze.config.Language
+import de.fraunhofer.aisec.cpg.TranslationConfiguration
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import java.io.File
 import kotlin.Exception
 import kotlin.Throws
@@ -16,107 +18,143 @@ internal class ConfigLoadTest {
     @Throws(Exception::class)
     fun correctConfigFileTest() {
         val config = Configuration.initConfig(correctFile, "-c")
-        val codyze = config.codyze
-        val cpg = config.cpg
+        val serverConfig = config.buildServerConfiguration()
+        val translationConfig = config.buildTranslationConfiguration()
 
         // assert that the data in the config file was parsed and set correctly
-        assertEquals(File("source.java"), codyze.source)
+        assertEquals(File("source.java"), config.source)
         assertContentEquals(
-            arrayOf("mark1", "mark4", "mark3", "mark2").map { s -> File(s) }.toTypedArray(),
-            codyze.mark
+            arrayOf("mark1", "mark4", "mark3", "mark2")
+                .map { s -> File(s).absolutePath }
+                .toTypedArray(),
+            serverConfig.markModelFiles
         )
-        assertEquals("result.out", codyze.output)
-        assertEquals(140L, codyze.timeout)
-        assertTrue(codyze.sarifOutput)
-        assertEquals(TypestateMode.WPDS, codyze.analysis.tsMode)
+        assertEquals("result.out", config.output)
+        assertEquals(140L, config.timeout)
+        assertTrue(config.sarifOutput)
+        assertEquals(TypestateMode.WPDS, serverConfig.typestateAnalysis)
 
-        assertFalse(cpg.translation.analyzeIncludes)
+        assertFalse(translationConfig.loadIncludes)
         assertContentEquals(
-            arrayOf("include1", "include2").map { s -> File(s) }.toTypedArray(),
-            cpg.translation.includes
+            arrayOf("include1", "include2").map { s -> File(s).absolutePath }.toTypedArray(),
+            translationConfig.includePaths
         )
-        assertEquals(
-            1,
-            cpg.additionalLanguages.size,
-            "Size of set of additional languages is not 1"
-        )
-        assertContains(cpg.additionalLanguages, Language.PYTHON)
+
+        // Test for additional languages doesn't really work because the LanguageFrontends
+        // are not in the library, so they won't be registered
+        //        assertEquals(
+        //            1,
+        //            translationConfig.frontends.size,
+        //            "Size of set of additional languages is not 1"
+        //        )
+        //        assertTrue(translationConfig.frontends.containsKey())
 
         // assert that nothing else was changed from the default values
-        assertFalse(codyze.noGoodFindings)
-        assertFalse(cpg.useUnityBuild)
+        assertFalse(serverConfig.disableGoodFindings)
+        assertFalse(serverConfig.pedantic)
+
+        // no way to access useUnityBuild in TranslationConfiguration
+        //        assertFalse(translationConfig.useUnityBuild)
     }
 
     @Test
     @Throws(Exception::class)
     fun incorrectConfigFileTest() {
         val config = Configuration.initConfig(incorrectFile, "-c")
-        val codyze = config.codyze
-        val cpg = config.cpg
+        val serverConfig = config.buildServerConfiguration()
+        val translationConfig = config.buildTranslationConfiguration()
 
         // assert that nothing was changed from the default values
-        assertNull(codyze.source)
-        assertContentEquals(arrayOf("./").map { s -> File(s) }.toTypedArray(), codyze.mark)
-        assertEquals("findings.sarif", codyze.output)
-        assertEquals(TypestateMode.DFA, codyze.analysis.tsMode)
-        assertEquals(120L, codyze.timeout)
-        assertFalse(codyze.noGoodFindings)
-        assertFalse(codyze.sarifOutput)
+        assertNull(config.source)
+        assertEquals(120L, config.timeout)
+        assertEquals("findings.sarif", config.output)
+        assertFalse(config.sarifOutput)
 
-        assertFalse(cpg.translation.analyzeIncludes)
-        assertTrue(
-            cpg.translation.includes.isEmpty(),
-            "Expected empty list but size was ${cpg.translation.includes}"
+        assertContentEquals(
+            arrayOf("./").map { s -> File(s).absolutePath }.toTypedArray(),
+            serverConfig.markModelFiles
         )
-        assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
-        assertFalse(cpg.useUnityBuild)
+        assertEquals(TypestateMode.DFA, serverConfig.typestateAnalysis)
+        assertFalse(serverConfig.disableGoodFindings)
+        assertFalse(serverConfig.pedantic)
+
+        assertFalse(translationConfig.loadIncludes)
+        assertEquals(0, translationConfig.includePaths.size, "Array of includes was not empty")
+        assertEquals(
+            2,
+            translationConfig.frontends.size,
+            "List of frontends did not only contain default frontends"
+        )
+
+        // no way to access useUnityBuild in TranslationConfiguration
+        //        assertFalse(translationConfig.useUnityBuild)
     }
 
     @Test
     @Throws(java.lang.Exception::class)
     fun additionalOptionsConfigFileTest() {
         val config = Configuration.initConfig(additionalOptionFile, "-c")
-        val cpg = config.cpg
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        val expectedTranslationConfig =
+            TranslationConfiguration.builder()
+                .typeSystemActiveInFrontend(false)
+                .registerPass(EdgeCachePass())
+                .registerPass(UnreachableEOGPass())
+                .build()
 
-        assertFalse(cpg.typeSystemInFrontend)
-        assertNull(cpg.defaultPasses)
+        // Can't test typeSystemActiveInFrontend
 
+        assertEquals(
+            expectedTranslationConfig.registeredPasses.size,
+            translationConfiguration.registeredPasses.size,
+            "Expected size ${expectedTranslationConfig.registeredPasses.size} but was ${translationConfiguration.registeredPasses.size}"
+        )
+        val passesNames =
+            translationConfiguration.registeredPasses.map { s -> s.javaClass.name }.toTypedArray()
         val expectedPassesNames =
-            arrayOf(
-                "de.fraunhofer.aisec.cpg.passes.EdgeCachePass",
-                "de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass"
-            )
-        assertEquals(2, cpg.passes.size, "Expected size 2 but was ${cpg.passes.size}")
-        val passesNames = cpg.passes.map { s -> s.javaClass.name }
-        assertContentEquals(expectedPassesNames, passesNames.toTypedArray())
+            expectedTranslationConfig.registeredPasses.map { s -> s.javaClass.name }.toTypedArray()
+        assertContentEquals(expectedPassesNames, passesNames)
 
-        assertEquals(3, cpg.symbols.size, "Expected size 3 but was ${cpg.passes.size}")
-        assertTrue(cpg.symbols.containsKey("#"), "Did not contain \'#\' as a key")
-        assertEquals("hash", cpg.symbols["#"])
-        assertTrue(cpg.symbols.containsKey("$"), "Did not contain \'$\' as a key")
-        assertEquals("dollar", cpg.symbols["$"])
-        assertTrue(cpg.symbols.containsKey("*"), "Did not contain \'*\' as a key")
-        assertEquals("star", cpg.symbols["*"])
+        assertEquals(
+            3,
+            translationConfiguration.symbols.size,
+            "Expected size 3 but was ${translationConfiguration.symbols.size}"
+        )
+        assertTrue(
+            translationConfiguration.symbols.containsKey("#"),
+            "Did not contain \'#\' as a key"
+        )
+        assertEquals("hash", translationConfiguration.symbols["#"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("$"),
+            "Did not contain \'$\' as a key"
+        )
+        assertEquals("dollar", translationConfiguration.symbols["$"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("*"),
+            "Did not contain \'*\' as a key"
+        )
+        assertEquals("star", translationConfiguration.symbols["*"])
 
         val expectedIncludes =
             arrayOf("include1", "include7", "include3", "include5")
-                .map { s -> File(s) }
+                .map { s -> File(s).absolutePath }
                 .toTypedArray()
-        assertContentEquals(expectedIncludes, cpg.translation.includes)
+        assertContentEquals(expectedIncludes, translationConfiguration.includePaths)
 
         val expectedEnabledIncludes =
-            arrayOf("include3", "include5", "include1").map { s -> File(s) }.toTypedArray()
-        assertContentEquals(expectedEnabledIncludes, cpg.translation.enabledIncludes)
+            arrayOf("include3", "include5", "include1").map { s -> File(s).absolutePath }
+        assertContentEquals(expectedEnabledIncludes, translationConfiguration.includeWhitelist)
 
         val expectedDisabledIncludes =
-            arrayOf("include7", "include3").map { s -> File(s) }.toTypedArray()
-        assertContentEquals(expectedDisabledIncludes, cpg.translation.disabledIncludes)
+            arrayOf("include7", "include3").map { s -> File(s).absolutePath }
+        assertContentEquals(expectedDisabledIncludes, translationConfiguration.includeBlacklist)
     }
 
     @Test
     @Throws(Exception::class)
     fun unknownLanguageTest() {
-        val config = Configuration.initConfig(unknownLanguageFile, "-c")
+        Configuration.initConfig(unknownLanguageFile, "-c")
 
         // able to handle unknown languages
         assert(true)

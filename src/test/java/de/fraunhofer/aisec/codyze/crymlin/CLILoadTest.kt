@@ -2,7 +2,6 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.config.Configuration
-import de.fraunhofer.aisec.codyze.config.Language
 import java.io.File
 import java.lang.Exception
 import kotlin.Throws
@@ -33,39 +32,46 @@ internal class CLILoadTest {
     @Throws(Exception::class)
     fun unknownOptionTest() {
         val config = Configuration.initConfig(null, "-c", "-z")
-        val codyze = config.codyze
-        val cpg = config.cpg
+        val serverConfig = config.buildServerConfiguration()
+        val translationConfig = config.buildTranslationConfiguration()
 
         // assert that nothing was changed from the default values
-        assertTrue(codyze.executionMode.isCli)
-        assertFalse(codyze.executionMode.isLsp)
-        assertFalse(codyze.executionMode.isTui)
-        assertNull(codyze.source)
-        assertContentEquals(arrayOf("./").map { s -> File(s) }.toTypedArray(), codyze.mark)
-        assertEquals("findings.sarif", codyze.output)
-        assertEquals(TypestateMode.DFA, codyze.analysis.tsMode)
-        assertEquals(120L, codyze.timeout)
-        assertFalse(codyze.noGoodFindings)
-        assertFalse(codyze.pedantic)
-        assertFalse(codyze.sarifOutput)
+        assertTrue(config.executionMode.isCli)
+        assertFalse(config.executionMode.isLsp)
+        assertFalse(config.executionMode.isTui)
+        assertNull(config.source)
+        assertEquals(120L, config.timeout)
+        assertEquals("findings.sarif", config.output)
+        assertFalse(config.sarifOutput)
 
-        assertFalse(cpg.translation.analyzeIncludes)
-        assertEquals(
-            0,
-            cpg.translation.includes.size,
-            "Expected to be empty but size was ${cpg.translation.includes.size}"
+        assertContentEquals(
+            arrayOf("./").map { s -> File(s).absolutePath }.toTypedArray(),
+            serverConfig.markModelFiles
         )
-        assertEquals(0, cpg.additionalLanguages.size, "Set of additional languages is not empty")
-        assertFalse(cpg.useUnityBuild)
+        assertEquals(TypestateMode.DFA, serverConfig.typestateAnalysis)
+        assertFalse(serverConfig.disableGoodFindings)
+        assertFalse(serverConfig.pedantic)
+
+        assertFalse(translationConfig.loadIncludes)
+        assertEquals(0, translationConfig.includePaths.size, "Array of includes was not empty")
+        assertEquals(
+            2,
+            translationConfig.frontends.size,
+            "List of frontends did not only contain default frontends"
+        )
+
+        // no way to access useUnityBuild in TranslationConfiguration
+        //        assertFalse(translationConfig.useUnityBuild)
     }
 
     @Test
     @Throws(Exception::class)
     fun languageOptionTest() {
         val config = Configuration.initConfig(null, "-c", "--additional-languages=PYTHON")
-        val cpg = config.cpg
-        assertEquals(1, cpg.additionalLanguages.size, "Expected size 1 but was ${cpg.passes.size}")
-        assertTrue(cpg.additionalLanguages.contains(Language.PYTHON))
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        // language frontends are not imported as library so the test won't work
+        // assertEquals(3, translationConfiguration.frontends.size, "Expected size 1 but was
+        // ${translationConfiguration.frontends.size}")
     }
 
     @Test
@@ -79,7 +85,7 @@ internal class CLILoadTest {
                     "de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
                     "de.fraunhofer.aisec.cpg.passes.CallResolver"
             )
-        val cpg = config.cpg
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
 
         val expectedPassesNames =
             arrayOf(
@@ -87,8 +93,12 @@ internal class CLILoadTest {
                 "de.fraunhofer.aisec.cpg.passes.FilenameMapper",
                 "de.fraunhofer.aisec.cpg.passes.CallResolver"
             )
-        assertEquals(3, cpg.passes.size, "Expected size 3 but was ${cpg.passes.size}")
-        val passesNames = cpg.passes.map { s -> s.javaClass.name }
+        assertEquals(
+            3,
+            translationConfiguration.registeredPasses.size,
+            "Expected size 3 but was ${translationConfiguration.registeredPasses.size}"
+        )
+        val passesNames = translationConfiguration.registeredPasses.map { s -> s.javaClass.name }
         assertContentEquals(expectedPassesNames, passesNames.toTypedArray())
     }
 
@@ -105,20 +115,37 @@ internal class CLILoadTest {
                     "de.fraunhofer.aisec.cpg.passes.EdgeCachePass," +
                     "MyPass2"
             )
-        val cpg = config.cpg
-        assertEquals(1, cpg.passes.size, "Expected to have size 1 but was ${cpg.passes.size}")
-        assertEquals("de.fraunhofer.aisec.cpg.passes.EdgeCachePass", cpg.passes[0].javaClass.name)
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        assertEquals(
+            1,
+            translationConfiguration.registeredPasses.size,
+            "Expected to have size 1 but was ${translationConfiguration.registeredPasses.size}"
+        )
+        assertEquals(
+            "de.fraunhofer.aisec.cpg.passes.EdgeCachePass",
+            translationConfiguration.registeredPasses[0].javaClass.name
+        )
     }
 
     @Test
     @Throws(Exception::class)
     fun symbolsOptionTest() {
         val config = Configuration.initConfig(null, "-c", "--symbols=#=hash,*=star")
-        val cpg = config.cpg
-        assertEquals(2, cpg.symbols.size, "Expected size 2 but was ${cpg.passes.size}")
-        assertTrue(cpg.symbols.containsKey("#"), "Did not contain \'#\' as a key")
-        assertEquals("hash", cpg.symbols["#"])
-        assertTrue(cpg.symbols.containsKey("*"), "Did not contain \'*\' as a key")
-        assertEquals("star", cpg.symbols["*"])
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        assertEquals(
+            2,
+            translationConfiguration.symbols.size,
+            "Expected size 2 but was ${translationConfiguration.symbols.size}"
+        )
+        assertTrue(
+            translationConfiguration.symbols.containsKey("#"),
+            "Did not contain \'#\' as a key"
+        )
+        assertEquals("hash", translationConfiguration.symbols["#"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("*"),
+            "Did not contain \'*\' as a key"
+        )
+        assertEquals("star", translationConfiguration.symbols["*"])
     }
 }

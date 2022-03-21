@@ -176,7 +176,7 @@ internal class MarkLoadTest {
         @BeforeAll
         @JvmStatic
         fun startup() {
-            analysisServer = AnalysisServer.builder().build()
+            analysisServer = AnalysisServer(null)
             assertNotNull(analysisServer)
 
             val botanMarkResource =

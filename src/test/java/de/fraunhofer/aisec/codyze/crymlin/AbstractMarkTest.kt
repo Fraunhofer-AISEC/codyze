@@ -88,7 +88,7 @@ abstract class AbstractMarkTest : AbstractTest() {
         config.executionMode.isCli = false
         config.executionMode.isLsp = false
 
-        server = AnalysisServer.builder().config(config).build()
+        server = AnalysisServer(config)
         server.start()
         translationManager = newAnalysisRun(*toAnalyze.toTypedArray())
         val analyze = server.analyze(translationManager)

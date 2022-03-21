@@ -23,7 +23,7 @@ internal class CommandsTest {
         config.executionMode.isCli = true
         config.executionMode.isLsp = false
 
-        val server = AnalysisServer.builder().config(config).build()
+        val server = AnalysisServer(config)
         server.start()
         val oldOut = System.out
         val oldErr = System.err

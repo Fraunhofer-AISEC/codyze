@@ -67,7 +67,7 @@ internal class GithubTest : AbstractTest() {
             config.executionMode.isCli = false
             config.executionMode.isLsp = false
 
-            server = AnalysisServer.builder().config(config).build()
+            server = AnalysisServer(config)
             server.start()
             logCopy = TestAppender("logCopy", null)
             logCopy!!.injectIntoLogger()

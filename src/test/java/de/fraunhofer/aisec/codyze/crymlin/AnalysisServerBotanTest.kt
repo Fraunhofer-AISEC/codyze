@@ -68,7 +68,7 @@ internal class AnalysisServerBotanTest : AbstractTest() {
             config.executionMode.isCli = false
             config.executionMode.isLsp = false
 
-            server = AnalysisServer.builder().config(config).build()
+            server = AnalysisServer(config)
             server.start()
 
             // Start the analysis (BOTAN Symmetric Example by Oliver)

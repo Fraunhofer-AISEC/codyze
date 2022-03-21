@@ -122,7 +122,7 @@ internal class LSPTest {
             config.executionMode.isCli = false
             config.executionMode.isLsp = true
 
-            server = AnalysisServer.builder().config(config).build()
+            server = AnalysisServer(config)
             server.start()
         }
     }

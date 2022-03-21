@@ -88,9 +88,7 @@ public class Main {
 	private static int start(Configuration configuration) throws ExecutionException, InterruptedException, TimeoutException {
 		Instant start = Instant.now();
 
-		AnalysisServer server = AnalysisServer.builder()
-				.config(configuration)
-				.build();
+		AnalysisServer server = new AnalysisServer(configuration);
 
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());

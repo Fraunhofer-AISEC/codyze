@@ -135,7 +135,7 @@ internal class GraphTest : AbstractTest() {
             config.executionMode.isCli = false
             config.executionMode.isLsp = false
 
-            server = AnalysisServer.builder().config(config).build()
+            server = AnalysisServer(config)
             server.start()
 
             // Start the analysis

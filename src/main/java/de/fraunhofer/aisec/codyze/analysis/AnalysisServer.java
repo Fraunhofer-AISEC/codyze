@@ -76,9 +76,10 @@ public class AnalysisServer {
 
 	private Mark markModel = new Mark();
 
-	private AnalysisServer(ServerConfiguration serverConfig, Configuration config) {
-		this.serverConfig = serverConfig;
+	public AnalysisServer(Configuration config) {
 		this.config = config;
+		this.serverConfig = (config != null ? config.buildServerConfiguration() : null);
+
 		AnalysisServer.instance = this;
 
 		// Register built-in functions
@@ -116,10 +117,6 @@ public class AnalysisServer {
 	@NonNull
 	public ServerConfiguration getServerConfiguration() {
 		return serverConfig;
-	}
-
-	public static Builder builder() {
-		return new Builder();
 	}
 
 	/**
@@ -386,21 +383,4 @@ public class AnalysisServer {
 		return analyze(translationManager);
 	}
 
-	public static class Builder {
-		private ServerConfiguration serverConfig;
-		private Configuration config;
-
-		private Builder() {
-		}
-
-		public Builder config(Configuration config) {
-			this.serverConfig = config.buildServerConfiguration();
-			this.config = config;
-			return this;
-		}
-
-		public AnalysisServer build() {
-			return new AnalysisServer(this.serverConfig, this.config);
-		}
-	}
 }

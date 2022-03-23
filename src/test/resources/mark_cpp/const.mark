@@ -11,7 +11,7 @@ entity Test {
 
 }
 
-rule Enum {
+/*rule Enum {
     using
         Test as c
     when
@@ -19,7 +19,7 @@ rule Enum {
     ensure
         c.foo == _const_value("Color.red")
     onfail EnumFail
-}
+}*/
 
 rule Static {
     using

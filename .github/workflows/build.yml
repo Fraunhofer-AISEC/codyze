@@ -1,19 +1,25 @@
 name: build
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+    tags:
+      - v**
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # only execute if this is coming from a push or from a PR from a forked repository
-    # otherwise this will get executed twice for PR from internal branches
-    if: github.event_name == 'push' || github.event_name == 'pull_request' && (github.event.pull_request.base.repo.full_name != github.event.pull_request.head.repo.full_name)
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - uses: actions/checkout@v3
         with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of SonarQube analysis
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
           java-version: "11"
       - name: Determine Version
         run: |
@@ -48,6 +54,36 @@ jobs:
           VERSION: ${{ steps.determine_version.outputs.version }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Archive test reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: test
+          path: build/reports/tests/test
+      - name: Prepare Node.js
+        uses: actions/setup-node@v3
+        with: 
+          node-version: "16"
+      - name: Build Visual Studio Code Plugin
+        run: |
+          pushd plugins/vscode && npm version $VERSION || true && npm install -g vsce && npm install && vsce package && popd
+        env:
+          VERSION: ${{ steps.determine_version.outputs.version }}
+      - name: Archive Visual Studio Code Plugin
+        uses: actions/upload-artifact@v3
+        with:
+          name: vscode-codyze.vsix
+          path: plugins/vscode/vscode-codyze-0.0.0.vsix
+      - name: Push Release Docker Image
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t ghcr.io/fraunhofer-aisec/codyze:latest .
+          docker tag ghcr.io/fraunhofer-aisec/codyze:latest ghcr.io/fraunhofer-aisec/codyze:$VERSION
+          docker push ghcr.io/fraunhofer-aisec/codyze:$VERSION
+          docker push ghcr.io/fraunhofer-aisec/codyze:latest
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          VERSION: ${{ steps.determine_version.outputs.version }}
       - name: "Create Release"
         if: startsWith(github.ref, 'refs/tags/v')
         id: create_release
@@ -69,4 +105,15 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: build/distributions/codyze-${{ steps.determine_version.outputs.version }}.zip
           asset_name: codyze-${{ steps.determine_version.outputs.version }}.zip
+          asset_content_type: application/zip
+      - name: "Upload Plugin Asset"
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: upload-plugin-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: plugins/vscode/vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
+          asset_name: vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
           asset_content_type: application/zip

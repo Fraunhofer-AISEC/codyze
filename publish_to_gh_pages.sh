@@ -6,20 +6,25 @@
 #    exit 1;
 #fi
 
+echo "Just making sure, submodules are really there"
+git submodule init
+git submodule update --init --recursive
+
 echo "Saving CNAME file"
 mv public/CNAME ./CNAME
 
 echo "Deleting old publication"
 rm -rf public
 mkdir public
+
 git worktree prune
-rm -rf .git/worktrees/public/
+#rm -rf .git/worktrees/public/
 
 echo "Checking out gh-pages branch into public"
-git worktree add -B gh-pages public github/gh-pages
+git worktree add -B gh-pages public origin/gh-pages
 
-echo "Removing existing files"
-rm -rf public/*
+#echo "Removing existing files"
+#rm -rf public/*
 
 echo "Generating site"
 hugo -s ./docs/ -d ../public

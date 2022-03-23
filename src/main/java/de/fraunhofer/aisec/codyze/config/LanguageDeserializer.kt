@@ -9,7 +9,9 @@ import java.io.IOException
 import java.util.*
 import org.slf4j.LoggerFactory
 
-/** Custom deserializer to populate a list of languages derived from strings from the Jackson parser */
+/**
+ * Custom deserializer to populate a list of languages derived from strings from the Jackson parser
+ */
 class LanguageDeserializer : StdDeserializer<EnumSet<Language>?>(null as JavaType?) {
 
     @Throws(IOException::class)

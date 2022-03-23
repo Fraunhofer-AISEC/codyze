@@ -69,61 +69,35 @@ class Configuration {
         this.cpg = cpgConfiguration
     }
 
-    // Parse CLI arguments into config class
-    private fun parseCLI(vararg args: String?) {
-
-        CommandLine(this)
-            // Added as Mixin so the already initialized objects are used instead of new ones
-            // created
-            .addMixin("codyze", codyze)
-            .addMixin("cpg", cpg)
-            .addMixin("analysis", codyze.analysis)
-            .addMixin("translation", cpg.translation)
-            .registerConverter(Pass::class.java, PassTypeConverter())
-            .setCaseInsensitiveEnumValuesAllowed(true)
-            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
-            // option which would result in exceptions, side effect is that all unknown options are
-            // ignored
-            .setUnmatchedArgumentsAllowed(true)
-            .parseArgs(*args)
-    }
-
     /**
      * Builds ServerConfiguration object with available configurations
      *
      * @return ServerConfiguration
      */
     fun buildServerConfiguration(): ServerConfiguration {
+        this.normalize()
         val config =
             ServerConfiguration.builder()
                 .launchLsp(executionMode.isLsp)
                 .launchConsole(executionMode.isTui)
                 .typestateAnalysis(codyze.analysis.tsMode)
-                .disableGoodFindings(
-                    if (codyze.pedantic) {
-                        false
-                    } else {
-                        codyze.noGoodFindings
-                    }
-                )
+                .disableGoodFindings(codyze.noGoodFindings)
                 .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+                .pedantic(codyze.pedantic)
 
-        if (!codyze.pedantic) {
-            val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
-            for (mName in codyze.disabledMarkRules) {
-                val index = mName.lastIndexOf('.')
-                val packageName = mName.subSequence(0, index).toString()
-                val markName = mName.subSequence(index + 1, mName.length).toString()
-                if (markName.isNotEmpty()) {
-                    disabledRulesMap.putIfAbsent(packageName, DisabledMarkRulesValue())
-                    if (markName == "*")
-                        disabledRulesMap.getValue(packageName).isDisablePackage = true
-                    else disabledRulesMap[packageName]?.disabledMarkRuleNames?.add(markName)
-                } else
-                    log.warn(
-                        "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
-                    )
-            }
+        val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
+        for (mName in codyze.disabledMarkRules) {
+            val index = mName.lastIndexOf('.')
+            val packageName = mName.subSequence(0, index).toString()
+            val markName = mName.subSequence(index + 1, mName.length).toString()
+            if (markName.isNotEmpty()) {
+                disabledRulesMap.putIfAbsent(packageName, DisabledMarkRulesValue())
+                if (markName == "*") disabledRulesMap.getValue(packageName).isDisablePackage = true
+                else disabledRulesMap[packageName]?.disabledMarkRuleNames?.add(markName)
+            } else
+                log.warn(
+                    "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
+                )
             config.disableMark(disabledRulesMap)
         }
 
@@ -136,13 +110,13 @@ class Configuration {
      * @return TranslationConfiguration
      */
     fun buildTranslationConfiguration(vararg sources: File): TranslationConfiguration {
+        this.normalize()
         val translationConfig =
             TranslationConfiguration.builder()
                 .debugParser(if (executionMode.isLsp) false else cpg.debugParser)
                 .failOnError(cpg.failOnError)
                 .codeInNodes(cpg.codeInNodes)
-                // we need to force load includes for unity builds, otherwise nothing will be parsed
-                .loadIncludes(cpg.translation.analyzeIncludes || cpg.useUnityBuild)
+                .loadIncludes(cpg.translation.analyzeIncludes)
                 .useUnityBuild(cpg.useUnityBuild)
                 .processAnnotations(cpg.processAnnotations)
                 .symbols(cpg.symbols)
@@ -203,6 +177,41 @@ class Configuration {
         }
 
         return translationConfig.build()
+    }
+
+    private fun normalize() {
+        // In pedantic analysis mode all MARK rules are analyzed and all findings reported
+        if (codyze.pedantic) {
+            codyze.noGoodFindings = false
+            codyze.disabledMarkRules = emptyList()
+        }
+
+        // we need to force load includes for unity builds, otherwise nothing will be parsed
+        if (cpg.useUnityBuild) cpg.translation.analyzeIncludes = true
+
+        if (executionMode.isLsp) {
+            // we don't want the parser to print to the terminal when in LSP mode
+            cpg.debugParser = false
+        }
+    }
+
+    // Parse CLI arguments into config class
+    private fun parseCLI(vararg args: String?) {
+
+        CommandLine(this)
+            // Added as Mixin so the already initialized objects are used instead of new ones
+            // created
+            .addMixin("codyze", codyze)
+            .addMixin("cpg", cpg)
+            .addMixin("analysis", codyze.analysis)
+            .addMixin("translation", cpg.translation)
+            .registerConverter(Pass::class.java, PassTypeConverter())
+            .setCaseInsensitiveEnumValuesAllowed(true)
+            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
+            // option which would result in exceptions, side effect is that all unknown options are
+            // ignored
+            .setUnmatchedArgumentsAllowed(true)
+            .parseArgs(*args)
     }
 
     companion object {

@@ -120,6 +120,18 @@ internal class BuildTranslationConfigTest {
         )
     }
 
+    @Test
+    fun lspTest() {
+        val cliParameters = arrayOf("-l", "--debug-parser", "--source=test.java")
+        val config = Configuration.initConfig(null, *cliParameters)
+        val translationConfig = config.buildTranslationConfiguration()
+
+        assertFalse(
+            translationConfig.debugParser,
+            "DebugParser has to be set to false if in lsp mode"
+        )
+    }
+
     companion object {
         private lateinit var additionalOptionFile: File
 

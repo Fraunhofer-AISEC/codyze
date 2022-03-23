@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.schema.Result;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.graph.Graph;
@@ -128,11 +129,12 @@ public class ExpressionEvaluator {
 					if (node != null) {
 						var ranges = List.of(Utils.getRegionByNode(node));
 						Finding f = new Finding(
+							(this.markRule.getErrorMessage() != null ? this.markRule.getErrorMessage() : this.markRule.getName()),
+							this.markRule.getStatement().getAction(),
 							"Verified Order: " + this.markRule.getName(),
 							new File(node.getFile()).toURI(),
-							"",
 							ranges,
-							false);
+							Result.Kind.PASS);
 						this.resultCtx.getFindings().add(f);
 					}
 				}
@@ -478,11 +480,11 @@ public class ExpressionEvaluator {
 						continue;
 					}
 
-					ConstantValue cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
+					var cv = builtin.get().execute(resultCtx, (ListValue) (entry.getValue()), entry.getKey(), markContextHolder, this);
 					result.put(entry.getKey(), cv);
 				}
 			} else {
-				ConstantValue cv = builtin.get().execute(resultCtx, new ListValue(), -1, markContextHolder, this);
+				var cv = builtin.get().execute(resultCtx, new ListValue(), -1, markContextHolder, this);
 				result.put(0, cv);
 			}
 			return result;

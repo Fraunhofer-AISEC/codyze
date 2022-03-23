@@ -1,16 +1,11 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.connectors.lsp;
 
-import de.fraunhofer.aisec.codyze.analysis.passes.EdgeCachePass;
-import de.fraunhofer.aisec.codyze.analysis.passes.IdentifierPass;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer;
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext;
 import de.fraunhofer.aisec.codyze.analysis.Finding;
 import de.fraunhofer.aisec.codyze.analysis.FindingDescription;
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
-import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.FilenameMapper;
 import de.fraunhofer.aisec.cpg.sarif.Region;
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -72,22 +67,8 @@ public class CpgDocumentService implements TextDocumentService {
 			log.error("Server instance is null.");
 			return;
 		}
-		TranslationManager tm = TranslationManager.builder()
-				.config(
-					TranslationConfiguration.builder()
-							.debugParser(false)
-							.failOnError(false)
-							.codeInNodes(true)
-							.defaultPasses()
-							.defaultLanguages()
-							.registerPass(new FilenameMapper())
-							.registerPass(new IdentifierPass())
-							.registerPass(new EdgeCachePass())
-							.sourceLocations(file)
-							.build())
-				.build();
 
-		CompletableFuture<AnalysisContext> analyze = instance.analyze(tm);
+		CompletableFuture<AnalysisContext> analyze = instance.analyze(file.getAbsolutePath());
 
 		try {
 			AnalysisContext ctx = analyze.get(5, TimeUnit.MINUTES);
@@ -97,7 +78,7 @@ public class CpgDocumentService implements TextDocumentService {
 
 			// check if there are disabled findings
 			@NonNull
-			Map<Integer, String> ignoredLines = getIgnoredLines(file);
+			Map<Integer, String> ignoredLines = instance.getServerConfiguration().pedantic ? Map.of() : getIgnoredLines(file);
 
 			List<Diagnostic> allDiags = findingsToDiagnostics(ctx.getFindings(), ignoredLines);
 
@@ -133,6 +114,7 @@ public class CpgDocumentService implements TextDocumentService {
 	@NonNull
 	private Map<Integer, String> getIgnoredLines(@NonNull File file) {
 		Map<Integer, String> ignoredLines = new HashMap<>();
+
 		try {
 			List<String> allLines = Files.readAllLines(Paths.get(file.getAbsolutePath()));
 			for (int i = 0; i < allLines.size(); i++) {
@@ -157,20 +139,41 @@ public class CpgDocumentService implements TextDocumentService {
 			for (Region reg : f.getRegions()) {
 				Diagnostic diagnostic = new Diagnostic();
 				// TODO Replace HINT for verified findings with Code Lens
-				diagnostic.setSeverity(f.isProblem() ? DiagnosticSeverity.Error : DiagnosticSeverity.Information);
+
+				// Everything is informational until it becomes a problem
+				DiagnosticSeverity severity = DiagnosticSeverity.Information;
+				if (f.isProblem()) {
+					switch (f.getAction()) {
+						case INFO:
+							severity = DiagnosticSeverity.Information;
+							break;
+						case WARN:
+							severity = DiagnosticSeverity.Warning;
+							break;
+						case FAIL:
+							// Error
+						default:
+							severity = DiagnosticSeverity.Error;
+							break;
+					}
+				}
+				diagnostic.setSeverity(severity);
 
 				// Get human readable description, if available
-				String msg = FindingDescription.getInstance().getDescriptionShort(f.getOnfailIdentifier());
+				String msg = (f.isProblem() ? FindingDescription.getInstance().getDescriptionShort(f.getIdentifier())
+						: FindingDescription.getInstance().getDescriptionPass(f.getIdentifier()));
 				if (msg == null) {
 					msg = f.getLogMsg();
 				}
 
-				String longDesc = FindingDescription.getInstance().getDescriptionFull(f.getOnfailIdentifier());
-				if (longDesc != null) {
-					msg += ": " + longDesc;
+				if (f.isProblem()) {
+					String longDesc = FindingDescription.getInstance().getDescriptionFull(f.getIdentifier());
+					if (longDesc != null) {
+						msg += ": " + longDesc;
+					}
 				}
 
-				diagnostic.setCode(Either.forLeft(f.getOnfailIdentifier()));
+				diagnostic.setCode(Either.forLeft(f.getIdentifier()));
 				diagnostic.setSource("Codyze");
 				diagnostic.setMessage(msg);
 				Range r = new Range(
@@ -181,7 +184,7 @@ public class CpgDocumentService implements TextDocumentService {
 				String line = ignoredLines.get(r.getStart().getLine());
 				if (line == null
 						|| (!line.contains(DISABLE_FINDING_ALL)
-								&& !line.contains(DISABLE_FINDING_PREFIX + f.getOnfailIdentifier()))) {
+								&& !line.contains(DISABLE_FINDING_PREFIX + f.getIdentifier()))) {
 					allDiags.add(diagnostic);
 				} else {
 					log.warn("Skipping finding {}, disabled via comment", f);

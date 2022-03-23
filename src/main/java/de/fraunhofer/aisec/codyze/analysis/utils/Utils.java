@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.codyze.analysis.utils;
 
 import de.fraunhofer.aisec.cpg.graph.Node;
+import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration;
 import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration;
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression;
@@ -283,7 +284,7 @@ public class Utils {
 		int startLine = n.getLocation().getRegion().getStartLine() - 1;
 		int endLine = n.getLocation().getRegion().getEndLine() - 1;
 		int startColumn = n.getLocation().getRegion().getStartColumn() - 1;
-		int endColumn = n.getLocation().getRegion().getEndLine() - 1;
+		int endColumn = n.getLocation().getRegion().getEndColumn() - 1;
 		return new Region(startLine, startColumn, endLine, endColumn);
 	}
 
@@ -294,7 +295,7 @@ public class Utils {
 	 * @return
 	 */
 	public static boolean isPhantom(CallExpression callExpression) {
-		return callExpression.getInvokes().isEmpty();
+		return callExpression.getInvokes().stream().allMatch(FunctionDeclaration::isInferred);
 	}
 
 	/**

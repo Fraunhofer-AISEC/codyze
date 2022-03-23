@@ -1,24 +1,33 @@
 {
   "extends": [
     "config:base",
+    ":disableDependencyDashboard",
     ":assignAndReview(fwendland)",
     ":enableVulnerabilityAlerts",
     ":separateMultipleMajorReleases"
   ],
   "ignoreDeps": [
-    "de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark",
-    "org.apache.tinkerpop:gremlin-core",
-    "org.apache.tinkerpop:gremlin-driver",
-    "org.apache.tinkerpop:gremlin-python",
-    "org.apache.tinkerpop:neo4j-gremlin",
-    "org.apache.tinkerpop:tinkergraph-gremlin",
-    "com.steelbridgelabs.oss:neo4j-gremlin-bolt"
+    "de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark"
   ],
   "ignorePaths": ["scripts", "docs"],
   "packageRules": [
     {
+      "matchPackagePrefixes": ["de.fraunhofer.aisec:cpg"],
+      "groupName": "CPG packages"
+    },
+    {
       "groupName": "picocli packages",
-      "packagePatterns": ["^info.picocli:"]
+      "matchPackagePatterns": ["^info.picocli:"]
+    },
+    {
+      "groupName": "VSCode plugin dependencies",
+      "matchPaths": ["plugins/vscode/**"],
+      "extends": ["schedule:earlyMondays"]
+    },
+    {
+      "matchPackageNames": ["vscode"],
+      "rangeStrategy": "bump",
+      "allowedVersions": "<1.999.0"
     }
   ]
 }

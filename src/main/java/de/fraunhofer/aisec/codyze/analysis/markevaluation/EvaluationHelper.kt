@@ -4,8 +4,6 @@ import de.fraunhofer.aisec.codyze.analysis.ErrorValue
 import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
 import de.fraunhofer.aisec.codyze.analysis.NodeWithValue
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator.log
-import de.fraunhofer.aisec.codyze.analysis.passes.astParent
-import de.fraunhofer.aisec.codyze.analysis.passes.followNextEOG
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantResolver
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.codyze.analysis.resolution.SimpleConstantResolver
@@ -20,9 +18,12 @@ import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.CompoundStatement
+import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement
 import de.fraunhofer.aisec.cpg.graph.statements.Statement
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.graph.types.Type
+import de.fraunhofer.aisec.cpg.passes.astParent
+import de.fraunhofer.aisec.cpg.passes.followNextEOG
 import de.fraunhofer.aisec.mark.markDsl.OpStatement
 import de.fraunhofer.aisec.mark.markDsl.Parameter
 import java.util.*
@@ -110,33 +111,23 @@ fun Graph.getField(fqnClassName: String, fieldName: String?): FieldDeclaration? 
 
 /**
  *
- * TODO if there are really more than one possible DFG targets we should return a list
- *
- * @param vertex
  * @return
  */
 fun Node.getSuitableDFGTarget(): Node? {
-    val it = this.nextDFG.iterator()
-    var target: Node? = null
-
-    // there are cases where there is more than one outgoing DFG edge
-    while (it.hasNext()) {
-        val v = it.next()
-        log.info("DFG target: {}", v)
-
-        // set the first find
-        if (target == null) {
-            target = v
-        } else {
-            // otherwise, look for something more useful
-            // like a declared reference expression or a variable declaration
-            if (v is DeclaredReferenceExpression || v is VariableDeclaration) {
-                target = v
+    // There could potentially be multiple DFG targets. this can lead to
+    // inconsistent results. Therefore, we filter the DFG targets for "interesting" types
+    // and also sort them by name to make this more consistent.
+    val suitable =
+        this.nextDFG
+            .filter {
+                it is DeclaredReferenceExpression ||
+                    it is ReturnStatement || // for builder-style functions
+                    it is ConstructExpression ||
+                    it is VariableDeclaration
             }
-        }
-    }
+            .sortedWith(Comparator.comparing(Node::name))
 
-    return target
+    return suitable.firstOrNull()
 }
 
 val Node.initializedNode: Node?
@@ -302,7 +293,7 @@ fun CallExpression.getBaseDeclaration(): Node? {
  *
  * For example, for the code `call(a, b)` and using the [argumentIndex] `0`, this will return `a`.
  */
-private fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: Int): Node? {
+public fun CallExpression.getBaseOfCallExpressionUsingArgument(argumentIndex: Int): Node? {
     val list = this.arguments.filter { it.argumentIndex == argumentIndex }
 
     if (list.size == 1) {

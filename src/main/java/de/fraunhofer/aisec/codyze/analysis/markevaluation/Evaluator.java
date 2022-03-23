@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.schema.Result;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -28,6 +29,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static de.fraunhofer.aisec.codyze.analysis.markevaluation.EvaluationHelperKt.*;
 import static de.fraunhofer.aisec.cpg.graph.GraphKt.getGraph;
@@ -102,7 +104,7 @@ public class Evaluator {
 	 *
 	 * @param graph the Graph
 	 */
-	private void assignCallsToOps(@NonNull Graph graph) {
+	protected void assignCallsToOps(@NonNull Graph graph) {
 		Benchmark b = new Benchmark(this.getClass(), "Precalculating matching nodes");
 		// iterate over all entities and precalculate:
 		// - call statements to vertices
@@ -138,7 +140,7 @@ public class Evaluator {
 	/**
 	 * Evaluates all rules and creates findings.
 	 *
-	 * @param ctx              the result/analysis context
+	 * @param ctx   the result/analysis context
 	 * @param graph the Graph
 	 */
 	private void evaluateRules(AnalysisContext ctx, @NonNull Graph graph) {
@@ -209,56 +211,12 @@ public class Evaluator {
 				 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
 				 * responsible vertices.
 				 */
-
 				var c = markCtxHolder.getContext(markCtx);
-
-				URI currentFile = null;
-
+				// since we are receiving a boolean, only PASS and FAIL are passed on here
+				Result.Kind kind = !(Boolean) evaluationResultUb ? Result.Kind.FAIL : Result.Kind.PASS;
 				if (!c.isFindingAlreadyAdded()) {
-					List<Region> ranges = new ArrayList<>();
-					if (evalResult.getResponsibleNodes().isEmpty() || evalResult.getResponsibleNodes().stream().noneMatch(Objects::nonNull)) {
-						// use the line of the instances
-						if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
-							for (var node : c.getInstanceContext().getMarkInstanceVertices()) {
-								if (node == null) {
-									continue;
-								}
-
-								var location = node.getLocation();
-
-								if (location != null) {
-									ranges.add(Utils.getRegionByNode(node));
-								} else {
-									ranges.add(new Region(-1, -1, -1, -1));
-								}
-
-								currentFile = new File(node.getFile()).toURI();
-							}
-						}
-						if (ranges.isEmpty()) {
-							ranges.add(new Region());
-						}
-					} else {
-						// responsible vertices are stored in the result
-						for (var node : evalResult.getResponsibleNodes()) {
-							if (node == null) {
-								continue;
-							}
-							ranges.add(Utils.getRegionByNode(node));
-
-							currentFile = new File(node.getFile()).toURI();
-						}
-					}
-
-					boolean isRuleViolated = !(Boolean) evaluationResultUb;
-					findings.add(new Finding(
-						"Rule "
-								+ rule.getName()
-								+ (isRuleViolated ? " violated" : " verified"),
-						currentFile,
-						rule.getErrorMessage(),
-						ranges,
-						isRuleViolated));
+					Finding f = createFinding(evalResult, c, rule, kind);
+					findings.add(f);
 				}
 			} else if (evaluationResultUb == null) {
 				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size()
@@ -268,6 +226,15 @@ public class Evaluator {
 				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result had an error: \n\t{}",
 					rule.getName(),
 					((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
+
+				ConstantValue evalResult = (ConstantValue) entry.getValue();
+				var c = markCtxHolder.getContext(markCtx);
+
+				if (!c.isFindingAlreadyAdded()) {
+					// pass on OPEN kind since the rule could not be evaluated
+					Finding f = createFinding(evalResult, c, rule, Result.Kind.OPEN);
+					findings.add(f);
+				}
 			} else {
 				log.error(
 					"Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result is not a boolean, but {}",
@@ -275,6 +242,59 @@ public class Evaluator {
 			}
 		}
 		return findings;
+	}
+
+	private Finding createFinding(ConstantValue evalResult, MarkContext c, MRule rule, Result.Kind kind) {
+		/*
+		 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
+		 * responsible vertices.
+		 */
+		URI currentFile = null;
+
+		List<Region> ranges = new ArrayList<>();
+		if (evalResult.getResponsibleNodes().isEmpty() || evalResult.getResponsibleNodes().stream().noneMatch(Objects::nonNull)) {
+			// use the line of the instances
+			if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
+				for (var node : c.getInstanceContext().getMarkInstanceVertices()) {
+					if (node == null) {
+						continue;
+					}
+
+					var location = node.getLocation();
+
+					if (location != null) {
+						ranges.add(Utils.getRegionByNode(node));
+					} else {
+						ranges.add(new Region(-1, -1, -1, -1));
+					}
+
+					currentFile = new File(node.getFile()).toURI();
+				}
+			}
+			if (ranges.isEmpty()) {
+				ranges.add(new Region());
+			}
+		} else {
+			// responsible vertices are stored in the result
+			for (var node : evalResult.getResponsibleNodes()) {
+				if (node == null) {
+					continue;
+				}
+				ranges.add(Utils.getRegionByNode(node));
+
+				currentFile = new File(node.getFile()).toURI();
+			}
+		}
+
+		return new Finding(
+			rule.getErrorMessage() != null ? rule.getErrorMessage() : rule.getName(),
+			rule.getStatement().getAction(),
+			"Rule "
+					+ rule.getName()
+					+ (kind != Result.Kind.PASS ? " violated" : " verified"),
+			currentFile,
+			ranges,
+			kind);
 	}
 
 	/**
@@ -305,11 +325,12 @@ public class Evaluator {
 				} else if (ConstantValue.isError(entry.getValue())) {
 					log.warn("Unable to evaluate when-part of rule {}, result had an error: \n\t{}", rule.getName(),
 						((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
-					// FIXME do we want to evaluate the ensure-part if the when-part had an error?
-					continue;
+					// assume error in `when` means false
+					markCtxHolder.removeContext(entry.getKey());
 				} else if (!(value instanceof Boolean)) {
 					log.error("Unable to evaluate when-part of rule {}, result is not a boolean, but {}", rule.getName(), value.getClass().getSimpleName());
-					continue;
+					// assume error in `when` means false
+					markCtxHolder.removeContext(entry.getKey());
 				}
 
 				if (value.equals(false) || ConstantValue.isError(entry.getValue())) {
@@ -325,7 +346,7 @@ public class Evaluator {
 		markCtxHolder.setCreateFindingsDuringEvaluation(true);
 	}
 
-	private MarkContextHolder createMarkContext(List<List<Pair<String, Node>>> entities) {
+	protected MarkContextHolder createMarkContext(List<List<Pair<String, Node>>> entities) {
 		MarkContextHolder context = new MarkContextHolder();
 		for (var list : Lists.cartesianProduct(entities)) {
 			var instanceCtx = new GraphInstanceContext();
@@ -351,10 +372,9 @@ public class Evaluator {
 	 * In that case, the function will return [ [ (c1, v1) , (c1, v2), (c1, v3) ] [ (c2, c1), (c2, v2), (c2, v3) ] ]
 	 *
 	 * @param rule the MARK rule
-	 *
 	 * @return
 	 */
-	private List<List<Pair<String, Node>>> findInstancesForEntities(MRule rule) {
+	protected List<List<Pair<String, Node>>> findInstancesForEntities(MRule rule) {
 		var ruleStmt = rule.getStatement();
 		var entities = new ArrayList<List<Pair<String, Node>>>();
 
@@ -381,8 +401,25 @@ public class Evaluator {
 						// mainly for builder functions
 						ref = getSuitableDFGTarget(node);
 					} else if (node instanceof CallExpression) {
-						// Program variable is either the Base of some method call ...
-						ref = getBaseDeclaration((CallExpression) node);
+						// check for "this" style MARK call, used mainly in non-object oriented programming.
+						// this should also take priority, if we explicitly specify the "this"
+						var opstmt = op.getNodesToStatements().get(node);
+						var usingThis = false;
+						if (opstmt.size() == 1) {
+							var params = opstmt.iterator().next().getCall().getParams();
+							var thisPositions = IntStream.range(0, params.size())
+									.filter(i -> "this".equals(params.get(i).getVar()))
+									.toArray();
+							if (thisPositions.length == 1) {
+								usingThis = true;
+								ref = getBaseOfCallExpressionUsingArgument((CallExpression) node, thisPositions[0]);
+							}
+						}
+
+						if (!usingThis) {
+							// Program variable is either the Base of some method call ...
+							ref = getBaseDeclaration((CallExpression) node);
+						}
 					}
 
 					if (ref == null) { // if we did not find a base the "easy way", try to find a base using the simple-DFG

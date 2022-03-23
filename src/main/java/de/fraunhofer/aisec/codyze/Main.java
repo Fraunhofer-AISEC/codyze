@@ -1,120 +1,113 @@
 
 package de.fraunhofer.aisec.codyze;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
-import de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend;
-import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend;
+import de.fraunhofer.aisec.codyze.config.*;
+import de.fraunhofer.aisec.codyze.printer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.ArgGroup;
+import picocli.CommandLine.Model.ArgGroupSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Unmatched;
+import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
-/** Start point of the standalone analysis server. */
+/**
+ * Start point of the standalone analysis server.
+ */
+
+/*
+	Three places with cli options:
+	1. ConfigFilePath
+	2. CodyzeConfiguration
+	3. CpgConfiguration
+ */
 @SuppressWarnings("java:S106")
-@Command(name = "codyze", mixinStandardHelpOptions = true, version = "1.5.0", description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
-public class Main implements Callable<Integer> {
+public class Main {
 	private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-	@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution mode\n")
-	private ExecutionMode executionMode;
+	/*	Order of main:
+	 * 	1. Parse config file option with ConfigFilePath
+	 * 	2.1 If help is requested, print help
+	 * 	2.2 If version is requested, print version
+	 * 	2.3.1 Else parse and merge file and cli options into ConfigurationFile
+	 * 	2.3.2 Call start() to start analysis setup
+	 */
+	public static void main(String... args) throws Exception {
+		ConfigFilePath firstPass = new ConfigFilePath();
+		CommandLine cmd = new CommandLine(firstPass);
+		cmd.parseArgs(args); // first pass to get potential config file path
+		if (cmd.isUsageHelpRequested()) {
+			// print help message
+			CommandLine c = new CommandLine(new Help());
+			c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
+			c.usage(System.out);
+			System.exit(c.getCommandSpec().exitCodeOnUsageHelp());
+		} else if (cmd.isVersionHelpRequested()) {
+			// print version message
+			CommandLine c = new CommandLine(new Help());
+			c.printVersionHelp(System.out);
+			System.exit(c.getCommandSpec().exitCodeOnVersionHelp());
+		} else {
+			int returnCode = 0;
 
-	@CommandLine.ArgGroup(exclusive = false, heading = "Analysis settings\n")
-	private final AnalysisMode analysisMode = new AnalysisMode();
+			try {
+				Configuration config = Configuration.initConfig(firstPass.configFile, args);
+				// Start analysis setup
+				returnCode = start(config);
+			}
+			catch (CommandLine.MissingParameterException missingParameterException) {
+				missingParameterException.getCommandLine().getErr().println(missingParameterException.getMessage());
 
-	@CommandLine.ArgGroup(exclusive = false, heading = "Translation settings\n")
-	private final TranslationSettings translationSettings = new TranslationSettings();
+				// print help message
+				CommandLine c = new CommandLine(new Help());
+				c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
+				c.usage(c.getErr());
 
-	@Option(names = { "-s", "--source" }, paramLabel = "<path>", description = "Source file or folder to analyze.")
-	private File analysisInput;
-
-	@Option(names = { "-m",
-			"--mark" }, paramLabel = "<path>", description = "Load MARK policy files from folder", defaultValue = "./", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-	private File markFolderName;
-
-	@Option(names = { "-o",
-			"--output" }, paramLabel = "<file>", description = "Write results to file. Use - for stdout.", defaultValue = "findings.json", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-	private String outputFile;
-
-	@Option(names = {
-			"--timeout" }, paramLabel = "<minutes>", description = "Terminate analysis after timeout", defaultValue = "120", showDefaultValue = CommandLine.Help.Visibility.ALWAYS)
-	private long timeout;
-
-	@Option(names = {
-			"--no-good-findings" }, description = "Disable output of \"positive\" findings which indicate correct implementations", showDefaultValue = CommandLine.Help.Visibility.ON_DEMAND)
-	private boolean disableGoodFindings;
-
-	@Option(names = {
-			"--enable-python-support" }, description = "Enables the experimental Python support. Additional files need to be placed in certain locations. Please follow the CPG README.")
-	private boolean enablePython;
-
-	@Option(names = {
-			"--enable-go-support" }, description = "Enables the experimental Go support. Additional files need to be placed in certain locations. Please follow the CPG README.")
-	private boolean enableGo;
-
-	public static void main(String... args) {
-		int exitCode = new CommandLine(new Main()).execute(args);
-		System.exit(exitCode);
+				returnCode = missingParameterException.getCommandLine().getCommandSpec().exitCodeOnInvalidInput();
+			}
+			System.exit(returnCode);
+		}
 	}
 
-	@Override
-	public Integer call() throws Exception {
+	// Setup and start of actual analysis
+	private static int start(Configuration configuration) throws ExecutionException, InterruptedException, TimeoutException {
 		Instant start = Instant.now();
 
-		if (analysisMode.tsMode == null) {
-			analysisMode.tsMode = TypestateMode.NFA;
-		}
-
-		var config = ServerConfiguration.builder()
-				.launchLsp(executionMode.lsp)
-				.launchConsole(executionMode.tui)
-				.typestateAnalysis(analysisMode.tsMode)
-				.disableGoodFindings(disableGoodFindings)
-				.analyzeIncludes(translationSettings.analyzeIncludes)
-				.includePath(translationSettings.includesPath)
-				.markFiles(markFolderName.getAbsolutePath());
-
-		if (enablePython) {
-			config.registerLanguage(PythonLanguageFrontend.class, PythonLanguageFrontend.PY_EXTENSIONS);
-		}
-
-		if (enableGo) {
-			config.registerLanguage(GoLanguageFrontend.class, GoLanguageFrontend.GOLANG_EXTENSIONS);
-		}
-
-		AnalysisServer server = AnalysisServer.builder()
-				.config(config
-						.build())
-				.build();
+		AnalysisServer server = new AnalysisServer(configuration);
 
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!executionMode.lsp && analysisInput != null) {
-			log.info("Analyzing {}", analysisInput);
-			AnalysisContext ctx = server.analyze(analysisInput.getAbsolutePath())
-					.get(timeout, TimeUnit.MINUTES);
+		if (!configuration.getExecutionMode().isLsp() && configuration.getSource() != null) {
+			log.info("Analyzing {}", configuration.getSource());
+			AnalysisContext ctx = server
+					.analyze(configuration.getSource().getAbsolutePath())
+					.get(configuration.getTimeout(), TimeUnit.MINUTES);
 
 			var findings = ctx.getFindings();
 
-			writeFindings(findings);
+			writeFindings(findings, configuration);
 
-			if (executionMode.cli) {
+			if (configuration.getExecutionMode().isCli()) {
 				// Return code based on the existence of violations
 				return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
 			}
-		} else if (executionMode.lsp) {
+		} else if (configuration.getExecutionMode().isLsp()) {
 			// Block main thread. Work is done in
 			Thread.currentThread().join();
 		}
@@ -122,60 +115,90 @@ public class Main implements Callable<Integer> {
 		return 0;
 	}
 
-	private void writeFindings(Set<Finding> findings) {
-		var mapper = new ObjectMapper();
-		String output = null;
-		try {
-			output = mapper.writeValueAsString(findings);
-		}
-		catch (JsonProcessingException e) {
-			log.error("Could not serialize findings: {}", e.getMessage());
-		}
+	private static void writeFindings(Set<Finding> findings, Configuration configuration) {
+		Printer printer;
+		// whether to print sarif output or not
+		if (!configuration.getSarifOutput())
+			printer = new LegacyPrinter(findings);
+		else
+			printer = new SarifPrinter(findings);
 
-		if (outputFile.equals("-")) {
-			System.out.println(output);
-		} else {
-			try (PrintWriter out = new PrintWriter(new File(outputFile))) {
-				out.println(output);
-			}
-			catch (FileNotFoundException e) {
-				System.out.println(e.getMessage());
-			}
-		}
-
+		String outputFile = configuration.getOutput();
+		// Whether to write in file or on stdout
+		if (outputFile.equals("-"))
+			printer.printToConsole();
+		else
+			printer.printToFile(outputFile);
 	}
-}
 
-/**
- * Codyze runs in any of three modes:
- *
- * CLI: Non-interactive command line client. Accepts arguments from command line and runs analysis.
- *
- * LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE support.
- *
- * TUI: The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries.
- */
-class ExecutionMode {
-	@Option(names = "-c", required = true, description = "Start in command line mode.")
-	boolean cli;
-	@Option(names = "-l", required = true, description = "Start in language server protocol (LSP) mode.")
-	boolean lsp;
-	@Option(names = "-t", required = true, description = "Start interactive console (Text-based User Interface).")
-	boolean tui;
-}
+	// Stores path to config file given as cli option
+	@Command(mixinStandardHelpOptions = true)
+	static class ConfigFilePath {
+		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.")
+		File configFile;
 
-class AnalysisMode {
+		@Unmatched
+		List<String> remainder;
+	}
 
-	@Option(names = "--typestate", paramLabel = "<NFA|WPDS>", defaultValue = "NFA", type = TypestateMode.class, description = "Typestate analysis mode\nNFA:  Non-deterministic finite automaton (faster, intraprocedural)\nWPDS: Weighted pushdown system (slower, interprocedural)")
-	//@CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Typestate Analysis\n")
-	protected TypestateMode tsMode = TypestateMode.NFA;
-}
+	// Combines all CLI Options from the different classes to be able to render a complete help message
+	@Command(name = "codyze", versionProvider = ManifestVersionProvider.class, description = "Codyze finds security flaws in source code", sortOptions = false, usageHelpWidth = 100)
+	static class Help {
 
-class TranslationSettings {
-	@Option(names = {
-			"--analyze-includes" }, description = "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree.")
-	protected boolean analyzeIncludes = false;
+		@CommandLine.Mixin
+		private ConfigFilePath configFilePath;
 
-	@Option(names = { "--includes" }, description = "Path(s) containing include files. Path must be separated by : (Mac/Linux) or ; (Windows)", split = ":|;")
-	protected File[] includesPath;
+		// ArgGroups only for display purposes
+		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false)
+		private CodyzeConfiguration codyzeConfig = new CodyzeConfiguration();
+
+		@ArgGroup(heading = "", exclusive = false)
+		private Configuration configuration = new Configuration();
+
+		@ArgGroup(exclusive = false, heading = "Analysis Options\n")
+		AnalysisMode analysis = new AnalysisMode();
+
+		@ArgGroup(heading = "@|bold,underline CPG Options|@\n", exclusive = false)
+		private CpgConfiguration cpgConfig = new CpgConfiguration();
+
+		@ArgGroup(exclusive = false, heading = "Translation Options\n")
+		private TranslationSettings translation = new TranslationSettings();
+	}
+
+	// Custom renderer to add nesting optically with indents in help message
+	static class HelpRenderer implements CommandLine.IHelpSectionRenderer {
+
+		private CommandLine.Help help;
+
+		@Override
+		public String render(CommandLine.Help help) {
+			CommandSpec spec = help.commandSpec();
+			this.help = help;
+
+			Map<String, CommandSpec> mix = spec.mixins();
+			StringBuilder sb = new StringBuilder();
+			for (CommandSpec c : mix.values()) {
+				sb.append(help.optionListExcludingGroups(c.options().stream().filter(optionSpec -> optionSpec.group() == null).collect(Collectors.toList())));
+			}
+			sb.append("\n");
+			for (ArgGroupSpec group : spec.argGroups()) {
+				addHierachy(group, sb);
+			}
+
+			return sb.toString();
+		}
+
+		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb) {
+			sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
+
+			// render all options that are not in subgroups
+			sb.append(help.optionListExcludingGroups(
+				argGroupSpec.options().stream().filter(optionSpec -> optionSpec.group().equals(argGroupSpec)).collect(Collectors.toList())));
+
+			sb.append("\n");
+			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
+				addHierachy(group, sb);
+			}
+		}
+	}
 }

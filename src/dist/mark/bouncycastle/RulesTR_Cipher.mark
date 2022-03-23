@@ -313,12 +313,12 @@ rule ID_3_5_01 {
         Cipher as c
     when
         _split(c.transform, "/", 0) == "RSA"
-        && (
-            c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
-            || c.opmode == "javax.crypto.Cipher.DECRYPT_MODE"
-            || c.opmode == "1"
-            || c.opmode == "2"
-            )
+        //&& (
+        //    c.opmode == "javax.crypto.Cipher.ENCRYPT_MODE"
+        //    || c.opmode == "javax.crypto.Cipher.DECRYPT_MODE"
+        //    || c.opmode == "1"
+        //    || c.opmode == "2"
+        //    )
     ensure
         _split(c.transform, "/", 2) in [
                 // "OAEPWITHSHA1ANDMGF1PADDING", "OAEPWITHSHA-1ANDMGF1PADDING" // recommended by referenced RFC 8017, but not a recommended hash function by BSI

@@ -32,7 +32,7 @@ public class IsInstance implements Builtin {
 		return "_is_instance";
 	}
 
-	public ConstantValue execute(
+	public MarkIntermediateResult execute(
 			@NonNull AnalysisContext ctx,
 			@NonNull ListValue argResultList,
 			@NonNull Integer contextID,

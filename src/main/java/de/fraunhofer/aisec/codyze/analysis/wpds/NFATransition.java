@@ -1,6 +1,8 @@
 
 package de.fraunhofer.aisec.codyze.analysis.wpds;
 
+import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode;
+
 import java.util.Objects;
 
 /**
@@ -8,22 +10,22 @@ import java.util.Objects;
  *
  * Transitions may optionally be labeled.
  */
-public class NFATransition<N> {
-	private final N source;
-	private final N target;
+public class NFATransition {
+	private final StateNode source;
+	private final StateNode target;
 	private final String label;
 
-	public NFATransition(N source, N target, String label) {
+	public NFATransition(StateNode source, StateNode target, String label) {
 		this.source = source;
 		this.target = target;
 		this.label = label;
 	}
 
-	public N getSource() {
+	public StateNode getSource() {
 		return source;
 	}
 
-	public N getTarget() {
+	public StateNode getTarget() {
 		return target;
 	}
 
@@ -45,10 +47,10 @@ public class NFATransition<N> {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-		NFATransition<?> that = (NFATransition<?>) o;
-		return Objects.equals(source, that.source) &&
-				Objects.equals(target, that.target) &&
-				Objects.equals(label, that.label);
+		NFATransition that = (NFATransition) o;
+		return source.equals(that.source) &&
+				target.equals(that.target) &&
+				label.equals(that.label);
 	}
 
 	@Override

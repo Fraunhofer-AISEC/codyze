@@ -3,8 +3,10 @@ package de.fraunhofer.aisec.codyze.crymlin
 import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.analysis.Finding
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
+import de.fraunhofer.aisec.codyze.config.CodyzeConfiguration
+import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze.config.CpgConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 import java.io.*
 import java.lang.Exception
@@ -22,7 +24,7 @@ abstract class AbstractMarkTest : AbstractTest() {
     protected var translationManager: TranslationManager? = null
     protected lateinit var server: AnalysisServer
     protected var ctx: AnalysisContext? = null
-    protected var tsMode = TypestateMode.NFA
+    protected var tsMode = TypestateMode.DFA
 
     @Throws(Exception::class)
     protected fun performTest(
@@ -78,18 +80,15 @@ abstract class AbstractMarkTest : AbstractTest() {
                 .toTypedArray()
 
         // Start an analysis server
-        server =
-            AnalysisServer.builder()
-                .config(
-                    ServerConfiguration.builder()
-                        .launchConsole(false)
-                        .launchLsp(false)
-                        .typestateAnalysis(tsMode)
-                        .markFiles(*markDirPaths)
-                        .useLegacyEvaluator()
-                        .build()
-                )
-                .build()
+        val codyze = CodyzeConfiguration()
+        codyze.analysis.tsMode = tsMode
+        codyze.mark = markDirPaths.map { s -> File(s) }.toTypedArray()
+
+        val config = Configuration(codyze, CpgConfiguration())
+        config.executionMode.isCli = false
+        config.executionMode.isLsp = false
+
+        server = AnalysisServer(config)
         server.start()
         translationManager = newAnalysisRun(*toAnalyze.toTypedArray())
         val analyze = server.analyze(translationManager)
@@ -115,29 +114,35 @@ abstract class AbstractMarkTest : AbstractTest() {
     protected fun expected(findings: MutableSet<Finding>, vararg expectedFindings: String) {
         println("All findings:")
         for (f in findings) {
-            println(f.toString())
+            println(f.toShortMessage())
         }
 
         for (expected in expectedFindings) {
             assertEquals(
                 1,
-                findings.stream().filter { f: Finding -> f.toString() == expected }.count(),
+                findings.stream().filter { f: Finding -> f.toShortMessage() == expected }.count(),
                 "not found: \"$expected\""
             )
             val first =
-                findings.stream().filter { f: Finding -> f.toString() == expected }.findFirst()
+                findings
+                    .stream()
+                    .filter { f: Finding -> f.toShortMessage() == expected }
+                    .findFirst()
             findings.remove(first.get())
         }
         if (findings.size > 0) {
             println("Additional Findings:")
             for (f in findings) {
-                println(f.toString())
+                println(f.toShortMessage())
             }
         }
         assertEquals(
             0,
             findings.size,
-            findings.stream().map { obj: Finding -> obj.toString() }.collect(Collectors.joining())
+            findings
+                .stream()
+                .map { obj: Finding -> obj.toShortMessage() }
+                .collect(Collectors.joining())
         )
     }
 
@@ -148,13 +153,13 @@ abstract class AbstractMarkTest : AbstractTest() {
      */
     protected fun containsFindings(findings: Set<Finding>, vararg expectedFindings: String) {
         println("All findings:")
-        for (f in findings) println(f.toString())
+        for (f in findings) println(f.toShortMessage())
 
         val missingFindings = mutableSetOf<String>()
         for (expected in expectedFindings) {
             var found = false
             for (finding in findings) {
-                if (expected == finding.toString()) {
+                if (expected == finding.toShortMessage()) {
                     found = true
                     break
                 }

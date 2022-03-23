@@ -45,10 +45,9 @@ public class OrderEvaluator {
 				}
 				break;
 
-			case NFA:
-				log.info("Evaluating order with NFA");
-				var orderNFAEvaluator = new OrderNFAEvaluator(rule, markContextHolder);
-				result = orderNFAEvaluator.evaluate(orderExpression, contextID, resultCtx, graph);
+			case DFA:
+				log.info("Evaluating order with DFA");
+				result = new OrderEvaluation().evaluateDFA(rule, markContextHolder, orderExpression, contextID, resultCtx);
 				break;
 
 			default:

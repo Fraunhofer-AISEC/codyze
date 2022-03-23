@@ -14,10 +14,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of SonarQube analysis
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           distribution: "zulu"
           java-version: "11"
@@ -56,17 +56,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Archive test reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test
           path: build/reports/tests/test
+      - name: Prepare Node.js
+        uses: actions/setup-node@v3
+        with: 
+          node-version: "16"
       - name: Build Visual Studio Code Plugin
         run: |
-          pushd plugins/vscode && npm version $VERSION || true && sudo npm install -g vsce && npm install && vsce package && popd
+          pushd plugins/vscode && npm version $VERSION || true && npm install -g vsce && npm install && vsce package && popd
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
       - name: Archive Visual Studio Code Plugin
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: vscode-codyze.vsix
           path: plugins/vscode/vscode-codyze-0.0.0.vsix

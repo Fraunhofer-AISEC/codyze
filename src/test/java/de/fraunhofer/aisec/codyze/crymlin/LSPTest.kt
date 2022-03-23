@@ -1,7 +1,12 @@
 package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.config.CodyzeConfiguration
+import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze.config.CpgConfiguration
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.FilenameMapper
+import de.fraunhofer.aisec.cpg.passes.IdentifierPass
 import java.io.*
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
@@ -105,16 +110,19 @@ internal class LSPTest {
             parentFolder = markPoC1.parent + File.separator
 
             // Start an analysis server
-            server =
-                AnalysisServer.builder()
-                    .config(
-                        ServerConfiguration.builder()
-                            .launchConsole(false)
-                            .launchLsp(true)
-                            .markFiles(parentFolder)
-                            .build()
-                    )
-                    .build()
+
+            val codyze = CodyzeConfiguration()
+            codyze.mark = arrayOf(File(parentFolder))
+
+            val cpg = CpgConfiguration()
+            cpg.defaultPasses = true
+            cpg.passes = listOf(FilenameMapper(), IdentifierPass(), EdgeCachePass())
+
+            val config = Configuration(codyze, cpg)
+            config.executionMode.isCli = false
+            config.executionMode.isLsp = true
+
+            server = AnalysisServer(config)
             server.start()
         }
     }

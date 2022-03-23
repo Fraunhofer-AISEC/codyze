@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.analysis.markevaluation;
 
 import com.google.common.collect.Lists;
 import de.fraunhofer.aisec.codyze.analysis.*;
+import de.fraunhofer.aisec.codyze.sarif.schema.Result;
 import de.fraunhofer.aisec.codyze.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.analysis.utils.Utils;
 import de.fraunhofer.aisec.cpg.TranslationResult;
@@ -210,59 +211,12 @@ public class Evaluator {
 				 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
 				 * responsible vertices.
 				 */
-
 				var c = markCtxHolder.getContext(markCtx);
-
-				URI currentFile = null;
-
+				// since we are receiving a boolean, only PASS and FAIL are passed on here
+				Result.Kind kind = !(Boolean) evaluationResultUb ? Result.Kind.FAIL : Result.Kind.PASS;
 				if (!c.isFindingAlreadyAdded()) {
-					List<Region> ranges = new ArrayList<>();
-					if (evalResult.getResponsibleNodes().isEmpty() || evalResult.getResponsibleNodes().stream().noneMatch(Objects::nonNull)) {
-						// use the line of the instances
-						if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
-							for (var node : c.getInstanceContext().getMarkInstanceVertices()) {
-								if (node == null) {
-									continue;
-								}
-
-								var location = node.getLocation();
-
-								if (location != null) {
-									ranges.add(Utils.getRegionByNode(node));
-								} else {
-									ranges.add(new Region(-1, -1, -1, -1));
-								}
-
-								currentFile = new File(node.getFile()).toURI();
-							}
-						}
-						if (ranges.isEmpty()) {
-							ranges.add(new Region());
-						}
-					} else {
-						// responsible vertices are stored in the result
-						for (var node : evalResult.getResponsibleNodes()) {
-							if (node == null) {
-								continue;
-							}
-							ranges.add(Utils.getRegionByNode(node));
-
-							currentFile = new File(node.getFile()).toURI();
-						}
-					}
-
-					boolean isRuleViolated = !(Boolean) evaluationResultUb;
-
-					findings.add(new Finding(
-						rule.getErrorMessage() != null ? rule.getErrorMessage() : rule.getName(),
-						rule.getStatement().getAction(),
-						"Rule "
-								+ rule.getName()
-								+ (isRuleViolated ? " violated" : " verified"),
-						currentFile,
-						ranges,
-						isRuleViolated));
-
+					Finding f = createFinding(evalResult, c, rule, kind);
+					findings.add(f);
 				}
 			} else if (evaluationResultUb == null) {
 				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size()
@@ -272,6 +226,15 @@ public class Evaluator {
 				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result had an error: \n\t{}",
 					rule.getName(),
 					((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
+
+				ConstantValue evalResult = (ConstantValue) entry.getValue();
+				var c = markCtxHolder.getContext(markCtx);
+
+				if (!c.isFindingAlreadyAdded()) {
+					// pass on OPEN kind since the rule could not be evaluated
+					Finding f = createFinding(evalResult, c, rule, Result.Kind.OPEN);
+					findings.add(f);
+				}
 			} else {
 				log.error(
 					"Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result is not a boolean, but {}",
@@ -279,6 +242,59 @@ public class Evaluator {
 			}
 		}
 		return findings;
+	}
+
+	private Finding createFinding(ConstantValue evalResult, MarkContext c, MRule rule, Result.Kind kind) {
+		/*
+		 * if we did not add a finding during expression evaluation (e.g., as it is the case in the order evaluation), add a new finding which references all
+		 * responsible vertices.
+		 */
+		URI currentFile = null;
+
+		List<Region> ranges = new ArrayList<>();
+		if (evalResult.getResponsibleNodes().isEmpty() || evalResult.getResponsibleNodes().stream().noneMatch(Objects::nonNull)) {
+			// use the line of the instances
+			if (!c.getInstanceContext().getMarkInstances().isEmpty()) {
+				for (var node : c.getInstanceContext().getMarkInstanceVertices()) {
+					if (node == null) {
+						continue;
+					}
+
+					var location = node.getLocation();
+
+					if (location != null) {
+						ranges.add(Utils.getRegionByNode(node));
+					} else {
+						ranges.add(new Region(-1, -1, -1, -1));
+					}
+
+					currentFile = new File(node.getFile()).toURI();
+				}
+			}
+			if (ranges.isEmpty()) {
+				ranges.add(new Region());
+			}
+		} else {
+			// responsible vertices are stored in the result
+			for (var node : evalResult.getResponsibleNodes()) {
+				if (node == null) {
+					continue;
+				}
+				ranges.add(Utils.getRegionByNode(node));
+
+				currentFile = new File(node.getFile()).toURI();
+			}
+		}
+
+		return new Finding(
+			rule.getErrorMessage() != null ? rule.getErrorMessage() : rule.getName(),
+			rule.getStatement().getAction(),
+			"Rule "
+					+ rule.getName()
+					+ (kind != Result.Kind.PASS ? " violated" : " verified"),
+			currentFile,
+			ranges,
+			kind);
 	}
 
 	/**

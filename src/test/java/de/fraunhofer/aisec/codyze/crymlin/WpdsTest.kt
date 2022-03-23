@@ -3,8 +3,6 @@ package de.fraunhofer.aisec.codyze.crymlin
 import de.fraunhofer.aisec.codyze.analysis.Finding
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.analysis.wpds.NFA
-import de.fraunhofer.aisec.codyze.markmodel.fsm.FSM
-import de.fraunhofer.aisec.codyze.markmodel.fsm.StateNode
 import de.fraunhofer.aisec.mark.XtextParser
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import java.io.*
@@ -27,28 +25,21 @@ internal class WpdsTest : AbstractMarkTest() {
             parser.parse().values.iterator().next().rule[0].stmt.ensure.exp as OrderExpression
         expr = expr.exp
 
-        // Use this implementation ...
-        val fsm = FSM()
-        fsm.sequenceToFSM(expr)
-        var worklist = fsm.start
-        val edgesFSM: MutableSet<String> = HashSet()
-        for (n in worklist) {
-            edgesFSM.add("START.START -> " + n.name) // artificial node existing in the NFA
-        }
-        val seen: MutableSet<StateNode> = HashSet()
-        while (worklist.isNotEmpty()) {
-            val nextWorkList: MutableSet<StateNode> = HashSet()
-            for (n in worklist) {
-                for (succ in n.successors) {
-                    if (!seen.contains(succ)) {
-                        seen.add(succ)
-                        nextWorkList.add(succ)
-                    }
-                    edgesFSM.add(n.name + " -> " + succ.name)
-                }
-            }
-            worklist = nextWorkList
-        }
+        val edgesFSM =
+            mutableSetOf(
+                "START.START -> v.create",
+                "v.create -> v.update",
+                "v.create -> v.check_whole_msg",
+                "v.create -> v.check_after_update",
+                "v.create -> END",
+                "v.check_whole_msg -> v.check_whole_msg",
+                "v.check_whole_msg -> END",
+                "v.update -> v.update",
+                "v.update -> v.check_after_update",
+                "v.check_after_update -> v.check_after_update",
+                "v.check_after_update -> v.update",
+                "v.check_after_update -> END"
+            )
 
         // ... and that implementation ...
         val nfa = NFA.of(expr)
@@ -56,7 +47,6 @@ internal class WpdsTest : AbstractMarkTest() {
         for (t in nfa.transitions) {
             edgesNFA.add(t.source.name + " -> " + t.target.name)
         }
-        println(fsm)
         println(nfa)
         // ... and make sure they deliver same results.
         for (s in edgesFSM) {
@@ -79,7 +69,7 @@ internal class WpdsTest : AbstractMarkTest() {
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
-        assertEquals(7, findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count())
+        assertEquals(9, findings.stream().filter { obj: Finding? -> obj!!.isProblem }.count())
     }
 
     @Test

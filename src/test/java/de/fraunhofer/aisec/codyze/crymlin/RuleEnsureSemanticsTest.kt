@@ -38,7 +38,7 @@ internal class RuleEnsureSemanticsTest {
         val config =
             ServerConfiguration.builder()
                 .markFiles(markFilePaths[0])
-                .typestateAnalysis(TypestateMode.NFA)
+                .typestateAnalysis(TypestateMode.DFA)
                 .build()
         val graph = TranslationResult(TranslationManager.builder().build()).graph
         val ctx = AnalysisContext(File(markFilePaths[0]), graph)

@@ -60,14 +60,16 @@ internal class ConfigLoadTest {
     @Test
     @Throws(Exception::class)
     fun incorrectConfigFileTest() {
+        // we just parse whatever we can understand from config file; the rest is initialized to
+        // default values
         val config = Configuration.initConfig(incorrectFile, "-c")
         val serverConfig = config.buildServerConfiguration()
         val translationConfig = config.buildTranslationConfiguration()
 
         // assert that nothing was changed from the default values
-        assertNull(config.source)
+        assertEquals("source.java", config.source.toString())
         assertEquals(120L, config.timeout)
-        assertEquals("findings.sarif", config.output)
+        assertEquals("result.out", config.output)
         assertFalse(config.sarifOutput)
 
         assertContentEquals(
@@ -79,7 +81,7 @@ internal class ConfigLoadTest {
         assertFalse(serverConfig.pedantic)
 
         assertFalse(translationConfig.loadIncludes)
-        assertEquals(0, translationConfig.includePaths.size, "Array of includes was not empty")
+        assertEquals(2, translationConfig.includePaths.size)
         assertEquals(
             2,
             translationConfig.frontends.size,

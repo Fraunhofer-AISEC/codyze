@@ -6,9 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonLocation
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.fasterxml.jackson.module.kotlin.addDeserializer
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.config.converters.FileDeserializer
 import de.fraunhofer.aisec.codyze.config.converters.PassTypeConverter
@@ -238,7 +238,21 @@ class Configuration {
         // parse yaml configuration file with jackson
         private fun parseFile(configFile: File): Configuration {
             val module =
-                SimpleModule().addDeserializer(File::class.java, FileDeserializer(configFile))
+                SimpleModule()
+                    .setDeserializerModifier(
+                        object : BeanDeserializerModifier() {
+                            override fun modifyDeserializer(
+                                config: DeserializationConfig,
+                                beanDesc: BeanDescription,
+                                deserializer: JsonDeserializer<*>
+                            ): JsonDeserializer<*> {
+                                if (beanDesc.beanClass == File::class.java)
+                                    return FileDeserializer(configFile, deserializer)
+                                return super.modifyDeserializer(config, beanDesc, deserializer)
+                            }
+                        }
+                    )
+            // addDeserializer(File::class.java, FileDeserializer(configFile))
             val mapper =
                 YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
             mapper

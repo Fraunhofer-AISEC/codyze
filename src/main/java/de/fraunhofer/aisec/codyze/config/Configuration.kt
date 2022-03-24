@@ -5,11 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonLocation
 import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import com.fasterxml.jackson.module.kotlin.addDeserializer
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.config.converters.FileDeserializer
+import de.fraunhofer.aisec.codyze.config.converters.PassTypeConverter
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
 import de.fraunhofer.aisec.cpg.passes.Pass
@@ -235,12 +237,15 @@ class Configuration {
 
         // parse yaml configuration file with jackson
         private fun parseFile(configFile: File): Configuration {
+            val module =
+                SimpleModule().addDeserializer(File::class.java, FileDeserializer(configFile))
             val mapper =
                 YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
             mapper
                 .enable(JsonParser.Feature.IGNORE_UNDEFINED)
                 .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .registerModule(module)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
             var config: Configuration? = null
             try {

@@ -145,7 +145,7 @@
                         "type": "string"
                     }
                 },
-                "use-parallel-frontends": {
+                "parallel-frontends": {
                     "description": "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread",
                     "type": "boolean",
                     "default": "false"

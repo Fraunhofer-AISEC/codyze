@@ -1,27 +1,14 @@
 package de.fraunhofer.aisec.codyze.config
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import java.io.File
-import picocli.CommandLine.ArgGroup
 import picocli.CommandLine.Option
 
 class CodyzeConfiguration {
 
     // TODO: names
-    @JsonIgnore
-    @ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
-    val executionMode: ExecutionMode = ExecutionMode()
-
     val analysis = AnalysisMode()
-
-    @Option(
-        names = ["-s", "--source"],
-        paramLabel = "<path>",
-        description = ["Source file or folder to analyze."]
-    )
-    var source: File? = null
 
     @Option(
         names = ["-m", "--mark"],
@@ -31,21 +18,7 @@ class CodyzeConfiguration {
     )
     var mark: Array<File> = arrayOf(File("./"))
 
-    // TODO output standard stdout?
-    @Option(
-        names = ["-o", "--output"],
-        paramLabel = "<file>",
-        description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"]
-    )
-    var output = "findings.sarif"
-
-    @Option(
-        names = ["--timeout"],
-        paramLabel = "<minutes>",
-        description = ["Terminate analysis after timeout.\n\t(Default: \${DEFAULT-VALUE})"]
-    )
-    var timeout = 120L
-
+    // TODO: change name or make into warning levels
     @Option(
         names = ["--no-good-findings"],
         description =
@@ -56,51 +29,23 @@ class CodyzeConfiguration {
     )
     var noGoodFindings = false
 
-    @JsonProperty("sarif")
-    @Option(
-        names = ["--sarif"],
-        description = ["Enables the SARIF output."],
-        fallbackValue = "true"
-    )
-    var sarifOutput: Boolean = false
-
     @Option(
         names = ["--disabled-mark-rules"],
         paramLabel = "<package.rule>",
         description =
             [
-                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by the package and the rule name."],
+                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (package.rule). If there is no package name, specify rule as \".rule\". Use \'*\' to disable an entire package."],
         split = ","
     )
     var disabledMarkRules: List<String> = emptyList()
-}
-
-/**
- * Codyze runs in any of three modes:
- * - CLI: Non-interactive command line client. Accepts arguments from command line and runs
- * analysis.
- * - LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE
- * support.
- * - TUI: The text based user interface (TUI) is an interactive console that allows exploring the
- * analyzed source code by manual queries.
- */
-class ExecutionMode {
-    @Option(names = ["-c"], required = true, description = ["Start in command line mode."])
-    var isCli = false
 
     @Option(
-        names = ["-l"],
-        required = true,
-        description = ["Start in language server protocol (LSP) mode."]
+        names = ["--pedantic"],
+        description =
+            [
+                "Activates pedantic analysis mode. In this mode, Codyze analyzes all MARK rules and report all findings. This option overrides `disabledMarkRules` and `noGoodFinding` and ignores any Codyze source code comments."]
     )
-    var isLsp = false
-
-    @Option(
-        names = ["-t"],
-        required = true,
-        description = ["Start interactive console (Text-based User Interface)."]
-    )
-    var isTui = false
+    var pedantic = false
 }
 
 /**

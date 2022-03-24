@@ -1,11 +1,9 @@
 
 package de.fraunhofer.aisec.codyze;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.aisec.codyze.analysis.*;
 import de.fraunhofer.aisec.codyze.config.*;
-import de.fraunhofer.aisec.codyze.sarif.SarifInstantiator;
+import de.fraunhofer.aisec.codyze.printer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -14,7 +12,6 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Model.ArgGroupSpec;
 import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.Unmatched;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
 
@@ -27,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * Start point of the standalone analysis server.
@@ -90,37 +88,26 @@ public class Main {
 	private static int start(Configuration configuration) throws ExecutionException, InterruptedException, TimeoutException {
 		Instant start = Instant.now();
 
-		CpgConfiguration cpgConfig = configuration.getCpg();
-		CodyzeConfiguration codyzeConfig = configuration.getCodyze();
-
-		// we need to force load includes for unity builds, otherwise nothing will be parsed
-		if (cpgConfig.getUseUnityBuild()) {
-			cpgConfig.getTranslation().setAnalyzeIncludes(true);
-		}
-
-		AnalysisServer server = AnalysisServer.builder()
-				.config(configuration
-						.buildServerConfiguration())
-				.build();
+		AnalysisServer server = new AnalysisServer(configuration);
 
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!codyzeConfig.getExecutionMode().isLsp() && codyzeConfig.getSource() != null) {
-			log.info("Analyzing {}", codyzeConfig.getSource());
+		if (!configuration.getExecutionMode().isLsp() && configuration.getSource() != null) {
+			log.info("Analyzing {}", configuration.getSource());
 			AnalysisContext ctx = server
-					.analyze(codyzeConfig.getSource().getAbsolutePath())
-					.get(codyzeConfig.getTimeout(), TimeUnit.MINUTES);
+					.analyze(configuration.getSource().getAbsolutePath())
+					.get(configuration.getTimeout(), TimeUnit.MINUTES);
 
 			var findings = ctx.getFindings();
 
-			writeFindings(findings, codyzeConfig);
+			writeFindings(findings, configuration);
 
-			if (codyzeConfig.getExecutionMode().isCli()) {
+			if (configuration.getExecutionMode().isCli()) {
 				// Return code based on the existence of violations
 				return findings.stream().anyMatch(Finding::isProblem) ? 1 : 0;
 			}
-		} else if (codyzeConfig.getExecutionMode().isLsp()) {
+		} else if (configuration.getExecutionMode().isLsp()) {
 			// Block main thread. Work is done in
 			Thread.currentThread().join();
 		}
@@ -128,39 +115,20 @@ public class Main {
 		return 0;
 	}
 
-	private static void writeFindings(Set<Finding> findings, CodyzeConfiguration codyzeConfig) {
-		// Option to generate legacy output
-		String output = null;
-		SarifInstantiator si = new SarifInstantiator();
-		if (!codyzeConfig.getSarifOutput()) {
-			var mapper = new ObjectMapper();
-			try {
-				output = mapper.writeValueAsString(findings);
-			}
-			catch (JsonProcessingException e) {
-				log.error("Could not serialize findings: {}", e.getMessage());
-			}
-		} else {
-			si.pushRun(findings);
-			output = si.toString();
-		}
+	private static void writeFindings(Set<Finding> findings, Configuration configuration) {
+		Printer printer;
+		// whether to print sarif output or not
+		if (!configuration.getSarifOutput())
+			printer = new LegacyPrinter(findings);
+		else
+			printer = new SarifPrinter(findings);
 
+		String outputFile = configuration.getOutput();
 		// Whether to write in file or on stdout
-		String outputFile = codyzeConfig.getOutput();
-		if (outputFile.equals("-")) {
-			System.out.println(output);
-		} else {
-			if (!codyzeConfig.getSarifOutput()) {
-				try (PrintWriter out = new PrintWriter(outputFile)) {
-					out.println(output);
-				}
-				catch (FileNotFoundException e) {
-					System.out.println(e.getMessage());
-				}
-			} else {
-				si.generateOutput(new File(outputFile));
-			}
-		}
+		if (outputFile.equals("-"))
+			printer.printToConsole();
+		else
+			printer.printToFile(outputFile);
 	}
 
 	// Stores path to config file given as cli option
@@ -183,6 +151,9 @@ public class Main {
 		// ArgGroups only for display purposes
 		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false)
 		private CodyzeConfiguration codyzeConfig = new CodyzeConfiguration();
+
+		@ArgGroup(heading = "", exclusive = false)
+		private Configuration configuration = new Configuration();
 
 		@ArgGroup(exclusive = false, heading = "Analysis Options\n")
 		AnalysisMode analysis = new AnalysisMode();
@@ -207,8 +178,7 @@ public class Main {
 			Map<String, CommandSpec> mix = spec.mixins();
 			StringBuilder sb = new StringBuilder();
 			for (CommandSpec c : mix.values()) {
-				CommandLine.Help h = new CommandLine.Help(c, help.colorScheme());
-				sb.append(h.optionList(help.createDefaultLayout(), null, help.parameterLabelRenderer()));
+				sb.append(help.optionListExcludingGroups(c.options().stream().filter(optionSpec -> optionSpec.group() == null).collect(Collectors.toList())));
 			}
 			sb.append("\n");
 			for (ArgGroupSpec group : spec.argGroups()) {
@@ -221,9 +191,10 @@ public class Main {
 		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb) {
 			sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
 
-			for (OptionSpec o : argGroupSpec.options()) {
-				sb.append(help.optionListExcludingGroups(List.of(o)));
-			}
+			// render all options that are not in subgroups
+			sb.append(help.optionListExcludingGroups(
+				argGroupSpec.options().stream().filter(optionSpec -> optionSpec.group().equals(argGroupSpec)).collect(Collectors.toList())));
+
 			sb.append("\n");
 			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
 				addHierachy(group, sb);

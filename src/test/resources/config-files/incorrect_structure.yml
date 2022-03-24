@@ -1,6 +1,7 @@
+source: source.java
+output: result.out
+
 codyze:
-  source: source.java
-  output: result.out
   mark-files:
     - mark1
 

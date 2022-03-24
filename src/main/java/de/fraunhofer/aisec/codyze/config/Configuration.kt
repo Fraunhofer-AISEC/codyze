@@ -1,42 +1,72 @@
 package de.fraunhofer.aisec.codyze.config
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.core.JsonLocation
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
-import de.fraunhofer.aisec.cpg.passes.IdentifierPass
+import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class Configuration {
 
-    // Added as Mixin so the already initialized objects are used instead of new ones created
-    @CommandLine.Mixin var codyze = CodyzeConfiguration()
-    @CommandLine.Mixin var cpg = CpgConfiguration()
+    @JsonIgnore
+    @CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
+    val executionMode: ExecutionMode = ExecutionMode()
 
-    // Parse CLI arguments into config class
-    private fun parseCLI(vararg args: String?) {
+    @CommandLine.Option(
+        names = ["-s", "--source"],
+        paramLabel = "<path>",
+        description = ["Source file or folder to analyze."]
+    )
+    var source: File? = null
+        private set
 
-        CommandLine(this)
-            // Added as Mixin so the already initialized objects are used instead of new ones
-            // created
-            .addMixin("analysis", codyze.analysis)
-            .addMixin("translation", cpg.translation)
-            .setCaseInsensitiveEnumValuesAllowed(true)
-            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
-            // option which would result in exceptions, side effect is that all unknown options are
-            // ignored
-            .setUnmatchedArgumentsAllowed(true)
-            .parseArgs(*args)
+    // TODO output standard stdout?
+    @CommandLine.Option(
+        names = ["-o", "--output"],
+        paramLabel = "<file>",
+        description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"]
+    )
+    var output = "findings.sarif"
+        private set
+
+    @CommandLine.Option(
+        names = ["--timeout"],
+        paramLabel = "<minutes>",
+        description = ["Terminate analysis after timeout.\n\t(Default: \${DEFAULT-VALUE})"]
+    )
+    var timeout = 120L
+        private set
+
+    @JsonProperty("sarif")
+    @CommandLine.Option(
+        names = ["--sarif"],
+        description = ["Enables the SARIF output."],
+        fallbackValue = "true"
+    )
+    var sarifOutput: Boolean = false
+        private set
+
+    private var codyze = CodyzeConfiguration()
+    private var cpg = CpgConfiguration()
+
+    constructor()
+
+    constructor(codyzeConfiguration: CodyzeConfiguration, cpgConfiguration: CpgConfiguration) {
+        this.codyze = codyzeConfiguration
+        this.cpg = cpgConfiguration
     }
 
     /**
@@ -45,60 +75,32 @@ class Configuration {
      * @return ServerConfiguration
      */
     fun buildServerConfiguration(): ServerConfiguration {
+        this.normalize()
         val config =
             ServerConfiguration.builder()
-                .launchLsp(codyze.executionMode.isLsp)
-                .launchConsole(codyze.executionMode.isTui)
+                .launchLsp(executionMode.isLsp)
+                .launchConsole(executionMode.isTui)
                 .typestateAnalysis(codyze.analysis.tsMode)
                 .disableGoodFindings(codyze.noGoodFindings)
                 .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-                // TODO: remove all cpg config and replace with TranslationConfiguration
-                .analyzeIncludes(cpg.translation.analyzeIncludes)
-                .includePath(cpg.translation.includes)
-                .useUnityBuild(cpg.useUnityBuild)
-        if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
-            val pythonFrontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.PYTHON.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize Python frontend for CPG")
-                    null
-                }
+                .pedantic(codyze.pedantic)
 
-            if (pythonFrontendClazz != null) {
-                @Suppress("UNCHECKED_CAST")
-                val extensions =
-                    pythonFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
-                        List<String>
-
-                config.registerLanguage(pythonFrontendClazz, extensions)
-            }
+        val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
+        for (mName in codyze.disabledMarkRules) {
+            val index = mName.lastIndexOf('.')
+            val packageName = mName.subSequence(0, index).toString()
+            val markName = mName.subSequence(index + 1, mName.length).toString()
+            if (markName.isNotEmpty()) {
+                disabledRulesMap.putIfAbsent(packageName, DisabledMarkRulesValue())
+                if (markName == "*") disabledRulesMap.getValue(packageName).isDisablePackage = true
+                else disabledRulesMap[packageName]?.disabledMarkRuleNames?.add(markName)
+            } else
+                log.warn(
+                    "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
+                )
+            config.disableMark(disabledRulesMap)
         }
-        if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
-            val golangFrontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.GO.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize Golang frontend for CPG")
-                    null
-                }
-            if (golangFrontendClazz != null) {
-                @Suppress("UNCHECKED_CAST")
-                val extensions =
-                    golangFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
-                        List<String>
 
-                config.registerLanguage(golangFrontendClazz, extensions)
-            }
-        }
         return config.build()
     }
 
@@ -107,66 +109,109 @@ class Configuration {
      *
      * @return TranslationConfiguration
      */
-    fun buildTranslationConfiguration(): TranslationConfiguration {
-        val files: MutableList<File> = ArrayList()
-        files.add(File(codyze.source!!.absolutePath))
+    fun buildTranslationConfiguration(vararg sources: File): TranslationConfiguration {
+        this.normalize()
         val translationConfig =
             TranslationConfiguration.builder()
-                .debugParser(true)
-                .failOnError(false)
-                .codeInNodes(true)
+                .debugParser(if (executionMode.isLsp) false else cpg.debugParser)
+                .failOnError(cpg.failOnError)
+                .codeInNodes(cpg.codeInNodes)
                 .loadIncludes(cpg.translation.analyzeIncludes)
                 .useUnityBuild(cpg.useUnityBuild)
-                .defaultPasses()
+                .processAnnotations(cpg.processAnnotations)
+                .symbols(cpg.symbols)
+                .useParallelFrontends(cpg.useParallelFrontends)
+                .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
-                .registerPass(IdentifierPass())
-                .registerPass(EdgeCachePass())
-                .sourceLocations(*files.toTypedArray())
-        if (cpg.additionalLanguages.contains(Language.PYTHON) || cpg.enablePython) {
-            val pythonFrontendClazz =
+                .sourceLocations(*sources)
+
+        for (file in cpg.translation.includes) {
+            translationConfig.includePath(file.absolutePath)
+        }
+        for (s in cpg.translation.enabledIncludes) {
+            translationConfig.includeWhitelist(s.absolutePath)
+        }
+        for (s in cpg.translation.disabledIncludes) {
+            translationConfig.includeBlacklist(s.absolutePath)
+        }
+
+        if (cpg.disableCleanup) {
+            translationConfig.disableCleanup()
+        }
+
+        if (cpg.defaultPasses == null) {
+            if (cpg.passes.isEmpty()) {
+                translationConfig.defaultPasses()
+            }
+        } else {
+            if (cpg.defaultPasses!!) {
+                translationConfig.defaultPasses()
+            } else {
+                if (cpg.passes.isEmpty()) {
+                    // TODO: error handling for no passes if needed
+                }
+            }
+        }
+        for (p in cpg.passes) {
+            translationConfig.registerPass(p)
+        }
+
+        for (l in cpg.additionalLanguages) {
+            val frontendClazz =
                 try {
                     @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.PYTHON.frontendClassName) as Class<LanguageFrontend>
+                    Class.forName(l.frontendClassName) as Class<LanguageFrontend>
                 } catch (e: Throwable) {
-                    log.warn("Unable to initialize Python frontend for CPG")
+                    log.warn("Unable to initialize {} frontend for CPG", l.name)
                     null
                 }
 
-            if (pythonFrontendClazz != null) {
+            if (frontendClazz != null) {
                 @Suppress("UNCHECKED_CAST")
                 val extensions =
-                    pythonFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
+                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
                         List<String>
 
-                translationConfig.registerLanguage(pythonFrontendClazz, extensions)
+                translationConfig.registerLanguage(frontendClazz, extensions)
             }
         }
-        if (cpg.additionalLanguages.contains(Language.GO) || cpg.enableGo) {
-            val golangFrontendClazz =
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    Class.forName(Language.GO.frontendClassName) as Class<LanguageFrontend>
-                } catch (e: Throwable) {
-                    log.warn("Unable to initialize Golang frontend for CPG")
-                    null
-                }
-            if (golangFrontendClazz != null) {
-                @Suppress("UNCHECKED_CAST")
-                val extensions =
-                    golangFrontendClazz
-                        .fields
-                        .find { f -> f.name.endsWith("_EXTENSIONS") }
-                        ?.get(null) as
-                        List<String>
 
-                translationConfig.registerLanguage(golangFrontendClazz, extensions)
-            }
-        }
-        for (file in cpg.translation.includes!!) translationConfig.includePath(file.absolutePath)
         return translationConfig.build()
+    }
+
+    private fun normalize() {
+        // In pedantic analysis mode all MARK rules are analyzed and all findings reported
+        if (codyze.pedantic) {
+            codyze.noGoodFindings = false
+            codyze.disabledMarkRules = emptyList()
+        }
+
+        // we need to force load includes for unity builds, otherwise nothing will be parsed
+        if (cpg.useUnityBuild) cpg.translation.analyzeIncludes = true
+
+        if (executionMode.isLsp) {
+            // we don't want the parser to print to the terminal when in LSP mode
+            cpg.debugParser = false
+        }
+    }
+
+    // Parse CLI arguments into config class
+    private fun parseCLI(vararg args: String?) {
+
+        CommandLine(this)
+            // Added as Mixin so the already initialized objects are used instead of new ones
+            // created
+            .addMixin("codyze", codyze)
+            .addMixin("cpg", cpg)
+            .addMixin("analysis", codyze.analysis)
+            .addMixin("translation", cpg.translation)
+            .registerConverter(Pass::class.java, PassTypeConverter())
+            .setCaseInsensitiveEnumValuesAllowed(true)
+            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
+            // option which would result in exceptions, side effect is that all unknown options are
+            // ignored
+            .setUnmatchedArgumentsAllowed(true)
+            .parseArgs(*args)
     }
 
     companion object {
@@ -192,31 +237,66 @@ class Configuration {
         private fun parseFile(configFile: File): Configuration {
             val mapper =
                 YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
-            mapper.enable(JsonParser.Feature.IGNORE_UNDEFINED)
-            mapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+            mapper
+                .enable(JsonParser.Feature.IGNORE_UNDEFINED)
+                .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
             var config: Configuration? = null
             try {
                 config = mapper.readValue(configFile, Configuration::class.java)
-            } catch (e: UnrecognizedPropertyException) {
-                printErrorMessage(
-                    String.format(
-                        "Could not parse configuration file correctly because %s is not a valid argument name for %s configurations.",
-                        e.propertyName,
-                        e.path[0].fieldName
-                    )
-                )
-            } catch (e: FileNotFoundException) {
-                printErrorMessage(String.format("File at %s not found.", configFile.absolutePath))
             } catch (e: IOException) {
-                printErrorMessage(e.message)
+                printErrorMessage(configFile.absolutePath, e.toString())
             }
             return config ?: Configuration()
         }
 
         // print error message to log
-        private fun printErrorMessage(msg: String?) {
-            log.warn("{} Continue without configurations from file.", msg)
+        private fun printErrorMessage(source: String, msg: String) {
+            log.warn(
+                "Parsing configuration file failed ({}): {}. Continue without configurations from file.",
+                source,
+                msg
+            )
+        }
+
+        fun getLocation(tokenLocation: JsonLocation): String {
+            return if (tokenLocation.contentReference() != null &&
+                    tokenLocation.contentReference().rawContent is File
+            )
+                " (${(tokenLocation.contentReference().rawContent as File).absolutePath})"
+            else ""
         }
     }
+}
+
+/**
+ * Codyze runs in any of three modes:
+ * - CLI: Non-interactive command line client. Accepts arguments from command line and runs
+ * analysis.
+ * - LSP: Bind to stdout as a server for Language Server Protocol (LSP). This mode is for IDE
+ * support.
+ * - TUI: The text based user interface (TUI) is an interactive console that allows exploring the
+ * analyzed source code by manual queries.
+ */
+class ExecutionMode {
+    @CommandLine.Option(
+        names = ["-c"],
+        required = true,
+        description = ["Start in command line mode."]
+    )
+    var isCli = false
+
+    @CommandLine.Option(
+        names = ["-l"],
+        required = true,
+        description = ["Start in language server protocol (LSP) mode."]
+    )
+    var isLsp = false
+
+    @CommandLine.Option(
+        names = ["-t"],
+        required = true,
+        description = ["Start interactive console (Text-based User Interface)."]
+    )
+    var isTui = false
 }

@@ -9,9 +9,10 @@ import java.io.IOException
 import java.util.*
 import org.slf4j.LoggerFactory
 
-/** Custom deserializer for languages to turn them directly into enums */
+/**
+ * Custom deserializer to populate a list of languages derived from strings from the Jackson parser
+ */
 class LanguageDeserializer : StdDeserializer<EnumSet<Language>?>(null as JavaType?) {
-    // constructor() : super(null as JavaType?) {}
 
     @Throws(IOException::class)
     override fun deserialize(jp: JsonParser, ctxt: DeserializationContext): EnumSet<Language>? {
@@ -25,11 +26,18 @@ class LanguageDeserializer : StdDeserializer<EnumSet<Language>?>(null as JavaTyp
                     try {
                         result.add(Language.valueOf(s.uppercase(Locale.getDefault())))
                     } catch (e: IllegalArgumentException) {
+                        val instantiationError =
+                            ctxt.instantiationException(
+                                Language::class.java,
+                                IllegalArgumentException(
+                                    "No support for language with the name \"$s\"",
+                                    e
+                                )
+                            )
                         log.warn(
-                            "Could not parse configuration file correctly because " +
-                                "\"{}\" is not a supported programming language. " +
-                                "Continue with parsing rest of configuration file.",
-                            s
+                            "An error occurred while parsing configuration file{}: {}. Continue with parsing rest of configuration file.",
+                            Configuration.getLocation(jp.tokenLocation),
+                            instantiationError
                         )
                     }
                 }

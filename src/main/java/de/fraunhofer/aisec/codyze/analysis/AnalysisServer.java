@@ -3,19 +3,19 @@ package de.fraunhofer.aisec.codyze.analysis;
 
 import de.fraunhofer.aisec.codyze.JythonInterpreter;
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator;
+import de.fraunhofer.aisec.codyze.config.Configuration;
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue;
 import de.fraunhofer.aisec.codyze.crymlin.builtin.Builtin;
 import de.fraunhofer.aisec.codyze.crymlin.builtin.BuiltinRegistry;
 import de.fraunhofer.aisec.codyze.crymlin.connectors.lsp.CpgLanguageServer;
 import de.fraunhofer.aisec.codyze.markmodel.Mark;
 import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader;
-import de.fraunhofer.aisec.cpg.TranslationConfiguration;
 import de.fraunhofer.aisec.cpg.TranslationManager;
 import de.fraunhofer.aisec.cpg.TranslationResult;
 import de.fraunhofer.aisec.cpg.helpers.Benchmark;
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass;
-import de.fraunhofer.aisec.cpg.passes.IdentifierPass;
 import de.fraunhofer.aisec.mark.XtextParser;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
+
 import kotlin.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -64,7 +64,9 @@ public class AnalysisServer {
 
 	private static AnalysisServer instance;
 
-	private ServerConfiguration config;
+	private Configuration config;
+
+	private ServerConfiguration serverConfig;
 
 	private JythonInterpreter interp;
 
@@ -74,8 +76,10 @@ public class AnalysisServer {
 
 	private Mark markModel = new Mark();
 
-	private AnalysisServer(ServerConfiguration config) {
+	public AnalysisServer(Configuration config) {
 		this.config = config;
+		this.serverConfig = (config != null ? config.buildServerConfiguration() : null);
+
 		AnalysisServer.instance = this;
 
 		// Register built-in functions
@@ -110,17 +114,18 @@ public class AnalysisServer {
 		return instance;
 	}
 
-	public static Builder builder() {
-		return new Builder();
+	@NonNull
+	public ServerConfiguration getServerConfiguration() {
+		return serverConfig;
 	}
 
 	/**
 	 * Starts the server in a separate threat, returns as soon as the server is ready to operate.
 	 */
 	public void start() {
-		if (config.launchLsp) {
+		if (serverConfig.launchLsp) {
 			launchLspServer();
-		} else if (config.launchConsole) {
+		} else if (serverConfig.launchConsole) {
 			launchConsole();
 		} else {
 			// only load rules
@@ -200,7 +205,7 @@ public class AnalysisServer {
 							this.markModel.getRules().size());
 
 						// Evaluate all MARK rules
-						var evaluator = new Evaluator(this.markModel, this.config);
+						var evaluator = new Evaluator(this.markModel, this.serverConfig);
 
 						var result = pair.getFirst();
 						var ctx = pair.getSecond();
@@ -213,7 +218,8 @@ public class AnalysisServer {
 				.thenApply(
 					ctx -> {
 						Benchmark bench = new Benchmark(AnalysisServer.class, "  Filtering results");
-						if (config.disableGoodFindings) {
+
+						if (!serverConfig.pedantic && serverConfig.disableGoodFindings) {
 							// Filter out "positive" results
 							ctx.getFindings().removeIf(finding -> !finding.isProblem());
 						}
@@ -226,8 +232,8 @@ public class AnalysisServer {
 		/*
 		 * Load MARK model as given in configuration, if it has not been set manually before.
 		 */
-		File[] markModelLocations = Arrays.stream(config.markModelFiles).map(File::new).toArray(File[]::new);
-		loadMarkRules(markModelLocations);
+		File[] markModelLocations = Arrays.stream(serverConfig.markModelFiles).map(File::new).toArray(File[]::new);
+		loadMarkRules(serverConfig.packageToDisabledMarkRules, markModelLocations);
 	}
 
 	/**
@@ -260,6 +266,16 @@ public class AnalysisServer {
 	 * @param markFiles load all mark entities/rules from these files
 	 */
 	public void loadMarkRules(@NonNull File... markFiles) {
+		loadMarkRules(new HashMap<>(), markFiles);
+	}
+
+	/**
+	 * Loads all MARK rules from a file or a directory but skips files specified in packageToDisabledMarkRules map
+	 *
+	 * @param markFiles load all mark entities/rules from these files
+	 * @param packageToDisabledMarkRules skip specified files during loading
+	 */
+	public void loadMarkRules(Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules, @NonNull File... markFiles) {
 		File markDescriptionFile = null;
 
 		XtextParser parser = new XtextParser();
@@ -307,7 +323,7 @@ public class AnalysisServer {
 
 		start = Instant.now();
 		log.info("Transforming MARK Xtext to internal format");
-		this.markModel = new MarkModelLoader().load(markModels);
+		this.markModel = new MarkModelLoader().load(markModels, packageToDisabledMarkRules);
 		log.info(
 			"Done Transforming MARK Xtext to internal format in {} ms",
 			Duration.between(start, Instant.now()).toMillis());
@@ -341,7 +357,7 @@ public class AnalysisServer {
 			lsp.shutdown();
 		}
 
-		this.config = null;
+		this.serverConfig = null;
 		this.markModel = null;
 		this.interp = null;
 		this.lsp = null;
@@ -360,49 +376,11 @@ public class AnalysisServer {
 	}
 
 	public CompletableFuture<AnalysisContext> analyze(String url) {
-		List<File> files = new ArrayList<>();
-		files.add(new File(url));
-
-		var translationConfig = TranslationConfiguration.builder()
-				.debugParser(true)
-				.failOnError(false)
-				.codeInNodes(true)
-				.loadIncludes(this.config.analyzeIncludes)
-				.useUnityBuild(this.config.useUnityBuild)
-				.defaultPasses()
-				.defaultLanguages()
-				.registerPass(new IdentifierPass())
-				.registerPass(new EdgeCachePass())
-				.sourceLocations(files.toArray(new File[0]));
-		// TODO CPG only supports adding a single path as String per call. Must change to vararg of File.
-		for (File includePath : this.config.includePath) {
-			translationConfig.includePath(includePath.getAbsolutePath());
-		}
-
-		for (var pair : this.config.additionalLanguages) {
-			translationConfig.registerLanguage(pair.getFirst(), pair.getSecond());
-		}
-
 		var translationManager = TranslationManager.builder()
-				.config(translationConfig.build())
+				.config(config.buildTranslationConfiguration(new File(url)))
 				.build();
 
 		return analyze(translationManager);
 	}
 
-	public static class Builder {
-		private ServerConfiguration config;
-
-		private Builder() {
-		}
-
-		public Builder config(ServerConfiguration config) {
-			this.config = config;
-			return this;
-		}
-
-		public AnalysisServer build() {
-			return new AnalysisServer(this.config);
-		}
-	}
 }

@@ -2,6 +2,7 @@
 package de.fraunhofer.aisec.codyze.markmodel;
 
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.ExpressionHelper;
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue;
 import de.fraunhofer.aisec.mark.markDsl.EntityDeclaration;
 import de.fraunhofer.aisec.mark.markDsl.EntityStatement;
 import de.fraunhofer.aisec.mark.markDsl.MarkModel;
@@ -15,11 +16,7 @@ import org.python.jline.internal.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Parses a MarkModel provided by XText in the form of an ECore hierarchy into a simple (ECore-free) {@code Mark} model that the analysis server can work with.
@@ -31,7 +28,7 @@ public class MarkModelLoader {
 	private static final Logger log = LoggerFactory.getLogger(MarkModelLoader.class);
 
 	@NonNull
-	public Mark load(Map<String, MarkModel> markModels, @Nullable String onlyfromthisfile) {
+	public Mark load(Map<String, MarkModel> markModels, Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules, @Nullable String onlyfromthisfile) {
 		Mark m = new Mark();
 
 		for (Map.Entry<String, MarkModel> entry : markModels.entrySet()) {
@@ -59,12 +56,31 @@ public class MarkModelLoader {
 				continue;
 			}
 			MarkModel markModel = entry.getValue();
-			// Parse rules
-			for (RuleDeclaration r : markModel.getRule()) {
-				// todo @FW: should rules also have package names? what is the exact reasoning behind
-				// packages?
-				MRule rule = parseRule(r, m, entry.getKey());
-				m.getRules().add(rule);
+
+			// For mark files without package the key is an empty string in the map
+			String key = markModel.getPackage() == null ? "" : markModel.getPackage().getName();
+
+			DisabledMarkRulesValue disabledRules = packageToDisabledMarkRules.getOrDefault(key,
+				new DisabledMarkRulesValue(false, Collections.emptySet()));
+
+			// check if entire package should be disabled
+			if (disabledRules.isDisablePackage()) {
+				log.info("Disabled all mark rules in package {}", markModel.getPackage().getName());
+			} else {
+				// Parse rules
+				for (RuleDeclaration r : markModel.getRule()) {
+					// todo @FW: should rules also have package names? what is the exact reasoning behind
+					// packages?
+
+					// check if rule should be disabled
+					if (disabledRules.getDisabledMarkRuleNames().contains(r.getName())) {
+						log.info("Disabled mark rule {} in package {}", r.getName(), markModel.getPackage() == null ? "" : markModel.getPackage().getName());
+						continue;
+					}
+
+					MRule rule = parseRule(r, m, entry.getKey());
+					m.getRules().add(rule);
+				}
 			}
 		}
 
@@ -96,8 +112,18 @@ public class MarkModelLoader {
 	}
 
 	@NonNull
+	public Mark load(Map<String, MarkModel> markModels, Map<String, DisabledMarkRulesValue> packageToDisabledMarkRules) {
+		return load(markModels, packageToDisabledMarkRules, null);
+	}
+
+	@NonNull
+	public Mark load(Map<String, MarkModel> markModels, @Nullable String onlyfromthisfile) {
+		return load(markModels, Collections.emptyMap(), onlyfromthisfile);
+	}
+
+	@NonNull
 	public Mark load(Map<String, MarkModel> markModels) {
-		return load(markModels, null);
+		return load(markModels, Collections.emptyMap(), null);
 	}
 
 	private MRule parseRule(RuleDeclaration rule, Mark mark, String containedInThisFile) {

@@ -12,8 +12,8 @@ import de.fraunhofer.aisec.cpg.graph.Node
 import java.io.File
 
 /**
- * Codyze-specific implementation of the [DFAOrderEvaluator].
- * Its main purpose is to collect the findings in case of violations to the order.
+ * Codyze-specific implementation of the [DFAOrderEvaluator]. Its main purpose is to collect the
+ * findings in case of violations to the order.
  */
 class CodyzeDFAOrderEvaluator(
     referencedVertices: Set<Long>,
@@ -25,8 +25,8 @@ class CodyzeDFAOrderEvaluator(
 ) : DFAOrderEvaluator(referencedVertices, nodesToOp, thisPositionOfNode) {
 
     /**
-     * Collects the finding in the AnalysisContext as the [node] makes an
-     * operation which violates the desired order.
+     * Collects the finding in the AnalysisContext as the [node] makes an operation which violates
+     * the desired order.
      */
     override fun actionMissingTransitionForNode(node: Node, fsm: DFA) {
         val region = Utils.getRegionByNode(node)
@@ -64,9 +64,8 @@ class CodyzeDFAOrderEvaluator(
     }
 
     /**
-     * Collects the finding in the AnalysisContext because the DFA finished
-     * analyzing the function but the [base] did not terminate in an accepting
-     * state (i.e., some operations are missing).
+     * Collects the finding in the AnalysisContext because the DFA finished analyzing the function
+     * but the [base] did not terminate in an accepting state (i.e., some operations are missing).
      */
     override fun actionNonAcceptingTermination(base: String, fsm: DFA) {
         if (fsm.executionTrace.size == 1)

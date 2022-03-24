@@ -240,6 +240,7 @@ class Configuration {
             mapper
                 .enable(JsonParser.Feature.IGNORE_UNDEFINED)
                 .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
             var config: Configuration? = null
             try {

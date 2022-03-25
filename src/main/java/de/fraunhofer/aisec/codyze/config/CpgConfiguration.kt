@@ -91,6 +91,7 @@ class CpgConfiguration {
     )
     var codeInNodes = true
 
+    @JsonProperty("annotations")
     @Option(
         names = ["--annotations"],
         description = ["Enables processing annotations or annotation-like elements"],
@@ -115,6 +116,7 @@ class CpgConfiguration {
     )
     var symbols: Map<String, String> = HashMap()
 
+    @JsonProperty("parallel-frontends")
     @Option(
         names = ["--parallel-frontends"],
         description =

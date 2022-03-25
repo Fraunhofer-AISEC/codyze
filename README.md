@@ -12,7 +12,7 @@ Codyze is a static code analyzer that focuses on verifying security compliance i
 
 Documentation: https://www.codyze.io
 
-## Build & run Codyze
+## Build & Run Codyze
 
 Java 11 (OpenJDK) is a prerequisite.
 
@@ -22,49 +22,27 @@ To build an executable version of Codyze, use the `installDist` task:
 $ ./gradlew installDist
 ```
 
-This will provide you with an executable Codyze installation under `build/install/codyze`. Change to that directory and run Codyze:
+This will provide you with an executable Codyze installation under `build/install/codyze`.
+To start Codyze, change to the directory and run Codyze.
+
+Codyze has three execution modes:
+* commando line interface mode (`-c`)
+* language server protocol mode (`-l`)
+* interactive console mode (`-t`).
+
+One of these modes has to be specified as command line option when running Codyze.
+
+An exemplary call to start the commando line interface mode would be
 
 ```shell
 $ cd build/install/codyze
-$ ./bin/codyze
+$ ./bin/codyze -c -m ./mark -s <sourcepath>
 ```
+where `<sourcepath>` denotes the path to the source directory or file which should be analyzed.
 
-Without further command line arguments, Codyze will print its command line help:
+Codyze can be further configured with more command line arguments or a YAML configuration file.
+For more information about the usage and configurations, please refer to https://www.codyze.io and the corresponding [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Usage).
 
-
-```
-Usage: codyze (-c | -l | -t) [[--typestate=<NFA|WPDS>]] [[--analyze-includes]
-              [--includes=<includesPath>[:|;<includesPath>...]] [--includes=<includesPath>[:|;
-              <includesPath>...]]...] [-hV] [--no-good-findings] [-m=<path>] [-o=<file>]
-              [-s=<path>] [--timeout=<minutes>]
-Codyze finds security flaws in source code
-  -s, --source=<path>       Source file or folder to analyze.
-  -m, --mark=<path>         Load MARK policy files from folder
-  -o, --output=<file>       Write results to file. Use -- for stdout.
-      --timeout=<minutes>   Terminate analysis after timeout
-                              Default: 120
-      --no-good-findings    Disable output of "positive" findings which indicate correct
-                              implementations
-  -h, --help                Show this help message and exit.
-  -V, --version             Print version information and exit.
-Execution mode
-  -c                        Start in command line mode.
-  -l                        Start in language server protocol (LSP) mode.
-  -t                        Start interactive console (Text-based User Interface).
-Analysis settings
-      --typestate=<NFA|WPDS>
-                            Typestate analysis mode
-                            NFA:  Non-deterministic finite automaton (faster, intraprocedural)
-                            WPDS: Weighted pushdown system (slower, interprocedural)
-Translation settings
-      --analyze-includes    Enables parsing of include files. By default, if --includes are given,
-                              the parser will resolve symbols/templates from these include, but not
-                              load their parse tree.
-      --includes=<includesPath>[:|;<includesPath>...]
-                            Path(s) containing include files. Path must be separated by :
-                              (Mac/Linux) or ; (Windows)
-```
-Please refer to https://www.codyze.io for further usage instructions.
 
 ## Research & Student Work
 

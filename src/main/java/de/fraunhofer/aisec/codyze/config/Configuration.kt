@@ -54,7 +54,7 @@ class Configuration {
     @CommandLine.Option(
         names = ["--sarif"],
         negatable = true,
-        description = ["Enables the SARIF output.\n\t(Default: \${DEFAULT-VALUE})"],
+        description = ["Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var sarifOutput = true

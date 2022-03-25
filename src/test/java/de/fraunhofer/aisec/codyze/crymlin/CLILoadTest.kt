@@ -14,14 +14,6 @@ internal class CLILoadTest {
 
     @Test
     @Throws(Exception::class)
-    fun noArgsTest() {
-        Assertions.assertThrows(CommandLine.MissingParameterException::class.java) {
-            Configuration.initConfig(null, *emptyArray())
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
     fun exclusiveOptionTest() {
         Assertions.assertThrows(CommandLine.MutuallyExclusiveArgsException::class.java) {
             Configuration.initConfig(null, "-t", "-c")

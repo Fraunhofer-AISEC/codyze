@@ -229,7 +229,16 @@ class Configuration {
         @JvmStatic
         fun initConfig(configFile: File?, vararg args: String?): Configuration {
             val config: Configuration =
-                if (configFile != null) parseFile(configFile) else Configuration()
+                if (configFile != null) {
+                    parseFile(configFile)
+                } else {
+                    val defaultConfigFile = File("config.yaml")
+                    if (defaultConfigFile.isFile) {
+                        parseFile(defaultConfigFile)
+                    } else {
+                        Configuration()
+                    }
+                }
             config.parseCLI(*args)
             return config
         }

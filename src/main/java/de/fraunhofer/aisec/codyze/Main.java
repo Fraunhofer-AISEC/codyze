@@ -49,6 +49,7 @@ public class Main {
 	 */
 	public static void main(String... args) throws Exception {
 		ConfigFilePath firstPass = new ConfigFilePath();
+		firstPass.configFile = null;
 		CommandLine cmd = new CommandLine(firstPass);
 		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
@@ -134,8 +135,8 @@ public class Main {
 	// Stores path to config file given as cli option
 	@Command(mixinStandardHelpOptions = true)
 	static class ConfigFilePath {
-		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.")
-		File configFile;
+		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.\n\t(Default: ${DEFAULT-VALUE})")
+		File configFile = new File("config.yaml");
 
 		@Unmatched
 		List<String> remainder;

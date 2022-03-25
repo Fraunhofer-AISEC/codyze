@@ -22,10 +22,10 @@ internal class ConfigLoadTest {
         val translationConfig = config.buildTranslationConfiguration()
 
         // assert that the data in the config file was parsed and set correctly
-        assertEquals(File("source.java"), config.source)
+        assertEquals(File(correctFile.absoluteFile.parent, "source.java"), config.source)
         assertContentEquals(
             arrayOf("mark1", "mark4", "mark3", "mark2")
-                .map { s -> File(s).absolutePath }
+                .map { s -> File(correctFile.absoluteFile.parent, s).absolutePath }
                 .toTypedArray(),
             serverConfig.markModelFiles
         )
@@ -36,7 +36,9 @@ internal class ConfigLoadTest {
 
         assertFalse(translationConfig.loadIncludes)
         assertContentEquals(
-            arrayOf("include1", "include2").map { s -> File(s).absolutePath }.toTypedArray(),
+            arrayOf("include1", "include2")
+                .map { s -> File(correctFile.absoluteFile.parent, s).absolutePath }
+                .toTypedArray(),
             translationConfig.includePaths
         )
 
@@ -67,7 +69,10 @@ internal class ConfigLoadTest {
         val translationConfig = config.buildTranslationConfiguration()
 
         // assert that nothing was changed from the default values
-        assertEquals("source.java", config.source.toString())
+        assertEquals(
+            File(correctFile.absoluteFile.parent, "source.java").absolutePath,
+            config.source.toString()
+        )
         assertEquals(120L, config.timeout)
         assertEquals("result.out", config.output)
         assertFalse(config.sarifOutput)
@@ -140,16 +145,20 @@ internal class ConfigLoadTest {
 
         val expectedIncludes =
             arrayOf("include1", "include7", "include3", "include5")
-                .map { s -> File(s).absolutePath }
+                .map { s -> File(additionalOptionFile.absoluteFile.parent, s).absolutePath }
                 .toTypedArray()
         assertContentEquals(expectedIncludes, translationConfiguration.includePaths)
 
         val expectedEnabledIncludes =
-            arrayOf("include3", "include5", "include1").map { s -> File(s).absolutePath }
+            arrayOf("include3", "include5", "include1").map { s ->
+                File(additionalOptionFile.absoluteFile.parent, s).absolutePath
+            }
         assertContentEquals(expectedEnabledIncludes, translationConfiguration.includeWhitelist)
 
         val expectedDisabledIncludes =
-            arrayOf("include7", "include3").map { s -> File(s).absolutePath }
+            arrayOf("include7", "include3").map { s ->
+                File(additionalOptionFile.absoluteFile.parent, s).absolutePath
+            }
         assertContentEquals(expectedDisabledIncludes, translationConfiguration.includeBlacklist)
     }
 

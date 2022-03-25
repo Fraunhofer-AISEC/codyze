@@ -56,7 +56,9 @@ class ConfigCLILoadTest {
         assertEquals("result.out", config.output)
         assertEquals(TypestateMode.WPDS, serverConfig.typestateAnalysis)
         assertContentEquals(
-            arrayOf("include1", "include2").map { s -> File(s).absolutePath }.toTypedArray(),
+            arrayOf("include1", "include2")
+                .map { s -> File(correctFile.absoluteFile.parent, s).absolutePath }
+                .toTypedArray(),
             translationConfig.includePaths
         )
 
@@ -125,16 +127,20 @@ class ConfigCLILoadTest {
 
         val expectedIncludes =
             arrayOf("include1", "include7", "include3", "include5")
-                .map { s -> File(s).absolutePath }
+                .map { s -> File(correctFile.absoluteFile.parent, s).absolutePath }
                 .toTypedArray()
         assertContentEquals(expectedIncludes, translationConfiguration.includePaths)
 
         val expectedEnabledIncludes =
-            arrayOf("include3", "include5", "include1").map { s -> File(s).absolutePath }
+            arrayOf("include3", "include5", "include1").map { s ->
+                File(correctFile.absoluteFile.parent, s).absolutePath
+            }
         assertContentEquals(expectedEnabledIncludes, translationConfiguration.includeWhitelist)
 
         val expectedDisabledIncludes =
-            arrayOf("include7", "include3").map { s -> File(s).absolutePath }
+            arrayOf("include7", "include3").map { s ->
+                File(correctFile.absoluteFile.parent, s).absolutePath
+            }
         assertContentEquals(expectedDisabledIncludes, translationConfiguration.includeBlacklist)
     }
 

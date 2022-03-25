@@ -22,7 +22,7 @@ import picocli.CommandLine
 class Configuration {
 
     @JsonIgnore
-    @CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
+    @CommandLine.ArgGroup(exclusive = true, heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
 
     @CommandLine.Option(
@@ -54,7 +54,9 @@ class Configuration {
     @CommandLine.Option(
         names = ["--sarif"],
         negatable = true,
-        description = ["Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"],
+        description =
+            [
+                "Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var sarifOutput = true
@@ -194,6 +196,10 @@ class Configuration {
             // we don't want the parser to print to the terminal when in LSP mode
             cpg.debugParser = false
         }
+
+        if (!executionMode.isCli && !executionMode.isLsp && !executionMode.isTui) {
+            executionMode.isCli = true
+        }
     }
 
     // Parse CLI arguments into config class
@@ -293,7 +299,7 @@ class ExecutionMode {
     @CommandLine.Option(
         names = ["-c"],
         required = true,
-        description = ["Start in command line mode."]
+        description = ["Start in command line mode (default)."]
     )
     var isCli = false
 

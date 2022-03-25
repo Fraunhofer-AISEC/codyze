@@ -94,7 +94,7 @@ public class Main {
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!configuration.getExecutionMode().isLsp() && configuration.getSource() != null) {
+		if (!configuration.getExecutionMode().isLsp()) {
 			log.info("Analyzing {}", configuration.getSource());
 			AnalysisContext ctx = server
 					.analyze(configuration.getSource().getAbsolutePath())

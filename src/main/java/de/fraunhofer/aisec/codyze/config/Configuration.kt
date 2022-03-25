@@ -30,7 +30,7 @@ class Configuration {
         paramLabel = "<path>",
         description = ["Source file or folder to analyze."]
     )
-    var source: File? = null
+    var source: File = File(".")
         private set
 
     // TODO output standard stdout?
@@ -53,10 +53,11 @@ class Configuration {
     @JsonProperty("sarif")
     @CommandLine.Option(
         names = ["--sarif"],
+        negatable = true,
         description = ["Enables the SARIF output."],
         fallbackValue = "true"
     )
-    var sarifOutput: Boolean = false
+    var sarifOutput: Boolean = true
         private set
 
     private var codyze = CodyzeConfiguration()

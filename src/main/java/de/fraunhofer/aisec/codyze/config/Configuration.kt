@@ -28,9 +28,9 @@ class Configuration {
     @CommandLine.Option(
         names = ["-s", "--source"],
         paramLabel = "<path>",
-        description = ["Source file or folder to analyze."]
+        description = ["Source file or folder to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
     )
-    var source: File = File(".")
+    var source = File("./")
         private set
 
     // TODO output standard stdout?
@@ -54,10 +54,10 @@ class Configuration {
     @CommandLine.Option(
         names = ["--sarif"],
         negatable = true,
-        description = ["Enables the SARIF output."],
+        description = ["Enables the SARIF output.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
-    var sarifOutput: Boolean = true
+    var sarifOutput = true
         private set
 
     private var codyze = CodyzeConfiguration()

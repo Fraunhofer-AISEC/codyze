@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import de.fraunhofer.aisec.codyze.Main.ConfigFilePath
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
@@ -238,7 +239,7 @@ class Configuration {
                 if (configFile != null) {
                     parseFile(configFile)
                 } else {
-                    val defaultConfigFile = File("config.yaml")
+                    val defaultConfigFile = ConfigFilePath().configFile
                     if (defaultConfigFile.isFile) {
                         parseFile(defaultConfigFile)
                     } else {

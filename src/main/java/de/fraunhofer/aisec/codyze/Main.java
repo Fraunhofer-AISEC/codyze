@@ -134,9 +134,9 @@ public class Main {
 
 	// Stores path to config file given as cli option
 	@Command(mixinStandardHelpOptions = true)
-	static class ConfigFilePath {
+	public static class ConfigFilePath {
 		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.\n\t(Default: ${DEFAULT-VALUE})")
-		File configFile = new File("config.yaml");
+		public File configFile = new File("codyze.yaml");
 
 		@Unmatched
 		List<String> remainder;

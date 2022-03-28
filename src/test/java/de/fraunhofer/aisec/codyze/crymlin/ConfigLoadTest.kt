@@ -20,16 +20,17 @@ internal class ConfigLoadTest {
         val config = Configuration.initConfig(correctFile, "-c")
         val serverConfig = config.buildServerConfiguration()
         val translationConfig = config.buildTranslationConfiguration()
+        val configFileBasePath = correctFile.absoluteFile.parent
 
         // assert that the data in the config file was parsed and set correctly
-        assertEquals(File(correctFile.absoluteFile.parent, "source.java"), config.source)
+        assertEquals(File(configFileBasePath, "source.java"), config.source)
         assertContentEquals(
             arrayOf("mark1", "mark4", "mark3", "mark2")
-                .map { s -> File(correctFile.absoluteFile.parent, s).absolutePath }
+                .map { s -> File(configFileBasePath, s).absolutePath }
                 .toTypedArray(),
             serverConfig.markModelFiles
         )
-        assertEquals("result.out", config.output)
+        assertEquals(File(configFileBasePath, "result.out").absolutePath, config.output)
         assertEquals(140L, config.timeout)
         assertTrue(config.sarifOutput)
         assertEquals(TypestateMode.WPDS, serverConfig.typestateAnalysis)
@@ -37,7 +38,7 @@ internal class ConfigLoadTest {
         assertFalse(translationConfig.loadIncludes)
         assertContentEquals(
             arrayOf("include1", "include2")
-                .map { s -> File(correctFile.absoluteFile.parent, s).absolutePath }
+                .map { s -> File(configFileBasePath, s).absolutePath }
                 .toTypedArray(),
             translationConfig.includePaths
         )
@@ -67,14 +68,12 @@ internal class ConfigLoadTest {
         val config = Configuration.initConfig(incorrectFile, "-c")
         val serverConfig = config.buildServerConfiguration()
         val translationConfig = config.buildTranslationConfiguration()
+        val configFileBasePath = correctFile.absoluteFile.parent
 
         // assert that nothing was changed from the default values
-        assertEquals(
-            File(correctFile.absoluteFile.parent, "source.java").absolutePath,
-            config.source.toString()
-        )
+        assertEquals(File(configFileBasePath, "source.java").absolutePath, config.source.toString())
         assertEquals(120L, config.timeout)
-        assertEquals("result.out", config.output)
+        assertEquals(File(configFileBasePath, "result.out").absolutePath, config.output)
         assertFalse(config.sarifOutput)
 
         assertContentEquals(

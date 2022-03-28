@@ -170,11 +170,32 @@ internal class ConfigLoadTest {
         assert(true)
     }
 
+    @Test
+    fun pathsTest() {
+        var config = Configuration.initConfig(paths1File, "-c")
+        assertNotNull(config.source)
+        assertEquals("/absolute/path/to/source", config.source!!.absolutePath)
+        assertEquals(
+            File(paths1File.absoluteFile.parent, "../relative/path/to/output").absolutePath,
+            config.output
+        )
+
+        config = Configuration.initConfig(paths2File, "-c")
+        assertNotNull(config.source)
+        assertEquals(
+            File(paths2File.absoluteFile.parent, "../relative/path/to/source").absolutePath,
+            config.source!!.absolutePath
+        )
+        assertEquals("/absolute/path/to/output", config.output)
+    }
+
     companion object {
         private lateinit var correctFile: File
         private lateinit var incorrectFile: File
         private lateinit var additionalOptionFile: File
         private lateinit var unknownLanguageFile: File
+        private lateinit var paths1File: File
+        private lateinit var paths2File: File
 
         @BeforeAll
         @JvmStatic
@@ -210,6 +231,18 @@ internal class ConfigLoadTest {
             assertNotNull(unknownLanguageResource)
             unknownLanguageFile = File(unknownLanguageResource.file)
             assertNotNull(unknownLanguageFile)
+
+            val paths1Resource =
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/paths1.yml")
+            assertNotNull(paths1Resource)
+            paths1File = File(paths1Resource.file)
+            assertNotNull(paths1File)
+
+            val paths2Resource =
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/paths2.yml")
+            assertNotNull(paths2Resource)
+            paths2File = File(paths2Resource.file)
+            assertNotNull(paths2File)
         }
     }
 }

@@ -265,10 +265,7 @@ class Configuration {
                 .registerModule(module)
             mapper.injectableValues =
                 InjectableValues.Std()
-                    .addValue(
-                        "configFileBasePath",
-                        configFile.absoluteFile.parentFile.absolutePath
-                    )
+                    .addValue("configFileBasePath", configFile.absoluteFile.parentFile.absolutePath)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
             var config: Configuration? = null
             try {

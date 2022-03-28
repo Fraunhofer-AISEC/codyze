@@ -15,7 +15,8 @@ import java.io.File
 class OutputDeserializer() : StdDeserializer<String?>(String::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String {
-        val configFileBasePath = ctxt.findInjectableValue("configFileBasePath", null, null).toString()
+        val configFileBasePath =
+            ctxt.findInjectableValue("configFileBasePath", null, null).toString()
         val result = p.readValueAs(String::class.java)
         return if (result != null) {
             if (result == "-" || File(result).isAbsolute) result

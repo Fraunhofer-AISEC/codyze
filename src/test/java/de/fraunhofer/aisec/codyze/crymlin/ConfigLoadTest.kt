@@ -70,7 +70,7 @@ internal class ConfigLoadTest {
         assertEquals("source.java", config.source.toString())
         assertEquals(120L, config.timeout)
         assertEquals("result.out", config.output)
-        assertFalse(config.sarifOutput)
+        assertTrue(config.sarifOutput)
 
         assertContentEquals(
             arrayOf("./").map { s -> File(s).absolutePath }.toTypedArray(),

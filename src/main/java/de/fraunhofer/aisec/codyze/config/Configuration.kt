@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import de.fraunhofer.aisec.codyze.Main.ConfigFilePath
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
@@ -22,15 +23,15 @@ import picocli.CommandLine
 class Configuration {
 
     @JsonIgnore
-    @CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
+    @CommandLine.ArgGroup(exclusive = true, heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
 
     @CommandLine.Option(
         names = ["-s", "--source"],
         paramLabel = "<path>",
-        description = ["Source file or folder to analyze."]
+        description = ["Source file or folder to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
     )
-    var source: File? = null
+    var source = File("./")
         private set
 
     // TODO output standard stdout?
@@ -53,10 +54,13 @@ class Configuration {
     @JsonProperty("sarif")
     @CommandLine.Option(
         names = ["--sarif"],
-        description = ["Enables the SARIF output."],
+        negatable = true,
+        description =
+            [
+                "Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
-    var sarifOutput: Boolean = false
+    var sarifOutput = true
         private set
 
     private var codyze = CodyzeConfiguration()
@@ -193,6 +197,10 @@ class Configuration {
             // we don't want the parser to print to the terminal when in LSP mode
             cpg.debugParser = false
         }
+
+        if (!executionMode.isCli && !executionMode.isLsp && !executionMode.isTui) {
+            executionMode.isCli = true
+        }
     }
 
     // Parse CLI arguments into config class
@@ -228,7 +236,16 @@ class Configuration {
         @JvmStatic
         fun initConfig(configFile: File?, vararg args: String?): Configuration {
             val config: Configuration =
-                if (configFile != null) parseFile(configFile) else Configuration()
+                if (configFile != null) {
+                    parseFile(configFile)
+                } else {
+                    val defaultConfigFile = ConfigFilePath().configFile
+                    if (defaultConfigFile.isFile) {
+                        parseFile(defaultConfigFile)
+                    } else {
+                        Configuration()
+                    }
+                }
             config.parseCLI(*args)
             return config
         }
@@ -283,7 +300,7 @@ class ExecutionMode {
     @CommandLine.Option(
         names = ["-c"],
         required = true,
-        description = ["Start in command line mode."]
+        description = ["Start in command line mode (default)."]
     )
     var isCli = false
 

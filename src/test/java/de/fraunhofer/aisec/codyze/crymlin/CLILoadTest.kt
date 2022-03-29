@@ -14,14 +14,6 @@ internal class CLILoadTest {
 
     @Test
     @Throws(Exception::class)
-    fun noArgsTest() {
-        Assertions.assertThrows(CommandLine.MissingParameterException::class.java) {
-            Configuration.initConfig(null, *emptyArray())
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
     fun exclusiveOptionTest() {
         Assertions.assertThrows(CommandLine.MutuallyExclusiveArgsException::class.java) {
             Configuration.initConfig(null, "-t", "-c")
@@ -39,10 +31,10 @@ internal class CLILoadTest {
         assertTrue(config.executionMode.isCli)
         assertFalse(config.executionMode.isLsp)
         assertFalse(config.executionMode.isTui)
-        assertNull(config.source)
+        assertEquals(File(".").absolutePath, config.source.absolutePath)
         assertEquals(120L, config.timeout)
         assertEquals("findings.sarif", config.output)
-        assertFalse(config.sarifOutput)
+        assertTrue(config.sarifOutput)
 
         assertContentEquals(
             arrayOf("./").map { s -> File(s).absolutePath }.toTypedArray(),

@@ -2,6 +2,8 @@ package de.fraunhofer.aisec.codyze.config
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import de.fraunhofer.aisec.codyze.config.converters.LanguageDeserializer
+import de.fraunhofer.aisec.codyze.config.converters.PassListDeserializer
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.util.*
@@ -91,6 +93,7 @@ class CpgConfiguration {
     )
     var codeInNodes = true
 
+    @JsonProperty("annotations")
     @Option(
         names = ["--annotations"],
         description = ["Enables processing annotations or annotation-like elements"],
@@ -115,6 +118,7 @@ class CpgConfiguration {
     )
     var symbols: Map<String, String> = HashMap()
 
+    @JsonProperty("parallel-frontends")
     @Option(
         names = ["--parallel-frontends"],
         description =

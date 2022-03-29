@@ -20,23 +20,26 @@ internal class ConfigLoadTest {
         val config = Configuration.initConfig(correctFile, "-c")
         val serverConfig = config.buildServerConfiguration()
         val translationConfig = config.buildTranslationConfiguration()
+        val configFileBasePath = correctFile.absoluteFile.parent
 
         // assert that the data in the config file was parsed and set correctly
-        assertEquals(File("source.java"), config.source)
+        assertEquals(File(configFileBasePath, "source.java"), config.source)
         assertContentEquals(
             arrayOf("mark1", "mark4", "mark3", "mark2")
-                .map { s -> File(s).absolutePath }
+                .map { s -> File(configFileBasePath, s).absolutePath }
                 .toTypedArray(),
             serverConfig.markModelFiles
         )
-        assertEquals("result.out", config.output)
+        assertEquals(File(configFileBasePath, "result.out").absolutePath, config.output)
         assertEquals(140L, config.timeout)
         assertTrue(config.sarifOutput)
         assertEquals(TypestateMode.WPDS, serverConfig.typestateAnalysis)
 
         assertFalse(translationConfig.loadIncludes)
         assertContentEquals(
-            arrayOf("include1", "include2").map { s -> File(s).absolutePath }.toTypedArray(),
+            arrayOf("include1", "include2")
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray(),
             translationConfig.includePaths
         )
 
@@ -65,11 +68,12 @@ internal class ConfigLoadTest {
         val config = Configuration.initConfig(incorrectFile, "-c")
         val serverConfig = config.buildServerConfiguration()
         val translationConfig = config.buildTranslationConfiguration()
+        val configFileBasePath = correctFile.absoluteFile.parent
 
         // assert that nothing was changed from the default values
-        assertEquals("source.java", config.source.toString())
+        assertEquals(File(configFileBasePath, "source.java").absolutePath, config.source.toString())
         assertEquals(120L, config.timeout)
-        assertEquals("result.out", config.output)
+        assertEquals(File(configFileBasePath, "result.out").absolutePath, config.output)
         assertTrue(config.sarifOutput)
 
         assertContentEquals(
@@ -140,16 +144,20 @@ internal class ConfigLoadTest {
 
         val expectedIncludes =
             arrayOf("include1", "include7", "include3", "include5")
-                .map { s -> File(s).absolutePath }
+                .map { s -> File(additionalOptionFile.absoluteFile.parent, s).absolutePath }
                 .toTypedArray()
         assertContentEquals(expectedIncludes, translationConfiguration.includePaths)
 
         val expectedEnabledIncludes =
-            arrayOf("include3", "include5", "include1").map { s -> File(s).absolutePath }
+            arrayOf("include3", "include5", "include1").map { s ->
+                File(additionalOptionFile.absoluteFile.parent, s).absolutePath
+            }
         assertContentEquals(expectedEnabledIncludes, translationConfiguration.includeWhitelist)
 
         val expectedDisabledIncludes =
-            arrayOf("include7", "include3").map { s -> File(s).absolutePath }
+            arrayOf("include7", "include3").map { s ->
+                File(additionalOptionFile.absoluteFile.parent, s).absolutePath
+            }
         assertContentEquals(expectedDisabledIncludes, translationConfiguration.includeBlacklist)
     }
 
@@ -162,11 +170,32 @@ internal class ConfigLoadTest {
         assert(true)
     }
 
+    @Test
+    fun pathsTest() {
+        var config = Configuration.initConfig(paths1File, "-c")
+        assertNotNull(config.source)
+        assertEquals("/absolute/path/to/source", config.source!!.absolutePath)
+        assertEquals(
+            File(paths1File.absoluteFile.parent, "../relative/path/to/output").absolutePath,
+            config.output
+        )
+
+        config = Configuration.initConfig(paths2File, "-c")
+        assertNotNull(config.source)
+        assertEquals(
+            File(paths2File.absoluteFile.parent, "../relative/path/to/source").absolutePath,
+            config.source!!.absolutePath
+        )
+        assertEquals("/absolute/path/to/output", config.output)
+    }
+
     companion object {
         private lateinit var correctFile: File
         private lateinit var incorrectFile: File
         private lateinit var additionalOptionFile: File
         private lateinit var unknownLanguageFile: File
+        private lateinit var paths1File: File
+        private lateinit var paths2File: File
 
         @BeforeAll
         @JvmStatic
@@ -202,6 +231,18 @@ internal class ConfigLoadTest {
             assertNotNull(unknownLanguageResource)
             unknownLanguageFile = File(unknownLanguageResource.file)
             assertNotNull(unknownLanguageFile)
+
+            val paths1Resource =
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/paths1.yml")
+            assertNotNull(paths1Resource)
+            paths1File = File(paths1Resource.file)
+            assertNotNull(paths1File)
+
+            val paths2Resource =
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/paths2.yml")
+            assertNotNull(paths2Resource)
+            paths2File = File(paths2Resource.file)
+            assertNotNull(paths2File)
         }
     }
 }

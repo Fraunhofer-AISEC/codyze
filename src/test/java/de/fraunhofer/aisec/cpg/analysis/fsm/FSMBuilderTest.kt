@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.cpg.analysis.fsm
 
-import de.fraunhofer.aisec.codyze.crymlin.MarkLoadOutputTest
-import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader
+import de.fraunhofer.aisec.codyze.legacy.crymlin.MarkLoadOutputTest
+import de.fraunhofer.aisec.codyze.legacy.markmodel.MarkModelLoader
 import de.fraunhofer.aisec.mark.XtextParser
 import de.fraunhofer.aisec.mark.markDsl.OrderExpression
 import java.io.File
@@ -16,7 +16,7 @@ class FSMBuilderTest {
     fun testSimpleOrder() {
         val resource =
             MarkLoadOutputTest::class.java.classLoader.getResource(
-                "unittests/fsm_builder/order.mark"
+                "legacy/unittests/fsm_builder/order.mark"
             )
         assertNotNull(resource)
         val markPoC1 = File(resource.file)
@@ -47,7 +47,7 @@ class FSMBuilderTest {
     fun testLoopOrder() {
         val resource =
             MarkLoadOutputTest::class.java.classLoader.getResource(
-                "unittests/fsm_builder/order2.mark"
+                "legacy/unittests/fsm_builder/order2.mark"
             )
         assertNotNull(resource)
         val markPoC1 = File(resource.file)
@@ -89,7 +89,7 @@ class FSMBuilderTest {
     fun testBranchOrder() {
         val resource =
             MarkLoadOutputTest::class.java.classLoader.getResource(
-                "unittests/fsm_builder/order3.mark"
+                "legacy/unittests/fsm_builder/order3.mark"
             )
         assertNotNull(resource)
         val markPoC1 = File(resource.file)
@@ -135,7 +135,7 @@ class FSMBuilderTest {
     fun testFailOrder() {
         val resource =
             MarkLoadOutputTest::class.java.classLoader.getResource(
-                "unittests/fsm_builder/order_fail.mark"
+                "legacy/unittests/fsm_builder/order_fail.mark"
             )
         assertNotNull(resource)
         val markPoC1 = File(resource.file)

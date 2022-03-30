@@ -195,7 +195,6 @@ public class Main {
 				sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
 			}
 
-
 			// render all options that are not in subgroups
 			sb.append(help.optionListExcludingGroups(
 				argGroupSpec.options().stream().filter(optionSpec -> optionSpec.group().equals(argGroupSpec)).collect(Collectors.toList())));

@@ -103,10 +103,10 @@ class CpgConfiguration {
     var useParallelFrontends = false
 
     @Option(
-            names = ["--default-passes"],
-            negatable = true,
-            description = ["Controls the usage of default passes for cpg.\n\t(Default: true)"],
-            fallbackValue = "true"
+        names = ["--default-passes"],
+        negatable = true,
+        description = ["Controls the usage of default passes for cpg.\n\t(Default: true)"],
+        fallbackValue = "true"
     )
     // Set to null to differentiate if it was set or not
     var defaultPasses: Boolean? = null

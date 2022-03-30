@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze.config
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import de.fraunhofer.aisec.codyze.config.converters.LanguageDeserializer
@@ -7,6 +8,7 @@ import de.fraunhofer.aisec.codyze.config.converters.PassListDeserializer
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.util.*
+import picocli.CommandLine.ArgGroup
 import picocli.CommandLine.Option
 
 /** This class consists of configuration settings for CPG. */
@@ -43,29 +45,6 @@ class CpgConfiguration {
         fallbackValue = "true"
     )
     var typeSystemInFrontend = true
-
-    @Option(
-        names = ["--default-passes"],
-        negatable = true,
-        description = ["Controls the usage of default passes for cpg.\n\t(Default: true)"],
-        fallbackValue = "true"
-    )
-    // Set to null to differentiate if it was set or not
-    var defaultPasses: Boolean? = null
-
-    @Option(
-        names = ["--passes"],
-        paramLabel = "pass",
-        description =
-            [
-                "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
-        split = ","
-    )
-    @JvmName("setPassesNull")
-    fun setPasses(passes: List<Pass?>) {
-        this.passes = passes.filterNotNull()
-    }
-    @JsonDeserialize(using = PassListDeserializer::class) var passes: List<Pass> = ArrayList()
 
     @Option(
         names = ["--debug-parser"],
@@ -110,12 +89,7 @@ class CpgConfiguration {
     )
     var failOnError = false
 
-    @Option(
-        names = ["--symbols"],
-        paramLabel = "<symbol=definition>",
-        description = ["Definition of additional symbols"],
-        split = ","
-    )
+    @JsonIgnore @ArgGroup(exclusive = true) val symbolsCLI = SymbolsArgGroup()
     var symbols: Map<String, String> = HashMap()
 
     @JsonProperty("parallel-frontends")
@@ -127,6 +101,18 @@ class CpgConfiguration {
         fallbackValue = "true"
     )
     var useParallelFrontends = false
+
+    @Option(
+            names = ["--default-passes"],
+            negatable = true,
+            description = ["Controls the usage of default passes for cpg.\n\t(Default: true)"],
+            fallbackValue = "true"
+    )
+    // Set to null to differentiate if it was set or not
+    var defaultPasses: Boolean? = null
+
+    @JsonIgnore @ArgGroup(exclusive = true) val passesCLI = PassesArgGroup()
+    @JsonDeserialize(using = PassListDeserializer::class) var passes: List<Pass> = ArrayList()
 }
 
 /** This class consists of settings that control how CPG will process includes. */
@@ -140,6 +126,73 @@ class TranslationSettings {
     )
     var analyzeIncludes = false
 
+    @JsonIgnore @ArgGroup(exclusive = true) val includesCLI = IncludesArgGroup()
+    var includes: Array<File> = emptyArray()
+
+    @JsonIgnore @ArgGroup(exclusive = true) val enabledIncludesCLI = EnabledIncludesArgGroup()
+    var enabledIncludes: Array<File> = emptyArray()
+
+    @JsonIgnore @ArgGroup(exclusive = true) val disabledIncludesCLI = DisabledIncludesArgGroup()
+    var disabledIncludes: Array<File> = emptyArray()
+}
+
+class PassesArgGroup {
+    var append = false
+    var passes: List<Pass> = emptyList()
+
+    @Option(
+        names = ["--passes"],
+        paramLabel = "pass",
+        description =
+            [
+                "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
+        split = ","
+    )
+    @JvmName("setPassesNull")
+    fun setPasses(passes: List<Pass?>) {
+        this.passes = passes.filterNotNull()
+    }
+
+    @Option(
+        names = ["--passes+"],
+        paramLabel = "<pass>",
+        description =
+            ["See passes, but appends the values to the ones specified in configuration file."],
+        split = ","
+    )
+    fun append(value: List<Pass?>) {
+        append = true
+        setPasses(value)
+    }
+}
+
+class SymbolsArgGroup {
+    var append = false
+
+    @Option(
+        names = ["--symbols"],
+        paramLabel = "<symbol=definition>",
+        description = ["Definition of additional symbols"],
+        split = ","
+    )
+    var symbols: Map<String, String> = emptyMap()
+
+    @Option(
+        names = ["--symbols+"],
+        paramLabel = "<symbol=definition>",
+        description =
+            ["See --symbols, but appends the values to the ones specified in configuration file."],
+        split = ","
+    )
+    fun append(value: Map<String, String>) {
+        append = true
+        this.symbols = value
+    }
+}
+
+class IncludesArgGroup {
+    var append = false
+
     @Option(
         names = ["--includes"],
         description =
@@ -148,6 +201,22 @@ class TranslationSettings {
         split = ":|;"
     )
     var includes: Array<File> = emptyArray()
+
+    @Option(
+        names = ["--includes+"],
+        paramLabel = "<includes>",
+        description =
+            ["See --includes, but appends the values to the ones specified in configuration file."],
+        split = ":|;"
+    )
+    fun append(value: Array<File>) {
+        append = true
+        this.includes = value
+    }
+}
+
+class EnabledIncludesArgGroup {
+    var append = false
 
     @Option(
         names = ["--enabled-includes"],
@@ -160,6 +229,23 @@ class TranslationSettings {
     var enabledIncludes: Array<File> = emptyArray()
 
     @Option(
+        names = ["--enabled-includes+"],
+        paramLabel = "<path>",
+        description =
+            [
+                "See --enabled-includes, but appends the values to the ones specified in configuration file."],
+        split = ":|;"
+    )
+    fun append(value: Array<File>) {
+        append = true
+        this.enabledIncludes = value
+    }
+}
+
+class DisabledIncludesArgGroup {
+    var append = false
+
+    @Option(
         names = ["--disabled-includes"],
         paramLabel = "<path>",
         description =
@@ -168,4 +254,17 @@ class TranslationSettings {
         split = ":|;"
     )
     var disabledIncludes: Array<File> = emptyArray()
+
+    @Option(
+        names = ["--disabled-includes+"],
+        paramLabel = "<path>",
+        description =
+            [
+                "See --disabled-includes, but appends the values to the ones specified in configuration file."],
+        split = ":|;"
+    )
+    fun append(value: Array<File>) {
+        append = true
+        this.disabledIncludes = value
+    }
 }

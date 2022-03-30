@@ -1,8 +1,10 @@
 package de.fraunhofer.aisec.codyze.config
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import java.io.File
+import picocli.CommandLine.ArgGroup
 import picocli.CommandLine.Option
 
 class CodyzeConfiguration {
@@ -10,12 +12,7 @@ class CodyzeConfiguration {
     // TODO: names
     val analysis = AnalysisMode()
 
-    @Option(
-        names = ["-m", "--mark"],
-        paramLabel = "<path>",
-        description = ["Loads MARK policy files.\n\t(Default: \${DEFAULT-VALUE})"],
-        split = ","
-    )
+    @JsonIgnore @ArgGroup(exclusive = true) val markCLI = MarkArgGroup()
     var mark: Array<File> = arrayOf(File("./"))
 
     // TODO: change name or make into warning levels
@@ -29,14 +26,7 @@ class CodyzeConfiguration {
     )
     var noGoodFindings = false
 
-    @Option(
-        names = ["--disabled-mark-rules"],
-        paramLabel = "<package.rule>",
-        description =
-            [
-                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (package.rule). If there is no package name, specify rule as \".rule\". Use \'*\' to disable an entire package."],
-        split = ","
-    )
+    @JsonIgnore @ArgGroup(exclusive = true) val disabledMarkRulesCLI = DisabledMarkArgGroup()
     var disabledMarkRules: List<String> = emptyList()
 
     @Option(
@@ -68,4 +58,55 @@ class AnalysisMode {
                     "\t(Default: \${DEFAULT-VALUE})"]
     )
     var tsMode = TypestateMode.DFA
+}
+
+class MarkArgGroup {
+    var append = false
+
+    @Option(
+        names = ["-m", "--mark"],
+        paramLabel = "<path>",
+        description = ["Loads MARK policy files.\n\t(Default: \${DEFAULT-VALUE})"],
+        split = ","
+    )
+    var mark: Array<File> = arrayOf(File("./"))
+
+    @Option(
+        names = ["-m+", "--mark+"],
+        paramLabel = "<path>",
+        description =
+            ["See --mark, but appends the values to the ones specified in configuration file."],
+        split = ","
+    )
+    fun append(value: Array<File>) {
+        append = true
+        this.mark = value
+    }
+}
+
+class DisabledMarkArgGroup {
+    var append = false
+
+    @Option(
+        names = ["--disabled-mark-rules"],
+        paramLabel = "<package.rule>",
+        description =
+            [
+                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (package.rule). If there is no package name, specify rule as \".rule\". Use \'*\' to disable an entire package."],
+        split = ","
+    )
+    var disabledMarkRules: List<String> = emptyList()
+
+    @Option(
+        names = ["--disabled-mark-rules+"],
+        paramLabel = "<package.rule>",
+        description =
+            [
+                "See --disabled-mark-rules, but appends the values to the ones specified in configuration file."],
+        split = ","
+    )
+    fun append(value: List<String>) {
+        append = true
+        this.disabledMarkRules = value
+    }
 }

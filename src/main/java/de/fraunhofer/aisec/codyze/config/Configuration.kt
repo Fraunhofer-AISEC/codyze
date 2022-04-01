@@ -188,6 +188,49 @@ class Configuration {
         return translationConfig.build()
     }
 
+    private fun getFilesWithoutExcluded(
+        excludedFiles: Array<File>,
+        vararg files: File
+    ): Array<File> {
+        if (excludedFiles.isEmpty()) return arrayOf(*files)
+
+        val result = listOf<File>(*files).map { f -> f.absoluteFile.normalize() }.toMutableList()
+
+        for (excludedFile in excludedFiles) {
+            val excludedNormalizedFile = excludedFile.absoluteFile.normalize()
+
+            val removeIndex = mutableListOf<Int>()
+            val add = mutableListOf<File>()
+            for (i in 0 until result.size) {
+                val file = result[i]
+                // excludedPath is located under file
+                if (file.isDirectory &&
+                        excludedNormalizedFile.startsWith(file.absolutePath + File.separator)
+                ) {
+                    removeIndex.add(i)
+                    var current = excludedNormalizedFile
+                    while (current != file) {
+                        val siblings = current.parentFile.listFiles { f -> f != current }
+                        if (siblings != null) add.addAll(siblings)
+                        current = current.parentFile
+                    }
+                } else if (
+                // file is located under excludedPath
+                (excludedNormalizedFile.isDirectory() &&
+                        file.startsWith(excludedNormalizedFile.absolutePath + File.separator)) ||
+                        // excludedPath is equal to file
+                        excludedNormalizedFile == file
+                ) {
+                    removeIndex.add(i)
+                }
+            }
+            for (index in removeIndex) result.removeAt(index)
+            result.addAll(add)
+        }
+
+        return result.toTypedArray()
+    }
+
     private fun normalize() {
         // In pedantic analysis mode all MARK rules are analyzed and all findings reported
         if (codyze.pedantic) {

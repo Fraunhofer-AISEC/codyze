@@ -8,6 +8,14 @@
             "description": "Path to the to be analyzed directory or file",
             "type": "string"
         },
+        "disabled-source": {
+            "description": "Files or folders specified here will not be analyzed.",
+            "type": "array",
+            "items": {
+                "description": "Path to disabled source",
+                "type": "string"
+            }
+        },
         "output": {
             "description": "Path to output file in which results are written. Use “-” to print to stdout",
             "default": "findings.sarif",

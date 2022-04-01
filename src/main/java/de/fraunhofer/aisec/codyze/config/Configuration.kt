@@ -38,6 +38,13 @@ class Configuration {
     var source = File("./")
         private set
 
+    @CommandLine.Option(
+        names = ["-!s", "--disabled-source"],
+        paramLabel = "<path>",
+        description = ["Files or folders specified here will not be analyzed."]
+    )
+    var disabledSource = emptyArray<File>()
+
     // TODO output standard stdout?
     @CommandLine.Option(
         names = ["-o", "--output"],
@@ -132,7 +139,7 @@ class Configuration {
                 .useParallelFrontends(cpg.useParallelFrontends)
                 .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
-                .sourceLocations(*sources)
+                .sourceLocations(*getFilesWithoutExcluded(disabledSource, *sources))
 
         for (file in cpg.translation.includes) {
             translationConfig.includePath(file.absolutePath)

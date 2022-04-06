@@ -195,6 +195,14 @@ class Configuration {
         return translationConfig.build()
     }
 
+    /**
+     * Filters out files that are in the excludedFiles array from files
+     *
+     *  @param excludedFiles array of files and/or directories that should be excluded
+     *  @param files files and/or directories from which the excluded files should be filtered out from
+     *
+     *  @return array of filtered files
+     */
     private fun getFilesWithoutExcluded(
         excludedFiles: Array<File>,
         vararg files: File
@@ -206,27 +214,31 @@ class Configuration {
         for (excludedFile in excludedFiles) {
             val excludedNormalizedFile = excludedFile.absoluteFile.normalize()
 
+            // list of indices of files in result list that should be removed
             val removeIndex = mutableListOf<Int>()
+            // list of files that should be added to result list
             val add = mutableListOf<File>()
+
             for (i in 0 until result.size) {
-                val file = result[i]
-                // excludedPath is located under file
-                if (file.isDirectory &&
-                        excludedNormalizedFile.startsWith(file.absolutePath + File.separator)
+                val includedFile = result[i]
+                // excludedPath is located under includedFile
+                if (includedFile.isDirectory &&
+                        excludedNormalizedFile.startsWith(includedFile.absolutePath + File.separator)
                 ) {
                     removeIndex.add(i)
                     var current = excludedNormalizedFile
-                    while (current != file) {
+                    // traverse file tree upwards until includedFile is reached
+                    while (current != includedFile) {
+                        // find siblings of excludedPath because they should still be included
                         val siblings = current.parentFile.listFiles { f -> f != current }
                         if (siblings != null) add.addAll(siblings)
                         current = current.parentFile
                     }
                 } else if (
-                // file is located under excludedPath
-                (excludedNormalizedFile.isDirectory() &&
-                        file.startsWith(excludedNormalizedFile.absolutePath + File.separator)) ||
-                        // excludedPath is equal to file
-                        excludedNormalizedFile == file
+                // includedFile is located under excludedPath or excludedPath is equal to includedFile
+                (excludedNormalizedFile.isDirectory &&
+                        includedFile.startsWith(excludedNormalizedFile.absolutePath + File.separator)) ||
+                        excludedNormalizedFile == includedFile
                 ) {
                     removeIndex.add(i)
                 }

@@ -30,6 +30,7 @@ class Configuration {
     @CommandLine.ArgGroup(exclusive = true, heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
 
+    @JsonProperty("sources")
     @CommandLine.Option(
         names = ["-s", "--sources"],
         paramLabel = "<path>",
@@ -39,6 +40,7 @@ class Configuration {
     var source: Array<File> =  arrayOf(File("./"))
         private set
 
+    @JsonProperty("disabled-sources")
     @CommandLine.Option(
         names = ["-!s", "--disabled-sources"],
         paramLabel = "<path>",

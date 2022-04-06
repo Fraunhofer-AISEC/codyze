@@ -383,4 +383,12 @@ public class AnalysisServer {
 		return analyze(translationManager);
 	}
 
+	public CompletableFuture<AnalysisContext> analyze(File[] sources) {
+		var translationManager = TranslationManager.builder()
+				.config(config.buildTranslationConfiguration(sources))
+				.build();
+
+		return analyze(translationManager);
+	}
+
 }

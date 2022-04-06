@@ -31,19 +31,21 @@ class Configuration {
     val executionMode: ExecutionMode = ExecutionMode()
 
     @CommandLine.Option(
-        names = ["-s", "--source"],
+        names = ["-s", "--sources"],
         paramLabel = "<path>",
-        description = ["Source file or folder to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
+        split = ",",
+        description = ["Source files or folders to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
     )
-    var source = File("./")
+    var source: Array<File> =  arrayOf(File("./"))
         private set
 
     @CommandLine.Option(
-        names = ["-!s", "--disabled-source"],
+        names = ["-!s", "--disabled-sources"],
         paramLabel = "<path>",
+        split = ",",
         description = ["Files or folders specified here will not be analyzed."]
     )
-    var disabledSource = emptyArray<File>()
+    var disabledSource: Array<File> = emptyArray()
 
     // TODO output standard stdout?
     @CommandLine.Option(
@@ -198,10 +200,11 @@ class Configuration {
     /**
      * Filters out files that are in the excludedFiles array from files
      *
-     *  @param excludedFiles array of files and/or directories that should be excluded
-     *  @param files files and/or directories from which the excluded files should be filtered out from
+     * @param excludedFiles array of files and/or directories that should be excluded
+     * @param files files and/or directories from which the excluded files should be filtered out
+     * from
      *
-     *  @return array of filtered files
+     * @return array of filtered files
      */
     private fun getFilesWithoutExcluded(
         excludedFiles: Array<File>,
@@ -223,7 +226,9 @@ class Configuration {
                 val includedFile = result[i]
                 // excludedPath is located under includedFile
                 if (includedFile.isDirectory &&
-                        excludedNormalizedFile.startsWith(includedFile.absolutePath + File.separator)
+                        excludedNormalizedFile.startsWith(
+                            includedFile.absolutePath + File.separator
+                        )
                 ) {
                     removeIndex.add(i)
                     var current = excludedNormalizedFile
@@ -235,10 +240,12 @@ class Configuration {
                         current = current.parentFile
                     }
                 } else if (
-                // includedFile is located under excludedPath or excludedPath is equal to includedFile
+                // includedFile is located under excludedPath or excludedPath is equal to
+                // includedFile
                 (excludedNormalizedFile.isDirectory &&
-                        includedFile.startsWith(excludedNormalizedFile.absolutePath + File.separator)) ||
-                        excludedNormalizedFile == includedFile
+                        includedFile.startsWith(
+                            excludedNormalizedFile.absolutePath + File.separator
+                        )) || excludedNormalizedFile == includedFile
                 ) {
                     removeIndex.add(i)
                 }

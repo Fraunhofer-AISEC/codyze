@@ -2,6 +2,8 @@ package de.fraunhofer.aisec.codyze.legacy.config
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import de.fraunhofer.aisec.codyze.legacy.config.converters.LanguageDeserializer
+import de.fraunhofer.aisec.codyze.legacy.config.converters.PassListDeserializer
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.util.*

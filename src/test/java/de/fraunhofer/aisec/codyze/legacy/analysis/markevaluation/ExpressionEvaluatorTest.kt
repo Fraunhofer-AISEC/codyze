@@ -183,23 +183,22 @@ class ExpressionEvaluatorTest : AbstractTest() {
             var myEntity: EntityDeclaration? = null
             var myRule: RuleDeclaration? = null
 
-            model =
-                mark {
-                    myEntity =
-                        entity("MyClass") {
-                            variable("field")
-                            op("init") { stmt { call("MyClass") { param("field") } } }
-                        }
-                    myRule =
-                        rule("myRule") {
-                            statement {
-                                using(myEntity!!, "a")
-                                ensure {
-                                    comparison(left = operand("a.field"), op = "==", right = lit(1))
-                                }
+            model = mark {
+                myEntity =
+                    entity("MyClass") {
+                        variable("field")
+                        op("init") { stmt { call("MyClass") { param("field") } } }
+                    }
+                myRule =
+                    rule("myRule") {
+                        statement {
+                            using(myEntity!!, "a")
+                            ensure {
+                                comparison(left = operand("a.field"), op = "==", right = lit(1))
                             }
                         }
-                }
+                    }
+            }
 
             assertNotNull(myRule)
             assertNotNull(myEntity)

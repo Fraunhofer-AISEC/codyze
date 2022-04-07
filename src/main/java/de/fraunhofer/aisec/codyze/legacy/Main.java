@@ -49,6 +49,7 @@ public class Main {
 	 */
 	public static void main(String... args) throws Exception {
 		ConfigFilePath firstPass = new ConfigFilePath();
+		firstPass.configFile = null;
 		CommandLine cmd = new CommandLine(firstPass);
 		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
@@ -93,7 +94,7 @@ public class Main {
 		server.start();
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
-		if (!configuration.getExecutionMode().isLsp() && configuration.getSource() != null) {
+		if (!configuration.getExecutionMode().isLsp()) {
 			log.info("Analyzing {}", configuration.getSource());
 			AnalysisContext ctx = server
 					.analyze(configuration.getSource().getAbsolutePath())
@@ -133,9 +134,9 @@ public class Main {
 
 	// Stores path to config file given as cli option
 	@Command(mixinStandardHelpOptions = true)
-	static class ConfigFilePath {
-		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.")
-		File configFile;
+	public static class ConfigFilePath {
+		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.\n\t(Default: ${DEFAULT-VALUE})")
+		public File configFile = new File("codyze.yaml");
 
 		@Unmatched
 		List<String> remainder;

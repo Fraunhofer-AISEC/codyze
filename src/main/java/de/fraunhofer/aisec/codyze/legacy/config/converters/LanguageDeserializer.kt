@@ -1,10 +1,12 @@
-package de.fraunhofer.aisec.codyze.legacy.config
+package de.fraunhofer.aisec.codyze.legacy.config.converters
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import de.fraunhofer.aisec.codyze.legacy.config.Configuration
+import de.fraunhofer.aisec.codyze.legacy.config.Language
 import java.io.IOException
 import java.util.*
 import org.slf4j.LoggerFactory

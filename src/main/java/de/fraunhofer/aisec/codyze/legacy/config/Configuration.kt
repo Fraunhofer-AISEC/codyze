@@ -5,11 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonLocation
 import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import de.fraunhofer.aisec.codyze.legacy.Main.ConfigFilePath
 import de.fraunhofer.aisec.codyze.legacy.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.legacy.config.converters.FileDeserializer
+import de.fraunhofer.aisec.codyze.legacy.config.converters.OutputDeserializer
+import de.fraunhofer.aisec.codyze.legacy.config.converters.PassTypeConverter
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
 import de.fraunhofer.aisec.cpg.passes.Pass
@@ -22,15 +27,15 @@ import picocli.CommandLine
 class Configuration {
 
     @JsonIgnore
-    @CommandLine.ArgGroup(exclusive = true, multiplicity = "1", heading = "Execution Mode\n")
+    @CommandLine.ArgGroup(exclusive = true, heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
 
     @CommandLine.Option(
         names = ["-s", "--source"],
         paramLabel = "<path>",
-        description = ["Source file or folder to analyze."]
+        description = ["Source file or folder to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
     )
-    var source: File? = null
+    var source = File("./")
         private set
 
     // TODO output standard stdout?
@@ -39,6 +44,7 @@ class Configuration {
         paramLabel = "<file>",
         description = ["Write results to file. Use - for stdout.\n\t(Default: \${DEFAULT-VALUE})"]
     )
+    @JsonDeserialize(using = OutputDeserializer::class)
     var output = "findings.sarif"
         private set
 
@@ -53,10 +59,13 @@ class Configuration {
     @JsonProperty("sarif")
     @CommandLine.Option(
         names = ["--sarif"],
-        description = ["Enables the SARIF output."],
+        negatable = true,
+        description =
+            [
+                "Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
-    var sarifOutput: Boolean = false
+    var sarifOutput = true
         private set
 
     private var codyze = CodyzeConfiguration()
@@ -193,6 +202,10 @@ class Configuration {
             // we don't want the parser to print to the terminal when in LSP mode
             cpg.debugParser = false
         }
+
+        if (!executionMode.isCli && !executionMode.isLsp && !executionMode.isTui) {
+            executionMode.isCli = true
+        }
     }
 
     // Parse CLI arguments into config class
@@ -228,19 +241,48 @@ class Configuration {
         @JvmStatic
         fun initConfig(configFile: File?, vararg args: String?): Configuration {
             val config: Configuration =
-                if (configFile != null) parseFile(configFile) else Configuration()
+                if (configFile != null) {
+                    parseFile(configFile)
+                } else {
+                    val defaultConfigFile = ConfigFilePath().configFile
+                    if (defaultConfigFile.isFile) {
+                        parseFile(defaultConfigFile)
+                    } else {
+                        Configuration()
+                    }
+                }
             config.parseCLI(*args)
             return config
         }
 
         // parse yaml configuration file with jackson
         private fun parseFile(configFile: File): Configuration {
+
+            val module =
+                SimpleModule()
+                    .setDeserializerModifier(
+                        object : BeanDeserializerModifier() {
+                            override fun modifyDeserializer(
+                                config: DeserializationConfig,
+                                beanDesc: BeanDescription,
+                                deserializer: JsonDeserializer<*>
+                            ): JsonDeserializer<*> {
+                                if (beanDesc.beanClass == File::class.java)
+                                    return FileDeserializer(configFile, deserializer)
+                                return super.modifyDeserializer(config, beanDesc, deserializer)
+                            }
+                        }
+                    )
             val mapper =
                 YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
             mapper
                 .enable(JsonParser.Feature.IGNORE_UNDEFINED)
                 .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .registerModule(module)
+            mapper.injectableValues =
+                InjectableValues.Std()
+                    .addValue("configFileBasePath", configFile.absoluteFile.parentFile.absolutePath)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
             var config: Configuration? = null
             try {
@@ -283,7 +325,7 @@ class ExecutionMode {
     @CommandLine.Option(
         names = ["-c"],
         required = true,
-        description = ["Start in command line mode."]
+        description = ["Start in command line mode (default)."]
     )
     var isCli = false
 

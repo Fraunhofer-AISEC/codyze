@@ -30,6 +30,7 @@ class ConfigCLILoadTest {
         val config = Configuration.initConfig(correctFile, *options)
         val serverConfig = config.buildServerConfiguration()
         val translationConfig = config.buildTranslationConfiguration()
+        val configFileBasePath = correctFile.absoluteFile.parent
 
         // assert that CLI configurations have a higher priority than config file configurations
         assertNotEquals(
@@ -53,10 +54,12 @@ class ConfigCLILoadTest {
         //        assertTrue(translationConfig.useUnityBuild)
 
         // assert that rest is either default value or data from config file
-        assertEquals("result.out", config.output)
+        assertEquals(File(configFileBasePath, "result.out").absolutePath, config.output)
         assertEquals(TypestateMode.WPDS, serverConfig.typestateAnalysis)
         assertContentEquals(
-            arrayOf("include1", "include2").map { s -> File(s).absolutePath }.toTypedArray(),
+            arrayOf("include1", "include2")
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray(),
             translationConfig.includePaths
         )
 
@@ -94,6 +97,8 @@ class ConfigCLILoadTest {
                 .registerPass(CallResolver())
                 .build()
 
+        val configFileBasePath = additionalOptionFile.absoluteFile.parent
+
         // Can't test typeSystemActiveInFrontend
 
         assertEquals(
@@ -125,16 +130,18 @@ class ConfigCLILoadTest {
 
         val expectedIncludes =
             arrayOf("include1", "include7", "include3", "include5")
-                .map { s -> File(s).absolutePath }
+                .map { s -> File(configFileBasePath, s).absolutePath }
                 .toTypedArray()
         assertContentEquals(expectedIncludes, translationConfiguration.includePaths)
 
         val expectedEnabledIncludes =
-            arrayOf("include3", "include5", "include1").map { s -> File(s).absolutePath }
+            arrayOf("include3", "include5", "include1").map { s ->
+                File(configFileBasePath, s).absolutePath
+            }
         assertContentEquals(expectedEnabledIncludes, translationConfiguration.includeWhitelist)
 
         val expectedDisabledIncludes =
-            arrayOf("include7", "include3").map { s -> File(s).absolutePath }
+            arrayOf("include7", "include3").map { s -> File(configFileBasePath, s).absolutePath }
         assertContentEquals(expectedDisabledIncludes, translationConfiguration.includeBlacklist)
     }
 

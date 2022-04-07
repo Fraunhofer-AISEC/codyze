@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.legacy.config
+package de.fraunhofer.aisec.codyze.legacy.config.converters
 
 import de.fraunhofer.aisec.cpg.passes.Pass
 import org.slf4j.LoggerFactory

@@ -1,13 +1,15 @@
+sources:
+  - source.java
+output: result.out
+timeout: 140
+sarif: true
+
 codyze:
-  source: source.java
-  output: result.out
   mark:
     - mark1
     - mark4
     - mark3
     - mark2
-  timeout: 140
-  sarif: true
   analysis:
     typestate: WPDS
 

@@ -71,7 +71,7 @@ internal class ConfigLoadTest {
         val configFileBasePath = correctFile.absoluteFile.parent
 
         // assert that nothing was changed from the default values
-        assertEquals(File(configFileBasePath, "source.java").absolutePath, config.source.toString())
+        assertEquals(listOf(File(configFileBasePath, "source.java").absolutePath), config.source.map { f -> f.absolutePath })
         assertEquals(120L, config.timeout)
         assertEquals(File(configFileBasePath, "result.out").absolutePath, config.output)
         assertTrue(config.sarifOutput)

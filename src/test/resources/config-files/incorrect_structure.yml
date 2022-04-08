@@ -1,4 +1,4 @@
-sources:
+source:
   - source.java
 output: result.out
 

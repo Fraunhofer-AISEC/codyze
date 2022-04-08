@@ -1,4 +1,4 @@
-sources:
+source:
   - ../real-examples/botan/blockciphers/Antidote1911.Arsenic
   - ../real-examples/botan/blockciphers/obraunsdorf.playbook-creator
   - ../real-examples/botan/MARK

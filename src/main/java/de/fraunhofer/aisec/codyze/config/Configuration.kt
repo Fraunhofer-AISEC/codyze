@@ -30,9 +30,8 @@ class Configuration {
     @CommandLine.ArgGroup(exclusive = true, heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
 
-    @JsonProperty("sources")
     @CommandLine.Option(
-        names = ["-s", "--sources"],
+        names = ["-s", "--source"],
         paramLabel = "<path>",
         split = ",",
         description = ["Source files or folders to analyze.\n\t(Default: \${DEFAULT-VALUE})"]

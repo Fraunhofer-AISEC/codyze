@@ -157,7 +157,7 @@ internal class BuildTranslationConfigTest {
         assertEquals(
             expectedSources.size,
             translationConfig.sourceLocations.size,
-            "Number of source locations was not equal"
+            "Number of source locations was not equal, was ${translationConfig.sourceLocations}"
         )
         for (s in expectedSources) {
             assertContains(translationConfig.sourceLocations, s)

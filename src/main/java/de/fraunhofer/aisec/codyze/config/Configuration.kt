@@ -207,10 +207,7 @@ class Configuration {
      *
      * @return array of filtered files
      */
-    private fun filterFiles(
-        excludedFiles: Array<File>,
-        vararg files: File
-    ): Array<File> {
+    private fun filterFiles(excludedFiles: Array<File>, vararg files: File): Array<File> {
         if (excludedFiles.isEmpty()) return arrayOf(*files)
 
         var result: MutableList<File> =
@@ -229,14 +226,7 @@ class Configuration {
                             includedFile.absolutePath + File.separator
                         )
                 ) {
-                    var current = excludedNormalizedFile
-                    // traverse file tree upwards until includedFile is reached
-                    while (current != includedFile) {
-                        // find siblings of excludedPath because they should still be included
-                        val siblings = current.parentFile.listFiles { f -> f != current }
-                        if (siblings != null) newResult.addAll(siblings)
-                        current = current.parentFile
-                    }
+                    newResult.addAll(findSiblings(excludedNormalizedFile, includedFile))
                 } else if (
                 // includedFile is located under excludedPath or excludedPath is equal to
                 // includedFile
@@ -255,6 +245,28 @@ class Configuration {
         }
 
         return result.toTypedArray()
+    }
+
+    /**
+     * Find all sibling files by traversing file tree upwards until root is reached
+     *
+     * @param start starting file
+     * @param root function searches until here
+     *
+     * @return list of sibling files
+     */
+    private fun findSiblings(start: File, root: File): List<File> {
+        val result = mutableListOf<File>()
+
+        var current = start
+        while (current != root) {
+            // find siblings of excludedPath because they should still be included
+            val siblings = current.parentFile.listFiles { f -> f != current }
+            if (siblings != null) result.addAll(siblings)
+            current = current.parentFile
+        }
+
+        return result
     }
 
     private fun normalize() {

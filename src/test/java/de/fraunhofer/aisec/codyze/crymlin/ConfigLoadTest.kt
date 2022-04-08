@@ -23,7 +23,7 @@ internal class ConfigLoadTest {
         val configFileBasePath = correctFile.absoluteFile.parent
 
         // assert that the data in the config file was parsed and set correctly
-        assertEquals(File(configFileBasePath, "source.java"), config.source)
+        assertContentEquals(arrayOf(File(configFileBasePath, "source.java")), config.source)
         assertContentEquals(
             arrayOf("mark1", "mark4", "mark3", "mark2")
                 .map { s -> File(configFileBasePath, s).absolutePath }
@@ -174,7 +174,10 @@ internal class ConfigLoadTest {
     fun pathsTest() {
         var config = Configuration.initConfig(paths1File, "-c")
         assertNotNull(config.source)
-        assertEquals("/absolute/path/to/source", config.source!!.absolutePath)
+        assertContentEquals(
+            listOf(File("/absolute/path/to/source").absolutePath),
+            config.source.map { f -> f.absolutePath }
+        )
         assertEquals(
             File(paths1File.absoluteFile.parent, "../relative/path/to/output").absolutePath,
             config.output
@@ -182,9 +185,9 @@ internal class ConfigLoadTest {
 
         config = Configuration.initConfig(paths2File, "-c")
         assertNotNull(config.source)
-        assertEquals(
-            File(paths2File.absoluteFile.parent, "../relative/path/to/source").absolutePath,
-            config.source!!.absolutePath
+        assertContentEquals(
+            listOf(File(paths2File.absoluteFile.parent, "../relative/path/to/source").absolutePath),
+            config.source.map { f -> f.absolutePath }
         )
         assertEquals("/absolute/path/to/output", config.output)
     }

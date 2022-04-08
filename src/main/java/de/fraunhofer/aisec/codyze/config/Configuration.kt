@@ -213,15 +213,14 @@ class Configuration {
     ): Array<File> {
         if (excludedFiles.isEmpty()) return arrayOf(*files)
 
-        val result = listOf<File>(*files).map { f -> f.absoluteFile.normalize() }.toMutableList()
+        var result: MutableList<File> =
+            listOf(*files).map { f -> f.absoluteFile.normalize() }.toMutableList()
 
         for (excludedFile in excludedFiles) {
             val excludedNormalizedFile = excludedFile.absoluteFile.normalize()
 
-            // list of indices of files in result list that should be removed
-            val remove = mutableListOf<File>()
-            // list of files that should be added to result list
-            val add = mutableListOf<File>()
+            // will be list of included files after filtering out excludedFile
+            val newResult = mutableListOf<File>()
 
             for (includedFile in result) {
                 // excludedPath is located under includedFile
@@ -230,13 +229,12 @@ class Configuration {
                             includedFile.absolutePath + File.separator
                         )
                 ) {
-                    remove.add(includedFile)
                     var current = excludedNormalizedFile
                     // traverse file tree upwards until includedFile is reached
                     while (current != includedFile) {
                         // find siblings of excludedPath because they should still be included
                         val siblings = current.parentFile.listFiles { f -> f != current }
-                        if (siblings != null) add.addAll(siblings)
+                        if (siblings != null) newResult.addAll(siblings)
                         current = current.parentFile
                     }
                 } else if (
@@ -247,11 +245,13 @@ class Configuration {
                             excludedNormalizedFile.absolutePath + File.separator
                         )) || excludedNormalizedFile == includedFile
                 ) {
-                    remove.add(includedFile)
+                    // do nothing
+                } else {
+                    // add includedFile because it was not in this excluded path
+                    newResult.add(includedFile)
                 }
             }
-            for (file in remove) result.remove(file)
-            result.addAll(add)
+            result = newResult
         }
 
         return result.toTypedArray()

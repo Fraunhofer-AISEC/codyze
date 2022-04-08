@@ -142,7 +142,7 @@ class Configuration {
                 .useParallelFrontends(cpg.useParallelFrontends)
                 .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
-                .sourceLocations(*getFilesWithoutExcluded(disabledSource, *sources))
+                .sourceLocations(*filterFiles(disabledSource, *sources))
 
         for (file in cpg.translation.includes) {
             translationConfig.includePath(file.absolutePath)
@@ -207,7 +207,7 @@ class Configuration {
      *
      * @return array of filtered files
      */
-    private fun getFilesWithoutExcluded(
+    private fun filterFiles(
         excludedFiles: Array<File>,
         vararg files: File
     ): Array<File> {

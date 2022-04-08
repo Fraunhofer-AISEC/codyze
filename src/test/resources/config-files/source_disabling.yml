@@ -1,0 +1,13 @@
+sources:
+  - ../real-examples/botan/blockciphers/Antidote1911.Arsenic
+  - ../real-examples/botan/blockciphers/obraunsdorf.playbook-creator
+  - ../real-examples/botan/MARK
+  - ../real-examples/botan/MARK
+  - ../real-examples/botan/streamciphers
+  - ../directory-structure
+
+disabled-sources:
+  - ../real-examples/botan/blockciphers
+  - ../config-files/additional_options.yml
+  - ../real-examples/botan/MARK
+  - ../directory-structure/dir2/dir2dir1/dir2dir1file1.java

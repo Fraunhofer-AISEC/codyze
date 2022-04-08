@@ -132,8 +132,43 @@ internal class BuildTranslationConfigTest {
         )
     }
 
+    @Test
+    fun sourceDisablingTest() {
+        val config = Configuration.initConfig(sourceDisablingFile, "")
+        val translationConfig = config.buildTranslationConfiguration(*config.source)
+
+        val dir2 = File(directoryStructureDir, "dir2")
+        val dir2dir1 = File(dir2, "dir2dir1")
+
+        val expectedSources =
+            listOf<File>(
+                    File(directoryStructureDir, "dir1"),
+                    File(directoryStructureDir, "file1.java"),
+                    File(directoryStructureDir, "file2.java"),
+                    File(dir2, "dir2dir2"),
+                    File(dir2, "dir2dir3"),
+                    File(dir2, "dir2file1.java"),
+                    File(dir2, "dir2file2.java"),
+                    File(dir2dir1, "dir2dir1file2.java"),
+                    File(botanDir, "streamciphers")
+                )
+                .map { f -> f.absoluteFile.normalize() }
+
+        assertEquals(
+            expectedSources.size,
+            translationConfig.sourceLocations.size,
+            "Number of source locations was not equal"
+        )
+        for (s in expectedSources) {
+            assertContains(translationConfig.sourceLocations, s)
+        }
+    }
+
     companion object {
         private lateinit var additionalOptionFile: File
+        private lateinit var sourceDisablingFile: File
+        private lateinit var directoryStructureDir: File
+        private lateinit var botanDir: File
 
         @BeforeAll
         @JvmStatic
@@ -145,6 +180,26 @@ internal class BuildTranslationConfigTest {
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
+
+            val sourceDisablingResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/source_disabling.yml"
+                )
+            assertNotNull(sourceDisablingResource)
+            sourceDisablingFile = File(sourceDisablingResource.file)
+            assertNotNull(sourceDisablingFile)
+
+            val directoryStructureResource =
+                ConfigLoadTest::class.java.classLoader.getResource("directory-structure")
+            assertNotNull(directoryStructureResource)
+            directoryStructureDir = File(directoryStructureResource.file)
+            assertNotNull(directoryStructureDir)
+
+            val botanResource =
+                ConfigLoadTest::class.java.classLoader.getResource("real-examples/botan")
+            assertNotNull(botanResource)
+            botanDir = File(botanResource.file)
+            assertNotNull(botanDir)
         }
     }
 }

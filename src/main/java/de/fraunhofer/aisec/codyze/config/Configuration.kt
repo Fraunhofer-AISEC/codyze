@@ -91,11 +91,18 @@ class Configuration {
                 .launchConsole(executionMode.isTui)
                 .typestateAnalysis(codyze.analysis.tsMode)
                 .disableGoodFindings(codyze.noGoodFindings)
-                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
                 .pedantic(codyze.pedantic)
 
+        if (codyze.markCLI.append)
+            config.markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
+        config.markFiles(*codyze.markCLI.mark.map { m -> m.absolutePath }.toTypedArray())
+
         val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
-        for (mName in codyze.disabledMarkRules) {
+        val disabledMarkRules = codyze.disabledMarkRulesCLI.disabledMarkRules.toMutableList()
+        if (codyze.disabledMarkRulesCLI.append)
+            disabledMarkRules.addAll(codyze.disabledMarkRules)
+
+        for (mName in disabledMarkRules) {
             val index = mName.lastIndexOf('.')
             val packageName = mName.subSequence(0, index).toString()
             val markName = mName.subSequence(index + 1, mName.length).toString()
@@ -107,8 +114,9 @@ class Configuration {
                 log.warn(
                     "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
                 )
-            config.disableMark(disabledRulesMap)
         }
+
+        config.disableMark(disabledRulesMap)
 
         return config.build()
     }
@@ -134,22 +142,40 @@ class Configuration {
                 .defaultLanguages()
                 .sourceLocations(*sources)
 
-        for (file in cpg.translation.includes) {
+        if (cpg.translation.includesCLI.append) {
+            for (file in cpg.translation.includes) {
+                translationConfig.includePath(file.absolutePath)
+            }
+        }
+        for (file in cpg.translation.includesCLI.includes) {
             translationConfig.includePath(file.absolutePath)
         }
-        for (s in cpg.translation.enabledIncludes) {
-            translationConfig.includeWhitelist(s.absolutePath)
+
+        if (cpg.translation.enabledIncludesCLI.append) {
+            for (s in cpg.translation.enabledIncludes) {
+                translationConfig.includeWhitelist(s.absolutePath)
+            }
         }
-        for (s in cpg.translation.disabledIncludes) {
-            translationConfig.includeBlacklist(s.absolutePath)
+        for (file in cpg.translation.enabledIncludesCLI.enabledIncludes) {
+            translationConfig.includeWhitelist(file.absolutePath)
         }
+
+        if (cpg.translation.disabledIncludesCLI.append) {
+            for (s in cpg.translation.disabledIncludes) {
+                translationConfig.includeBlacklist(s.absolutePath)
+            }
+        }
+        for (file in cpg.translation.disabledIncludesCLI.disabledIncludes) {
+            translationConfig.includeBlacklist(file.absolutePath)
+        }
+
 
         if (cpg.disableCleanup) {
             translationConfig.disableCleanup()
         }
 
         if (cpg.defaultPasses == null) {
-            if (cpg.passes.isEmpty()) {
+            if (cpg.passesCLI.passes.isEmpty() && (cpg.passes.isEmpty() || !cpg.passesCLI.append) ) {
                 translationConfig.defaultPasses()
             }
         } else {
@@ -161,7 +187,13 @@ class Configuration {
                 }
             }
         }
-        for (p in cpg.passes) {
+
+        if (cpg.passesCLI.append) {
+            for (p in cpg.passes) {
+                translationConfig.registerPass(p)
+            }
+        }
+        for (p in cpg.passesCLI.passes) {
             translationConfig.registerPass(p)
         }
 
@@ -193,6 +225,7 @@ class Configuration {
         if (codyze.pedantic) {
             codyze.noGoodFindings = false
             codyze.disabledMarkRules = emptyList()
+            codyze.disabledMarkRulesCLI.disabledMarkRules = emptyList()
         }
 
         // we need to force load includes for unity builds, otherwise nothing will be parsed

@@ -37,7 +37,7 @@ class Configuration {
         split = ",",
         description = ["Source files or folders to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
     )
-    var source: Array<File> =  arrayOf(File("./"))
+    var source: Array<File> = arrayOf(File("./"))
         private set
 
     @JsonProperty("disabled-sources")
@@ -220,19 +220,18 @@ class Configuration {
             val excludedNormalizedFile = excludedFile.absoluteFile.normalize()
 
             // list of indices of files in result list that should be removed
-            val removeIndex = mutableListOf<Int>()
+            val remove = mutableListOf<File>()
             // list of files that should be added to result list
             val add = mutableListOf<File>()
 
-            for (i in 0 until result.size) {
-                val includedFile = result[i]
+            for (includedFile in result) {
                 // excludedPath is located under includedFile
                 if (includedFile.isDirectory &&
                         excludedNormalizedFile.startsWith(
                             includedFile.absolutePath + File.separator
                         )
                 ) {
-                    removeIndex.add(i)
+                    remove.add(includedFile)
                     var current = excludedNormalizedFile
                     // traverse file tree upwards until includedFile is reached
                     while (current != includedFile) {
@@ -249,10 +248,10 @@ class Configuration {
                             excludedNormalizedFile.absolutePath + File.separator
                         )) || excludedNormalizedFile == includedFile
                 ) {
-                    removeIndex.add(i)
+                    remove.add(includedFile)
                 }
             }
-            for (index in removeIndex) result.removeAt(index)
+            for (file in remove) result.remove(file)
             result.addAll(add)
         }
 

@@ -4,7 +4,9 @@ import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.config.Configuration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.CallResolver
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.FilenameMapper
+import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import java.io.File
 import java.lang.Exception
 import kotlin.Throws
@@ -143,6 +145,141 @@ class ConfigCLILoadTest {
         val expectedDisabledIncludes =
             arrayOf("include7", "include3").map { s -> File(configFileBasePath, s).absolutePath }
         assertContentEquals(expectedDisabledIncludes, translationConfiguration.includeBlacklist)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun appendTest() {
+        val options = arrayOf("-m+=mark5,mark7,mark6", "--includes+=include7;include193;include3")
+        val config = Configuration.initConfig(correctFile, *options)
+        val serverConfig = config.buildServerConfiguration()
+        val translationConfig = config.buildTranslationConfiguration()
+        val configFileBasePath = correctFile.absoluteFile.parent
+
+        val expectedConfigMark =
+            listOf("mark1", "mark4", "mark3", "mark2")
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray()
+        assertContentEquals(
+            arrayOf(*expectedConfigMark, "mark5", "mark7", "mark6")
+                .map { s -> File(s).absolutePath }
+                .toTypedArray(),
+            serverConfig.markModelFiles,
+            "Option specified in config file should be appended to CLI option"
+        )
+
+        val expectedConfigIncludes =
+            listOf("include1", "include2")
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray()
+        assertContentEquals(
+            arrayOf(*expectedConfigIncludes, "include7", "include193", "include3")
+                .map { s -> File(s).absolutePath }
+                .toTypedArray(),
+            translationConfig.includePaths,
+            "Option specified in config file should be appended to CLI option"
+        )
+    }
+
+    @Test
+    @Throws(java.lang.Exception::class)
+    fun additionalAppendTest() {
+        val config =
+            Configuration.initConfig(
+                additionalOptionFile,
+                "-c",
+                "--passes+=de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
+                    "de.fraunhofer.aisec.cpg.passes.CallResolver",
+                "--symbols+=&=and,+=plus",
+                "--default-passes",
+                "--includes+=include9;include193;include13",
+                "--enabled-includes+=include9;include52",
+                "--disabled-includes+=include13"
+            )
+        val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
+        val expectedTranslationConfig =
+            TranslationConfiguration.builder()
+                .defaultPasses()
+                .registerPass(EdgeCachePass())
+                .registerPass(UnreachableEOGPass())
+                .registerPass(FilenameMapper())
+                .registerPass(CallResolver())
+                .build()
+
+        val configFileBasePath = additionalOptionFile.absoluteFile.parent
+
+        assertEquals(
+            expectedTranslationConfig.registeredPasses.size,
+            translationConfiguration.registeredPasses.size,
+            "Expected size ${expectedTranslationConfig.registeredPasses.size} but was ${translationConfiguration.registeredPasses.size}"
+        )
+        val passesNames =
+            translationConfiguration.registeredPasses.map { s -> s.javaClass.name }.toTypedArray()
+        val expectedPassesNames =
+            expectedTranslationConfig.registeredPasses.map { s -> s.javaClass.name }.toTypedArray()
+        assertContentEquals(expectedPassesNames, passesNames)
+
+        assertEquals(
+            5,
+            translationConfiguration.symbols.size,
+            "Expected size 5 but was ${translationConfiguration.symbols.size}"
+        )
+        assertTrue(
+            translationConfiguration.symbols.containsKey("#"),
+            "Did not contain \'#\' as a key"
+        )
+        assertEquals("hash", translationConfiguration.symbols["#"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("$"),
+            "Did not contain \'$\' as a key"
+        )
+        assertEquals("dollar", translationConfiguration.symbols["$"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("*"),
+            "Did not contain \'*\' as a key"
+        )
+        assertEquals("star", translationConfiguration.symbols["*"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("&"),
+            "Did not contain \'&\' as a key"
+        )
+        assertEquals("and", translationConfiguration.symbols["&"])
+        assertTrue(
+            translationConfiguration.symbols.containsKey("+"),
+            "Did not contain \'=\' as a key"
+        )
+        assertEquals("plus", translationConfiguration.symbols["+"])
+
+        val expectedIncludes =
+            arrayOf("include1", "include7", "include3", "include5")
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray()
+        assertContentEquals(
+            arrayOf(*expectedIncludes, "include9", "include193", "include13")
+                .map { s -> File(s).absolutePath }
+                .toTypedArray(),
+            translationConfiguration.includePaths
+        )
+
+        val expectedEnabledIncludes =
+            arrayOf("include3", "include5", "include1")
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray()
+        assertContentEquals(
+            arrayOf(*expectedEnabledIncludes, "include9", "include52").map { s ->
+                File(s).absolutePath
+            },
+            translationConfiguration.includeWhitelist
+        )
+
+        val expectedDisabledIncludes =
+            arrayOf("include7", "include3")
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray()
+        assertContentEquals(
+            arrayOf(*expectedDisabledIncludes, "include13").map { s -> File(s).absolutePath },
+            translationConfiguration.includeBlacklist
+        )
     }
 
     companion object {

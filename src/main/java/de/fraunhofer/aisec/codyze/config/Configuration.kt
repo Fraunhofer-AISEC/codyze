@@ -93,10 +93,10 @@ class Configuration {
                 .disableGoodFindings(codyze.noGoodFindings)
                 .pedantic(codyze.pedantic)
 
-        if (!codyze.markCLI.matched || codyze.markCLI.append)
-            config.markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-        if (codyze.markCLI.matched)
-            config.markFiles(*codyze.markCLI.mark.map { m -> m.absolutePath }.toTypedArray())
+        val mark = mutableListOf<File>()
+        if (!codyze.markCLI.matched || codyze.markCLI.append) mark.addAll(codyze.mark)
+        if (codyze.markCLI.matched) mark.addAll(codyze.markCLI.mark)
+        config.markFiles(*mark.map { m -> m.absolutePath }.toTypedArray())
 
         val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
         val disabledMarkRules = codyze.disabledMarkRulesCLI.disabledMarkRules.toMutableList()

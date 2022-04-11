@@ -138,6 +138,8 @@ class TranslationSettings {
 
 class PassesArgGroup {
     var append = false
+    var matched = false
+
     var passes: List<Pass> = emptyList()
 
     @Option(
@@ -148,8 +150,8 @@ class PassesArgGroup {
                 "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
         split = ","
     )
-    @JvmName("setPassesNull")
-    fun setPasses(passes: List<Pass?>) {
+    fun match(passes: List<Pass?>) {
+        matched = true
         this.passes = passes.filterNotNull()
     }
 
@@ -162,12 +164,15 @@ class PassesArgGroup {
     )
     fun append(value: List<Pass?>) {
         append = true
-        setPasses(value)
+        match(value)
     }
 }
 
 class SymbolsArgGroup {
     var append = false
+    var matched = false
+
+    var symbols: Map<String, String> = emptyMap()
 
     @Option(
         names = ["--symbols"],
@@ -175,7 +180,10 @@ class SymbolsArgGroup {
         description = ["Definition of additional symbols"],
         split = ","
     )
-    var symbols: Map<String, String> = emptyMap()
+    fun match(value: Map<String, String>) {
+        matched = true
+        this.symbols = value
+    }
 
     @Option(
         names = ["--symbols+"],
@@ -186,12 +194,15 @@ class SymbolsArgGroup {
     )
     fun append(value: Map<String, String>) {
         append = true
-        this.symbols = value
+        match(value)
     }
 }
 
 class IncludesArgGroup {
     var append = false
+    var matched = false
+
+    var includes: Array<File> = emptyArray()
 
     @Option(
         names = ["--includes"],
@@ -200,7 +211,10 @@ class IncludesArgGroup {
                 "Path(s) containing include files. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
         split = ":|;"
     )
-    var includes: Array<File> = emptyArray()
+    fun match(value: Array<File>) {
+        matched = true
+        this.includes = value
+    }
 
     @Option(
         names = ["--includes+"],
@@ -211,12 +225,15 @@ class IncludesArgGroup {
     )
     fun append(value: Array<File>) {
         append = true
-        this.includes = value
+        match(value)
     }
 }
 
 class EnabledIncludesArgGroup {
     var append = false
+    var matched = false
+
+    var enabledIncludes: Array<File> = emptyArray()
 
     @Option(
         names = ["--enabled-includes"],
@@ -226,7 +243,10 @@ class EnabledIncludesArgGroup {
                 "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
         split = ":|;"
     )
-    var enabledIncludes: Array<File> = emptyArray()
+    fun match(value: Array<File>) {
+        matched = true
+        this.enabledIncludes = value
+    }
 
     @Option(
         names = ["--enabled-includes+"],
@@ -238,12 +258,15 @@ class EnabledIncludesArgGroup {
     )
     fun append(value: Array<File>) {
         append = true
-        this.enabledIncludes = value
+        match(value)
     }
 }
 
 class DisabledIncludesArgGroup {
     var append = false
+    var matched = false
+
+    var disabledIncludes: Array<File> = emptyArray()
 
     @Option(
         names = ["--disabled-includes"],
@@ -253,7 +276,10 @@ class DisabledIncludesArgGroup {
                 "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
         split = ":|;"
     )
-    var disabledIncludes: Array<File> = emptyArray()
+    fun match(value: Array<File>) {
+        matched = true
+        this.disabledIncludes = value
+    }
 
     @Option(
         names = ["--disabled-includes+"],
@@ -265,6 +291,6 @@ class DisabledIncludesArgGroup {
     )
     fun append(value: Array<File>) {
         append = true
-        this.disabledIncludes = value
+        match(value)
     }
 }

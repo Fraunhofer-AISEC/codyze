@@ -93,14 +93,14 @@ class Configuration {
                 .disableGoodFindings(codyze.noGoodFindings)
                 .pedantic(codyze.pedantic)
 
-        if (codyze.markCLI.append)
+        if (!codyze.markCLI.matched || codyze.markCLI.append)
             config.markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
-        config.markFiles(*codyze.markCLI.mark.map { m -> m.absolutePath }.toTypedArray())
+        if (codyze.markCLI.matched)
+            config.markFiles(*codyze.markCLI.mark.map { m -> m.absolutePath }.toTypedArray())
 
         val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
         val disabledMarkRules = codyze.disabledMarkRulesCLI.disabledMarkRules.toMutableList()
-        if (codyze.disabledMarkRulesCLI.append)
-            disabledMarkRules.addAll(codyze.disabledMarkRules)
+        if (codyze.disabledMarkRulesCLI.append) disabledMarkRules.addAll(codyze.disabledMarkRules)
 
         for (mName in disabledMarkRules) {
             val index = mName.lastIndexOf('.')
@@ -136,66 +136,77 @@ class Configuration {
                 .loadIncludes(cpg.translation.analyzeIncludes)
                 .useUnityBuild(cpg.useUnityBuild)
                 .processAnnotations(cpg.processAnnotations)
-                .symbols(cpg.symbols)
                 .useParallelFrontends(cpg.useParallelFrontends)
                 .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
                 .sourceLocations(*sources)
 
-        if (cpg.translation.includesCLI.append) {
+        val symbols = cpg.symbolsCLI.symbols.toMutableMap()
+        if (!cpg.symbolsCLI.matched || cpg.symbolsCLI.append) {
+            symbols.putAll(cpg.symbols)
+        }
+        translationConfig.symbols(symbols)
+
+        if (!cpg.translation.includesCLI.matched || cpg.translation.includesCLI.append) {
             for (file in cpg.translation.includes) {
                 translationConfig.includePath(file.absolutePath)
             }
         }
-        for (file in cpg.translation.includesCLI.includes) {
-            translationConfig.includePath(file.absolutePath)
-        }
+        if (cpg.translation.includesCLI.matched)
+            for (file in cpg.translation.includesCLI.includes) {
+                translationConfig.includePath(file.absolutePath)
+            }
 
-        if (cpg.translation.enabledIncludesCLI.append) {
+        if (!cpg.translation.enabledIncludesCLI.matched || cpg.translation.enabledIncludesCLI.append
+        ) {
             for (s in cpg.translation.enabledIncludes) {
                 translationConfig.includeWhitelist(s.absolutePath)
             }
         }
-        for (file in cpg.translation.enabledIncludesCLI.enabledIncludes) {
-            translationConfig.includeWhitelist(file.absolutePath)
-        }
+        if (cpg.translation.enabledIncludesCLI.matched)
+            for (file in cpg.translation.enabledIncludesCLI.enabledIncludes) {
+                translationConfig.includeWhitelist(file.absolutePath)
+            }
 
-        if (cpg.translation.disabledIncludesCLI.append) {
+        if (!cpg.translation.disabledIncludesCLI.matched ||
+                cpg.translation.disabledIncludesCLI.append
+        ) {
             for (s in cpg.translation.disabledIncludes) {
                 translationConfig.includeBlacklist(s.absolutePath)
             }
         }
-        for (file in cpg.translation.disabledIncludesCLI.disabledIncludes) {
-            translationConfig.includeBlacklist(file.absolutePath)
-        }
-
+        if (cpg.translation.disabledIncludesCLI.matched)
+            for (file in cpg.translation.disabledIncludesCLI.disabledIncludes) {
+                translationConfig.includeBlacklist(file.absolutePath)
+            }
 
         if (cpg.disableCleanup) {
             translationConfig.disableCleanup()
         }
 
         if (cpg.defaultPasses == null) {
-            if (cpg.passesCLI.passes.isEmpty() && (cpg.passes.isEmpty() || !cpg.passesCLI.append) ) {
+            if (cpg.passesCLI.passes.isEmpty() && cpg.passes.isEmpty()) {
                 translationConfig.defaultPasses()
             }
         } else {
             if (cpg.defaultPasses!!) {
                 translationConfig.defaultPasses()
             } else {
-                if (cpg.passes.isEmpty()) {
+                if (cpg.passesCLI.passes.isEmpty() && cpg.passes.isEmpty()) {
                     // TODO: error handling for no passes if needed
                 }
             }
         }
 
-        if (cpg.passesCLI.append) {
+        if (!cpg.passesCLI.matched || cpg.passesCLI.append) {
             for (p in cpg.passes) {
                 translationConfig.registerPass(p)
             }
         }
-        for (p in cpg.passesCLI.passes) {
-            translationConfig.registerPass(p)
-        }
+        if (cpg.passesCLI.matched)
+            for (p in cpg.passesCLI.passes) {
+                translationConfig.registerPass(p)
+            }
 
         for (l in cpg.additionalLanguages) {
             val frontendClazz =

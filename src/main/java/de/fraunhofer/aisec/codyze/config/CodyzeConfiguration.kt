@@ -62,6 +62,9 @@ class AnalysisMode {
 
 class MarkArgGroup {
     var append = false
+    var matched = false
+
+    var mark: Array<File> = arrayOf(File("./"))
 
     @Option(
         names = ["-m", "--mark"],
@@ -69,7 +72,10 @@ class MarkArgGroup {
         description = ["Loads MARK policy files.\n\t(Default: \${DEFAULT-VALUE})"],
         split = ","
     )
-    var mark: Array<File> = arrayOf(File("./"))
+    fun match(value: Array<File>) {
+        matched = true
+        this.mark = value
+    }
 
     @Option(
         names = ["-m+", "--mark+"],
@@ -80,13 +86,15 @@ class MarkArgGroup {
     )
     fun append(value: Array<File>) {
         append = true
-        this.mark = value
+        match(value)
     }
 }
 
 class DisabledMarkArgGroup {
     var append = false
+    var matched = false
 
+    var disabledMarkRules: List<String> = emptyList()
     @Option(
         names = ["--disabled-mark-rules"],
         paramLabel = "<package.rule>",
@@ -95,7 +103,10 @@ class DisabledMarkArgGroup {
                 "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (package.rule). If there is no package name, specify rule as \".rule\". Use \'*\' to disable an entire package."],
         split = ","
     )
-    var disabledMarkRules: List<String> = emptyList()
+    fun match(value: List<String>) {
+        matched = true
+        this.disabledMarkRules = value
+    }
 
     @Option(
         names = ["--disabled-mark-rules+"],
@@ -107,6 +118,6 @@ class DisabledMarkArgGroup {
     )
     fun append(value: List<String>) {
         append = true
-        this.disabledMarkRules = value
+        match(value)
     }
 }

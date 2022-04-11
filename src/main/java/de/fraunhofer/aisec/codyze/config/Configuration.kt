@@ -44,7 +44,7 @@ class Configuration {
         names = ["--disabled-sources"],
         paramLabel = "<path>",
         split = ",",
-        description = ["Files or folders specified here will not be analyzed."]
+        description = ["Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"]
     )
     var disabledSource: Array<File> = emptyArray()
 

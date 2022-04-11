@@ -41,7 +41,7 @@ class Configuration {
 
     @JsonProperty("disabled-sources")
     @CommandLine.Option(
-        names = ["-!s", "--disabled-sources"],
+        names = ["--disabled-sources"],
         paramLabel = "<path>",
         split = ",",
         description = ["Files or folders specified here will not be analyzed."]

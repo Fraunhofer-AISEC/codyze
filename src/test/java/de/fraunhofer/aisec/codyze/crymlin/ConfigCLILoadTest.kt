@@ -150,7 +150,7 @@ class ConfigCLILoadTest {
     @Test
     @Throws(Exception::class)
     fun appendTest() {
-        val options = arrayOf("-m+=mark5,mark7,mark6", "--includes+=include7;include193;include3")
+        val options = arrayOf("-mark+=mark5,mark7,mark6", "--includes+=include7;include193;include3")
         val config = Configuration.initConfig(correctFile, *options)
         val serverConfig = config.buildServerConfiguration()
         val translationConfig = config.buildTranslationConfiguration()

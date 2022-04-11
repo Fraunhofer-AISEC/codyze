@@ -78,7 +78,7 @@ class MarkArgGroup {
     }
 
     @Option(
-        names = ["-m+", "--mark+"],
+        names = ["--mark+"],
         paramLabel = "<path>",
         description =
             ["See --mark, but appends the values to the ones specified in configuration file."],

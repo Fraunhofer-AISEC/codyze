@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.codyze.crymlin
 
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.CallResolver
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
@@ -283,10 +284,52 @@ class ConfigCLILoadTest {
         )
     }
 
+    @Test
+    fun disabledMarkAppendTest() {
+        val config =
+            Configuration.initConfig(
+                disabledMarkFile,
+                "--disabled-mark-rules+=package.mark0,package2.*"
+            )
+        val serverConfiguration = config.buildServerConfiguration()
+        val expectedMap =
+            mapOf(
+                Pair("package", DisabledMarkRulesValue(false, mutableSetOf("mark1", "mark0"))),
+                Pair("", DisabledMarkRulesValue(false, mutableSetOf("mark2"))),
+                Pair("package0", DisabledMarkRulesValue(false, mutableSetOf("mark123"))),
+                Pair("package2", DisabledMarkRulesValue(true))
+            )
+
+        for (expectedKey in expectedMap.keys) {
+            assertContains(
+                serverConfiguration.packageToDisabledMarkRules,
+                expectedKey,
+                "\"$expectedKey\" was not a key in map"
+            )
+
+            val expectedValue = expectedMap[expectedKey]
+            val actualValue = serverConfiguration.packageToDisabledMarkRules[expectedKey]
+            if (expectedValue != null && actualValue != null) {
+                assertEquals(
+                    expectedValue.isDisablePackage,
+                    actualValue.isDisablePackage,
+                    "Boolean to disable entire package was not equal"
+                )
+                for (rule in expectedValue.disabledMarkRuleNames) {
+                    assertTrue(
+                        actualValue.disabledMarkRuleNames.contains(rule),
+                        "Rule $rule was not in set"
+                    )
+                }
+            }
+        }
+    }
+
     companion object {
         private lateinit var correctFile: File
         private lateinit var incorrectFile: File
         private lateinit var additionalOptionFile: File
+        private lateinit var disabledMarkFile: File
 
         @BeforeAll
         @JvmStatic
@@ -314,6 +357,12 @@ class ConfigCLILoadTest {
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
+
+            val disabledMarkResource =
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/disabled_mark.yml")
+            assertNotNull(disabledMarkResource)
+            disabledMarkFile = File(disabledMarkResource.file)
+            assertNotNull(disabledMarkFile)
         }
     }
 }

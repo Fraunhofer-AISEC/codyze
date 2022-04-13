@@ -17,7 +17,7 @@ class CpgConfiguration {
     @Option(
         names = ["--additional-languages"],
         split = ",",
-        paramLabel = "language",
+        paramLabel = "<language>",
         description =
             [
                 "Enables the experimental support for additional languages (currently \${COMPLETION-CANDIDATES}). Additional files need to be placed in certain locations. Please follow the CPG README."]
@@ -55,7 +55,7 @@ class CpgConfiguration {
 
     @Option(
         names = ["--passes"],
-        paramLabel = "pass",
+        paramLabel = "<pass>",
         description =
             [
                 "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
@@ -142,6 +142,7 @@ class TranslationSettings {
 
     @Option(
         names = ["--includes"],
+        paramLabel = "<path>",
         description =
             [
                 "Path(s) containing include files. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],

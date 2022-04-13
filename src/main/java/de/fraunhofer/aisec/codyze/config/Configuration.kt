@@ -211,20 +211,30 @@ class Configuration {
     // Parse CLI arguments into config class
     private fun parseCLI(vararg args: String?) {
 
-        CommandLine(this)
-            // Added as Mixin so the already initialized objects are used instead of new ones
-            // created
-            .addMixin("codyze", codyze)
-            .addMixin("cpg", cpg)
-            .addMixin("analysis", codyze.analysis)
-            .addMixin("translation", cpg.translation)
-            .registerConverter(Pass::class.java, PassTypeConverter())
-            .setCaseInsensitiveEnumValuesAllowed(true)
-            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
-            // option which would result in exceptions, side effect is that all unknown options are
-            // ignored
-            .setUnmatchedArgumentsAllowed(true)
-            .parseArgs(*args)
+        val cl =
+            CommandLine(this)
+                // Added as Mixin so the already initialized objects are used instead of new ones
+                // created
+                .addMixin("codyze", codyze)
+                .addMixin("cpg", cpg)
+                .addMixin("analysis", codyze.analysis)
+                .addMixin("translation", cpg.translation)
+                .registerConverter(Pass::class.java, PassTypeConverter())
+                .setCaseInsensitiveEnumValuesAllowed(true)
+                // setUnmatchedArgumentsAllowed is true because both classes don't have the config
+                // path option which would result in exceptions, side effect is that all unknown
+                // options are ignored
+                .setUnmatchedArgumentsAllowed(true)
+                .parseArgs(*args)
+
+        // log any unmatched arguments
+        if (cl.unmatched() != null && cl.unmatched().isNotEmpty()) {
+            log.warn(
+                "{} argument(s) could not be matched: {}",
+                cl.unmatched().size,
+                cl.unmatched().toString()
+            )
+        }
     }
 
     companion object {

@@ -67,7 +67,7 @@ public class Main {
 			int returnCode = 0;
 
 			try {
-				Configuration config = Configuration.initConfig(firstPass.configFile, args);
+				Configuration config = Configuration.initConfig(firstPass.configFile, firstPass.remainder.toArray(new String[0]));
 				// Start analysis setup
 				returnCode = start(config);
 			}

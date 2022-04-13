@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import de.fraunhofer.aisec.codyze.Main.ConfigFilePath
@@ -20,6 +21,7 @@ import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.io.IOException
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
 
@@ -267,6 +269,8 @@ class Configuration {
 
         // parse yaml configuration file with jackson
         private fun parseFile(configFile: File): Configuration {
+            val mapper =
+                YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
 
             val module =
                 SimpleModule()
@@ -283,23 +287,28 @@ class Configuration {
                             }
                         }
                     )
-            val mapper =
-                YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
+            val logProblemHandler = LogDeserializationProblemHandler(log)
+
             mapper
                 .enable(JsonParser.Feature.IGNORE_UNDEFINED)
                 .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .registerModule(module)
+                .registerModule(LogModule(logProblemHandler))
             mapper.injectableValues =
                 InjectableValues.Std()
                     .addValue("configFileBasePath", configFile.absoluteFile.parentFile.absolutePath)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
+
             var config: Configuration? = null
             try {
                 config = mapper.readValue(configFile, Configuration::class.java)
             } catch (e: IOException) {
                 printErrorMessage(configFile.absolutePath, e.toString())
             }
+
+            logProblemHandler.printToLog()
+
             return config ?: Configuration()
         }
 
@@ -352,4 +361,36 @@ class ExecutionMode {
         description = ["Start interactive console (Text-based User Interface)."]
     )
     var isTui = false
+}
+
+// Taken from:
+// https://stackoverflow.com/questions/46644099/cant-set-problemhandler-to-objectmapper-in-spring-boot
+class LogModule(private val problemHandler: LogDeserializationProblemHandler) : SimpleModule() {
+    override fun setupModule(context: SetupContext) {
+        super.setupModule(context)
+        context.addDeserializationProblemHandler(problemHandler)
+    }
+}
+
+class LogDeserializationProblemHandler(val log: Logger) : DeserializationProblemHandler() {
+    private val unknownPropNames = mutableListOf<String>()
+
+    fun printToLog() {
+        if (unknownPropNames.isNotEmpty()) {
+            log.warn(
+                "${if(unknownPropNames.size == 1) "1 property is" else "${unknownPropNames.size} properties are"} unknown: $unknownPropNames"
+            )
+        }
+    }
+
+    override fun handleUnknownProperty(
+        ctxt: DeserializationContext,
+        p: JsonParser,
+        deserializer: JsonDeserializer<*>,
+        beanOrClass: Any,
+        propertyName: String
+    ): Boolean {
+        unknownPropNames.add(propertyName)
+        return true
+    }
 }

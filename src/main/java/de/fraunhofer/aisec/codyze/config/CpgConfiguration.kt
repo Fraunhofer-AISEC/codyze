@@ -112,7 +112,7 @@ class CpgConfiguration {
 
     @Option(
         names = ["--symbols"],
-        paramLabel = "<symbol=definition>",
+        paramLabel = "<symbol>=<definition>",
         description = ["Definition of additional symbols"],
         split = ","
     )

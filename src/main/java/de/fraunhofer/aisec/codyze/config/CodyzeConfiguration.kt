@@ -31,10 +31,10 @@ class CodyzeConfiguration {
 
     @Option(
         names = ["--disabled-mark-rules"],
-        paramLabel = "<package.rule>",
+        paramLabel = "<package>.<rule>",
         description =
             [
-                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (package.rule). If there is no package name, specify rule as \".rule\". Use \'*\' to disable an entire package."],
+                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name. If there is no package name, specify rule as \".<rule>\". Use \'<package>.*\' to disable an entire package."],
         split = ","
     )
     var disabledMarkRules: List<String> = emptyList()

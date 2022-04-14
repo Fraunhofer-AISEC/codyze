@@ -39,7 +39,7 @@ class CpgConfiguration {
         negatable = true,
         description =
             [
-                "If false, type listener system is only activated after the frontends are done building the initial AST structure.(Default: \${DEFAULT-VALUE})"],
+                "If false, type listener system is only activated after the frontends are done building the initial AST structure.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var typeSystemInFrontend = true
@@ -69,7 +69,7 @@ class CpgConfiguration {
 
     @Option(
         names = ["--debug-parser"],
-        description = ["Controls debug output generation for the cpg parser"],
+        description = ["Controls debug output generation for the cpg parser."],
         fallbackValue = "true"
     )
     var debugParser = false
@@ -78,7 +78,7 @@ class CpgConfiguration {
         names = ["--disable-cleanup"],
         description =
             [
-                "Switch off cleaning up TypeManager memory after the analysis. Set to true only for testing"],
+                "Switch off cleaning up TypeManager memory after the analysis. Set to true only for testing."],
         fallbackValue = "true"
     )
     var disableCleanup = false
@@ -88,7 +88,7 @@ class CpgConfiguration {
         negatable = true,
         description =
             [
-                "Controls showing the code of a node as parameter in the node\n\t(Default: \${DEFAULT-VALUE})"],
+                "Controls showing the code of a node as parameter in the node.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var codeInNodes = true
@@ -96,7 +96,7 @@ class CpgConfiguration {
     @JsonProperty("annotations")
     @Option(
         names = ["--annotations"],
-        description = ["Enables processing annotations or annotation-like elements"],
+        description = ["Enables processing annotations or annotation-like elements."],
         fallbackValue = "true"
     )
     var processAnnotations = false
@@ -105,7 +105,7 @@ class CpgConfiguration {
         names = ["--fail-on-error"],
         description =
             [
-                "Should the parser/translation fail on errors (true) or try to continue in a best-effort manner (false)\n\t(Default: \${DEFAULT-VALUE})"],
+                "Should the parser/translation fail on errors (true) or try to continue in a best-effort manner (false).\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var failOnError = false
@@ -113,7 +113,7 @@ class CpgConfiguration {
     @Option(
         names = ["--symbols"],
         paramLabel = "<symbol>=<definition>",
-        description = ["Definition of additional symbols"],
+        description = ["Definition of additional symbols."],
         split = ","
     )
     var symbols: Map<String, String> = HashMap()
@@ -123,7 +123,7 @@ class CpgConfiguration {
         names = ["--parallel-frontends"],
         description =
             [
-                "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread"],
+                "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread."],
         fallbackValue = "true"
     )
     var useParallelFrontends = false
@@ -145,7 +145,7 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "Path(s) containing include files. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
+                "Path(s) containing include files. Paths must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
         split = ":|;"
     )
     var includes: Array<File> = emptyArray()
@@ -155,7 +155,7 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
+                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored. Paths must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
         split = ":|;"
     )
     var enabledIncludes: Array<File> = emptyArray()
@@ -165,7 +165,7 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
+                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries. Paths must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
         split = ":|;"
     )
     var disabledIncludes: Array<File> = emptyArray()

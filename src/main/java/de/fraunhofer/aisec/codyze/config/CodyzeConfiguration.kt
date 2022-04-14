@@ -23,7 +23,7 @@ class CodyzeConfiguration {
         names = ["--no-good-findings"],
         description =
             [
-                "Disable output of \"positive\" findings which indicate correct implementations\n" +
+                "Disable output of \"positive\" findings which indicate correct implementations.\n" +
                     "\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )

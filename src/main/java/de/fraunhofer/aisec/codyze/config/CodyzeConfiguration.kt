@@ -14,7 +14,7 @@ class CodyzeConfiguration {
         names = ["-m", "--mark"],
         paramLabel = "<path>",
         description = ["Loads MARK policy files.\n\t(Default: \${DEFAULT-VALUE})"],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     var mark: Array<File> = arrayOf(File("./"))
 
@@ -35,7 +35,7 @@ class CodyzeConfiguration {
         description =
             [
                 "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name. If there is no package name, specify rule as \".<rule>\". Use \'<package>.*\' to disable an entire package."],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     var disabledMarkRules: List<String> = emptyList()
 

@@ -16,7 +16,7 @@ class CpgConfiguration {
 
     @Option(
         names = ["--additional-languages"],
-        split = ",",
+        split = "\${sys:path.separator}",
         paramLabel = "<language>",
         description =
             [
@@ -59,7 +59,7 @@ class CpgConfiguration {
         description =
             [
                 "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     @JvmName("setPassesNull")
     fun setPasses(passes: List<Pass?>) {
@@ -114,7 +114,7 @@ class CpgConfiguration {
         names = ["--symbols"],
         paramLabel = "<symbol>=<definition>",
         description = ["Definition of additional symbols."],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     var symbols: Map<String, String> = HashMap()
 
@@ -143,10 +143,8 @@ class TranslationSettings {
     @Option(
         names = ["--includes"],
         paramLabel = "<path>",
-        description =
-            [
-                "Path(s) containing include files. Paths must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
-        split = ":|;"
+        description = ["Path(s) containing include files."],
+        split = "\${sys:path.separator}"
     )
     var includes: Array<File> = emptyArray()
 
@@ -155,8 +153,8 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored. Paths must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
-        split = ":|;"
+                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored."],
+        split = "\${sys:path.separator}"
     )
     var enabledIncludes: Array<File> = emptyArray()
 
@@ -165,8 +163,8 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries. Paths must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
-        split = ":|;"
+                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries."],
+        split = "\${sys:path.separator}"
     )
     var disabledIncludes: Array<File> = emptyArray()
 }

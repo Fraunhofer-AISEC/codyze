@@ -269,8 +269,6 @@ class Configuration {
 
         // parse yaml configuration file with jackson
         private fun parseFile(configFile: File): Configuration {
-            val mapper =
-                YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
 
             val module =
                 SimpleModule()
@@ -289,6 +287,8 @@ class Configuration {
                     )
             val logProblemHandler = LogDeserializationProblemHandler(log)
 
+            val mapper =
+                YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
             mapper
                 .enable(JsonParser.Feature.IGNORE_UNDEFINED)
                 .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
@@ -391,6 +391,6 @@ class LogDeserializationProblemHandler(val log: Logger) : DeserializationProblem
         propertyName: String
     ): Boolean {
         unknownPropNames.add(propertyName)
-        return true
+        return false
     }
 }

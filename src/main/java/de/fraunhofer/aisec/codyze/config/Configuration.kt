@@ -33,7 +33,7 @@ class Configuration {
     @CommandLine.Option(
         names = ["-s", "--source"],
         paramLabel = "<path>",
-        split = ",",
+        split = "\${sys:path.separator}",
         description = ["Source files or folders to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
     )
     var source: Array<File> = arrayOf(File("./"))
@@ -43,7 +43,7 @@ class Configuration {
     @CommandLine.Option(
         names = ["--disabled-sources"],
         paramLabel = "<path>",
-        split = ",",
+        split = "\${sys:path.separator}",
         description = ["Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"]
     )
     var disabledSource: Array<File> = emptyArray()

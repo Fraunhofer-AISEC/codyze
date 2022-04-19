@@ -109,7 +109,7 @@ public class Evaluator {
 		// iterate over all entities and precalculate:
 		// - call statements to vertices
 		for (var ent : markModel.getEntities()) {
-			log.info("Precalculating call statements for entity {}", ent.getName());
+			log.debug("Precalculating call statements for entity {}", ent.getName());
 			ent.parseVars();
 
 			for (var op : ent.getOps()) {
@@ -145,7 +145,7 @@ public class Evaluator {
 	 */
 	private void evaluateRules(AnalysisContext ctx, @NonNull Graph graph) {
 		for (MRule rule : this.markModel.getRules()) {
-			log.info("checking rule {}", rule.getName());
+			log.debug("checking rule {}", rule.getName());
 
 			// Evaluate "using" part and collect the instances of MARK entities, as well as
 			// the potential vertex representing the base object variables.

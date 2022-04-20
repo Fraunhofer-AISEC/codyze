@@ -5,7 +5,7 @@
     "type": "object",
     "properties": {
         "sources": {
-            "description": "Path to the to be analyzed directories or files",
+            "description": "Source files or directories to analyze.",
             "type": "array",
             "items": {
                 "description": "Path to source",
@@ -13,7 +13,7 @@
             }
         },
         "disabled-sources": {
-            "description": "Files or folders specified here will not be analyzed.",
+            "description": "Files or directories specified here will not be analyzed.",
             "type": "array",
             "items": {
                 "description": "Path to disabled source",

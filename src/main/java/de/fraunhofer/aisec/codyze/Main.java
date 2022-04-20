@@ -50,7 +50,6 @@ public class Main {
 	 */
 	public static void main(String... args) throws Exception {
 		ConfigFilePath firstPass = new ConfigFilePath();
-		firstPass.configFile = null;
 		CommandLine cmd = new CommandLine(firstPass);
 		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
@@ -136,8 +135,9 @@ public class Main {
 	// Stores path to config file given as cli option
 	@Command(mixinStandardHelpOptions = true)
 	public static class ConfigFilePath {
-		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.\n\t(Default: ${DEFAULT-VALUE})")
-		public File configFile = new File("codyze.yaml");
+		@Option(names = {
+				"--config" }, paramLabel = "<path>", fallbackValue = "codyze.yaml", arity = "0..1", description = "Parse configuration settings from this file. If no file path is specified, codyze will try to load the configuration file from ./codyze.yaml")
+		public File configFile;
 
 		@Unmatched
 		List<String> remainder;

@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import de.fraunhofer.aisec.codyze.Main.ConfigFilePath
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.config.converters.FileDeserializer
 import de.fraunhofer.aisec.codyze.config.converters.OutputDeserializer
@@ -244,12 +243,7 @@ class Configuration {
                 if (configFile != null) {
                     parseFile(configFile)
                 } else {
-                    val defaultConfigFile = ConfigFilePath().configFile
-                    if (defaultConfigFile.isFile) {
-                        parseFile(defaultConfigFile)
-                    } else {
-                        Configuration()
-                    }
+                    Configuration()
                 }
             config.parseCLI(*args)
             return config

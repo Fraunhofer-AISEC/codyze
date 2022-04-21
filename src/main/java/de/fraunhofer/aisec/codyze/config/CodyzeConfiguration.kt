@@ -14,7 +14,7 @@ class CodyzeConfiguration {
         names = ["-m", "--mark"],
         paramLabel = "<path>",
         description = ["Loads MARK policy files.\n\t(Default: \${DEFAULT-VALUE})"],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     var mark: Array<File> = arrayOf(File("./"))
 
@@ -23,7 +23,7 @@ class CodyzeConfiguration {
         names = ["--no-good-findings"],
         description =
             [
-                "Disable output of \"positive\" findings which indicate correct implementations\n" +
+                "Disable output of \"positive\" findings which indicate correct implementations.\n" +
                     "\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
@@ -31,11 +31,11 @@ class CodyzeConfiguration {
 
     @Option(
         names = ["--disabled-mark-rules"],
-        paramLabel = "<package.rule>",
+        paramLabel = "<package>.<rule>",
         description =
             [
-                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (package.rule). If there is no package name, specify rule as \".rule\". Use \'*\' to disable an entire package."],
-        split = ","
+                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name. If there is no package name, specify rule as \".<rule>\". Use \'<package>.*\' to disable an entire package."],
+        split = "\${sys:path.separator}"
     )
     var disabledMarkRules: List<String> = emptyList()
 

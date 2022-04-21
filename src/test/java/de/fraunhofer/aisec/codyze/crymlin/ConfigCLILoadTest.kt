@@ -151,7 +151,10 @@ class ConfigCLILoadTest {
     @Throws(Exception::class)
     fun appendTest() {
         val options =
-            arrayOf("--mark+=mark5,mark7,mark6", "--includes+=include7;include193;include3")
+            arrayOf(
+                "--mark+=mark5${File.pathSeparator}mark7${File.pathSeparator}mark6",
+                "--includes+=include7${File.pathSeparator}include193${File.pathSeparator}include3"
+            )
         val config = Configuration.initConfig(correctFile, *options)
         val serverConfig = config.buildServerConfiguration()
         val translationConfig = config.buildTranslationConfiguration()
@@ -189,12 +192,12 @@ class ConfigCLILoadTest {
             Configuration.initConfig(
                 additionalOptionFile,
                 "-c",
-                "--passes+=de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
+                "--passes+=de.fraunhofer.aisec.cpg.passes.FilenameMapper${File.pathSeparator}" +
                     "de.fraunhofer.aisec.cpg.passes.CallResolver",
-                "--symbols+=&=and,+=plus",
+                "--symbols+=&=and${File.pathSeparator}+=plus",
                 "--default-passes",
-                "--includes+=include9;include193;include13",
-                "--enabled-includes+=include9;include52",
+                "--includes+=include9${File.pathSeparator}include193${File.pathSeparator}include13",
+                "--enabled-includes+=include9${File.pathSeparator}include52",
                 "--disabled-includes+=include13"
             )
         val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
@@ -288,7 +291,7 @@ class ConfigCLILoadTest {
         val config =
             Configuration.initConfig(
                 disabledMarkFile,
-                "--disabled-mark-rules+=package.mark0,package2.*"
+                "--disabled-mark-rules+=package.mark0${File.pathSeparator}package2.*"
             )
         val serverConfiguration = config.buildServerConfiguration()
         val expectedMap =

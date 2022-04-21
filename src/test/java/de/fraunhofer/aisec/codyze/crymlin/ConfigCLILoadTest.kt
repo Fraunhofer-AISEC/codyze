@@ -25,7 +25,7 @@ class ConfigCLILoadTest {
                 "--sarif", // test if true stays true
                 "--unity", // test if false is set to true
                 "--analyze-includes=false", // test if false is set to false
-                "-m=mark5,mark7,mark6"
+                "-m=mark5${File.pathSeparator}mark7${File.pathSeparator}mark6"
             )
         val config = Configuration.initConfig(correctFile, *options)
         val serverConfig = config.buildServerConfiguration()
@@ -82,9 +82,9 @@ class ConfigCLILoadTest {
             Configuration.initConfig(
                 additionalOptionFile,
                 "-c",
-                "--passes=de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
+                "--passes=de.fraunhofer.aisec.cpg.passes.FilenameMapper${File.pathSeparator}" +
                     "de.fraunhofer.aisec.cpg.passes.CallResolver",
-                "--symbols=&=and,+=plus",
+                "--symbols=&=and${File.pathSeparator}+=plus",
                 "--no-type-system-in-frontend",
                 "--default-passes"
             )

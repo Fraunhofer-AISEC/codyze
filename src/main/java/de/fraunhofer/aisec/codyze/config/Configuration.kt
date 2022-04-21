@@ -27,29 +27,46 @@ import picocli.CommandLine
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class Configuration {
 
+    @JsonIgnore @CommandLine.ArgGroup(exclusive = true) private val sourceCLI = SourceArgGroup()
+    var source: Array<File> = arrayOf(File("./"))
+        private set
+        get() {
+            val result = mutableListOf<File>()
+
+            if (!sourceCLI.matched || sourceCLI.append) {
+                result.addAll(field)
+            }
+
+            if (sourceCLI.matched) {
+                result.addAll(sourceCLI.source)
+            }
+
+            return result.toTypedArray()
+        }
+
+    @JsonIgnore
+    @CommandLine.ArgGroup(exclusive = true)
+    private val disabledSourceCLI = DisabledSourceArgGroup()
+    @JsonProperty("disabled-sources")
+    var disabledSource: Array<File> = emptyArray()
+        private set
+        get() {
+            val result = mutableListOf<File>()
+
+            if (!disabledSourceCLI.matched || disabledSourceCLI.append) {
+                result.addAll(field)
+            }
+
+            if (disabledSourceCLI.matched) {
+                result.addAll(disabledSourceCLI.disabledSource)
+            }
+
+            return result.toTypedArray()
+        }
+
     @JsonIgnore
     @CommandLine.ArgGroup(exclusive = true, heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
-
-    @CommandLine.Option(
-        names = ["-s", "--source"],
-        paramLabel = "<path>",
-        split = "\${sys:path.separator}",
-        description = ["Source files or folders to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
-    )
-    var source: Array<File> = arrayOf(File("./"))
-        private set
-
-    @JsonProperty("disabled-sources")
-    @CommandLine.Option(
-        names = ["--disabled-sources"],
-        paramLabel = "<path>",
-        split = "\${sys:path.separator}",
-        description =
-            [
-                "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"]
-    )
-    var disabledSource: Array<File> = emptyArray()
 
     // TODO output standard stdout?
     @CommandLine.Option(
@@ -482,6 +499,67 @@ class ExecutionMode {
         description = ["Start interactive console (Text-based User Interface)."]
     )
     var isTui = false
+}
+
+class SourceArgGroup {
+    var append = false
+    var matched = false
+
+    var source: Array<File> = emptyArray()
+    @CommandLine.Option(
+        names = ["-s", "--source"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description = ["Source files or folders to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
+    )
+    fun match(value: Array<File>) {
+        matched = true
+        this.source = value
+    }
+
+    @CommandLine.Option(
+        names = ["--source+"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            ["See --source, but appends the values to the ones specified in configuration file."]
+    )
+    fun append(value: Array<File>) {
+        append = true
+        match(value)
+    }
+}
+
+class DisabledSourceArgGroup {
+    var append = false
+    var matched = false
+
+    var disabledSource: Array<File> = emptyArray()
+    @CommandLine.Option(
+        names = ["--disabled-sources"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            [
+                "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"]
+    )
+    fun match(value: Array<File>) {
+        matched = true
+        this.disabledSource = value
+    }
+
+    @CommandLine.Option(
+        names = ["--disabled-sources+"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            [
+                "See --disabled-sources, but appends the values to the ones specified in configuration file."]
+    )
+    fun append(value: Array<File>) {
+        append = true
+        match(value)
+    }
 }
 
 // Taken from:

@@ -130,7 +130,7 @@ class Configuration {
 
         val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
         val disabledMarkRules = codyze.disabledMarkRulesCLI.disabledMarkRules.toMutableList()
-        if (codyze.disabledMarkRulesCLI.append) disabledMarkRules.addAll(codyze.disabledMarkRules)
+        if (!codyze.disabledMarkRulesCLI.matched || codyze.disabledMarkRulesCLI.append) disabledMarkRules.addAll(codyze.disabledMarkRules)
 
         for (mName in disabledMarkRules) {
             val index = mName.lastIndexOf('.')

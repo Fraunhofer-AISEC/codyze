@@ -20,7 +20,7 @@ class CodyzeConfiguration {
         names = ["--no-good-findings"],
         description =
             [
-                "Disable output of \"positive\" findings which indicate correct implementations\n" +
+                "Disable output of \"positive\" findings which indicate correct implementations.\n" +
                     "\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
@@ -70,7 +70,7 @@ class MarkArgGroup {
         names = ["-m", "--mark"],
         paramLabel = "<path>",
         description = ["Loads MARK policy files.\n\t(Default: \${DEFAULT-VALUE})"],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     fun match(value: Array<File>) {
         matched = true
@@ -82,7 +82,7 @@ class MarkArgGroup {
         paramLabel = "<path>",
         description =
             ["See --mark, but appends the values to the ones specified in configuration file."],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     fun append(value: Array<File>) {
         append = true
@@ -97,11 +97,11 @@ class DisabledMarkArgGroup {
     var disabledMarkRules: List<String> = emptyList()
     @Option(
         names = ["--disabled-mark-rules"],
-        paramLabel = "<package.rule>",
+        paramLabel = "<package>.<rule>",
         description =
             [
-                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (package.rule). If there is no package name, specify rule as \".rule\". Use \'*\' to disable an entire package."],
-        split = ","
+                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name. If there is no package name, specify rule as \".<rule>\". Use \"<package>.*\" to disable an entire package."],
+        split = "\${sys:path.separator}"
     )
     fun match(value: List<String>) {
         matched = true
@@ -110,11 +110,11 @@ class DisabledMarkArgGroup {
 
     @Option(
         names = ["--disabled-mark-rules+"],
-        paramLabel = "<package.rule>",
+        paramLabel = "<package>.<rule>",
         description =
             [
                 "See --disabled-mark-rules, but appends the values to the ones specified in configuration file."],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     fun append(value: List<String>) {
         append = true

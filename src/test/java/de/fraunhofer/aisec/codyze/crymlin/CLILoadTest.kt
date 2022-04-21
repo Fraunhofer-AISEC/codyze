@@ -31,7 +31,10 @@ internal class CLILoadTest {
         assertTrue(config.executionMode.isCli)
         assertFalse(config.executionMode.isLsp)
         assertFalse(config.executionMode.isTui)
-        assertEquals(File(".").absolutePath, config.source.absolutePath)
+        assertContentEquals(
+            listOf(File(".").absolutePath),
+            config.source.map { f -> f.absolutePath }
+        )
         assertEquals(120L, config.timeout)
         assertEquals("findings.sarif", config.output)
         assertTrue(config.sarifOutput)

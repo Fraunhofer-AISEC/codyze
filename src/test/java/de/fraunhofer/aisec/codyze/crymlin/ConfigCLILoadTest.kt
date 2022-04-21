@@ -33,12 +33,11 @@ class ConfigCLILoadTest {
         val configFileBasePath = correctFile.absoluteFile.parent
 
         // assert that CLI configurations have a higher priority than config file configurations
-        assertNotEquals(
-            File("source.java"),
-            config.source,
+        assertFalse(
+            config.source.contains(File("source.java")),
             "Option specified in CLI should be prioritized"
         )
-        assertEquals(File("new_source.java"), config.source)
+        assertContentEquals(arrayOf(File("new_source.java")), config.source)
         assertContentEquals(
             arrayOf("mark5", "mark7", "mark6").map { s -> File(s).absolutePath }.toTypedArray(),
             serverConfig.markModelFiles,

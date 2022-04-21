@@ -4,9 +4,21 @@
     "description": "A schema for writing yaml configuration files for codyze",
     "type": "object",
     "properties": {
-        "source": {
-            "description": "Path to the to be analyzed directory or file",
-            "type": "string"
+        "sources": {
+            "description": "Source files or directories to analyze.",
+            "type": "array",
+            "items": {
+                "description": "Path to source",
+                "type": "string"
+            }
+        },
+        "disabled-sources": {
+            "description": "Files or directories specified here will not be analyzed.",
+            "type": "array",
+            "items": {
+                "description": "Path to disabled source",
+                "type": "string"
+            }
         },
         "output": {
             "description": "Path to output file in which results are written. Use “-” to print to stdout",

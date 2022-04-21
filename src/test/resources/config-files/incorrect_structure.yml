@@ -1,4 +1,5 @@
-source: source.java
+source:
+  - source.java
 output: result.out
 
 codyze:

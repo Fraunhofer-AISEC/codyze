@@ -18,6 +18,7 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -94,9 +95,9 @@ public class Main {
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
 		if (!configuration.getExecutionMode().isLsp()) {
-			log.info("Analyzing {}", configuration.getSource());
+			log.info("Analyzing sources {} excluding {}", Arrays.toString(configuration.getSource()), Arrays.toString(configuration.getDisabledSource()));
 			AnalysisContext ctx = server
-					.analyze(configuration.getSource().getAbsolutePath())
+					.analyze(configuration.getSource())
 					.get(configuration.getTimeout(), TimeUnit.MINUTES);
 
 			var findings = ctx.getFindings();

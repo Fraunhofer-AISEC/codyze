@@ -64,7 +64,7 @@ class MarkArgGroup {
     var append = false
     var matched = false
 
-    var mark: Array<File> = arrayOf(File("./"))
+    var mark: Array<File> = emptyArray()
 
     @Option(
         names = ["-m", "--mark"],

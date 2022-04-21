@@ -140,7 +140,7 @@ public class Main {
 	@Command(mixinStandardHelpOptions = true)
 	public static class ConfigFilePath {
 		@Option(names = {
-				"--config" }, paramLabel = "<path>", fallbackValue = "codyze.yaml", arity = "0..1", description = "Parse configuration settings from this file. If no file path is specified, codyze will try to load the configuration file from codyze.yaml")
+				"--config" }, paramLabel = "<path>", fallbackValue = "codyze.yaml", arity = "0..1", description = "Parse configuration settings from this file. If no file path is specified, codyze will try to load the configuration file from ${FALLBACK-VALUE}")
 		public File configFile;
 
 		@Unmatched

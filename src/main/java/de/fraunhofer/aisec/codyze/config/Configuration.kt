@@ -130,7 +130,8 @@ class Configuration {
 
         val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
         val disabledMarkRules = codyze.disabledMarkRulesCLI.disabledMarkRules.toMutableList()
-        if (!codyze.disabledMarkRulesCLI.matched || codyze.disabledMarkRulesCLI.append) disabledMarkRules.addAll(codyze.disabledMarkRules)
+        if (!codyze.disabledMarkRulesCLI.matched || codyze.disabledMarkRulesCLI.append)
+            disabledMarkRules.addAll(codyze.disabledMarkRules)
 
         for (mName in disabledMarkRules) {
             val index = mName.lastIndexOf('.')
@@ -510,7 +511,7 @@ class SourceArgGroup {
         names = ["-s", "--source"],
         paramLabel = "<path>",
         split = "\${sys:path.separator}",
-        description = ["Source files or folders to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
+        description = ["Source files or folders to analyze.\n\t(Default: \${sys:source})"]
     )
     fun match(value: Array<File>) {
         matched = true

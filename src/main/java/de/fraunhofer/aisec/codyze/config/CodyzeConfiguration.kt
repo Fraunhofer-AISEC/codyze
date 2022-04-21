@@ -69,7 +69,7 @@ class MarkArgGroup {
     @Option(
         names = ["-m", "--mark"],
         paramLabel = "<path>",
-        description = ["Loads MARK policy files.\n\t(Default: \${DEFAULT-VALUE})"],
+        description = ["Loads MARK policy files.\n\t(Default: \${sys:mark})"],
         split = "\${sys:path.separator}"
     )
     fun match(value: Array<File>) {

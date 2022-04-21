@@ -54,7 +54,11 @@ public class Main {
 		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
 			// print help message
-			CommandLine c = new CommandLine(new Help());
+			Help help = new Help();
+			System.setProperty("source", Arrays.toString(help.configuration.getSource()));
+			System.setProperty("mark", Arrays.toString(help.codyzeConfig.getMark()));
+
+			CommandLine c = new CommandLine(help);
 			c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
 			c.usage(System.out);
 			System.exit(c.getCommandSpec().exitCodeOnUsageHelp());

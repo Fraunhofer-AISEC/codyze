@@ -153,7 +153,8 @@ class ConfigCLILoadTest {
         val options =
             arrayOf(
                 "--mark+=mark5${File.pathSeparator}mark7${File.pathSeparator}mark6",
-                "--includes+=include7${File.pathSeparator}include193${File.pathSeparator}include3"
+                "--includes+=include7${File.pathSeparator}include193${File.pathSeparator}include3",
+                "--source+=cliSource.java${File.pathSeparator}cliDir"
             )
         val config = Configuration.initConfig(correctFile, *options)
         val serverConfig = config.buildServerConfiguration()
@@ -181,6 +182,16 @@ class ConfigCLILoadTest {
                 .map { s -> File(s).absolutePath }
                 .toTypedArray(),
             translationConfig.includePaths,
+            "Option specified in config file should be appended to CLI option"
+        )
+
+        assertContentEquals(
+            arrayOf(
+                File(configFileBasePath, "source.java"),
+                File("cliSource.java"),
+                File("cliDir")
+            ),
+            config.source,
             "Option specified in config file should be appended to CLI option"
         )
     }
@@ -327,11 +338,56 @@ class ConfigCLILoadTest {
         }
     }
 
+    @Test
+    fun disabledSourceAppendTest() {
+        val options =
+            arrayOf(
+                "--source+=cliDir1${File.pathSeparator}cliDir2/cliSource.java${File.pathSeparator}cliSource.java",
+                "--disabled-sources+=cliDir2${File.pathSeparator}cliSource.java"
+            )
+        val config = Configuration.initConfig(sourceDisablingFile, *options)
+        val configFileBasePath = sourceDisablingFile.absoluteFile.parent
+
+        val expectedConfigSource =
+            arrayOf(
+                    "../real-examples/botan/blockciphers/Antidote1911.Arsenic",
+                    "../real-examples/botan/blockciphers/obraunsdorf.playbook-creator",
+                    "../real-examples/botan/MARK",
+                    "../real-examples/botan/MARK",
+                    "../real-examples/botan/streamciphers",
+                    "../directory-structure"
+                )
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray()
+        assertContentEquals(
+            arrayOf(*expectedConfigSource, "cliDir1", "cliDir2/cliSource.java", "cliSource.java")
+                .map { s -> File(s).absolutePath },
+            config.source.map { f -> f.absolutePath }
+        )
+
+        val expectedConfigDisabledSource =
+            arrayOf(
+                    "../real-examples/botan/blockciphers",
+                    "../config-files/additional_options.yml",
+                    "../real-examples/botan/MARK",
+                    "../directory-structure/dir2/dir2dir1/dir2dir1file1.java"
+                )
+                .map { s -> File(configFileBasePath, s).absolutePath }
+                .toTypedArray()
+        assertContentEquals(
+            arrayOf(*expectedConfigDisabledSource, "cliDir2", "cliSource.java").map { s ->
+                File(s).absolutePath
+            },
+            config.disabledSource.map { f -> f.absolutePath }
+        )
+    }
+
     companion object {
         private lateinit var correctFile: File
         private lateinit var incorrectFile: File
         private lateinit var additionalOptionFile: File
         private lateinit var disabledMarkFile: File
+        private lateinit var sourceDisablingFile: File
 
         @BeforeAll
         @JvmStatic
@@ -365,6 +421,14 @@ class ConfigCLILoadTest {
             assertNotNull(disabledMarkResource)
             disabledMarkFile = File(disabledMarkResource.file)
             assertNotNull(disabledMarkFile)
+
+            val sourceDisablingResource =
+                ConfigLoadTest::class.java.classLoader.getResource(
+                    "config-files/source_disabling.yml"
+                )
+            assertNotNull(sourceDisablingResource)
+            sourceDisablingFile = File(sourceDisablingResource.file)
+            assertNotNull(sourceDisablingFile)
         }
     }
 }

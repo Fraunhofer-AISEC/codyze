@@ -135,7 +135,7 @@ class Configuration {
         this.normalize()
         val translationConfig =
             TranslationConfiguration.builder()
-                .debugParser(if (executionMode.isLsp) false else cpg.debugParser)
+                .debugParser(cpg.debugParser)
                 .failOnError(cpg.failOnError)
                 .codeInNodes(cpg.codeInNodes)
                 .loadIncludes(cpg.translation.analyzeIncludes)

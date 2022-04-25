@@ -199,9 +199,39 @@ class ExpressionEvaluatorTest : AbstractTest() {
                                     op = "==",
                                     right =
                                         mul(
-                                            left = mul(left = lit(2), op = "/", right = lit(2)),
+                                            left =
+                                                mul(
+                                                    left =
+                                                        mul(
+                                                            left = lit(8),
+                                                            op = ">>",
+                                                            right = lit(2)
+                                                        ),
+                                                    op = "/",
+                                                    right = lit(2)
+                                                ),
                                             op = "*",
-                                            right = lit(1)
+                                            right =
+                                                mul(
+                                                    left =
+                                                        mul(
+                                                            left = lit(31),
+                                                            op = "&",
+                                                            right = lit(43)
+                                                        ),
+                                                    op = "%",
+                                                    right =
+                                                        mul(
+                                                            left =
+                                                                mul(
+                                                                    left = lit(7),
+                                                                    op = "&^",
+                                                                    right = lit(2)
+                                                                ),
+                                                            op = "<<",
+                                                            right = lit(1)
+                                                        )
+                                                )
                                         )
                                 )
                             }

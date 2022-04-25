@@ -197,10 +197,12 @@ class ExpressionEvaluatorTest : AbstractTest() {
                                 comparison(
                                     left = operand("a.field"),
                                     op = "==",
-                                    right = mul(
-                                        left = lit(1),
-                                        op = "*",
-                                        right = lit(1))
+                                    right =
+                                        mul(
+                                            left = mul(left = lit(2), op = "/", right = lit(2)),
+                                            op = "*",
+                                            right = lit(1)
+                                        )
                                 )
                             }
                         }

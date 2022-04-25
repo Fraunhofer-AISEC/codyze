@@ -194,7 +194,14 @@ class ExpressionEvaluatorTest : AbstractTest() {
                         statement {
                             using(myEntity!!, "a")
                             ensure {
-                                comparison(left = operand("a.field"), op = "==", right = lit(1))
+                                comparison(
+                                    left = operand("a.field"),
+                                    op = "==",
+                                    right = mul(
+                                        left = lit(1),
+                                        op = "*",
+                                        right = lit(1))
+                                )
                             }
                         }
                     }

@@ -15,6 +15,14 @@ fun EnsureStatement.comparison(
     return expression
 }
 
+fun mul(left: Expression, right: Expression, op: String): MultiplicationExpression {
+    val expression = MultiplicationExpressionImpl()
+    expression.left = left
+    expression.right = right
+    expression.op = op
+    return expression
+}
+
 fun operand(name: String): Operand {
     val expression = OperandImpl()
     expression.operand = name
@@ -29,6 +37,6 @@ fun lit(value: String): Literal {
 
 fun lit(value: Int): Literal {
     val expression = IntegerLiteralImpl()
-    expression.value = value.toString()
+    expression.value = "0x${Integer.toHexString(value)}"
     return expression
 }

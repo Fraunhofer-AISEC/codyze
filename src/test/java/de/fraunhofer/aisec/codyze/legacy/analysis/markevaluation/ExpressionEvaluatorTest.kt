@@ -194,6 +194,8 @@ class ExpressionEvaluatorTest : AbstractTest() {
                         statement {
                             using(myEntity!!, "a")
                             ensure {
+                                // comparison is: a == ((8 >> 2) / 2) * (((11 & 7) << 1) % (7 | 2))
+                                // which should turn into 1 == 1 in the end
                                 comparison(
                                     left = operand("a.field"),
                                     op = "==",
@@ -215,21 +217,21 @@ class ExpressionEvaluatorTest : AbstractTest() {
                                                 mul(
                                                     left =
                                                         mul(
-                                                            left = lit(31),
-                                                            op = "&",
-                                                            right = lit(43)
+                                                            left =
+                                                                mul(
+                                                                    left = lit(11),
+                                                                    op = "&",
+                                                                    right = lit(7)
+                                                                ),
+                                                            op = "<<",
+                                                            right = lit(1)
                                                         ),
                                                     op = "%",
                                                     right =
                                                         mul(
-                                                            left =
-                                                                mul(
-                                                                    left = lit(7),
-                                                                    op = "&^",
-                                                                    right = lit(2)
-                                                                ),
-                                                            op = "<<",
-                                                            right = lit(1)
+                                                            left = lit(7),
+                                                            op = "&^",
+                                                            right = lit(2)
                                                         )
                                                 )
                                         )

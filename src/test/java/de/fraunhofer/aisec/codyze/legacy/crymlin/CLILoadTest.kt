@@ -31,7 +31,10 @@ internal class CLILoadTest {
         assertTrue(config.executionMode.isCli)
         assertFalse(config.executionMode.isLsp)
         assertFalse(config.executionMode.isTui)
-        assertEquals(File(".").absolutePath, config.source.absolutePath)
+        assertContentEquals(
+            listOf(File(".").absolutePath),
+            config.source.map { f -> f.absolutePath }
+        )
         assertEquals(120L, config.timeout)
         assertEquals("findings.sarif", config.output)
         assertTrue(config.sarifOutput)
@@ -73,8 +76,8 @@ internal class CLILoadTest {
             Configuration.initConfig(
                 null,
                 "-c",
-                "--passes=de.fraunhofer.aisec.cpg.passes.EdgeCachePass," +
-                    "de.fraunhofer.aisec.cpg.passes.FilenameMapper," +
+                "--passes=de.fraunhofer.aisec.cpg.passes.EdgeCachePass${File.pathSeparator}" +
+                    "de.fraunhofer.aisec.cpg.passes.FilenameMapper${File.pathSeparator}" +
                     "de.fraunhofer.aisec.cpg.passes.CallResolver"
             )
         val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
@@ -101,10 +104,10 @@ internal class CLILoadTest {
             Configuration.initConfig(
                 null,
                 "-c",
-                "--passes=de.fraunhofer.aisec.cpg.passes.MyPass," +
-                    "de.fraunhofer.aisec.cpg.passes.Pass," +
-                    "de.fraunhofer.aisec.cpg.passes.scopes.BlockScope," +
-                    "de.fraunhofer.aisec.cpg.passes.EdgeCachePass," +
+                "--passes=de.fraunhofer.aisec.cpg.passes.MyPass${File.pathSeparator}" +
+                    "de.fraunhofer.aisec.cpg.passes.Pass${File.pathSeparator}" +
+                    "de.fraunhofer.aisec.cpg.passes.scopes.BlockScope${File.pathSeparator}" +
+                    "de.fraunhofer.aisec.cpg.passes.EdgeCachePass${File.pathSeparator}" +
                     "MyPass2"
             )
         val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
@@ -122,7 +125,8 @@ internal class CLILoadTest {
     @Test
     @Throws(Exception::class)
     fun symbolsOptionTest() {
-        val config = Configuration.initConfig(null, "-c", "--symbols=#=hash,*=star")
+        val config =
+            Configuration.initConfig(null, "-c", "--symbols=#=hash${File.pathSeparator}*=star")
         val translationConfiguration = config.buildTranslationConfiguration(File("test.java"))
         assertEquals(
             2,

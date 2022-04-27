@@ -16,8 +16,8 @@ class CpgConfiguration {
 
     @Option(
         names = ["--additional-languages"],
-        split = ",",
-        paramLabel = "language",
+        split = "\${sys:path.separator}",
+        paramLabel = "<language>",
         description =
             [
                 "Enables the experimental support for additional languages (currently \${COMPLETION-CANDIDATES}). Additional files need to be placed in certain locations. Please follow the CPG README."]
@@ -39,7 +39,7 @@ class CpgConfiguration {
         negatable = true,
         description =
             [
-                "If false, type listener system is only activated after the frontends are done building the initial AST structure.(Default: \${DEFAULT-VALUE})"],
+                "If false, type listener system is only activated after the frontends are done building the initial AST structure.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var typeSystemInFrontend = true
@@ -55,11 +55,11 @@ class CpgConfiguration {
 
     @Option(
         names = ["--passes"],
-        paramLabel = "pass",
+        paramLabel = "<pass>",
         description =
             [
                 "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
-        split = ","
+        split = "\${sys:path.separator}"
     )
     @JvmName("setPassesNull")
     fun setPasses(passes: List<Pass?>) {
@@ -69,7 +69,7 @@ class CpgConfiguration {
 
     @Option(
         names = ["--debug-parser"],
-        description = ["Controls debug output generation for the cpg parser"],
+        description = ["Controls debug output generation for the cpg parser."],
         fallbackValue = "true"
     )
     var debugParser = false
@@ -78,7 +78,7 @@ class CpgConfiguration {
         names = ["--disable-cleanup"],
         description =
             [
-                "Switch off cleaning up TypeManager memory after the analysis. Set to true only for testing"],
+                "Switch off cleaning up TypeManager memory after the analysis. Set to true only for testing."],
         fallbackValue = "true"
     )
     var disableCleanup = false
@@ -88,7 +88,7 @@ class CpgConfiguration {
         negatable = true,
         description =
             [
-                "Controls showing the code of a node as parameter in the node\n\t(Default: \${DEFAULT-VALUE})"],
+                "Controls showing the code of a node as parameter in the node.\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var codeInNodes = true
@@ -96,7 +96,7 @@ class CpgConfiguration {
     @JsonProperty("annotations")
     @Option(
         names = ["--annotations"],
-        description = ["Enables processing annotations or annotation-like elements"],
+        description = ["Enables processing annotations or annotation-like elements."],
         fallbackValue = "true"
     )
     var processAnnotations = false
@@ -105,16 +105,16 @@ class CpgConfiguration {
         names = ["--fail-on-error"],
         description =
             [
-                "Should the parser/translation fail on errors (true) or try to continue in a best-effort manner (false)\n\t(Default: \${DEFAULT-VALUE})"],
+                "Should the parser/translation fail on errors (true) or try to continue in a best-effort manner (false).\n\t(Default: \${DEFAULT-VALUE})"],
         fallbackValue = "true"
     )
     var failOnError = false
 
     @Option(
         names = ["--symbols"],
-        paramLabel = "<symbol=definition>",
-        description = ["Definition of additional symbols"],
-        split = ","
+        paramLabel = "<symbol>=<definition>",
+        description = ["Definition of additional symbols."],
+        split = "\${sys:path.separator}"
     )
     var symbols: Map<String, String> = HashMap()
 
@@ -123,7 +123,7 @@ class CpgConfiguration {
         names = ["--parallel-frontends"],
         description =
             [
-                "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread"],
+                "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread."],
         fallbackValue = "true"
     )
     var useParallelFrontends = false
@@ -142,10 +142,9 @@ class TranslationSettings {
 
     @Option(
         names = ["--includes"],
-        description =
-            [
-                "Path(s) containing include files. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)."],
-        split = ":|;"
+        paramLabel = "<path>",
+        description = ["Path(s) containing include files."],
+        split = "\${sys:path.separator}"
     )
     var includes: Array<File> = emptyArray()
 
@@ -154,8 +153,8 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
-        split = ":|;"
+                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored."],
+        split = "\${sys:path.separator}"
     )
     var enabledIncludes: Array<File> = emptyArray()
 
@@ -164,8 +163,8 @@ class TranslationSettings {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries. Path must be separated by \':\' (Mac/Linux) or \';\' (Windows)"],
-        split = ":|;"
+                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries."],
+        split = "\${sys:path.separator}"
     )
     var disabledIncludes: Array<File> = emptyArray()
 }

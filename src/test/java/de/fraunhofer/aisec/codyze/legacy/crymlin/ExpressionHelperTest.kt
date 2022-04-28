@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.mark.markDsl.impl.*
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.junit.jupiter.api.*
 
 internal class ExpressionHelperTest {
@@ -94,14 +95,34 @@ internal class ExpressionHelperTest {
                 ),
                 litList(lit(1), lit("s"), lit("1"))
             )
+        assertNotNull(expr)
 
         val expectedVars = setOf("a", "b", "c")
 
-        assertNotNull(expr)
         ExpressionHelper.collectVars(expr, vars)
         assertEquals(expectedVars.size, vars.size, "Size of vars set was not equal")
         for (variable in expectedVars) {
             assertContains(vars, variable, "\"$variable\" was not in vars set")
         }
+    }
+
+    @Test
+    fun testAsString() {
+        assertNull(ExpressionHelper.asString(null))
+        assertEquals("myString", ExpressionHelper.asString("myString"))
+    }
+
+    @Test
+    fun testAsNumber() {
+        assertNull(ExpressionHelper.asNumber(null))
+        assertEquals(1, ExpressionHelper.asNumber(1))
+        assertNull(ExpressionHelper.asNumber("myString"))
+    }
+
+    @Test
+    fun testAsBoolean() {
+        assertNull(ExpressionHelper.asBoolean(null))
+        assertEquals(true, ExpressionHelper.asBoolean(true))
+        assertNull(ExpressionHelper.asBoolean("true"))
     }
 }

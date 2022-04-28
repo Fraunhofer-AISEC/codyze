@@ -34,5 +34,14 @@ internal class ExpressionHelperTest {
         assertEquals("a", ExpressionHelper.toComparableString("a"))
         assertEquals("1.0", ExpressionHelper.toComparableString("1"))
         assertEquals("-1.0", ExpressionHelper.toComparableString("-1"))
+        assertEquals("a", ExpressionHelper.toComparableString("\"a"))
+
+        // doesn't work as expected
+        // assertEquals("ab", ExpressionHelper.toComparableString("ab\""))
+        // assertEquals("abc", ExpressionHelper.toComparableString("\"abc\""))
+
+        assertEquals("1.2", ExpressionHelper.toComparableString(1.2f))
+        assertEquals("4.0", ExpressionHelper.toComparableString(4.toByte()))
+        assertEquals("a", ExpressionHelper.toComparableString('a'))
     }
 }

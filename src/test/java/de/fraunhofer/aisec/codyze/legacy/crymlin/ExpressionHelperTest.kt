@@ -1,7 +1,10 @@
 package de.fraunhofer.aisec.codyze.legacy.crymlin
 
 import de.fraunhofer.aisec.codyze.legacy.analysis.markevaluation.ExpressionHelper
+import de.fraunhofer.aisec.mark.markDsl.impl.*
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.*
 
 internal class ExpressionHelperTest {
@@ -61,5 +64,44 @@ internal class ExpressionHelperTest {
 
         val nullObject: kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType.Object? = null
         assertEquals("", ExpressionHelper.toComparableString(nullObject))
+    }
+
+    @Test
+    fun testCollectVars() {
+        val vars = mutableSetOf<String>()
+        val expr =
+            funcCall(
+                "function",
+                logicalAnd(
+                    left =
+                        comparison(
+                            left = mul(left = operand("b"), op = "*", right = lit(1)),
+                            op = "==",
+                            right = operand("a")
+                        ),
+                    op = "&&",
+                    right =
+                        logicalOr(
+                            left =
+                                comparison(
+                                    left = operand("a"),
+                                    op = "==",
+                                    right = unary(exp = operand("c"), op = "-")
+                                ),
+                            op = "||",
+                            right = comparison(left = lit(1), op = "==", right = lit(1))
+                        )
+                ),
+                litList(lit(1), lit("s"), lit("1"))
+            )
+
+        val expectedVars = setOf("a", "b", "c")
+
+        assertNotNull(expr)
+        ExpressionHelper.collectVars(expr, vars)
+        assertEquals(expectedVars.size, vars.size, "Size of vars set was not equal")
+        for (variable in expectedVars) {
+            assertContains(vars, variable, "\"$variable\" was not in vars set")
+        }
     }
 }

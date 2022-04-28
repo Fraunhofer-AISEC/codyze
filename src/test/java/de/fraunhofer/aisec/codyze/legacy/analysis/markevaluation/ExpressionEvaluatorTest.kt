@@ -222,6 +222,10 @@ class ExpressionEvaluatorTest : AbstractTest() {
             var rightShiftRule: RuleDeclaration? = null
             var bitwiseAndRule: RuleDeclaration? = null
             var bitwiseOrRule: RuleDeclaration? = null
+            var plusSignRule: RuleDeclaration? = null
+            var minusSignRule: RuleDeclaration? = null
+            var logicalNotRule: RuleDeclaration? = null
+            var bitwiseComplementRule: RuleDeclaration? = null
 
             model = mark {
                 myEntity =
@@ -342,6 +346,48 @@ class ExpressionEvaluatorTest : AbstractTest() {
                             }
                         }
                     }
+                plusSignRule =
+                    rule("plusSignRule") {
+                        statement {
+                            ensure {
+                                // comparison is: 5 == +5
+                                exp =
+                                    comparison(
+                                        left = lit(5),
+                                        op = "==",
+                                        right = unary(exp = lit(5), op = "+")
+                                    )
+                            }
+                        }
+                    }
+                minusSignRule =
+                    rule("minusSignRule") {
+                        statement {
+                            ensure {
+                                // comparison is: 5 != -(5)
+                                exp =
+                                    comparison(
+                                        left = lit(5),
+                                        op = "!=",
+                                        right = unary(exp = lit(5), op = "-")
+                                    )
+                            }
+                        }
+                    }
+                logicalNotRule =
+                    rule("logicalNotRule") {
+                        statement {
+                            ensure {
+                                // comparison is: 5 == 7 & 2 (0b101 == 0b111 & 0b10)
+                                exp =
+                                    comparison(
+                                        left = lit(true),
+                                        op = "==",
+                                        right = unary(exp = lit(false), op = "!")
+                                    )
+                            }
+                        }
+                    }
             }
 
             assertNotNull(eqRule)
@@ -352,6 +398,10 @@ class ExpressionEvaluatorTest : AbstractTest() {
             assertNotNull(rightShiftRule)
             assertNotNull(bitwiseAndRule)
             assertNotNull(bitwiseOrRule)
+            assertNotNull(plusSignRule)
+            assertNotNull(minusSignRule)
+            assertNotNull(myEntity)
+            assertNotNull(myEntity)
             assertNotNull(myEntity)
 
             mark = MarkModelLoader().load(mapOf("" to model))

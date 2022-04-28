@@ -59,6 +59,12 @@ fun lit(value: Int): Literal {
     return expression
 }
 
+fun lit(value: Boolean): Literal {
+    val expression = BooleanLiteralImpl()
+    expression.value = value.toString()
+    return expression
+}
+
 fun litList(vararg values: Literal): LiteralListExpression {
     val expression = LiteralListExpressionImpl()
     expression.getValues().addAll(values)

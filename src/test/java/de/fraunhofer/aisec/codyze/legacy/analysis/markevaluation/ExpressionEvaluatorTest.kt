@@ -95,29 +95,62 @@ class ExpressionEvaluatorTest : AbstractTest() {
         val convertedMark = MarkModelLoader().load(mapOf("" to model))
         assertNotNull(convertedMark)
 
-        val convertedRule = convertedMark.rules.first()
-        assertNotNull(convertedRule)
+        assertNotNull(convertedMark.rules)
 
         val convertedEntity = convertedMark.getEntity("MyClass")
         assertNotNull(convertedEntity)
 
+        for (convertedRule in convertedMark.rules) {
+            assertNotNull(convertedRule)
+
+            val eval =
+                ExpressionEvaluator(
+                    graph,
+                    convertedMark,
+                    convertedRule,
+                    resultCtx,
+                    ServerConfiguration.builder().build(),
+                    markContextHolder
+                )
+
+            val result = eval.evaluateExpression(convertedRule.statement.ensure.exp)
+            assertEquals(1, result.size)
+
+            val ctx = result[0]
+            assertNotNull(ctx)
+
+            assertEquals(
+                ConstantValue.of(true),
+                ctx,
+                "${convertedRule.name} was not evaluated to true"
+            )
+        }
+    }
+
+    @Test
+    fun nullExpressionTest() {
+        val evaluator = Evaluator(mark, ServerConfiguration.builder().build())
+
+        // Let's provide the list of entities and nodes, this is normally done by
+        // findInstancesForEntities. In this case, we simply point it towards our variable
+        // declaration
+        val entities = listOf(listOf(Pair("a", a)))
+
+        val markContextHolder = evaluator.createMarkContext(entities)
+        assertEquals(1, markContextHolder.allContexts.size)
+
         val eval =
             ExpressionEvaluator(
                 graph,
-                convertedMark,
-                convertedRule,
-                resultCtx,
+                null,
+                null,
+                null,
                 ServerConfiguration.builder().build(),
                 markContextHolder
             )
 
-        val result = eval.evaluateExpression(convertedRule.statement.ensure.exp)
-        assertEquals(1, result.size)
-
-        val ctx = result[0]
-        assertNotNull(ctx)
-
-        assertEquals(ConstantValue.of(true), ctx)
+        val result = eval.evaluateExpression(null)
+        assertEquals(markContextHolder.generateNullResult(), result)
     }
 
     companion object {
@@ -181,7 +214,14 @@ class ExpressionEvaluatorTest : AbstractTest() {
             graph = result.graph
 
             var myEntity: EntityDeclaration? = null
-            var myRule: RuleDeclaration? = null
+            var eqRule: RuleDeclaration? = null
+            var multRule: RuleDeclaration? = null
+            var divRule: RuleDeclaration? = null
+            var modRule: RuleDeclaration? = null
+            var leftShiftRule: RuleDeclaration? = null
+            var rightShiftRule: RuleDeclaration? = null
+            var bitwiseAndRule: RuleDeclaration? = null
+            var bitwiseOrRule: RuleDeclaration? = null
 
             model = mark {
                 myEntity =
@@ -189,59 +229,129 @@ class ExpressionEvaluatorTest : AbstractTest() {
                         variable("field")
                         op("init") { stmt { call("MyClass") { param("field") } } }
                     }
-                myRule =
-                    rule("myRule") {
+                eqRule =
+                    rule("eqRule") {
                         statement {
                             using(myEntity!!, "a")
                             ensure {
-                                // comparison is: a == ((8 >> 2) / 2) * (((11 & 7) << 1) % (7 | 2))
-                                // which should turn into 1 == 1 in the end
-                                comparison(
-                                    left = operand("a.field"),
-                                    op = "==",
-                                    right =
-                                        mul(
-                                            left =
-                                                mul(
-                                                    left =
-                                                        mul(
-                                                            left = lit(8),
-                                                            op = ">>",
-                                                            right = lit(2)
-                                                        ),
-                                                    op = "/",
-                                                    right = lit(2)
-                                                ),
-                                            op = "*",
-                                            right =
-                                                mul(
-                                                    left =
-                                                        mul(
-                                                            left =
-                                                                mul(
-                                                                    left = lit(11),
-                                                                    op = "&",
-                                                                    right = lit(7)
-                                                                ),
-                                                            op = "<<",
-                                                            right = lit(1)
-                                                        ),
-                                                    op = "%",
-                                                    right =
-                                                        mul(
-                                                            left = lit(7),
-                                                            op = "&^",
-                                                            right = lit(2)
-                                                        )
-                                                )
-                                        )
-                                )
+                                // comparison is: a == 1
+                                exp =
+                                    comparison(left = operand("a.field"), op = "==", right = lit(1))
+                            }
+                        }
+                    }
+                multRule =
+                    rule("multRule") {
+                        statement {
+                            using(myEntity!!, "a")
+                            ensure {
+                                // comparison is: a == 1 * 1
+                                exp =
+                                    comparison(
+                                        left = operand("a.field"),
+                                        op = "==",
+                                        right = mul(left = lit(1), op = "*", right = lit(1))
+                                    )
+                            }
+                        }
+                    }
+                divRule =
+                    rule("divRule") {
+                        statement {
+                            using(myEntity!!, "a")
+                            ensure {
+                                // comparison is: a == 2 / 2
+                                exp =
+                                    comparison(
+                                        left = operand("a.field"),
+                                        op = "==",
+                                        right = mul(left = lit(2), op = "/", right = lit(2))
+                                    )
+                            }
+                        }
+                    }
+                modRule =
+                    rule("modRule") {
+                        statement {
+                            using(myEntity!!, "a")
+                            ensure {
+                                // comparison is: a == 19 % 6
+                                exp =
+                                    comparison(
+                                        left = operand("a.field"),
+                                        op = "==",
+                                        right = mul(left = lit(19), op = "%", right = lit(6))
+                                    )
+                            }
+                        }
+                    }
+                leftShiftRule =
+                    rule("leftShiftRule") {
+                        statement {
+                            ensure {
+                                // comparison is: 32 == 2 << 4
+                                exp =
+                                    comparison(
+                                        left = lit(32),
+                                        op = "==",
+                                        right = mul(left = lit(2), op = "<<", right = lit(4))
+                                    )
+                            }
+                        }
+                    }
+                rightShiftRule =
+                    rule("rightShiftRule") {
+                        statement {
+                            ensure {
+                                // comparison is: 4 == 32 >> 3
+                                exp =
+                                    comparison(
+                                        left = lit(4),
+                                        op = "==",
+                                        right = mul(left = lit(32), op = ">>", right = lit(3))
+                                    )
+                            }
+                        }
+                    }
+                bitwiseAndRule =
+                    rule("bitwiseAndRule") {
+                        statement {
+                            ensure {
+                                // comparison is: 2 == 11 & 6 (0b10 == 0b1011 & 0b110)
+                                exp =
+                                    comparison(
+                                        left = lit(2),
+                                        op = "==",
+                                        right = mul(left = lit(11), op = "&", right = lit(6))
+                                    )
+                            }
+                        }
+                    }
+
+                bitwiseOrRule =
+                    rule("bitwiseOrRule") {
+                        statement {
+                            ensure {
+                                // comparison is: 5 == 7 & 2 (0b101 == 0b111 & 0b10)
+                                exp =
+                                    comparison(
+                                        left = lit(5),
+                                        op = "==",
+                                        right = mul(left = lit(7), op = "&^", right = lit(2))
+                                    )
                             }
                         }
                     }
             }
 
-            assertNotNull(myRule)
+            assertNotNull(eqRule)
+            assertNotNull(multRule)
+            assertNotNull(divRule)
+            assertNotNull(modRule)
+            assertNotNull(leftShiftRule)
+            assertNotNull(rightShiftRule)
+            assertNotNull(bitwiseAndRule)
+            assertNotNull(bitwiseOrRule)
             assertNotNull(myEntity)
 
             mark = MarkModelLoader().load(mapOf("" to model))

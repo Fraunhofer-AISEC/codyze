@@ -162,7 +162,7 @@ class SarifInstantiator internal constructor() {
         sarif.runs.add(run)
     }
 
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     fun popRun(): Run {
         log.info("Removing run from the sarif output")
         return sarif.runs.removeLast()
@@ -276,7 +276,7 @@ class SarifInstantiator internal constructor() {
      * @param parentIndex the index of the parent artifact, absent if the artifact is not nested
      * @return the resulting artifact
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateArtifact(location: ArtifactLocation, parentIndex: Int?): Artifact {
         val artifact = Artifact()
         artifact.location = location
@@ -294,7 +294,7 @@ class SarifInstantiator internal constructor() {
      * image
      * @return the resulting attachment
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateAttachment(
         description: Message,
         location: ArtifactLocation,
@@ -323,7 +323,7 @@ class SarifInstantiator internal constructor() {
      * natural units.
      * @return the resulting rectangle object
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateRectangle(
         message: Message,
         top: Double,
@@ -347,7 +347,7 @@ class SarifInstantiator internal constructor() {
      * @param artifactChanges one or more changes in files
      * @return the resulting fix
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateFix(description: Message?, artifactChanges: Set<ArtifactChange>): Fix {
         val fix = Fix()
         fix.description = description
@@ -362,7 +362,7 @@ class SarifInstantiator internal constructor() {
      * @param replacements the changes done in the file
      * @return the resulting artifactChange object
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateArtifactChange(
         artifactLocation: ArtifactLocation,
         replacements: List<Replacement>
@@ -382,7 +382,7 @@ class SarifInstantiator internal constructor() {
      * deleteRegion
      * @return the resulting replacement
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateReplacement(
         deletedRegion: Region,
         insertedContent: ArtifactContent?
@@ -401,7 +401,7 @@ class SarifInstantiator internal constructor() {
      * @param rendered a rendered view of the contents
      * @return the resulting artifactContent object
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateArtifactContent(
         text: String,
         rendered: MultiformatMessageString?
@@ -437,7 +437,7 @@ class SarifInstantiator internal constructor() {
      * @param edges a set containing all the graph's edges
      * @return the resulting graph
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateGraph(description: Message, nodes: Set<Node>, edges: Set<Edge>): Graph {
         val graph = Graph()
         graph.description = description
@@ -455,7 +455,7 @@ class SarifInstantiator internal constructor() {
      * @param children a (possibly empty) set of child nodes, forming a nested graph
      * @return the resulting node
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateNode(
         id: String,
         label: Message,
@@ -610,7 +610,7 @@ class SarifInstantiator internal constructor() {
      * @param description an additional description for the relationship
      * @return the resulting relationship
      */
-    @Suppress("unused")
+    @Suppress("unused", "kotlin:S1144")
     private fun generateLocationRelationship(
         target: Int,
         kinds: Set<String>,

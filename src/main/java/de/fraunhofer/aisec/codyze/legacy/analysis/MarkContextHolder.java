@@ -60,18 +60,16 @@ public class MarkContextHolder {
 	}
 
 	public Map<Integer, MarkIntermediateResult> getResolvedOperand(String operand) {
-		if (!resolvedOperands.contains(operand)) {
-			return null;
-		}
-
 		final Map<Integer, MarkIntermediateResult> result = new HashMap<>();
-		contexts.forEach((id, context) -> {
-			var vwv = context.getOperand(operand);
-			var constant = ConstantValue.of(vwv.getValue());
-			constant.addResponsibleNodes(getNodeFromSelfOrFromParent(operand, context));
-			result.put(id, constant);
-		});
 
+		if (resolvedOperands.contains(operand)) {
+			contexts.forEach((id, context) -> {
+				var vwv = context.getOperand(operand);
+				var constant = ConstantValue.of(vwv.getValue());
+				constant.addResponsibleNodes(getNodeFromSelfOrFromParent(operand, context));
+				result.put(id, constant);
+			});
+		}
 		return result;
 	}
 

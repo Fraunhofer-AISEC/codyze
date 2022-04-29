@@ -565,8 +565,8 @@ public class ExpressionEvaluator {
 				combinedResult.put(key, ErrorValue.newErrorValue("cannot multiply expressions, left or right expression has errors", leftBoxed, rightBoxed));
 			} else {
 
-				Class leftResultType = left.getClass();
-				Class rightResultType = right.getClass();
+				Class<?> leftResultType = left.getClass();
+				Class<?> rightResultType = right.getClass();
 
 				if (!leftResultType.equals(rightResultType)) {
 					log.warn("Type of left expression does not match type of right expression: {} vs {}",
@@ -682,7 +682,7 @@ public class ExpressionEvaluator {
 
 			ConstantValue valueBoxed = (ConstantValue) entry.getValue();
 			Object value = valueBoxed.getValue();
-			Class subExprResultType = value.getClass();
+			Class<?> subExprResultType = value.getClass();
 
 			Object unboxedResult;
 
@@ -772,7 +772,7 @@ public class ExpressionEvaluator {
 	private Map<Integer, MarkIntermediateResult> evaluateSingleOperand(String operand) {
 		Map<Integer, MarkIntermediateResult> resolvedOperand = markContextHolder.getResolvedOperand(operand);
 
-		if (resolvedOperand == null) {
+		if (resolvedOperand.isEmpty()) {
 			// if this operand is not resolved yet in this expression evaluation, resolve it
 			var operandVertices = resolveOperand(markRule, graph, markContextHolder, operand, markModel);
 			if (operandVertices.size() == 0) {

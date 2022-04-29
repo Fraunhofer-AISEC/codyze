@@ -219,12 +219,13 @@ public class Evaluator {
 					findings.add(f);
 				}
 			} else if (evaluationResultUb == null) {
-				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size()
-						+ ", result was null, this should not happen.",
-					rule.getName());
+				log.warn("Unable to evaluate rule {} in MARK context {}/{}, result was null, this should not happen.",
+					rule.getName(), markCtx, markCtxHolder.getAllContexts().size());
 			} else if (ConstantValue.isError(entry.getValue())) {
-				log.warn("Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result had an error: \n\t{}",
+				log.warn("Unable to evaluate rule {} in MARK context {}/{}, result had an error: \n\t{}",
 					rule.getName(),
+					markCtx,
+					markCtxHolder.getAllContexts().size(),
 					((ErrorValue) entry.getValue()).getDescription().replace("\n", "\n\t"));
 
 				ConstantValue evalResult = (ConstantValue) entry.getValue();
@@ -237,8 +238,8 @@ public class Evaluator {
 				}
 			} else {
 				log.error(
-					"Unable to evaluate rule {} in MARK context " + markCtx + "/" + markCtxHolder.getAllContexts().size() + ", result is not a boolean, but {}",
-					rule.getName(), evaluationResultUb.getClass().getSimpleName());
+					"Unable to evaluate rule {} in MARK context {}/{}, result is not a boolean, but {}",
+					rule.getName(), markCtx, markCtxHolder.getAllContexts().size(), evaluationResultUb.getClass().getSimpleName());
 			}
 		}
 		return findings;
@@ -427,10 +428,8 @@ public class Evaluator {
 					}
 
 					// make sure, that we are actually targeting the variable declaration and not the reference
-					if (ref instanceof DeclaredReferenceExpression) {
-						if (((DeclaredReferenceExpression) ref).getRefersTo() != null) {
-							ref = ((DeclaredReferenceExpression) ref).getRefersTo();
-						}
+					if (ref instanceof DeclaredReferenceExpression && ((DeclaredReferenceExpression) ref).getRefersTo() != null) {
+						ref = ((DeclaredReferenceExpression) ref).getRefersTo();
 					}
 
 					if (ref != null) {

@@ -122,11 +122,9 @@ public class Utils {
 			if (markParameter.getTypes()
 					.stream()
 					.map(Utils::toNonQualifiedName)
-					.anyMatch(t -> t.equalsIgnoreCase("string"))) {
-				if (isStringType(sourceType)) {
-					log.debug(logMsg, "true");
-					return true;
-				}
+					.anyMatch(t -> t.equalsIgnoreCase("string")) && isStringType(sourceType)) {
+				log.debug(logMsg, "true");
+				return true;
 			}
 
 			// If type could not be determined, we err on the false positive side.

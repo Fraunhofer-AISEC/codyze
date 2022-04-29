@@ -97,11 +97,11 @@ public class MEntity {
 			sb.append(" isa " + getSuper());
 		}
 		sb.append(" {\n");
-		for (MVar var : getVars()) {
-			if (var.getType() != null) {
-				sb.append("\tvar " + var.getName() + " : " + var.getType() + ";\n");
+		for (MVar v : getVars()) {
+			if (v.getType() != null) {
+				sb.append("\tvar " + v.getName() + " : " + v.getType() + ";\n");
 			} else {
-				sb.append("\tvar " + var.getName() + ";\n");
+				sb.append("\tvar " + v.getName() + ";\n");
 			}
 		}
 		for (MOp op : getOps()) {
@@ -126,8 +126,8 @@ public class MEntity {
 		if (parsedVars == null) {
 			parsedVars = new HashMap<>();
 		}
-		for (MVar var : vars) {
-			parsedVars.put(var.getName(), var.getType());
+		for (MVar v : vars) {
+			parsedVars.put(v.getName(), v.getType());
 		}
 	}
 }

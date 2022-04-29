@@ -174,17 +174,15 @@ internal class BuildTranslationConfigTest {
         @JvmStatic
         fun startup() {
             val additionalOptionResource =
-                ConfigLoadTest::class.java.classLoader.getResource(
-                    "config-files/additional_options.yml"
-                )
+                ConfigLoadTest::class
+                    .java.classLoader.getResource("config-files/additional_options.yml")
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
 
             val sourceDisablingResource =
-                ConfigLoadTest::class.java.classLoader.getResource(
-                    "config-files/source_disabling.yml"
-                )
+                ConfigLoadTest::class
+                    .java.classLoader.getResource("config-files/source_disabling.yml")
             assertNotNull(sourceDisablingResource)
             sourceDisablingFile = File(sourceDisablingResource.file)
             assertNotNull(sourceDisablingFile)

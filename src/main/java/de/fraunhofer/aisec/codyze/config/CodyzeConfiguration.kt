@@ -21,7 +21,8 @@ class CodyzeConfiguration {
         description =
             [
                 "Disable output of \"positive\" findings which indicate correct implementations.\n" +
-                    "\t(Default: \${DEFAULT-VALUE})"],
+                    "\t(Default: \${DEFAULT-VALUE})"
+            ],
         fallbackValue = "true"
     )
     var noGoodFindings = false
@@ -33,7 +34,8 @@ class CodyzeConfiguration {
         names = ["--pedantic"],
         description =
             [
-                "Activates pedantic analysis mode. In this mode, Codyze analyzes all MARK rules and report all findings. This option overrides `disabledMarkRules` and `noGoodFinding` and ignores any Codyze source code comments."]
+                "Activates pedantic analysis mode. In this mode, Codyze analyzes all MARK rules and report all findings. This option overrides `disabledMarkRules` and `noGoodFinding` and ignores any Codyze source code comments."
+            ]
     )
     var pedantic = false
 }
@@ -55,7 +57,8 @@ class AnalysisMode {
                 "Typestate analysis mode.\n" +
                     "DFA:  Deterministic finite automaton (faster, intraprocedural)\n" +
                     "WPDS: Weighted pushdown system (slower, interprocedural)\n" +
-                    "\t(Default: \${DEFAULT-VALUE})"]
+                    "\t(Default: \${DEFAULT-VALUE})"
+            ]
     )
     var tsMode = TypestateMode.DFA
 }
@@ -100,7 +103,8 @@ class DisabledMarkArgGroup {
         paramLabel = "<package>.<rule>",
         description =
             [
-                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name. If there is no package name, specify rule as \".<rule>\". Use \"<package>.*\" to disable an entire package."],
+                "The specified mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name. If there is no package name, specify rule as \".<rule>\". Use \"<package>.*\" to disable an entire package."
+            ],
         split = "\${sys:path.separator}"
     )
     fun match(value: List<String>) {
@@ -113,7 +117,8 @@ class DisabledMarkArgGroup {
         paramLabel = "<package>.<rule>",
         description =
             [
-                "See --disabled-mark-rules, but appends the values to the ones specified in configuration file."],
+                "See --disabled-mark-rules, but appends the values to the ones specified in configuration file."
+            ],
         split = "\${sys:path.separator}"
     )
     fun append(value: List<String>) {

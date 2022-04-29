@@ -168,8 +168,8 @@ fun FieldDeclaration.getInitializerValue(): Any? {
 
 val Node.nextStatement: Statement?
     get() {
-        return this.followNextEOG { it.end.astParent is CompoundStatement }?.last()?.end as?
-            Statement
+        return this.followNextEOG { it.end.astParent is CompoundStatement }?.last()?.end
+            as? Statement
     }
 
 /**

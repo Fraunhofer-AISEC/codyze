@@ -13,7 +13,7 @@ plugins {
     id("org.jsonschema2dataclass") version "4.2.0"
 
     id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "6.5.0"
+    id("com.diffplug.spotless") version "6.5.1"
     id("com.github.hierynomus.license") version "0.16.1"
 
     kotlin("jvm") version "1.6.21" // we can only upgrade to Kotlin 1.5, if CPG does
@@ -103,8 +103,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.3.5")
-    api("de.fraunhofer.aisec:cpg-analysis:4.3.5")
+    api("de.fraunhofer.aisec:cpg-core:4.4.2")
+    api("de.fraunhofer.aisec:cpg-analysis:4.4.2")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

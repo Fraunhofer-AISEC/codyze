@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.junit.jupiter.api.*
 
-class AnalysisServerWithFileTest : AbstractTest() {
+internal class AnalysisServerWithFileTest : AbstractTest() {
     @Test
     fun markModelTest() {
         val markModel = server.markModel

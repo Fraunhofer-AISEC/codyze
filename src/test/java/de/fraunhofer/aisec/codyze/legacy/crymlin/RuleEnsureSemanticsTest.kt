@@ -27,8 +27,7 @@ internal class RuleEnsureSemanticsTest {
     @OptIn(ExperimentalGraph::class)
     private fun test(markFileEnding: String) {
         val markFilePaths =
-            markModels
-                .keys
+            markModels.keys
                 .stream()
                 .filter { n: String -> n.endsWith(markFileEnding) }
                 .collect(Collectors.toList())
@@ -92,9 +91,8 @@ internal class RuleEnsureSemanticsTest {
         @JvmStatic
         fun startup() {
             val resource =
-                RuleEnsureSemanticsTest::class.java.classLoader.getResource(
-                    "legacy/mark/rules/ensure/semantics/"
-                )
+                RuleEnsureSemanticsTest::class
+                    .java.classLoader.getResource("legacy/mark/rules/ensure/semantics/")
             assertNotNull(resource)
 
             val markFile = File(resource.file)

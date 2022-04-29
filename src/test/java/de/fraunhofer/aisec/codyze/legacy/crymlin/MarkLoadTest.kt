@@ -37,12 +37,12 @@ internal class MarkLoadTest {
 
         val expectedSize =
             allMarkRules.size -
-                disabledMarkRules.getOrDefault("java", DisabledMarkRulesValue())
-                    .disabledMarkRuleNames
-                    .size -
-                disabledMarkRules.getOrDefault("", DisabledMarkRulesValue())
-                    .disabledMarkRuleNames
-                    .size
+                disabledMarkRules
+                    .getOrDefault("java", DisabledMarkRulesValue())
+                    .disabledMarkRuleNames.size -
+                disabledMarkRules
+                    .getOrDefault("", DisabledMarkRulesValue())
+                    .disabledMarkRuleNames.size
         assertEquals(
             expectedSize,
             actualMarkRuleNames.size,
@@ -50,14 +50,16 @@ internal class MarkLoadTest {
         )
 
         for (s in
-            disabledMarkRules.getOrDefault("java", DisabledMarkRulesValue())
+            disabledMarkRules
+                .getOrDefault("java", DisabledMarkRulesValue())
                 .disabledMarkRuleNames) assertFalse(
             actualMarkRuleNames.contains(s),
             "Expected to have filtered out $s but was included in mark rules"
         )
 
         for (s in
-            disabledMarkRules.getOrDefault("", DisabledMarkRulesValue())
+            disabledMarkRules
+                .getOrDefault("", DisabledMarkRulesValue())
                 .disabledMarkRuleNames) assertFalse(
             actualMarkRuleNames.contains(s),
             "Expected to have filtered out $s but was included in mark rules"
@@ -135,9 +137,9 @@ internal class MarkLoadTest {
 
         val expectedSize =
             allMarkRules.size -
-                disabledMarkRules.getOrDefault("java", DisabledMarkRulesValue())
-                    .disabledMarkRuleNames
-                    .size -
+                disabledMarkRules
+                    .getOrDefault("java", DisabledMarkRulesValue())
+                    .disabledMarkRuleNames.size -
                 botanMarkRuleNames.size
         assertEquals(
             expectedSize,
@@ -146,7 +148,8 @@ internal class MarkLoadTest {
         )
 
         for (s in
-            disabledMarkRules.getOrDefault("java", DisabledMarkRulesValue())
+            disabledMarkRules
+                .getOrDefault("java", DisabledMarkRulesValue())
                 .disabledMarkRuleNames) assertFalse(
             actualMarkRuleNames.contains(s),
             "Expected to have filtered out $s but was included in mark rules"
@@ -186,9 +189,10 @@ internal class MarkLoadTest {
             assertNotNull(botanLocation)
 
             val javaMarkResource =
-                MarkLoadTest::class.java.classLoader.getResource(
-                    "legacy/real-examples/bc/rwedoff.Password-Manager"
-                )
+                MarkLoadTest::class
+                    .java.classLoader.getResource(
+                        "legacy/real-examples/bc/rwedoff.Password-Manager"
+                    )
             assertNotNull(javaMarkResource)
             javaLocation = File(javaMarkResource.file)
             assertNotNull(javaLocation)

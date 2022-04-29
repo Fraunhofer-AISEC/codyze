@@ -54,7 +54,11 @@ public class Main {
 		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
 			// print help message
-			CommandLine c = new CommandLine(new Help());
+			Help help = new Help();
+			System.setProperty("source", Arrays.toString(help.configuration.getSource()));
+			System.setProperty("mark", Arrays.toString(help.codyzeConfig.getMark()));
+
+			CommandLine c = new CommandLine(help);
 			c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
 			c.usage(System.out);
 			System.exit(c.getCommandSpec().exitCodeOnUsageHelp());
@@ -136,7 +140,7 @@ public class Main {
 	@Command(mixinStandardHelpOptions = true)
 	public static class ConfigFilePath {
 		@Option(names = {
-				"--config" }, paramLabel = "<path>", fallbackValue = "codyze.yaml", arity = "0..1", description = "Parse configuration settings from this file. If no file path is specified, codyze will try to load the configuration file from ./codyze.yaml")
+				"--config" }, paramLabel = "<path>", fallbackValue = "codyze.yaml", arity = "0..1", description = "Parse configuration settings from this file. If no file path is specified, codyze will try to load the configuration file from ${FALLBACK-VALUE}")
 		public File configFile;
 
 		@Unmatched
@@ -151,10 +155,10 @@ public class Main {
 		private ConfigFilePath configFilePath;
 
 		// ArgGroups only for display purposes
-		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false)
+		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false, validate = true)
 		private CodyzeConfiguration codyzeConfig = new CodyzeConfiguration();
 
-		@ArgGroup(heading = "", exclusive = false)
+		@ArgGroup(exclusive = false)
 		private Configuration configuration = new Configuration();
 
 		@ArgGroup(exclusive = false, heading = "Analysis Options\n")
@@ -182,7 +186,7 @@ public class Main {
 			for (CommandSpec c : mix.values()) {
 				sb.append(help.optionListExcludingGroups(c.options().stream().filter(optionSpec -> optionSpec.group() == null).collect(Collectors.toList())));
 			}
-			sb.append("\n");
+
 			for (ArgGroupSpec group : spec.argGroups()) {
 				addHierachy(group, sb);
 			}
@@ -191,13 +195,15 @@ public class Main {
 		}
 
 		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb) {
-			sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
+			if (argGroupSpec.heading() != null) {
+				sb.append("\n");
+				sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
+			}
 
 			// render all options that are not in subgroups
 			sb.append(help.optionListExcludingGroups(
 				argGroupSpec.options().stream().filter(optionSpec -> optionSpec.group().equals(argGroupSpec)).collect(Collectors.toList())));
 
-			sb.append("\n");
 			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
 				addHierachy(group, sb);
 			}

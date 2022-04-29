@@ -136,9 +136,9 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         // For debugging only: Print WPDS rules
         if (log.isDebugEnabled) {
             for (r in
-                wpds.allRules.sortedBy { it.l1.location?.region?.startLine }.sortedBy {
-                    it.l1.location?.region?.startColumn
-                }) {
+                wpds.allRules
+                    .sortedBy { it.l1.location?.region?.startLine }
+                    .sortedBy { it.l1.location?.region?.startColumn }) {
                 log.debug("rule: {}", r)
             }
 
@@ -716,8 +716,7 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
         for (valInScope in valsInScope) {
             // Determine weight
             val relevantNFATransitions =
-                tsNfa
-                    .transitions
+                tsNfa.transitions
                     // .filter { node.triggersTypestateTransition(it.target.base, it.target.op) }
                     .filter { map[it.target.base]?.contains(it.target.op) == true }
                     .toHashSet()

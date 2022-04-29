@@ -27,29 +27,46 @@ import picocli.CommandLine
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class Configuration {
 
+    @JsonIgnore @CommandLine.ArgGroup(exclusive = true) private val sourceCLI = SourceArgGroup()
+    var source: Array<File> = arrayOf(File("./"))
+        private set
+        get() {
+            val result = mutableListOf<File>()
+
+            if (!sourceCLI.matched || sourceCLI.append) {
+                result.addAll(field)
+            }
+
+            if (sourceCLI.matched) {
+                result.addAll(sourceCLI.source)
+            }
+
+            return result.toTypedArray()
+        }
+
+    @JsonIgnore
+    @CommandLine.ArgGroup(exclusive = true)
+    private val disabledSourceCLI = DisabledSourceArgGroup()
+    @JsonProperty("disabled-sources")
+    var disabledSource: Array<File> = emptyArray()
+        private set
+        get() {
+            val result = mutableListOf<File>()
+
+            if (!disabledSourceCLI.matched || disabledSourceCLI.append) {
+                result.addAll(field)
+            }
+
+            if (disabledSourceCLI.matched) {
+                result.addAll(disabledSourceCLI.disabledSource)
+            }
+
+            return result.toTypedArray()
+        }
+
     @JsonIgnore
     @CommandLine.ArgGroup(exclusive = true, heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
-
-    @CommandLine.Option(
-        names = ["-s", "--source"],
-        paramLabel = "<path>",
-        split = "\${sys:path.separator}",
-        description = ["Source files or folders to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
-    )
-    var source: Array<File> = arrayOf(File("./"))
-        private set
-
-    @JsonProperty("disabled-sources")
-    @CommandLine.Option(
-        names = ["--disabled-sources"],
-        paramLabel = "<path>",
-        split = "\${sys:path.separator}",
-        description =
-            [
-                "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"]
-    )
-    var disabledSource: Array<File> = emptyArray()
 
     // TODO output standard stdout?
     @CommandLine.Option(
@@ -104,11 +121,19 @@ class Configuration {
                 .launchConsole(executionMode.isTui)
                 .typestateAnalysis(codyze.analysis.tsMode)
                 .disableGoodFindings(codyze.noGoodFindings)
-                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
                 .pedantic(codyze.pedantic)
 
+        val mark = mutableListOf<File>()
+        if (!codyze.markCLI.matched || codyze.markCLI.append) mark.addAll(codyze.mark)
+        if (codyze.markCLI.matched) mark.addAll(codyze.markCLI.mark)
+        config.markFiles(*mark.map { m -> m.absolutePath }.toTypedArray())
+
         val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
-        for (mName in codyze.disabledMarkRules) {
+        val disabledMarkRules = codyze.disabledMarkRulesCLI.disabledMarkRules.toMutableList()
+        if (!codyze.disabledMarkRulesCLI.matched || codyze.disabledMarkRulesCLI.append)
+            disabledMarkRules.addAll(codyze.disabledMarkRules)
+
+        for (mName in disabledMarkRules) {
             val index = mName.lastIndexOf('.')
             val packageName = mName.subSequence(0, index).toString()
             val markName = mName.subSequence(index + 1, mName.length).toString()
@@ -120,8 +145,9 @@ class Configuration {
                 log.warn(
                     "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
                 )
-            config.disableMark(disabledRulesMap)
         }
+
+        config.disableMark(disabledRulesMap)
 
         return config.build()
     }
@@ -141,42 +167,77 @@ class Configuration {
                 .loadIncludes(cpg.translation.analyzeIncludes)
                 .useUnityBuild(cpg.useUnityBuild)
                 .processAnnotations(cpg.processAnnotations)
-                .symbols(cpg.symbols)
                 .useParallelFrontends(cpg.useParallelFrontends)
                 .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
                 .sourceLocations(*filterFiles(disabledSource, *sources))
 
-        for (file in cpg.translation.includes) {
-            translationConfig.includePath(file.absolutePath)
+        val symbols = cpg.symbolsCLI.symbols.toMutableMap()
+        if (!cpg.symbolsCLI.matched || cpg.symbolsCLI.append) {
+            symbols.putAll(cpg.symbols)
         }
-        for (s in cpg.translation.enabledIncludes) {
-            translationConfig.includeWhitelist(s.absolutePath)
+        translationConfig.symbols(symbols)
+
+        if (!cpg.translation.includesCLI.matched || cpg.translation.includesCLI.append) {
+            for (file in cpg.translation.includes) {
+                translationConfig.includePath(file.absolutePath)
+            }
         }
-        for (s in cpg.translation.disabledIncludes) {
-            translationConfig.includeBlacklist(s.absolutePath)
+        if (cpg.translation.includesCLI.matched)
+            for (file in cpg.translation.includesCLI.includes) {
+                translationConfig.includePath(file.absolutePath)
+            }
+
+        if (!cpg.translation.enabledIncludesCLI.matched || cpg.translation.enabledIncludesCLI.append
+        ) {
+            for (s in cpg.translation.enabledIncludes) {
+                translationConfig.includeWhitelist(s.absolutePath)
+            }
         }
+        if (cpg.translation.enabledIncludesCLI.matched)
+            for (file in cpg.translation.enabledIncludesCLI.enabledIncludes) {
+                translationConfig.includeWhitelist(file.absolutePath)
+            }
+
+        if (!cpg.translation.disabledIncludesCLI.matched ||
+                cpg.translation.disabledIncludesCLI.append
+        ) {
+            for (s in cpg.translation.disabledIncludes) {
+                translationConfig.includeBlacklist(s.absolutePath)
+            }
+        }
+        if (cpg.translation.disabledIncludesCLI.matched)
+            for (file in cpg.translation.disabledIncludesCLI.disabledIncludes) {
+                translationConfig.includeBlacklist(file.absolutePath)
+            }
 
         if (cpg.disableCleanup) {
             translationConfig.disableCleanup()
         }
 
         if (cpg.defaultPasses == null) {
-            if (cpg.passes.isEmpty()) {
+            if (cpg.passesCLI.passes.isEmpty() && cpg.passes.isEmpty()) {
                 translationConfig.defaultPasses()
             }
         } else {
             if (cpg.defaultPasses!!) {
                 translationConfig.defaultPasses()
             } else {
-                if (cpg.passes.isEmpty()) {
+                if (cpg.passesCLI.passes.isEmpty() && cpg.passes.isEmpty()) {
                     // TODO: error handling for no passes if needed
                 }
             }
         }
-        for (p in cpg.passes) {
-            translationConfig.registerPass(p)
+
+        if (!cpg.passesCLI.matched || cpg.passesCLI.append) {
+            for (p in cpg.passes) {
+                translationConfig.registerPass(p)
+            }
         }
+        if (cpg.passesCLI.matched)
+            for (p in cpg.passesCLI.passes) {
+                translationConfig.registerPass(p)
+            }
 
         for (l in cpg.additionalLanguages) {
             val frontendClazz =
@@ -277,6 +338,7 @@ class Configuration {
         if (codyze.pedantic) {
             codyze.noGoodFindings = false
             codyze.disabledMarkRules = emptyList()
+            codyze.disabledMarkRulesCLI.disabledMarkRules = emptyList()
         }
 
         // we need to force load includes for unity builds, otherwise nothing will be parsed
@@ -438,6 +500,67 @@ class ExecutionMode {
         description = ["Start interactive console (Text-based User Interface)."]
     )
     var isTui = false
+}
+
+class SourceArgGroup {
+    var append = false
+    var matched = false
+
+    var source: Array<File> = emptyArray()
+    @CommandLine.Option(
+        names = ["-s", "--source"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description = ["Source files or folders to analyze.\n\t(Default: \${sys:source})"]
+    )
+    fun match(value: Array<File>) {
+        matched = true
+        this.source = value
+    }
+
+    @CommandLine.Option(
+        names = ["--source+"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            ["See --source, but appends the values to the ones specified in configuration file."]
+    )
+    fun append(value: Array<File>) {
+        append = true
+        match(value)
+    }
+}
+
+class DisabledSourceArgGroup {
+    var append = false
+    var matched = false
+
+    var disabledSource: Array<File> = emptyArray()
+    @CommandLine.Option(
+        names = ["--disabled-sources"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            [
+                "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"]
+    )
+    fun match(value: Array<File>) {
+        matched = true
+        this.disabledSource = value
+    }
+
+    @CommandLine.Option(
+        names = ["--disabled-sources+"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            [
+                "See --disabled-sources, but appends the values to the ones specified in configuration file."]
+    )
+    fun append(value: Array<File>) {
+        append = true
+        match(value)
+    }
 }
 
 // Taken from:

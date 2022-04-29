@@ -4,7 +4,6 @@ package de.fraunhofer.aisec.codyze.legacy.crymlin.builtin;
 import de.fraunhofer.aisec.codyze.legacy.analysis.MarkIntermediateResult;
 import de.fraunhofer.aisec.codyze.legacy.analysis.markevaluation.ExpressionEvaluator;
 import de.fraunhofer.aisec.codyze.legacy.analysis.AnalysisContext;
-import de.fraunhofer.aisec.codyze.legacy.analysis.resolution.ConstantValue;
 import de.fraunhofer.aisec.codyze.legacy.analysis.ListValue;
 import de.fraunhofer.aisec.codyze.legacy.analysis.MarkContextHolder;
 import org.checkerframework.checker.nullness.qual.NonNull;

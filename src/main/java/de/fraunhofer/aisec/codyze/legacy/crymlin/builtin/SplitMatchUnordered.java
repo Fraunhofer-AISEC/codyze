@@ -58,7 +58,7 @@ public class SplitMatchUnordered implements Builtin {
 			regex = ExpressionHelper.asString(argResultList.get(1));
 			var listSet = new HashSet<>(((ListValue) argResultList.get(2)).getAll());
 
-			var strict = argResultList.size() == 4 ? ExpressionHelper.asBoolean(argResultList.get(3)) : false;
+			var strict = argResultList.size() == 4 && Boolean.TRUE.equals(ExpressionHelper.asBoolean(argResultList.get(3)));
 
 			var providedSet = listSet.stream().map(mir -> ((ConstantValue) mir).getValue()).collect(Collectors.toSet());
 

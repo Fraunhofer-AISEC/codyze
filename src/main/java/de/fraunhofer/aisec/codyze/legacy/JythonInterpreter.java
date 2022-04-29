@@ -18,7 +18,6 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.python.jline.internal.Ansi.stripAnsi;
 

@@ -16,7 +16,7 @@ import static de.fraunhofer.aisec.codyze.legacy.JythonInterpreter.ANSI_RESET;
 /**
  * This class provides the read, execute, print loop needed by a Python console; it is not actually
  * a console itself. The primary capability is the {@link #interact()} method, which repeatedly
- * calls {@link #raw_input(PyObject)}, and hence {@link __builtin__#raw_input(PyObject)}, in order
+ * calls {@link #rawInput(PyObject)}, and hence {@link __builtin__#raw_input(PyObject)}, in order
  * to get lines, and {@link #push(String)} them into the interpreter. The built-in
  * <code>raw_input()</code> method prompts on <code>sys.stdout</code> and reads from
  * <code>sys.stdin</code>, the standard console. These may be redirected using
@@ -69,9 +69,9 @@ public class CrymlinConsole extends InteractiveInterpreter {
 				String line;
 				try {
 					if (file == null) {
-						line = raw_input(prompt);
+						line = rawInput(prompt);
 					} else {
-						line = raw_input(prompt, file);
+						line = rawInput(prompt, file);
 					}
 				}
 				catch (PyException exc) {
@@ -119,11 +119,11 @@ public class CrymlinConsole extends InteractiveInterpreter {
 		return more;
 	}
 
-	public String raw_input(PyObject prompt) {
+	private String rawInput(PyObject prompt) {
 		return __builtin__.raw_input(prompt);
 	}
 
-	public String raw_input(PyObject prompt, PyObject file) {
+	private String rawInput(PyObject prompt, PyObject file) {
 		return __builtin__.raw_input(prompt, file);
 	}
 

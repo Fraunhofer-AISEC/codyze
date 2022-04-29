@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class GetCode implements Builtin {
-	private static final Logger log = LoggerFactory.getLogger(IsInstance.class);
+	private static final Logger log = LoggerFactory.getLogger(GetCode.class);
 
 	@Override
 	public @NonNull String getName() {

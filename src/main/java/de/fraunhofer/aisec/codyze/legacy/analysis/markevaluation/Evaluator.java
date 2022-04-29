@@ -213,7 +213,7 @@ public class Evaluator {
 				 */
 				var c = markCtxHolder.getContext(markCtx);
 				// since we are receiving a boolean, only PASS and FAIL are passed on here
-				Result.Kind kind = !(Boolean) evaluationResultUb ? Result.Kind.FAIL : Result.Kind.PASS;
+				Result.Kind kind = Boolean.TRUE.equals(evaluationResultUb) ? Result.Kind.PASS : Result.Kind.FAIL;
 				if (!c.isFindingAlreadyAdded()) {
 					Finding f = createFinding(evalResult, c, rule, kind);
 					findings.add(f);

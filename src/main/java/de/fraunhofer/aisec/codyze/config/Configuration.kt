@@ -92,7 +92,8 @@ class Configuration {
         negatable = true,
         description =
             [
-                "Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"],
+                "Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"
+            ],
         fallbackValue = "true"
     )
     var sarifOutput = true
@@ -252,8 +253,8 @@ class Configuration {
             if (frontendClazz != null) {
                 @Suppress("UNCHECKED_CAST")
                 val extensions =
-                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
-                        List<String>
+                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null)
+                        as List<String>
 
                 translationConfig.registerLanguage(frontendClazz, extensions)
             }
@@ -542,7 +543,8 @@ class DisabledSourceArgGroup {
         split = "\${sys:path.separator}",
         description =
             [
-                "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"]
+                "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"
+            ]
     )
     fun match(value: Array<File>) {
         matched = true
@@ -555,7 +557,8 @@ class DisabledSourceArgGroup {
         split = "\${sys:path.separator}",
         description =
             [
-                "See --disabled-sources, but appends the values to the ones specified in configuration file."]
+                "See --disabled-sources, but appends the values to the ones specified in configuration file."
+            ]
     )
     fun append(value: Array<File>) {
         append = true

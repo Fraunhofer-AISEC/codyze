@@ -22,7 +22,8 @@ class CpgConfiguration {
         paramLabel = "<language>",
         description =
             [
-                "Enables the experimental support for additional languages (currently \${COMPLETION-CANDIDATES}). Additional files need to be placed in certain locations. Please follow the CPG README."]
+                "Enables the experimental support for additional languages (currently \${COMPLETION-CANDIDATES}). Additional files need to be placed in certain locations. Please follow the CPG README."
+            ]
     )
     @JsonDeserialize(using = LanguageDeserializer::class)
     var additionalLanguages: EnumSet<Language> = EnumSet.noneOf(Language::class.java)
@@ -41,7 +42,8 @@ class CpgConfiguration {
         negatable = true,
         description =
             [
-                "If false, type listener system is only activated after the frontends are done building the initial AST structure.\n\t(Default: \${DEFAULT-VALUE})"],
+                "If false, type listener system is only activated after the frontends are done building the initial AST structure.\n\t(Default: \${DEFAULT-VALUE})"
+            ],
         fallbackValue = "true"
     )
     var typeSystemInFrontend = true
@@ -57,7 +59,8 @@ class CpgConfiguration {
         names = ["--disable-cleanup"],
         description =
             [
-                "Switch off cleaning up TypeManager memory after the analysis. Set to true only for testing."],
+                "Switch off cleaning up TypeManager memory after the analysis. Set to true only for testing."
+            ],
         fallbackValue = "true"
     )
     var disableCleanup = false
@@ -67,7 +70,8 @@ class CpgConfiguration {
         negatable = true,
         description =
             [
-                "Controls showing the code of a node as parameter in the node.\n\t(Default: \${DEFAULT-VALUE})"],
+                "Controls showing the code of a node as parameter in the node.\n\t(Default: \${DEFAULT-VALUE})"
+            ],
         fallbackValue = "true"
     )
     var codeInNodes = true
@@ -84,7 +88,8 @@ class CpgConfiguration {
         names = ["--fail-on-error"],
         description =
             [
-                "Should the parser/translation fail on errors (true) or try to continue in a best-effort manner (false).\n\t(Default: \${DEFAULT-VALUE})"],
+                "Should the parser/translation fail on errors (true) or try to continue in a best-effort manner (false).\n\t(Default: \${DEFAULT-VALUE})"
+            ],
         fallbackValue = "true"
     )
     var failOnError = false
@@ -97,7 +102,8 @@ class CpgConfiguration {
         names = ["--parallel-frontends"],
         description =
             [
-                "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread."],
+                "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread."
+            ],
         fallbackValue = "true"
     )
     var useParallelFrontends = false
@@ -121,7 +127,8 @@ class TranslationSettings {
         names = ["--analyze-includes"],
         description =
             [
-                "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used."],
+                "Enables parsing of include files. By default, if --includes are given, the parser will resolve symbols/templates from these include, but not load their parse tree. This will enforced to true, if unity builds are used."
+            ],
         fallbackValue = "true"
     )
     var analyzeIncludes = false
@@ -147,7 +154,8 @@ class PassesArgGroup {
         paramLabel = "<pass>",
         description =
             [
-                "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."],
+                "CPG passes in the order in which they should be executed, fully qualified name of the classes only. If default-passes is specified, the default passes are executed first."
+            ],
         split = "\${sys:path.separator}"
     )
     fun match(passes: List<Pass?>) {
@@ -239,7 +247,8 @@ class EnabledIncludesArgGroup {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored."],
+                "If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored."
+            ],
         split = "\${sys:path.separator}"
     )
     fun match(value: Array<File>) {
@@ -252,7 +261,8 @@ class EnabledIncludesArgGroup {
         paramLabel = "<path>",
         description =
             [
-                "See --enabled-includes, but appends the values to the ones specified in configuration file."],
+                "See --enabled-includes, but appends the values to the ones specified in configuration file."
+            ],
         split = "\${sys:path.separator}"
     )
     fun append(value: Array<File>) {
@@ -272,7 +282,8 @@ class DisabledIncludesArgGroup {
         paramLabel = "<path>",
         description =
             [
-                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries."],
+                "If includes is not empty, the specified files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries."
+            ],
         split = "\${sys:path.separator}"
     )
     fun match(value: Array<File>) {
@@ -285,7 +296,8 @@ class DisabledIncludesArgGroup {
         paramLabel = "<path>",
         description =
             [
-                "See --disabled-includes, but appends the values to the ones specified in configuration file."],
+                "See --disabled-includes, but appends the values to the ones specified in configuration file."
+            ],
         split = "\${sys:path.separator}"
     )
     fun append(value: Array<File>) {

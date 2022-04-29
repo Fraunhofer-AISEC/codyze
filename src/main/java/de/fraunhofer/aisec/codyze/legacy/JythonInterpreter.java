@@ -17,11 +17,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.python.jline.internal.Ansi.stripAnsi;
@@ -209,9 +205,7 @@ public class JythonInterpreter implements AutoCloseable {
 			fillSuggestionList(s, dotPos, list);
 
 			// Sort
-			list.stream()
-					.sorted()
-					.collect(Collectors.toList());
+			Collections.sort(list, CharSequence::compare);
 
 			// This is necessary to avoid echoing going blank.
 			c.setIn(System.in);

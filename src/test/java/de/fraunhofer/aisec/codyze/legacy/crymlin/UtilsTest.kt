@@ -2,8 +2,6 @@ package de.fraunhofer.aisec.codyze.legacy.crymlin
 
 import de.fraunhofer.aisec.codyze.legacy.analysis.utils.Utils
 import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.declarations.MethodDeclaration
-import de.fraunhofer.aisec.cpg.graph.declarations.RecordDeclaration
 import de.fraunhofer.aisec.cpg.sarif.PhysicalLocation
 import de.fraunhofer.aisec.cpg.sarif.Region
 import java.net.URI

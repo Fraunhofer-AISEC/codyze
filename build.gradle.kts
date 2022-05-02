@@ -141,7 +141,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("de.fraunhofer.aisec.codyze.Main")
+    mainClass.set("de.fraunhofer.aisec.codyze.legacy.Main")
 }
 
 tasks.named<Test>("test") {

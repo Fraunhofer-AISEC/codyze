@@ -8,6 +8,13 @@
 ![GitHub](https://img.shields.io/github/license/Fraunhofer-AISEC/codyze)
 [![](https://jitpack.io/v/Fraunhofer-AISEC/codyze.svg)](https://jitpack.io/#Fraunhofer-AISEC/codyze)
 
+> :warning: Note: We are currently redesigning Codyze. We have moved most of the functionality into a subpackage `legacy`. For the foreseeable future, we continue to maintain the legacy version of Codyze. Over 
+> 
+> Gradually, we're replacing legacy functionality with the redesigned one. Where this approach isn't feasible due to breaking changes, we're going to offer a switch to either use the legacy version or redesigned version.
+>
+> If you are looking for a _stable_ version, please use the [2.0.0-beta](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.0.0-beta) release.
+
+
 Codyze is a static code analyzer that focuses on verifying security compliance in source code, i.e. by inferring the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
 
 Documentation: https://www.codyze.io

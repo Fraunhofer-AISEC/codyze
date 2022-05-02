@@ -88,7 +88,7 @@ public class AnalysisServer {
 
 		int i = 0;
 		for (Class<? extends Builtin> builtin : reflections.getSubTypesOf(Builtin.class)) {
-			log.info("Registering builtin {}", builtin.getName());
+			log.debug("Registering builtin {}", builtin.getName());
 			try {
 				Builtin bi = builtin.getDeclaredConstructor().newInstance();
 				BuiltinRegistry.getInstance().register(bi);
@@ -295,7 +295,7 @@ public class AnalysisServer {
 				try {
 					getMarkFileLocations(markFile, allMarkFiles);
 					for (File f : allMarkFiles) {
-						log.info("  Loading MARK file {}", f.getAbsolutePath());
+						log.debug("  Loading MARK file {}", f.getAbsolutePath());
 						parser.addMarkFile(f);
 					}
 				}
@@ -378,6 +378,14 @@ public class AnalysisServer {
 	public CompletableFuture<AnalysisContext> analyze(String url) {
 		var translationManager = TranslationManager.builder()
 				.config(config.buildTranslationConfiguration(new File(url)))
+				.build();
+
+		return analyze(translationManager);
+	}
+
+	public CompletableFuture<AnalysisContext> analyze(File[] sources) {
+		var translationManager = TranslationManager.builder()
+				.config(config.buildTranslationConfiguration(sources))
 				.build();
 
 		return analyze(translationManager);

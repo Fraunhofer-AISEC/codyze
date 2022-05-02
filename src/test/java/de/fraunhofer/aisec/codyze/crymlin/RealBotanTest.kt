@@ -24,8 +24,7 @@ internal class RealBotanTest : AbstractMarkTest() {
 
         val graph = ctx!!.graph
         val variables =
-            graph
-                .nodes
+            graph.nodes
                 .stream()
                 .filter { node: Node? -> node is VariableDeclaration }
                 .collect(Collectors.toList())

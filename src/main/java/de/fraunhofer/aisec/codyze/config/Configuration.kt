@@ -8,9 +8,9 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import de.fraunhofer.aisec.codyze.Main.ConfigFilePath
 import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.config.converters.FileDeserializer
 import de.fraunhofer.aisec.codyze.config.converters.OutputDeserializer
@@ -20,23 +20,53 @@ import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.io.IOException
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import picocli.CommandLine
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class Configuration {
 
+    @JsonIgnore @CommandLine.ArgGroup(exclusive = true) private val sourceCLI = SourceArgGroup()
+    var source: Array<File> = arrayOf(File("./"))
+        private set
+        get() {
+            val result = mutableListOf<File>()
+
+            if (!sourceCLI.matched || sourceCLI.append) {
+                result.addAll(field)
+            }
+
+            if (sourceCLI.matched) {
+                result.addAll(sourceCLI.source)
+            }
+
+            return result.toTypedArray()
+        }
+
+    @JsonIgnore
+    @CommandLine.ArgGroup(exclusive = true)
+    private val disabledSourceCLI = DisabledSourceArgGroup()
+    @JsonProperty("disabled-sources")
+    var disabledSource: Array<File> = emptyArray()
+        private set
+        get() {
+            val result = mutableListOf<File>()
+
+            if (!disabledSourceCLI.matched || disabledSourceCLI.append) {
+                result.addAll(field)
+            }
+
+            if (disabledSourceCLI.matched) {
+                result.addAll(disabledSourceCLI.disabledSource)
+            }
+
+            return result.toTypedArray()
+        }
+
     @JsonIgnore
     @CommandLine.ArgGroup(exclusive = true, heading = "Execution Mode\n")
     val executionMode: ExecutionMode = ExecutionMode()
-
-    @CommandLine.Option(
-        names = ["-s", "--source"],
-        paramLabel = "<path>",
-        description = ["Source file or folder to analyze.\n\t(Default: \${DEFAULT-VALUE})"]
-    )
-    var source = File("./")
-        private set
 
     // TODO output standard stdout?
     @CommandLine.Option(
@@ -62,7 +92,8 @@ class Configuration {
         negatable = true,
         description =
             [
-                "Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"],
+                "Controls whether the output is written in the SARIF format.\n\t(Default: \${DEFAULT-VALUE})"
+            ],
         fallbackValue = "true"
     )
     var sarifOutput = true
@@ -91,11 +122,19 @@ class Configuration {
                 .launchConsole(executionMode.isTui)
                 .typestateAnalysis(codyze.analysis.tsMode)
                 .disableGoodFindings(codyze.noGoodFindings)
-                .markFiles(*codyze.mark.map { m -> m.absolutePath }.toTypedArray())
                 .pedantic(codyze.pedantic)
 
+        val mark = mutableListOf<File>()
+        if (!codyze.markCLI.matched || codyze.markCLI.append) mark.addAll(codyze.mark)
+        if (codyze.markCLI.matched) mark.addAll(codyze.markCLI.mark)
+        config.markFiles(*mark.map { m -> m.absolutePath }.toTypedArray())
+
         val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
-        for (mName in codyze.disabledMarkRules) {
+        val disabledMarkRules = codyze.disabledMarkRulesCLI.disabledMarkRules.toMutableList()
+        if (!codyze.disabledMarkRulesCLI.matched || codyze.disabledMarkRulesCLI.append)
+            disabledMarkRules.addAll(codyze.disabledMarkRules)
+
+        for (mName in disabledMarkRules) {
             val index = mName.lastIndexOf('.')
             val packageName = mName.subSequence(0, index).toString()
             val markName = mName.subSequence(index + 1, mName.length).toString()
@@ -107,8 +146,9 @@ class Configuration {
                 log.warn(
                     "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
                 )
-            config.disableMark(disabledRulesMap)
         }
+
+        config.disableMark(disabledRulesMap)
 
         return config.build()
     }
@@ -122,48 +162,83 @@ class Configuration {
         this.normalize()
         val translationConfig =
             TranslationConfiguration.builder()
-                .debugParser(if (executionMode.isLsp) false else cpg.debugParser)
+                .debugParser(cpg.debugParser)
                 .failOnError(cpg.failOnError)
                 .codeInNodes(cpg.codeInNodes)
                 .loadIncludes(cpg.translation.analyzeIncludes)
                 .useUnityBuild(cpg.useUnityBuild)
                 .processAnnotations(cpg.processAnnotations)
-                .symbols(cpg.symbols)
                 .useParallelFrontends(cpg.useParallelFrontends)
                 .typeSystemActiveInFrontend(cpg.typeSystemInFrontend)
                 .defaultLanguages()
-                .sourceLocations(*sources)
+                .sourceLocations(*filterFiles(disabledSource, *sources))
 
-        for (file in cpg.translation.includes) {
-            translationConfig.includePath(file.absolutePath)
+        val symbols = cpg.symbolsCLI.symbols.toMutableMap()
+        if (!cpg.symbolsCLI.matched || cpg.symbolsCLI.append) {
+            symbols.putAll(cpg.symbols)
         }
-        for (s in cpg.translation.enabledIncludes) {
-            translationConfig.includeWhitelist(s.absolutePath)
+        translationConfig.symbols(symbols)
+
+        if (!cpg.translation.includesCLI.matched || cpg.translation.includesCLI.append) {
+            for (file in cpg.translation.includes) {
+                translationConfig.includePath(file.absolutePath)
+            }
         }
-        for (s in cpg.translation.disabledIncludes) {
-            translationConfig.includeBlacklist(s.absolutePath)
+        if (cpg.translation.includesCLI.matched)
+            for (file in cpg.translation.includesCLI.includes) {
+                translationConfig.includePath(file.absolutePath)
+            }
+
+        if (!cpg.translation.enabledIncludesCLI.matched || cpg.translation.enabledIncludesCLI.append
+        ) {
+            for (s in cpg.translation.enabledIncludes) {
+                translationConfig.includeWhitelist(s.absolutePath)
+            }
         }
+        if (cpg.translation.enabledIncludesCLI.matched)
+            for (file in cpg.translation.enabledIncludesCLI.enabledIncludes) {
+                translationConfig.includeWhitelist(file.absolutePath)
+            }
+
+        if (!cpg.translation.disabledIncludesCLI.matched ||
+                cpg.translation.disabledIncludesCLI.append
+        ) {
+            for (s in cpg.translation.disabledIncludes) {
+                translationConfig.includeBlacklist(s.absolutePath)
+            }
+        }
+        if (cpg.translation.disabledIncludesCLI.matched)
+            for (file in cpg.translation.disabledIncludesCLI.disabledIncludes) {
+                translationConfig.includeBlacklist(file.absolutePath)
+            }
 
         if (cpg.disableCleanup) {
             translationConfig.disableCleanup()
         }
 
         if (cpg.defaultPasses == null) {
-            if (cpg.passes.isEmpty()) {
+            if (cpg.passesCLI.passes.isEmpty() && cpg.passes.isEmpty()) {
                 translationConfig.defaultPasses()
             }
         } else {
             if (cpg.defaultPasses!!) {
                 translationConfig.defaultPasses()
             } else {
-                if (cpg.passes.isEmpty()) {
+                if (cpg.passesCLI.passes.isEmpty() && cpg.passes.isEmpty()) {
                     // TODO: error handling for no passes if needed
                 }
             }
         }
-        for (p in cpg.passes) {
-            translationConfig.registerPass(p)
+
+        if (!cpg.passesCLI.matched || cpg.passesCLI.append) {
+            for (p in cpg.passes) {
+                translationConfig.registerPass(p)
+            }
         }
+        if (cpg.passesCLI.matched)
+            for (p in cpg.passesCLI.passes) {
+                translationConfig.registerPass(p)
+            }
 
         for (l in cpg.additionalLanguages) {
             val frontendClazz =
@@ -178,8 +253,8 @@ class Configuration {
             if (frontendClazz != null) {
                 @Suppress("UNCHECKED_CAST")
                 val extensions =
-                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null) as
-                        List<String>
+                    frontendClazz.fields.find { f -> f.name.endsWith("_EXTENSIONS") }?.get(null)
+                        as List<String>
 
                 translationConfig.registerLanguage(frontendClazz, extensions)
             }
@@ -188,11 +263,83 @@ class Configuration {
         return translationConfig.build()
     }
 
+    /**
+     * Filters out files that are in the excludedFiles array from files
+     *
+     * @param excludedFiles array of files and/or directories that should be excluded
+     * @param files files and/or directories from which the excluded files should be filtered out
+     * from
+     *
+     * @return array of filtered files
+     */
+    private fun filterFiles(excludedFiles: Array<File>, vararg files: File): Array<File> {
+        if (excludedFiles.isEmpty()) return arrayOf(*files)
+
+        var result: MutableList<File> =
+            listOf(*files).map { f -> f.absoluteFile.normalize() }.toMutableList()
+
+        for (excludedFile in excludedFiles) {
+            val excludedNormalizedFile = excludedFile.absoluteFile.normalize()
+
+            // will be list of included files after filtering out excludedFile
+            val newResult = mutableListOf<File>()
+
+            for (includedFile in result) {
+                // excludedPath is located under includedFile
+                if (includedFile.isDirectory &&
+                        excludedNormalizedFile.startsWith(
+                            includedFile.absolutePath + File.separator
+                        )
+                ) {
+                    newResult.addAll(findSiblings(excludedNormalizedFile, includedFile))
+                } else if (
+                // includedFile is located under excludedPath or excludedPath is equal to
+                // includedFile
+                (excludedNormalizedFile.isDirectory &&
+                        includedFile.startsWith(
+                            excludedNormalizedFile.absolutePath + File.separator
+                        )) || excludedNormalizedFile == includedFile
+                ) {
+                    // do nothing
+                } else {
+                    // add includedFile because it was not in this excluded path
+                    newResult.add(includedFile)
+                }
+            }
+            result = newResult
+        }
+
+        return result.toTypedArray()
+    }
+
+    /**
+     * Find all sibling files by traversing file tree upwards until root is reached
+     *
+     * @param start starting file
+     * @param root function searches until here
+     *
+     * @return list of sibling files
+     */
+    private fun findSiblings(start: File, root: File): List<File> {
+        val result = mutableListOf<File>()
+
+        var current = start
+        while (current != root) {
+            // find siblings of excludedPath because they should still be included
+            val siblings = current.parentFile.listFiles { f -> f != current }
+            if (siblings != null) result.addAll(siblings)
+            current = current.parentFile
+        }
+
+        return result
+    }
+
     private fun normalize() {
         // In pedantic analysis mode all MARK rules are analyzed and all findings reported
         if (codyze.pedantic) {
             codyze.noGoodFindings = false
             codyze.disabledMarkRules = emptyList()
+            codyze.disabledMarkRulesCLI.disabledMarkRules = emptyList()
         }
 
         // we need to force load includes for unity builds, otherwise nothing will be parsed
@@ -211,20 +358,30 @@ class Configuration {
     // Parse CLI arguments into config class
     private fun parseCLI(vararg args: String?) {
 
-        CommandLine(this)
-            // Added as Mixin so the already initialized objects are used instead of new ones
-            // created
-            .addMixin("codyze", codyze)
-            .addMixin("cpg", cpg)
-            .addMixin("analysis", codyze.analysis)
-            .addMixin("translation", cpg.translation)
-            .registerConverter(Pass::class.java, PassTypeConverter())
-            .setCaseInsensitiveEnumValuesAllowed(true)
-            // setUnmatchedArgumentsAllowed is true because both classes don't have the config path
-            // option which would result in exceptions, side effect is that all unknown options are
-            // ignored
-            .setUnmatchedArgumentsAllowed(true)
-            .parseArgs(*args)
+        val cl =
+            CommandLine(this)
+                // Added as Mixin so the already initialized objects are used instead of new ones
+                // created
+                .addMixin("codyze", codyze)
+                .addMixin("cpg", cpg)
+                .addMixin("analysis", codyze.analysis)
+                .addMixin("translation", cpg.translation)
+                .registerConverter(Pass::class.java, PassTypeConverter())
+                .setCaseInsensitiveEnumValuesAllowed(true)
+                // setUnmatchedArgumentsAllowed is true because both classes don't have the config
+                // path option which would result in exceptions, side effect is that all unknown
+                // options are ignored
+                .setUnmatchedArgumentsAllowed(true)
+                .parseArgs(*args)
+
+        // log any unmatched arguments
+        if (cl.unmatched() != null && cl.unmatched().isNotEmpty()) {
+            log.warn(
+                "{} argument(s) could not be matched: {}",
+                cl.unmatched().size,
+                cl.unmatched().toString()
+            )
+        }
     }
 
     companion object {
@@ -244,12 +401,7 @@ class Configuration {
                 if (configFile != null) {
                     parseFile(configFile)
                 } else {
-                    val defaultConfigFile = ConfigFilePath().configFile
-                    if (defaultConfigFile.isFile) {
-                        parseFile(defaultConfigFile)
-                    } else {
-                        Configuration()
-                    }
+                    Configuration()
                 }
             config.parseCLI(*args)
             return config
@@ -273,6 +425,8 @@ class Configuration {
                             }
                         }
                     )
+            val logProblemHandler = LogDeserializationProblemHandler(log)
+
             val mapper =
                 YAMLMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
             mapper
@@ -280,16 +434,21 @@ class Configuration {
                 .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .registerModule(module)
+                .registerModule(LogModule(logProblemHandler))
             mapper.injectableValues =
                 InjectableValues.Std()
                     .addValue("configFileBasePath", configFile.absoluteFile.parentFile.absolutePath)
             mapper.propertyNamingStrategy = PropertyNamingStrategies.KebabCaseStrategy()
+
             var config: Configuration? = null
             try {
                 config = mapper.readValue(configFile, Configuration::class.java)
             } catch (e: IOException) {
                 printErrorMessage(configFile.absolutePath, e.toString())
             }
+
+            logProblemHandler.printToLog()
+
             return config ?: Configuration()
         }
 
@@ -342,4 +501,99 @@ class ExecutionMode {
         description = ["Start interactive console (Text-based User Interface)."]
     )
     var isTui = false
+}
+
+class SourceArgGroup {
+    var append = false
+    var matched = false
+
+    var source: Array<File> = emptyArray()
+    @CommandLine.Option(
+        names = ["-s", "--source"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description = ["Source files or folders to analyze.\n\t(Default: \${sys:source})"]
+    )
+    fun match(value: Array<File>) {
+        matched = true
+        this.source = value
+    }
+
+    @CommandLine.Option(
+        names = ["--source+"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            ["See --source, but appends the values to the ones specified in configuration file."]
+    )
+    fun append(value: Array<File>) {
+        append = true
+        match(value)
+    }
+}
+
+class DisabledSourceArgGroup {
+    var append = false
+    var matched = false
+
+    var disabledSource: Array<File> = emptyArray()
+    @CommandLine.Option(
+        names = ["--disabled-sources"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            [
+                "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"
+            ]
+    )
+    fun match(value: Array<File>) {
+        matched = true
+        this.disabledSource = value
+    }
+
+    @CommandLine.Option(
+        names = ["--disabled-sources+"],
+        paramLabel = "<path>",
+        split = "\${sys:path.separator}",
+        description =
+            [
+                "See --disabled-sources, but appends the values to the ones specified in configuration file."
+            ]
+    )
+    fun append(value: Array<File>) {
+        append = true
+        match(value)
+    }
+}
+
+// Taken from:
+// https://stackoverflow.com/questions/46644099/cant-set-problemhandler-to-objectmapper-in-spring-boot
+class LogModule(private val problemHandler: LogDeserializationProblemHandler) : SimpleModule() {
+    override fun setupModule(context: SetupContext) {
+        super.setupModule(context)
+        context.addDeserializationProblemHandler(problemHandler)
+    }
+}
+
+class LogDeserializationProblemHandler(val log: Logger) : DeserializationProblemHandler() {
+    private val unknownPropNames = mutableListOf<String>()
+
+    fun printToLog() {
+        if (unknownPropNames.isNotEmpty()) {
+            log.warn(
+                "${if(unknownPropNames.size == 1) "1 property is" else "${unknownPropNames.size} properties are"} unknown: $unknownPropNames"
+            )
+        }
+    }
+
+    override fun handleUnknownProperty(
+        ctxt: DeserializationContext,
+        p: JsonParser,
+        deserializer: JsonDeserializer<*>,
+        beanOrClass: Any,
+        propertyName: String
+    ): Boolean {
+        unknownPropNames.add(propertyName)
+        return false
+    }
 }

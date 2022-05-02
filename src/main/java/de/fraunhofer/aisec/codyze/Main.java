@@ -18,6 +18,7 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -49,12 +50,15 @@ public class Main {
 	 */
 	public static void main(String... args) throws Exception {
 		ConfigFilePath firstPass = new ConfigFilePath();
-		firstPass.configFile = null;
 		CommandLine cmd = new CommandLine(firstPass);
 		cmd.parseArgs(args); // first pass to get potential config file path
 		if (cmd.isUsageHelpRequested()) {
 			// print help message
-			CommandLine c = new CommandLine(new Help());
+			Help help = new Help();
+			System.setProperty("source", Arrays.toString(help.configuration.getSource()));
+			System.setProperty("mark", Arrays.toString(help.codyzeConfig.getMark()));
+
+			CommandLine c = new CommandLine(help);
 			c.getHelpSectionMap().put(SECTION_KEY_OPTION_LIST, new HelpRenderer());
 			c.usage(System.out);
 			System.exit(c.getCommandSpec().exitCodeOnUsageHelp());
@@ -67,7 +71,7 @@ public class Main {
 			int returnCode = 0;
 
 			try {
-				Configuration config = Configuration.initConfig(firstPass.configFile, args);
+				Configuration config = Configuration.initConfig(firstPass.configFile, firstPass.remainder.toArray(new String[0]));
 				// Start analysis setup
 				returnCode = start(config);
 			}
@@ -95,9 +99,9 @@ public class Main {
 		log.info("Analysis server started in {} in ms.", Duration.between(start, Instant.now()).toMillis());
 
 		if (!configuration.getExecutionMode().isLsp()) {
-			log.info("Analyzing {}", configuration.getSource());
+			log.info("Analyzing sources {} excluding {}", Arrays.toString(configuration.getSource()), Arrays.toString(configuration.getDisabledSource()));
 			AnalysisContext ctx = server
-					.analyze(configuration.getSource().getAbsolutePath())
+					.analyze(configuration.getSource())
 					.get(configuration.getTimeout(), TimeUnit.MINUTES);
 
 			var findings = ctx.getFindings();
@@ -135,8 +139,9 @@ public class Main {
 	// Stores path to config file given as cli option
 	@Command(mixinStandardHelpOptions = true)
 	public static class ConfigFilePath {
-		@Option(names = { "--config" }, paramLabel = "<path>", description = "Parse configuration settings from this file.\n\t(Default: ${DEFAULT-VALUE})")
-		public File configFile = new File("codyze.yaml");
+		@Option(names = {
+				"--config" }, paramLabel = "<path>", fallbackValue = "codyze.yaml", arity = "0..1", description = "Parse configuration settings from this file. If no file path is specified, codyze will try to load the configuration file from ${FALLBACK-VALUE}")
+		public File configFile;
 
 		@Unmatched
 		List<String> remainder;
@@ -150,10 +155,10 @@ public class Main {
 		private ConfigFilePath configFilePath;
 
 		// ArgGroups only for display purposes
-		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false)
+		@ArgGroup(heading = "@|bold,underline Codyze Options|@\n", exclusive = false, validate = true)
 		private CodyzeConfiguration codyzeConfig = new CodyzeConfiguration();
 
-		@ArgGroup(heading = "", exclusive = false)
+		@ArgGroup(exclusive = false)
 		private Configuration configuration = new Configuration();
 
 		@ArgGroup(exclusive = false, heading = "Analysis Options\n")
@@ -181,7 +186,7 @@ public class Main {
 			for (CommandSpec c : mix.values()) {
 				sb.append(help.optionListExcludingGroups(c.options().stream().filter(optionSpec -> optionSpec.group() == null).collect(Collectors.toList())));
 			}
-			sb.append("\n");
+
 			for (ArgGroupSpec group : spec.argGroups()) {
 				addHierachy(group, sb);
 			}
@@ -190,13 +195,15 @@ public class Main {
 		}
 
 		private void addHierachy(ArgGroupSpec argGroupSpec, StringBuilder sb) {
-			sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
+			if (argGroupSpec.heading() != null) {
+				sb.append("\n");
+				sb.append(help.colorScheme().text(argGroupSpec.heading()).toString());
+			}
 
 			// render all options that are not in subgroups
 			sb.append(help.optionListExcludingGroups(
 				argGroupSpec.options().stream().filter(optionSpec -> optionSpec.group().equals(argGroupSpec)).collect(Collectors.toList())));
 
-			sb.append("\n");
 			for (ArgGroupSpec group : argGroupSpec.subgroups()) {
 				addHierachy(group, sb);
 			}

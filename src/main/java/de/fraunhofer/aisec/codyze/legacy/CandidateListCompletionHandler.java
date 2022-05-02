@@ -139,36 +139,22 @@ public class CandidateListCompletionHandler implements CompletionHandler {
 		}
 
 		// convert to an array for speed
-		// noinspection ToArrayCallWithZeroLengthArrayArgument
-		CharSequence[] strings = candidates.toArray(new CharSequence[candidates.size()]);
+		CharSequence[] strings = candidates.toArray(new CharSequence[0]);
 
 		CharSequence first = strings[0];
-		StringBuilder candidate = new StringBuilder();
+		int end = first.length();
 
-		for (int i = 0; i < first.length(); i++) {
-			if (startsWith(first.subSequence(0, i + 1), strings)) {
-				candidate.append(first.charAt(i));
-			} else {
-				break;
+		for (int i = 1; i < strings.length || end == 0; i++) {
+			CharSequence next = strings[i];
+			end = Math.min(end, next.length());
+
+			for (int j = 0; j < end; j++) {
+				if (first.charAt(j) != next.charAt(j)) {
+					end = j;
+				}
 			}
 		}
-
-		return candidate.toString();
-	}
-
-	/**
-	 * @return true is all the elements of <i>candidates</i> start with <i>starts</i>
-	 * @param starts
-	 * @param candidates
-	 */
-	private boolean startsWith(final CharSequence starts, final CharSequence[] candidates) {
-		for (CharSequence candidate : candidates) {
-			if (!candidate.toString().startsWith(starts.toString())) { // TODO: beautify: Compare subsequence()
-				return false;
-			}
-		}
-
-		return true;
+		return first.subSequence(0, end).toString();
 	}
 }
 

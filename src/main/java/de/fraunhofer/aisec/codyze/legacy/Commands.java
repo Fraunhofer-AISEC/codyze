@@ -28,6 +28,7 @@ import static de.fraunhofer.aisec.codyze.legacy.JythonInterpreter.PY_SERVER;
  */
 public class Commands {
 
+	public static final String QUERY_TERMINATOR_FORMAT = "%-38s - %s%n";
 	private static final Logger log = LoggerFactory.getLogger(Commands.class);
 
 	// backref
@@ -194,11 +195,11 @@ public class Commands {
 
 	private static void printQueryTerminators() {
 		StringBuilder sbEntry = new StringBuilder();
-		sbEntry.append(String.format("%-38s - %s%n", "toList()", "Collect results in a list"));
-		sbEntry.append(String.format("%-38s - %s%n", "toSet()", "Collect results in a set (removing duplicates)"));
-		sbEntry.append(String.format("%-38s - %s%n", "next()",
+		sbEntry.append(String.format(QUERY_TERMINATOR_FORMAT, "toList()", "Collect results in a list"));
+		sbEntry.append(String.format(QUERY_TERMINATOR_FORMAT, "toSet()", "Collect results in a set (removing duplicates)"));
+		sbEntry.append(String.format(QUERY_TERMINATOR_FORMAT, "next()",
 			"Return one result. The returned result is non-deterministically selected. If the result set is empty, an error will be thrown"));
-		sbEntry.append(String.format("%-38s - %s%n", "tryNext()",
+		sbEntry.append(String.format(QUERY_TERMINATOR_FORMAT, "tryNext()",
 			"Returns an \"Optional\" of one result. The returned result is non-deterministically selected. If the result set is empty, the Optional is empty"));
 		System.out.println(sbEntry);
 	}

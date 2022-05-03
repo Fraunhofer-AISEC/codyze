@@ -377,7 +377,7 @@ class ExpressionEvaluatorTest : AbstractTest() {
                     rule("logicalNotRule") {
                         statement {
                             ensure {
-                                // comparison is: 5 == 7 & 2 (0b101 == 0b111 & 0b10)
+                                // comparison is: true == !false
                                 exp =
                                     comparison(
                                         left = lit(true),
@@ -399,8 +399,7 @@ class ExpressionEvaluatorTest : AbstractTest() {
             assertNotNull(bitwiseOrRule)
             assertNotNull(plusSignRule)
             assertNotNull(minusSignRule)
-            assertNotNull(myEntity)
-            assertNotNull(myEntity)
+            assertNotNull(logicalNotRule)
             assertNotNull(myEntity)
 
             mark = MarkModelLoader().load(mapOf("" to model))

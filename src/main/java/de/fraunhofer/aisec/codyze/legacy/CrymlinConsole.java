@@ -39,7 +39,11 @@ public class CrymlinConsole extends InteractiveInterpreter {
 			+ "\n\n";
 
 	public static final String CONSOLE_FILENAME = "<stdin>";
-	private String mood = Mood.HAPPY;
+
+	private static final String MOOD_UNHAPPY = "\uD83D\uDE1F";
+	private static final String MOOD_HAPPY = "\uD83D\uDE00";
+
+	private String mood = MOOD_HAPPY;
 	private boolean stop = false;
 
 	public CrymlinConsole() {
@@ -110,9 +114,9 @@ public class CrymlinConsole extends InteractiveInterpreter {
 		if (!more) {
 			resetbuffer();
 			if (this.systemState.last_type != null && this.systemState.last_type != Py.None) {
-				this.mood = Mood.UNHAPPY;
+				this.mood = MOOD_HAPPY;
 			} else {
-				this.mood = Mood.HAPPY;
+				this.mood = MOOD_UNHAPPY;
 			}
 			this.systemState.last_type = Py.None;
 		}
@@ -127,8 +131,4 @@ public class CrymlinConsole extends InteractiveInterpreter {
 		return __builtin__.raw_input(prompt, file);
 	}
 
-	interface Mood {
-		String UNHAPPY = "\uD83D\uDE1F";
-		String HAPPY = "\uD83D\uDE00";
-	}
 }

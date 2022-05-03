@@ -39,6 +39,7 @@ import static de.fraunhofer.aisec.codyze.legacy.analysis.markevaluation.Evaluati
 public class ExpressionEvaluator {
 
 	private static final Logger log = LoggerFactory.getLogger(ExpressionEvaluator.class);
+	private static final String ERROR = "error";
 
 	// the mark rule this evaluation is called in
 	private final MRule markRule;
@@ -200,8 +201,8 @@ public class ExpressionEvaluator {
 					ExpressionHelper.exprToString(leftExp),
 					ExpressionHelper.exprToString(rightExp));
 				combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical expression, left is %s, right is %s",
-					leftHasError ? "error" : left.toString(),
-					rightHasError ? "error" : right.toString()), leftBoxed, rightBoxed));
+					leftHasError ? ERROR : left.toString(),
+					rightHasError ? ERROR : right.toString()), leftBoxed, rightBoxed));
 
 			} else if (expr instanceof LogicalAndExpression) {
 				if (leftHasError || rightHasError) {
@@ -213,8 +214,8 @@ public class ExpressionEvaluator {
 						combinedResult.put(key, ConstantValue.of(false));
 					} else {
 						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical AND, left is %s, right is %s",
-							leftHasError ? "error" : left.toString(),
-							rightHasError ? "error" : right.toString())));
+							leftHasError ? ERROR : left.toString(),
+							rightHasError ? ERROR : right.toString())));
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&
@@ -235,8 +236,8 @@ public class ExpressionEvaluator {
 						combinedResult.put(key, ConstantValue.of(true));
 					} else {
 						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Cannot perform logical or, left is %s, right is %s",
-							leftHasError ? "error" : left.toString(),
-							rightHasError ? "error" : right.toString())));
+							leftHasError ? ERROR : left.toString(),
+							rightHasError ? ERROR : right.toString())));
 					}
 				} else if (left.getClass().equals(Boolean.class)
 						&&

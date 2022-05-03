@@ -94,7 +94,6 @@ class ExpressionEvaluatorTest : AbstractTest() {
         // directly use the xtext classes
         val convertedMark = MarkModelLoader().load(mapOf("" to model))
         assertNotNull(convertedMark)
-
         assertNotNull(convertedMark.rules)
 
         val convertedEntity = convertedMark.getEntity("MyClass")

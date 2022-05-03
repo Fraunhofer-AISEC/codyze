@@ -50,9 +50,8 @@ internal class ExpressionHelperTest {
         assertEquals("-1.0", ExpressionHelper.toComparableString("-1"))
         assertEquals("a", ExpressionHelper.toComparableString("\"a"))
 
-        // doesn't work as expected
-        // assertEquals("ab", ExpressionHelper.toComparableString("ab\""))
-        // assertEquals("abc", ExpressionHelper.toComparableString("\"abc\""))
+        assertEquals("ab", ExpressionHelper.toComparableString("ab\""))
+        assertEquals("abc", ExpressionHelper.toComparableString("\"abc\""))
 
         assertEquals("4.0", ExpressionHelper.toComparableString(4.toByte()))
         assertEquals("a", ExpressionHelper.toComparableString('a'))

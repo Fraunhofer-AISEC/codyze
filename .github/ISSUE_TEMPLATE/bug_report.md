@@ -1,38 +1,42 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: Bug report from Codyze traces
+about: A template customized to hold the error report printed by codyze and its configuration
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+[//]: <> (Copied from https://github.com/Fraunhofer-AISEC/cpg/blob/66deb0905c57f9888f71dda790cad7d63381e740/.github/ISSUE_TEMPLATE/bugreport-from-cpg-traces.md)
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+# Stack trace
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+*Stack trace in case of an Exception*
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+# Unexpected behavior
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+*When the analysis terminates exception free but leads to unexpected results: Describe the difference between the generated results and what you would have expected*
 
-**Additional context**
-Add any other context about the problem here.
+
+# Analyzed code of interest
+
+```
+codeOfInterest
+```
+
+
+# Mark files
+
+*Mark files used for the analysis*
+
+
+# Extensions to the cpg, e.g. added or changed LanguageFrontends or Passes
+
+*changes to or added components*
+
+
+# Configurations
+
+*options and/or configuration file used when starting codyze* 
+

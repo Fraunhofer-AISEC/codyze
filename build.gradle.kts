@@ -137,7 +137,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Parser for yaml configuration file
-    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
+    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.3")
 }
 
 application {

@@ -46,7 +46,7 @@ $ ./bin/codyze -m ./mark -s <sourcepath>
 where `<sourcepath>` denotes the path to the source directory or file which should be analyzed.
 
 Codyze can be further configured with additional command line arguments or a YAML configuration file.
-For more information about the usage and configurations, please refer to https://www.codyze.io and the corresponding [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Usage).
+For more information about the usage and configurations, please refer to https://www.codyze.io and the corresponding [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Configuring-Codyze).
 
 
 ## Research & Student Work

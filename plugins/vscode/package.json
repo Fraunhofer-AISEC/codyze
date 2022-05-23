@@ -14,7 +14,7 @@
 		"vscode": "^1.67.2"
 	},
 	"dependencies": {
-		"vscode-languageclient": "^7.0.0"
+		"vscode-languageclient": "^8.0.0"
 	},
 	"activationEvents": [
 		"onLanguage:cpp",

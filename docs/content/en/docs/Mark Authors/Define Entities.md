@@ -11,7 +11,7 @@ description: >
 MARK rules refer to _entities_ - abstract objects that wrap the real object classes of the analyzed programming language (in case of object oriented languages) and group methods with similar semantics in so-called *op*s. A MARK entity defines three parts:
 
 1. A _name_
-1. A set of _ops_ (operations)
+1. A set of *op*s (operations)
 1. A set of MARK _variables_
 
 Writing MARK rules for a library requires a good understanding of the library API and its class hierarchy. We recommend the following approach to writing MARK entities.

@@ -4,6 +4,7 @@ linkTitle: "Using the Codyze Console"
 no_list: true
 weight: 3
 date: 2020-05-25
+expiryDate: 2022-05-24
 description: >
   The Codyze console allows to interactively explore and analye source code.
 ---

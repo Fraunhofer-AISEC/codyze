@@ -1,0 +1,20 @@
+package de.fraunhofer.aisec.codyze.crymlin
+
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import org.junit.jupiter.api.Test
+
+internal class JacksonTest : AbstractMarkTest() {
+    @Test
+    @Throws(Exception::class)
+    fun testBasic() {
+        val findings = performTest("legacy/java/jackson/Serialization.java", "modules/API_rules/mark/jackson/")
+        assertNotNull(findings)
+        assertEquals(1, findings.size)
+
+        val finding = findings.iterator().next()
+
+        assertEquals(9, finding.locations[0].region.startLine)
+        assertEquals("FORBIDDEN_ObjectMapper", finding.identifier)
+    }
+}

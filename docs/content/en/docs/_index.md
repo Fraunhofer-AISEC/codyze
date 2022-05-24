@@ -31,7 +31,7 @@ Codyze is based on a "Code Property Graph", which represents the source code as 
 
 Codyze checks source code for the correct usage of libraries. It is an addition to generic static analysis tools such as Sonarqube, Frama-C, or Checkerframework and specifically verifies that libraries are used as originally intended by their developers. 
 
-**Library developers** write rules for their library in a simple domain specific language, called *MARK*.
+**Library developers** write rules for the library in a simple domain specific language, called *MARK*.
 
 **Developers** using the library verify their code against these rules using Codyze - either as an IDE-plugin or as a CI module.
 

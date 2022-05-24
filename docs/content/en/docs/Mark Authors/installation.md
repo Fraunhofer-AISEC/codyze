@@ -7,7 +7,7 @@ description: >
   Setting up the MARK authoring environment with Eclipse XText
 ---
 
-MARK is a simple domain specific language (DSL) that can be written in any text editor. We recommend however using the MARK Eclipse plugin which brings syntax highlighting, auto-completion, and some other benefits that will support you in writing MARK rules.
+MARK is a simple domain specific language (DSL) that can be written in any text editor. We however recommend using the MARK Eclipse plugin which brings syntax highlighting, auto-completion, and some other benefits that will support you in writing MARK rules.
 
 
 ## Install the MARK Eclipse Plugin

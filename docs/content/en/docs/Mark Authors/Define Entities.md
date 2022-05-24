@@ -8,7 +8,7 @@ description: >
   Describing the core objects of a library by means of MARK entities
 ---
 
-MARK rules refer to _entities_ - abstract objects that wrap the real object classes of the analyzed programming language (in case of object oriented languages) and group methods with similar semantics in so-called _op_s. A MARK entity defines three parts:
+MARK rules refer to _entities_ - abstract objects that wrap the real object classes of the analyzed programming language (in case of object oriented languages) and group methods with similar semantics in so-called *op*s. A MARK entity defines three parts:
 
 1. A _name_
 1. A set of _ops_ (operations)
@@ -17,8 +17,8 @@ MARK rules refer to _entities_ - abstract objects that wrap the real object clas
 Writing MARK rules for a library requires a good understanding of the library API and its class hierarchy. We recommend the following approach to writing MARK entities.
 
 1. Model relevant classes as MARK entities
-1. Define _op_s and variables
-1. (Optionally) blacklist some _op_s
+1. Define *op*s and variables
+1. (Optionally) blacklist some *op*s
 
 ## Model relevant classes as MARK entities
 
@@ -28,10 +28,10 @@ The name of an entity can be freely chosen. If it refers to a specific class in 
 
 ## Define Ops and variables
 
-The next step is to define _op_s. An _op_ is a group of semantically equal or similar functions, methods, or constructors, given as fully qualified signatures. Especially overloaded functions with the same name but different parameters are candidates for being grouped in an _op_. For cryptographic libraries, typical _op_s are:
+The next step is to define *op*s. An _op_ is a group of semantically equal or similar functions, methods, or constructors, given as fully qualified signatures. Especially overloaded functions with the same name but different parameters are candidates for being grouped in an _op_. For cryptographic libraries, typical *op*s are:
 
 - `instantiate` - a group of functions for instantiating a class or creating an object of a class
-- `initialize` - a group of functions that initialize a cryptographic algorithms, e.g. by setting a key or initialization vector.
+- `initialize` - a group of functions that initialize a cryptographic algorithms, e.g. by setting a key or initialization vector
 - `update` - a group of functions that process further data by a cryptographic algorithm
 - `finalize`- a group of functions that terminate a cryptographic algorithm
 - `reset`- a group of functions that reset a cryptographic algorithm and make it ready for further processing. 

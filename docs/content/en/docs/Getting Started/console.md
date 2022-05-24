@@ -11,7 +11,7 @@ description: >
 
 ## Starting in Console Mode
 
-When starting Codyze with the `-t` option, it will start an interactive Python console that you can use to explore your source code projects. 
+When starting Codyze with the `-t` option, it will start an interactive Python console which you can use to explore your source code projects. 
 
 ```r
 $ codyze -t

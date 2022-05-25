@@ -75,7 +75,7 @@ On startup, the plugin will ask you for the path to Codyze and to the mark files
 
 To adjust the path to Codyze, the mark files or change the command line arguments used for Codyze, in Visual Studio go to `Tools` -> `Options...` -> `Codyze Plugin` -> `Codyze Settings`.
 
-## Visual Studio Code
+## Integrating in Visual Studio Code
 
 This plugin is located 
 

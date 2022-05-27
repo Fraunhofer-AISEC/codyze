@@ -15,8 +15,8 @@ graph-cache-overflow.bin
 crymlin.log
 
 # Benchmark files
-modules/codyze_legacy/scripts/owasp_sast_benchmark/owasp_sast
-modules/codyze_legacy/scripts/owasp_sast_benchmark/master.zip
+src/codyze_scripts/owasp_sast_benchmark/owasp_sast
+src/codyze_scripts/owasp_sast_benchmark/master.zip
 
 #node_modules
 #package-lock.json

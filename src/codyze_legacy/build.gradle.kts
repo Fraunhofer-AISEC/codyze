@@ -24,6 +24,8 @@ group = "de.fraunhofer.aisec"
 /* License plugin needs a special treatment, as long as the main project does not have a license yet.
  * See https://github.com/hierynomus/license-gradle-plugin/issues/155
  */
+// TODO this does not affect the build when built in a composite build
+// TODO see the composite root settings.gradle.kts which disables these tasks for now
 gradle.startParameter.excludedTaskNames += "licenseMain"
 gradle.startParameter.excludedTaskNames += "licenseTest"
 

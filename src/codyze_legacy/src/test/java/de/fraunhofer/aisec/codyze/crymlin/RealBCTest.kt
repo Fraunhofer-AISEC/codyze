@@ -15,8 +15,8 @@ internal class RealBCTest : AbstractMarkTest() {
         // Just a very simple test of a source file found in the wild.
         val findings =
             performTest(
-                "legacy/real-examples/bc/rwedoff.Password-Manager/Main.java",
-                "legacy/real-examples/bc/rwedoff.Password-Manager/"
+                "real-examples/bc/rwedoff.Password-Manager/Main.java",
+                "real-examples/bc/rwedoff.Password-Manager/"
             )
         for (f in findings) {
             println("  ->" + f.identifier + " " + f.regions[0] + " " + f.logMsg)

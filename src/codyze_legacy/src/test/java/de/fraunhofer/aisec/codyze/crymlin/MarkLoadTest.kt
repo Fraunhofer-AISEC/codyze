@@ -183,22 +183,20 @@ internal class MarkLoadTest {
             assertNotNull(analysisServer)
 
             val botanMarkResource =
-                MarkLoadTest::class.java.classLoader.getResource("legacy/real-examples/botan/MARK")
+                MarkLoadTest::class.java.classLoader.getResource("real-examples/botan/MARK")
             assertNotNull(botanMarkResource)
             botanLocation = File(botanMarkResource.file)
             assertNotNull(botanLocation)
 
             val javaMarkResource =
                 MarkLoadTest::class
-                    .java.classLoader.getResource(
-                        "legacy/real-examples/bc/rwedoff.Password-Manager"
-                    )
+                    .java.classLoader.getResource("real-examples/bc/rwedoff.Password-Manager")
             assertNotNull(javaMarkResource)
             javaLocation = File(javaMarkResource.file)
             assertNotNull(javaLocation)
 
             val noPackageResource =
-                MarkLoadTest::class.java.classLoader.getResource("legacy/unittests/nfa-test.mark")
+                MarkLoadTest::class.java.classLoader.getResource("unittests/nfa-test.mark")
             assertNotNull(botanMarkResource)
             noPackageLocation = File(noPackageResource.file)
             assertNotNull(noPackageLocation)

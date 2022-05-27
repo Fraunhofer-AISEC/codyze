@@ -48,11 +48,11 @@ internal class AnalysisServerWithFileTest : AbstractTest() {
         @JvmStatic
         fun startup() {
             val classLoader = AnalysisServerBotanTest::class.java.classLoader
-            var resource = classLoader.getResource("legacy/mark_cpp/symm_block_cipher.cpp")
+            var resource = classLoader.getResource("mark_cpp/symm_block_cipher.cpp")
             assertNotNull(resource)
             val cppFile = File(resource.file)
             assertNotNull(cppFile)
-            resource = classLoader.getResource("legacy/mark/PoC_MS1/Botan_AutoSeededRNG.mark")
+            resource = classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark")
             assertNotNull(resource)
             val markPoC1 = File(resource.file)
             assertNotNull(markPoC1)

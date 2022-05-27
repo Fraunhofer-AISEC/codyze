@@ -17,7 +17,7 @@ internal class CommandsTest {
     fun commandConsoleTest() {
         val codyze = CodyzeConfiguration()
         codyze.analysis.tsMode = TypestateMode.DFA
-        codyze.mark = arrayOf(File("src/test/resources/legacy/mark_java"))
+        codyze.mark = arrayOf(File("src/test/resources/mark_java"))
 
         val config = Configuration(codyze, CpgConfiguration())
         config.executionMode.isCli = true
@@ -40,11 +40,11 @@ internal class CommandsTest {
         Commands.help()
         assertTrue(bosOut.toString().contains("help"))
 
-        com.load_rules("src/test/resources/legacy/mark_java")
+        com.load_rules("src/test/resources/mark_java")
         com.list_rules()
         assertTrue(bosOut.toString().contains("Foo"))
 
-        com.analyze("src/test/resources/legacy/good/Bouncycastle.java")
+        com.analyze("src/test/resources/good/Bouncycastle.java")
         com.show_findings()
         System.setOut(oldOut)
         System.setErr(oldErr)

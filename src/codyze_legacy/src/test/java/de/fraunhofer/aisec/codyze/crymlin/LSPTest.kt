@@ -50,7 +50,7 @@ internal class LSPTest {
             }
         server.lsp.connect(lc)
         val tdi = TextDocumentItem()
-        tdi.languageId = "legacy/cpp"
+        tdi.languageId = "cpp"
         tdi.text = "dummy"
         tdi.version = -1
         tdi.uri = Paths.get(parentFolder, "forbidden.cpp").toUri().toString()
@@ -80,7 +80,7 @@ internal class LSPTest {
             }
         server.lsp.connect(lc)
         val tdi = TextDocumentItem()
-        tdi.languageId = "legacy/cpp"
+        tdi.languageId = "cpp"
         tdi.text = "dummy"
         tdi.version = -1
         tdi.uri = Paths.get(parentFolder, "order.cpp").toUri().toString()
@@ -102,7 +102,7 @@ internal class LSPTest {
         @JvmStatic
         fun setup() {
             val classLoader = AnalysisServerBotanTest::class.java.classLoader
-            val resource = classLoader.getResource("legacy/unittests/order.mark")
+            val resource = classLoader.getResource("unittests/order.mark")
             assertNotNull(resource)
 
             val markPoC1 = File(resource.file)

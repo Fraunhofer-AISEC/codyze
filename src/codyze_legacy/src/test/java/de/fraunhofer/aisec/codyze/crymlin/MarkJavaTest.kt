@@ -11,10 +11,7 @@ internal class MarkJavaTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun split_1() {
         val findings =
-            performTest(
-                "legacy/mark_java/simplesplit_splitstring.java",
-                "legacy/mark_java/splitstring.mark"
-            )
+            performTest("mark_java/simplesplit_splitstring.java", "mark_java/splitstring.mark")
         println("All findings:")
         for (f in findings) {
             println(f.toString())
@@ -49,10 +46,7 @@ internal class MarkJavaTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun is_instance_1() {
         val findings =
-            performTest(
-                "legacy/mark_java/simple_instancestring.java",
-                "legacy/mark_java/instancestring.mark"
-            )
+            performTest("mark_java/simple_instancestring.java", "mark_java/instancestring.mark")
         println("All findings:")
         for (f in findings) {
             println(f.toString())
@@ -81,7 +75,7 @@ internal class MarkJavaTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun const_value() {
-        val findings = performTest("legacy/mark_java/const.java", "legacy/mark_java/const.mark")
+        val findings = performTest("mark_java/const.java", "mark_java/const.mark")
 
         // todo: missing: Enum is not handled yet
         expected(

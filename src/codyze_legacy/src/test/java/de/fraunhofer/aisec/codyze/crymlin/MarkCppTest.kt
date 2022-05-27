@@ -9,19 +9,14 @@ internal class MarkCppTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun nested_markvars() {
-        val findings =
-            performTest(
-                "legacy/mark_cpp/nested_markvars.cpp",
-                "legacy/mark_cpp/nested_markvars.mark"
-            )
+        val findings = performTest("mark_cpp/nested_markvars.cpp", "mark_cpp/nested_markvars.mark")
         expected(findings, "line 27: Rule SomethingSomething verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun functioncall() {
-        val findings =
-            performTest("legacy/mark_cpp/functioncall.cpp", "legacy/mark_cpp/functioncall.mark")
+        val findings = performTest("mark_cpp/functioncall.cpp", "mark_cpp/functioncall.mark")
         expected(
             findings,
             "line 9: Rule HasBeenCalled violated",
@@ -32,7 +27,7 @@ internal class MarkCppTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testNewExpression() {
-        val findings = performTest("legacy/mark_cpp/new.cpp", "legacy/mark_cpp/new.mark")
+        val findings = performTest("mark_cpp/new.cpp", "mark_cpp/new.mark")
         containsFindings(findings, "line 10: Rule MustBeOne violated")
     }
 
@@ -40,10 +35,7 @@ internal class MarkCppTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun functioncallComplex() {
         val findings =
-            performTest(
-                "legacy/mark_cpp/functioncall_complex.cpp",
-                "legacy/mark_cpp/functioncall_complex.mark"
-            )
+            performTest("mark_cpp/functioncall_complex.cpp", "mark_cpp/functioncall_complex.mark")
         expected(
             findings,
             "line [11, 12]: Rule Local verified",
@@ -61,8 +53,7 @@ internal class MarkCppTest : AbstractMarkTest() {
     )
     @Throws(Exception::class)
     fun _01_assign() {
-        val findings =
-            performTest("legacy/mark_cpp/01_assign.cpp", "legacy/mark_cpp/01_assign.mark")
+        val findings = performTest("mark_cpp/01_assign.cpp", "mark_cpp/01_assign.mark")
         println("All findings:")
         for (f in findings) {
             println(f.toString())
@@ -73,7 +64,7 @@ internal class MarkCppTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun _02_arg() {
-        val findings = performTest("legacy/mark_cpp/02_arg.cpp", "legacy/mark_cpp/02_arg.mark")
+        val findings = performTest("mark_cpp/02_arg.cpp", "mark_cpp/02_arg.mark")
         expected(
             findings,
             "line 13: Rule NotThree violated",
@@ -87,11 +78,7 @@ internal class MarkCppTest : AbstractMarkTest() {
     )
     @Throws(Exception::class)
     fun _03_arg_as_param() {
-        val findings =
-            performTest(
-                "legacy/mark_cpp/03_arg_as_param.cpp",
-                "legacy/mark_cpp/03_arg_as_param.mark"
-            )
+        val findings = performTest("mark_cpp/03_arg_as_param.cpp", "mark_cpp/03_arg_as_param.mark")
         println("All findings:")
         for (f in findings) {
             println(f.toString())
@@ -102,56 +89,49 @@ internal class MarkCppTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun arg_prevassign_int() {
-        val findings =
-            performTest("legacy/mark_cpp/arg_prevassign_int.cpp", "legacy/mark_cpp/int.mark")
+        val findings = performTest("mark_cpp/arg_prevassign_int.cpp", "mark_cpp/int.mark")
         expected(findings, "line 14: Rule SomethingAboutFoo violated")
     }
 
     @Test
     @Throws(Exception::class)
     fun arg_prevassign_bool() {
-        val findings =
-            performTest("legacy/mark_cpp/arg_prevassign_bool.cpp", "legacy/mark_cpp/bool.mark")
+        val findings = performTest("mark_cpp/arg_prevassign_bool.cpp", "mark_cpp/bool.mark")
         expected(findings, "line 14: Rule SomethingAboutFoo verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun arg_prevassign_string() {
-        val findings =
-            performTest("legacy/mark_cpp/arg_prevassign_string.cpp", "legacy/mark_cpp/string.mark")
+        val findings = performTest("mark_cpp/arg_prevassign_string.cpp", "mark_cpp/string.mark")
         expected(findings, "line 15: Rule SomethingAboutFoo verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun arg_vardecl_int() {
-        val findings =
-            performTest("legacy/mark_cpp/arg_vardecl_int.cpp", "legacy/mark_cpp/int.mark")
+        val findings = performTest("mark_cpp/arg_vardecl_int.cpp", "mark_cpp/int.mark")
         expected(findings, "line 12: Rule SomethingAboutFoo verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun arg_vardecl_bool() {
-        val findings =
-            performTest("legacy/mark_cpp/arg_vardecl_bool.cpp", "legacy/mark_cpp/bool.mark")
+        val findings = performTest("mark_cpp/arg_vardecl_bool.cpp", "mark_cpp/bool.mark")
         expected(findings, "line 12: Rule SomethingAboutFoo verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun arg_vardecl_string() {
-        val findings =
-            performTest("legacy/mark_cpp/arg_vardecl_string.cpp", "legacy/mark_cpp/string.mark")
+        val findings = performTest("mark_cpp/arg_vardecl_string.cpp", "mark_cpp/string.mark")
         expected(findings, "line 13: Rule SomethingAboutFoo verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun arg_assignconstructor_int() {
-        val findings =
-            performTest("legacy/mark_cpp/arg_assignconstructor_int.cpp", "legacy/mark_cpp/int.mark")
+        val findings = performTest("mark_cpp/arg_assignconstructor_int.cpp", "mark_cpp/int.mark")
         expected(findings, "line 16: Rule SomethingAboutFoo verified")
     }
 
@@ -159,10 +139,7 @@ internal class MarkCppTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun arg_assignparenthesisexpr_int() {
         val findings =
-            performTest(
-                "legacy/mark_cpp/arg_assignparenthesisexpr_int.cpp",
-                "legacy/mark_cpp/int.mark"
-            )
+            performTest("mark_cpp/arg_assignparenthesisexpr_int.cpp", "mark_cpp/int.mark")
         println("All findings:")
         for (f in findings) {
             println(f.toString())
@@ -178,28 +155,21 @@ internal class MarkCppTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun arg_initializerparenthesisexpr_int() {
         val findings =
-            performTest(
-                "legacy/mark_cpp/arg_initializerparenthesisexpr_int.cpp",
-                "legacy/mark_cpp/int.mark"
-            )
+            performTest("mark_cpp/arg_initializerparenthesisexpr_int.cpp", "mark_cpp/int.mark")
         expected(findings, "line 19: Rule SomethingAboutFoo verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun arg_uniforminitializer_int() {
-        val findings =
-            performTest(
-                "legacy/mark_cpp/arg_uniforminitializer_int.cpp",
-                "legacy/mark_cpp/int.mark"
-            )
+        val findings = performTest("mark_cpp/arg_uniforminitializer_int.cpp", "mark_cpp/int.mark")
         expected(findings, "line 16: Rule SomethingAboutFoo verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun const_value() {
-        val findings = performTest("legacy/mark_cpp/const.cpp", "legacy/mark_cpp/const.mark")
+        val findings = performTest("mark_cpp/const.cpp", "mark_cpp/const.mark")
 
         // todo: missing: Enum is not handled yet
         expected(

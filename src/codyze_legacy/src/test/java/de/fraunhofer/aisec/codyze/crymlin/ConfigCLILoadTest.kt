@@ -394,35 +394,34 @@ class ConfigCLILoadTest {
         fun startup() {
             val correctStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/correct_structure.yml")
+                    .java.classLoader.getResource("config-files/correct_structure.yml")
             assertNotNull(correctStructureResource)
             correctFile = File(correctStructureResource.file)
             assertNotNull(correctFile)
 
             val incorrectStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/incorrect_structure.yml")
+                    .java.classLoader.getResource("config-files/incorrect_structure.yml")
             assertNotNull(incorrectStructureResource)
             incorrectFile = File(incorrectStructureResource.file)
             assertNotNull(incorrectFile)
 
             val additionalOptionResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/additional_options.yml")
+                    .java.classLoader.getResource("config-files/additional_options.yml")
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
 
             val disabledMarkResource =
-                ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/disabled_mark.yml")
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/disabled_mark.yml")
             assertNotNull(disabledMarkResource)
             disabledMarkFile = File(disabledMarkResource.file)
             assertNotNull(disabledMarkFile)
 
             val sourceDisablingResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/source_disabling.yml")
+                    .java.classLoader.getResource("config-files/source_disabling.yml")
             assertNotNull(sourceDisablingResource)
             sourceDisablingFile = File(sourceDisablingResource.file)
             assertNotNull(sourceDisablingFile)

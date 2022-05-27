@@ -14,10 +14,7 @@ internal class BuiltInTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun split_1() {
         val findings =
-            performTest(
-                "legacy/mark_cpp/simplesplit_splitstring.cpp",
-                "legacy/mark_cpp/splitstring.mark"
-            )
+            performTest("mark_cpp/simplesplit_splitstring.cpp", "mark_cpp/splitstring.mark")
         expected(
             findings,
             "line 26: Rule SPLIT_FIRSTELEMENT_EQUALS_AES violated",
@@ -31,10 +28,7 @@ internal class BuiltInTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun is_instance_1() {
         val findings =
-            performTest(
-                "legacy/mark_cpp/simple_instancestring.cpp",
-                "legacy/mark_cpp/instancestring.mark"
-            )
+            performTest("mark_cpp/simple_instancestring.cpp", "mark_cpp/instancestring.mark")
         expected(findings, "line 17: Rule HasBeenCalled verified")
     }
 
@@ -42,10 +36,7 @@ internal class BuiltInTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun eog_connection_1() {
         val findings =
-            performTest(
-                "legacy/mark_cpp/simple_eog_connection.cpp",
-                "legacy/mark_cpp/eog_connection.mark"
-            )
+            performTest("mark_cpp/simple_eog_connection.cpp", "mark_cpp/eog_connection.mark")
         expected(
             findings,
             "line [22, 24]: Rule ControlFlow violated",
@@ -58,10 +49,7 @@ internal class BuiltInTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun direct_eog_connection_1() {
         val findings =
-            performTest(
-                "legacy/mark_cpp/simple_eog_connection.cpp",
-                "legacy/mark_cpp/direct_eog_connection.mark"
-            )
+            performTest("mark_cpp/simple_eog_connection.cpp", "mark_cpp/direct_eog_connection.mark")
         expected(
             findings,
             "line [22, 24]: Rule ControlFlow violated",
@@ -73,7 +61,7 @@ internal class BuiltInTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun dimensionLengthJava() {
-        val findings = performTest("legacy/mark_java/length.java", "legacy/mark_java/length.mark")
+        val findings = performTest("mark_java/length.java", "mark_java/length.mark")
         expected(findings, "line 13: Rule LENGHTRULE violated", "line 10: Rule LENGHTRULE verified")
     }
 
@@ -81,15 +69,14 @@ internal class BuiltInTest : AbstractMarkTest() {
     @get:Test
     val isJava: Unit
         get() {
-            val findings = performTest("legacy/mark_java/is.java", "legacy/mark_java/is.mark")
+            val findings = performTest("mark_java/is.java", "mark_java/is.mark")
             expected(findings, "line 22: Rule FooBar violated", "line 17: Rule FooBar verified")
         }
 
     @Test
     @Throws(Exception::class)
     fun hasValueJava() {
-        val findings =
-            performTest("legacy/mark_java/has_value.java", "legacy/mark_java/has_value.mark")
+        val findings = performTest("mark_java/has_value.java", "mark_java/has_value.mark")
         expected(findings, "line 17: Rule Bar violated", "line 21: Rule Foo verified")
     }
 
@@ -203,10 +190,7 @@ internal class BuiltInTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun testSplitMatch() {
         val findings =
-            performTest(
-                "legacy/builtins/split_match_unordered.c",
-                "legacy/builtins/split_match_unordered.mark"
-            )
+            performTest("builtins/split_match_unordered.c", "builtins/split_match_unordered.mark")
         expected(
             findings,
             "line 2: Rule split_match_unordered_1 verified",
@@ -221,8 +205,7 @@ internal class BuiltInTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testSplitDisjoint() {
-        val findings =
-            performTest("legacy/builtins/split_disjoint.c", "legacy/builtins/split_disjoint.mark")
+        val findings = performTest("builtins/split_disjoint.c", "builtins/split_disjoint.mark")
         expected(
             findings,
             "line 2: Rule split_disjoint_1 verified",
@@ -234,14 +217,14 @@ internal class BuiltInTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testNow() {
-        val findings = performTest("legacy/builtins/now.c", "legacy/builtins/now.mark")
+        val findings = performTest("builtins/now.c", "builtins/now.mark")
         expected(findings, "line []: Rule Test verified")
     }
 
     @Test
     @Throws(Exception::class)
     fun testYear() {
-        val findings = performTest("legacy/builtins/year.c", "legacy/builtins/year.mark")
+        val findings = performTest("builtins/year.c", "builtins/year.mark")
         expected(findings, "line []: Rule Test verified")
     }
 }

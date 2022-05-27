@@ -27,7 +27,7 @@ internal class FindingDescriptionTest {
 
         // Initialize database with explanations
         val fd = instance
-        val url = this.javaClass.classLoader.getResource("legacy/unittests/findingDescription.json")
+        val url = this.javaClass.classLoader.getResource("unittests/findingDescription.json")
 
         assertNotNull(url)
 

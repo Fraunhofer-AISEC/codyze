@@ -20,7 +20,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     fun testRegexToNFA() {
         val parser = XtextParser()
-        parser.addMarkFile(File("src/test/resources/legacy/unittests/nfa-test.mark"))
+        parser.addMarkFile(File("src/test/resources/unittests/nfa-test.mark"))
         var expr =
             parser.parse().values.iterator().next().rule[0].stmt.ensure.exp as OrderExpression
         expr = expr.exp
@@ -65,7 +65,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppRegression88() {
-        val findings = performTest("legacy/unittests/regression88.cpp", "modules/API_rules/mark/botan")
+        val findings = performTest("unittests/regression88.cpp", "mark/botan")
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
@@ -75,8 +75,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppInterprocOk1() {
-        val findings =
-            performTest("legacy/unittests/orderInterprocOk1.cpp", "legacy/unittests/order2.mark")
+        val findings = performTest("unittests/orderInterprocOk1.cpp", "unittests/order2.mark")
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
@@ -87,11 +86,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun testCppInterprocOk1Legacy() {
         val findings =
-            performTest(
-                "legacy/unittests/orderInterprocOk1.cpp",
-                arrayOf(),
-                "legacy/unittests/order2.mark"
-            )
+            performTest("unittests/orderInterprocOk1.cpp", arrayOf(), "unittests/order2.mark")
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
         // for proper LSP->editor mapping
@@ -101,8 +96,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsVector() {
-        val findings =
-            performTest("legacy/unittests/wpds-vector-example.java", "legacy/unittests/vector.mark")
+        val findings = performTest("unittests/wpds-vector-example.java", "unittests/vector.mark")
 
         // Extract <line nr, isProblem> from findings
         findings
@@ -122,7 +116,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsOK1() {
-        val findings = performTest("legacy/unittests/wpds-ok1.cpp", "legacy/unittests/order2.mark")
+        val findings = performTest("unittests/wpds-ok1.cpp", "unittests/order2.mark")
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -158,7 +152,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsOK2() {
-        val findings = performTest("legacy/unittests/wpds-ok2.cpp", "legacy/unittests/order2.mark")
+        val findings = performTest("unittests/wpds-ok2.cpp", "unittests/order2.mark")
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -196,7 +190,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsOk3() {
-        val findings = performTest("legacy/unittests/wpds-ok3.cpp", "legacy/unittests/wpds-3.mark")
+        val findings = performTest("unittests/wpds-ok3.cpp", "unittests/wpds-3.mark")
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -227,7 +221,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Throws(Exception::class)
     fun // @Disabled // Disabled as if-branches are not yet correctly translated into WPDS rules
     testWpdsOk4() {
-        val findings = performTest("legacy/unittests/wpds-ok4.cpp", "legacy/unittests/wpds-4.mark")
+        val findings = performTest("unittests/wpds-ok4.cpp", "unittests/wpds-4.mark")
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -259,7 +253,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testWpdsNOK1() {
-        val findings = performTest("legacy/unittests/wpds-nok1.cpp", "legacy/unittests/order2.mark")
+        val findings = performTest("unittests/wpds-nok1.cpp", "unittests/order2.mark")
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -289,8 +283,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppInterprocNOk1() {
-        val findings =
-            performTest("legacy/unittests/orderInterprocNOk1.cpp", "legacy/unittests/order2.mark")
+        val findings = performTest("unittests/orderInterprocNOk1.cpp", "unittests/order2.mark")
 
         // Extract <line nr, isProblem> from findings
         val startLineNumbers =
@@ -320,8 +313,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testCppInterprocNOk2() {
-        val findings =
-            performTest("legacy/unittests/orderInterprocNOk2.cpp", "legacy/unittests/order2.mark")
+        val findings = performTest("unittests/orderInterprocNOk2.cpp", "unittests/order2.mark")
         val startLineNumbers =
             findings
                 .stream()
@@ -345,8 +337,7 @@ internal class WpdsTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testJavaMethodArgs() {
-        val findings =
-            performTest("legacy/java/jca/AESCBC.java", "modules/API_rules/mark/bouncycastle")
+        val findings = performTest("java/jca/AESCBC.java", "mark/bouncycastle")
         val startLineNumbers =
             findings
                 .stream()
@@ -378,8 +369,8 @@ internal class WpdsTest : AbstractMarkTest() {
     fun testWpdsOpensslSimplified() {
         val findings =
             performTest(
-                "legacy/openssl/github.com/DaniloVlad/OpenSSL-AES/aes-simplified.c",
-                "legacy/openssl/github.com/DaniloVlad/OpenSSL-AES/mark"
+                "openssl/github.com/DaniloVlad/OpenSSL-AES/aes-simplified.c",
+                "openssl/github.com/DaniloVlad/OpenSSL-AES/mark"
             )
 
         // Extract <line nr, isProblem> from findings

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.*
 internal class OrderTestComplex : AbstractMarkTest() {
     @Throws(Exception::class)
     private fun performTestAndCheck(sourceFileName: String) {
-        val results = performTest(sourceFileName, "legacy/unittests/order2.mark")
+        val results = performTest(sourceFileName, "unittests/order2.mark")
         val findings =
             results.stream().map { obj: Finding? -> obj.toString() }.collect(Collectors.toSet())
         assertEquals(
@@ -48,12 +48,12 @@ internal class OrderTestComplex : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testJava() {
-        performTestAndCheck("legacy/unittests/order2.java")
+        performTestAndCheck("unittests/order2.java")
     }
 
     @Test
     @Throws(Exception::class)
     fun testCpp() {
-        performTestAndCheck("legacy/unittests/order2.cpp")
+        performTestAndCheck("unittests/order2.cpp")
     }
 }

@@ -124,7 +124,7 @@ internal class GraphTest : AbstractTest() {
         @Throws(Exception::class)
         fun setup() {
             val classLoader = GraphTest::class.java.classLoader
-            val resource = classLoader.getResource("legacy/unittests/order.java")
+            val resource = classLoader.getResource("unittests/order.java")
             assertNotNull(resource)
 
             val cppFile = File(resource.file)

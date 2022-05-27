@@ -8,9 +8,9 @@ internal class JCATest : AbstractMarkTest() {
     fun testBCProviderCipher() {
         val findings =
             performTest(
-                "legacy/java/jca/BCProviderCipher.java",
-                arrayOf("legacy/java/jca/include/BouncyCastleProvider.java"),
-                "modules/API_rules/mark/bouncycastle/"
+                "java/jca/BCProviderCipher.java",
+                arrayOf("java/jca/include/BouncyCastleProvider.java"),
+                "mark/bouncycastle/"
             )
 
         // possible lines: 19,22,23,24,27,28
@@ -43,7 +43,7 @@ internal class JCATest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testBlockCipher() {
-        val findings = performTest("legacy/java/jca/BlockCipher.java", "modules/API_rules/mark/bouncycastle/")
+        val findings = performTest("java/jca/BlockCipher.java", "mark/bouncycastle/")
 
         // possible lines: 10,14,28,22,26
         expected(
@@ -67,7 +67,7 @@ internal class JCATest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testAESCCM() {
-        val findings = performTest("legacy/java/jca/AESCCM.java", "modules/API_rules/mark/bouncycastle/")
+        val findings = performTest("java/jca/AESCCM.java", "mark/bouncycastle/")
 
         // possible lines: 18,22,23,24,28,30,31,36
         expected(
@@ -89,9 +89,9 @@ internal class JCATest : AbstractMarkTest() {
     fun testAESGCM() {
         val findings =
             performTest(
-                "legacy/java/jca/AESGCM.java",
-                arrayOf("legacy/java/jca/include/GCMParameterSpec.java"),
-                "modules/API_rules/mark/bouncycastle/"
+                "java/jca/AESGCM.java",
+                arrayOf("java/jca/include/GCMParameterSpec.java"),
+                "mark/bouncycastle/"
             )
         expected(
             findings, // rule bouncy castle as provider
@@ -119,7 +119,7 @@ internal class JCATest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testAESCBC() {
-        val findings = performTest("legacy/java/jca/AESCBC.java", "modules/API_rules/mark/bouncycastle/")
+        val findings = performTest("java/jca/AESCBC.java", "mark/bouncycastle/")
         expected(
             findings, // rule bouncy castle as provider
             "line 11: Rule BouncyCastleProvider_Cipher verified", // ok
@@ -167,12 +167,9 @@ internal class JCATest : AbstractMarkTest() {
     fun testAESCTR() {
         val findings =
             performTest(
-                "legacy/java/jca/AESCTR.java",
-                arrayOf(
-                    "legacy/java/jca/include/IvParameterSpec.java",
-                    "legacy/java/jca/include/SecretKey.java"
-                ),
-                "modules/API_rules/mark/bouncycastle/"
+                "java/jca/AESCTR.java",
+                arrayOf("java/jca/include/IvParameterSpec.java", "java/jca/include/SecretKey.java"),
+                "mark/bouncycastle/"
             )
         expected(
             findings, // rule bouncy castle as provider
@@ -201,7 +198,7 @@ internal class JCATest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testBCMac() {
-        val findings = performTest("legacy/java/jca/BCMac.java", "modules/API_rules/mark/bouncycastle/")
+        val findings = performTest("java/jca/BCMac.java", "mark/bouncycastle/")
         expected(
             findings,
             "line 10: Rule BouncyCastleProvider_Mac verified", // ok
@@ -238,7 +235,7 @@ internal class JCATest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun testRSACipherTest() {
-        val findings = performTest("legacy/java/jca/BCRSACipher.java", "modules/API_rules/mark/bouncycastle/")
+        val findings = performTest("java/jca/BCRSACipher.java", "mark/bouncycastle/")
         expected(
             findings,
             "line 6: Rule BouncyCastleProvider_Cipher verified", // ok

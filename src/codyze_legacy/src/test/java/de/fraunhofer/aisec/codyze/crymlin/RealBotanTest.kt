@@ -18,8 +18,8 @@ internal class RealBotanTest : AbstractMarkTest() {
     fun testSimple() {
         // Just a very simple test to explore the graph
         performTest(
-            "legacy/real-examples/botan/streamciphers/bsex.cpp",
-            "legacy/real-examples/botan/streamciphers/bsex.mark"
+            "real-examples/botan/streamciphers/bsex.cpp",
+            "real-examples/botan/streamciphers/bsex.mark"
         )
 
         val graph = ctx!!.graph
@@ -36,8 +36,8 @@ internal class RealBotanTest : AbstractMarkTest() {
     fun testCorrecKeySize() {
         val findings =
             performTest(
-                "legacy/real-examples/botan/streamciphers/bsex.cpp",
-                "legacy/real-examples/botan/streamciphers/bsex.mark"
+                "real-examples/botan/streamciphers/bsex.cpp",
+                "real-examples/botan/streamciphers/bsex.mark"
             )
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
@@ -56,8 +56,8 @@ internal class RealBotanTest : AbstractMarkTest() {
     fun testWrongKeySize() {
         val findings =
             performTest(
-                "legacy/real-examples/botan/streamciphers/bsex.cpp",
-                "legacy/real-examples/botan/streamciphers/bsex.mark"
+                "real-examples/botan/streamciphers/bsex.cpp",
+                "real-examples/botan/streamciphers/bsex.mark"
             )
 
         // Note that line numbers of the "range" are the actual line numbers -1. This is required
@@ -77,8 +77,8 @@ internal class RealBotanTest : AbstractMarkTest() {
     fun testPlaybookCreator() {
         val findings =
             performTest(
-                "legacy/real-examples/botan/blockciphers/obraunsdorf.playbook-creator/pbcStorage.cpp",
-                "legacy/real-examples/botan/MARK"
+                "real-examples/botan/blockciphers/obraunsdorf.playbook-creator/pbcStorage.cpp",
+                "real-examples/botan/MARK"
             )
         assertTrue(findings.isEmpty())
     }
@@ -88,8 +88,8 @@ internal class RealBotanTest : AbstractMarkTest() {
     fun testArsenic() {
         val findings =
             performTest(
-                "legacy/real-examples/botan/blockciphers/Antidote1911.Arsenic/Crypto.cpp",
-                "legacy/real-examples/botan/MARK"
+                "real-examples/botan/blockciphers/Antidote1911.Arsenic/Crypto.cpp",
+                "real-examples/botan/MARK"
             )
 
         // We expect a correct key size in line 250 and 355
@@ -109,8 +109,8 @@ internal class RealBotanTest : AbstractMarkTest() {
     fun testQt_LockBox() {
         val findings =
             performTest(
-                "legacy/real-examples/botan/blockciphers/Prudkovskiy.Qt_LockBox/crypto.cpp",
-                "legacy/real-examples/botan/MARK"
+                "real-examples/botan/blockciphers/Prudkovskiy.Qt_LockBox/crypto.cpp",
+                "real-examples/botan/MARK"
             )
 
         // We expect two correct block ciphers AES/CBC (isProblem == false) at line 16 and 22

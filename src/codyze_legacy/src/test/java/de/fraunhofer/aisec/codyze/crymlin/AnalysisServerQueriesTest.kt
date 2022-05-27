@@ -30,13 +30,13 @@ internal class AnalysisServerQueriesTest : AbstractTest() {
         @JvmStatic
         fun startup() {
             val classLoader = AnalysisServerQueriesTest::class.java.classLoader
-            var resource = classLoader.getResource("legacy/good/Bouncycastle.java")
+            var resource = classLoader.getResource("good/Bouncycastle.java")
             assertNotNull(resource)
 
             val javaFile = File(resource.file)
             assertNotNull(javaFile)
 
-            resource = classLoader.getResource("legacy/mark/PoC_MS1/Botan_AutoSeededRNG.mark")
+            resource = classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark")
             assertNotNull(resource)
 
             val markPoC1 = File(resource.file)

@@ -32,7 +32,7 @@ internal class SarifInstantiatorTest {
 
         // Initialize database with explanations
         val fd = FindingDescription.instance
-        val url = this.javaClass.classLoader.getResource("legacy/unittests/findingDescription.json")
+        val url = this.javaClass.classLoader.getResource("unittests/findingDescription.json")
         assertNotNull(url)
         fd.init(File(url.toURI()))
         s.pushRun(setOf(f1))
@@ -76,7 +76,7 @@ internal class SarifInstantiatorTest {
 
         // Initialize database with explanations
         val fd = FindingDescription.instance
-        val url = this.javaClass.classLoader.getResource("legacy/unittests/findingDescription.json")
+        val url = this.javaClass.classLoader.getResource("unittests/findingDescription.json")
 
         assertNotNull(url)
 
@@ -98,7 +98,7 @@ internal class SarifInstantiatorTest {
     }
 
     companion object {
-        private const val filepath = "src/test/resources/legacy/unittests/testOutput.sarif"
+        private const val filepath = "src/test/resources/unittests/testOutput.sarif"
 
         @AfterAll
         @JvmStatic

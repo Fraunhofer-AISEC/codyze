@@ -208,40 +208,40 @@ internal class ConfigLoadTest {
         fun startup() {
             val correctStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/correct_structure.yml")
+                    .java.classLoader.getResource("config-files/correct_structure.yml")
             assertNotNull(correctStructureResource)
             correctFile = File(correctStructureResource.file)
             assertNotNull(correctFile)
 
             val incorrectStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/incorrect_structure.yml")
+                    .java.classLoader.getResource("config-files/incorrect_structure.yml")
             assertNotNull(incorrectStructureResource)
             incorrectFile = File(incorrectStructureResource.file)
             assertNotNull(incorrectFile)
 
             val additionalOptionResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/additional_options.yml")
+                    .java.classLoader.getResource("config-files/additional_options.yml")
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
 
             val unknownLanguageResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/unknown_language.yml")
+                    .java.classLoader.getResource("config-files/unknown_language.yml")
             assertNotNull(unknownLanguageResource)
             unknownLanguageFile = File(unknownLanguageResource.file)
             assertNotNull(unknownLanguageFile)
 
             val paths1Resource =
-                ConfigLoadTest::class.java.classLoader.getResource("legacy/config-files/paths1.yml")
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/paths1.yml")
             assertNotNull(paths1Resource)
             paths1File = File(paths1Resource.file)
             assertNotNull(paths1File)
 
             val paths2Resource =
-                ConfigLoadTest::class.java.classLoader.getResource("legacy/config-files/paths2.yml")
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/paths2.yml")
             assertNotNull(paths2Resource)
             paths2File = File(paths2Resource.file)
             assertNotNull(paths2File)

@@ -13,8 +13,7 @@ class OrderTestCStyle : AbstractMarkTest() {
     @Test
     fun checkOrderWPDS_foo1() {
         this.tsMode = TypestateMode.WPDS
-        val results =
-            performTest("legacy/unittests/order_foo1.c", "legacy/unittests/order_cstyle.mark")
+        val results = performTest("unittests/order_foo1.c", "unittests/order_cstyle.mark")
 
         // only good findings
         assertTrue(results.all { !it.isProblem })
@@ -23,8 +22,7 @@ class OrderTestCStyle : AbstractMarkTest() {
     @Test
     fun checkOrderWPDS_foo2() {
         this.tsMode = TypestateMode.WPDS
-        val results =
-            performTest("legacy/unittests/order_foo2.c", "legacy/unittests/order_cstyle.mark")
+        val results = performTest("unittests/order_foo2.c", "unittests/order_cstyle.mark")
 
         // only good findings
         assertTrue(results.all { !it.isProblem })
@@ -36,7 +34,7 @@ class OrderTestCStyle : AbstractMarkTest() {
     fun checkOrderWPDS_both() {
         // fail
         this.tsMode = TypestateMode.WPDS
-        val results = performTest("legacy/unittests/order.c", "legacy/unittests/order_cstyle.mark")
+        val results = performTest("unittests/order.c", "unittests/order_cstyle.mark")
 
         // only good findings
         assertTrue(results.all { !it.isProblem })
@@ -45,8 +43,7 @@ class OrderTestCStyle : AbstractMarkTest() {
     @Test
     fun checkOrderNFA_foo1() {
         this.tsMode = TypestateMode.DFA
-        val results =
-            performTest("legacy/unittests/order_foo1.c", "legacy/unittests/order_cstyle.mark")
+        val results = performTest("unittests/order_foo1.c", "unittests/order_cstyle.mark")
 
         // only good findings
         assertTrue(results.all { !it.isProblem })
@@ -54,8 +51,7 @@ class OrderTestCStyle : AbstractMarkTest() {
     @Test
     fun checkOrderNFA_foo2() {
         this.tsMode = TypestateMode.DFA
-        val results =
-            performTest("legacy/unittests/order_foo2.c", "legacy/unittests/order_cstyle.mark")
+        val results = performTest("unittests/order_foo2.c", "unittests/order_cstyle.mark")
 
         // only good findings
         assertTrue(results.all { !it.isProblem })
@@ -63,7 +59,7 @@ class OrderTestCStyle : AbstractMarkTest() {
     @Test
     fun checkOrderNFA_both() {
         this.tsMode = TypestateMode.DFA
-        val results = performTest("legacy/unittests/order.c", "legacy/unittests/order_cstyle.mark")
+        val results = performTest("unittests/order.c", "unittests/order_cstyle.mark")
 
         // only good findings
         assertTrue(results.all { !it.isProblem })

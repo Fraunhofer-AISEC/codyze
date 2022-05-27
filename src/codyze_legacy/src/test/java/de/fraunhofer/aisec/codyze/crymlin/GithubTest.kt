@@ -54,7 +54,7 @@ internal class GithubTest : AbstractTest() {
         @BeforeAll
         fun setup() {
             val classLoader = GithubTest::class.java.classLoader
-            val resource = classLoader.getResource("legacy/unittests/order2.mark")
+            val resource = classLoader.getResource("unittests/order2.mark")
             assertNotNull(resource)
 
             val markPoC1 = File(resource.file)

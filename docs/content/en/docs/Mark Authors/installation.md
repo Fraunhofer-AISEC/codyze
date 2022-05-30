@@ -12,12 +12,16 @@ MARK is a simple domain specific language (DSL) that can be written in any text 
 
 ## Install the MARK Eclipse Plugin
 
-* In Eclipse, click on `Help`->`Install new software`
+* In Eclipse, click on `Help`->`Install New Software...`
 * Add the update site: `https://codyze.s3.eu-central-1.amazonaws.com/codyze-mark-eclipse-plugin/`
-* Install (TODO: Name of product in eclipse update site)
+* Install <img src="/img/eclipse-mark-plugin.png" alt="Install Codyze MARK plugin" class="mt-3 mb-3 border border-info rounded">
+
 
 ## Start writing MARK policies
 
-* Create a new project by clicking on `New`->`Project`. The project type does not matter.
+* Create a new project by clicking on `File`->`New`->`Project`. The project type does not matter.
 * Create a new file with the extension `.mark`
-* Start writing entities and rules. You may include all entities and rules in a single MARK file or organize them in multiple files as you with. As long as all MARK files are located in the same folder, Codyze will load entities and rules from all files in that folder.
+* Confirm the dialog to configure Xtext for your project.
+* Start writing [entities <i class="fas fa-arrow-alt-circle-right"></i>]({{< ref "/docs/Mark Authors/Define Entities.md" >}}) and [rules <i class="fas fa-arrow-alt-circle-right"></i>]({{< ref "/docs/Mark Authors/mark-authors.md" >}}). 
+
+You may include all entities and rules in a single MARK file or organize them in multiple files as you with. As long as all MARK files are located in the same folder, Codyze will load entities and rules from all files in that folder.

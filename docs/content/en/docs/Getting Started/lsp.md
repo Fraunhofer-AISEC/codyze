@@ -1,16 +1,14 @@
 ---
-title: "Using LSP Mode"
-linkTitle: "Using LSP Mode"
+title: "Using plugins"
+linkTitle: "Using plugins"
 no_list: true
 weight: 3
 date: 2022-05-24
 description: >
-  In LSP mode, Codyze can be integrated into IDEs through plugins and automatically scan your code while programming.
+  Integrate Codyze into IDEs through plugins and automatically scan your code while programming.
 ---
 
 Codyze can be integrated into multiple IDEs to automatically scan your code for errors.
-
-First, Codyze has to be started in LSP mode by running `codyze -l`. The analysis server of Codyze can then be connected to the following IDE plugins.
 
 ## Integration in Eclipse
 
@@ -75,10 +73,13 @@ On startup, the plugin will ask you for the path to Codyze and to the mark files
 
 To adjust the path to Codyze, the mark files or change the command line arguments used for Codyze, in Visual Studio go to `Tools` -> `Options...` -> `Codyze Plugin` -> `Codyze Settings`.
 
-## Integrating in Visual Studio Code
 
-This plugin is located 
+## Integration in Visual Studio Code
 
-1. Clone the source code for Codyze from https://github.com/Fraunhofer-AISEC/codyze.git
-2. Navigate to `plugins/vscode`
-3. ?
+We build a Visual Studio Code plugin of Codyze for every new version. You can download a bundled `*.vsix` plugin from the [release page of Codyze <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/releases).
+
+
+## Integration through LSP mode
+Codyze offers an LSP mode. You can user the LSP mode to integrate Codyze into any IDE or text editor with support for LSP. You need to look up the recommended approach for your favorite IDE or text editor.
+
+Once you know, how to configure an LSP tool, you need to start Codyze in LSP mode, i.e. `codyze -l`. Please refer to the [configuration page]({{< relref "/docs/Getting Started/configuration.md" >}}).

@@ -237,5 +237,5 @@ __Example:__
 ```
   ensure
     _year(1653955200) == 2022 // 2022-05-31T00:00:00Z
-
+```
 Returns the year in which `time` is in. `time` represents the number of seconds since epoch (1970-01-01T00:00:00Z).

@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.config
+package de.fraunhofer.aisec.codyze_core.config
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore

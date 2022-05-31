@@ -1,4 +1,4 @@
-package codyze_core
+package de.fraunhofer.aisec.codyze_core
 
 import de.fraunhofer.aisec.cpg.TranslationResult
 import java.nio.file.Path

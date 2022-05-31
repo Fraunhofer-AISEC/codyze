@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.config.converters
+package de.fraunhofer.aisec.codyze_core.config.converters
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken

@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.printer
+package de.fraunhofer.aisec.codyze_core.printer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.fraunhofer.aisec.codyze.analysis.Finding

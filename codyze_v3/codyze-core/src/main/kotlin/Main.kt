@@ -1,4 +1,4 @@
-package codyze_core
+package de.fraunhofer.aisec.codyze_core
 
 fun main(args: Array<String>) {
     println("Hello World!")

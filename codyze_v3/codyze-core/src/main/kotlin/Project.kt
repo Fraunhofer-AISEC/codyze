@@ -1,6 +1,6 @@
-package codyze_core
+package de.fraunhofer.aisec.codyze_core
 
-import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze_core.config.Configuration
 
 // @FW
 class Project(config: Configuration) {

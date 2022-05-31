@@ -1,4 +1,4 @@
-package main.kotlin.de.fraunhofer.aisec.codyze.printer
+package de.fraunhofer.aisec.codyze_core.printer
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper

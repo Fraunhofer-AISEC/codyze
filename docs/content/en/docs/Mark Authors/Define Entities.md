@@ -73,7 +73,7 @@ To make use of named parameters, they must additionally be declared as entity va
 </pre>
 
 
-## (Optionally) blacklist some _ops_s
+## (Optionally) blacklist some Ops
 
 In some cases, groups of functions or methods should not be used at all by a program. This applies e.g. to deprecated functions or functions that are known to be insecure. MARK provides a shortcut to mark any use of such functions as insecure: the `forbidden` keyword.
 

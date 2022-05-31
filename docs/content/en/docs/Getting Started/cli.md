@@ -20,7 +20,8 @@ $ ./bin/codyze -c -s <sourcepath> -m ./mark -o <outputpath>
 
 `-c` enters command line mode. It will parse all files given by the `-s` argument, analyze them against the MARK policies given by `-m`, and write the findings in JSON format to the file given by `-o`. If `-` is given as the output name, the results will be dumped to stdout.
 
-Note that line numbers of findings in JSON output start by 0 and are thus off by one compared to the `server.show_findings()` command in the interactive console.
+Note that line numbers of findings in JSON output start by 0.
+
 
 ## CI/CD Integration
 
@@ -32,20 +33,22 @@ name: build
 on:
   - push
 
+env:
+  CODYZE_VERSION: "2.0.0"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
         with:
+          distribution: "zulu"
           java-version: "11"
       - name: Install codyze
         run: |
-          export CODYZE_VERSION=1.4.1
-          wget https://github.com/Fraunhofer-AISEC/codyze/releases/download/v${CODYZE_VERSION}/codyze-${CODYZE_VERSION}.zip && unzip codyze-${CODYZE_VERSION}.zip
+          wget "https://github.com/Fraunhofer-AISEC/codyze/releases/download/v${CODYZE_VERSION}/codyze-${CODYZE_VERSION}.zip" && unzip codyze-${CODYZE_VERSION}.zip
       - name: Check compliance
         run: |
-          export CODYZE_VERSION=1.4.1
           codyze-${CODYZE_VERSION}/bin/codyze -c -o - -m codyze-${CODYZE_VERSION}/mark -s src/main/java
 ```

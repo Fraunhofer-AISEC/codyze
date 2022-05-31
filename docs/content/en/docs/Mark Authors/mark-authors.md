@@ -156,16 +156,22 @@ Returns `true` if MARK object `a` is an instance of `classname`. `classname` has
 
 __Function:__ `_length(a)`
 
-__Example:__  TODO
-
+__Example:__  
+```
+  ensure
+    _length(a) == 5 // e.g. for array declaration `new int[5]`
+```
 Returns the length of MARK object `a`. Currently, this can only return the dimension of an Java array.
 
 #### _now
 
 __Function:__ `_now()`
 
-__Example:__  TODO
-
+__Example:__  
+```
+  ensure
+    _now() == 1653955200 // 2022-05-31T00:00:00Z
+```
 Returns the current time as the number of seconds since epoch (1970-01-01T00:00:00Z). Relies on Java's Instant.now().
 
 #### _receives_value_from
@@ -227,6 +233,9 @@ Returns `true` if `str` starts with `start`.
 
 __Function:__ `_year(Int time)`
 
-__Example:__  TODO
+__Example:__  
+```
+  ensure
+    _year(1653955200) == 2022 // 2022-05-31T00:00:00Z
 
 Returns the year in which `time` is in. `time` represents the number of seconds since epoch (1970-01-01T00:00:00Z).

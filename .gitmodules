@@ -1,6 +1,3 @@
 [submodule "docs/themes/docsy"]
 	path = docs/themes/docsy
 	url = https://github.com/JulianSchuette/docsy.git
-[submodule "modules/cpg"]
-	path = modules/cpg
-	url = git@github.com:Fraunhofer-AISEC/cpg.git

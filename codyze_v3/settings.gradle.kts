@@ -1,4 +1,4 @@
-rootProject.name = "codyze"
+rootProject.name = "codyze_v3"
 
 include("codyze-core")
 

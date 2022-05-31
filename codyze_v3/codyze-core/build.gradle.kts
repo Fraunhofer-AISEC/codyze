@@ -6,8 +6,6 @@ plugins {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
-
     // Code Property Graph
     api("de.fraunhofer.aisec:cpg-core:4.4.2")
     api("de.fraunhofer.aisec:cpg-analysis:4.4.2")

@@ -103,8 +103,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.4.2")
-    api("de.fraunhofer.aisec:cpg-analysis:4.4.2")
+    api("de.fraunhofer.aisec:cpg-core:4.5.0")
+    api("de.fraunhofer.aisec:cpg-analysis:4.5.0")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
@@ -116,7 +116,7 @@ dependencies {
     api("de.breakpointsec:pushdown:1.1") // ok
 
     // LSP interface support
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.13.0") // ok
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.14.0") // ok
 
     // Interactive console interface support using Jython (Scripting engine)
     implementation("org.python:jython-standalone:2.7.2") // ok

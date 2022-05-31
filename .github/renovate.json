@@ -21,7 +21,7 @@
     },
     {
       "groupName": "VSCode plugin dependencies",
-      "matchPaths": ["plugins/vscode/**"],
+      "matchPaths": ["vscode_plugin/**"],
       "extends": ["schedule:earlyMondays"]
     },
     {

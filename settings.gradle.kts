@@ -1,6 +1,7 @@
-rootProject.name = "codyze"
+rootProject.name = "codyze-composite"
 
-includeBuild("src/codyze_legacy")
+includeBuild("codyze_legacy")
+includeBuild("codyze")
 
 file("modules").listFiles()?.forEach { moduleBuild: File ->
     includeBuild(moduleBuild)

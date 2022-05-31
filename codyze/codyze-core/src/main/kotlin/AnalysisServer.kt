@@ -5,7 +5,8 @@ import de.fraunhofer.aisec.codyze.sarif.schema.Sarif210
 import java.nio.file.Path
 
 // @MG
-// TODO SARIF JSON schema to Kotlin converting -> https://github.com/pwall567/json-kotlin-schema-codegen
+// TODO SARIF JSON schema to Kotlin converting ->
+// https://github.com/pwall567/json-kotlin-schema-codegen
 // TODO corresponding Gradle plugin -> https://github.com/pwall567/json-kotlin-gradle
 
 class AnalysisServer {
@@ -27,7 +28,7 @@ class AnalysisServer {
     }
 
     // spawn a new Project
-    fun connect(confFilePath : Path) : Sarif210 {
+    fun connect(confFilePath: Path): Sarif210 {
         // load config from config path
         val config = loadConfiguration(confFilePath = confFilePath)
         // TODO is the newly created project saved to the map
@@ -39,7 +40,7 @@ class AnalysisServer {
         // TODO what format should we give to LSP?
     }
 
-    private fun loadConfiguration(confFilePath : Path) : Configuration {
+    private fun loadConfiguration(confFilePath: Path): Configuration {
         // TODO implement
         // call loading facilities from Configuration class
         return Configuration()

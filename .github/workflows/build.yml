@@ -66,14 +66,14 @@ jobs:
           node-version: "16"
       - name: Build Visual Studio Code Plugin
         run: |
-          pushd plugins/vscode && npm version $VERSION || true && npm install -g vsce && npm install && vsce package && popd
+          pushd vscode_plugin/vscode && npm version $VERSION || true && npm install -g vsce && npm install && vsce package && popd
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
       - name: Archive Visual Studio Code Plugin
         uses: actions/upload-artifact@v3
         with:
           name: vscode-codyze.vsix
-          path: plugins/vscode/vscode-codyze-0.0.0.vsix
+          path: vscode_plugin/vscode/vscode-codyze-0.0.0.vsix
       - name: Push Release Docker Image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -114,6 +114,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: plugins/vscode/vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
+          asset_path: vscode_plugin/vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
           asset_name: vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
           asset_content_type: application/zip

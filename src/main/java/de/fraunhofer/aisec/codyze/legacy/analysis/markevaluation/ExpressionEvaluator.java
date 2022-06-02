@@ -275,92 +275,98 @@ public class ExpressionEvaluator {
 			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
 			// the right side currently cannot remove values!
 			Integer key = entry.getKey();
-			ConstantValue leftBoxed = (ConstantValue) getcorrespondingLeftResult(leftResult, key);
-			Object left = leftBoxed.getValue();
+			MarkIntermediateResult lr = getcorrespondingLeftResult(leftResult, key);
 
-			if (entry.getValue() instanceof ListValue) {
+			if (lr instanceof ListValue) {
+				log.error("Cannot compare against ListValue: {}", lr);
+				combinedResult.put(key, ErrorValue.newErrorValue("unsupported MARK operation"));
+			} else {
+				ConstantValue leftBoxed = (ConstantValue) lr;
+				Object left = leftBoxed.getValue();
 
-				if (op.equals("in")) {
-					ListValue l = (ListValue) entry.getValue();
-					ConstantValue cv = ConstantValue.of(false);
+				if (entry.getValue() instanceof ListValue) {
+					if (op.equals("in")) {
+						ListValue l = (ListValue) entry.getValue();
+						ConstantValue cv = ConstantValue.of(false);
 
-					for (MarkIntermediateResult o : l) {
-						log.debug(
-							"Comparing left expression with element of right expression: {} vs. {}",
-							left,
-							o);
+						for (MarkIntermediateResult o : l) {
+							log.debug(
+								"Comparing left expression with element of right expression: {} vs. {}",
+								left,
+								o);
 
-						if (o != null) {
-							String inner = ExpressionHelper.toComparableString(o);
-							if (comp.compare(ExpressionHelper.toComparableString(left), inner) == 0) {
-								cv = ConstantValue.of(true);
-								cv.addResponsibleNodesFrom((ConstantValue) o);
-								break;
+							if (o != null) {
+								String inner = ExpressionHelper.toComparableString(o);
+								if (comp.compare(ExpressionHelper.toComparableString(left), inner) == 0) {
+									cv = ConstantValue.of(true);
+									cv.addResponsibleNodesFrom((ConstantValue) o);
+									break;
+								}
 							}
 						}
-					}
-					cv.addResponsibleNodesFrom(leftBoxed);
-					combinedResult.put(key, cv);
-				} else {
-					log.warn("Unknown op for List on the right side");
-					combinedResult.put(key, ErrorValue.newErrorValue(String.format("Unknown op %s for List on the right side", op)));
-				}
-
-			} else {
-
-				ConstantValue rightBoxed = (ConstantValue) entry.getValue();
-				Object right = rightBoxed.getValue();
-
-				if (ConstantValue.isError(leftBoxed) || ConstantValue.isError(rightBoxed)) {
-
-					// result of comparison is not known
-					combinedResult.put(key, ErrorValue.newErrorValue(
-						"Cannot perform comparison, " + (ConstantValue.isError(leftBoxed) ? "left" : "right") + " expression has errors", leftBoxed, rightBoxed));
-				} else {
-
-					String leftComp = ExpressionHelper.toComparableString(left);
-					String rightComp = ExpressionHelper.toComparableString(right);
-
-					log.debug("left result={} right result={}", left, right);
-
-					ConstantValue cv;
-					switch (op) {
-						case "==":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) == 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case "!=":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) != 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case "<":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) < 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case "<=":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) <= 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case ">":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) > 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case ">=":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) >= 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-
-						case "like":
-							cv = ConstantValue.of(
-								Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						default:
-							log.warn("Unsupported operand {}", op);
-							cv = ErrorValue.newErrorValue(String.format("Unsupported operand %s", op));
+						cv.addResponsibleNodesFrom(leftBoxed);
+						combinedResult.put(key, cv);
+					} else {
+						log.warn("Unknown op for List on the right side");
+						combinedResult.put(key, ErrorValue.newErrorValue(String.format("Unknown op %s for List on the right side", op)));
 					}
 
-					combinedResult.put(key, cv);
+				} else {
+
+					ConstantValue rightBoxed = (ConstantValue) entry.getValue();
+					Object right = rightBoxed.getValue();
+
+					if (ConstantValue.isError(leftBoxed) || ConstantValue.isError(rightBoxed)) {
+
+						// result of comparison is not known
+						combinedResult.put(key, ErrorValue.newErrorValue(
+							"Cannot perform comparison, " + (ConstantValue.isError(leftBoxed) ? "left" : "right") + " expression has errors", leftBoxed, rightBoxed));
+					} else {
+
+						String leftComp = ExpressionHelper.toComparableString(left);
+						String rightComp = ExpressionHelper.toComparableString(right);
+
+						log.debug("left result={} right result={}", left, right);
+
+						ConstantValue cv;
+						switch (op) {
+							case "==":
+								cv = ConstantValue.of(comp.compare(leftComp, rightComp) == 0);
+								cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
+								break;
+							case "!=":
+								cv = ConstantValue.of(comp.compare(leftComp, rightComp) != 0);
+								cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
+								break;
+							case "<":
+								cv = ConstantValue.of(comp.compare(leftComp, rightComp) < 0);
+								cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
+								break;
+							case "<=":
+								cv = ConstantValue.of(comp.compare(leftComp, rightComp) <= 0);
+								cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
+								break;
+							case ">":
+								cv = ConstantValue.of(comp.compare(leftComp, rightComp) > 0);
+								cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
+								break;
+							case ">=":
+								cv = ConstantValue.of(comp.compare(leftComp, rightComp) >= 0);
+								cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
+								break;
+
+							case "like":
+								cv = ConstantValue.of(
+									Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
+								cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
+								break;
+							default:
+								log.warn("Unsupported operand {}", op);
+								cv = ErrorValue.newErrorValue(String.format("Unsupported operand %s", op));
+						}
+
+						combinedResult.put(key, cv);
+					}
 				}
 			}
 		}

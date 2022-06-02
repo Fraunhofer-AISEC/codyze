@@ -91,4 +91,16 @@ internal class MarkJavaTest : AbstractMarkTest() {
             "line [15, 3]: Rule Static verified"
         )
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun array() {
+        val findings = performTest("legacy/mark_java/array.java", "legacy/mark_java/array.mark")
+
+        expected(
+            findings,
+            "line 11: Rule Rule_Array_good verified",
+            "line 11: Rule Rule_Array_bad violated"
+        )
+    }
 }

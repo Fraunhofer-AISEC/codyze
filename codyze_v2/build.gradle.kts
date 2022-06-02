@@ -220,7 +220,7 @@ compileTestKotlin.kotlinOptions {
 }
 
 jsonSchema2Pojo {
-    source.setFrom("${project.rootDir}/src/main/resources/json")
+    source.setFrom("src/main/resources/json")
     targetPackage.set("de.fraunhofer.aisec.codyze.sarif.schema")
     removeOldOutput.set(true)
     // ... more options

@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
     kotlin("jvm")
@@ -32,10 +33,11 @@ repositories {
     }
 }
 
+val libs = the<LibrariesForLibs>()
 dependencies {
     // Logging
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.20")
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.2")
+    implementation(libs.kotlin.logging.get())
+    runtimeOnly(libs.log4j.impl.get())
 
     // Unit tests
     testImplementation(kotlin("test"))

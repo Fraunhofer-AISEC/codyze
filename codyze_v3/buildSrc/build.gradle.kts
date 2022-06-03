@@ -7,8 +7,10 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
-    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3")
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.6.1")
-    implementation("com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin:0.16.1")
+    implementation(libs.kotlin.plugin)
+    implementation(libs.dokka.plugin)
+    implementation(libs.sonarqube.plugin)
+    implementation(libs.spotless.plugin)
+    implementation(libs.license.plugin)
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }

@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     application
     id("codyze.core-conventions")
@@ -7,8 +5,16 @@ plugins {
 
 dependencies {
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.4.2")
-    api("de.fraunhofer.aisec:cpg-analysis:4.4.2")
+    api(libs.cpg.core)
+    api(libs.cpg.analysis)
+
+    // SARIF model
+    // The code can be found here: https://github.com/detekt/sarif4k
+    // The code in it was generated using https://app.quicktype.io/ with minor manual additions
+    implementation(libs.sarif4k)
+
+    // For (de)-serialization of SARIF and other files
+    implementation(libs.kotlinx.serialization.json)
 }
 
 repositories {
@@ -22,7 +28,6 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
-
 }
 
 application {

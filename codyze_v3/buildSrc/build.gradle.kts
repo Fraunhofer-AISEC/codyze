@@ -12,5 +12,5 @@ dependencies {
     implementation(libs.sonarqube.plugin)
     implementation(libs.spotless.plugin)
     implementation(libs.license.plugin)
-    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))  // this is only there to be able to import 'LibrariesForLibs' in the convention plugins
 }

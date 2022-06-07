@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import de.fraunhofer.aisec.codyze.config.Configuration
+import de.fraunhofer.aisec.codyze_core.config.Configuration
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.IOException
 import org.slf4j.LoggerFactory

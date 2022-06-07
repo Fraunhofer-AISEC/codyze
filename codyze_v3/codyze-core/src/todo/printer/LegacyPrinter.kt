@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze_core.printer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import de.fraunhofer.aisec.codyze.analysis.Finding
+import de.fraunhofer.aisec.codyze_core.analysis.Finding
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

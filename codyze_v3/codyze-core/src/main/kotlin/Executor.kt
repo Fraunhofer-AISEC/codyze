@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze_core
 
-import de.fraunhofer.aisec.cpg.TranslationResult
+// import de.fraunhofer.aisec.cpg.TranslationResult
+import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
 
 // TODO create concrete implementation for MARK
@@ -19,7 +20,7 @@ interface Executor {
     fun loadSpec(paths: List<Path>)
 
     // compute results from speclang AST and return findings as SARIF
-    fun evaluate(graph: TranslationResult): List<de.fraunhofer.aisec.codyze.sarif.schema.Result>
+    // fun evaluate(graph: TranslationResult): List<Result>
 
     // common functionality of reading files from HDD
     private fun loadFiles() {}

@@ -10,6 +10,7 @@ cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "2.1.23"}
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version = "2.17.2"}
 
+# this is necessary for the plugins to be used in the buildSrc folder
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }
 sonarqube-plugin = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version = "3.3" }
@@ -17,7 +18,6 @@ spotless-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", ver
 license-plugin = { module = "com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin", version = "0.16.1" }
 
 [plugins]
-
 kotlin = { id = "org.jetbrains.kotlin", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
 sonarqube = { id = "org.sonarqube", version = "3.3" }

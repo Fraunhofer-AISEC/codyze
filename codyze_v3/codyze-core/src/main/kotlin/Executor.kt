@@ -1,23 +1,38 @@
 package de.fraunhofer.aisec.codyze_core
 
-// import de.fraunhofer.aisec.cpg.TranslationResult
-// import io.github.detekt.sarif4k.Result
+import de.fraunhofer.aisec.cpg.TranslationResult
+import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
 
 // TODO create concrete implementation for MARK
+/**
+ * An executor that drives the validation of a specification language against source code and provides evaluation results.
+ *
+ * @since v3.0.0
+ */
 interface Executor {
-    // offer function to get supported spec lang extensions
+    /**
+     * Name of executor for a specification language
+     */
+    val name : String
+
+    /**
+     * Supported extensions of specification language files
+     */
     val supportedFileExtensions: List<String>
 
     // offer standard implementation
     // must only be called once
-    fun initialize(paths: List<Path>)
+    // TODO: proper initialization parameters
+    fun initialize(configuration: String)
+
+    fun evaluate(cpg: TranslationResult) : List<Result>
 
     // load speclang files
     // -  create AST from speclang files
     // -  store AST model
     // can be called multiple times to update model
-    fun loadSpec(paths: List<Path>)
+    fun loadSpec(paths: List<Path>) {}
 
     // compute results from speclang AST and return findings as SARIF
     // fun evaluate(graph: TranslationResult): List<Result>

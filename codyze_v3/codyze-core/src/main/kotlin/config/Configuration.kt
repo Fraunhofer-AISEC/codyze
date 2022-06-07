@@ -11,10 +11,9 @@ import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
-import de.fraunhofer.aisec.codyze.config.converters.FileDeserializer
-import de.fraunhofer.aisec.codyze.config.converters.OutputDeserializer
-import de.fraunhofer.aisec.codyze.config.converters.PassTypeConverter
+import de.fraunhofer.aisec.codyze_core.config.converters.FileDeserializer
+import de.fraunhofer.aisec.codyze_core.config.converters.OutputDeserializer
+import de.fraunhofer.aisec.codyze_core.config.converters.PassTypeConverter
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
 import de.fraunhofer.aisec.cpg.passes.Pass
@@ -107,50 +106,6 @@ class Configuration {
     constructor(codyzeConfiguration: CodyzeConfiguration, cpgConfiguration: CpgConfiguration) {
         this.codyze = codyzeConfiguration
         this.cpg = cpgConfiguration
-    }
-
-    /**
-     * Builds ServerConfiguration object with available configurations
-     *
-     * @return ServerConfiguration
-     */
-    fun buildServerConfiguration(): ServerConfiguration {
-        this.normalize()
-        val config =
-            ServerConfiguration.builder()
-                .launchLsp(executionMode.isLsp)
-                .launchConsole(executionMode.isTui)
-                .typestateAnalysis(codyze.analysis.tsMode)
-                .disableGoodFindings(codyze.noGoodFindings)
-                .pedantic(codyze.pedantic)
-
-        val mark = mutableListOf<File>()
-        if (!codyze.markCLI.matched || codyze.markCLI.append) mark.addAll(codyze.mark)
-        if (codyze.markCLI.matched) mark.addAll(codyze.markCLI.mark)
-        config.markFiles(*mark.map { m -> m.absolutePath }.toTypedArray())
-
-        val disabledRulesMap = mutableMapOf<String, DisabledMarkRulesValue>()
-        val disabledMarkRules = codyze.disabledMarkRulesCLI.disabledMarkRules.toMutableList()
-        if (!codyze.disabledMarkRulesCLI.matched || codyze.disabledMarkRulesCLI.append)
-            disabledMarkRules.addAll(codyze.disabledMarkRules)
-
-        for (mName in disabledMarkRules) {
-            val index = mName.lastIndexOf('.')
-            val packageName = mName.subSequence(0, index).toString()
-            val markName = mName.subSequence(index + 1, mName.length).toString()
-            if (markName.isNotEmpty()) {
-                disabledRulesMap.putIfAbsent(packageName, DisabledMarkRulesValue())
-                if (markName == "*") disabledRulesMap.getValue(packageName).isDisablePackage = true
-                else disabledRulesMap[packageName]?.disabledMarkRuleNames?.add(markName)
-            } else
-                log.warn(
-                    "Error while parsing disabled-mark-rules: \'$mName\' is not a valid name for a mark rule. Continue parsing disabled-mark-rules"
-                )
-        }
-
-        config.disableMark(disabledRulesMap)
-
-        return config.build()
     }
 
     /**

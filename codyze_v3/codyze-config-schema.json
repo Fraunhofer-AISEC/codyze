@@ -1,0 +1,140 @@
+{
+  "$schema" : "https://json-schema.org/draft/2019-09/schema",
+  "type" : "object",
+  "properties" : {
+    "source" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      }
+    },
+    "disabled-sources" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      }
+    },
+    "output" : {
+      "type" : "string"
+    },
+    "timeout" : {
+      "type" : "integer"
+    },
+    "sarif" : {
+      "type" : "boolean"
+    },
+    "codyze" : {
+      "type" : "object",
+      "properties" : {
+        "analysis" : {
+          "type" : "object",
+          "properties" : {
+            "typestate" : {
+              "type" : "string",
+              "enum" : [ "DFA", "WPDS" ]
+            }
+          }
+        },
+        "mark" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "noGoodFindings" : {
+          "type" : "boolean"
+        },
+        "disabledMarkRules" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "pedantic" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "cpg" : {
+      "type" : "object",
+      "properties" : {
+        "translation" : {
+          "type" : "object",
+          "properties" : {
+            "analyzeIncludes" : {
+              "type" : "boolean"
+            },
+            "includes" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "enabledIncludes" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "disabledIncludes" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "additionalLanguages" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string",
+            "enum" : [ "PYTHON", "GO" ]
+          }
+        },
+        "useUnityBuild" : {
+          "type" : "boolean"
+        },
+        "typeSystemInFrontend" : {
+          "type" : "boolean"
+        },
+        "debugParser" : {
+          "type" : "boolean"
+        },
+        "disableCleanup" : {
+          "type" : "boolean"
+        },
+        "codeInNodes" : {
+          "type" : "boolean"
+        },
+        "annotations" : {
+          "type" : "boolean"
+        },
+        "failOnError" : {
+          "type" : "boolean"
+        },
+        "symbols" : {
+          "type" : "object"
+        },
+        "parallel-frontends" : {
+          "type" : "boolean"
+        },
+        "defaultPasses" : {
+          "type" : "boolean"
+        },
+        "passes" : {
+          "type" : "array",
+          "items" : {
+            "type" : "object",
+            "properties" : {
+              "name" : {
+                "type" : "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "title" : "Codyze Configuration File Schema",
+  "description" : "A schema for writing YAML configuration files for codyze"
+}

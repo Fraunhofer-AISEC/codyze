@@ -15,6 +15,14 @@ dependencies {
 
     // For (de)-serialization of SARIF and other files
     implementation(libs.kotlinx.serialization.json)
+
+    // For parsing the configurations
+    implementation(libs.jackson.yaml)
+    implementation(libs.picocli)
+
+    // For generating a json schema for the configurations
+    implementation(libs.jsonschema.generator)
+    implementation(libs.jsonschema.generator.jackson)
 }
 
 repositories {
@@ -28,6 +36,12 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
+}
+
+tasks.register("generateConfigSchema", JavaExec::class.java) {
+    mainClass.set("de.fraunhofer.aisec.codyze_core.config.ConfigurationJsonSchemaGenerator")
+    classpath = java.sourceSets["main"].runtimeClasspath
+    args(rootDir)
 }
 
 application {

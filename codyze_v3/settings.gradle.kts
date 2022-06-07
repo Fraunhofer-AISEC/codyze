@@ -7,7 +7,7 @@ include("codyze-core")
 // include("codyze-console")
 
 // include all sub-modules in the 'codyze-specification_languages' folder
-//file("codyze-specification_languages").listFiles()?.filter { it.isDirectory }?.forEach { dir: File ->
-//    include(dir.name)
-//    project(":${dir.name}").projectDir = dir
-//}
+file("codyze-specification_languages").listFiles()?.filter { it.isDirectory }?.forEach { dir: File ->
+    include(dir.name)
+    project(":${dir.name}").projectDir = dir
+}

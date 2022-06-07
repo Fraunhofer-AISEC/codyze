@@ -2,7 +2,6 @@ package de.fraunhofer.aisec.codyze_core.config
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import de.fraunhofer.aisec.codyze.analysis.TypestateMode
 import java.io.File
 import picocli.CommandLine.ArgGroup
 import picocli.CommandLine.Option

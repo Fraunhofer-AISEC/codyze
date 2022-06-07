@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze_core
 
 // import de.fraunhofer.aisec.cpg.TranslationResult
-import io.github.detekt.sarif4k.Result
+// import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
 
 // TODO create concrete implementation for MARK

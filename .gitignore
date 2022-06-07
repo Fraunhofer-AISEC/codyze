@@ -12,7 +12,7 @@
 
 # Temporary execution files
 graph-cache-overflow.bin
-crymlin.log
+codyze.log
 
 # Benchmark files
 scripts/owasp_sast_benchmark/owasp_sast

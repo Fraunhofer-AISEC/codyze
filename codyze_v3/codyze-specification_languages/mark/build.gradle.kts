@@ -1,29 +1,7 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    kotlin("jvm") version "1.6.21"
-    application
-}
-
-group = "de.fraunhofer.aisec"
-version = "1.0-SNAPSHOT"
-
-repositories {
-    mavenCentral()
+    id("codyze.core-conventions")
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
-}
-
-application {
-    mainClass.set("MainKt")
+    implementation(project(":codyze-core"))
 }

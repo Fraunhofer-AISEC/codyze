@@ -1,7 +1,9 @@
 package de.fraunhofer.aisec.codyze.legacy.crymlin
 
+import de.fraunhofer.aisec.codyze.legacy.Main.ConfigFilePath
 import de.fraunhofer.aisec.codyze.legacy.analysis.TypestateMode
 import de.fraunhofer.aisec.codyze.legacy.config.Configuration
+import de.fraunhofer.aisec.codyze.legacy.config.Configuration.Companion.initConfig
 import de.fraunhofer.aisec.codyze.legacy.config.DisabledMarkRulesValue
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.CallResolver
@@ -9,11 +11,11 @@ import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.FilenameMapper
 import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import java.io.File
-import java.lang.Exception
-import kotlin.Throws
 import kotlin.test.*
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import picocli.CommandLine
 
 class ConfigCLILoadTest {
 
@@ -427,5 +429,16 @@ class ConfigCLILoadTest {
             sourceDisablingFile = File(sourceDisablingResource.file)
             assertNotNull(sourceDisablingFile)
         }
+    }
+
+    @Test
+    fun firstStep() {
+        val args = arrayOf("--config", "legacy/config-files/source_disabling.yml")
+
+        val firstPass = ConfigFilePath()
+        val cmd = CommandLine(firstPass)
+        cmd.parseArgs(*args)
+
+        assertDoesNotThrow { initConfig(firstPass.configFile, *firstPass.remainder.toTypedArray()) }
     }
 }

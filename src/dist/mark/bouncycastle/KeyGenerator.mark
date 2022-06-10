@@ -27,7 +27,7 @@ entity KeyGenerator {
             random : java.security.SecureRandom
         );
         javax.crypto.KeyGenerator.init(random : java.security.SecureRandom);
-        javax.crypto.KeyGenerator.init(params : java.security.spec.AlgorithmParameterSpecs);
+        javax.crypto.KeyGenerator.init(params : java.security.spec.AlgorithmParameterSpec);
         javax.crypto.KeyGenerator.init(
             params : java.security.spec.AlgorithmParameterSpec,
             random : java.security.SecureRandom

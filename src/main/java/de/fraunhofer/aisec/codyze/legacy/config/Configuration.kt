@@ -17,6 +17,8 @@ import de.fraunhofer.aisec.codyze.legacy.config.converters.OutputDeserializer
 import de.fraunhofer.aisec.codyze.legacy.config.converters.PassTypeConverter
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.IdentifierPass
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 import java.io.IOException
@@ -239,6 +241,11 @@ class Configuration {
             for (p in cpg.passesCLI.passes) {
                 translationConfig.registerPass(p)
             }
+
+        // ensure at least required set of passes
+        translationConfig.defaultPasses()
+        translationConfig.registerPass(IdentifierPass())
+        translationConfig.registerPass(EdgeCachePass())
 
         for (l in cpg.additionalLanguages) {
             val frontendClazz =

@@ -18,10 +18,7 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -144,7 +141,7 @@ public class Main {
 		public File configFile;
 
 		@Unmatched
-		List<String> remainder;
+		public List<String> remainder = Collections.emptyList();
 	}
 
 	// Combines all CLI Options from the different classes to be able to render a complete help message

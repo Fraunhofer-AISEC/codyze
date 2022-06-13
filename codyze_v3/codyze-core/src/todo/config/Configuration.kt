@@ -24,7 +24,10 @@ import org.slf4j.LoggerFactory
 import picocli.CommandLine
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-class Configuration {
+class Configuration(
+    private val codyze: CodyzeConfiguration = CodyzeConfiguration(),
+    private val cpg: CpgConfiguration = CpgConfiguration()
+) {
 
     @JsonIgnore @CommandLine.ArgGroup(exclusive = true) private val sourceCLI = SourceArgGroup()
     var source: Array<File> = arrayOf(File("./"))
@@ -97,16 +100,6 @@ class Configuration {
     )
     var sarifOutput = true
         private set
-
-    private var codyze = CodyzeConfiguration()
-    private var cpg = CpgConfiguration()
-
-    constructor()
-
-    constructor(codyzeConfiguration: CodyzeConfiguration, cpgConfiguration: CpgConfiguration) {
-        this.codyze = codyzeConfiguration
-        this.cpg = cpgConfiguration
-    }
 
     /**
      * Builds TranslationConfiguration object with available configurations

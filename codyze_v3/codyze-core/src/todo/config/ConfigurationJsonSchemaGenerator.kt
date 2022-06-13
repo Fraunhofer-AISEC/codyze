@@ -28,8 +28,8 @@ class ConfigurationJsonSchemaGenerator {
                     else null
                 }
                 .withCustomDefinitionProvider {
-                        javaType: ResolvedType,
-                        context: SchemaGenerationContext ->
+                    javaType: ResolvedType,
+                    context: SchemaGenerationContext ->
                     if (javaType.isInstanceOf(File::class.java))
                         CustomDefinition(
                             context.createDefinitionReference(

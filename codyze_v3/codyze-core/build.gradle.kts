@@ -1,12 +1,19 @@
 plugins {
     application
     id("codyze.core-conventions")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
+    implementation(projects.codyzeCommon)
+    // implementation(projects.codyzeSpecificationLanguages.mark)  // TODO: re-enable
+
     // Code Property Graph
-    api(libs.cpg.core)
-    api(libs.cpg.analysis)
+    api(libs.bundles.cpg)
+
+    implementation(libs.clikt)
+
+    implementation(libs.koin)
 
     // SARIF models
     // The code can be found here: https://github.com/detekt/sarif4k
@@ -17,12 +24,12 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     // For parsing the configurations
-    implementation(libs.jackson.yaml)
-    implementation(libs.picocli)
+//    implementation(libs.jackson.yaml)
+//    implementation(libs.picocli)
 
     // For generating a json schema for the configurations
-    implementation(libs.jsonschema.generator)
-    implementation(libs.jsonschema.generator.jackson)
+//    implementation(libs.jsonschema.generator)
+//    implementation(libs.jsonschema.generator.jackson)
 }
 
 repositories {
@@ -38,12 +45,6 @@ repositories {
     }
 }
 
-tasks.register("generateConfigSchema", JavaExec::class.java) {
-    mainClass.set("de.fraunhofer.aisec.codyze_core.config.ConfigurationJsonSchemaGenerator")
-    classpath = java.sourceSets["main"].runtimeClasspath
-    args(rootDir)
-}
-
 application {
-    mainClass.set("MainKt")
+    mainClass.set("de.fraunhofer.aisec.codyze_core.MainKt")
 }

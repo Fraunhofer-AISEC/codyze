@@ -1,23 +1,35 @@
 package de.fraunhofer.aisec.codyze_core
 
-// import de.fraunhofer.aisec.codyze_core.config.Configuration
+import mu.KotlinLogging
+import de.fraunhofer.aisec.codyze_common.Executor
+import org.koin.java.KoinJavaComponent.getKoin
 
-class AnalysisServer {
+// import de.fraunhofer.aisec.codyze_core.config.Configuration
+private val logger = KotlinLogging.logger {}
+
+object AnalysisServer {
 
     // var projects = emptyMap<String, Project>()
-    var executors = emptyList<Executor>()
+    var executors = emptyList<Executor>()  // initialized in <init>
 
-    // load source code
-    // "initialize" CPG and Executor
-    // populate CPG with source code files
-
+    /**
+     * Initialize the CPG, the available executors and populate the CPG with source code files.
+     *
+     * 1. load source code (TODO)
+     * 2. initialize CPG with given source code (TODO)
+     * 3. initialize executors
+     */
     init {
         registerExecutors()
     }
 
-    // can be static or run once when AnalysisServer is created
-    fun registerExecutors() {
-        // TODO implement
+    /**
+     * Run once when first initializing the AnalysisServer.
+     *
+     * Uses Koin (a DI library) to get access to all executors
+     */
+    private fun registerExecutors() {
+        executors = getKoin().getAll<Executor>()
     }
 
     // spawn a new Project

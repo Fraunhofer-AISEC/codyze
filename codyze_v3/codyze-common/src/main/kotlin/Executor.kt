@@ -1,24 +1,22 @@
-package de.fraunhofer.aisec.codyze_core
+package de.fraunhofer.aisec.codyze_common
 
 import de.fraunhofer.aisec.cpg.TranslationResult
 import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
 
-// TODO create concrete implementation for MARK
 /**
- * An executor that drives the validation of a specification language against source code and provides evaluation results.
+ * An executor that drives the validation of a specification language against source code and
+ * provides evaluation results.
+ *
+ * For our dependency injection library (Koin), this interface is a 'service interface' and all implementations are 'services'.
  *
  * @since v3.0.0
  */
 interface Executor {
-    /**
-     * Name of executor for a specification language
-     */
-    val name : String
+    /** Name of executor for a specification language */
+    val name: String
 
-    /**
-     * Supported extensions of specification language files
-     */
+    /** Supported extensions of specification language files */
     val supportedFileExtensions: List<String>
 
     // offer standard implementation
@@ -26,7 +24,7 @@ interface Executor {
     // TODO: proper initialization parameters
     fun initialize(configuration: String)
 
-    fun evaluate(cpg: TranslationResult) : List<Result>
+    fun evaluate(cpg: TranslationResult): List<Result>
 
     // load speclang files
     // -  create AST from speclang files

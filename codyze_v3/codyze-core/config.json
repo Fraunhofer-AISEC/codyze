@@ -1,0 +1,9 @@
+{
+  "analyze": {
+    "good-findings": false,
+    "timeout": 5,
+    "spec": "./",
+    "source": "./codyze.log",
+    "typestate": "DFA"
+  }
+}

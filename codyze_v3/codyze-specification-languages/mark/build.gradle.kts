@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":codyze-core"))
+    implementation(projects.codyzeCommon)
 
     implementation(libs.cpg.analysis)
     implementation(libs.sarif4k)

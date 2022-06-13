@@ -1,18 +1,23 @@
 ---
 name: Bug report from Codyze traces
-about: A template customized to hold the error report printed by codyze and its configuration
+about: File an error report for Codyze
 title: ''
-labels: ''
+labels: ['bug']
 assignees: ''
 
 ---
 
-[//]: <> (Copied from https://github.com/Fraunhofer-AISEC/cpg/blob/66deb0905c57f9888f71dda790cad7d63381e740/.github/ISSUE_TEMPLATE/bugreport-from-cpg-traces.md)
+[//]: <> (Adapted from https://github.com/Fraunhofer-AISEC/cpg/blob/66deb0905c57f9888f71dda790cad7d63381e740/.github/ISSUE_TEMPLATE/bugreport-from-cpg-traces.md)
+
+> :warning: Note: Please post only code/configurations that can be public. Consider abstracting your problem or code to remove  confidential parts.
+
 
 # Stack trace
 
-*Stack trace in case of an Exception*
-
+*Stack trace in case of an exception*
+```
+// stack trace here
+```
 
 # Unexpected behavior
 
@@ -21,22 +26,22 @@ assignees: ''
 
 # Analyzed code of interest
 
+*MWE that causes the problem*
 ```
-codeOfInterest
+// codeOfInterest
 ```
 
 
-# Mark files
+# MARK files
 
-*Mark files used for the analysis*
-
-
-# Extensions to the cpg, e.g. added or changed LanguageFrontends or Passes
-
-*changes to or added components*
+*MARK files used for the analysis*
 
 
-# Configurations
+# Configuration
 
-*options and/or configuration file used when starting codyze* 
+*Options and/or configuration file used when starting Codyze*
 
+
+# Extensions to the CPG
+
+*Changes to or added components, e.g. added or changed LanguageFrontends or Passes*

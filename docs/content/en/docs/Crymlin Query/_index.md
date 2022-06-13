@@ -2,6 +2,7 @@
 title: "Crymlin Query Language"
 linkTitle: "Crymlin Query Language"
 weight: 3
+expiryDate: 2022-05-24
 description: >
   Crymlin is a query language to explore code property graphs
 ---

@@ -41,13 +41,13 @@ jobs:
         run: |
           if [ "$SONAR_TOKEN" != "" ]
           then
-            ./gradlew --parallel -Pversion=$VERSION spotlessCheck build sonarqube \
+            ./gradlew --parallel -Pversion=$VERSION spotlessCheck :codyze_v2:build sonarqube \
             -Dsonar.projectKey=codyze \
             -Dsonar.organization=fraunhofer-aisec \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN
           else
-            ./gradlew --parallel -Pversion=$VERSION spotlessCheck build
+            ./gradlew --parallel -Pversion=$VERSION spotlessCheck :codyze_v2:build
           fi
         id: build
         env:
@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: test
-          path: build/reports/tests/test
+          path: codyze_v2/build/reports/tests/test
       - name: Prepare Node.js
         uses: actions/setup-node@v3
         with: 
@@ -103,7 +103,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/distributions/codyze-${{ steps.determine_version.outputs.version }}.zip
+          asset_path: codyze_v2/build/distributions/codyze-${{ steps.determine_version.outputs.version }}.zip
           asset_name: codyze-${{ steps.determine_version.outputs.version }}.zip
           asset_content_type: application/zip
       - name: "Upload Plugin Asset"

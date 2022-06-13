@@ -9,7 +9,7 @@
   "ignoreDeps": [
     "de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark"
   ],
-  "ignorePaths": ["scripts", "docs"],
+  "ignorePaths": ["codyze_v2/scripts", "docs"],
   "packageRules": [
     {
       "matchPackagePrefixes": ["de.fraunhofer.aisec:cpg"],

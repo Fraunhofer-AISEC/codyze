@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.codyze.specification_languages.mark
 import de.fraunhofer.aisec.codyze.mark.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.mark.analysis.AnalysisServer
 import de.fraunhofer.aisec.codyze.mark.analysis.markevaluation.Evaluator
-import de.fraunhofer.aisec.codyze_common.Executor
+import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.graph

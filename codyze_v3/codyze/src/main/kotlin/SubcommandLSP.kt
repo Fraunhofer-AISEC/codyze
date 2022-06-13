@@ -1,17 +1,17 @@
-package de.fraunhofer.aisec.codyze_core
+package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
-import de.fraunhofer.aisec.codyze_common.options.*
+import de.fraunhofer.aisec.codyze_core.config.options.*
 import java.io.File
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-class Interactive : CliktCommand("Start an interactive console") {
+class LSP : CliktCommand("Start a language server") {
     // This is only here to correctly display the help message
     // the configFile is actually parsed in the [ConfigFileParser] command and then passed to this
     // class in the constructor
@@ -31,7 +31,7 @@ class Interactive : CliktCommand("Start an interactive console") {
     val translationOptions by TranslationOptions()
 
     override fun run() {
-        logger.debug { "Executing 'interactive' subcommand..." }
-        echo("When I grow up, I'll start an interactive console!")
+        logger.debug { "Executing 'lsp' subcommand..." }
+        echo("When I grow up, I'll start a language server!")
     }
 }

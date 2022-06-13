@@ -1,7 +1,7 @@
-package de.fraunhofer.aisec.codyze_core
+package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
-import de.fraunhofer.aisec.codyze_common.Executor
+import de.fraunhofer.aisec.codyze_core.Executor
 // import de.fraunhofer.aisec.codyze.specification_languages.mark.MarkExecutor
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf

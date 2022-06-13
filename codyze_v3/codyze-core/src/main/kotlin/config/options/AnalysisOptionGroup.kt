@@ -1,9 +1,9 @@
-package de.fraunhofer.aisec.codyze_common.options
+package de.fraunhofer.aisec.codyze_core.config.options
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
-import de.fraunhofer.aisec.codyze_common.enums.TypestateMode
+import de.fraunhofer.aisec.codyze_core.config.enums.TypestateMode
 
 class AnalysisOptions : OptionGroup() {
     val typeState: TypestateMode by

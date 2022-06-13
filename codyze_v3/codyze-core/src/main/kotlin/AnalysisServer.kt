@@ -1,7 +1,6 @@
 package de.fraunhofer.aisec.codyze_core
 
 import mu.KotlinLogging
-import de.fraunhofer.aisec.codyze_common.Executor
 import org.koin.java.KoinJavaComponent.getKoin
 
 // import de.fraunhofer.aisec.codyze_core.config.Configuration

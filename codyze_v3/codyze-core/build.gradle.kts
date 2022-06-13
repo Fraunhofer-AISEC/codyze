@@ -5,7 +5,6 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.codyzeCommon)
     // implementation(projects.codyzeSpecificationLanguages.mark)  // TODO: re-enable
 
     // Code Property Graph
@@ -30,21 +29,4 @@ dependencies {
     // For generating a json schema for the configurations
 //    implementation(libs.jsonschema.generator)
 //    implementation(libs.jsonschema.generator.jackson)
-}
-
-repositories {
-    // Eclipse CDT repo
-    ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
-        metadataSources {
-            artifact()
-        }
-        patternLayout {
-            artifact("/[organisation].[module]_[revision].[ext]")
-        }
-    }
-}
-
-application {
-    mainClass.set("de.fraunhofer.aisec.codyze_core.MainKt")
 }

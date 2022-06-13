@@ -2,8 +2,8 @@ rootProject.name = "codyze_v3"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
+include("codyze")
 include("codyze-core")
-include("codyze-common")
 
 // TODO re-enable modules once adapted to codyze v3
 // include("codyze-lsp")

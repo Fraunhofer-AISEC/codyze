@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_common
+package de.fraunhofer.aisec.codyze_core
 
 import de.fraunhofer.aisec.cpg.TranslationResult
 import io.github.detekt.sarif4k.Result

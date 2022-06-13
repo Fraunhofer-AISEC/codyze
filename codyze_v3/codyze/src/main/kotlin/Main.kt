@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_core
+package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
@@ -9,7 +9,7 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
-import de.fraunhofer.aisec.codyze_core.config.JsonValueSource
+import de.fraunhofer.aisec.codyze_core.config.source.JsonValueSource
 import java.io.File
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
@@ -48,7 +48,9 @@ class CodyzeCli(val configFile: File = File(System.getProperty("user.dir"), "con
         }
     }
 
-    override fun run() {}  // TODO: change to NoOpCliktCommand?
+    override fun run() {
+        echo("In CodyzeCli")
+    }  // TODO: change to NoOpCliktCommand?
 }
 
 /** Entry point for Codyze. Hands over control to the chosen subcommand immediately. */

@@ -41,6 +41,21 @@ repositories {
     maven {
         setUrl("https://oss.sonatype.org/content/groups/public")
     }
+
+    maven {
+        setUrl("https://jitpack.io")
+    }
+
+    // Eclipse CDT repo
+    ivy {
+        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+        metadataSources {
+            artifact()
+        }
+        patternLayout {
+            artifact("/[organisation].[module]_[revision].[ext]")
+        }
+    }
 }
 
 val compileKotlin: KotlinCompile by tasks

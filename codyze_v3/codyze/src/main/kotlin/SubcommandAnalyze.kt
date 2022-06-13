@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_core
+package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
@@ -6,7 +6,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import de.fraunhofer.aisec.codyze_core.AnalysisServer
-import de.fraunhofer.aisec.codyze_common.options.*
+import de.fraunhofer.aisec.codyze_core.config.options.*
 import java.io.File
 import mu.KotlinLogging
 

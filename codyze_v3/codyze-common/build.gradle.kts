@@ -3,19 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-repositories {
-    // Eclipse CDT repo
-    ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
-        metadataSources {
-            artifact()
-        }
-        patternLayout {
-            artifact("/[organisation].[module]_[revision].[ext]")
-        }
-    }
-}
-
 dependencies {
     // SARIF models
     // The code can be found here: https://github.com/detekt/sarif4k
@@ -28,4 +15,17 @@ dependencies {
     implementation(libs.clikt)
 
     testImplementation(kotlin("test"))
+}
+
+repositories {
+    // Eclipse CDT repo
+    ivy {
+        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+        metadataSources {
+            artifact()
+        }
+        patternLayout {
+            artifact("/[organisation].[module]_[revision].[ext]")
+        }
+    }
 }

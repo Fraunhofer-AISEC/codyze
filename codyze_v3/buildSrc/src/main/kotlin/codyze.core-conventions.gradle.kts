@@ -20,6 +20,16 @@ tasks.jacocoTestReport {
     }
 }
 
+val libs = the<LibrariesForLibs>()
+dependencies {
+    // Logging
+    implementation(libs.kotlin.logging.get())
+    runtimeOnly(libs.log4j.impl.get())
+
+    // Unit tests
+    testImplementation(kotlin("test"))
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -31,16 +41,6 @@ repositories {
     maven {
         setUrl("https://oss.sonatype.org/content/groups/public")
     }
-}
-
-val libs = the<LibrariesForLibs>()
-dependencies {
-    // Logging
-    implementation(libs.kotlin.logging.get())
-    runtimeOnly(libs.log4j.impl.get())
-
-    // Unit tests
-    testImplementation(kotlin("test"))
 }
 
 val compileKotlin: KotlinCompile by tasks

@@ -4,23 +4,6 @@ plugins {
     id("codyze.core-conventions")
 }
 
-repositories {
-    maven {
-        setUrl("https://jitpack.io")
-    }
-
-    // Eclipse CDT repo
-    ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
-        metadataSources {
-            artifact()
-        }
-        patternLayout {
-            artifact("/[organisation].[module]_[revision].[ext]")
-        }
-    }
-}
-
 dependencies {
     implementation(projects.codyzeCommon)
 
@@ -43,6 +26,23 @@ dependencies {
     // TODO exchange with module
     // LSP interface support
     api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.12.0") // ok
+}
+
+repositories {
+    maven {
+        setUrl("https://jitpack.io")
+    }
+
+    // Eclipse CDT repo
+    ivy {
+        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+        metadataSources {
+            artifact()
+        }
+        patternLayout {
+            artifact("/[organisation].[module]_[revision].[ext]")
+        }
+    }
 }
 
 tasks.withType<KotlinCompile>().configureEach {

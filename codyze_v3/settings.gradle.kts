@@ -11,7 +11,7 @@ include("codyze-core")
 
 // TODO: re-enable once mark can be compiled
 // include all submodules in the 'codyze-specification-languages' folder
-//file("codyze-specification-languages").listFiles()?.filter{ it.isDirectory }?.forEach { dir: File ->
-//    include(":codyze-specification-languages:${dir.name}")
-//    project(":codyze-specification-languages:${dir.name}").projectDir = dir
-//}
+file("codyze-specification-languages").listFiles()?.filter{ it.isDirectory }?.forEach { dir: File ->
+    include(":codyze-specification-languages:${dir.name}")
+    project(":codyze-specification-languages:${dir.name}").projectDir = dir
+}

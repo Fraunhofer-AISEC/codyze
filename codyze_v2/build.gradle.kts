@@ -12,11 +12,11 @@ plugins {
 
     id("org.jsonschema2dataclass") version "4.2.0"
 
-    id("org.sonarqube") version "3.3"
-    id("com.diffplug.spotless") version "6.6.1"
+    id("org.sonarqube") version "3.4.0.2513"
+    id("com.diffplug.spotless") version "6.7.2"
     id("com.github.hierynomus.license") version "0.16.1"
 
-    kotlin("jvm") version "1.6.21" // we can only upgrade to Kotlin 1.5, if CPG does
+    kotlin("jvm") version "1.7.0" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
 group = "de.fraunhofer.aisec"
@@ -105,8 +105,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.4.2")
-    api("de.fraunhofer.aisec:cpg-analysis:4.4.2")
+    api("de.fraunhofer.aisec:cpg-core:4.5.1")
+    api("de.fraunhofer.aisec:cpg-analysis:4.5.1")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
@@ -118,7 +118,7 @@ dependencies {
     api("de.breakpointsec:pushdown:1.1") // ok
 
     // LSP interface support
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.12.0") // ok
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.14.0") // ok
 
     // Interactive console interface support using Jython (Scripting engine)
     implementation("org.python:jython-standalone:2.7.2") // ok

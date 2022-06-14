@@ -5,13 +5,9 @@ plugins {
 
 dependencies {
     implementation(projects.codyzeCore)
-    // implementation(projects.codyzeSpecificationLanguages.mark)  // TODO: re-enable
-
-    // Code Property Graph
-    api(libs.bundles.cpg)
+    implementation(projects.codyzeSpecificationLanguages.mark)  // TODO: re-enable
 
     implementation(libs.clikt)
-
     implementation(libs.koin)
 }
 

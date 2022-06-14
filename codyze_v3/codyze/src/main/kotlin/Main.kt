@@ -7,8 +7,7 @@ import com.github.ajalt.clikt.output.CliktHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.*
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.file
+import de.fraunhofer.aisec.codyze_core.config.options.configFileOption
 import de.fraunhofer.aisec.codyze_core.config.source.JsonValueSource
 import java.io.File
 import mu.KotlinLogging
@@ -24,8 +23,7 @@ private val logger = KotlinLogging.logger {}
  * config[[File]] as context to the [[CodyzeCli]] command.
  */
 class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
-    val configFile: File? by
-        option("--config").file(mustExist = true, canBeDir = false, mustBeReadable = true)
+    val configFile: File? by configFileOption()
     val arguments by
         argument()
             .multiple() // necessary when using 'treatUnknownOptionsAsArgs'. Contains all given

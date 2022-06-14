@@ -4,7 +4,7 @@
       <PatternLayout pattern="%d{HH:mm:ss,SSS} %-5p %C{1} %m%n"/>
       <ThresholdFilter level="DEBUG"/>
     </Console>
-    <File name="FILEOUT" fileName="crymlin.log">
+    <File name="FILEOUT" fileName="codyze.log">
       <PatternLayout pattern="%d{HH:mm:ss,SSS} %-5p %C{1} %m%n"/>
     </File>
     <Async name="Async">

@@ -24,6 +24,10 @@ public abstract class MarkIntermediateResult {
 		return resultType == ResultType.LIST;
 	}
 
+	/**
+	 * Returns a set of nodes that are responsible for the represented value.
+	 *
+	 * @return set of nodes
+	 */
 	public abstract Set<Node> getResponsibleNodes();
-
 }

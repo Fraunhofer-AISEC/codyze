@@ -32,12 +32,13 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
     // for the [[Codyze]] command.
 }
 
-/** Main [CliktCommand]. Provides some options to all included subcommands. */
+/**
+ * Main [CliktCommand]. Provides some options to all included subcommands.
+ *
+ * The configFile is actually parsed in the [ConfigFileParser] command and then passed to this class as an argument
+ * */
 class CodyzeCli(val configFile: File = File(System.getProperty("user.dir"), "config.json")) :
-    CliktCommand(
-        help = "Codyze finds security flaws in source code",
-        printHelpOnEmptyArgs = true
-    ) {
+    CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
     init {
         versionOption("1.0", names = setOf("--version", "-V")) // TODO get actual version
         context {
@@ -48,7 +49,7 @@ class CodyzeCli(val configFile: File = File(System.getProperty("user.dir"), "con
 
     override fun run() {
         echo("In CodyzeCli")
-    }  // TODO: change to NoOpCliktCommand?
+    } // TODO: change to NoOpCliktCommand?
 }
 
 /** Entry point for Codyze. Hands over control to the chosen subcommand immediately. */
@@ -74,7 +75,9 @@ fun main(args: Array<String>) {
         } // recreate the codyze parser if the user used the config file option
     } finally {
         codyzeCli
-            .subcommands(getKoin().getAll<CliktCommand>())  // use koin DI to register all available subcommands
+            .subcommands(
+                getKoin().getAll<CliktCommand>()
+            ) // use koin DI to register all available subcommands
             .main(
                 args
             ) // parse the given arguments and run the <run> method of the chosen subcommand.

@@ -41,7 +41,7 @@ jobs:
         run: |
           if [ "$SONAR_TOKEN" != "" ]
           then
-            ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze_v2:spotlessCheck :codyze_v2:build sonarqube \
+            ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze_v2:spotlessCheck :codyze_v2:build :codyze_v2:sonarqube \
             -Dsonar.projectKey=codyze \
             -Dsonar.organization=fraunhofer-aisec \
             -Dsonar.host.url=https://sonarcloud.io \

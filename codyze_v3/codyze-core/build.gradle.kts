@@ -21,12 +21,4 @@ dependencies {
 
     // For (de)-serialization of SARIF and other files
     implementation(libs.kotlinx.serialization.json)
-
-    // For parsing the configurations
-//    implementation(libs.jackson.yaml)
-//    implementation(libs.picocli)
-
-    // For generating a json schema for the configurations
-//    implementation(libs.jsonschema.generator)
-//    implementation(libs.jsonschema.generator.jackson)
 }

@@ -3,7 +3,7 @@
     "good-findings": false,
     "timeout": 5,
     "spec": "./",
-    "source": "./codyze.log",
+    "source": ["./codyze.log", "./"],
     "typestate": "DFA"
   }
 }

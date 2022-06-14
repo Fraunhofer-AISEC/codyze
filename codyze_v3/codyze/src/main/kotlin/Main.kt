@@ -44,7 +44,7 @@ class CodyzeCli(val configFile: File = File(System.getProperty("user.dir"), "con
         versionOption("1.0", names = setOf("--version", "-V")) // TODO get actual version
         context {
             valueSource = JsonValueSource.from(configFile, requireValid = true)
-            helpFormatter = CliktHelpFormatter(showDefaultValues = true)
+            helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")
         }
     }
 

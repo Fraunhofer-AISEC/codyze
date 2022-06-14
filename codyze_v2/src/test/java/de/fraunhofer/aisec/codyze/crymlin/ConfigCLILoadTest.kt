@@ -88,7 +88,7 @@ class ConfigCLILoadTest {
                 additionalOptionFile,
                 "-c",
                 "--passes=de.fraunhofer.aisec.cpg.passes.FilenameMapper${File.pathSeparator}" +
-                        "de.fraunhofer.aisec.cpg.passes.CallResolver",
+                    "de.fraunhofer.aisec.cpg.passes.CallResolver",
                 "--symbols=&=and${File.pathSeparator}+=plus",
                 "--no-type-system-in-frontend",
                 "--default-passes"
@@ -206,7 +206,7 @@ class ConfigCLILoadTest {
                 additionalOptionFile,
                 "-c",
                 "--passes+=de.fraunhofer.aisec.cpg.passes.FilenameMapper${File.pathSeparator}" +
-                        "de.fraunhofer.aisec.cpg.passes.CallResolver",
+                    "de.fraunhofer.aisec.cpg.passes.CallResolver",
                 "--symbols+=&=and${File.pathSeparator}+=plus",
                 "--default-passes",
                 "--includes+=include9${File.pathSeparator}include193${File.pathSeparator}include13",
@@ -352,13 +352,13 @@ class ConfigCLILoadTest {
 
         val expectedConfigSource =
             arrayOf(
-                "../real-examples/botan/blockciphers/Antidote1911.Arsenic",
-                "../real-examples/botan/blockciphers/obraunsdorf.playbook-creator",
-                "../real-examples/botan/MARK",
-                "../real-examples/botan/MARK",
-                "../real-examples/botan/streamciphers",
-                "../directory-structure"
-            )
+                    "../real-examples/botan/blockciphers/Antidote1911.Arsenic",
+                    "../real-examples/botan/blockciphers/obraunsdorf.playbook-creator",
+                    "../real-examples/botan/MARK",
+                    "../real-examples/botan/MARK",
+                    "../real-examples/botan/streamciphers",
+                    "../directory-structure"
+                )
                 .map { s -> File(configFileBasePath, s).absolutePath }
                 .toTypedArray()
         assertContentEquals(
@@ -369,11 +369,11 @@ class ConfigCLILoadTest {
 
         val expectedConfigDisabledSource =
             arrayOf(
-                "../real-examples/botan/blockciphers",
-                "../config-files/additional_options.yml",
-                "../real-examples/botan/MARK",
-                "../directory-structure/dir2/dir2dir1/dir2dir1file1.java"
-            )
+                    "../real-examples/botan/blockciphers",
+                    "../config-files/additional_options.yml",
+                    "../real-examples/botan/MARK",
+                    "../directory-structure/dir2/dir2dir1/dir2dir1file1.java"
+                )
                 .map { s -> File(configFileBasePath, s).absolutePath }
                 .toTypedArray()
         assertContentEquals(
@@ -396,35 +396,34 @@ class ConfigCLILoadTest {
         fun startup() {
             val correctStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/correct_structure.yml")
+                    .java.classLoader.getResource("config-files/correct_structure.yml")
             assertNotNull(correctStructureResource)
             correctFile = File(correctStructureResource.file)
             assertNotNull(correctFile)
 
             val incorrectStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/incorrect_structure.yml")
+                    .java.classLoader.getResource("config-files/incorrect_structure.yml")
             assertNotNull(incorrectStructureResource)
             incorrectFile = File(incorrectStructureResource.file)
             assertNotNull(incorrectFile)
 
             val additionalOptionResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/additional_options.yml")
+                    .java.classLoader.getResource("config-files/additional_options.yml")
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
 
             val disabledMarkResource =
-                ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/disabled_mark.yml")
+                ConfigLoadTest::class.java.classLoader.getResource("config-files/disabled_mark.yml")
             assertNotNull(disabledMarkResource)
             disabledMarkFile = File(disabledMarkResource.file)
             assertNotNull(disabledMarkFile)
 
             val sourceDisablingResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("legacy/config-files/source_disabling.yml")
+                    .java.classLoader.getResource("config-files/source_disabling.yml")
             assertNotNull(sourceDisablingResource)
             sourceDisablingFile = File(sourceDisablingResource.file)
             assertNotNull(sourceDisablingFile)
@@ -433,7 +432,7 @@ class ConfigCLILoadTest {
 
     @Test
     fun firstStep() {
-        val args = arrayOf("--config", "legacy/config-files/source_disabling.yml")
+        val args = arrayOf("--config", "config-files/source_disabling.yml")
 
         val firstPass = ConfigFilePath()
         val cmd = CommandLine(firstPass)

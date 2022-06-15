@@ -1,7 +1,11 @@
 
 package de.fraunhofer.aisec.codyze.legacy.analysis;
 
-public class MarkIntermediateResult {
+import de.fraunhofer.aisec.cpg.graph.Node;
+
+import java.util.Set;
+
+public abstract class MarkIntermediateResult {
 	private final ResultType resultType;
 
 	public enum ResultType {
@@ -20,4 +24,10 @@ public class MarkIntermediateResult {
 		return resultType == ResultType.LIST;
 	}
 
+	/**
+	 * Returns a set of nodes that are responsible for the represented value.
+	 *
+	 * @return set of nodes
+	 */
+	public abstract Set<Node> getResponsibleNodes();
 }

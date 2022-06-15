@@ -1,9 +1,8 @@
 package de.fraunhofer.aisec.codyze.legacy.analysis
 
-import de.fraunhofer.aisec.codyze.legacy.analysis.resolution.ConstantValue
 import de.fraunhofer.aisec.cpg.graph.Node
 
-class NodeWithValue<T : Node?>(val node: T, var value: ConstantValue) {
+class NodeWithValue<T : Node?>(val node: T, var value: MarkIntermediateResult) {
     var base: Node? = null
 
     companion object {

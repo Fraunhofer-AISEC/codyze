@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static de.fraunhofer.aisec.codyze.legacy.analysis.markevaluation.EvaluationHelperKt.resolveOperand;
 
@@ -263,108 +264,168 @@ public class ExpressionEvaluator {
 			ExpressionHelper.exprToString(leftExpr),
 			ExpressionHelper.exprToString(rightExpr));
 
-		Map<Integer, MarkIntermediateResult> leftResult = evaluateExpression(leftExpr);
-		Map<Integer, MarkIntermediateResult> rightResult = evaluateExpression(rightExpr);
+		Map<Integer, MarkIntermediateResult> leftResults = evaluateExpression(leftExpr);
+		Map<Integer, MarkIntermediateResult> rightResults = evaluateExpression(rightExpr);
 
-		Map<Integer, MarkIntermediateResult> combinedResult = new HashMap<>();
+		Map<Integer, MarkIntermediateResult> combinedResults = new HashMap<>();
 
-		for (Map.Entry<Integer, MarkIntermediateResult> entry : rightResult.entrySet()) {
-			ExpressionComparator<String> comp = new ExpressionComparator<>();
-
+		for (Map.Entry<Integer, MarkIntermediateResult> rightResultEntry : rightResults.entrySet()) {
 			// we only need to look at the keys from the right side.
 			// the right side of the evaluation can add new values, then we have more values on the right than on the left.
 			// the right side currently cannot remove values!
-			Integer key = entry.getKey();
-			ConstantValue leftBoxed = (ConstantValue) getcorrespondingLeftResult(leftResult, key);
-			Object left = leftBoxed.getValue();
+			Integer key = rightResultEntry.getKey();
+			MarkIntermediateResult leftOperand = getcorrespondingLeftResult(leftResults, key);
+			MarkIntermediateResult rightOperand = rightResultEntry.getValue();
 
-			if (entry.getValue() instanceof ListValue) {
+			if (ConstantValue.isError(leftOperand) || ConstantValue.isError(rightOperand)) {
+				ErrorValue error = ErrorValue.newErrorValue(
+					"Cannot perform comparison, " + (ConstantValue.isError(leftOperand) ? "left" : "right") + " expression has errors", leftOperand, rightOperand);
+				error.addResponsibleNodes(rightOperand.getResponsibleNodes());
+				error.addResponsibleNodes(leftOperand.getResponsibleNodes());
+				// result of comparison is not known
+				combinedResults.put(key, error);
+			} else {
+				log.debug("left result={} right result={}", leftOperand, rightOperand);
 
-				if (op.equals("in")) {
-					ListValue l = (ListValue) entry.getValue();
-					ConstantValue cv = ConstantValue.of(false);
+				ConstantValue comparisonResult = ErrorValue.newErrorValue(String.format("Unsupported operand(s) for %s", op));
 
-					for (MarkIntermediateResult o : l) {
+				if (leftOperand.isSingleResult() && rightOperand.isSingleResult()) {
+					comparisonResult = compareConstantValues((ConstantValue) leftOperand, (ConstantValue) rightOperand, op);
+				} else if (rightOperand.isListResult()) {
+					comparisonResult = compareAgainstListValue(leftOperand, (ListValue) rightOperand, op);
+				} else {
+					log.warn("Unsupported operand(s) for {}", op);
+				}
+				combinedResults.put(key, comparisonResult);
+			}
+		}
+		return combinedResults;
+	}
+
+	/**
+	 * Compares some value against a list.
+	 * 
+	 * @param left  some value
+	 * @param right list to compare against
+	 * @param op    operator code
+	 * @return result of comparison; or error value on errors
+	 */
+	private ConstantValue compareAgainstListValue(MarkIntermediateResult left, ListValue right, String op) {
+		ConstantValue comparisonResult = ErrorValue.newErrorValue(String.format("Unsupported operand(s) for %s", op));
+
+		ExpressionComparator<String> comp = new ExpressionComparator<>();
+
+		if (left.isSingleResult()) {
+			// use switch to allow for later additions of operators
+			switch (op) {
+				case "in":
+					ConstantValue intermediateResult = ConstantValue.of(false);
+
+					for (MarkIntermediateResult element : right) {
 						log.debug(
 							"Comparing left expression with element of right expression: {} vs. {}",
 							left,
-							o);
+							element);
 
-						if (o != null) {
-							String inner = ExpressionHelper.toComparableString(o);
+						if (element != null) {
+							String inner = ExpressionHelper.toComparableString(element);
 							if (comp.compare(ExpressionHelper.toComparableString(left), inner) == 0) {
-								cv = ConstantValue.of(true);
-								cv.addResponsibleNodesFrom((ConstantValue) o);
+								intermediateResult = ConstantValue.of(true);
+								intermediateResult.addResponsibleNodesFrom((ConstantValue) element);
 								break;
 							}
 						}
 					}
-					cv.addResponsibleNodesFrom(leftBoxed);
-					combinedResult.put(key, cv);
-				} else {
-					log.warn("Unknown op for List on the right side");
-					combinedResult.put(key, ErrorValue.newErrorValue(String.format("Unknown op %s for List on the right side", op)));
-				}
-
-			} else {
-
-				ConstantValue rightBoxed = (ConstantValue) entry.getValue();
-				Object right = rightBoxed.getValue();
-
-				if (ConstantValue.isError(leftBoxed) || ConstantValue.isError(rightBoxed)) {
-
-					// result of comparison is not known
-					combinedResult.put(key, ErrorValue.newErrorValue(
-						"Cannot perform comparison, " + (ConstantValue.isError(leftBoxed) ? "left" : "right") + " expression has errors", leftBoxed, rightBoxed));
-				} else {
-
-					String leftComp = ExpressionHelper.toComparableString(left);
-					String rightComp = ExpressionHelper.toComparableString(right);
-
-					log.debug("left result={} right result={}", left, right);
-
-					ConstantValue cv;
-					switch (op) {
-						case "==":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) == 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case "!=":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) != 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case "<":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) < 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case "<=":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) <= 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case ">":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) > 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						case ">=":
-							cv = ConstantValue.of(comp.compare(leftComp, rightComp) >= 0);
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-
-						case "like":
-							cv = ConstantValue.of(
-								Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
-							cv.addResponsibleNodesFrom(leftBoxed, rightBoxed);
-							break;
-						default:
-							log.warn("Unsupported operand {}", op);
-							cv = ErrorValue.newErrorValue(String.format("Unsupported operand %s", op));
-					}
-
-					combinedResult.put(key, cv);
-				}
+					comparisonResult = intermediateResult;
+					break;
+				default:
+					log.warn("Unsupported operands for {}", op);
+					break;
 			}
+			comparisonResult.addResponsibleNodesFrom((ConstantValue) left);
+		} else if (left.isListResult()) {
+			// compare two lists
+			// convert list value to their string representation for subsequent comparison
+			var leftStringValues = ((ListValue) left).getAll().stream().map(ExpressionHelper::toComparableString).sorted().distinct().collect(Collectors.toList());
+			var rightStringValues = right.getAll().stream().map(ExpressionHelper::toComparableString).sorted().distinct().collect(Collectors.toList());
+
+			// each element of left operand has corresponding value equivalent element in right operand
+			boolean everyLeftValueInRightValues = leftStringValues.stream()
+					.map(leftStringValue -> rightStringValues.stream().anyMatch(rightStringValue -> comp.compare(leftStringValue, rightStringValue) == 0))
+					.reduce(true, Boolean::logicalAnd);
+			// each element of right operand has corresponding value equivalent element in left operand
+			boolean everyRightValueInLeftValues = rightStringValues.stream()
+					.map(rightStringValue -> leftStringValues.stream().anyMatch(leftStringValue -> comp.compare(leftStringValue, rightStringValue) == 0))
+					.reduce(true, Boolean::logicalAnd);
+
+			switch (op) {
+				case "==":
+					//
+					comparisonResult = ConstantValue.of(everyLeftValueInRightValues && everyRightValueInLeftValues);
+					break;
+				case "!=":
+					comparisonResult = ConstantValue.of(!(everyLeftValueInRightValues && everyRightValueInLeftValues));
+					break;
+				default:
+					log.warn("Unsupported operands for {}", op);
+					break;
+			}
+			// add responsible nodes from both lists, because we consider each list as a unit
+			comparisonResult.addResponsibleNodes(left.getResponsibleNodes());
+			comparisonResult.addResponsibleNodes(right.getResponsibleNodes());
+		} else {
+			log.warn("Unsupported operands for {}", op);
+			comparisonResult.addResponsibleNodes(left.getResponsibleNodes());
+			comparisonResult.addResponsibleNodes(right.getResponsibleNodes());
 		}
-		return combinedResult;
+		return comparisonResult;
+	}
+
+	/**
+	 * Compares two constant values.
+	 *
+	 * @param left   left operand
+	 * @param right  right operand
+	 * @param op     operator code
+	 * @return result of comparison; or error value on errors
+	 */
+	private ConstantValue compareConstantValues(ConstantValue left, ConstantValue right, String op) {
+		ConstantValue comparisonResult = ErrorValue.newErrorValue(String.format("Unsupported operand(s) %s", op));
+
+		ExpressionComparator<String> comp = new ExpressionComparator<>();
+
+		String leftComp = ExpressionHelper.toComparableString(left);
+		String rightComp = ExpressionHelper.toComparableString(right);
+
+		switch (op) {
+			case "==":
+				comparisonResult = ConstantValue.of(comp.compare(leftComp, rightComp) == 0);
+				break;
+			case "!=":
+				comparisonResult = ConstantValue.of(comp.compare(leftComp, rightComp) != 0);
+				break;
+			case "<":
+				comparisonResult = ConstantValue.of(comp.compare(leftComp, rightComp) < 0);
+				break;
+			case "<=":
+				comparisonResult = ConstantValue.of(comp.compare(leftComp, rightComp) <= 0);
+				break;
+			case ">":
+				comparisonResult = ConstantValue.of(comp.compare(leftComp, rightComp) > 0);
+				break;
+			case ">=":
+				comparisonResult = ConstantValue.of(comp.compare(leftComp, rightComp) >= 0);
+				break;
+			case "like":
+				comparisonResult = ConstantValue.of(
+					Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
+				break;
+			default:
+				log.warn("Unsupported operands for {}", op);
+				break;
+		}
+		comparisonResult.addResponsibleNodesFrom(left, right);
+		return comparisonResult;
 	}
 
 	private MarkIntermediateResult getcorrespondingLeftResult(Map<Integer, MarkIntermediateResult> leftResult, Integer key) {

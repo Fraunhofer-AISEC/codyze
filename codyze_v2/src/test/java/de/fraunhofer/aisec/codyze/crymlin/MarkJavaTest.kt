@@ -89,7 +89,7 @@ internal class MarkJavaTest : AbstractMarkTest() {
     @Test
     @Throws(Exception::class)
     fun array() {
-        val findings = performTest("legacy/mark_java/array.java", "legacy/mark_java/array.mark")
+        val findings = performTest("mark_java/array.java", "mark_java/array.mark")
 
         expected(
             findings,

@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation(projects.codyzeCore)
-    implementation(projects.codyzeSpecificationLanguages.mark)  // TODO: re-enable
+    implementation(projects.codyzeSpecificationLanguages.mark)
 
     implementation(libs.clikt)
     implementation(libs.koin)

@@ -5,8 +5,6 @@ plugins {
 }
 
 dependencies {
-    // implementation(projects.codyzeSpecificationLanguages.mark)  // TODO: re-enable
-
     // Code Property Graph
     api(libs.bundles.cpg)
 

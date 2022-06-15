@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze.analysis.markevaluation
 
 import de.fraunhofer.aisec.codyze.analysis.ErrorValue
+import de.fraunhofer.aisec.codyze.analysis.ListValue
 import de.fraunhofer.aisec.codyze.analysis.MarkContextHolder
 import de.fraunhofer.aisec.codyze.analysis.NodeWithValue
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator.log
@@ -61,8 +62,8 @@ fun Graph.getCalls(fqnName: String, parameters: List<Parameter>): MutableSet<Cal
         this.nodes
             .filter {
                 it is CallExpression &&
-                    it.fqn == Utils.unifyType(fqnName) &&
-                    argumentsMatchParameters(parameters, it.arguments)
+                        it.fqn == Utils.unifyType(fqnName) &&
+                        argumentsMatchParameters(parameters, it.arguments)
             }
             .filterIsInstance<CallExpression>()
 
@@ -121,9 +122,9 @@ fun Node.getSuitableDFGTarget(): Node? {
         this.nextDFG
             .filter {
                 it is DeclaredReferenceExpression ||
-                    it is ReturnStatement || // for builder-style functions
-                    it is ConstructExpression ||
-                    it is VariableDeclaration
+                        it is ReturnStatement || // for builder-style functions
+                        it is ConstructExpression ||
+                        it is VariableDeclaration
             }
             .sortedWith(Comparator.comparing(Node::name))
 
@@ -169,7 +170,7 @@ fun FieldDeclaration.getInitializerValue(): Any? {
 val Node.nextStatement: Statement?
     get() {
         return this.followNextEOG { it.end.astParent is CompoundStatement }?.last()?.end
-            as? Statement
+                as? Statement
     }
 
 /**
@@ -767,6 +768,25 @@ private fun resolveValuesForVertices(
                 val add = NodeWithValue.of(v)
                 add.value = cv
                 v.value = ErrorValue.newErrorValue(String.format("could not resolve %s", markVar))
+                ret.add(add)
+            }
+        } else if (v.node is ArrayCreationExpression) {
+            if (v.node.initializer is InitializerListExpression) {
+                val initializerList = v.node.initializer as InitializerListExpression
+
+                val add = NodeWithValue.of(v)
+                val lv = ListValue()
+                for (e in initializerList.initializers) {
+                    if (e is Literal<*>) {
+                        lv.add(ConstantValue.of(e.value))
+                    } else {
+                        log.warn(
+                            "Cannot resolve non-literal expressions in ArrayCreationExpression yet (not supported)."
+                        )
+                        lv.add(ErrorValue.newErrorValue("Unknown value"))
+                    }
+                }
+                add.value = lv
                 ret.add(add)
             }
         } else {

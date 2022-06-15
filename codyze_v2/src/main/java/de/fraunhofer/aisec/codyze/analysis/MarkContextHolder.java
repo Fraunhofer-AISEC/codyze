@@ -65,9 +65,20 @@ public class MarkContextHolder {
 		if (resolvedOperands.contains(operand)) {
 			contexts.forEach((id, context) -> {
 				var vwv = context.getOperand(operand);
-				var constant = ConstantValue.of(vwv.getValue());
-				constant.addResponsibleNodes(getNodeFromSelfOrFromParent(operand, context));
-				result.put(id, constant);
+				var value = vwv.getValue();
+
+				if (value instanceof ConstantValue) {
+					((ConstantValue) value).addResponsibleNodes(getNodeFromSelfOrFromParent(operand, context));
+				} else if (value instanceof ListValue) {
+					for (var c : (ListValue) value) {
+						if (c instanceof ConstantValue) {
+							((ConstantValue) c).addResponsibleNodes(getNodeFromSelfOrFromParent(operand, context));
+						} else {
+							log.error("Trying to add reponsible nodes to non-constant value");
+						}
+					}
+				}
+				result.put(id, value);
 			});
 		}
 		return result;

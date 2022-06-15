@@ -1,12 +1,10 @@
 
 package de.fraunhofer.aisec.codyze.analysis;
 
+import de.fraunhofer.aisec.cpg.graph.Node;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class ListValue extends MarkIntermediateResult implements Iterable<MarkIntermediateResult> {
@@ -54,5 +52,14 @@ public class ListValue extends MarkIntermediateResult implements Iterable<MarkIn
 
 	public void addAll(List<MarkIntermediateResult> add) {
 		values.addAll(add);
+	}
+
+	@Override
+	public Set<Node> getResponsibleNodes() {
+		var nodes = new HashSet<Node>();
+		for (var v : values) {
+			nodes.addAll(v.getResponsibleNodes());
+		}
+		return nodes;
 	}
 }

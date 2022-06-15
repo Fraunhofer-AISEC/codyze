@@ -80,9 +80,21 @@ internal class MarkJavaTest : AbstractMarkTest() {
         // todo: missing: Enum is not handled yet
         expected(
             findings,
-            "line 11: Rule Enum violated",
+            "line 13: Rule Enum violated",
             "line [17, 3]: Rule Static verified",
             "line [15, 3]: Rule Static verified"
+        )
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun array() {
+        val findings = performTest("legacy/mark_java/array.java", "legacy/mark_java/array.mark")
+
+        expected(
+            findings,
+            "line 11: Rule Rule_Array_good verified",
+            "line 11: Rule Rule_Array_bad violated"
         )
     }
 }

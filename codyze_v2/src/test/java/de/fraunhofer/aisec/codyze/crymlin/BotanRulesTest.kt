@@ -181,7 +181,7 @@ internal class BotanRulesTest : AbstractMarkTest() {
             "line 22: Violation against Order: mac->start(iv); (start) is not allowed. Expected one of: END (MACOrder)", // ok
             "line 12: Rule _5_3_01_MAC verified", // ok
             "line 12: Rule _5_3_03_MAC_NONCELEN violated",
-            "line 12: Rule _5_3_02_MAC_KEYLEN violated"
+            "line 15: Rule _5_3_02_MAC_KEYLEN violated"
         )
     }
 

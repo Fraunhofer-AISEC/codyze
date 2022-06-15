@@ -420,6 +420,9 @@ public class ExpressionEvaluator {
 				comparisonResult = ConstantValue.of(
 					Pattern.matches(ExpressionHelper.toComparableString(right), ExpressionHelper.toComparableString(left)));
 				break;
+			default:
+				log.warn("Unsupported operands for {}", op);
+				break;
 		}
 		comparisonResult.addResponsibleNodesFrom(left, right);
 		return comparisonResult;

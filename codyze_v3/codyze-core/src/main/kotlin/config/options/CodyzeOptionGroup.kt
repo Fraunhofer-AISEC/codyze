@@ -5,19 +5,20 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
-import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.isRegularFile
+import kotlin.streams.asSequence
 
 class CodyzeOptions : OptionGroup(name = "Codyze Options") {
-    val source: List<Path> by
+    internal val rawSource: List<Path> by
         option("-s", "--source", help = "Source files or folders to analyze.")
             .path(mustExist = true, mustBeReadable = true)
-            .multiple(required = true, default = listOf(Path(System.getProperty("user.dir"))))
-    val sourceAdditions: List<Path> by
+            .multiple(required = true)
+    internal val rawSourceAdditions: List<Path> by
         option(
                 "--source-additions",
                 help =
@@ -25,7 +26,7 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
-    val disabledSource: List<Path> by
+    internal val rawDisabledSource: List<Path> by
         option(
                 "--disabled-source",
                 help =
@@ -33,7 +34,7 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
-    val disabledSourceAdditions: List<Path> by
+    internal val rawDisabledSourceAdditions: List<Path> by
         option(
                 "--disabled-source-additions",
                 help =
@@ -42,11 +43,18 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
 
-    val spec: List<Path> by
+    /**
+     * Lazy property that combines all given sources from the different options into a list of files to analyze.
+     */
+    val source: List<Path> by lazy {
+        resolvePaths(source = rawSource, sourceAdditions = rawSourceAdditions, disabledSource = rawDisabledSource, disabledSourceAdditions = rawDisabledSourceAdditions)
+    }
+
+    internal val rawSpec: List<Path> by
         option("--spec", help = "Loads the given specification files.")
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
-            .multiple(required = true, default = listOf(Path(System.getProperty("user.dir"))))
-    val specAdditions: List<Path>? by
+            .multiple(required = true)
+    internal val rawSpecAdditions: List<Path> by
         option(
                 "--spec-additions",
                 help =
@@ -54,7 +62,7 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple()
-    val disabledSpec: List<Path>? by
+    internal val rawDisabledSpec: List<Path> by
         option(
                 "--disabled-specs",
                 help =
@@ -65,7 +73,7 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple()
-    val disabledSpecAdditions: List<Path>? by
+    internal val rawDisabledSpecAdditions: List<Path> by
         option(
                 "--disabled-spec-additions",
                 help =
@@ -73,11 +81,17 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple()
+    /**
+     * Lazy property that combines all given specs from the different options into a list of spec files to use.
+     */
+    val spec: List<Path> by lazy {
+        resolvePaths(source = rawSpec, sourceAdditions = rawSpecAdditions, disabledSource = rawDisabledSpec, disabledSourceAdditions = rawDisabledSpecAdditions)
+    }
 
-    val output: File by
+    val output: Path by
         option("-o", "--output", help = "Write results to file. Use - for stdout.")
-            .file(mustBeWritable = true)
-            .default(File(System.getProperty("user.dir"), "findings.sarif"))
+            .path(mustBeWritable = true)
+            .default(Path(System.getProperty("user.dir"), "findings.sarif"))
 
     val goodFindings: Boolean by
         option(
@@ -102,4 +116,8 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             .flag("--no-pedantic")
     val timeout: Int by
         option("--timeout", help = "Terminate analysis after timeout. [minutes]").int().default(120)
+
+    private fun resolvePaths(source: List<Path>, sourceAdditions: List<Path>, disabledSource: List<Path>, disabledSourceAdditions: List<Path>): List<Path> {
+        return (combineSources(source, sourceAdditions) - combineSources(disabledSource, disabledSourceAdditions)).toList()
+    }
 }

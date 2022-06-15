@@ -82,24 +82,43 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
             )
             .enum<Language>(ignoreCase = true)
             .multiple()
-    val symbols: Map<String, String> by
+    internal val rawSymbols: Map<String, String> by
         option("--symbols", help = "Definition of additional symbols.")
             .associate(delimiter = File.pathSeparator)
-    val additionalSymbols: Map<String, String> by
+    internal val rawAdditionalSymbols: Map<String, String> by
         option(
                 "--additional-symbols",
                 help =
                     "See --symbols, but appends the values to the ones specified in configuration file."
             )
             .associate(delimiter = File.pathSeparator)
-    val passes: Map<String, String> by
+    /**
+     * Lazy property that combines all symbols from the different options into a single map.
+     */
+    val symbols by lazy {
+        resolveSymbols(symbols = rawSymbols, additionalSymbols = rawAdditionalSymbols)
+    }
+
+    internal val rawPasses: Map<String, String> by
         option("--passes", help = "Definition of additional symbols.")
             .associate(delimiter = File.pathSeparator)
-    val additionalPasses: Map<String, String> by
+    internal val rawAdditionalPasses: Map<String, String> by
         option(
                 "--additional-passes",
                 help =
                     "See --symbols, but appends the values to the ones specified in configuration file."
             )
             .associate(delimiter = File.pathSeparator)
+    /**
+     * Lazy property that combines all symbols from the different options into a single map.
+     */
+    val passes by lazy {
+        resolvePasses(passes = rawPasses, additionalPasses = rawAdditionalPasses)
+    }
+
+    // TODO
+    private fun resolveSymbols(symbols: Map<String, String>, additionalSymbols: Map<String, String>): Map<String, String> = TODO()
+
+    // TODO
+    private fun resolvePasses(passes: Map<String, String>, additionalPasses: Map<String, String>): Map<String, String> = TODO()
 }

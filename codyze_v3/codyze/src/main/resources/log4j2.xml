@@ -18,5 +18,8 @@
         <logger level="WARN" additivity="false" name="de.fraunhofer.aisec">
             <appender-ref ref="FILEOUT" />
         </logger>
+        <logger level="DEBUG" additivity="false" name="de.fraunhofer.aisec">
+            <appender-ref ref="CONSOLE" />
+        </logger>
     </Loggers>
 </Configuration>

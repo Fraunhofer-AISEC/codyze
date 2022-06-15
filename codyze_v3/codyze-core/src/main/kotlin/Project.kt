@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.codyze_core
 
 // import de.fraunhofer.aisec.codyze_core.config.Configuration
 
+// TODO: move to LSP submodule? --> Only needed in case the LSP does not start a new binary when switching projects inside the IDE
 // @FW
 // class Project(config: Configuration) {
 //

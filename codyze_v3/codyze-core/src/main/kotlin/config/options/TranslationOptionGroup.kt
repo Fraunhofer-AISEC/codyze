@@ -16,11 +16,12 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
                         "builds are used."
             )
             .flag("--no-analyze-includes", "--disable-analyze-includes", default = false)
-    val includes: List<Path> by
+
+    internal val rawIncludes: List<Path> by
         option("--includes", help = "Path(s) containing include files.")
             .path(mustExist = true, mustBeReadable = true)
-            .multiple(required = false)
-    val includeAdditions: List<Path> by
+            .multiple()
+    internal val rawIncludeAdditions: List<Path> by
         option(
                 "--include-additions",
                 help =
@@ -28,8 +29,7 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             )
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
-
-    val enabledIncludes: List<Path> by
+    internal val rawEnabledIncludes: List<Path> by
         option(
                 "--enabled-includes",
                 help =
@@ -39,7 +39,12 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             )
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
-    val enabledIncludesAdditions: List<Path> by
+            .validate {
+                if (it.isNotEmpty()) require( rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                        "--enabled-includes can only be used when includes are given."
+                    }
+            }
+    internal val rawEnabledIncludesAdditions: List<Path> by
         option(
                 "--enabled-includes-additions",
                 help =
@@ -47,8 +52,12 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             )
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
-
-    val disabledIncludes: List<Path> by
+            .validate {
+                if (it.isNotEmpty()) require( rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                    "--enabled-includes-additions can only be used when includes are given."
+                }
+            }
+    internal val rawDisabledIncludes: List<Path> by
         option(
                 "--disabled-includes",
                 help =
@@ -58,7 +67,12 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             )
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
-    val disabledIncludesAdditions: List<Path> by
+            .validate {
+                if (it.isNotEmpty()) require( rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                    "--diabled-includes can only be used when includes are given."
+                }
+            }
+    internal val rawDisabledIncludesAdditions: List<Path> by
         option(
                 "--disabled-includes-additions",
                 help =
@@ -66,4 +80,22 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             )
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
+            .validate {
+                if (it.isNotEmpty()) require( rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                    "--disabled-includes-additions can only be used when includes are given."
+                }
+            }
+
+    val includes by lazy {
+        resolveIncludes(includes = rawIncludes, includeAdditions = rawIncludeAdditions, enabledIncludes = rawEnabledIncludes, enabledIncludeAdditions = rawEnabledIncludesAdditions, disabledIncludes = rawDisabledIncludes, disabledIncludeAdditions = rawDisabledIncludesAdditions)
+    }
+
+    // TODO: write tests
+    private fun resolveIncludes(includes: List<Path>, includeAdditions: List<Path>, enabledIncludes: List<Path>, enabledIncludeAdditions: List<Path>, disabledIncludes: List<Path>, disabledIncludeAdditions: List<Path>): List<Path> {
+        val allIncludes = combineSources(includes, includeAdditions)
+        val allEnabledIncludes = combineSources(enabledIncludes, enabledIncludeAdditions)
+        val allDisabledIncludes = combineSources(disabledIncludes, disabledIncludeAdditions)
+
+        return ((allIncludes intersect allEnabledIncludes) - allDisabledIncludes).toList()
+    }
 }

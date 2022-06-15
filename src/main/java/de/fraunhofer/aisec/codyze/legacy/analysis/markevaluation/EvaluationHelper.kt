@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze.legacy.analysis.markevaluation
 
 import de.fraunhofer.aisec.codyze.legacy.analysis.ErrorValue
+import de.fraunhofer.aisec.codyze.legacy.analysis.ListValue
 import de.fraunhofer.aisec.codyze.legacy.analysis.MarkContextHolder
 import de.fraunhofer.aisec.codyze.legacy.analysis.NodeWithValue
 import de.fraunhofer.aisec.codyze.legacy.analysis.markevaluation.Evaluator.log
@@ -767,6 +768,25 @@ private fun resolveValuesForVertices(
                 val add = NodeWithValue.of(v)
                 add.value = cv
                 v.value = ErrorValue.newErrorValue(String.format("could not resolve %s", markVar))
+                ret.add(add)
+            }
+        } else if (v.node is ArrayCreationExpression) {
+            if (v.node.initializer is InitializerListExpression) {
+                val initializerList = v.node.initializer as InitializerListExpression
+
+                val add = NodeWithValue.of(v)
+                val lv = ListValue()
+                for (e in initializerList.initializers) {
+                    if (e is Literal<*>) {
+                        lv.add(ConstantValue.of(e.value))
+                    } else {
+                        log.warn(
+                            "Cannot resolve non-literal expressions in ArrayCreationExpression yet (not supported)."
+                        )
+                        lv.add(ErrorValue.newErrorValue("Unknown value"))
+                    }
+                }
+                add.value = lv
                 ret.add(add)
             }
         } else {

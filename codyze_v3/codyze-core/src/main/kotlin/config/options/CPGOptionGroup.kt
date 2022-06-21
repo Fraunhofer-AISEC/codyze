@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
 import de.fraunhofer.aisec.codyze_core.config.enums.Language
+import de.fraunhofer.aisec.cpg.passes.Pass
 import java.io.File
 
 class CPGOptions : OptionGroup(name = "CPG Options") {
@@ -99,26 +100,43 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
         resolveSymbols(symbols = rawSymbols, additionalSymbols = rawAdditionalSymbols)
     }
 
-    internal val rawPasses: Map<String, String> by
+    internal val rawPasses: List<Pass> by
         option("--passes", help = "Definition of additional symbols.")
-            .associate(delimiter = File.pathSeparator)
-    internal val rawAdditionalPasses: Map<String, String> by
+            .convert { convertPass(it) }
+            .split(delimiter = File.pathSeparator).default(emptyList())
+    internal val rawPassesAdditions: List<Pass> by
         option(
-                "--additional-passes",
+                "--passes-additions",
                 help =
-                    "See --symbols, but appends the values to the ones specified in configuration file."
+                    "See --passes, but appends the values to the ones specified in configuration file."
             )
-            .associate(delimiter = File.pathSeparator)
+            .convert { convertPass(it) }
+            .split(delimiter = File.pathSeparator).default(emptyList())
     /**
      * Lazy property that combines all symbols from the different options into a single map.
      */
     val passes by lazy {
-        resolvePasses(passes = rawPasses, additionalPasses = rawAdditionalPasses)
+         resolvePasses(passes = rawPasses, additionalPasses = rawPassesAdditions)
     }
 
     // TODO
     private fun resolveSymbols(symbols: Map<String, String>, additionalSymbols: Map<String, String>): Map<String, String> = TODO()
 
     // TODO
-    private fun resolvePasses(passes: Map<String, String>, additionalPasses: Map<String, String>): Map<String, String> = TODO()
+    private fun resolvePasses(passes: List<Pass>, additionalPasses: List<Pass>): List<Pass> {
+        return passes + additionalPasses
+    }
+
+    private fun convertPass(className: String) : Pass{
+        try {
+            val clazz = Class.forName(className)
+            if (Pass::class.java.isAssignableFrom(clazz))
+                return clazz.getDeclaredConstructor().newInstance() as Pass
+            else throw ReflectiveOperationException("$className is not a CPG Pass")
+        } catch (e: InstantiationException) {
+            throw InstantiationException("$className cannot be instantiated")
+        } catch (e: ClassNotFoundException) {
+            throw ClassNotFoundException("$className is not a known class", e)
+        }
+    }
 }

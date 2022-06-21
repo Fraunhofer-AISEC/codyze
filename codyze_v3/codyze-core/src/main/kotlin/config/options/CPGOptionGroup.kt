@@ -14,7 +14,6 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
     val typeSystemInFrontend: Boolean by
         option(
                 "--type-system-in-frontend",
-                "--disable-type-system-in-frontend",
                 help =
                     "If deactivated, the type listener system starts after the frontends are done building the initial AST structure."
             )
@@ -78,17 +77,18 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
         option(
                 "--additional-languages",
                 help =
-                    "Enables the experimental support for additional languages (${Language.values()})." +
+                    "Enables the experimental support for additional languages (${Language.values().joinToString(", ")}). " +
                         "Additional files need to be placed in certain locations. Please follow the CPG README."
             )
             .enum<Language>(ignoreCase = true)
             .multiple()
+
     internal val rawSymbols: Map<String, String> by
         option("--symbols", help = "Definition of additional symbols.")
             .associate(delimiter = File.pathSeparator)
-    internal val rawAdditionalSymbols: Map<String, String> by
+    internal val rawSymbolsAdditions: Map<String, String> by
         option(
-                "--additional-symbols",
+                "--symbols-additions",
                 help =
                     "See --symbols, but appends the values to the ones specified in configuration file."
             )
@@ -97,7 +97,7 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
      * Lazy property that combines all symbols from the different options into a single map.
      */
     val symbols by lazy {
-        resolveSymbols(symbols = rawSymbols, additionalSymbols = rawAdditionalSymbols)
+        resolveSymbols(symbols = rawSymbols, additionalSymbols = rawSymbolsAdditions)
     }
 
     internal val rawPasses: List<Pass> by
@@ -120,7 +120,9 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
     }
 
     // TODO
-    private fun resolveSymbols(symbols: Map<String, String>, additionalSymbols: Map<String, String>): Map<String, String> = TODO()
+    private fun resolveSymbols(symbols: Map<String, String>, additionalSymbols: Map<String, String>): Map<String, String> {
+        return symbols + additionalSymbols
+    }
 
     // TODO
     private fun resolvePasses(passes: List<Pass>, additionalPasses: List<Pass>): List<Pass> {

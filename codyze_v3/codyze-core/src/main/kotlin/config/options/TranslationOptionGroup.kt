@@ -87,15 +87,14 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             }
 
     val includes by lazy {
-        resolveIncludes(includes = rawIncludes, includeAdditions = rawIncludeAdditions, enabledIncludes = rawEnabledIncludes, enabledIncludeAdditions = rawEnabledIncludesAdditions, disabledIncludes = rawDisabledIncludes, disabledIncludeAdditions = rawDisabledIncludesAdditions)
+        combineSources(rawIncludes, rawIncludeAdditions).toList()
     }
 
-    // TODO: write tests
-    private fun resolveIncludes(includes: List<Path>, includeAdditions: List<Path>, enabledIncludes: List<Path>, enabledIncludeAdditions: List<Path>, disabledIncludes: List<Path>, disabledIncludeAdditions: List<Path>): List<Path> {
-        val allIncludes = combineSources(includes, includeAdditions)
-        val allEnabledIncludes = combineSources(enabledIncludes, enabledIncludeAdditions)
-        val allDisabledIncludes = combineSources(disabledIncludes, disabledIncludeAdditions)
+    val enabledIncludes by lazy {
+        combineSources(rawEnabledIncludes, rawEnabledIncludesAdditions).toList()
+    }
 
-        return ((allIncludes intersect allEnabledIncludes) - allDisabledIncludes).toList()
+    val disabledIncludes by lazy {
+        combineSources(rawDisabledIncludes, rawDisabledIncludesAdditions).toList()
     }
 }

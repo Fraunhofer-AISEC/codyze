@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze_core.AnalysisServer
 import de.fraunhofer.aisec.codyze_core.config.options.*
 import mu.KotlinLogging
-import java.io.File
+import java.nio.file.Path
 import java.time.Duration
 import java.time.Instant
 
@@ -13,7 +13,7 @@ private val logger = KotlinLogging.logger {}
 
 class Analyze : CliktCommand("Analyze a set of source files") {
     // This is only here to correctly display the help message
-    private val unusedConfigFile: File by configFileOption()
+    private val unusedConfigFile: Path by configFileOption()
 
     val codyzeOptions by CodyzeOptions()
     val analysisOptions by AnalysisOptions()
@@ -29,5 +29,6 @@ class Analyze : CliktCommand("Analyze a set of source files") {
 
         logger.info { "Analyzing following sources ${codyzeOptions.source}" }
         logger.info { "Following following includes ${translationOptions.includes}" }
+        logger.info { "Following following specs ${codyzeOptions.spec}" }
     }
 }

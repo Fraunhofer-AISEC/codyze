@@ -3,14 +3,14 @@ package de.fraunhofer.aisec.codyze
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze_core.config.options.*
-import java.io.File
 import mu.KotlinLogging
+import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}
 
 class LSP : CliktCommand("Start a language server") {
     // This is only here to correctly display the help message
-    private val unusedConfigFile: File by configFileOption()
+    private val unusedConfigFile: Path by configFileOption()
 
     val codyzeOptions by CodyzeOptions()
     val analysisOptions by AnalysisOptions()

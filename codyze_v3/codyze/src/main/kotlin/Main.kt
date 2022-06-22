@@ -9,10 +9,11 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.*
 import de.fraunhofer.aisec.codyze_core.config.options.configFileOption
 import de.fraunhofer.aisec.codyze_core.config.source.JsonValueSource
-import java.io.File
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
+import java.nio.file.Path
+import kotlin.io.path.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -20,10 +21,10 @@ private val logger = KotlinLogging.logger {}
  * A [CliktCommand] to parse the --config option.
  *
  * This class is only used as a pre-parser to parse the --config option and provide the received
- * config[[File]] as context to the [[CodyzeCli]] command.
+ * config[[Path]] as context to the [[CodyzeCli]] command.
  */
 class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
-    val configFile: File? by configFileOption()
+    val configFile: Path? by configFileOption()
     val arguments by
         argument()
             .multiple() // necessary when using 'treatUnknownOptionsAsArgs'. Contains all given
@@ -37,7 +38,7 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
  *
  * The configFile is actually parsed in the [ConfigFileParser] command and then passed to this class as an argument
  * */
-class CodyzeCli(val configFile: File = File(System.getProperty("user.dir"), "config.json")) :
+class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "config.json")) :
     CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
     init {
         versionOption("1.0", names = setOf("--version", "-V")) // TODO get actual version

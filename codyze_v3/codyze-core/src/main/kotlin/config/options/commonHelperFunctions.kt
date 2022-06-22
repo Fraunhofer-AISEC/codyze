@@ -13,7 +13,7 @@ import kotlin.streams.asSequence
 internal fun combineSources(vararg sources: List<Path>): Set<Path> {
     val allSources = mutableSetOf<Path>()
     sources.toList().flatten().forEach { path ->
-        allSources.addAll(Files.walk(path.normalize()).asSequence().filter { it.isRegularFile() })
+        allSources.addAll(Files.walk(path.normalize().toAbsolutePath()).asSequence().filter { it.isRegularFile() })
     }
     return allSources
 }

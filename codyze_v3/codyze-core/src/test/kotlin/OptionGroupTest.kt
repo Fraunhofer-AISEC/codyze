@@ -1,11 +1,19 @@
 package de.fraunhofer.aisec.codyze_core
 
+import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
+import de.fraunhofer.aisec.codyze_core.config.options.CPGOptions
 import de.fraunhofer.aisec.codyze_core.config.options.CodyzeOptions
+import de.fraunhofer.aisec.codyze_core.config.options.TranslationOptions
 import de.fraunhofer.aisec.codyze_core.config.options.combineSources
+import de.fraunhofer.aisec.cpg.passes.CallResolver
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.FilenameMapper
+import de.fraunhofer.aisec.cpg.passes.Pass
 import kotlin.test.*
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -15,15 +23,20 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolute
 
 class OptionGroupTest {
-    class TestCommand : CliktCommand() {
+    class CodyzeOptionsCommand : CliktCommand() {
         val codyzeOptions by CodyzeOptions()
+        override fun run() { }
+    }
+
+    class CPGOptionsCommand : CliktCommand() {
+        val cpgOptions by CPGOptions()
         override fun run() { }
     }
 
     @ParameterizedTest
     @MethodSource("sourceParamHelper")
     fun resolveSourceTest(argv: Array<String>, expectedSource: List<Path>) {
-        val cli = TestCommand()
+        val cli = CodyzeOptionsCommand()
         cli.parse(argv)
 
         val mappedSource = cli.codyzeOptions.source.map { p -> p.normalize().absolute().toString() }.sorted()
@@ -41,6 +54,39 @@ class OptionGroupTest {
         val mappedExpectedSource = expectedSource.map { p -> p.normalize().absolute().toString() }.sorted()
 
         assertContentEquals(mappedExpectedSource.toTypedArray(), mapppedCombinedSource.toTypedArray())
+    }
+
+    @Test
+    fun passesTest() {
+        val edgeCachePassName = EdgeCachePass::class.qualifiedName
+        val filenameMapperName = FilenameMapper::class.qualifiedName
+        val callResolverName = CallResolver::class.qualifiedName
+        assertNotNull(edgeCachePassName)
+        assertNotNull(filenameMapperName)
+        assertNotNull(callResolverName)
+
+        val cli = CPGOptionsCommand()
+        cli.parse(
+            arrayOf(
+                "--passes", edgeCachePassName,
+                "--passes", filenameMapperName,
+                "--passes", callResolverName
+            )
+        )
+
+        val expectedPassesNames = listOf(EdgeCachePass(), FilenameMapper(), CallResolver()).map { p -> p.javaClass.name }
+        val actualPassesNames = cli.cpgOptions.passes.map { p -> p.javaClass.name }
+
+        println(actualPassesNames.joinToString(","))
+
+        assertContentEquals(expectedPassesNames, actualPassesNames)
+    }
+
+    @ParameterizedTest
+    @MethodSource("incorrectPassesHelper")
+    fun incorrectPassesTest(argv: Array<String>) {
+        val cli = CPGOptionsCommand()
+        assertThrows<BadParameterValue> { cli.parse(argv) }
     }
 
 
@@ -197,6 +243,34 @@ class OptionGroupTest {
                 )
 
             )
+        }
+
+        @JvmStatic
+        fun incorrectPassesHelper(): Stream<Arguments> {
+            val passName = Pass::class.qualifiedName
+            assertNotNull(passName)
+
+            val translationOptionName = TranslationOptions::class.qualifiedName
+            assertNotNull(translationOptionName)
+
+            return Stream.of(
+                Arguments.of(
+                    arrayOf(
+                        "--passes", passName
+                    )
+                ),
+                Arguments.of(
+                    arrayOf(
+                        "--passes", "my.passes.MyPass"
+                    )
+                ),
+                Arguments.of(
+                    arrayOf(
+                        "--passes", translationOptionName
+                    )
+                )
+            )
+
         }
     }
 }

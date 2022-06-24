@@ -18,6 +18,8 @@ jackson-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-y
 jsonschema-generator = { module = "com.github.victools:jsonschema-generator", version = "4.24.3"}
 jsonschema-generator-jackson = { module = "com.github.victools:jsonschema-module-jackson", version = "4.24.3"}
 
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.8.2"}
+
 
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

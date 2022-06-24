@@ -103,7 +103,7 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
     internal val rawPasses: List<Pass> by
         option("--passes", help = "Definition of additional symbols.")
             .convert { convertPass(it) }
-            .split(delimiter = File.pathSeparator).default(emptyList())
+            .multiple()
     internal val rawPassesAdditions: List<Pass> by
         option(
                 "--passes-additions",
@@ -111,7 +111,7 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
                     "See --passes, but appends the values to the ones specified in configuration file."
             )
             .convert { convertPass(it) }
-            .split(delimiter = File.pathSeparator).default(emptyList())
+            .multiple()
     /**
      * Lazy property that combines all symbols from the different options into a single map.
      */

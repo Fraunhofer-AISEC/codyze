@@ -26,9 +26,9 @@ class OptionGroupTest {
         val cli = TestCommand()
         cli.parse(argv)
 
-        val mappedSource = cli.codyzeOptions.source.map { p -> p.normalize().absolute().toString() }
-        val mappedExpectedSource = expectedSource.map {  p -> p.normalize().absolute().toString() }
-        assertUnsortedListEquality(mappedExpectedSource, mappedSource)
+        val mappedSource = cli.codyzeOptions.source.map { p -> p.normalize().absolute().toString() }.sorted()
+        val mappedExpectedSource = expectedSource.map {  p -> p.normalize().absolute().toString() }.sorted()
+        assertContentEquals(mappedExpectedSource.toTypedArray(), mappedSource.toTypedArray())
     }
 
 
@@ -37,17 +37,10 @@ class OptionGroupTest {
     fun combineSourcesTest(expectedSource: List<Path>, vararg sources: List<Path>) {
         val combinedSource = combineSources(*sources)
 
-        val mapppedCombinedSource = combinedSource.map { p -> p.normalize().absolute().toString() }
-        val mappedExpectedSource = expectedSource.map { p -> p.normalize().absolute().toString() }
+        val mapppedCombinedSource = combinedSource.map { p -> p.normalize().absolute().toString() }.sorted()
+        val mappedExpectedSource = expectedSource.map { p -> p.normalize().absolute().toString() }.sorted()
 
-        assertUnsortedListEquality(mappedExpectedSource, mapppedCombinedSource)
-    }
-
-    private fun assertUnsortedListEquality(expected: List<Any>, actual: List<Any>){
-        assertEquals(expected.size, actual.size, "Size was not equal")
-        for(es in expected) {
-            assertContains(actual, es)
-        }
+        assertContentEquals(mappedExpectedSource.toTypedArray(), mapppedCombinedSource.toTypedArray())
     }
 
 

@@ -4,25 +4,37 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.InvalidFileFormat
 import com.github.ajalt.clikt.parameters.options.Option
 import com.github.ajalt.clikt.sources.ValueSource
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.*
 import java.nio.file.Path
 import kotlin.io.path.*
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.*
 
 /**
  * A [ValueSource] that uses Kotlin serialization to parse JSON config files as context to Clikt
  * commands.
  */
 class JsonValueSource(
-    private val filePath: Path,  // path to config file
+    private val filePath: Path, // path to config file
     private val root: JsonObject,
 ) : ValueSource {
     override fun getValues(context: Context, option: Option): List<ValueSource.Invocation> {
         /**
-         * Preprocess the values read from the config file depending on the metavar (the type) of the option
+         * Preprocess the values read from the config file depending on the metavar (the type) of
+         * the option
          */
-        fun preprocessValue(content: String) = when (option.metavar(context=context)) {
-                "PATH" -> filePath.parent.resolve(content).normalize().toString()  // make all paths given in the config file relative to the path of the config file
+        // TODO: find better indicator of the type than the metavar
+        fun preprocessValue(content: String) =
+            when (option.metavar(context = context)) {
+                // option.finalize(context=context, invocations =
+                // listOf(OptionParser.Invocation(name = "source", values =
+                // listOf(cursor[0].jsonPrimitive.content))))  // instead of relying on metavar, it
+                // is also possible to parse the option and look at the return type
+                "PATH" ->
+                    filePath.parent
+                        .div(content)
+                        .normalize()
+                        .toString() // make all paths given in the config file relative to the path
+                // of the config file
                 else -> content
             }
 

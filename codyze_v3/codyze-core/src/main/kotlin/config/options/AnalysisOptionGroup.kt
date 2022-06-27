@@ -3,10 +3,12 @@ package de.fraunhofer.aisec.codyze_core.config.options
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
+import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import de.fraunhofer.aisec.codyze_core.config.enums.TypestateMode
 
+@Suppress("UNUSED")
 class AnalysisOptions : OptionGroup() {
-    val typeState: TypestateMode by
+    val typestate: TypestateMode by
         option(
                 "--typestate",
                 help =
@@ -16,4 +18,5 @@ class AnalysisOptions : OptionGroup() {
             )
             .enum<TypestateMode>(ignoreCase = true)
             .default(TypestateMode.DFA)
+            .also { ConfigurationRegister.addOption("typestate", it) }
 }

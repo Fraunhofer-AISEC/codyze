@@ -3,10 +3,12 @@ package de.fraunhofer.aisec.codyze_core.config.options
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
+import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import java.nio.file.Path
 
+@Suppress("UNUSED")
 class TranslationOptions : OptionGroup(name = "Translation Options") {
-    val analyzeIncludes: Boolean by
+    val loadIncludes: Boolean by
         option(
                 "--analyze-includes",
                 help =
@@ -16,12 +18,13 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
                         "builds are used."
             )
             .flag("--no-analyze-includes", "--disable-analyze-includes", default = false)
+            .also { ConfigurationRegister.addOption("loadIncludes", it) }
 
-    internal val rawIncludes: List<Path> by
+    private val rawIncludes: List<Path> by
         option("--includes", help = "Path(s) containing include files.")
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
-    internal val rawIncludeAdditions: List<Path> by
+    private val rawIncludeAdditions: List<Path> by
         option(
                 "--include-additions",
                 help =
@@ -29,7 +32,7 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             )
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
-    internal val rawEnabledIncludes: List<Path> by
+    private val rawEnabledIncludes: List<Path> by
         option(
                 "--enabled-includes",
                 help =
@@ -40,11 +43,12 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
             .validate {
-                if (it.isNotEmpty()) require( rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                if (it.isNotEmpty())
+                    require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
                         "--enabled-includes can only be used when includes are given."
                     }
             }
-    internal val rawEnabledIncludesAdditions: List<Path> by
+    private val rawEnabledIncludesAdditions: List<Path> by
         option(
                 "--enabled-includes-additions",
                 help =
@@ -53,11 +57,12 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
             .validate {
-                if (it.isNotEmpty()) require( rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
-                    "--enabled-includes-additions can only be used when includes are given."
-                }
+                if (it.isNotEmpty())
+                    require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                        "--enabled-includes-additions can only be used when includes are given."
+                    }
             }
-    internal val rawDisabledIncludes: List<Path> by
+    private val rawDisabledIncludes: List<Path> by
         option(
                 "--disabled-includes",
                 help =
@@ -68,11 +73,12 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
             .validate {
-                if (it.isNotEmpty()) require( rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
-                    "--diabled-includes can only be used when includes are given."
-                }
+                if (it.isNotEmpty())
+                    require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                        "--diabled-includes can only be used when includes are given."
+                    }
             }
-    internal val rawDisabledIncludesAdditions: List<Path> by
+    private val rawDisabledIncludesAdditions: List<Path> by
         option(
                 "--disabled-includes-additions",
                 help =
@@ -81,20 +87,42 @@ class TranslationOptions : OptionGroup(name = "Translation Options") {
             .path(mustExist = true, mustBeReadable = true)
             .multiple()
             .validate {
-                if (it.isNotEmpty()) require( rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
-                    "--disabled-includes-additions can only be used when includes are given."
-                }
+                if (it.isNotEmpty())
+                    require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                        "--disabled-includes-additions can only be used when includes are given."
+                    }
             }
 
-    val includes by lazy {
-        combineSources(rawIncludes, rawIncludeAdditions).toList()
-    }
+    val includePaths: List<Path> by
+        lazy { combineSources(rawIncludes, rawIncludeAdditions).toList() }
+            .also {
+                ConfigurationRegister.addLazy(
+                    name = "includePaths",
+                    lazyProperty = it,
+                    thisRef = this,
+                    property = ::includePaths
+                )
+            }
 
-    val enabledIncludes by lazy {
-        combineSources(rawEnabledIncludes, rawEnabledIncludesAdditions).toList()
-    }
+    val includeWhitelist: List<Path> by
+        lazy { combineSources(rawEnabledIncludes, rawEnabledIncludesAdditions).toList() }
+            .also {
+                ConfigurationRegister.addLazy(
+                    name = "includeWhitelist",
+                    lazyProperty = it,
+                    thisRef = this,
+                    property = ::includeWhitelist
+                )
+            }
 
-    val disabledIncludes by lazy {
-        combineSources(rawDisabledIncludes, rawDisabledIncludesAdditions).toList()
-    }
+    val includeBlacklist: List<Path> by
+        lazy { combineSources(rawDisabledIncludes, rawDisabledIncludesAdditions).toList() }
+            .also {
+                ConfigurationRegister.addLazy(
+                    name = "includeBlacklist",
+                    lazyProperty = it,
+                    thisRef = this,
+                    property = ::includeBlacklist
+                )
+            }
 }

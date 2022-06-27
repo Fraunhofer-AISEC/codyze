@@ -8,14 +8,14 @@ import de.fraunhofer.aisec.codyze_core.config.TypestateMode
 @Suppress("UNUSED")
 class AnalysisOptions : OptionGroup() {
     val typestate: TypestateMode by
-    option(
-        "--typestate",
-        help =
-        "Typestate analysis mode.\n" +
-                "DFA:  Deterministic finite automaton (faster, intraprocedural)\n" +
-                "WPDS: Weighted pushdown system (slower, interprocedural)"
-    )
-        .enum<TypestateMode>(ignoreCase = true)
-        .default(TypestateMode.DFA)
-        .also { ConfigurationRegister.addOption("typestate", it) }
+        option(
+                "--typestate",
+                help =
+                    "Typestate analysis mode.\n" +
+                        "DFA:  Deterministic finite automaton (faster, intraprocedural)\n" +
+                        "WPDS: Weighted pushdown system (slower, interprocedural)"
+            )
+            .enum<TypestateMode>(ignoreCase = true)
+            .default(TypestateMode.DFA)
+            .also { ConfigurationRegister.addOption("typestate", it) }
 }

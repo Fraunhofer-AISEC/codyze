@@ -62,8 +62,8 @@ fun Graph.getCalls(fqnName: String, parameters: List<Parameter>): MutableSet<Cal
         this.nodes
             .filter {
                 it is CallExpression &&
-                        it.fqn == Utils.unifyType(fqnName) &&
-                        argumentsMatchParameters(parameters, it.arguments)
+                    it.fqn == Utils.unifyType(fqnName) &&
+                    argumentsMatchParameters(parameters, it.arguments)
             }
             .filterIsInstance<CallExpression>()
 
@@ -122,9 +122,9 @@ fun Node.getSuitableDFGTarget(): Node? {
         this.nextDFG
             .filter {
                 it is DeclaredReferenceExpression ||
-                        it is ReturnStatement || // for builder-style functions
-                        it is ConstructExpression ||
-                        it is VariableDeclaration
+                    it is ReturnStatement || // for builder-style functions
+                    it is ConstructExpression ||
+                    it is VariableDeclaration
             }
             .sortedWith(Comparator.comparing(Node::name))
 
@@ -170,7 +170,7 @@ fun FieldDeclaration.getInitializerValue(): Any? {
 val Node.nextStatement: Statement?
     get() {
         return this.followNextEOG { it.end.astParent is CompoundStatement }?.last()?.end
-                as? Statement
+            as? Statement
     }
 
 /**

@@ -11,26 +11,30 @@ import de.fraunhofer.aisec.cpg.passes.CallResolver
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.FilenameMapper
 import de.fraunhofer.aisec.cpg.passes.Pass
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.stream.Stream
+import kotlin.io.path.Path
+import kotlin.io.path.absolute
+import kotlin.io.path.div
+import kotlin.io.path.isRegularFile
+import kotlin.streams.asSequence
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import java.nio.file.Path
-import java.util.stream.Stream
-import kotlin.io.path.Path
-import kotlin.io.path.absolute
 
 class OptionGroupTest {
     class CodyzeOptionsCommand : CliktCommand() {
         val codyzeOptions by CodyzeOptions()
-        override fun run() { }
+        override fun run() {}
     }
 
     class CPGOptionsCommand : CliktCommand() {
         val cpgOptions by CPGOptions()
-        override fun run() { }
+        override fun run() {}
     }
 
     @ParameterizedTest
@@ -39,21 +43,32 @@ class OptionGroupTest {
         val cli = CodyzeOptionsCommand()
         cli.parse(argv)
 
-        val mappedSource = cli.codyzeOptions.source.map { p -> p.normalize().absolute().toString() }.sorted()
-        val mappedExpectedSource = expectedSource.map {  p -> p.normalize().absolute().toString() }.sorted()
-        assertContentEquals(mappedExpectedSource.toTypedArray(), mappedSource.toTypedArray())
+        val mappedSource =
+            cli.codyzeOptions.source
+                .map { p -> p.toString() }
+                .sorted() // the source option should only contain already normalized absolute paths
+        val mappedExpectedSource =
+            expectedSource.map { p -> p.normalize().absolute().toString() }.sorted()
+        assertContentEquals(
+            expected = mappedExpectedSource.toTypedArray(),
+            actual = mappedSource.toTypedArray()
+        )
     }
-
 
     @ParameterizedTest
     @MethodSource("combineSourcesHelper")
     fun combineSourcesTest(expectedSource: List<Path>, vararg sources: List<Path>) {
         val combinedSource = combineSources(*sources)
 
-        val mapppedCombinedSource = combinedSource.map { p -> p.normalize().absolute().toString() }.sorted()
-        val mappedExpectedSource = expectedSource.map { p -> p.normalize().absolute().toString() }.sorted()
+        val mapppedCombinedSource =
+            combinedSource.map { p -> p.normalize().absolute().toString() }.sorted()
+        val mappedExpectedSource =
+            expectedSource.map { p -> p.normalize().absolute().toString() }.sorted()
 
-        assertContentEquals(mappedExpectedSource.toTypedArray(), mapppedCombinedSource.toTypedArray())
+        assertContentEquals(
+            mappedExpectedSource.toTypedArray(),
+            mapppedCombinedSource.toTypedArray()
+        )
     }
 
     @Test
@@ -68,14 +83,20 @@ class OptionGroupTest {
         val cli = CPGOptionsCommand()
         cli.parse(
             arrayOf(
-                "--passes", edgeCachePassName,
-                "--passes", filenameMapperName,
-                "--passes", callResolverName
+                "--passes",
+                edgeCachePassName,
+                "--passes",
+                filenameMapperName,
+                "--passes",
+                callResolverName
             )
         )
 
-        val expectedPassesNames = listOf(EdgeCachePass(), FilenameMapper(), CallResolver()).map { p -> p.javaClass.name }
-        val actualPassesNames = cli.cpgOptions.passes.map { p -> p.javaClass.name }
+        val expectedPassesNames =
+            listOf(EdgeCachePass(), FilenameMapper(), CallResolver()).map { p ->
+                p::class.qualifiedName
+            }
+        val actualPassesNames = cli.cpgOptions.passes.map { p -> p::class.qualifiedName }
 
         println(actualPassesNames.joinToString(","))
 
@@ -88,7 +109,6 @@ class OptionGroupTest {
         val cli = CPGOptionsCommand()
         assertThrows<BadParameterValue> { cli.parse(argv) }
     }
-
 
     companion object {
         lateinit var topTestDir: Path
@@ -103,44 +123,30 @@ class OptionGroupTest {
         @JvmStatic
         fun startup() {
             val topTestDirResource =
-                OptionGroupTest::class
-                    .java.classLoader.getResource("cli-test-directory")
+                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory")
             assertNotNull(topTestDirResource)
             topTestDir = Path(topTestDirResource.path)
-            assertNotNull(topTestDir)
+            assertNotNull(topTestDir) // TODO: why is this necessary
 
             val testDir1Resource =
-                OptionGroupTest::class
-                    .java.classLoader.getResource("cli-test-directory/dir1")
+                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir1")
             assertNotNull(testDir1Resource)
             testDir1 = Path(testDir1Resource.path)
             assertNotNull(testDir1)
 
             val testDir2Resource =
-                OptionGroupTest::class
-                    .java.classLoader.getResource("cli-test-directory/dir2")
+                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir2")
             assertNotNull(testDir2Resource)
             testDir2 = Path(testDir2Resource.path)
             assertNotNull(testDir2)
 
             val testFile1Resource =
-                OptionGroupTest::class
-                    .java.classLoader.getResource("cli-test-directory/file1.java")
+                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/file1.java")
             assertNotNull(testFile1Resource)
             testFile1 = Path(testFile1Resource.path)
             assertNotNull(testFile1)
 
-            allFiles =  listOf(
-                testFile1,
-                Path(topTestDir.toString(), "file2.java"),
-                Path(testDir1.toString(),"dir1file1.java"),
-                Path(testDir2.toString(),"dir2dir1","dir2dir1file1.java"),
-                Path(testDir2.toString(),"dir2dir1","dir2dir1file2.java"),
-                Path(testDir2.toString(),"dir2dir2","dir2dir2file1.java"),
-                Path(testDir2.toString(),"dir2dir3","dir2dir3file1.java"),
-                Path(testDir2.toString(),"dir2file1.java"),
-                Path(testDir2.toString(),"dir2file2.java")
-            )
+            allFiles = Files.walk(topTestDir).asSequence().filter { it.isRegularFile() }.toList()
         }
 
         @JvmStatic
@@ -149,37 +155,46 @@ class OptionGroupTest {
                 // Tests if source and source-additions are combined correctly
                 Arguments.of(
                     arrayOf(
-                        "--source", testDir1.toString(),
-                        "-s", testFile1.toString(),
-                        "--source-additions", testDir2.toString(),
-                        "--spec", testDir1.toString()
+                        "--source",
+                        testDir1.toString(),
+                        "-s",
+                        testFile1.toString(),
+                        "--source-additions",
+                        testDir2.toString(),
+                        "--spec",
+                        testDir1.toString()
                     ),
                     listOf(
                         testFile1,
-                        Path(testDir1.toString(),"dir1file1.java"),
-                        Path(testDir2.toString(),"dir2dir1","dir2dir1file1.java"),
-                        Path(testDir2.toString(),"dir2dir1","dir2dir1file2.java"),
-                        Path(testDir2.toString(),"dir2dir2","dir2dir2file1.java"),
-                        Path(testDir2.toString(),"dir2dir3","dir2dir3file1.java"),
-                        Path(testDir2.toString(),"dir2file1.java"),
-                        Path(testDir2.toString(),"dir2file2.java")
+                        testDir1.div("dir1file1.java"),
+                        testDir2.div("dir2dir1").div("dir2dir1file1.java"),
+                        testDir2.div("dir2dir1").div("dir2dir1file2.java"),
+                        testDir2.div("dir2dir2").div("dir2dir2file1.java"),
+                        testDir2.div("dir2dir3").div("dir2dir3file1.java"),
+                        testDir2.div("dir2file1.java"),
+                        testDir2.div("dir2file2.java")
                     )
                 ),
                 // Tests if disabled-source files are correctly removed from source
                 Arguments.of(
                     arrayOf(
-                        "--source", testDir1.toString(),
-                        "--source-additions", testDir2.toString(),
-                        "--disabled-source", Path(testDir2.toString(),"dir2dir1","dir2dir1file2.java").toString(),
-                        "--disabled-source-additions", Path(testDir2.toString(),"dir2dir2").toString(),
-                        "--spec", testDir1.toString()
+                        "--source",
+                        testDir1.toString(),
+                        "--source-additions",
+                        testDir2.toString(),
+                        "--disabled-source",
+                        testDir2.div("dir2dir1").div("dir2dir1file2.java").toString(),
+                        "--disabled-source-additions",
+                        testDir2.div("dir2dir2").toString(),
+                        "--spec",
+                        testDir1.toString()
                     ),
                     listOf(
-                        Path(testDir1.toString(),"dir1file1.java"),
-                        Path(testDir2.toString(),"dir2dir1","dir2dir1file1.java"),
-                        Path(testDir2.toString(),"dir2dir3","dir2dir3file1.java"),
-                        Path(testDir2.toString(),"dir2file1.java"),
-                        Path(testDir2.toString(),"dir2file2.java")
+                        testDir1.div("dir1file1.java"),
+                        testDir2.div("dir2dir1").div("dir2dir1file1.java"),
+                        testDir2.div("dir2dir3").div("dir2dir3file1.java"),
+                        testDir2.div("dir2file1.java"),
+                        testDir2.div("dir2file2.java")
                     )
                 )
             )
@@ -192,28 +207,15 @@ class OptionGroupTest {
                 Arguments.of(
                     allFiles,
                     arrayOf(
-                        listOf(
-                            testFile1,
-                            Path(testDir1.toString(),"dir1file1.java")),
-                        listOf(
-                            topTestDir,
-                            testFile1
-                        ),
-                        listOf(
-                            testDir1
-                        ),
-                        listOf(
-                            testDir2,
-                            topTestDir,
-                            Path(testDir2.toString(), "dir2dir1")
-                        )
+                        listOf(testFile1, testDir1.div("dir1file1.java")),
+                        listOf(topTestDir, testFile1),
+                        listOf(testDir1),
+                        listOf(testDir2, topTestDir, testDir2.div("dir2dir1"))
                     )
                 ),
                 // Tests if normalization works to filter out duplicates
                 Arguments.of(
-                    listOf(
-                        testFile1
-                    ),
+                    listOf(testFile1),
                     arrayOf(
                         listOf(
                             Path(
@@ -226,22 +228,12 @@ class OptionGroupTest {
                             testFile1
                         )
                     )
-
                 ),
                 // test is relative paths are resolved correctly
                 Arguments.of(
-                    listOf(
-                        Path(testDir1.toString(), "dir1file1.java")
-                    ),
-                    arrayOf(
-                        listOf(
-                            workingDir.relativize(testDir1),
-                            testDir1
-                        )
-                    )
-
+                    listOf(testDir1.div("dir1file1.java")),
+                    arrayOf(listOf(workingDir.relativize(testDir1), testDir1))
                 )
-
             )
         }
 
@@ -254,23 +246,10 @@ class OptionGroupTest {
             assertNotNull(translationOptionName)
 
             return Stream.of(
-                Arguments.of(
-                    arrayOf(
-                        "--passes", passName
-                    )
-                ),
-                Arguments.of(
-                    arrayOf(
-                        "--passes", "my.passes.MyPass"
-                    )
-                ),
-                Arguments.of(
-                    arrayOf(
-                        "--passes", translationOptionName
-                    )
-                )
+                Arguments.of(arrayOf("--passes", passName)),
+                Arguments.of(arrayOf("--passes", "my.passes.MyPass")),
+                Arguments.of(arrayOf("--passes", translationOptionName))
             )
-
         }
     }
 }

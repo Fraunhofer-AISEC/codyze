@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_core.config
+package de.fraunhofer.aisec.codyze.options
 
 import com.github.ajalt.clikt.parameters.options.Option
 import com.github.ajalt.clikt.parameters.options.OptionDelegate

@@ -4,7 +4,6 @@ import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
-import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import java.nio.file.Path
 import kotlin.io.path.Path
 

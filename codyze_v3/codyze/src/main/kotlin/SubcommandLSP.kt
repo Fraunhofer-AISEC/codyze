@@ -3,8 +3,8 @@ package de.fraunhofer.aisec.codyze
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze_core.config.options.*
-import mu.KotlinLogging
 import java.nio.file.Path
+import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 

@@ -9,11 +9,11 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.*
 import de.fraunhofer.aisec.codyze_core.config.options.configFileOption
 import de.fraunhofer.aisec.codyze_core.config.source.JsonValueSource
+import java.nio.file.Path
+import kotlin.io.path.Path
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
-import java.nio.file.Path
-import kotlin.io.path.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -36,8 +36,9 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
 /**
  * Main [CliktCommand]. Provides some options to all included subcommands.
  *
- * The configFile is actually parsed in the [ConfigFileParser] command and then passed to this class as an argument
- * */
+ * The configFile is actually parsed in the [ConfigFileParser] command and then passed to this class
+ * as an argument
+ */
 class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "config.json")) :
     CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
     init {

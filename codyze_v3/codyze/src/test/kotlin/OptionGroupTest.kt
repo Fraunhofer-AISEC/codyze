@@ -1,12 +1,12 @@
-package de.fraunhofer.aisec.codyze_core
+package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze_core.config.options.CPGOptions
-import de.fraunhofer.aisec.codyze_core.config.options.CodyzeOptions
-import de.fraunhofer.aisec.codyze_core.config.options.TranslationOptions
-import de.fraunhofer.aisec.codyze_core.config.options.combineSources
+import de.fraunhofer.aisec.codyze.options.CPGOptions
+import de.fraunhofer.aisec.codyze.options.CodyzeOptions
+import de.fraunhofer.aisec.codyze.options.TranslationOptions
+import de.fraunhofer.aisec.codyze.options.combineSources
 import de.fraunhofer.aisec.cpg.passes.CallResolver
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.FilenameMapper

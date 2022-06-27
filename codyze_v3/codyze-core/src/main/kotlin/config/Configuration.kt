@@ -1,8 +1,5 @@
 package de.fraunhofer.aisec.codyze_core.config
 
-import de.fraunhofer.aisec.codyze_core.config.enums.Language
-import de.fraunhofer.aisec.codyze_core.config.enums.TypestateMode
-import de.fraunhofer.aisec.codyze_core.config.options.*
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.nio.file.Path

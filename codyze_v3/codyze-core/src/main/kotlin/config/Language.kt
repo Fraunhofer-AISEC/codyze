@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_core.config.enums
+package de.fraunhofer.aisec.codyze_core.config
 
 /**
  * Simple enum that maps all optional language frontends of the CPG to the FQN of the frontend in

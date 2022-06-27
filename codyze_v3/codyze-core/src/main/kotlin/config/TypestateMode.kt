@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_core.config.enums
+package de.fraunhofer.aisec.codyze_core.config
 
 /** Enum containing all supported typestate modes. */
 enum class TypestateMode {

@@ -1,10 +1,10 @@
-package de.fraunhofer.aisec.codyze_core.config.options
+package de.fraunhofer.aisec.codyze.options
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
-import de.fraunhofer.aisec.codyze_core.config.enums.TypestateMode
+import de.fraunhofer.aisec.codyze_core.config.TypestateMode
 
 @Suppress("UNUSED")
 class AnalysisOptions : OptionGroup() {

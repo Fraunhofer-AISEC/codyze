@@ -1,6 +1,7 @@
 plugins {
     application
     id("codyze.core-conventions")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
@@ -9,6 +10,9 @@ dependencies {
 
     implementation(libs.clikt)
     implementation(libs.koin)
+
+    // For deserialization of config files
+    implementation(libs.kotlinx.serialization.json)
 }
 
 application {

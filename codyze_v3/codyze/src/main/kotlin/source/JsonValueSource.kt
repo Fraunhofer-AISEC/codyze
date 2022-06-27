@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_core.config.source
+package de.fraunhofer.aisec.codyze.source
 
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.InvalidFileFormat

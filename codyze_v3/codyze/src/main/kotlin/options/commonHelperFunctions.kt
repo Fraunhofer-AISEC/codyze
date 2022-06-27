@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_core.config.options
+package de.fraunhofer.aisec.codyze.options
 
 import java.nio.file.Files
 import java.nio.file.Path

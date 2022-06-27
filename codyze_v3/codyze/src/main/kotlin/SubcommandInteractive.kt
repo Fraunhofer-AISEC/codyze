@@ -2,7 +2,7 @@ package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze_core.config.options.*
+import de.fraunhofer.aisec.codyze.options.*
 import java.nio.file.Path
 import mu.KotlinLogging
 

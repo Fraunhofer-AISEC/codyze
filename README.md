@@ -33,7 +33,7 @@ This will provide you with an executable Codyze installation under `build/instal
 To start Codyze, change to the directory and run Codyze.
 
 Codyze has three execution modes:
-* commando line interface mode (`-c`, default)
+* command line interface mode (`-c`, default)
 * language server protocol mode (`-l`)
 * interactive console mode (`-t`).
 

@@ -95,7 +95,7 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
             )
             .also { ConfigurationRegister.addOption("defaultPasses", it) }
 
-    val additionalLanguages: List<Language> by
+    val additionalLanguages: Set<Language> by
         option(
                 "--additional-languages",
                 help =
@@ -104,18 +104,19 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
             )
             .enum<Language>(ignoreCase = true)
             .multiple()
+            .unique()
             .also { ConfigurationRegister.addOption("additionalLanguages", it) }
 
     private val rawSymbols: Map<String, String> by
         option("--symbols", help = "Definition of additional symbols.")
-            .associate(delimiter = File.pathSeparator)
+            .associate()
     private val rawSymbolsAdditions: Map<String, String> by
         option(
                 "--symbols-additions",
                 help =
                     "See --symbols, but appends the values to the ones specified in configuration file."
             )
-            .associate(delimiter = File.pathSeparator)
+            .associate()
     /** Lazy property that combines all symbols from the different options into a single map. */
     val symbols: Map<String, String> by
         lazy { resolveSymbols(symbols = rawSymbols, additionalSymbols = rawSymbolsAdditions) }
@@ -152,7 +153,6 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
                 )
             }
 
-    // TODO
     private fun resolveSymbols(
         symbols: Map<String, String>,
         additionalSymbols: Map<String, String>
@@ -160,7 +160,6 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
         return symbols + additionalSymbols
     }
 
-    // TODO
     private fun resolvePasses(passes: List<Pass>, additionalPasses: List<Pass>): List<Pass> {
         return passes + additionalPasses
     }

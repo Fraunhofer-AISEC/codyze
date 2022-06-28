@@ -82,7 +82,7 @@ data class Configuration(
         val matchCommentsToNodes: Boolean,
         val passes: List<Pass>,
         val defaultPasses: Boolean,
-        val additionalLanguages: List<Language>,
+        val additionalLanguages: Set<Language>,
     ) {
         companion object {
             fun from(map: Map<String, Any?>) =
@@ -105,7 +105,7 @@ data class Configuration(
                         val passes: List<Pass> by map
 
                         val defaultPasses: Boolean by map
-                        val additionalLanguages: List<Language> by map
+                        val additionalLanguages: Set<Language> by map
 
                         val data =
                             CPGConfiguration(

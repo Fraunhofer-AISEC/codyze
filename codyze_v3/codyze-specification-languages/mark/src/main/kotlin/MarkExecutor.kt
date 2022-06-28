@@ -4,12 +4,14 @@ package de.fraunhofer.aisec.codyze.specification_languages.mark
 //import de.fraunhofer.aisec.codyze.mark.analysis.AnalysisServer
 //import de.fraunhofer.aisec.codyze.mark.analysis.markevaluation.Evaluator
 import de.fraunhofer.aisec.codyze_core.Executor
+import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.graph
 import de.fraunhofer.aisec.cpg.helpers.Benchmark
 import io.github.detekt.sarif4k.Result
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 class MarkExecutor : Executor {
@@ -19,7 +21,7 @@ class MarkExecutor : Executor {
     override val supportedFileExtensions: List<String>
         get() = listOf(".mark")
 
-    override fun initialize(configuration: String) {
+    override fun initialize(configuration: ExecutorConfiguration) {
         TODO("Not yet implemented")
     }
 

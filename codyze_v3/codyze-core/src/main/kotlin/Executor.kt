@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze_core
 
+import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.cpg.TranslationResult
 import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
@@ -23,7 +24,7 @@ interface Executor {
     // offer standard implementation
     // must only be called once
     // TODO: proper initialization parameters
-    fun initialize(configuration: String)
+    fun initialize(configuration: ExecutorConfiguration)
 
     fun evaluate(cpg: TranslationResult): List<Result>
 

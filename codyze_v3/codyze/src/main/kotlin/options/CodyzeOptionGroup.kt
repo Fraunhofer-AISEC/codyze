@@ -2,10 +2,14 @@ package de.fraunhofer.aisec.codyze.options
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
+import de.fraunhofer.aisec.codyze_core.AnalysisServer
+import de.fraunhofer.aisec.codyze_core.Executor
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.extension
 
 @Suppress("UNUSED")
 class CodyzeOptions : OptionGroup(name = "Codyze Options") {
@@ -64,6 +68,9 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
         option("--spec", help = "Loads the given specification files.")
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple(required = true)
+            .check("All given specification files must be of the same file type") {
+                spec.all { it.extension == spec[0].extension }
+            }
     private val rawSpecAdditions: List<Path> by
         option(
                 "--spec-additions",
@@ -112,6 +119,19 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
                     property = ::spec
                 )
             }
+
+    val executor: Executor? by
+        option(
+                "--executor",
+                help =
+                    "Manually choose Executor to use with the given spec files. If unspecified, Codyze randomly selects an executor capable of evaluating the given specification files."
+            )
+            .choice(
+                *(AnalysisServer.executors.map { it.name }).toTypedArray(),
+                ignoreCase = true
+            )
+            .convert { it.let { AnalysisServer.executors.first { executor -> executor.name == it } } }
+            .also { ConfigurationRegister.addOption("executor", it) }
 
     val output: Path by
         option("-o", "--output", help = "Write results to file. Use - for stdout.")

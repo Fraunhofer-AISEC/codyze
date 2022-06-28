@@ -1,0 +1,41 @@
+[versions]
+kotlin = "1.6.21"
+cpg = "4.6.0"
+
+[libraries]
+sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.0.1"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.3.3"}
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
+cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
+cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
+kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "2.1.23"}
+log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version = "2.17.2"}
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.4.2"}
+koin = { module = "io.insert-koin:koin-core", version = "3.2.0"}
+koin-test = { module = "io.insert-koin:koin-core", version = "3.2.0"}
+
+picocli = { module = "info.picocli:picocli", version = "4.6.3"}
+jackson-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version = "2.13.3"}
+jsonschema-generator = { module = "com.github.victools:jsonschema-generator", version = "4.24.3"}
+jsonschema-generator-jackson = { module = "com.github.victools:jsonschema-module-jackson", version = "4.24.3"}
+
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.8.2"}
+
+
+# this is necessary for the plugins to be used in the buildSrc folder
+kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }
+sonarqube-plugin = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version = "3.3" }
+spotless-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.6.1" }
+license-plugin = { module = "com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin", version = "0.16.1" }
+
+[bundles]
+cpg = ["cpg-core", "cpg-analysis"]
+
+[plugins]
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
+kotlin = { id = "org.jetbrains.kotlin", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
+sonarqube = { id = "org.sonarqube", version = "3.3" }
+spotless = { id = "com.diffplug.spotless", version = "6.6.1" }
+license = { id = "com.github.hierynomus.license", version = "0.16.1" }

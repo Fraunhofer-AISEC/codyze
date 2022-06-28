@@ -1,0 +1,11 @@
+{
+  "analyze": {
+    "good-findings": false,
+    "timeout": 5,
+    "spec": "./",
+    "disabled-specs": "build",
+    "source": ["src/main/kotlin", "build.gradle.kts"],
+    "disabled-source": "src/main/kotlin/Main.kt",
+    "typestate": "DFA"
+  }
+}

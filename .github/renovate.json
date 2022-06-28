@@ -1,0 +1,33 @@
+{
+  "extends": [
+    "config:base",
+    ":disableDependencyDashboard",
+    ":assignAndReview(fwendland)",
+    ":enableVulnerabilityAlerts",
+    ":separateMultipleMajorReleases"
+  ],
+  "ignoreDeps": [
+    "de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark"
+  ],
+  "ignorePaths": ["codyze-v2/scripts", "docs"],
+  "packageRules": [
+    {
+      "matchPackagePrefixes": ["de.fraunhofer.aisec:cpg"],
+      "groupName": "CPG packages"
+    },
+    {
+      "groupName": "picocli packages",
+      "matchPackagePatterns": ["^info.picocli:"]
+    },
+    {
+      "groupName": "VSCode plugin dependencies",
+      "matchPaths": ["vscode_plugin/**"],
+      "extends": ["schedule:earlyMondays"]
+    },
+    {
+      "matchPackageNames": ["vscode"],
+      "rangeStrategy": "bump",
+      "allowedVersions": "<1.999.0"
+    }
+  ]
+}

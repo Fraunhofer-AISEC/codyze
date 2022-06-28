@@ -26,8 +26,8 @@ group = "de.fraunhofer.aisec"
  */
 // TODO this does not affect the build when built in a composite build
 // TODO see the composite root settings.gradle.kts which disables these tasks for now
-gradle.startParameter.excludedTaskNames += ":codyze_v2:licenseMain"
-gradle.startParameter.excludedTaskNames += ":codyze_v2:licenseTest"
+gradle.startParameter.excludedTaskNames += ":codyze-v2:licenseMain"
+gradle.startParameter.excludedTaskNames += ":codyze-v2:licenseTest"
 
 tasks {
     jar {

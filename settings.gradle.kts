@@ -1,4 +1,4 @@
 rootProject.name = "codyze-composite"
 
-includeBuild("codyze_v2")
-includeBuild("codyze_v3")
+includeBuild("codyze-v2")
+includeBuild("codyze-v3")

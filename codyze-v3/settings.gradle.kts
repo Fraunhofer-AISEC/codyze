@@ -1,4 +1,4 @@
-rootProject.name = "codyze_v3"
+rootProject.name = "codyze-v3"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

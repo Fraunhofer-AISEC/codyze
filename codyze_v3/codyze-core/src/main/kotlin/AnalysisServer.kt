@@ -20,8 +20,6 @@ object AnalysisServer {
      */
     init {
         registerExecutors()
-        // CPG: translationconfiguration gibt einem einen translationManager (der hat ein 'analyze')
-        // Und das gibt einem ein 'TranslationResult'
     }
 
     /**
@@ -37,6 +35,7 @@ object AnalysisServer {
     }
 
     fun connect(config: Configuration): Project {
+        // TODO: remove 'unused' projects from this.projects
         // if project exists -> "reload" else create new project
         return projects.getOrPut(config) { Project(config) }
     }

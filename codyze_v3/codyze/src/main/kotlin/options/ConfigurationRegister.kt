@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.codyze.options
 
 import com.github.ajalt.clikt.parameters.options.Option
 import com.github.ajalt.clikt.parameters.options.OptionDelegate
+import de.fraunhofer.aisec.codyze_core.config.Configuration
 import kotlin.reflect.KProperty
 
 /**
@@ -21,6 +22,17 @@ object ConfigurationRegister {
                 else -> it.value
             }
         }
+    }
+
+    /**
+     * Build a [Configuration] from the registered options/properties.
+     *
+     * @param normalize Whether to normalize the [Configuration]. Defaults to [true]
+     */
+    fun toConfiguration(normalize: Boolean = true): Configuration = configurationMap.let {
+        val config = Configuration.from(map = it, cpgConfiguration = Configuration.CPGConfiguration.from(it))
+        if (normalize) config.normalize()
+        return config
     }
 
     fun addOption(name: String, option: Option) {

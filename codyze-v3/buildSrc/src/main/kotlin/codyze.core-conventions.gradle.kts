@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.accessors.dm.LibrariesForLibs
+import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     kotlin("jvm")
@@ -8,6 +9,7 @@ plugins {
 
     id("org.sonarqube")
     id("com.diffplug.spotless")
+    id("org.jetbrains.dokka")
     // id("com.github.hierynomus.license")
 }
 
@@ -86,4 +88,8 @@ spotless {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType<DokkaTask>().configureEach {
+    outputDirectory.set(buildDir.resolve(name))
 }

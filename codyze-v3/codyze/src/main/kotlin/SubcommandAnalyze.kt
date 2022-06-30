@@ -12,7 +12,7 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-@Suppress("UNUSED")
+
 class Analyze : Subcommand("Analyze a set of source files") {
 
     override fun run() {

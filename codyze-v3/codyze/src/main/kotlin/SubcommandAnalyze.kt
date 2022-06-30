@@ -13,14 +13,7 @@ import mu.KotlinLogging
 private val logger = KotlinLogging.logger {}
 
 @Suppress("UNUSED")
-class Analyze : CliktCommand("Analyze a set of source files") {
-    // This is only here to correctly display the help message
-    private val unusedConfigFile: Path by configFileOption()
-
-    val codyzeOptions by CodyzeOptions()
-    val analysisOptions by AnalysisOptions()
-    val cpgOptions by CPGOptions()
-    val translationOptions by TranslationOptions()
+class Analyze : Subcommand("Analyze a set of source files") {
 
     override fun run() {
         logger.debug { "Executing 'analyze' subcommand..." }

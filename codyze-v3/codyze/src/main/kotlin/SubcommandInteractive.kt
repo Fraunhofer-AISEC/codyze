@@ -8,14 +8,8 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-class Interactive : CliktCommand("Start an interactive console") {
-    // This is only here to correctly display the help message
-    private val unusedConfigFile: Path by configFileOption()
+class Interactive : Subcommand("Start an interactive console") {
 
-    val codyzeOptions by CodyzeOptions()
-    val analysisOptions by AnalysisOptions()
-    val cpgOptions by CPGOptions()
-    val translationOptions by TranslationOptions()
     override fun run() {
         logger.debug { "Executing 'interactive' subcommand..." }
         echo("When I grow up, I'll start an interactive console!")

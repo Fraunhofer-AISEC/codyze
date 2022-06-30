@@ -1,0 +1,6 @@
+{
+  "analyze": {
+    "spec": "spec",
+    "source": ["file.yml"]
+  }
+}

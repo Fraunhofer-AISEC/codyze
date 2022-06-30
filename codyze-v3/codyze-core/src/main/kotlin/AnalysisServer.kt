@@ -6,9 +6,15 @@ import org.koin.java.KoinJavaComponent.getKoin
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * A server that manages all analyses.
+ *
+ */
 object AnalysisServer {
 
+    /** All projects that are connected to the server. */
     val projects = mutableMapOf<Configuration, Project>()
+    /** All executors that are available for the analysis. */
     var executors = emptyList<Executor>() // initialized in <registerExecutors>
 
     /**
@@ -34,6 +40,11 @@ object AnalysisServer {
         }
     }
 
+    /**
+     * Returns the project associated with [config].
+     *
+     * If no such project exists, a new project with this configuration is added to [projects].
+     */
     fun connect(config: Configuration): Project {
         // TODO: remove 'unused' projects from this.projects
         // if project exists -> "reload" else create new project

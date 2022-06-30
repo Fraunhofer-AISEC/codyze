@@ -36,9 +36,15 @@ data class Configuration(
     // specs. If no Executor is found, an error is thrown
     val cpgConfiguration: CPGConfiguration,
 ) {
+    /**
+     * Filename extension of all [spec] files
+     */
     val specFileExtension by lazy { spec[0].extension }
 
     companion object {
+        /**
+         * Build a [Configuration] from [map] and [cpgConfiguration]
+         */
         fun from(map: Map<String, Any?>, cpgConfiguration: CPGConfiguration) =
             object {
                     val typestate: TypestateMode by map
@@ -85,6 +91,9 @@ data class Configuration(
         val additionalLanguages: Set<Language>,
     ) {
         companion object {
+            /**
+             * Build a [CPGConfiguration] from [map]
+             */
             fun from(map: Map<String, Any?>) =
                 object {
                         val source: List<Path> by map
@@ -132,6 +141,9 @@ data class Configuration(
                     .data
         }
 
+        /**
+         * Return a [TranslationConfiguration] for the CPG
+         */
         fun toTranslationConfiguration(): TranslationConfiguration {
             val translationConfiguration =
                 TranslationConfiguration.builder()
@@ -192,6 +204,9 @@ data class Configuration(
         return normalizedConfiguration
     }
 
+    /**
+     * Return an [ExecutorConfiguration]
+     */
     fun toExecutorConfiguration(): ExecutorConfiguration =
         ExecutorConfiguration(
             typestate = this.typestate,

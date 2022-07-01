@@ -12,9 +12,9 @@ private val logger = KotlinLogging.logger {}
 object ProjectServer {
 
     /** All projects that are connected to the server. */
-    val projects = mutableMapOf<Configuration, Project>()
+    val projects: MutableMap<Configuration, Project> = mutableMapOf()
     /** All built-in executors that are available for the analysis. */
-    var executors = emptyList<Executor>() // initialized in <registerExecutors>
+    var executors: List<Executor> = emptyList() // initialized in <registerExecutors>
 
     /**
      * Initialize the CPG, the available executors and populate the CPG with source code files.

@@ -1,14 +1,15 @@
 package de.fraunhofer.aisec.codyze
 
 import de.fraunhofer.aisec.codyze.options.*
-import de.fraunhofer.aisec.codyze_core.ProjectServer
 import de.fraunhofer.aisec.codyze_core.Project
+import de.fraunhofer.aisec.codyze_core.ProjectServer
 import java.time.Duration
 import java.time.Instant
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
+/** Subcommand that analyzes a set of source files */
 class Analyze : CodyzeSubcommand("Analyze a set of source files") {
     // possibly add subcommand-analyze specific options here
 

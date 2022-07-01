@@ -6,13 +6,16 @@ import io.github.detekt.sarif4k.*
 
 /**
  * An object that saves the context of an analysis.
+ *
  * This enables switching between different analyses (e.g. switching between projects in an IDE).
  */
 class Project(val config: Configuration) {
+    /** The CPG basesd on the given [config] */
     val translationManager =
         TranslationManager.builder()
             .config(config = config.cpgConfiguration.toTranslationConfiguration())
             .build() // Initialize the CPG, based on the given Configuration
+    /** [Executor] that is capable of evaluating the [Configuration.spec] given in [config] */
     val executor = config.executor ?: getRandomCapableExecutor()
 
     /** Return the first registered Executor capable of evaluating [config.specFileExtension] */

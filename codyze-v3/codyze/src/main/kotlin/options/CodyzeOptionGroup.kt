@@ -126,11 +126,10 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
                 help =
                     "Manually choose Executor to use with the given spec files. If unspecified, Codyze randomly selects an executor capable of evaluating the given specification files."
             )
-            .choice(
-                *(AnalysisServer.executors.map { it.name }).toTypedArray(),
-                ignoreCase = true
-            )
-            .convert { it.let { AnalysisServer.executors.first { executor -> executor.name == it } } }
+            .choice(*(AnalysisServer.executors.map { it.name }).toTypedArray(), ignoreCase = true)
+            .convert {
+                it.let { AnalysisServer.executors.first { executor -> executor.name == it } }
+            }
             .also { ConfigurationRegister.addOption("executor", it) }
 
     val output: Path by

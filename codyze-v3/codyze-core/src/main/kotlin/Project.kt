@@ -35,10 +35,13 @@ class Project(val config: Configuration) {
         return SarifSchema210(
             schema = "https://json.schemastore.org/sarif-2.1.0.json",
             version = Version.The210,
-            runs = listOf(Run(
-                tool = Tool(driver = ToolComponent(name = "Codyze v3")),
-                results = results,
-            ))
+            runs =
+                listOf(
+                    Run(
+                        tool = Tool(driver = ToolComponent(name = "Codyze v3")),
+                        results = results,
+                    )
+                )
         )
     }
 }

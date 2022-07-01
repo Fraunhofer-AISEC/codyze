@@ -29,11 +29,16 @@ object ConfigurationRegister {
      *
      * @param normalize Whether to normalize the [Configuration]. Defaults to [true]
      */
-    fun toConfiguration(normalize: Boolean = true): Configuration = configurationMap.let {
-        val config = Configuration.from(map = it, cpgConfiguration = Configuration.CPGConfiguration.from(it))
-        if (normalize) config.normalize()
-        return config
-    }
+    fun toConfiguration(normalize: Boolean = true): Configuration =
+        configurationMap.let {
+            val config =
+                Configuration.from(
+                    map = it,
+                    cpgConfiguration = Configuration.CPGConfiguration.from(it)
+                )
+            if (normalize) config.normalize()
+            return config
+        }
 
     fun addOption(name: String, option: Option) {
         options.put(name, option)

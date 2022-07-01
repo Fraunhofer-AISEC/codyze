@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
-import de.fraunhofer.aisec.codyze_core.AnalysisServer
+import de.fraunhofer.aisec.codyze_core.ProjectServer
 import de.fraunhofer.aisec.codyze_core.Executor
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -126,9 +126,9 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
                 help =
                     "Manually choose Executor to use with the given spec files. If unspecified, Codyze randomly selects an executor capable of evaluating the given specification files."
             )
-            .choice(*(AnalysisServer.executors.map { it.name }).toTypedArray(), ignoreCase = true)
+            .choice(*(ProjectServer.executors.map { it.name }).toTypedArray(), ignoreCase = true)
             .convert {
-                it.let { AnalysisServer.executors.first { executor -> executor.name == it } }
+                it.let { ProjectServer.executors.first { executor -> executor.name == it } }
             }
             .also { ConfigurationRegister.addOption("executor", it) }
 

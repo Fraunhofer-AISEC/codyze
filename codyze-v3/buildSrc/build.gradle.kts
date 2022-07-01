@@ -7,10 +7,10 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.kotlin.plugin)
-    implementation(libs.dokka.plugin)
-    implementation(libs.sonarqube.plugin)
-    implementation(libs.spotless.plugin)
-    implementation(libs.license.plugin)
+    implementation(libs.kotlin.gradle)
+    implementation(libs.dokka.gradle)
+    implementation(libs.sonarqube.gradle)
+    implementation(libs.spotless.gradle)
+    implementation(libs.license.gradle)
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))  // this is only there to be able to import 'LibrariesForLibs' in the convention plugins
 }

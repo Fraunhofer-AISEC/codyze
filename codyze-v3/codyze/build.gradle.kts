@@ -1,7 +1,7 @@
 plugins {
     application
     id("codyze.core-conventions")
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 dependencies {

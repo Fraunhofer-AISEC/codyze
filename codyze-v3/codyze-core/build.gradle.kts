@@ -1,6 +1,5 @@
 plugins {
-    application
-    id("codyze.core-conventions")
+    id("documented-module")
 }
 
 dependencies {

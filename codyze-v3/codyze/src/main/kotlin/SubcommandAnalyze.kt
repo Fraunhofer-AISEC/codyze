@@ -26,7 +26,8 @@ class Analyze : CliktCommand("Analyze a set of source files") {
         logger.debug { "Executing 'analyze' subcommand..." }
 
         val start = Instant.now()
-        val project: Project = AnalysisServer.connect(config = ConfigurationRegister.toConfiguration())
+        val project: Project =
+            AnalysisServer.connect(config = ConfigurationRegister.toConfiguration())
         logger.debug {
             "Analysis server started in ${ Duration.between(start, Instant.now()).toMillis() } ms"
         }

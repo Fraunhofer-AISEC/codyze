@@ -18,8 +18,8 @@ private val logger = KotlinLogging.logger {}
  * [Configuration.from] or [Configuration.CPGConfiguration.from])
  * 3. add a new CLI option to one (or all) subcommand(s). It does not matter whether the option is
  * inside an [OptionGroup].
- * 4. make sure to add a '?' for any CLI option that might be [null]. Options that might
- * be [null] and are not specified as such can cause issues with the map delegate used in the factory methods.
+ * 4. make sure to add a '?' for any CLI option that might be [null]. Options that might be [null]
+ * and are not specified as such can cause issues with the map delegate used in the factory methods.
  * 5. after adding the new CLI option, register it at the [ConfigurationRegister]. Only then will it
  * be part of the map returned by [ConfigurationRegister.options] which is used to initialize the
  * [Configuration] object
@@ -31,8 +31,8 @@ data class Configuration(
     val goodFindings: Boolean,
     val pedantic: Boolean,
     val timeout: Int,
-    val executor:
-        Executor? = null, // if null, Codyze randomly chooses an Executor capable of evaluating the given
+    val executor: Executor? =
+        null, // if null, Codyze randomly chooses an Executor capable of evaluating the given
     // specs. If no Executor is found, an error is thrown
     val cpgConfiguration: CPGConfiguration,
 ) {

@@ -1,14 +1,11 @@
 package de.fraunhofer.aisec.codyze
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.options.*
-import java.nio.file.Path
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-class Interactive : Subcommand("Start an interactive console") {
+class Interactive : CodyzeSubcommand("Start an interactive console") {
+    // possibly add subcommand-interactive specific options here
 
     override fun run() {
         logger.debug { "Executing 'interactive' subcommand..." }

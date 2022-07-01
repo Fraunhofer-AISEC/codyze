@@ -1,10 +1,7 @@
 package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.MissingOption
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.options.*
 import de.fraunhofer.aisec.codyze_core.config.Language
 import de.fraunhofer.aisec.codyze_core.config.TypestateMode
 import org.junit.jupiter.api.*
@@ -17,12 +14,7 @@ import kotlin.test.*
 
 class CodyzeCliTest {
 
-    class TestSubcommand : CliktCommand(name = "analyze") {
-        val codyzeOptions by CodyzeOptions()
-        val analysisOptions by AnalysisOptions()
-        val cpgOptions by CPGOptions()
-        val translationOptions by TranslationOptions()
-
+    class TestSubcommand : CodyzeSubcommand() {
         override fun run() {}
     }
 
@@ -35,26 +27,26 @@ class CodyzeCliTest {
     // Test that relative paths are resolved relative to the config file
     @Test
     fun configRelativePathResolutionTest() {
-        val analyze = TestSubcommand()
-        val codyzeCli = initCli(pathConfigFile, arrayOf(analyze), arrayOf("analyze"))
+        val testSubcommand = TestSubcommand()
+        val codyzeCli = initCli(pathConfigFile, arrayOf(testSubcommand), arrayOf(testSubcommand.commandName))
 
         val expectedSource = listOf<Path>(fileYml)
-        assertContentEquals(expectedSource, analyze.codyzeOptions.source)
+        assertContentEquals(expectedSource, testSubcommand.codyzeOptions.source)
 
         val expectedSpecs = listOf(specMark)
-        assertContentEquals(expectedSpecs, analyze.codyzeOptions.spec)
+        assertContentEquals(expectedSpecs, testSubcommand.codyzeOptions.spec)
 
     }
 
     // Test the behavior of command if both config file and command line options are present
     @Test
     fun configFileWithArgsTest() {
-        val analyze = TestSubcommand()
+        val testSubcommand = TestSubcommand()
         val codyzeCli = initCli(
             correctConfigFile,
-            arrayOf(analyze),
+            arrayOf(testSubcommand),
             arrayOf(
-                "analyze",
+                testSubcommand.commandName,
                 "-s", srcMainJava.div("dir1").toString(),
                 "--additional-languages", "python",
                 "--no-unity",
@@ -65,9 +57,9 @@ class CodyzeCliTest {
         // should be overwritten by args
         val overwrittenMessage = "CLI options should take precedence over config file"
         val expectedSource = listOf(srcMainJava.div("dir1").div("File3.java"))
-        assertContentEquals(expectedSource, analyze.codyzeOptions.source, overwrittenMessage)
-        assertFalse(analyze.cpgOptions.useUnityBuild, overwrittenMessage)
-        assertContentEquals(listOf(Language.PYTHON), analyze.cpgOptions.additionalLanguages, overwrittenMessage)
+        assertContentEquals(expectedSource, testSubcommand.codyzeOptions.source, overwrittenMessage)
+        assertFalse(testSubcommand.cpgOptions.useUnityBuild, overwrittenMessage)
+        assertContentEquals(listOf(Language.PYTHON), testSubcommand.cpgOptions.additionalLanguages, overwrittenMessage)
 
         // args values should be appended to config values
         val appendMessage = "Values from CLI option should be appended to config values"
@@ -75,14 +67,14 @@ class CodyzeCliTest {
             specMark,
             spec2Mark
         )
-        assertContentEquals(expectedSpecs, analyze.codyzeOptions.spec, appendMessage)
+        assertContentEquals(expectedSpecs, testSubcommand.codyzeOptions.spec, appendMessage)
 
         // should be config values
         val staySameMessage = "Config file options should stay the same if it was not matched on CLI"
-        assertFalse(analyze.codyzeOptions.goodFindings, staySameMessage)
-        assertEquals(TypestateMode.DFA, analyze.analysisOptions.typestate, staySameMessage)
-        assertEquals(5, analyze.codyzeOptions.timeout, staySameMessage)
-        assertTrue(analyze.translationOptions.loadIncludes, staySameMessage)
+        assertFalse(testSubcommand.codyzeOptions.goodFindings, staySameMessage)
+        assertEquals(TypestateMode.DFA, testSubcommand.analysisOptions.typestate, staySameMessage)
+        assertEquals(5, testSubcommand.codyzeOptions.timeout, staySameMessage)
+        assertTrue(testSubcommand.translationOptions.loadIncludes, staySameMessage)
     }
 
     companion object {

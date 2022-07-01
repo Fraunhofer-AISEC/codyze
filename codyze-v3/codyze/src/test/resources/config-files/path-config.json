@@ -1,5 +1,5 @@
 {
-  "analyze": {
+  "test-subcommand": {
     "spec": "spec",
     "source": ["file.yml"]
   }

@@ -1,5 +1,5 @@
 {
-  "analyze": {
+  "test-subcommand": {
     "good-findings": false,
     "timeout": 5,
     "spec": "spec",

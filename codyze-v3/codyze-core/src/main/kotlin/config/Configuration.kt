@@ -36,14 +36,13 @@ data class Configuration(
     // specs. If no Executor is found, an error is thrown
     val cpgConfiguration: CPGConfiguration,
 ) {
-    /**
-     * Filename extension of all [spec] files. All [spec] files share the same extension.
-     */
+    /** Filename extension of all [spec] files. All [spec] files share the same extension. */
     val specFileExtension by lazy { spec[0].extension }
 
     companion object {
         /**
-         * Build a [Configuration] object from a [map] and a [cpgConfiguration]. The same map used to initialize a [cpgConfiguration] can be re-used here.
+         * Build a [Configuration] object from a [map] and a [cpgConfiguration]. The same map used
+         * to initialize a [cpgConfiguration] can be re-used here.
          */
         fun from(map: Map<String, Any?>, cpgConfiguration: CPGConfiguration) =
             object {
@@ -91,9 +90,7 @@ data class Configuration(
         val additionalLanguages: Set<Language>,
     ) {
         companion object {
-            /**
-             * Build a [CPGConfiguration] object from a [map]
-             */
+            /** Build a [CPGConfiguration] object from a [map] */
             fun from(map: Map<String, Any?>) =
                 object {
                         val source: List<Path> by map
@@ -141,9 +138,7 @@ data class Configuration(
                     .data
         }
 
-        /**
-         * Return a [TranslationConfiguration] object to pass to the CPG
-         */
+        /** Return a [TranslationConfiguration] object to pass to the CPG */
         fun toTranslationConfiguration(): TranslationConfiguration {
             val translationConfiguration =
                 TranslationConfiguration.builder()
@@ -204,9 +199,7 @@ data class Configuration(
         return normalizedConfiguration
     }
 
-    /**
-     * Return an [ExecutorConfiguration] object
-     */
+    /** Return an [ExecutorConfiguration] object */
     fun toExecutorConfiguration(): ExecutorConfiguration =
         ExecutorConfiguration(
             typestate = this.typestate,

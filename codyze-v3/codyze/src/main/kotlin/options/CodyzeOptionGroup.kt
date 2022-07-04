@@ -5,8 +5,8 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
-import de.fraunhofer.aisec.codyze_core.ProjectServer
 import de.fraunhofer.aisec.codyze_core.Executor
+import de.fraunhofer.aisec.codyze_core.ProjectServer
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.extension

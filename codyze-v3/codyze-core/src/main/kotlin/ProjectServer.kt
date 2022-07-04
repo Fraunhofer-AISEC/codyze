@@ -7,7 +7,7 @@ import org.koin.java.KoinJavaComponent.getKoin
 private val logger = KotlinLogging.logger {}
 
 /**
- * A server that manages all [Project]s. Each [Configuration] corresponds to one potential [Project].
+ * A server that manages [Project]s. Each [Configuration] corresponds to one potential [Project] .
  */
 object ProjectServer {
 

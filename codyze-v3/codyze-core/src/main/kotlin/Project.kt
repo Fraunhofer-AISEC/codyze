@@ -21,9 +21,7 @@ class Project(val config: Configuration) {
     /** Return the first registered Executor capable of evaluating [config.specFileExtension] */
     private fun getRandomCapableExecutor(): Executor {
         val randomCapableExecutor: Executor? =
-            ProjectServer.executors.find {
-                it.supportedFileExtensions.contains(config.specFileExtension)
-            }
+            ProjectServer.executors.find { it.supportedFileExtension == config.specFileExtension }
         if (randomCapableExecutor != null) return randomCapableExecutor
         else
             throw RuntimeException(
@@ -36,7 +34,6 @@ class Project(val config: Configuration) {
         val results: List<Result> = executor.evaluate(cpg = translationManager.analyze().get())
 
         // complete SARIF model by integrating results, e.g. add "Codyze" as tool name, etc.
-        // return or print SARIF model
         // TODO what format should we give to LSP?
         return SarifSchema210(
             schema = "https://json.schemastore.org/sarif-2.1.0.json",

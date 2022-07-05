@@ -18,8 +18,8 @@ interface Executor {
     /** Name of executor for a specification language */
     val name: String
 
-    /** Supported extensions of specification language files */
-    val supportedFileExtensions: List<String>
+    /** Supported file extension for specification language files */
+    val supportedFileExtension: String
 
     // offer standard implementation
     // must only be called once

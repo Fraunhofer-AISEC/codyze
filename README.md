@@ -17,11 +17,15 @@
 
 Codyze is a static code analyzer that focuses on verifying security compliance in source code, i.e. by inferring the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
 
-Documentation: https://www.codyze.io
+Codyze has three execution modes:
+
+* __Analyze mode__: Check the source code against a set of rules. Can be integrated into scripts and automated build processes.
+* __Language Server Protocol mode__: Integrate Codyze into an IDE and automatically analyze code while developing.
+* __Interactive Console mode__: Explore and analyze the source code interactively.
+
+
 
 ## Build & Run Codyze
-
-
 
 Java 11 (OpenJDK) is a prerequisite.
 
@@ -34,10 +38,6 @@ $ ./gradlew installDist
 This will provide you with an executable Codyze installation under `build/install/codyze`.
 To start Codyze, change to the directory and run Codyze.
 
-Codyze has three execution modes:
-* command line interface mode (`-c`, default)
-* language server protocol mode (`-l`)
-* interactive console mode (`-t`).
 
 An exemplary call to start the commando line interface mode would be
 
@@ -49,6 +49,10 @@ where `<sourcepath>` denotes the path to the source directory or file which shou
 
 Codyze can be further configured with additional command line arguments or a YAML configuration file.
 For more information about the usage and configurations, please refer to https://www.codyze.io and the corresponding [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Configuring-Codyze).
+
+## Documentation
+The full documentation can be found at https://www.codyze.io.
+
 
 
 ## Research & Student Work

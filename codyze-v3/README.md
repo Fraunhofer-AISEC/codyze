@@ -13,7 +13,7 @@ If you want to use Codyze as a library in your own project, we suggest using thi
 
 [`codyze`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codyze) combines all projects into an executable version of Codyze.
 
-## Build & Run Codyze V3
+## Build & Run Codyze v3
 Java 11 (OpenJDK) is a prerequisite.
 
 To build an executable version of Codyze, use the `installDist` task:

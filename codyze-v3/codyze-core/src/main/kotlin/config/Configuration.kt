@@ -27,6 +27,8 @@ private val logger = KotlinLogging.logger {}
 data class Configuration(
     val typestate: TypestateMode,
     val spec: List<Path>,
+    val specDescription: Path,
+    val disabledSpecRules: List<String>,
     val output: Path,
     val goodFindings: Boolean,
     val pedantic: Boolean,
@@ -54,6 +56,8 @@ data class Configuration(
             object {
                     val typestate: TypestateMode by map
                     val spec: List<Path> by map
+                    val specDescription: Path by map
+                    val disabledSpecRules: List<String> by map
                     val output: Path by map
                     val goodFindings: Boolean by map
                     val pedantic: Boolean by map
@@ -64,6 +68,8 @@ data class Configuration(
                         Configuration(
                             typestate = typestate,
                             spec = spec,
+                            specDescription = specDescription,
+                            disabledSpecRules = disabledSpecRules,
                             output = output,
                             goodFindings = goodFindings,
                             pedantic = pedantic,
@@ -210,6 +216,8 @@ data class Configuration(
         ExecutorConfiguration(
             typestate = this.typestate,
             spec = this.spec,
+            specDescription = this.specDescription,
+            disabledSpecRules = this.disabledSpecRules,
             goodFindings = this.goodFindings,
             pedantic = this.pedantic,
             timeout = this.timeout
@@ -220,6 +228,8 @@ data class Configuration(
 data class ExecutorConfiguration(
     val typestate: TypestateMode,
     val spec: List<Path>,
+    val specDescription: Path,
+    val disabledSpecRules: List<String>,
     val goodFindings: Boolean,
     val pedantic: Boolean,
     val timeout: Int,

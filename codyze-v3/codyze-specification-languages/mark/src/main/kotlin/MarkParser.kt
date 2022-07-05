@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.mark
 
+import de.fraunhofer.aisec.codyze.legacy.analysis.FindingDescription
 import de.fraunhofer.aisec.codyze.legacy.config.DisabledMarkRulesValue
 import de.fraunhofer.aisec.codyze.legacy.markmodel.Mark
 import de.fraunhofer.aisec.codyze.legacy.markmodel.MarkModelLoader
@@ -7,7 +8,7 @@ import de.fraunhofer.aisec.codyze_core.util.fromInstant
 import de.fraunhofer.aisec.mark.XtextParser
 import java.nio.file.Path
 import java.time.Instant
-import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.time.Duration
 import mu.KotlinLogging
 
@@ -21,18 +22,15 @@ private val logger = KotlinLogging.logger {}
  */
 fun Mark.from(
     markFiles: List<Path>,
-    packageToDisabledMarkRules: Map<String?, DisabledMarkRulesValue?> = emptyMap()
+    markDescriptionFile: Path,
+    packageToDisabledMarkRules: Map<String?, DisabledMarkRulesValue?> = emptyMap()  // TODO!
 ): Mark {
-    var markDescriptionFile: Path
-
     var start = Duration.fromInstant(Instant.now())
     logger.info { "Parsing MARK files..." }
     val parser = XtextParser()
     markFiles.forEach { markFile ->
         logger.info { "Loading MARK from file ${markFile}" }
         parser.addMarkFile(markFile.toFile())
-        // markDescriptionFile = markFile.parent.div(File.separator).div("findingDescription.json")
-        // // TODO!
     }
     val markModels = parser.parse()
     logger.info { "Done parsing MARK files in ${ start - Duration.fromInstant(Instant.now()) } ms" }
@@ -52,12 +50,8 @@ fun Mark.from(
     }
     logger.info { "Loaded ${markModel.entities.size} entities and ${markModel.rules.size} rules." }
 
-    // TODO: what is this description file?!
-    //    if (markDescriptionFile != null && markDescriptionFile.exists()) {
-    //        getInstance.getInstance().init(markDescriptionFile)
-    //    } else {
-    //        logger.info("MARK description file does not exist")
-    //    }
+    if (markDescriptionFile.exists()) FindingDescription.instance.init(markDescriptionFile.toFile())
+    else logger.info("MARK description file does not exist")
 
     return markModel
 }

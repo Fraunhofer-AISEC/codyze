@@ -96,6 +96,21 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple()
+    val specDescription: Path by
+        option(
+            "--spec-description",
+            help = "A .json file mapping rule IDs to rule descriptions."
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .default(Path(System.getProperty("user.dir"), "findingDescription.json"))
+            .also { ConfigurationRegister.addOption("specDescription", it) }
+    val disabledSpecRules: List<String> by
+        option(
+            "--disabled-spec-rules",
+            help = "Rules that will be ignored by the analysis."
+            )
+            .multiple()
+
     /**
      * Lazy property that combines all given specs from the different options into a list of spec
      * files to use.

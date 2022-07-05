@@ -46,7 +46,7 @@ class MarkExecutor : Executor {
 
     @OptIn(ExperimentalGraph::class, ExperimentalTime::class)
     override fun evaluate(cpg: TranslationResult): List<Result> {
-        val markModel = Mark().from(configuration.spec)
+        val markModel = Mark().from(markFiles = configuration.spec, markDescriptionFile = configuration.specDescription)
         val analysisContext: AnalysisContext =
             CompletableFuture.completedFuture(cpg)
                 .thenApply {

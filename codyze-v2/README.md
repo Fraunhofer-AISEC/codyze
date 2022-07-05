@@ -1,18 +1,13 @@
-# Codyze :mag_right: :rocket:
+# Codyze v2 :mag_right: :rocket:
 
-> :warning: This is the legacy version of Codyze
+> :warning: This is the legacy version of Codyze.
 > If you are looking for a _stable_ version, please use the [2.0.0-beta](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.0.0-beta) release.
 
-
-Codyze is a static code analyzer that focuses on verifying security compliance in source code, i.e. by inferring the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
-
-Documentation: https://www.codyze.io
-
-## Build & Run Codyze
+## Build & Run Codyze v2
 
 Java 11 (OpenJDK) is a prerequisite.
 
-To build an executable version of Codyze, use the `installDist` task:
+To build an executable version of Codyze v2, use the `installDist` task:
 
 ```shell
 $ ./gradlew :codyze-v2:installDist

@@ -36,6 +36,12 @@ data class Configuration(
     // specs. If no Executor is found, an error is thrown
     val cpgConfiguration: CPGConfiguration,
 ) {
+    // perform some validation
+    // the same validation should be performed when parsing the CLI arguments/options
+    init {
+        validateSpec(spec)
+    }
+
     /** Filename extension of all [spec] files. All [spec] files share the same extension. */
     val specFileExtension by lazy { spec[0].extension }
 

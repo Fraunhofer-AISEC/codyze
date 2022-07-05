@@ -7,9 +7,9 @@ import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.ProjectServer
+import de.fraunhofer.aisec.codyze_core.config.validateSpec
 import java.nio.file.Path
 import kotlin.io.path.Path
-import kotlin.io.path.extension
 
 @Suppress("UNUSED")
 class CodyzeOptions : OptionGroup(name = "Codyze Options") {
@@ -68,9 +68,7 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
         option("--spec", help = "Loads the given specification files.")
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple(required = true)
-            .check("All given specification files must be of the same file type") {
-                spec.all { it.extension == spec[0].extension }
-            }
+            .validateFromError { validateSpec(spec) }
     private val rawSpecAdditions: List<Path> by
         option(
                 "--spec-additions",

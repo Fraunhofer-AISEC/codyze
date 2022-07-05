@@ -3,8 +3,9 @@ package de.fraunhofer.aisec.codyze
 import de.fraunhofer.aisec.codyze.options.*
 import de.fraunhofer.aisec.codyze_core.Project
 import de.fraunhofer.aisec.codyze_core.ProjectServer
-import java.time.Duration
+import de.fraunhofer.aisec.codyze_core.util.fromInstant
 import java.time.Instant
+import kotlin.time.Duration
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -16,11 +17,11 @@ class Analyze : CodyzeSubcommand("Analyze a set of source files") {
     override fun run() {
         logger.debug { "Executing 'analyze' subcommand..." }
 
-        val start = Instant.now()
+        val start = Duration.fromInstant(Instant.now())
         val project: Project =
             ProjectServer.connect(config = ConfigurationRegister.toConfiguration())
         logger.debug {
-            "Analysis server started in ${ Duration.between(start, Instant.now()).toMillis() } ms"
+            "Analysis server started in ${ start - Duration.fromInstant(Instant.now()) } ms"
         }
 
         logger.info { "Analyzing following sources ${project.config.cpgConfiguration.source}" }

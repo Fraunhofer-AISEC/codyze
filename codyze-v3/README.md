@@ -1,14 +1,27 @@
-# Codyze v3 :mag_right: :rocket: 
+# Codyze v3 :mag_right: :rocket:
 
-## Build & Run Codyze
+> :warning: This version of Codyze is still under development
+> If you are looking for a _stable_ version, please use the [2.0.0-beta](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.0.0-beta) release.
+
+## Project Structure
+Codyze V3 is set up as a gradle multi project build.
+
+[`codyze-core`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codyze-core) contains the core functionalities of Codyze. 
+If you want to use Codyze as a library in your own project, we suggest using this.
+
+[`codze-specification-languages`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codze-specification-languages) contains all built-in specification languages which codyze can verify.
+
+[`codyze`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codyze) combines all projects into an executable version of Codyze.
+
+## Build & Run Codyze V3
 Java 11 (OpenJDK) is a prerequisite.
 
 To build an executable version of Codyze, use the `installDist` task:
 
 ```shell
-$ ./gradlew :codyze-v3:installDist
+$ ./gradlew :codyze-v3:codyze:installDist
 ```
-This will provide you with an executable Codyze installation under `codyze-v3/build/install/codyze`.
+This will provide you with an executable Codyze installation under `codyze-v3/codyze/build/install/codyze`.
 
 To run codyze-v3 you can either run this executable or use the `run` task:
 ```shell

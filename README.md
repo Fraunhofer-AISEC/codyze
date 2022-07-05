@@ -8,9 +8,9 @@
 ![GitHub](https://img.shields.io/github/license/Fraunhofer-AISEC/codyze)
 [![](https://jitpack.io/v/Fraunhofer-AISEC/codyze.svg)](https://jitpack.io/#Fraunhofer-AISEC/codyze)
 
-> :warning: Note: We are currently redesigning Codyze. We have moved most of the functionality into a subpackage `legacy`. For the foreseeable future, we continue to maintain the legacy version of Codyze. Over 
+> :warning: Note: We are currently redesigning Codyze. We have moved most of the functionality into a subpackage `codyze-v2`. For the foreseeable future, we continue to maintain the legacy version of Codyze.
 > 
-> Gradually, we're replacing legacy functionality with the redesigned one. Where this approach isn't feasible due to breaking changes, we're going to offer a switch to either use the legacy version or redesigned version.
+> Gradually, we are replacing legacy functionality with the redesigned one. Where this approach isn't feasible due to breaking changes, we're going to offer a switch to either use the legacy version or redesigned version.
 >
 > If you are looking for a _stable_ version, please use the [2.0.0-beta](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.0.0-beta) release.
 
@@ -20,6 +20,8 @@ Codyze is a static code analyzer that focuses on verifying security compliance i
 Documentation: https://www.codyze.io
 
 ## Build & Run Codyze
+
+
 
 Java 11 (OpenJDK) is a prerequisite.
 

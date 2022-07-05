@@ -18,8 +18,8 @@ fun CliktCommand.configFileOption() =
 // TODO: the compiler does not detect changes when changing the message --> requires clean build to
 // be recompiled
 /**
- * Clikt extension function to provide a 'option.validate' statement for functions that either return Any
- * or throw an exception instead of returning true/false.
+ * Clikt extension function to provide a 'option.validate' statement for functions that either
+ * return Any or throw an exception instead of returning true/false.
  */
 inline fun <AllT : Any, EachT, ValueT> OptionWithValues<AllT, EachT, ValueT>.validateFromError(
     crossinline errorValidator: (AllT) -> Any

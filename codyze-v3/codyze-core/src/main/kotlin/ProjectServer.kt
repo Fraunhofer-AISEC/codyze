@@ -7,15 +7,14 @@ import org.koin.java.KoinJavaComponent.getKoin
 private val logger = KotlinLogging.logger {}
 
 /**
- * A server that manages all analyses.
- *
+ * A server that manages [Project]s. Each [Configuration] corresponds to one potential [Project] .
  */
-object AnalysisServer {
+object ProjectServer {
 
     /** All projects that are connected to the server. */
-    val projects = mutableMapOf<Configuration, Project>()
-    /** All executors that are available for the analysis. */
-    var executors = emptyList<Executor>() // initialized in <registerExecutors>
+    val projects: MutableMap<Configuration, Project> = mutableMapOf()
+    /** All built-in executors that are available for the analysis. */
+    var executors: List<Executor> = emptyList() // initialized in <registerExecutors>
 
     /**
      * Initialize the CPG, the available executors and populate the CPG with source code files.
@@ -41,7 +40,7 @@ object AnalysisServer {
     }
 
     /**
-     * Returns the project associated with [config].
+     * Returns the project associated with the given [Configuration] object.
      *
      * If no such project exists, a new project with this configuration is added to [projects].
      */

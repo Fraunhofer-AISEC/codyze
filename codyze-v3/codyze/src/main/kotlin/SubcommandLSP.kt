@@ -4,6 +4,11 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Subcommand that starts a language server.
+ *
+ * This server can be connected to an IDE to automatically analyze source code while programming.
+ */
 class LSP : CodyzeSubcommand("Start a language server") {
     // possibly add subcommand-lsp specific options here
 

@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.codyze.specification_languages.mark
 
-import de.fraunhofer.aisec.codyze.legacy.analysis.FindingDescription
 import de.fraunhofer.aisec.codyze.legacy.config.DisabledMarkRulesValue
 import de.fraunhofer.aisec.codyze.legacy.markmodel.Mark
 import de.fraunhofer.aisec.codyze.legacy.markmodel.MarkModelLoader
@@ -8,7 +7,6 @@ import de.fraunhofer.aisec.codyze_core.util.fromInstant
 import de.fraunhofer.aisec.mark.XtextParser
 import java.nio.file.Path
 import java.time.Instant
-import kotlin.io.path.exists
 import kotlin.time.Duration
 import mu.KotlinLogging
 
@@ -22,8 +20,7 @@ private val logger = KotlinLogging.logger {}
  */
 fun Mark.from(
     markFiles: List<Path>,
-    markDescriptionFile: Path,
-    packageToDisabledMarkRules: Map<String?, DisabledMarkRulesValue?> = emptyMap()  // TODO!
+    packageToDisabledMarkRules: Map<String?, DisabledMarkRulesValue?> = emptyMap() // TODO!
 ): Mark {
     var start = Duration.fromInstant(Instant.now())
     logger.info { "Parsing MARK files..." }
@@ -49,9 +46,6 @@ fun Mark.from(
         "Done Transforming MARK Xtext to internal format in ${ start - Duration.fromInstant(Instant.now()) } ms"
     }
     logger.info { "Loaded ${markModel.entities.size} entities and ${markModel.rules.size} rules." }
-
-    if (markDescriptionFile.exists()) FindingDescription.instance.init(markDescriptionFile.toFile())
-    else logger.info("MARK description file does not exist")
 
     return markModel
 }

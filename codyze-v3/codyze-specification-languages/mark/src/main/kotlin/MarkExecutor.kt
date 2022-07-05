@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.codyze.specification_languages.mark
 
 import de.fraunhofer.aisec.codyze.legacy.analysis.AnalysisContext
 import de.fraunhofer.aisec.codyze.legacy.analysis.AnalysisServer
+import de.fraunhofer.aisec.codyze.legacy.analysis.FindingDescription
 import de.fraunhofer.aisec.codyze.legacy.analysis.ServerConfiguration
 import de.fraunhofer.aisec.codyze.legacy.analysis.TypestateMode as LegacyTypestateMode
 import de.fraunhofer.aisec.codyze.legacy.analysis.markevaluation.Evaluator
@@ -14,6 +15,7 @@ import de.fraunhofer.aisec.cpg.graph.graph
 import de.fraunhofer.aisec.cpg.helpers.Benchmark
 import io.github.detekt.sarif4k.Result
 import java.util.concurrent.CompletableFuture
+import kotlin.io.path.exists
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.toTimeUnit
@@ -46,7 +48,13 @@ class MarkExecutor : Executor {
 
     @OptIn(ExperimentalGraph::class, ExperimentalTime::class)
     override fun evaluate(cpg: TranslationResult): List<Result> {
-        val markModel = Mark().from(markFiles = configuration.spec, markDescriptionFile = configuration.specDescription)
+        val markModel = Mark().from(markFiles = configuration.spec)
+
+        // load description file
+        if (configuration.specDescription.exists())
+            FindingDescription.instance.init(configuration.specDescription.toFile())
+        else logger.info("MARK description file does not exist")
+
         val analysisContext: AnalysisContext =
             CompletableFuture.completedFuture(cpg)
                 .thenApply {

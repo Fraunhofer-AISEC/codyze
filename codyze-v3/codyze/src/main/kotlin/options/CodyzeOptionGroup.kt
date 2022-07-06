@@ -104,6 +104,7 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
     val disabledSpecRules: List<String> by
         option("--disabled-spec-rules", help = "Rules that will be ignored by the analysis.")
             .multiple()
+            .also { ConfigurationRegister.addOption("disabledSpecRules", it) }
 
     /**
      * Lazy property that combines all given specs from the different options into a list of spec

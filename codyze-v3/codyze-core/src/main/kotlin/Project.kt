@@ -25,7 +25,7 @@ class Project(val config: Configuration) {
         if (randomCapableExecutor != null) return randomCapableExecutor
         else
             throw RuntimeException(
-                "Did not find any Executor supporting ${config.specFileExtension} files."
+                "Did not find any Executor supporting '${config.specFileExtension}' files."
             ) // TODO change to custom exception
     }
 

@@ -27,7 +27,7 @@ class MarkExecutor : Executor {
     override val name: String
         get() = MarkExecutor::class.simpleName ?: "MarkExecutor"
     override val supportedFileExtension: String
-        get() = ".mark"
+        get() = "mark"
 
     lateinit var configuration: ExecutorConfiguration
     private lateinit var serverConfig: ServerConfiguration

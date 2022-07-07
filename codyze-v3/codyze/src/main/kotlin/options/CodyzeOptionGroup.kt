@@ -96,6 +96,8 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple()
+    // TODO: get specDescription from spec files? Now that Codyze does not check their file type
+    // anymore, this is an option
     val specDescription: Path by
         option("--spec-description", help = "A .json file mapping rule IDs to rule descriptions.")
             .path(mustExist = true, mustBeReadable = true)

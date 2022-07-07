@@ -50,6 +50,7 @@ class MarkExecutor : Executor {
     override fun evaluate(cpg: TranslationResult): List<Result> {
         val markModel = Mark().from(markFiles = configuration.spec)
 
+        // TODO: get spec description file from the given spec files?
         // load description file
         if (configuration.specDescription.exists())
             FindingDescription.instance.init(configuration.specDescription.toFile())

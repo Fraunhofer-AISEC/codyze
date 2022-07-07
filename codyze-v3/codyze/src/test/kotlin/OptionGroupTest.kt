@@ -8,7 +8,6 @@ import de.fraunhofer.aisec.codyze.options.CodyzeOptions
 import de.fraunhofer.aisec.codyze.options.TranslationOptions
 import de.fraunhofer.aisec.codyze.options.combineSources
 import de.fraunhofer.aisec.codyze_core.Executor
-import de.fraunhofer.aisec.codyze_core.output.localization
 import de.fraunhofer.aisec.cpg.passes.CallResolver
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.FilenameMapper
@@ -148,29 +147,33 @@ class OptionGroupTest {
         )
     }
 
-    /**
-     * Test that the spec files must have the same file extensions and if not an exception is
-     * thrown.
-     */
-    @Test
-    fun mixedSpecTest() {
-        val argv: Array<String> =
-            arrayOf(
-                "--source",
-                testDir1.toString(),
-                "--spec",
-                testDir3Spec.div("mixed-file-extension").toString()
-            )
-        val cli = CodyzeOptionsCommand()
-
-        val exception: Exception =
-            Assertions.assertThrows(BadParameterValue::class.java) { cli.parse(argv) }
-
-        val expectedMessage = "Invalid value for \"--spec\": ${localization.invalidSpecFileType()}"
-        val actualMessage = exception.message
-
-        assertTrue(actualMessage!!.contains(expectedMessage))
-    }
+    // Disabled for now  because spec file type is not validated by Codyze anymore. The Executors
+    // must filter
+    // the received files by file type
+    //    /**
+    //     * Test that the spec files must have the same file extensions and if not an exception is
+    //     * thrown.
+    //     */
+    //    @Test
+    //    fun mixedSpecTest() {
+    //        val argv: Array<String> =
+    //            arrayOf(
+    //                "--source",
+    //                testDir1.toString(),
+    //                "--spec",
+    //                testDir3Spec.div("mixed-file-extension").toString()
+    //            )
+    //        val cli = CodyzeOptionsCommand()
+    //
+    //        val exception: Exception =
+    //            Assertions.assertThrows(BadParameterValue::class.java) { cli.parse(argv) }
+    //
+    //        val expectedMessage = "Invalid value for \"--spec\":
+    // ${localization.invalidSpecFileType()}"
+    //        val actualMessage = exception.message
+    //
+    //        assertTrue(actualMessage!!.contains(expectedMessage))
+    //    }
 
     @Test
     fun passesTest() {

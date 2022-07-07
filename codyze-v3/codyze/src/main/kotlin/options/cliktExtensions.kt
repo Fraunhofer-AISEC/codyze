@@ -25,15 +25,13 @@ inline fun <AllT : Any, EachT, ValueT> OptionWithValues<AllT, EachT, ValueT>.val
     crossinline errorValidator: (AllT) -> Any
 ): OptionDelegate<AllT> {
     return validate {
-        var result: Boolean
-        var message = ""
-        try {
-            errorValidator(it)
-            result = true
-        } catch (e: IllegalArgumentException) {
-            message = e.message ?: ""
-            result = false
-        }
+        val (result, message) =
+            try {
+                errorValidator(it)
+                Pair(true, "")
+            } catch (e: IllegalArgumentException) {
+                Pair(false, e.message ?: "")
+            }
         require(result) { message }
     }
 }

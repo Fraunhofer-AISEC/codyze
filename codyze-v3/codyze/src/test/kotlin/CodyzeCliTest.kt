@@ -4,13 +4,13 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze_core.config.Language
 import de.fraunhofer.aisec.codyze_core.config.TypestateMode
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Test
-import org.koin.core.context.startKoin
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.test.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
+import org.koin.core.context.startKoin
 
 class CodyzeCliTest {
 
@@ -18,8 +18,12 @@ class CodyzeCliTest {
         override fun run() {}
     }
 
-    fun initCli(configFile: Path, subcommands: Array<CliktCommand>, argv: Array<String>): CodyzeCli {
-        val command =  CodyzeCli(configFile).subcommands(*subcommands)
+    fun initCli(
+        configFile: Path,
+        subcommands: Array<CliktCommand>,
+        argv: Array<String>
+    ): CodyzeCli {
+        val command = CodyzeCli(configFile).subcommands(*subcommands)
         command.parse(argv)
         return command
     }
@@ -28,49 +32,55 @@ class CodyzeCliTest {
     @Test
     fun configRelativePathResolutionTest() {
         val testSubcommand = TestSubcommand()
-        val codyzeCli = initCli(pathConfigFile, arrayOf(testSubcommand), arrayOf(testSubcommand.commandName))
+        val codyzeCli =
+            initCli(pathConfigFile, arrayOf(testSubcommand), arrayOf(testSubcommand.commandName))
 
         val expectedSource = listOf<Path>(fileYml)
         assertContentEquals(expectedSource, testSubcommand.codyzeOptions.source)
 
         val expectedSpecs = listOf(specMark)
         assertContentEquals(expectedSpecs, testSubcommand.codyzeOptions.spec)
-
     }
 
     // Test the behavior of command if both config file and command line options are present
     @Test
     fun configFileWithArgsTest() {
         val testSubcommand = TestSubcommand()
-        val codyzeCli = initCli(
-            correctConfigFile,
-            arrayOf(testSubcommand),
-            arrayOf(
-                testSubcommand.commandName,
-                "-s", srcMainJava.div("dir1").toString(),
-                "--additional-languages", "python",
-                "--no-unity",
-                "--spec-additions", spec2Mark.toString(),
+        val codyzeCli =
+            initCli(
+                correctConfigFile,
+                arrayOf(testSubcommand),
+                arrayOf(
+                    testSubcommand.commandName,
+                    "-s",
+                    srcMainJava.div("dir1").toString(),
+                    "--additional-languages",
+                    "python",
+                    "--no-unity",
+                    "--spec-additions",
+                    spec2Mark.toString(),
+                )
             )
-        )
 
         // should be overwritten by args
         val overwrittenMessage = "CLI options should take precedence over config file"
         val expectedSource = listOf(srcMainJava.div("dir1").div("File3.java"))
         assertContentEquals(expectedSource, testSubcommand.codyzeOptions.source, overwrittenMessage)
         assertFalse(testSubcommand.cpgOptions.useUnityBuild, overwrittenMessage)
-        assertContentEquals(listOf(Language.PYTHON), testSubcommand.cpgOptions.additionalLanguages, overwrittenMessage)
+        assertContentEquals(
+            listOf(Language.PYTHON),
+            testSubcommand.cpgOptions.additionalLanguages,
+            overwrittenMessage
+        )
 
         // args values should be appended to config values
         val appendMessage = "Values from CLI option should be appended to config values"
-        val expectedSpecs = listOf(
-            specMark,
-            spec2Mark
-        )
+        val expectedSpecs = listOf(specMark, spec2Mark)
         assertContentEquals(expectedSpecs, testSubcommand.codyzeOptions.spec, appendMessage)
 
         // should be config values
-        val staySameMessage = "Config file options should stay the same if it was not matched on CLI"
+        val staySameMessage =
+            "Config file options should stay the same if it was not matched on CLI"
         assertFalse(testSubcommand.codyzeOptions.goodFindings, staySameMessage)
         assertEquals(TypestateMode.DFA, testSubcommand.analysisOptions.typestate, staySameMessage)
         assertEquals(5, testSubcommand.codyzeOptions.timeout, staySameMessage)
@@ -85,7 +95,6 @@ class CodyzeCliTest {
         lateinit var specMark: Path
         lateinit var spec2Mark: Path
         lateinit var srcMainJava: Path
-
 
         @BeforeAll
         @JvmStatic
@@ -104,7 +113,10 @@ class CodyzeCliTest {
             assertNotNull(pathConfigFile)
 
             val correctConfigFileResource =
-                CodyzeCliTest::class.java.classLoader.getResource("config-files/correct-config.json")
+                CodyzeCliTest::class
+                    .java
+                    .classLoader
+                    .getResource("config-files/correct-config.json")
             assertNotNull(correctConfigFileResource)
             correctConfigFile = Path(correctConfigFileResource.path)
             assertNotNull(correctConfigFile)
@@ -132,8 +144,6 @@ class CodyzeCliTest {
             assertNotNull(srcMainJavaResource)
             srcMainJava = Path(srcMainJavaResource.path)
             assertNotNull(srcMainJava)
-
         }
-
     }
 }

@@ -28,9 +28,9 @@ inline fun <AllT : Any, EachT, ValueT> OptionWithValues<AllT, EachT, ValueT>.val
         val (result, message) =
             try {
                 errorValidator(it)
-                Pair(true, "")
+                true to ""
             } catch (e: IllegalArgumentException) {
-                Pair(false, e.message ?: "")
+                false to (e.message ?: "")
             }
         require(result) { message }
     }

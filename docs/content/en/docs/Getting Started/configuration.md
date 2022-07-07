@@ -8,13 +8,91 @@ description: >
   Codyze offers a multitude of configurations to customize the analysis to your liking.
 ---
 
-Codyze can be configured through command line options when starting codyze.
+There are two ways of configuring Codyze, through command line options or a configuration file.
 
-The most important options are
-* the execution modes (`-c`. `-l` and `-t`)
-* the source path (`-s <sourcepath>`)
-* the path to the MARK files (`-m <markpath>`)
+If both are present, the command line options take precedence over the configuration file. 
+For list and map type options, the data from the configuration file can be overwritten if the normal option (e.g. `--option-name`) is used. 
+To append the data from the command line to the one from the configuration file, use the `+` option in __Codyze v2__ (e.g. `--option-name+`) or the `additions` option in __Codyze v3__ (e.g. `--option-name-additions`)
 
-Another way for configuring Codyze is through a YAML configuration file. Use `--config` to specify the path to the file.
 
-For more information about the configuration file and a complete list of all configurations, please refer to our [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Configuring-Codyze)
+# Command Line Interface
+There are three execution modes in which Codyze can run:
+* Command line mode (`-c`, default):
+  <br />Non-interactive command line client, accepts arguments from command line and runs analysis
+* Language server protocol mode  (`-l`):
+  <br />This mode is for IDE support and binds to stdout as a server for Language Server Protocol (LSP)
+* Interactive console mode (`-t`):
+  <br />The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries
+
+The help and version message can be displayed with `-h` and `-V` respectively.
+
+
+# Configuration File
+The configurations can also be defined with a YAML configuration file in __Codyze v2__ or a JSON configuration file in __Codyze v3__. 
+Use the option `--config=<filepath>` to specify the path to the config file.
+
+In __Codyze v2__ if `--config` is specified without an option parameter, Codyze will try to load the configuration file from `./codyze.yaml` in the working directory. 
+If the option is not specified, no configuration file will be parsed.
+
+In __Codyze v3__ the configuration from `./codyze.json` will always be loaded if no other file is specified.
+
+Relative paths in the configuration file are resolved relative to the configuration file location in both versions.
+
+For __Codyze v2__, the JSON schema located at [`schema/codyze-config-schema.json`](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-v2/schema/codyze-config-schema.json) can be used for generating or validating the configuration file.
+Different IDE extensions for using the schema (e.g. for [VSCode](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)) can be found in this [Red Hat blog post](https://developers.redhat.com/blog/2020/11/25/how-to-configure-yaml-schema-to-make-editing-files-easier#yaml_schema).
+
+# List of Configurations
+This is a list of all available configurations, their descriptions and their respective name in __Codyze v2__ and __Codyze v3__. They are sorted into different headings so that the heading structure is identical to the one expected in the configuration file of __Codyze v2__.
+
+The key names are the same for the configuration file and the CLI options. The CLI options of list- and map-type configurations have another name with a plus appended (e.g. `--option-name+`) to append the command line data to the configuration file data.
+
+`./` denotes the working directory in which Codyze was started. "X" denotes that there is nothing in this cell.
+
+| Codyze v2        | Codyze v3       | Value   | Description                                                                                                                | Default Value  |
+|:-----------------|:----------------|:--------|:---------------------------------------------------------------------------------------------------------------------------|:---------------|
+| source           | source          | Path[]  | Path to the to be analyzed files or directories.                                                                           | `[./]`         |
+| disabled-sources | disabled-source | Path[]  | Path to files or directories which should not be analyzed. Symbolic links are not followed when filtering out these paths. | `[]`           |
+| output           | output          | String  | Output file in which results are written. Use "-" to print to `stdout`.                                                    | findings.sarif | 
+| timeout          | timeout         | long    | Terminates analysis after given minutes.                                                                                   | 120            |
+| sarif            | X               | boolean | Controls whether the output is written in the SARIF format.                                                                | true           |
+
+## codyze:
+| Codyze v2           | Codyze v3        | Value   | Description                                                                                                                                                                                                                                               | Default Value |
+|:--------------------|:-----------------|:--------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
+| mark                | spec             | Path[]  | Paths to Mark rule files.                                                                                                                                                                                                                                 | `[./]`        |
+| disabled-mark-rules | disabled-spec    | Path[]  | The specified Mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (`package.rule`). If there is no package name, specify rule as `.rule`. Use `package.*` to disable an entire package. | `[]`          |
+| no-good-findings    | no-good-findings | boolean | Disables output of **positive** findings.                                                                                                                                                                                                                 | false         |
+| pedantic            | pedantic         | boolean | Activates pedantic analysis mode. In this mode, Codyze analyzes all MARK rules and report all findings. This option overrides "disabled-mark-rules" and "no-good-finding" and ignores any Codyze source code comments.                                    | false         |
+| X                   | executor         | String  | Manually choose Executor to use with the given spec files. If unspecified, Codyze randomly selects an executor capable of evaluating the given specification files.                                                                                       | X             |
+
+### typestate-analysis:
+| Codyze v2 | Codyze v3 | Value      | Description                                                                                                                                                           | Default Value |
+|:----------|:----------|:-----------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
+| typestate | typestate | `DFA/WPDS` | Specify typestate analysis mode.<br />`DFA`: Deterministic finite automaton (faster, intraprocedural)<br />`WPDS`: Weighted pushdown system (slower, interprocedural) | `DFA`         |
+
+
+## cpg:
+| Codyze v2               | Codyze v3               | Value               | Description                                                                                                                                                                                                                          | Default Value |
+|:------------------------|:------------------------|:--------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
+| additional-languages    | additional-languages    | String[]            | Specify programming languages of to be analyzed files (full names).                                                                                                                                                                  | `[]`          |
+| unity                   | unity                   | boolean             | Only relevant for C++. A unity build refers to a build that consolidates all translation units into a single one, which has the advantage that header files are only processed once, adding far less duplicate nodes to the graph.   | false         | 
+| type-system-in-frontend | type-system-in-frontend | boolean             | If false, the type listener system is only activated once the frontends are done building the initial AST structure. This avoids errors where the type of a node may depend on the order in which the source files have been parsed. | true          |
+| default-passes          | default-passes          | boolean             | Adds all default passes in cpg (1. FilenameMapper, 2. TypeHierarchyResolver, 3. ImportResolver, 4. VariableUsageResolver, 5. CallResolver, 6. EvaluationOrderGraphPass, 7. TypeResolver).                                            | true          |
+| passes                  | passes                  | String[]            | Register these passes to be executed in the specified order. Please specify the passes with their fully qualified name.                                                                                                              | `[]`          |
+| debug-parser            | debug-parser            | boolean             | Enables debug output generation for the cpg parser.                                                                                                                                                                                  | false         |
+| disable-cleanup         | disable-cleanup         | boolean             | Switch off cleaning up TypeManager memory after analysis, set to true only for testing.                                                                                                                                              | false         |
+| code-in-nodes           | code-in-nodes           | boolean             | Should the code of a node be shown as parameter in the node.                                                                                                                                                                         | false         |
+| annotations             | annotations             | boolean             | Enables processing annotations or annotation-like elements.                                                                                                                                                                          | false         |
+| fail-on-error           | fail-on-error           | boolean             | Should parser/translation fail on parse/resolving errors (true) or try to continue in a best-effort manner (false).                                                                                                                  | false         |
+| symbols                 | symbols                 | Map<String, String> | Definition of additional symbols.                                                                                                                                                                                                    | `{}`          |
+| parallel-frontends      | parallel-frontends      | boolean             | If true, the ASTs for the source files are parsed in parallel, but the passes afterwards will still run in a single thread. This speeds up initial parsing but makes sure that further graph enrichment algorithms remain correct.   | false         |
+| X                       | match-comments-to-nodes | boolean             | Controls whether the CPG frontend shall use a heuristic matching of comments found in the source file to match them to the closest AST node and save it in the comment property.                                                     | false         |
+
+### translation-settings:
+| Codyze v2         | Codyze v3         | Value   | Description                                                                                                                                                                                       | Default Value |
+|:------------------|:------------------|:--------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
+| analyze-includes  | analyze-includes  | boolean | Enables parsing of include files. If includePaths are given, the parser will resolve symbols/templates from these in include but not load their parse tree.                                       | false         |
+| includes          | includes          | Path[]  | Paths containing include files.                                                                                                                                                                   | `[]`          |
+| enabled-includes  | enabled-includes  | Path[]  | If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored.                                | `[]`          |
+| disabled-includes | disabled-includes | Path[]  | If includes is not empty, the specified includes files will be excluded from being parsed and processed in the cpg. The disabled list entries always take priority over the enabled list entries. | `[]`          |
+ 

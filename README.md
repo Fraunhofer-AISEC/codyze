@@ -19,40 +19,20 @@ Codyze is a static code analyzer that focuses on verifying security compliance i
 
 Codyze has three execution modes:
 
-* __Analyze mode__: Check the source code against a set of rules. Can be integrated into scripts and automated build processes.
-* __Language Server Protocol mode__: Integrate Codyze into an IDE and automatically analyze code while developing.
-* __Interactive Console mode__: Explore and analyze the source code interactively.
+* __Analyze mode__ checks the source code against a set of rules. This mode can be integrated into scripts and automated build processes.
+* __Language Server Protocol mode__ integrates Codyze into an IDE and automatically analyzes code while developing.
+* __Interactive Console mode__ allows to explore and analyze the source code interactively.
 
 
 
 ## Build & Run Codyze
 
-Java 11 (OpenJDK) is a prerequisite.
+This repository contains two versions of Codyze, Codyze v2 and Codyze v3. It is set up as a separate composite build so both versions can be built separately.
+Please refer to the READMEs in the `codyze-v2` and `codyze-v3` directories for the build instructions.
 
-To build an executable version of Codyze, use the `installDist` task:
-
-```shell
-$ ./gradlew installDist
-```
-
-This will provide you with an executable Codyze installation under `build/install/codyze`.
-To start Codyze, change to the directory and run Codyze.
-
-
-An exemplary call to start the commando line interface mode would be
-
-```shell
-$ cd build/install/codyze
-$ ./bin/codyze -m ./mark -s <sourcepath>
-```
-where `<sourcepath>` denotes the path to the source directory or file which should be analyzed.
-
-Codyze can be further configured with additional command line arguments or a YAML configuration file.
-For more information about the usage and configurations, please refer to https://www.codyze.io and the corresponding [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Configuring-Codyze).
 
 ## Documentation
 The full documentation can be found at https://www.codyze.io.
-
 
 
 ## Research & Student Work

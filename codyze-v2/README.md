@@ -13,23 +13,20 @@ To build an executable version of Codyze v2, use the `installDist` task:
 $ ./gradlew :codyze-v2:installDist
 ```
 
-This will provide you with an executable Codyze installation under `build/install/codyze`.
+This will provide you with an executable Codyze installation under `codyze-v2/build/install/codyze`.
 To start Codyze, change to the directory and run Codyze.
 
-Codyze has three execution modes:
-* command line interface mode (`-c`, default)
-* language server protocol mode (`-l`)
-* interactive console mode (`-t`).
 
-An exemplary call to start the commando line interface mode would be
+An exemplary call to start the command line interface mode would be
 
 ```shell
-$ cd build/install/codyze
-$ ./bin/codyze -m ./mark -s <sourcepath>
+$ cd codyze-v2/build/install/codyze
+$ ./bin/codyze-v2 -m ./mark -s <sourcepath>
 ```
 where `<sourcepath>` denotes the path to the source directory or file which should be analyzed.
 
 Codyze can be further configured with additional command line arguments or a YAML configuration file.
+Use the `-h` help option to print and see all options.
 For more information about the usage and configurations, please refer to https://www.codyze.io and the corresponding [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Configuring-Codyze).
 
 ## License

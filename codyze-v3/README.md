@@ -1,10 +1,10 @@
 # Codyze v3 :mag_right: :rocket:
 
-> :warning: This version of Codyze is still under development
+> :warning: This version of Codyze is still under development.
 > If you are looking for a _stable_ version, please use the [2.0.0-beta](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.0.0-beta) release.
 
 ## Project Structure
-Codyze V3 is set up as a gradle multi project build.
+Codyze v3 is set up as a gradle multi project build.
 
 [`codyze-core`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codyze-core) contains the core functionalities of Codyze. 
 If you want to use Codyze as a library in your own project, we suggest using this.

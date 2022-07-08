@@ -28,7 +28,7 @@ Codyze has three execution modes:
 ## Build & Run Codyze
 
 This repository contains two versions of Codyze, Codyze v2 and Codyze v3. It is set up as a separate composite build so both versions can be built separately.
-Please refer to the READMEs in the `codyze-v2` and `codyze-v3` directories for the build instructions.
+Please refer to the READMEs in the `codyze-v2`(https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v2) and `codyze-v3`(https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3) directories for the concrete build instructions.
 
 
 ## Documentation

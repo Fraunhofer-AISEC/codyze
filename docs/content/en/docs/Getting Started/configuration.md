@@ -16,16 +16,11 @@ To append the data from the command line to the one from the configuration file,
 
 
 # Command Line Interface
-There are three execution modes in which Codyze can run:
-* Command line mode (`-c`, default):
-  <br />Non-interactive command line client, accepts arguments from command line and runs analysis
-* Language server protocol mode  (`-l`):
-  <br />This mode is for IDE support and binds to stdout as a server for Language Server Protocol (LSP)
-* Interactive console mode (`-t`):
-  <br />The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries
+The execution mode is specified in __Codyze v2__ through an option flag (`-c`, `-l` or `-i`).
+For __Codyze v3__ subcommands are used (`analyze`, `lsp`, or `interactive`).
 
 The help and version message can be displayed with `-h` and `-V` respectively.
-
+The full help is only available in __Codyze v3__ if a subcommand is specified. 
 
 # Configuration File
 The configurations can also be defined with a YAML configuration file in __Codyze v2__ or a JSON configuration file in __Codyze v3__. 
@@ -53,7 +48,7 @@ The configuration structure for __Codyze v3__ separates the options by subcomman
   }
 }
 ```
-The value of the option is taken from the object which correspond to the subcommand used for the execution.
+The value of the option is taken from the object which corresponds to the subcommand used for the execution.
 This means if `codyze analyze` is called, source would be `src`, and if `codyze lsp` is called, source would be `other-src`.
 An exemplary configuration file for __Codyze v3__ can also be found in the [GitHub repository](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-v3/codyze/config.json).
 
@@ -74,7 +69,7 @@ The names are the same for the configuration file and the CLI options.
 | disabled-mark-rules     | disabled-spec           | Path[]              | The specified Mark rules will be excluded from being parsed and processed. The rule has to be specified by its fully qualified name (`package.rule`). If there is no package name, specify rule as `.rule`. Use `package.*` to disable an entire package. | `[]`              |
 | no-good-findings        | no-good-findings        | boolean             | Disables output of **positive** findings.                                                                                                                                                                                                                 | false             |
 | pedantic                | pedantic                | boolean             | Activates pedantic analysis mode. In this mode, Codyze analyzes all MARK rules and report all findings. This option overrides "disabled-mark-rules" and "no-good-finding" and ignores any Codyze source code comments.                                    | false             |
-|                         | executor                | String              | Manually choose Executor to use with the given spec files. If unspecified, Codyze randomly selects an executor capable of evaluating the given specification files. New in __Codyze v3__                                                                  | randomly selected |
+|                         | executor                | String              | Manually choose Executor to use with the given spec files. If unspecified, Codyze randomly selects an executor capable of evaluating the given specification files. New in __Codyze v3__.                                                                 | randomly selected |
 | typestate               | typestate               | `DFA/WPDS`          | Specify typestate analysis mode.<br />`DFA`: Deterministic finite automaton (faster, intraprocedural)<br />`WPDS`: Weighted pushdown system (slower, interprocedural)                                                                                     | `DFA`             |
 | additional-languages    | additional-languages    | String[]            | Specify programming languages of to be analyzed files (full names).                                                                                                                                                                                       | `[]`              |
 | unity                   | unity                   | boolean             | Only relevant for C++. A unity build refers to a build that consolidates all translation units into a single one, which has the advantage that header files are only processed once, adding far less duplicate nodes to the graph.                        | false             | 
@@ -88,7 +83,7 @@ The names are the same for the configuration file and the CLI options.
 | fail-on-error           | fail-on-error           | boolean             | Should parser/translation fail on parse/resolving errors (true) or try to continue in a best-effort manner (false).                                                                                                                                       | false             |
 | symbols                 | symbols                 | Map<String, String> | Definition of additional symbols.                                                                                                                                                                                                                         | `{}`              |
 | parallel-frontends      | parallel-frontends      | boolean             | If true, the ASTs for the source files are parsed in parallel, but the passes afterwards will still run in a single thread. This speeds up initial parsing but makes sure that further graph enrichment algorithms remain correct.                        | false             |
-|                         | match-comments-to-nodes | boolean             | Controls whether the CPG frontend shall use a heuristic matching of comments found in the source file to match them to the closest AST node and save it in the comment property. New in __Codyze v3__                                                     | false             |
+|                         | match-comments-to-nodes | boolean             | Controls whether the CPG frontend shall use a heuristic matching of comments found in the source file to match them to the closest AST node and save it in the comment property. New in __Codyze v3__.                                                    | false             |
 | analyze-includes        | analyze-includes        | boolean             | Enables parsing of include files. If includePaths are given, the parser will resolve symbols/templates from these in include but not load their parse tree.                                                                                               | false             |
 | includes                | includes                | Path[]              | Paths containing include files.                                                                                                                                                                                                                           | `[]`              |
 | enabled-includes        | enabled-includes        | Path[]              | If includes is not empty, only the specified files will be parsed and processed in the cpg, unless it is a part of the disabled list, in which it will be ignored.                                                                                        | `[]`              |

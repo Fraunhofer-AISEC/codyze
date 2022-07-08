@@ -14,7 +14,7 @@ Please note that parts of this Codyze are backed by research projects. If you pl
 {{% /pageinfo %}}
 
 
-# Contributing to this documentation
+## Contributing to this documentation
 
 This documentation lives in the same repository as the code and the idea is that both are always consistent. If you make changes in the code that affect the documentation, please update the documentation in the same pull request.
 
@@ -35,7 +35,7 @@ To extend or fix errors in this documentation, proceed as follows:
 1. When you're ready for a review, add a comment to the PR, and remove any
   "WIP" markers.
 
-## Previewing your changes locally
+### Previewing your changes locally
 
 If you want to run your own local Hugo server to preview your changes as you work:
 
@@ -50,13 +50,13 @@ If you want to run your own local Hugo server to preview your changes as you wor
 1. Continue with the usual GitHub workflow to edit files, commit them, push the
   changes up to your fork, and create a pull request.
 
-## Creating an issue
+### Creating an issue
 
 If you've found a problem in the docs, but you're not sure how to fix it yourself, please create an issue in the [Codyze repo](https://github.com/Fraunhofer-AISEC/codyze/issues) and add the label `documentation` to it. You can also create an issue about a specific page by clicking the **Create Issue** button in the top right hand corner of the page.
 
-# Contributing to Codyze
+## Contributing to Codyze
 
-## Opening an issue
+### Opening an issue
 
 We welcome any bug reports! Please use the issue tracker only to report bugs or unexpected behavior. If you have general questions about the project or need help in setting it up, please reach out to us directly and **do not** the issue tracker.
 
@@ -67,7 +67,7 @@ To report a bug, make sure to include the following information:
 1. Can you provide any hints on what might be the cause of the bug and how you think it should be fixed?
 
 
-## Useful resources
+### Useful resources
 
 * [Docsy user guide](https://github.com/google/docsy): All about Docsy, the documentation template we use, including how it manages navigation, look and feel, and multi-language support.
 * [Hugo documentation](https://gohugo.io/documentation/): Comprehensive reference for Hugo.

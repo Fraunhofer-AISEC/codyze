@@ -22,7 +22,7 @@ The purpose of these gradle tasks is as follows:
     * _spotlessApply_ Applies source code formatting with the settings in `formatter-settings.xml`. If the code is not properly formatted the build server will reject it.
     * _build_ Builds the main artifact (the jar file containing Codyze)
     * _publishToMavenLocal_ (optional) publishes the build artifact to your local Maven repository so it is available as a dependency for other projects
-    * _installDist_ Create an executable script for Linux, Mac, and Windows in `build/install/codyze/bin`
+    * _installDist_ Create an executable script for Linux, Mac, and Windows in `codyze-v2/build/install/codyze/bin` or `codyze-v3/codyze/build/install/codyze/bin`
 1. When everything works, `git commit` your changes and `git push` them to Github, then create a pull request (PR). Make sure to describe want you intend the code to do and refer to any issues your PR might address (using the notation `#123`)
 1. If you're not yet ready for a review, add "WIP" to the PR name to indicate it's a work in progress.
 1. Wait for the automated CI workflow to do some checks.
@@ -35,7 +35,7 @@ Codyze uses the gradle _spotless_ plugin to format source code. You may import t
 
 ### Gradle
 
-* Simply run `./gradlew spotlessApply`
+* Simply run `./gradlew :codyze-v2:spotlessApply` or `./gradlew :codyze-v3:codyze:spotlessApply`
 
 ### IntelliJ
 

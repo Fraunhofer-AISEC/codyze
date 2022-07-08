@@ -21,12 +21,14 @@ $ ./bin/codyze-v2 -c -s <sourcepath> -m ./mark -o <outputpath>
 
 `-c` enters command line mode. It will parse all files given by the `-s` argument, analyze them against the MARK policies given by `-m`, and write the findings in JSON format to the file given by `-o`. If `-` is given as the output name, the results will be dumped to stdout.
 
+Note that line numbers of findings in JSON output start by 0.
+
 ### Codyze v3
 ```r
 $ ./bin/codyze analyze -s <sourcepath> --spec ./mark -o <outputpath>
 ```
+`analyze` enters command line mode. `--spec` is the replacement for `-m` since Codyze v3 enables verifying rules from different specification languages. The findings are written in SARIF format. 
 
-Note that line numbers of findings in JSON output start by 0.
 
 
 ## CI/CD Integration

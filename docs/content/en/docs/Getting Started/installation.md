@@ -5,7 +5,7 @@ no_list: true
 weight: 1
 date: 2017-01-05
 description: >
-  Integrate Codyze into your IDE to automatically spot errors in your code or use it as a console application to manually explore source code. This page explains how to install Codyze.
+Integrate Codyze into your IDE to automatically spot errors in your code or use it as a console application to manually explore source code. This page explains how to install Codyze.
 ---
 
 ## Prerequisites
@@ -24,5 +24,11 @@ We're also offering Codyze as a container image. You can find an image with the 
 
 ## Build from Source
 * Clone the source code for Codyze from the [project's GitHub repository <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze).
-* To build an executable version of Codyze, run `./gradlew installDist`
-* The executable Codyze installation is located under `build/install/codyze`
+
+### Codyze v2
+* To build an executable version, run `./gradlew :codyze-v2:installDist`
+* The executable Codyze installation is located under `codyze-v2/build/install/codyze-v2`
+
+### Codyze v3
+* To build an executable version, run `./gradlew :codyze-v3:codyze:installDist`
+* The executable Codyze installation is located under `codyze-v3/codyze/build/install/codyze`

@@ -34,15 +34,31 @@ Use the option `--config=<filepath>` to specify the path to the config file.
 In __Codyze v2__ if `--config` is specified without an option parameter, Codyze will try to load the configuration file from `./codyze.yaml` in the working directory. 
 If the option is not specified, no configuration file will be parsed.
 
-In __Codyze v3__ the configuration from `./codyze.json` will always be loaded if no other file is specified.
+In __Codyze v3__ the configuration from `./config.json` will always be loaded if no other file is specified.
 
 Relative paths in the configuration file are resolved relative to the configuration file location in both versions.
 
-For __Codyze v2__, the JSON schema located at [`schema/codyze-config-schema.json`](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-v2/schema/codyze-config-schema.json) can be used for generating or validating the configuration file.
+For __Codyze v2__, the options are separated into different headers depending on which part of the analysis uses them.
+The JSON schema located at [`schema/codyze-config-schema.json`](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-v2/schema/codyze-config-schema.json) can be used for generating or validating the configuration file.
 Different IDE extensions for using the schema (e.g. for [VSCode](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)) can be found in this [Red Hat blog post](https://developers.redhat.com/blog/2020/11/25/how-to-configure-yaml-schema-to-make-editing-files-easier#yaml_schema).
 
+The configuration structure for __Codyze v3__ separates the options by subcommand as seen below.
+```json
+{
+  "analyze": {
+    "source": "src"
+  },
+  "lsp": {
+    "source": "other-src"
+  }
+}
+```
+The value of the option is taken from the object which correspond to the subcommand used for the execution.
+This means if `codyze analyze` is called, source would be `src`, and if `codyze lsp` is called, source would be `other-src`.
+An exemplary configuration file for __Codyze v3__ can also be found in the [GitHub repository](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-v3/codyze/config.json).
+
 # List of Configurations
-This is a list of all available configurations, their descriptions and their respective name in __Codyze v2__ and __Codyze v3__. They are sorted into different headings so that the heading structure is identical to the one expected in the configuration file of __Codyze v2__.
+This is a list of all available configurations, their descriptions and their respective name in __Codyze v2__ and __Codyze v3__.
 
 The key names are the same for the configuration file and the CLI options. The CLI options of list- and map-type configurations have another name with a plus appended (e.g. `--option-name+`) to append the command line data to the configuration file data.
 

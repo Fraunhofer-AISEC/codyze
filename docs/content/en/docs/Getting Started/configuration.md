@@ -16,6 +16,14 @@ To append the data from the command line to the one from the configuration file,
 
 
 # Command Line Interface
+There are three execution modes in which Codyze can run:
+* Command line mode:
+  <br />Non-interactive command line client, accepts arguments from command line and runs analysis
+* Language server protocol mode:
+  <br />This mode is for IDE support and binds to stdout as a server for Language Server Protocol (LSP)
+* Interactive console mode:
+  <br />The text based user interface (TUI) is an interactive console that allows exploring the analyzed source code by manual queries
+
 The execution mode is specified in __Codyze v2__ through an option flag (`-c`, `-l` or `-i`).
 For __Codyze v3__ subcommands are used (`analyze`, `lsp`, or `interactive`).
 

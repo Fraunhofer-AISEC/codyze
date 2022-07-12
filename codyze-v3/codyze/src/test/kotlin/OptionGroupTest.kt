@@ -91,7 +91,7 @@ class OptionGroupTest {
             Assertions.assertThrows(BadParameterValue::class.java) { cli.parse(argv) }
 
         val expectedMessage =
-            "Invalid value for \"--executor\": invalid choice: testExecutor. (choose from MarkExecutor)"
+            "Invalid value for \"--executor\": invalid choice: testExecutor. (choose from "
         val actualMessage = exception.message
 
         assertTrue(actualMessage!!.contains(expectedMessage))

@@ -25,8 +25,6 @@ tasks.jacocoTestReport {
 
 val libs = the<LibrariesForLibs>()
 dependencies {
-    compileOnly(kotlin("stdlib-jdk8"))
-
     // Logging
     implementation(libs.kotlin.logging)
     runtimeOnly(libs.log4j.impl)

@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.7.0"
+kotlin = "1.7.10"
 gradle-kotlin = "1.5.31"  # TODO: remove in kotlin v1.7.10
 cpg = "4.6.0"
 

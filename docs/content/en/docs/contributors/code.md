@@ -16,7 +16,7 @@ description: >
 
 1. Fork the [Codyze repo](https://github.com/Fraunhofer-AISEC/codyze) on GitHub and clone it, including submodules:<br>`git clone --recurse-submodules git://github.com/<YOUR GITHUB>/codyze`
 1. Create a branch for your contribution. We recommend prefixing the branch name with `fix-` if you are providing a bug fix or `feature-` if you plan to add a feature:<br>`git checkout -b feature-MY_EPIC_FEATURE`
-1. Make your changes and make sure that the project builds without errors, passes all tests, and is properly formatted:<br>__Codyze v2__: `./gradlew :codyze-v2:clean :codyze-v2:spotlessApply :codyze-v2:build :codyze-v2:publishToMavenLocal :codyze-v2:installDist`<br><br>__Codyze v3__: `./gradlew :codyze-v3:codyze:clean :codyze-v3:codyze:spotlessApply :codyze-v3:codyze:build :codyze-v3:codyze:publishToMavenLocal :codyze-v3:codyze:installDist`<br>
+1. Make your changes and make sure that the project builds without errors, passes all tests, and is properly formatted:<br>__Codyze v2__: `./gradlew :codyze-v2:clean :codyze-v2:spotlessApply :codyze-v2:build :codyze-v2:publishToMavenLocal :codyze-v2:installDist`<br>__Codyze v3__: `./gradlew :codyze-v3:codyze:clean :codyze-v3:codyze:spotlessApply :codyze-v3:codyze:build :codyze-v3:codyze:publishToMavenLocal :codyze-v3:codyze:installDist`<br>
 The purpose of these gradle tasks is as follows:
     * _clean_ Removes previous build artifacts
     * _spotlessApply_ Applies source code formatting with the settings in `formatter-settings.xml`. If the code is not properly formatted the build server will reject it.

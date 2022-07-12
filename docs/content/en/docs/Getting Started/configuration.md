@@ -2,7 +2,7 @@
 title: "Configuration"
 linkTitle: "Configure Codyze"
 no_list: true
-weight: 2
+weight: 5
 date: 2022-05-24
 description: >
   Codyze offers a multitude of configurations to customize the analysis to your liking.

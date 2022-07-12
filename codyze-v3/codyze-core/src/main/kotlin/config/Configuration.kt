@@ -4,7 +4,6 @@ import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.nio.file.Path
-import kotlin.io.path.extension
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -45,7 +44,7 @@ data class Configuration(
     }
 
     /** Filename extension of all [spec] files. All [spec] files share the same extension. */
-    val specFileExtension by lazy { spec[0].extension }
+    val specFileExtension by lazy { spec[0].extensions }
 
     companion object {
         /**

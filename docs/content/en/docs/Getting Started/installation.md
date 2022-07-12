@@ -12,16 +12,6 @@ description: >
 * Java 11 or higher
 
 
-## Pre-built Release
-* Download a zipped release of Codyze from our [GitHub release page <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/releases)
-* Unzip the file
-* Execute Codyze using `bin\codyze.bat` (Windows) or `bin/codyze` (Mac, Linux)
-
-## Docker
-We're also offering Codyze as a container image. You can find an image with the latest release in the [project's container registry <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/pkgs/container/codyze).
-
-<!-- TODO: add description of container -->
-
 ## Build from Source
 Clone the source code for Codyze from the [project's GitHub repository <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze).
 
@@ -32,3 +22,18 @@ Clone the source code for Codyze from the [project's GitHub repository <i class=
 ### Codyze v3
 * To build an executable version, run `./gradlew :codyze-v3:codyze:installDist`
 * The executable Codyze installation is located under `codyze-v3/codyze/build/install/codyze`
+
+
+## Pre-built Release
+{{% pageinfo %}}
+All following example calls in this documentation will assume that the source code was cloned and use the exact file structure.
+If you want to test Codyze with these calls, please clone the repository.
+{{% /pageinfo %}}
+* Download a zipped release of Codyze from our [GitHub release page <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/releases)
+* Unzip the file
+* Execute Codyze using `bin\codyze.bat` (Windows) or `bin/codyze` (Mac, Linux)
+
+## Docker
+We're also offering Codyze as a container image. You can find an image with the latest release in the [project's container registry <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/pkgs/container/codyze).
+
+<!-- TODO: add description of container -->

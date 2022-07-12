@@ -31,7 +31,10 @@ class Project(val config: Configuration) {
 
     fun doStuff(): SarifSchema210 {
         executor.initialize(config.toExecutorConfiguration())
-        val results: List<Result> = executor.evaluate(cpg = translationManager.analyze().get())
+        val results: List<Result> =
+            executor.evaluate(
+                analyzer = translationManager
+            ) // TODO: pass the translation manager instead?
 
         // complete SARIF model by integrating results, e.g. add "Codyze" as tool name, etc.
         // TODO what format should we give to LSP?

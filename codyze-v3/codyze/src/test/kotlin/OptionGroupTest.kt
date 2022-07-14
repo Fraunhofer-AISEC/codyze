@@ -15,10 +15,7 @@ import de.fraunhofer.aisec.cpg.passes.Pass
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Stream
-import kotlin.io.path.Path
-import kotlin.io.path.absolute
-import kotlin.io.path.div
-import kotlin.io.path.isRegularFile
+import kotlin.io.path.*
 import kotlin.streams.asSequence
 import kotlin.test.*
 import org.junit.jupiter.api.*
@@ -235,30 +232,31 @@ class OptionGroupTest {
                 OptionGroupTest::class.java.classLoader.getResource("cli-test-directory")
             assertNotNull(topTestDirResource)
             topTestDir = Path(topTestDirResource.path)
-            assertNotNull(topTestDir) // TODO: why is this necessary
+            assertTrue(topTestDir.exists())
 
             val testDir1Resource =
                 OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir1")
             assertNotNull(testDir1Resource)
             testDir1 = Path(testDir1Resource.path)
-            assertNotNull(testDir1)
+            assertTrue(testDir1.exists())
 
             val testDir2Resource =
                 OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir2")
             assertNotNull(testDir2Resource)
             testDir2 = Path(testDir2Resource.path)
-            assertNotNull(testDir2)
+            assertTrue(testDir2.exists())
 
             val testDir3SpecResource =
                 OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir3-spec")
             assertNotNull(testDir3SpecResource)
             testDir3Spec = Path(testDir3SpecResource.path)
+            assertTrue(testDir3Spec.exists())
 
             val testFile1Resource =
                 OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/file1.java")
             assertNotNull(testFile1Resource)
             testFile1 = Path(testFile1Resource.path)
-            assertNotNull(testFile1)
+            assertTrue(testFile1.exists())
 
             allFiles = Files.walk(topTestDir).asSequence().filter { it.isRegularFile() }.toList()
         }

@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.codyze_core.config.TypestateMode
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
@@ -18,14 +19,9 @@ class CodyzeCliTest {
         override fun run() {}
     }
 
-    fun initCli(
-        configFile: Path,
-        subcommands: Array<CliktCommand>,
-        argv: Array<String>
-    ): CodyzeCli {
+    fun initCli(configFile: Path, subcommands: Array<CliktCommand>, argv: Array<String>) {
         val command = CodyzeCli(configFile).subcommands(*subcommands)
         command.parse(argv)
-        return command
     }
 
     // Test that relative paths are resolved relative to the config file
@@ -110,7 +106,7 @@ class CodyzeCliTest {
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/path-config.json")
             assertNotNull(pathConfigFileResource)
             pathConfigFile = Path(pathConfigFileResource.path)
-            assertNotNull(pathConfigFile)
+            assertTrue(pathConfigFile.exists())
 
             val correctConfigFileResource =
                 CodyzeCliTest::class
@@ -119,31 +115,31 @@ class CodyzeCliTest {
                     .getResource("config-files/correct-config.json")
             assertNotNull(correctConfigFileResource)
             correctConfigFile = Path(correctConfigFileResource.path)
-            assertNotNull(correctConfigFile)
+            assertTrue(correctConfigFile.exists())
 
             val fileYmlResource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/file.yml")
             assertNotNull(fileYmlResource)
             fileYml = Path(fileYmlResource.path)
-            assertNotNull(fileYml)
+            assertTrue(fileYml.exists())
 
             val specMarkResource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/spec/spec.mark")
             assertNotNull(specMarkResource)
             specMark = Path(specMarkResource.path)
-            assertNotNull(specMark)
+            assertTrue(specMark.exists())
 
             val specMark2Resource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/spec2.mark")
             assertNotNull(specMark2Resource)
             spec2Mark = Path(specMark2Resource.path)
-            assertNotNull(spec2Mark)
+            assertTrue(spec2Mark.exists())
 
             val srcMainJavaResource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/src/main/java")
             assertNotNull(srcMainJavaResource)
             srcMainJava = Path(srcMainJavaResource.path)
-            assertNotNull(srcMainJava)
+            assertTrue(srcMainJava.exists())
         }
     }
 }

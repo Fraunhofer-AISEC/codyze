@@ -8,7 +8,9 @@ repositories {
 
 dependencies {
     implementation(libs.kotlin.gradle)
-    implementation(libs.dokka.gradle)
+    implementation(libs.dokka.gradle){
+        exclude("org.jetbrains.kotlin")
+    }
     implementation(libs.sonarqube.gradle)
     implementation(libs.spotless.gradle)
     implementation(libs.license.gradle)

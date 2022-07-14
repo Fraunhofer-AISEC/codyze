@@ -11,9 +11,21 @@ import kotlin.io.path.exists
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
-import org.koin.core.context.startKoin
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.koin.test.KoinTest
+import org.koin.test.junit5.KoinTestExtension
 
-class CodyzeCliTest {
+class CodyzeCliTest : KoinTest {
+
+    @JvmField
+    @RegisterExtension
+    // starting koin is necessary because some options (e.g., --executor)
+    // dynamically look up available choices for the by options(...).choice() command
+    val koinTestExtension =
+        KoinTestExtension.create { // Initialize the koin dependency injection
+            // declare modules necessary for testing
+            modules(executorModule)
+        }
 
     class TestSubcommand : CodyzeSubcommand() {
         override fun run() {}
@@ -95,12 +107,6 @@ class CodyzeCliTest {
         @BeforeAll
         @JvmStatic
         fun startup() {
-            startKoin { // Initialize the koin dependency injection
-                // use Koin logger
-                printLogger()
-                // declare modules
-                modules(executorModule, subcommandModule)
-            }
 
             val pathConfigFileResource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/path-config.json")

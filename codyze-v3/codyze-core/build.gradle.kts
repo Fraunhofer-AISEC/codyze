@@ -1,5 +1,5 @@
 plugins {
-    id("documented-module")
+    id("documented-module-test")
 }
 
 dependencies {

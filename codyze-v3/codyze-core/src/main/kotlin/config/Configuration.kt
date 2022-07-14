@@ -40,7 +40,7 @@ data class Configuration(
     // perform some validation
     // the same validation should be performed when parsing the CLI arguments/options
     init {
-        validateSpec(spec)
+        validateSpec(spec)  // TODO: do we have to do this or can we just resolve directories ourselves?
     }
 
     /** Filename extension of all [spec] files. All [spec] files share the same extension. */
@@ -192,7 +192,7 @@ data class Configuration(
         var goodFindings = this.goodFindings
         if (this.pedantic and !goodFindings) {
             goodFindings = true // In pedantic analysis mode all findings reported
-            logger.info { "Normalized 'goodFindings' to true because 'pedantic' is true" }
+            logger.warn { "Normalized 'goodFindings' to true because 'pedantic' is true" }
         }
 
         var loadIncludes = this.cpgConfiguration.loadIncludes
@@ -200,7 +200,7 @@ data class Configuration(
             loadIncludes =
                 true // we need to force load includes for unity builds, otherwise nothing will be
             // parsed
-            logger.info { "Normalized 'loadIncludes' to true because 'useUnityBuild' is true" }
+            logger.warn { "Normalized 'loadIncludes' to true because 'useUnityBuild' is true" }
         }
 
         // construct the normalized configuration objects

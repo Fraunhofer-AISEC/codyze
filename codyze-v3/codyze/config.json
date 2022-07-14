@@ -2,7 +2,7 @@
   "analyze": {
     "good-findings": false,
     "timeout": 5,
-    "spec": "../../codyze-v2/src/test/resources/real-examples/bc/rwedoff.Password-Manager",
+    "spec": "../codyze-specification-languages/coko/nwt-example/my.coko.kts",
     "source": ["../../codyze-v2/src/test/resources/real-examples/bc/rwedoff.Password-Manager"],
     "disabled-specs": [""],
     "typestate": "DFA"

@@ -10,7 +10,7 @@ dependencies {
     implementation(libs.kotlin.gradle)
     implementation(libs.dokka.gradle){
         exclude("org.jetbrains.kotlin")
-    }
+    }  // this fixes https://github.com/Kotlin/dokka/issues/2546. TODO: Re-evaluate for Gradle 7.5!
     implementation(libs.sonarqube.gradle)
     implementation(libs.spotless.gradle)
     implementation(libs.license.gradle)

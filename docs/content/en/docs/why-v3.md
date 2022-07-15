@@ -1,9 +1,8 @@
 ---
-title: "Why Codyze v3"
-linkTitle: "Why Codyze v3"
+title: "Why Codyze v3?"
+linkTitle: "Why Codyze v3?"
 date: 2022-07-12
 no_list: true
-weight: 4
 description: >
   Differences between Codyze v3 and Codyze v2
 ---

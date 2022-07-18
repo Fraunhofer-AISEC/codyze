@@ -1,0 +1,5 @@
+codyze:
+  disabled-mark-rules:
+    - package.mark1
+    - .mark2
+    - package0.mark123

@@ -1,0 +1,3 @@
+source:
+   - /absolute/path/to/source
+output: ../relative/path/to/output

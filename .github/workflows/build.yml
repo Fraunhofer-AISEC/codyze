@@ -41,13 +41,13 @@ jobs:
         run: |
           if [ "$SONAR_TOKEN" != "" ]
           then
-            ./gradlew --parallel -Pversion=$VERSION spotlessCheck build sonarqube \
+            ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze-v2:spotlessCheck :codyze-v2:build :codyze-v2:sonarqube \
             -Dsonar.projectKey=codyze \
             -Dsonar.organization=fraunhofer-aisec \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN
           else
-            ./gradlew --parallel -Pversion=$VERSION spotlessCheck build
+            ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze-v2:spotlessCheck :codyze-v2:build
           fi
         id: build
         env:
@@ -59,25 +59,25 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: test
-          path: build/reports/tests/test
+          path: codyze-v2/build/reports/tests/test
       - name: Prepare Node.js
         uses: actions/setup-node@v3
-        with: 
+        with:
           node-version: "16"
       - name: Build Visual Studio Code Plugin
         run: |
-          pushd plugins/vscode && npm version $VERSION || true && npm install -g vsce && npm install && vsce package && popd
+          pushd vscode_plugin && npm version $VERSION || true && npm install -g vsce && npm install && vsce package && popd
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
       - name: Archive Visual Studio Code Plugin
         uses: actions/upload-artifact@v3
         with:
           name: vscode-codyze.vsix
-          path: plugins/vscode/vscode-codyze-0.0.0.vsix
+          path: vscode_plugin/vscode/vscode-codyze-0.0.0.vsix
       - name: Push Release Docker Image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker build -t ghcr.io/fraunhofer-aisec/codyze:latest .
+          docker build -t ghcr.io/fraunhofer-aisec/codyze:latest codyze-v2/
           docker tag ghcr.io/fraunhofer-aisec/codyze:latest ghcr.io/fraunhofer-aisec/codyze:$VERSION
           docker push ghcr.io/fraunhofer-aisec/codyze:$VERSION
           docker push ghcr.io/fraunhofer-aisec/codyze:latest
@@ -103,7 +103,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/distributions/codyze-${{ steps.determine_version.outputs.version }}.zip
+          asset_path: codyze-v2/build/distributions/codyze-v2-${{ steps.determine_version.outputs.version }}.zip
           asset_name: codyze-${{ steps.determine_version.outputs.version }}.zip
           asset_content_type: application/zip
       - name: "Upload Plugin Asset"
@@ -114,6 +114,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: plugins/vscode/vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
+          asset_path: vscode_plugin/vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
           asset_name: vscode-codyze-${{ steps.determine_version.outputs.version }}.vsix
           asset_content_type: application/zip

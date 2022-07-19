@@ -20,7 +20,7 @@ To actually run codyze-v3 you must specify a subcommand:
 ```shell
 $ ./gradlew :codyze-v3:codyze:run --args="analyze"
 ```
-This will run the 'analyze' subcommand using the demo config file (codyze-v3/codyze/config.json).
+This will run the 'analyze' subcommand using the demo config file (codyze-v3/codyze/codyze.json).
 
 ## License
 

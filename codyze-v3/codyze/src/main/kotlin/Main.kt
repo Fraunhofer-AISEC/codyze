@@ -39,7 +39,7 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
  * The configFile is actually parsed in the [ConfigFileParser] command and then passed to this class
  * as an argument
  */
-class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "config.json")) :
+class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "codyze.json")) :
     CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
     init {
         versionOption("1.0", names = setOf("--version", "-V")) // TODO get actual version

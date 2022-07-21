@@ -20,12 +20,25 @@ import kotlin.streams.asSequence
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.koin.core.context.startKoin
+import org.koin.test.KoinTest
+import org.koin.test.junit5.KoinTestExtension
 
-class OptionGroupTest {
+class OptionGroupTest : KoinTest {
+
+    @JvmField
+    @RegisterExtension
+    // starting koin is necessary because some options (e.g., --executor)
+    // dynamically look up available choices for the by options(...).choice() command
+    val koinTestExtension =
+        KoinTestExtension.create { // Initialize the koin dependency injection
+            // declare modules necessary for testing
+            modules(executorModule)
+        }
+
     class CodyzeOptionsCommand : CliktCommand() {
         val codyzeOptions by CodyzeOptions()
         override fun run() {}
@@ -221,12 +234,6 @@ class OptionGroupTest {
         @BeforeAll
         @JvmStatic
         fun startup() {
-            // starting koin is necessary because some options (e.g., --executor)
-            // dynamically look up available choices for the by options(...).choice() command
-            startKoin { // Initialize the koin dependency injection
-                // declare modules necessary for testing
-                modules(executorModule)
-            }
 
             val topTestDirResource =
                 OptionGroupTest::class.java.classLoader.getResource("cli-test-directory")

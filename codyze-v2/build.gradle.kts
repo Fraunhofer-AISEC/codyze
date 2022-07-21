@@ -226,7 +226,3 @@ jsonSchema2Pojo {
     removeOldOutput.set(true)
     // ... more options
 }
-
-tasks.register<Wrapper>("wrapper") {
-    gradleVersion = "7.4.2"
-}

@@ -225,3 +225,10 @@ jsonSchema2Pojo {
     removeOldOutput.set(true)
     // ... more options
 }
+
+tasks.javadoc.configure() {
+    setDestinationDir(
+        projectDir.resolve("..").resolve("docs").resolve("static").resolve("api").resolve("codyze-v2")
+    )
+}
+

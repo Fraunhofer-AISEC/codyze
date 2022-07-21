@@ -30,6 +30,7 @@ pygmentsUseClassic = false
 # See https://help.farbox.com/pygments.html
 pygmentsStyle = "tango"
 
+
 # Configure how URLs look like per section.
 [permalinks]
 blog = "/:section/:year/:month/:day/:slug/"
@@ -106,6 +107,10 @@ algolia_docsearch = false
 # Enable Lunr.js offline search
 offlineSearch = true
 
+# Enable syntax highlighting and copy buttons on code blocks with Prism
+prism_syntax_highlighting = true
+
+
 # User interface configuration
 [params.ui]
 # Enable to show the side bar menu in its compact state.
@@ -162,4 +167,3 @@ no = 'Sorry to hear that. Please <a href="https://github.com/USERNAME/REPOSITORY
 #	url = "https://codyze.io/mail"
 #	icon = "fa fa-envelope"
 #        desc = "Discuss development issues around the project"
-

@@ -82,4 +82,4 @@ The findings are located in the file `findings.sarif` in the respective project 
 Looking into the findings, there are two passes for the rule `WrongBlockCipher` which means that the correct algorithm `AES` was used for the block ciphers in line 16 and 22.
 There are also two open findings for the rule `BadKeyLength` since the key length was not explicitly set.
 The last open finding is for the rule `WrongUseOfBotan_CipherMode`.
-// TODO why?
+// TODO is this correct? there is no location in finding...

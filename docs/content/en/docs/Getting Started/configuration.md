@@ -37,7 +37,7 @@ Use the option `--config=<filepath>` to specify the path to the config file.
 In __Codyze v2__ if `--config` is specified without an option parameter, Codyze will try to load the configuration file from `./codyze.yaml` in the working directory. 
 If the option is not specified, no configuration file will be parsed.
 
-In __Codyze v3__ the configuration from `./config.json` will always be loaded if no other file is specified.
+In __Codyze v3__ the configuration from `./codyze.json` will always be loaded if no other file is specified.
 
 Relative paths in the configuration file are resolved relative to the configuration file location in both versions.
 

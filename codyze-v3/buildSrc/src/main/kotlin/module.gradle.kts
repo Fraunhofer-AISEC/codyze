@@ -30,6 +30,10 @@ dependencies {
     // Logging
     implementation(libs.kotlin.logging)
     runtimeOnly(libs.log4j.impl)
+
+    // Unit tests
+    testImplementation(kotlin("test"))
+    testImplementation(libs.junit.params)
 }
 
 repositories {

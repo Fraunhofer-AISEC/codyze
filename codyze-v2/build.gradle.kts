@@ -169,6 +169,7 @@ sourceSets.getByName("test").resources {
     srcDir("src/dist")
 }
 
+/*
 tasks.named("compileJava") {
     dependsOn(":spotlessApply")
 }
@@ -193,7 +194,7 @@ spotless {
         ktfmt().kotlinlangStyle()
     }
 }
-
+*/
 downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = "compileClasspath"
@@ -224,4 +225,8 @@ jsonSchema2Pojo {
     targetPackage.set("de.fraunhofer.aisec.codyze.sarif.schema")
     removeOldOutput.set(true)
     // ... more options
+}
+
+tasks.register<Wrapper>("wrapper") {
+    gradleVersion = "7.4.2"
 }

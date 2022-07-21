@@ -1,0 +1,4 @@
+jdk:
+  - openjdk11 #eclipse-temurin
+install:
+  - ./codyze-v2/gradlew clean install -xtest

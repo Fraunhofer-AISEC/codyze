@@ -170,24 +170,23 @@ sourceSets.getByName("test").resources {
 }
 
 tasks.named("compileJava") {
-    dependsOn("spotlessApply")
+    dependsOn(":spotlessApply")
 }
-
 
 // state that JSON schema parser must run before compiling Kotlin
 tasks.named("compileKotlin") {
-    dependsOn("generateJsonSchema2DataClass")
+    dependsOn(":generateJsonSchema2DataClass")
 }
 
 tasks.named("sonarqube") {
-    dependsOn("jacocoTestReport")
+    dependsOn(":jacocoTestReport")
 }
 
 spotless {
     java {
         // exclude automatically generated files
         targetExclude("build/generated/**/*.java")
-        eclipse().configFile(rootProject.file("codyze-v2/formatter-settings.xml"))
+        eclipse().configFile(rootProject.file("formatter-settings.xml"))
     }
 
     kotlin {

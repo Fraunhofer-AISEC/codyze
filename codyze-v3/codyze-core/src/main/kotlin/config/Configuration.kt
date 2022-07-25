@@ -40,7 +40,9 @@ data class Configuration(
     // perform some validation
     // the same validation should be performed when parsing the CLI arguments/options
     init {
-        validateSpec(spec)  // TODO: do we have to do this or can we just resolve directories ourselves?
+        validateSpec(
+            spec
+        ) // TODO: do we have to do this or can we just resolve directories ourselves?
     }
 
     /** Filename extension of all [spec] files. All [spec] files share the same extension. */

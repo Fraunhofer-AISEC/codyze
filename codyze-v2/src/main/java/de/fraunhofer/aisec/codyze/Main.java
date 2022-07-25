@@ -141,7 +141,7 @@ public class Main {
 		public File configFile;
 
 		@Unmatched
-		public List<String> remainder = Collections.emptyList();
+		public List<String> remainder = new ArrayList<>();
 	}
 
 	// Combines all CLI Options from the different classes to be able to render a complete help message

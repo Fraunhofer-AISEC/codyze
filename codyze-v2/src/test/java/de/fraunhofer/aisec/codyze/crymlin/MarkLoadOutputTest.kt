@@ -60,7 +60,9 @@ internal class MarkLoadOutputTest {
         fun startup() {
             val resource =
                 MarkLoadOutputTest::class
-                    .java.classLoader.getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark")
+                    .java
+                    .classLoader
+                    .getResource("mark/PoC_MS1/Botan_AutoSeededRNG.mark")
             assertNotNull(resource)
             val markPoC1 = File(resource.file)
             assertNotNull(markPoC1)

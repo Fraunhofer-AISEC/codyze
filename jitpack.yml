@@ -1,4 +1,5 @@
 before_install:
+  - sdk update
   - sdk install java 11.0.15-tem
   - sdk use java 11.0.15-tem
 install:

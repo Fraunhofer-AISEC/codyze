@@ -1,34 +1,31 @@
 package de.fraunhofer.aisec.codyze
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.options.*
-import de.fraunhofer.aisec.codyze_core.AnalysisServer
 import de.fraunhofer.aisec.codyze_core.Project
-import java.nio.file.Path
-import java.time.Duration
-import java.time.Instant
+import de.fraunhofer.aisec.codyze_core.ProjectServer
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-@Suppress("UNUSED")
-class Analyze : CliktCommand("Analyze a set of source files") {
-    // This is only here to correctly display the help message
-    private val unusedConfigFile: Path by configFileOption()
+/** Subcommand that analyzes a set of source files */
+class Analyze : CodyzeSubcommand("Analyze a set of source files") {
+    // possibly add subcommand-analyze specific options here
 
-    val codyzeOptions by CodyzeOptions()
-    val analysisOptions by AnalysisOptions()
-    val cpgOptions by CPGOptions()
-    val translationOptions by TranslationOptions()
-
+    @OptIn(ExperimentalTime::class)
     override fun run() {
         logger.debug { "Executing 'analyze' subcommand..." }
 
-        val start = Instant.now()
-        val project: Project = AnalysisServer.connect(config = ConfigurationRegister.toConfiguration())
+        val (project: Project, projectServerDuration: Duration) =
+            measureTimedValue {
+                ProjectServer.connect(config = ConfigurationRegister.toConfiguration())
+            }
         logger.debug {
-            "Analysis server started in ${ Duration.between(start, Instant.now()).toMillis() } ms"
+            "Project server started in ${ projectServerDuration.inWholeMilliseconds } ms"
         }
 
         logger.info { "Analyzing following sources ${project.config.cpgConfiguration.source}" }
@@ -39,5 +36,6 @@ class Analyze : CliktCommand("Analyze a set of source files") {
 
         val result = project.doStuff()
         // TODO print results
+        println(Json.encodeToString(result))
     }
 }

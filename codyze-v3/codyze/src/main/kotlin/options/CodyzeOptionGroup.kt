@@ -5,11 +5,11 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
-import de.fraunhofer.aisec.codyze_core.AnalysisServer
 import de.fraunhofer.aisec.codyze_core.Executor
+import de.fraunhofer.aisec.codyze_core.ProjectServer
+import de.fraunhofer.aisec.codyze_core.config.validateSpec
 import java.nio.file.Path
 import kotlin.io.path.Path
-import kotlin.io.path.extension
 
 @Suppress("UNUSED")
 class CodyzeOptions : OptionGroup(name = "Codyze Options") {
@@ -68,9 +68,7 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
         option("--spec", help = "Loads the given specification files.")
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple(required = true)
-            .check("All given specification files must be of the same file type") {
-                spec.all { it.extension == spec[0].extension }
-            }
+            .validateFromError { validateSpec(spec) }
     private val rawSpecAdditions: List<Path> by
         option(
                 "--spec-additions",
@@ -98,6 +96,18 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple()
+    // TODO: get specDescription from spec files? Now that Codyze does not check their file type
+    // anymore, this is an option
+    val specDescription: Path by
+        option("--spec-description", help = "A .json file mapping rule IDs to rule descriptions.")
+            .path(mustExist = true, mustBeReadable = true)
+            .default(Path(System.getProperty("user.dir"), "findingDescription.json"))
+            .also { ConfigurationRegister.addOption("specDescription", it) }
+    val disabledSpecRules: List<String> by
+        option("--disabled-spec-rules", help = "Rules that will be ignored by the analysis.")
+            .multiple()
+            .also { ConfigurationRegister.addOption("disabledSpecRules", it) }
+
     /**
      * Lazy property that combines all given specs from the different options into a list of spec
      * files to use.
@@ -126,11 +136,10 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
                 help =
                     "Manually choose Executor to use with the given spec files. If unspecified, Codyze randomly selects an executor capable of evaluating the given specification files."
             )
-            .choice(
-                *(AnalysisServer.executors.map { it.name }).toTypedArray(),
-                ignoreCase = true
-            )
-            .convert { it.let { AnalysisServer.executors.first { executor -> executor.name == it } } }
+            .choice(*(ProjectServer.executors.map { it.name }).toTypedArray(), ignoreCase = true)
+            .convert {
+                it.let { ProjectServer.executors.first { executor -> executor.name == it } }
+            }
             .also { ConfigurationRegister.addOption("executor", it) }
 
     val output: Path by

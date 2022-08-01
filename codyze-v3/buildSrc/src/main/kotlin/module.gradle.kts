@@ -8,11 +8,14 @@ plugins {
 
     id("org.sonarqube")
     id("com.diffplug.spotless")
-    // id("com.github.hierynomus.license")
 }
 
-group = "de.fraunhofer.aisec"
-version = "1.0-SNAPSHOT"
+// bundle codyze's version for all jars to use it at runtime
+tasks.withType<Jar>().configureEach {
+    manifest {
+        attributes(mapOf("CodyzeVersion" to project.version))
+    }
+}
 
 tasks.jacocoTestReport {
     reports {
@@ -23,8 +26,8 @@ tasks.jacocoTestReport {
 val libs = the<LibrariesForLibs>()
 dependencies {
     // Logging
-    implementation(libs.kotlin.logging.get())
-    runtimeOnly(libs.log4j.impl.get())
+    implementation(libs.kotlin.logging)
+    runtimeOnly(libs.log4j.impl)
 
     // Unit tests
     testImplementation(kotlin("test"))
@@ -59,20 +62,25 @@ repositories {
     }
 }
 
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "11"
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
 }
 
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "11"
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs = listOf(
+            "-opt-in=kotlin.RequiresOptIn"
+        )
+        allWarningsAsErrors = project.findProperty("warningsAsErrors") == "true"
+    }
 }
 
 // state that JSON schema parser must run before compiling Kotlin
-//tasks.named("compileKotlin") {
-//    dependsOn(":spotlessApply")
-//}
+tasks.named("compileKotlin") {
+    dependsOn("spotlessApply")
+}
 
 tasks.named("sonarqube") {
     dependsOn(":jacocoTestReport")

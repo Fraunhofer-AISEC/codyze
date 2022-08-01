@@ -5,7 +5,6 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
 import de.fraunhofer.aisec.codyze_core.config.Language
 import de.fraunhofer.aisec.cpg.passes.Pass
-import java.io.File
 
 @Suppress("UNUSED")
 class CPGOptions : OptionGroup(name = "CPG Options") {
@@ -108,8 +107,7 @@ class CPGOptions : OptionGroup(name = "CPG Options") {
             .also { ConfigurationRegister.addOption("additionalLanguages", it) }
 
     private val rawSymbols: Map<String, String> by
-        option("--symbols", help = "Definition of additional symbols.")
-            .associate()
+        option("--symbols", help = "Definition of additional symbols.").associate()
     private val rawSymbolsAdditions: Map<String, String> by
         option(
                 "--symbols-additions",

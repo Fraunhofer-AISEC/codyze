@@ -793,7 +793,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                       and simply check if the call stmt matches the one in the "op" spec.
                       "Matches" means that it matches the function and valInScope is either one of the arguments or is assigned the call's return value.
                     */
-                    if (assignerFqn != null &&
+                    if (
+                        assignerFqn != null &&
                             opStatement.call.name == assignerFqn &&
                             (assigneeVar != null // is return value assigned to valInScope?
                             ||
@@ -807,7 +808,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                     }
                 } else {
                     for (type in types) {
-                        if (type.typeName.startsWith(
+                        if (
+                            type.typeName.startsWith(
                                 Utils.getScope(opStatement.call.name).replace("::", ".")
                             ) // Dirty: startsWith() to ignore modifiers (such as "*").
                             && opStatement.call.name.endsWith(this.name)
@@ -882,7 +884,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                           and simply check if the call stmt matches the one in the "op" spec.
                           "Matches" means that it matches the function and valInScope is either one of the arguments or is assigned the call's return value.
                         */
-                        if (assignerFqn != null &&
+                        if (
+                            assignerFqn != null &&
                                 opStatement.call.name == assignerFqn &&
                                 (assigneeVar != null // is return value assigned to valInScope?
                                 ||
@@ -896,7 +899,8 @@ class TypestateAnalysis(private val markContextHolder: MarkContextHolder) {
                         }
                     } else {
                         for (type in types) {
-                            if (type.typeName.startsWith(
+                            if (
+                                type.typeName.startsWith(
                                     Utils.getScope(opStatement.call.name).replace("::", ".")
                                 ) // Dirty: startsWith() to ignore modifiers (such as "*").
                                 && opStatement.call.name.endsWith(this.name)

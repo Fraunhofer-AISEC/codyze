@@ -177,7 +177,8 @@ internal class GithubTest : AbstractTest() {
         val logFiltered: MutableList<LogEvent?> = ArrayList()
         var hasParseError = false
         for (x in log) {
-            if (x.message.formattedMessage.contains(
+            if (
+                x.message.formattedMessage.contains(
                     "Parsing of type class org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTProblemStatement is not supported (yet)"
                 ) || x.message.formattedMessage.contains("JavaParser could not parse file")
             ) {

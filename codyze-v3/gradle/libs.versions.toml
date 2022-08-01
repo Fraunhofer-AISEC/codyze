@@ -23,7 +23,7 @@ kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.
 
 dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }
 sonarqube-gradle = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version = "3.4.0.2513" }
-spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.8.0" }
+spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.9.0" }
 license-gradle = { module = "com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin", version = "0.16.1" }
 
 [bundles]
@@ -33,5 +33,5 @@ cpg = ["cpg-core", "cpg-analysis"]
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
 dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
 sonarqube = { id = "org.sonarqube", version = "3.4.0.2513" }
-spotless = { id = "com.diffplug.spotless", version = "6.8.0" }
+spotless = { id = "com.diffplug.spotless", version = "6.9.0" }
 license = { id = "com.github.hierynomus.license", version = "0.16.1" }

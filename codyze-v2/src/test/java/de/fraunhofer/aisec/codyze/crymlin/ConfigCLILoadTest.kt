@@ -396,21 +396,27 @@ class ConfigCLILoadTest {
         fun startup() {
             val correctStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("config-files/correct_structure.yml")
+                    .java
+                    .classLoader
+                    .getResource("config-files/correct_structure.yml")
             assertNotNull(correctStructureResource)
             correctFile = File(correctStructureResource.file)
             assertNotNull(correctFile)
 
             val incorrectStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("config-files/incorrect_structure.yml")
+                    .java
+                    .classLoader
+                    .getResource("config-files/incorrect_structure.yml")
             assertNotNull(incorrectStructureResource)
             incorrectFile = File(incorrectStructureResource.file)
             assertNotNull(incorrectFile)
 
             val additionalOptionResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("config-files/additional_options.yml")
+                    .java
+                    .classLoader
+                    .getResource("config-files/additional_options.yml")
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
@@ -423,7 +429,9 @@ class ConfigCLILoadTest {
 
             val sourceDisablingResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("config-files/source_disabling.yml")
+                    .java
+                    .classLoader
+                    .getResource("config-files/source_disabling.yml")
             assertNotNull(sourceDisablingResource)
             sourceDisablingFile = File(sourceDisablingResource.file)
             assertNotNull(sourceDisablingFile)

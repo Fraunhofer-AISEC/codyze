@@ -4,7 +4,8 @@
     ":disableDependencyDashboard",
     ":assignAndReview(fwendland)",
     ":enableVulnerabilityAlerts",
-    ":separateMultipleMajorReleases"
+    ":separateMultipleMajorReleases",
+    "docker:disableMajor"
   ],
   "ignoreDeps": [
     "de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark"

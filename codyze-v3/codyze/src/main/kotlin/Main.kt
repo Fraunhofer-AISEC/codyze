@@ -23,6 +23,7 @@ private val logger = KotlinLogging.logger {}
  * This class is only used as a pre-parser to parse the --config option and provide the received
  * config[[Path]] as context to the [[CodyzeCli]] command.
  */
+@Suppress("UNUSED")
 class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
     val configFile: Path? by configFileOption()
     val arguments by
@@ -36,15 +37,16 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
 /**
  * Main [CliktCommand]. Provides some options to all included subcommands.
  *
- * The configFile is actually parsed in the [ConfigFileParser] command and then passed to this class
- * as an argument
+ * @param configFile The configFile is actually parsed in the [ConfigFileParser] command and then
+ * passed to this class as an argument
  */
-class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "codyze.json")) :
+class CodyzeCli(val configFile: Path? = null) :
     CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
     init {
         versionOption("1.0", names = setOf("--version", "-V")) // TODO get actual version
         context {
-            valueSource = JsonValueSource.from(configFile, requireValid = true)
+            if (configFile != null)
+                valueSource = JsonValueSource.from(configFile, requireValid = true)
             helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")
         }
     }

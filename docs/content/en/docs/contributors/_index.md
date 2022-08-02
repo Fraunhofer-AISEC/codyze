@@ -40,13 +40,15 @@ To extend or fix errors in this documentation, proceed as follows:
 If you want to run your own local Hugo server to preview your changes as you work:
 
 1. Install Hugo and any other tools you need. You'll need at least **Hugo version 0.45** (we recommend using the most recent available version), and it must be the **extended** version, which supports SCSS.
-1. Fork the [Codyze repo](https://github.com/Fraunhofer-AISEC/codyze) repo into your own project, then create a local copy using `git clone`. Don’t forget to use `--recurse-submodules` or you won’t pull down some of the code you need to generate a working site.
+1. Fork the [Codyze repo](https://github.com/Fraunhofer-AISEC/codyze) into your own project, then create a local copy using `git clone`. Don’t forget to use `--recurse-submodules` or you won’t pull down some of the code you need to generate a working site.
 
     ```
-    git clone --recurse-submodules --depth 1 https://github.com/google/docsy-example.git
+    git clone --recurse-submodules --depth 1 https://github.com/Fraunhofer-AISEC/codyze
     ```
 
-1. Run `hugo server` in the site root directory. By default your site will be available at http://localhost:1313/. Now that you're serving your site locally, Hugo will watch for changes to the content and automatically refresh your site.
+1. We use the `docsy` theme for hugo which has some dependencies. Please refer to the [docsy documentation](https://www.docsy.dev/docs/get-started/other-options/#prerequisites) for the prerequisites.
+1. Run `./gradlew :codyze-v2:dokkaHtml :codyze-v3:dokkaHtmlMultiModule` to generate the API pages, since hugo expects them to be in the `docs/static` directory.
+1. Run `hugo server` in the `docs` directory. By default your site will be available at http://localhost:1313/. Now that you're serving your site locally, Hugo will watch for changes to the content and automatically refresh your site.
 1. Continue with the usual GitHub workflow to edit files, commit them, push the
   changes up to your fork, and create a pull request.
 

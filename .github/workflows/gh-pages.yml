@@ -1,13 +1,21 @@
 name: GitHub Pages
 
 on:
-  push:
-    branches:
-      - main  # Set a branch to deploy
-  pull_request:
+  workflow_dispatch:
 
 jobs:
+  build-api:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - name: Build API pages
+        run: ./gradlew :codyze-v2:dokkaHtml :codyze-v3:dokkaHtmlMultiModule
+
   deploy:
+    needs: build-api
     runs-on: ubuntu-20.04
     permissions:
       contents: write
@@ -29,9 +37,6 @@ jobs:
 
       - name: Install Docsy Dependencies
         run: npm install -D autoprefixer postcss-cli postcss
-
-      - name: Build API pages
-        run: ../gradlew :codyze-v2:dokkaHtml :codyze-v3:dokkaHtmlMultiModule
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2

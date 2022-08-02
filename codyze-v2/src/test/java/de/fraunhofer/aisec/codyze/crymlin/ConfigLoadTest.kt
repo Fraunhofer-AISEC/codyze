@@ -179,21 +179,50 @@ internal class ConfigLoadTest {
         var config = Configuration.initConfig(paths1File, "-c")
         assertNotNull(config.source)
         assertContentEquals(
-            listOf(File("/absolute/path/to/source").absolutePath),
+            listOf(
+                File(File.separator)
+                    .resolve("absolute")
+                    .resolve("path")
+                    .resolve("to")
+                    .resolve("source")
+                    .absolutePath
+            ),
             config.source.map { f -> f.absolutePath }
         )
         assertEquals(
-            File(paths1File.absoluteFile.parent, "../relative/path/to/output").absolutePath,
+            paths1File.absoluteFile.parentFile
+                .resolve("..")
+                .resolve("relative")
+                .resolve("path")
+                .resolve("to")
+                .resolve("output")
+                .absolutePath,
             config.output
         )
 
         config = Configuration.initConfig(paths2File, "-c")
         assertNotNull(config.source)
         assertContentEquals(
-            listOf(File(paths2File.absoluteFile.parent, "../relative/path/to/source").absolutePath),
+            listOf(
+                paths2File.absoluteFile.parentFile
+                    .resolve("..")
+                    .resolve("relative")
+                    .resolve("path")
+                    .resolve("to")
+                    .resolve("source")
+                    .absolutePath
+            ),
             config.source.map { f -> f.absolutePath }
         )
-        assertEquals("/absolute/path/to/output", config.output)
+        assertEquals(
+            File(File.separator)
+                .resolve("absolute")
+                .resolve("path")
+                .resolve("to")
+                .resolve("output")
+                .absolutePath,
+            config.output
+        )
     }
 
     companion object {
@@ -257,7 +286,7 @@ internal class ConfigLoadTest {
                         .resolve("path")
                         .resolve("to")
                         .resolve("source")
-                        .toString()
+                        .absolutePath
                 )
                 .append("\noutput: ")
                 .append(
@@ -292,7 +321,7 @@ internal class ConfigLoadTest {
                     .resolve("path")
                     .resolve("to")
                     .resolve("output")
-                    .toString()
+                    .absolutePath
             )
             paths2File.writeText(sb2.toString())
         }

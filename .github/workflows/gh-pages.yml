@@ -1,6 +1,9 @@
 name: Generate and deploy documentation
 
 on:
+  push:
+    branches:
+      - sl/gh-pages-action
   workflow_dispatch:
 
 jobs:

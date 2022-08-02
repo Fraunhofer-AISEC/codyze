@@ -16,6 +16,9 @@ plugins {
     id("com.diffplug.spotless") version "6.8.0"
     id("com.github.hierynomus.license") version "0.16.1"
 
+    // documentation
+    id("org.jetbrains.dokka") version "1.7.10"
+
     kotlin("jvm") version "1.7.0" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
@@ -226,9 +229,14 @@ jsonSchema2Pojo {
     // ... more options
 }
 
-tasks.javadoc.configure() {
-    setDestinationDir(
-        projectDir.resolve("..").resolve("docs").resolve("static").resolve("api").resolve("codyze-v2")
-    )
+//tasks.javadoc.configure() {
+//    setDestinationDir(
+//        projectDir.resolve("..").resolve("docs").resolve("static").resolve("api").resolve("codyze-v2")
+//    )
+//}
+
+// Put in docs directory so it is automatically added to documentation page
+tasks.dokkaHtml.configure {
+    outputDirectory.set(projectDir.resolve("..").resolve("docs").resolve("static").resolve("api").resolve("codyze-v2"))
 }
 

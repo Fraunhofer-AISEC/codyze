@@ -1,0 +1,193 @@
+{#-
+This file was automatically generated - do not edit
+NOTE: At line 9 -> 'background:' has the current color for the botom part of the cover
+- current | #2a978d (OK w/ mkdocs.yaml -> palette -> /docs/assets/stylesheets)
+- before  | #2a978d (OK w/ mkdocs.yaml -> palette -> primary: "teal"
+
+Blue color variations
+- darker | #0A192F
+- lighter | #172A45
+-#}
+
+{% extends "main.html" %}
+
+<!-- Render hero under tabs -->
+{% block tabs %}
+{{ super() }}
+
+<!-- Additional styles for landing page -->
+<style>
+    .md-main {
+        display: none;
+    }
+
+    .tx-container {
+        padding-top: .0rem;
+        background: linear-gradient(to bottom, var(--md-primary-fg-color) 0%, rgba(0,0,0,0) 20%), url('assets/img/featured-background.jpg');
+        background-size: cover;
+    }
+
+    .tx-hero {
+        margin: 32px 2.8rem;
+        color: var(--md-primary-bg-color);
+    }
+
+    .tx-hero h1 {
+        margin-bottom: 1rem;
+        color: currentColor;
+        font-weight: 700;
+        font-size: 60px;
+    }
+
+    .tx-hero__content {
+        padding-bottom: 1rem;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .tx-hero__image{
+        width:17rem;
+        height:17rem;
+        order:1;
+        padding-top: 2.5rem;
+    }
+
+    .tx-hero .md-button {
+        margin-top: .5rem;
+        margin-right: .5rem;
+        color: var(--md-primary-bg-color)
+    }
+
+    .tx-hero .md-button--primary {
+        background-color: var(--md-primary-bg-color);
+        color: hsla(280deg, 37%, 48%, 1);
+        border-color: var(--md-primary-bg-color)
+    }
+
+    .tx-hero .md-button:focus,
+    .tx-hero .md-button:hover {
+        background-color: var(--md-accent-fg-color);
+        color: var(--md-default-bg-color);
+        border-color: var(--md-accent-fg-color)
+    }
+
+    .top-hr {
+        margin-top: 42px;
+    }
+
+    .funding {
+        display: flex;
+        flex-direction: column;
+        width: 80%;
+        margin: auto;
+        padding-top: 30px;
+        padding-bottom: 30px;
+    }
+
+    .funding__logo {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: stretch;
+        width: 80%;
+        margin: auto;
+        padding-top: 30px;
+    }
+
+    .funding h2 {
+        font-weight: 500;
+        font-size: 22px;
+        text-align: center;
+    }
+
+    .tx-container-feature {
+        background: url('assets/img/featured-background.jpg');
+        background-size: 100% 250%;
+        display: flex;
+        margin-top: 42px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .feature-item {
+        box-sizing: border-box;
+        padding: 0 15px 20px 15px;
+    }
+
+    .feature-item h2 {
+        color: white;
+        font-weight: 700;
+        font-size: 25px;
+        line-height: normal;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .feature-item video {
+        display: block;
+        margin: auto;
+        max-width: 80%;
+    }
+
+    .feature-item p {
+        font-size: 16px;
+        line-height: 1.8em;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        color: white;
+        text-align: center;
+    }
+
+    @media screen and (max-width:30em) {
+        .tx-hero h1 {
+            font-size: 1.4rem
+        }
+    }
+
+    @media screen and (min-width:60em) {
+        /* Hide table of contents */
+        .md-sidebar--secondary {
+            display: none
+        }
+
+        .tx-hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tx-hero__content {
+            max-width: 50rem;
+            margin-top: 3.5rem;
+            margin-bottom: 3.5rem;
+            margin-left: 1.0rem;
+            margin-right: 4.0rem;
+            align-items: center;
+        }
+    }
+
+    @media screen and (min-width:76.25em) {
+        /* Hide navigation */
+        .md-sidebar--primary {
+            display: none
+        }
+
+        .top-hr {
+            width: 100%;
+            display: flex;
+            max-width: 61rem;
+            margin-right: auto;
+            margin-left: auto;
+            padding: 0 .2rem;
+        }
+
+        .feature-item {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+
+</style>
+{% endblock %}

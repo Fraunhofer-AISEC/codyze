@@ -1,0 +1,90 @@
+{% extends "main-styles.html" %}
+
+{% block extrahead %}
+    {{ super() }}
+    <script src="https://kit.fontawesome.com/61ebb60581.js" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block tabs %}
+{{ super() }}
+
+<!-- Main site Entry button descriptions -->
+<section class="tx-container">
+    <div class="md-grid md-typeset">
+        <div class="tx-hero">
+<!--            <div class="tx-hero__image">-->
+<!--                <img src="assets/img/overall-view.svg" draggable="false">-->
+<!--            </div>-->
+            <div class="tx-hero__content">
+                <h1> Codyze: Static Code Analysis </h1>
+                <p>Spotting flaws in  C/C++, Java, Golang and Python code - automagically!</p>
+
+                <div>
+                    <a href="{{ page.next_page.url | url }}" title="{{ page.next_page.title | striptags }}" class="md-button md-button--primary">
+                        Get started
+                    </a>
+                    <a href="{{ config.repo_url }}" title="{{ lang.t('source.link.title') }}" class="md-button">
+                        Contribute on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="top-hr">
+    <div class="funding">
+        <h2>
+            Codyze has been funded by the Bundesamt für Sicherheit in der Informationstechnik (BSI).<br>
+            The Code Property Graph project is funded by the Bavarian Ministry of Economic Affairs (StMWi).
+        </h2>
+
+        <div class="funding__logo">
+            <div>
+                <img src="assets/img/logo-bsi.png" style="max-width:150px" />
+            </div>
+            <div>
+                <img src="assets/img/logo-aisec.jpg" style="max-width:150px" />
+            </div>
+            <div>
+                <img src="assets/img/logo-stmwi.jpg" style="max-width:180px" />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Main site box descriptions -->
+<section class="tx-container-feature">
+        <div class="feature-item">
+            <h2><span class="fas fa-solid fa-download"></span><br>
+                Download Codyze and get started!</h2>
+
+            <p>Head to the <a href="https://github.com/Fraunhofer-AISEC/codyze/releases"><span class="fas fa-external-link-alt">release page</span></a> and download Codyze.<br>
+                We offer IDE plugins for <a href="https://github.com/Fraunhofer-AISEC/codyze-eclipse-plugin/releases"><span class="fas fa-external-link-alt">Eclipse</span></a>,
+                <a href="https://github.com/Fraunhofer-AISEC/codyze-vs-plugin/releases"><span class="fas fa-external-link-alt">Visual Studio</span></a> and
+                <a href="https://github.com/Fraunhofer-AISEC/codyze/releases"><span class="fas fa-external-link-alt">Visual Studio Code</span></a>.
+                Moreover, we <a href="Getting Started/lsp/#integration-through-lsp-mode"><span class="fas fa-external-link-alt">support LSP</span></a> for integration into your favorite IDE or text editor.
+            </p>
+        </div>
+
+        <div class="feature-item">
+            <h2> <span class="fas fa-film"></span><br>
+                Codyze in Action!</h2>
+
+            <video class="video" width=100% controls>
+                <source src="assets/video/Fraunhofer_AISEC_Codyze_eng.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <div class="feature-item">
+            <h2><span class="fab fa-github"></span><br>
+                Get Involved</h2>
+
+            <p>Visit us on <a href="https://github.com/Fraunhofer-AISEC/codyze/"><span class="fas fa-external-link-alt">GitHub</span></a> to get involved.</p>
+        </div>
+</section>
+
+{% endblock %}
+{% block content %}{% endblock %}

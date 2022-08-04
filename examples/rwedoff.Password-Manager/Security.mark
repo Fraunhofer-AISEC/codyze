@@ -1,0 +1,15 @@
+package java
+
+entity java.security.Security {
+	
+	var provider;
+	var position;
+	
+	var resultPosition;
+	
+	op addProvider {
+		resultPosition = java.security.Security.addProvider(provider: java.security.Provider);
+		resultPosition = java.security.Security.insertProviderAt(provider: java.security.Provider, position: int);
+	}
+	
+}

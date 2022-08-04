@@ -7,11 +7,13 @@ description: >
   Contributing to Codyze and updating this documentation
 ---
 
-{{% pageinfo %}}
-Codyze is open source and an ongoing effort to support developers and auditors in improving the quality of security-critical code. We welcome everybody to contribute to this project, be it fixing a typo in the documentation or implementing whole new language support and analysis modules.
+!!! note
 
-Please note that parts of this Codyze are backed by research projects. If you plan to make larger contributions, please contact us upfront to align your plans with possibly ongoing projects.
-{{% /pageinfo %}}
+    Codyze is open source and an ongoing effort to support developers and auditors in improving the quality of security-critical code. 
+    We welcome everybody to contribute to this project, be it fixing a typo in the documentation or implementing whole new language support and analysis modules.
+    
+    Please note that parts of this Codyze are backed by research projects. 
+    If you plan to make larger contributions, please contact us upfront to align your plans with possibly ongoing projects.
 
 
 ## Contributing to this documentation

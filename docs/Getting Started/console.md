@@ -6,13 +6,13 @@ weight: 3
 date: 2020-05-25
 expiryDate: 2022-05-24
 description: >
-  The Codyze console allows to interactively explore and analye source code.
+  The Codyze console allows to interactively explore and analyze source code.
 ---
 
 
 ## Starting in Console Mode
 
-When starting Codyze with the `-t` option, it will start an interactive Python console which you can use to explore your source code projects. 
+When starting Codyze with the `-t` option in __Codyze v2__ or with the `console` subcommand in __Codyze v3__, it will start an interactive Python console which you can use to explore your source code projects. 
 
 ```r
 $ codyze -t

@@ -10,6 +10,12 @@ description: >
   Codyze is a static analysis tool to support developers in verifying compliance to security requirements
 ---
 
+{{% pageinfo %}}
+Codyze is currently being redesigned.
+The legacy version of Codyze, in the following called __Codyze v2__, will be maintained for the foreseeable future.
+Differences between the redesigned version, called __Codyze v3__, and __Codyze v2__ will be explicitly stated in this documentation.  
+{{% /pageinfo %}}
+
 Security is hard and implementing it correctly is even harder. Luckily, there are well-established and battle-proven libraries available that do the heavy lifting of security functions such as authentication, logging or encryption. But even when using these libraries in application code, developers run the risk of making subtle errors which may undermine the security of their application. This is where {{< param product >}} helps. By integrating it into an IDE or CI pipeline, developers can analyse their source code while programming and check if they are using libraries in a correct or in an insecure way.
 
 ## How does it work?

@@ -82,4 +82,4 @@ We build a Visual Studio Code plugin of Codyze for every new version. You can do
 ## Integration through LSP mode
 Codyze offers an LSP mode. You can user the LSP mode to integrate Codyze into any IDE or text editor with support for LSP. You need to look up the recommended approach for your favorite IDE or text editor.
 
-Once you know, how to configure an LSP tool, you need to start Codyze in LSP mode, i.e. `codyze -l`. Please refer to the [configuration page]({{< relref "/docs/Getting Started/configuration.md" >}}).
+Once you know, how to configure an LSP tool, you need to start Codyze in LSP mode, i.e. `codyze-v2 -l` in __Codyze v2__ or `codyze lsp` in __Codyze v3__. Please refer to the [configuration page]({{< relref "/docs/Getting Started/configuration.md" >}}).

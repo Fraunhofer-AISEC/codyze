@@ -37,10 +37,11 @@ Arguments can be passed with the `--args` option.
 
 
 ## Pre-built Release
-{{% pageinfo %}}
-All following example calls in this documentation will assume that the source code was cloned and use the exact file structure.
-If you want to test Codyze with these calls, please clone the repository.
-{{% /pageinfo %}}
+!!! note
+
+    All following example calls in this documentation will assume that the source code was cloned and use the exact file structure.
+    If you want to test Codyze with these calls, please clone the repository.
+
 * Download a zipped release of Codyze from our [GitHub release page <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/releases)
 * Unzip the file
 * Execute Codyze using `bin\codyze.bat` (Windows) or `bin/codyze` (Mac, Linux)

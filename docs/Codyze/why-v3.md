@@ -14,9 +14,9 @@ The core functionalities of Codyze were separated from the executable part which
 We further introduced the concept of Executors which are responsible for evaluating rules of a specific specification language.
 Through Executors, Codyze is no longer limited to MARK rules as long as there is an Executor for the specification language of your choosing.
 
-With Codyze v3 we also offer a new specification language called MARK 2 (?).
-// TODO Description
+With Codyze v3 we also offer a new specification language that improves upon MARK.
+<!-- TODO: Description -->
 
-Additionally, we reworked the LSP mode of Codyze to be able to handle multiple projects with their own configurations with only one Codyze instance. // stimmt das?
+Additionally, we reworked the LSP mode of Codyze to be able to handle multiple projects with their own configurations with only one Codyze instance. <!--  stimmt das? -->
 This for example allows switching between projects in an IDE without losing the context of any analysis.
 

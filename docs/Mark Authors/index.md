@@ -10,8 +10,8 @@ Codyze parses source code and checks it for compliance with predefined policies.
 
 MARK policies are separated into _Entities_ and _Rules_.
 
-* Entities describe and group API functions at an abstract level and declare MARK variables that refer to function arguments or return values.
-* Rules describe the expected usage of these entities. A violation of a rule will result in a _Finding_ and is shown as a warning or error in the developer's IDE.
+* [Entities](Define%20Entities.md) describe and group API functions at an abstract level and declare MARK variables that refer to function arguments or return values.
+* [Rules](mark-authors.md) describe the expected usage of these entities. A violation of a rule will result in a _Finding_ and is shown as a warning or error in the developer's IDE.
 
 When modeling a library, you will typically start by describing its classes or functions as MARK entitites and then write rules.
 

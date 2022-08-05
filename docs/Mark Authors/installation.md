@@ -24,6 +24,6 @@ MARK is a simple domain specific language (DSL) that can be written in any text 
 * Create a new project by clicking on `File`->`New`->`Project`. The project type does not matter.
 * Create a new file with the extension `.mark`
 * Confirm the dialog to configure Xtext for your project.
-* Start writing [entities <i class="fas fa-arrow-alt-circle-right"></i>]({{< ref "/docs/Mark Authors/Define Entities.md" >}}) and [rules <i class="fas fa-arrow-alt-circle-right"></i>]({{< ref "/docs/Mark Authors/mark-authors.md" >}}). 
+* Start writing [entities](Define Entities.md) and [rules](mark-authors.md). 
 
 You may include all entities and rules in a single MARK file or organize them in multiple files as you with. As long as all MARK files are located in the same folder, Codyze will load entities and rules from all files in that folder.

@@ -17,4 +17,4 @@ When modeling a library, you will typically start by describing its classes or f
 
 Codyze comes with a set of MARK policies for the _Botan_ (C++), _Bouncycastle_ (Java) and _Jackson_ (Java) libraries, but MARK policies for other libraries can be added anytime.
 
-MARK policies are simple text files and can be created with any text editor, but we recommend [installing the Eclipse plugin <i class="fas fa-arrow-alt-circle-right"></i>](installation) which comes with syntax highlighting and code completion for MARK files.
+MARK policies are simple text files and can be created with any text editor, but we recommend [installing the Eclipse plugin](installation.md) which comes with syntax highlighting and code completion for MARK files.

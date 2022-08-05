@@ -12,7 +12,7 @@ This introduced a lot of changes to Codyze v2.
 The core functionalities of Codyze were separated from the executable part which makes it possible to use Codyze as a library as well.
 
 We further introduced the concept of Executors which are responsible for evaluating rules of a specific specification language.
-Through Executors, Codyze is no longer limited to MARK rules as long as there is an Executor for the language of your choosing.
+Through Executors, Codyze is no longer limited to MARK rules as long as there is an Executor for the specification language of your choosing.
 
 With Codyze v3 we also offer a new specification language called MARK 2 (?).
 // TODO Description

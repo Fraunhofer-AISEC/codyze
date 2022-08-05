@@ -73,76 +73,80 @@ Blue color variations
         border-color: var(--md-accent-fg-color)
     }
 
-    .top-hr {
-        margin-top: 42px;
-    }
-
     .funding {
-        display: flex;
-        flex-direction: column;
-        width: 80%;
-        margin: auto;
-        padding-top: 30px;
-        padding-bottom: 30px;
+        margin: 42px 2.8rem;
     }
 
     .funding__logo {
         display: flex;
         flex-direction: row;
-        justify-content: space-around;
-        align-items: stretch;
-        width: 80%;
-        margin: auto;
+        flex-wrap: wrap;
+        justify-content: center;
+        row-gap: 3em;
+        column-gap: 15em;
         padding-top: 30px;
     }
 
-    .funding h2 {
+    .funding__logo img {
+        max-width: 150px;
+    }
+
+    .funding p {
         font-weight: 500;
         font-size: 22px;
         text-align: center;
     }
 
     .tx-container-feature {
-        background: url('assets/img/featured-background.jpg');
-        background-size: 100% 250%;
-        display: flex;
-        margin-top: 42px;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
+        background-color: var(--md-footer-bg-color);
+    }
+
+    .feature-container {
+        margin: 42px 2.8rem;
     }
 
     .feature-item {
-        box-sizing: border-box;
-        padding: 0 15px 20px 15px;
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 5em;
+        justify-content: center;
     }
 
-    .feature-item h2 {
+    .feature-item--text {
+        flex: 1;
+    }
+
+    .feature-item--text h2 {
         color: white;
         font-weight: 700;
         font-size: 25px;
         line-height: normal;
         margin-bottom: 10px;
-        text-align: center;
     }
 
-    .video-container-wrapper {
-        max-width: 100%;
-        width: 600px;
-        left: 0;
-        right:0;
-        margin:auto;
+    .feature-item--text p {
+        font-size: 16px;
+        line-height: 1.8em;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        color: white;
     }
 
     .video-container {
-        position: relative;
-        padding-bottom: 56.25%;
-        padding-top: 0;
-        height: 0;
         overflow: hidden;
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        min-width: 400px;
     }
 
-    .video-container iframe, .video-container object, .video-container embed {
+    .video-container::after {
+        padding-top: 56.25%;
+        display: block;
+        content: '';
+    }
+
+    .video-container iframe {
         position: absolute;
         top: 0;
         left: 0;
@@ -150,18 +154,15 @@ Blue color variations
         height: 100%;
     }
 
-    .feature-item p {
-        font-size: 16px;
-        line-height: 1.8em;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        color: white;
-        text-align: center;
-    }
-
     @media screen and (max-width:30em) {
         .tx-hero h1 {
             font-size: 1.4rem
+        }
+    }
+
+    @media screen and (max-width:60em) {
+        .funding__logo {
+            column-gap: 5em;
         }
     }
 

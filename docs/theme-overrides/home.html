@@ -32,26 +32,28 @@
     </div>
 </section>
 
-<div class="top-hr">
-    <div class="funding">
-        <h2>
-            Codyze has been funded by the Bundesamt für Sicherheit in der Informationstechnik (BSI).<br>
-            The Code Property Graph project is funded by the Bavarian Ministry of Economic Affairs (StMWi).
-        </h2>
+<section>
+    <div class="md-grid">
+        <div class="funding">
+            <p>
+                Codyze has been funded by the Bundesamt für Sicherheit in der Informationstechnik (BSI).<br>
+                The Code Property Graph project is funded by the Bavarian Ministry of Economic Affairs (StMWi).
+            </p>
 
-        <div class="funding__logo">
-            <div>
-                <img src="assets/img/logo-bsi.png" style="max-width:150px" />
-            </div>
-            <div>
-                <img src="assets/img/logo-aisec.jpg" style="max-width:150px" />
-            </div>
-            <div>
-                <img src="assets/img/logo-stmwi.jpg" style="max-width:180px" />
+            <div class="funding__logo">
+                <div>
+                    <img src="assets/img/logo-bsi.png"/>
+                </div>
+                <div>
+                    <img src="assets/img/logo-aisec.jpg"/>
+                </div>
+                <div>
+                    <img src="assets/img/logo-stmwi.jpg"/>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 
 <!-- Main site box descriptions -->
@@ -67,24 +69,31 @@
 <!--                Moreover, we <a href="Getting Started/lsp/#integration-through-lsp-mode"><span class="fas fa-external-link-alt">support LSP</span></a> for integration into your favorite IDE or text editor.-->
 <!--            </p>-->
 <!--        </div>-->
-
-        <div class="feature-item">
-            <h2> <span class="fas fa-film"></span><br>
-                Codyze in Action!</h2>
-
-            <div class="video-container-wrapper">
-                <div class="video-container">
-                    <iframe src="https://www.youtube.com/embed/3CNrVWk_qs0" title="Codyze: Automated Code Compliance" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <div class="md-grid">
+        <div class="feature-container">
+            <div class="feature-item">
+                <div class="feature-item--text">
+                    <h2>Verifying Compliance to Security Requirements</h2>
+                    <p>
+                        Codyze is a static analysis tool to support developers in verifying compliance to security requirements.
+                    </p>
                 </div>
+
+                <!--        <h2> <span class="fas fa-film"></span><br>-->
+                <!--            Codyze in Action!</h2>-->
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/3CNrVWk_qs0" title="Codyze: Automated Code Compliance" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
             </div>
+
+            <!--        <div class="feature-item">-->
+            <!--            <h2><span class="fab fa-github"></span><br>-->
+            <!--                Get Involved</h2>-->
+
+            <!--            <p>Visit us on <a href="https://github.com/Fraunhofer-AISEC/codyze/"><span class="fas fa-external-link-alt">GitHub</span></a> to get involved.</p>-->
+            <!--        </div>-->
         </div>
-
-<!--        <div class="feature-item">-->
-<!--            <h2><span class="fab fa-github"></span><br>-->
-<!--                Get Involved</h2>-->
-
-<!--            <p>Visit us on <a href="https://github.com/Fraunhofer-AISEC/codyze/"><span class="fas fa-external-link-alt">GitHub</span></a> to get involved.</p>-->
-<!--        </div>-->
+    </div>
 </section>
 
 {% endblock %}

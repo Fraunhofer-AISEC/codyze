@@ -27,7 +27,8 @@ Codyze is based on a "Code Property Graph", which represents the source code as 
 1. as a fully automated tool, integrated into your CI or IDE
 2. as a database that can be manually explored using a simple query language  
 
-![Overview of Codyze](../assets/img/overall-view.svg){ align=center }
+![Overview of Codyze](../assets/img/overall-view-white-background.png#only-light){ align=center }
+![Overview of Codyze](../assets/img/overall-view-black-background.png#only-dark){ align=center }
 
 
 ## Why Codyze?

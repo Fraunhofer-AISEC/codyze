@@ -73,8 +73,13 @@ Blue color variations
         border-color: var(--md-accent-fg-color)
     }
 
+    .funding-container {
+        background-color: #ffffff;
+    }
+
     .funding {
         margin: 42px 2.8rem;
+        color: black;
     }
 
     .funding__logo {
@@ -103,18 +108,38 @@ Blue color variations
 
     .feature-container {
         margin: 42px 2.8rem;
+        display: grid;
+        row-gap: 50px;
     }
 
     .feature-item {
         display: flex;
         flex-wrap: wrap;
-        column-gap: 5em;
         justify-content: center;
+        align-items: center;
+        column-gap: 2.8rem;
+    }
+
+    .feature-item-reverse {
+        display: flex;
+        flex-wrap: wrap-reverse;
+        justify-content: center;
+        align-items: center;
+        column-gap: 2.8rem;
     }
 
     .feature-item--text {
         flex: 1;
     }
+
+    .feature-item--image {
+        flex: 1;
+    }
+
+    .feature-item--image img {
+        width: 150px;
+    }
+
 
     .feature-item--text h2 {
         color: white;

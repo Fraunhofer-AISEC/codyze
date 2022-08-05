@@ -42,15 +42,11 @@ Codyze uses the gradle _spotless_ plugin to format source code. You may import t
 * In IntelliJ, open _Settings->Editor->Code Style->Java_ and click on the cog icon.
 * Choose _Import Scheme->Eclipse XML Profile_ and select the file `formatter-settings.xml` in the project's root folder.
 
-<img src="/img/intellij-formatter.png" 
-    alt="Import code style formatter into IntelliJ"
-    class="mt-3 mb-3 border border-info rounded">
+![Import code style formatter into IntelliJ](../assets/img/intellij-formatter.png){ align=center }
 
 ### Eclipse
 
 * In Eclipse, open _Window->Preferences->Java->Code Style->Formatter_
 * Click _Import_ and select the file `formatter-settings.xml` in the project's root folder.
 
-<img src="/img/eclipse-formatter.png" 
-    alt="Import code style formatter into Eclipse"
-    class="mt-3 mb-3 border border-info rounded">
+![Import code style formatter into Eclipse](../assets/img/eclipse-formatter.png){ align=center }

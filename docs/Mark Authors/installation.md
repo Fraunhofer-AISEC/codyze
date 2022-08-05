@@ -14,7 +14,9 @@ MARK is a simple domain specific language (DSL) that can be written in any text 
 
 * In Eclipse, click on `Help`->`Install New Software...`
 * Add the update site: `https://codyze.s3.eu-central-1.amazonaws.com/codyze-mark-eclipse-plugin/`
-* Install <img src="/img/eclipse-mark-plugin.png" alt="Install Codyze MARK plugin" class="mt-3 mb-3 border border-info rounded">
+* Install 
+
+![Install Codyze MARK plugin](../assets/img/eclipse-mark-plugin.png){ align=center }
 
 
 ## Start writing MARK policies

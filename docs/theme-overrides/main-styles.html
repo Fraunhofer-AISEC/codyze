@@ -109,15 +109,13 @@ Blue color variations
     .feature-container {
         margin: 42px 2.8rem;
         display: grid;
-        row-gap: 50px;
     }
 
     .feature-item {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        column-gap: 2.8rem;
+        display: grid;
+        grid-gap: 2.8rem;
+        place-items: center;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     }
 
     .feature-item-reverse {
@@ -126,18 +124,6 @@ Blue color variations
         justify-content: center;
         align-items: center;
         column-gap: 2.8rem;
-    }
-
-    .feature-item--text {
-        flex: 1;
-    }
-
-    .feature-item--image {
-        flex: 1;
-    }
-
-    .feature-item--image img {
-        width: 150px;
     }
 
     .feature-item--text h1 {
@@ -205,7 +191,7 @@ Blue color variations
     .community-container {
         display: grid;
         grid-gap: 2.8rem;
-        grid-template-columns: repeat(auto-fit, minmax(300px, auto));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
 
     .community-item {

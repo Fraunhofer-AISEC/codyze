@@ -29,10 +29,10 @@ theme:
     - content.tooltips
     # - header.autohide
     # - navigation.expand
-    - navigation.indexes
+    # - navigation.indexes
     # - navigation.instant
     # - navigation.prune
-    - navigation.sections
+    # - navigation.sections
     - navigation.tabs
     # - navigation.tabs.sticky
     # - navigation.indexes
@@ -130,20 +130,21 @@ markdown_extensions:
 
 nav:
   - 'Home': index.md
-  - 'Codyze':
-      - 'What is Codyze?': Codyze/index.md
-      - 'Why Codyze v3?': Codyze/why-v3.md
-  - 'Getting Started':
-      - 'Install Codyze': Getting Started/installation.md
-      - 'Using CLI mode': Getting Started/cli.md
-      - 'Using plugins': Getting Started/lsp.md
-      - 'Configure Codyze': Getting Started/configuration.md
-  - 'Write MARK Policies':
-      - 'What is MARK?': Mark Authors/index.md
-      - 'Install MARK IDE': Mark Authors/installation.md
-      - 'MARK Entities': Mark Authors/Define Entities.md
-      - 'MARK Rules': Mark Authors/mark-authors.md
-  - 'Contributing':
-      - 'Contributing to Codyze': contributors/index.md
-      - 'Build the project': contributors/code.md
-      - 'How to Contribute?': contributors/CONTRIBUTING.md
+  - 'Documentation':
+    - 'Codyze':
+        - 'What is Codyze?': Codyze/index.md
+        - 'Why Codyze v3?': Codyze/why-v3.md
+    - 'Getting Started':
+        - 'Install Codyze': Getting Started/installation.md
+        - 'Using CLI mode': Getting Started/cli.md
+        - 'Using plugins': Getting Started/lsp.md
+        - 'Configure Codyze': Getting Started/configuration.md
+    - 'Write MARK Policies':
+        - 'What is MARK?': Mark Authors/index.md
+        - 'Install MARK IDE': Mark Authors/installation.md
+        - 'MARK Entities': Mark Authors/Define Entities.md
+        - 'MARK Rules': Mark Authors/mark-authors.md
+    - 'Contributing':
+        - 'Contributing to Codyze': contributors/index.md
+        - 'Build the project': contributors/code.md
+        - 'How to Contribute?': contributors/CONTRIBUTING.md

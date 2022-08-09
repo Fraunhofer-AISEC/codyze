@@ -1,5 +1,5 @@
 ---
-title: "Configuration"
+title: "Configure Codyze"
 linkTitle: "Configure Codyze"
 no_list: true
 weight: 5
@@ -15,7 +15,7 @@ For list and map type options, the data from the configuration file can be overw
 To append the data from the command line to the one from the configuration file, use the `+` option in __Codyze v2__ (e.g. `--option-name+`) or the `additions` option in __Codyze v3__ (e.g. `--option-name-additions`)
 
 
-# Command Line Interface
+## Command Line Interface
 There are three execution modes in which Codyze can run:
 * Command line mode:
   <br />Non-interactive command line client, accepts arguments from command line and runs analysis
@@ -30,7 +30,7 @@ For __Codyze v3__ subcommands are used (`analyze`, `lsp`, or `interactive`).
 The help and version message can be displayed with `-h` and `-V` respectively.
 The full help is only available in __Codyze v3__ if a subcommand is specified. 
 
-# Configuration File
+## Configuration File
 The configurations can also be defined with a YAML configuration file in __Codyze v2__ or a JSON configuration file in __Codyze v3__. 
 Use the option `--config=<filepath>` to specify the path to the config file.
 
@@ -60,7 +60,7 @@ The value of the option is taken from the object which corresponds to the subcom
 This means if `codyze analyze` is called, source would be `src`, and if `codyze lsp` is called, source would be `other-src`.
 An exemplary configuration file for __Codyze v3__ can also be found in the [GitHub repository](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-v3/codyze/config.json).
 
-# List of Configurations
+## List of Configurations
 This is a list of all available configurations, their descriptions and their respective name in __Codyze v2__ and __Codyze v3__.
 The names are the same for the configuration file and the CLI options.
 

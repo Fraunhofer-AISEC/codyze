@@ -39,4 +39,4 @@ For more information, please refer to the [documentation](https://www.codyze.io)
 
 ## License
 
-[Apache License 2.0](https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE)
+[Apache License 2.0](https://github.com/Fraunhofer-AISEC/codyze/blob/main/LICENSE)

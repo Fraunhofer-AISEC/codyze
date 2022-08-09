@@ -31,4 +31,4 @@ For more information about the usage and configurations, please refer to https:/
 
 ## License
 
-[Apache License 2.0](https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE)
+[Apache License 2.0](https://github.com/Fraunhofer-AISEC/codyze/blob/main/LICENSE)

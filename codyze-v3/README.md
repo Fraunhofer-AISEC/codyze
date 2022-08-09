@@ -11,7 +11,7 @@ If you want to use Codyze as a library in your own project, we suggest using thi
 
 [`codze-specification-languages`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codze-specification-languages) contains all built-in specification languages which Codyze can verify.
 
-[`codyze`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codyze) combines all projects into an executable version of Codyze.
+[`codyze`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codyze) combines all projects into an executable version of Codyze and adds a command line interface.
 
 ## Build & Run Codyze v3
 Java 11 (OpenJDK) is a prerequisite.

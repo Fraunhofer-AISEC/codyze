@@ -8,5 +8,5 @@ plugins {
 }
 
 tasks.dokkaHtmlMultiModule.configure {
-    outputDirectory.set(projectDir.resolve("..").resolve("docs").resolve("assets").resolve("api").resolve("codyze-v3"))
+    outputDirectory.set(projectDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v3"))
 }

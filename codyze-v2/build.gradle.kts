@@ -16,6 +16,9 @@ plugins {
     id("com.diffplug.spotless") version "6.9.0"
     id("com.github.hierynomus.license") version "0.16.1"
 
+    // documentation
+    id("org.jetbrains.dokka") version "1.7.10"
+
     kotlin("jvm") version "1.7.10" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
@@ -224,4 +227,8 @@ jsonSchema2Pojo {
     targetPackage.set("de.fraunhofer.aisec.codyze.sarif.schema")
     removeOldOutput.set(true)
     // ... more options
+}
+
+tasks.dokkaHtml.configure {
+    outputDirectory.set(projectDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v2"))
 }

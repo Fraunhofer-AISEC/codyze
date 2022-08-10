@@ -7,7 +7,7 @@
 
 Java 11 (OpenJDK) is a prerequisite.
 
-To build an executable version of Codyze v2, use the `installDist` task in the projects root:
+To build an executable version of Codyze v2, use the `installDist` task in the project's root:
 
 ```shell
 $ ./gradlew :codyze-v2:installDist

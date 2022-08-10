@@ -8,45 +8,31 @@
 ![GitHub](https://img.shields.io/github/license/Fraunhofer-AISEC/codyze)
 [![](https://jitpack.io/v/Fraunhofer-AISEC/codyze.svg)](https://jitpack.io/#Fraunhofer-AISEC/codyze)
 
-> :warning: Note: We are currently redesigning Codyze. We have moved most of the functionality into a subpackage `legacy`. For the foreseeable future, we continue to maintain the legacy version of Codyze. Over 
+> :warning: Note: We are currently redesigning Codyze. We have moved most of the functionality into a subpackage `codyze-v2`. For the foreseeable future, we continue to maintain the legacy version of Codyze.
 > 
-> Gradually, we're replacing legacy functionality with the redesigned one. Where this approach isn't feasible due to breaking changes, we're going to offer a switch to either use the legacy version or redesigned version.
+> Gradually, we are replacing legacy functionality with the redesigned one. Where this approach isn't feasible due to breaking changes, we're going to offer a switch to either use the legacy version or redesigned version.
 >
 > If you are looking for a _stable_ version, please use the [2.0.0-beta](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.0.0-beta) release.
 
 
 Codyze is a static code analyzer that focuses on verifying security compliance in source code, i.e. by inferring the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
 
-Documentation: https://www.codyze.io
+Codyze has three execution modes:
+
+* __Analyze mode__ checks the source code against a set of rules. This mode can be integrated into scripts and automated build processes.
+* __Language Server Protocol mode__ integrates Codyze into an IDE and automatically analyzes code while developing.
+* __Interactive Console mode__ allows to explore and analyze the source code interactively.
+
+
 
 ## Build & Run Codyze
 
-Java 11 (OpenJDK) is a prerequisite.
+This repository contains two versions of Codyze, Codyze v2 and Codyze v3. It is set up as a separate composite build so both versions can be built separately.
+Please refer to the READMEs in the [`codyze-v2`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v2) and [`codyze-v3`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3) directories for the concrete build instructions.
 
-To build an executable version of Codyze, use the `installDist` task:
 
-```shell
-$ ./gradlew installDist
-```
-
-This will provide you with an executable Codyze installation under `build/install/codyze`.
-To start Codyze, change to the directory and run Codyze.
-
-Codyze has three execution modes:
-* command line interface mode (`-c`, default)
-* language server protocol mode (`-l`)
-* interactive console mode (`-t`).
-
-An exemplary call to start the commando line interface mode would be
-
-```shell
-$ cd build/install/codyze
-$ ./bin/codyze -m ./mark -s <sourcepath>
-```
-where `<sourcepath>` denotes the path to the source directory or file which should be analyzed.
-
-Codyze can be further configured with additional command line arguments or a YAML configuration file.
-For more information about the usage and configurations, please refer to https://www.codyze.io and the corresponding [wiki page](https://github.com/Fraunhofer-AISEC/codyze/wiki/Configuring-Codyze).
+## Documentation
+The full documentation can be found at https://www.codyze.io.
 
 
 ## Research & Student Work
@@ -59,4 +45,4 @@ We will continue to maintain this project for the foreseeable future on a best-e
 
 ## License
 
-[Apache License 2.0](https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE)
+[Apache License 2.0](./LICENSE)

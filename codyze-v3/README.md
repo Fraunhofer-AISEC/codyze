@@ -14,7 +14,7 @@ If you want to use Codyze as a library in your own project, we suggest using thi
 [`codyze`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3/codyze) combines all projects into an executable version of Codyze and adds a command line interface.
 
 ## Build & Run Codyze v3
-Java 11 (OpenJDK) is a prerequisite.
+A Java SE 11 JDK is a prerequisite. We build and test using Eclipse Temurin but any distribution should work.
 
 To build an executable version of Codyze v3, use the `installDist` task in the project's root:
 

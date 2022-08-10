@@ -5,7 +5,7 @@
 
 ## Build & Run Codyze v2
 
-Java 11 (OpenJDK) is a prerequisite.
+A Java SE 11 JDK is a prerequisite. We build and test using Eclipse Temurin but any distribution should work.
 
 To build an executable version of Codyze v2, use the `installDist` task in the project's root:
 

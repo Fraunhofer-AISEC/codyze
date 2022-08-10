@@ -45,4 +45,4 @@ We will continue to maintain this project for the foreseeable future on a best-e
 
 ## License
 
-[Apache License 2.0](https://github.com/Fraunhofer-AISEC/codyze/blob/master/LICENSE)
+[Apache License 2.0](./LICENSE)

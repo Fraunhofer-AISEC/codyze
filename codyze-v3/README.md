@@ -1,7 +1,7 @@
 # Codyze v3 :mag_right: :rocket:
 
 > :warning: This version of Codyze is still under development.
-> If you are looking for a _stable_ version, please use the [2.0.0-beta](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.0.0-beta) release.
+> If you are looking for a _stable_ version, please use the [2.1.1](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.1.1) release.
 
 ## Project Structure
 Codyze v3 is set up as a gradle multi project build.
@@ -16,7 +16,7 @@ If you want to use Codyze as a library in your own project, we suggest using thi
 ## Build & Run Codyze v3
 Java 11 (OpenJDK) is a prerequisite.
 
-To build an executable version of Codyze v3, use the `installDist` task:
+To build an executable version of Codyze v3, use the `installDist` task in the project's root:
 
 ```shell
 $ ./gradlew :codyze-v3:codyze:installDist
@@ -33,10 +33,10 @@ To actually run Codyze v3 you must specify a subcommand:
 ```shell
 $ ./gradlew :codyze-v3:codyze:run --args="analyze"
 ```
-This will run the 'analyze' subcommand using the demo config file (codyze-v3/codyze/config.json).
+This will run the 'analyze' subcommand using the demo config file [`./codyze/codyze.json`](./codyze/codyze.json).
 
 For more information, please refer to the [documentation](https://www.codyze.io).
 
 ## License
 
-[Apache License 2.0](https://github.com/Fraunhofer-AISEC/codyze/blob/main/LICENSE)
+[Apache License 2.0](../LICENSE)

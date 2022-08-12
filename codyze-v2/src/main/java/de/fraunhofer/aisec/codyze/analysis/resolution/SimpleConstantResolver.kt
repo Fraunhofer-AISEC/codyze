@@ -78,7 +78,8 @@ class SimpleConstantResolver : ConstantResolver {
                 }
                 seen.add(tVertex)
 
-                if (tVertex is BinaryOperator && tVertex.operatorCode == "=" && tVertex.lhs != null
+                if (
+                    tVertex is BinaryOperator && tVertex.operatorCode == "=" && tVertex.lhs != null
                 ) {
                     val lhs = tVertex.lhs
 

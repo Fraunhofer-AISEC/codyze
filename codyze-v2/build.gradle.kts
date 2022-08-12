@@ -13,10 +13,10 @@ plugins {
     id("org.jsonschema2dataclass") version "4.2.0"
 
     id("org.sonarqube") version "3.4.0.2513"
-    id("com.diffplug.spotless") version "6.8.0"
+    id("com.diffplug.spotless") version "6.9.1"
     id("com.github.hierynomus.license") version "0.16.1"
 
-    kotlin("jvm") version "1.7.0" // we can only upgrade to Kotlin 1.5, if CPG does
+    kotlin("jvm") version "1.7.10" // we can only upgrade to Kotlin 1.5, if CPG does
 }
 
 group = "de.fraunhofer.aisec"
@@ -98,8 +98,8 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:1.8.0-beta4") // ok
     api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
-    api("org.apache.logging.log4j:log4j-core:2.17.2") // impl in main; used only in test
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.2")
+    api("org.apache.logging.log4j:log4j-core:2.18.0") // impl in main; used only in test
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.18.0")
 
     // pull in explicitly to prevent mixing versions
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -133,9 +133,9 @@ dependencies {
     // Unit tests
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
     implementation(kotlin("stdlib-jdk8"))
 
     // Parser for yaml configuration file

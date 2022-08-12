@@ -1,9 +1,10 @@
 concept Logging {
-    operation log(message: String, varargs: any)
+    operation log(message: String, varargs: Any)
 }
 
 concept ObjectRelationalMapper {
-    operation insert(object: any)
+    var `object` : Any
+    operation insert (`object`)
 }
 
 concept UserContext {

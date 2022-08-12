@@ -1,5 +1,5 @@
 implementation GolangLogging {
-    operation log(message, varargs...) by {
+    operation log(message, varargs) by {
         call("log.Printf(message, varargs...)")
     }
 }

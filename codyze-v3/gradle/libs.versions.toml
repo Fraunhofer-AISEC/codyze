@@ -19,6 +19,7 @@ kotlin-scripting-host = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm-ho
 
 # test
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.8.2"}
+mockk = { module = "io.mockk:mockk", version = "1.12.5"}
 
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

@@ -1,12 +1,12 @@
 package de.fraunhofer.aisec.codyze.specification_languages.mark
 
-import de.fraunhofer.aisec.codyze.legacy.analysis.AnalysisContext
-import de.fraunhofer.aisec.codyze.legacy.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.legacy.analysis.FindingDescription
-import de.fraunhofer.aisec.codyze.legacy.analysis.ServerConfiguration
-import de.fraunhofer.aisec.codyze.legacy.analysis.TypestateMode as LegacyTypestateMode
-import de.fraunhofer.aisec.codyze.legacy.analysis.markevaluation.Evaluator
-import de.fraunhofer.aisec.codyze.legacy.markmodel.Mark
+import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
+import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
+import de.fraunhofer.aisec.codyze.analysis.FindingDescription
+import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.analysis.TypestateMode as LegacyTypestateMode
+import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator
+import de.fraunhofer.aisec.codyze.markmodel.Mark
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.cpg.ExperimentalGraph

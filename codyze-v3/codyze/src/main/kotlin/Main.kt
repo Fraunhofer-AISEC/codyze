@@ -9,7 +9,12 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.*
 import de.fraunhofer.aisec.codyze.options.configFileOption
 import de.fraunhofer.aisec.codyze.source.JsonValueSource
+import java.io.IOException
+import java.net.URL
 import java.nio.file.Path
+import java.util.*
+import java.util.jar.Attributes
+import java.util.jar.Manifest
 import kotlin.io.path.Path
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
@@ -43,7 +48,7 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
 class CodyzeCli(val configFile: Path? = null) :
     CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
     init {
-        versionOption("1.0", names = setOf("--version", "-V")) // TODO get actual version
+        versionOption(getVersion(), names = setOf("--version", "-V")) // TODO get actual version
         context {
             if (configFile != null)
                 valueSource = JsonValueSource.from(configFile, requireValid = true)
@@ -54,6 +59,37 @@ class CodyzeCli(val configFile: Path? = null) :
     override fun run() {
         echo("In CodyzeCli")
     } // TODO: change to NoOpCliktCommand?
+
+    // adapted example from
+    // https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java
+    private fun getVersion(): String {
+        return if (System.getProperty("codyze-v3-version") != null)
+            System.getProperty("codyze-v3-version")
+        else {
+            val resources: Enumeration<URL> =
+                CodyzeCli::class.java.classLoader.getResources("META-INF/MANIFEST.MF")
+            while (resources.hasMoreElements()) {
+                val url = resources.nextElement()
+                try {
+                    val manifest = Manifest(url.openStream())
+                    val attr = manifest.mainAttributes
+                    if (isApplicableManifest(manifest))
+                        return get(attr, "Implementation-Version").toString()
+                } catch (ex: IOException) {
+                    return "Unable to read from $url: $ex"
+                }
+            }
+            return "Unable to find manifest file."
+        }
+    }
+
+    private fun isApplicableManifest(manifest: Manifest): Boolean {
+        val attributes = manifest.mainAttributes
+        return "codyze-v3" == get(attributes, "Implementation-Title")
+    }
+    private fun get(attributes: Attributes, key: String): Any? {
+        return attributes[Attributes.Name(key)]
+    }
 }
 
 /** Entry point for Codyze. Hands over control to the chosen subcommand immediately. */

@@ -33,3 +33,16 @@ dependencies {
 application {
     mainClass.set("de.fraunhofer.aisec.codyze.MainKt")
 }
+
+tasks {
+    jar {
+        manifest {
+            attributes("Implementation-Title" to "codyze-v3",
+                "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev"))
+        }
+    }
+}
+
+tasks.named<JavaExec>("run") {                                         // 2
+    systemProperty("codyze-v3-version", findProperty("version") ?: "")
+}

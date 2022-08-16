@@ -48,7 +48,7 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
 class CodyzeCli(val configFile: Path? = null) :
     CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
     init {
-        versionOption(getVersion(), names = setOf("--version", "-V")) // TODO get actual version
+        versionOption(getVersion(), names = setOf("--version", "-V"))
         context {
             if (configFile != null)
                 valueSource = JsonValueSource.from(configFile, requireValid = true)

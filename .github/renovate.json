@@ -3,6 +3,7 @@
     "config:base",
     ":disableDependencyDashboard",
     ":assignAndReview(fwendland)",
+    ":label(dependencies)",
     ":enableVulnerabilityAlerts",
     ":separateMultipleMajorReleases",
     "docker:disableMajor"

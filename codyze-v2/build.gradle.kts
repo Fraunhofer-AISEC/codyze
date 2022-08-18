@@ -118,7 +118,7 @@ dependencies {
     api("de.breakpointsec:pushdown:1.1") // ok
 
     // LSP interface support
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.14.0") // ok
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.15.0") // ok
 
     // Interactive console interface support using Jython (Scripting engine)
     implementation("org.python:jython-standalone:2.7.2") // ok

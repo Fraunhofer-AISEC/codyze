@@ -296,7 +296,8 @@ internal class ConfigLoadTest {
                         .resolve("source")
                         .absolutePath
                 )
-                .append("\noutput: ")
+                .append("\n")
+                .append("output: ")
                 .append(
                     File("..")
                         .resolve("relative")
@@ -309,28 +310,29 @@ internal class ConfigLoadTest {
 
             val sb2 = StringBuilder()
             sb2.append(
-                """
+                    """
                 source:
                   - 
             """.trimIndent()
-            )
-            sb2.append(
-                File("..")
-                    .resolve("relative")
-                    .resolve("path")
-                    .resolve("to")
-                    .resolve("source")
-                    .toString()
-            )
-            sb2.append("\noutput: ")
-            sb2.append(
-                File(File.separator)
-                    .resolve("absolute")
-                    .resolve("path")
-                    .resolve("to")
-                    .resolve("output")
-                    .absolutePath
-            )
+                )
+                .append(
+                    File("..")
+                        .resolve("relative")
+                        .resolve("path")
+                        .resolve("to")
+                        .resolve("source")
+                        .toString()
+                )
+                .append("\n")
+                .append("output: ")
+                .append(
+                    File(File.separator)
+                        .resolve("absolute")
+                        .resolve("path")
+                        .resolve("to")
+                        .resolve("output")
+                        .absolutePath
+                )
             paths2File.writeText(sb2.toString())
         }
     }

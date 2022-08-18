@@ -2,24 +2,25 @@ name: Build & publish docs
 on:
   push:
     branches:
-      - master
       - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
         with:
-          python-version: 3.x
-      - uses: actions/cache@v2
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - uses: actions/cache@v3
         with:
           key: ${{ github.ref }}
           path: .cache
-
-      - name: Build API pages
+      - name: 'Install mkdocs-material'
+        run: pip install mkdocs-material
+      - name: 'Build API pages'
         run: ./gradlew :codyze-v2:dokkaHtml :codyze-v3:dokkaHtmlMultiModule
-
-      - run: pip install mkdocs-material
-      - run: mkdocs gh-deploy --force
+      - name: 'Build & deploy docs'
+        run: mkdocs gh-deploy --force

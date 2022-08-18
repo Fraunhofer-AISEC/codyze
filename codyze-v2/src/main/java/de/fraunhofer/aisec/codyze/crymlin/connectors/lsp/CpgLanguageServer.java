@@ -1,16 +1,8 @@
 
 package de.fraunhofer.aisec.codyze.crymlin.connectors.lsp;
 
-import org.eclipse.lsp4j.ExecuteCommandOptions;
-import org.eclipse.lsp4j.InitializeParams;
-import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.ServerCapabilities;
-import org.eclipse.lsp4j.TextDocumentSyncKind;
-import org.eclipse.lsp4j.services.LanguageClient;
-import org.eclipse.lsp4j.services.LanguageClientAware;
-import org.eclipse.lsp4j.services.LanguageServer;
-import org.eclipse.lsp4j.services.TextDocumentService;
-import org.eclipse.lsp4j.services.WorkspaceService;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +70,31 @@ public class CpgLanguageServer implements LanguageServer, LanguageClientAware {
 	@Override
 	public WorkspaceService getWorkspaceService() {
 		return this.workspaceService;
+	}
+
+	@Override
+	public NotebookDocumentService getNotebookDocumentService() {
+		return new NotebookDocumentService() {
+			@Override
+			public void didOpen(DidOpenNotebookDocumentParams params) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public void didChange(DidChangeNotebookDocumentParams params) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public void didSave(DidSaveNotebookDocumentParams params) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public void didClose(DidCloseNotebookDocumentParams params) {
+				throw new UnsupportedOperationException();
+			}
+		};
 	}
 
 	@Override

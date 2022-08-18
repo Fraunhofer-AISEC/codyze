@@ -1,8 +1,8 @@
 package de.fraunhofer.aisec.codyze.specification_languages.mark
 
-import de.fraunhofer.aisec.codyze.legacy.config.DisabledMarkRulesValue
-import de.fraunhofer.aisec.codyze.legacy.markmodel.Mark
-import de.fraunhofer.aisec.codyze.legacy.markmodel.MarkModelLoader
+import de.fraunhofer.aisec.codyze.config.DisabledMarkRulesValue
+import de.fraunhofer.aisec.codyze.markmodel.Mark
+import de.fraunhofer.aisec.codyze.markmodel.MarkModelLoader
 import de.fraunhofer.aisec.mark.XtextParser
 import java.nio.file.Path
 import kotlin.io.path.extension

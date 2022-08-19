@@ -13,7 +13,7 @@ plugins {
     id("org.jsonschema2dataclass") version "4.2.0"
 
     id("org.sonarqube") version "3.4.0.2513"
-    id("com.diffplug.spotless") version "6.9.0"
+    id("com.diffplug.spotless") version "6.9.1"
     id("com.github.hierynomus.license") version "0.16.1"
 
     kotlin("jvm") version "1.7.10" // we can only upgrade to Kotlin 1.5, if CPG does
@@ -118,7 +118,7 @@ dependencies {
     api("de.breakpointsec:pushdown:1.1") // ok
 
     // LSP interface support
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.14.0") // ok
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.15.0") // ok
 
     // Interactive console interface support using Jython (Scripting engine)
     implementation("org.python:jython-standalone:2.7.2") // ok

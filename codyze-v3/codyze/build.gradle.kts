@@ -42,6 +42,11 @@ tasks {
     }
 }
 
-tasks.named<JavaExec>("run") {                                         // 2
-    systemProperty("codyze-v3-version", findProperty("version") ?: "")
+/**
+ * Set version as system property when using run task, because there isn't a JAR file manifest.
+ *
+ * We already defined a sensible version in our parent project for all modules.
+ */
+tasks.named<JavaExec>("run") {
+    systemProperty("codyze-v3-version", project.version)
 }

@@ -14,10 +14,7 @@ dependencies {
     implementation(libs.kotlin.scripting.common)
     implementation(libs.kotlin.scripting.jvm)
     implementation(libs.kotlin.scripting.host)
-
-    implementation(kotlin("scripting-compiler-impl-embeddable") as String) {
-        isTransitive = false
-    }
+    implementation(libs.kotlin.scripting.dependencies)
 
     testImplementation(libs.mockk)
 }

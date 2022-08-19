@@ -1,12 +1,12 @@
-interface Logging: Concept {
+interface Logging : Concept {
     fun log(message: String, varargs: Any)
 }
 
-interface ObjectRelationalMapper: Concept {
+interface ObjectRelationalMapper : Concept {
     fun insert(`object`: Any)
 }
 
-interface UserContext: Concept {
+interface UserContext : Concept {
     val user: Any
 }
 

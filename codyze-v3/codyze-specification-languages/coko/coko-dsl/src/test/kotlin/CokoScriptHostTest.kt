@@ -45,4 +45,45 @@ class CokoScriptHostTest {
             task.perform(any())
         }
     }
+
+//    @Test
+//    fun `test basic type creation`() {
+//        val project = mockk<Project>()
+//
+//        val result =
+//            CokoExecutor.eval("""
+//                interface Logging: Concept {
+//                    fun log(message: String, varargs: Any)
+//                }
+//
+//                interface ObjectRelationalMapper: Concept {
+//                    fun insert(`object`: Any)
+//                }
+//
+//                interface UserContext: Concept {
+//                    val user: Any
+//                }
+//            """.trimIndent(),
+//                project
+//            )
+//        result.valueOrThrow()
+//    }
+//
+//    @Test
+//    fun `test import annotation`() {
+//        val project = mockk<Project>()
+//
+//        val result =
+//            CokoExecutor.eval("""
+//                @file:Import("model.codyze.kts")
+//
+//                class PythonLogging: Logging {
+//                    override fun log(message: String, varargs: Any) = call("logging.info(...)")
+//                }
+//            """.trimIndent(),
+//                project
+//            )
+//
+//        result.valueOrThrow()
+//    }
 }

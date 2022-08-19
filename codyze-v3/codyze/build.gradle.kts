@@ -37,8 +37,7 @@ application {
 tasks {
     jar {
         manifest {
-            attributes("Implementation-Title" to "codyze-v3",
-                "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev"))
+            attributes("Implementation-Title" to "Codyze v3")
         }
     }
 }

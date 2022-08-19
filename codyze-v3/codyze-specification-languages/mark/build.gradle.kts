@@ -27,3 +27,11 @@ dependencies {
     // LSP interface support
     //api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.12.0") // ok
 }
+
+tasks {
+    jar {
+        manifest {
+            attributes("Implementation-Title" to "Codyze v3 - Specification Language MARK")
+        }
+    }
+}

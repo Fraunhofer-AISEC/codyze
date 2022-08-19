@@ -1,6 +1,6 @@
 allprojects {
     group = "de.fraunhofer.aisec.codyze"
-    version = if(version != "unspecified") version else "0.0.0-SNAPSHOT"
+    version = if(version != Project.DEFAULT_VERSION) version else "0.0.0-SNAPSHOT"
 }
 
 plugins {

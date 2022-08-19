@@ -10,10 +10,13 @@ plugins {
     id("com.diffplug.spotless")
 }
 
-// bundle codyze's version for all jars to use it at runtime
+// configure shared attributes for JAR file manifests
 tasks.withType<Jar>().configureEach {
     manifest {
-        attributes(mapOf("CodyzeVersion" to project.version))
+        attributes(
+            "Implementation-Version" to project.version,
+            "Implementation-Vendor" to "Fraunhofer AISEC"
+        )
     }
 }
 

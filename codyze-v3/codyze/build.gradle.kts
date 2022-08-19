@@ -33,3 +33,20 @@ dependencies {
 application {
     mainClass.set("de.fraunhofer.aisec.codyze.MainKt")
 }
+
+tasks {
+    jar {
+        manifest {
+            attributes("Implementation-Title" to "Codyze v3")
+        }
+    }
+}
+
+/**
+ * Set version as system property when using run task, because there isn't a JAR file manifest.
+ *
+ * We already defined a sensible version in our parent project for all modules.
+ */
+tasks.named<JavaExec>("run") {
+    systemProperty("codyze-v3-version", project.version)
+}

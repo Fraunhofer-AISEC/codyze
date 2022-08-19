@@ -15,9 +15,7 @@ tasks.withType<Jar>().configureEach {
     manifest {
         attributes(
             "Implementation-Version" to project.version,
-            "Implementation-Vendor" to "Fraunhofer AISEC",
-            "Implementation-Vendor-Id" to project.group,
-            "Implementation-URL" to "https://github.com/Fraunhofer-AISEC/codyze"
+            "Implementation-Vendor" to "Fraunhofer AISEC"
         )
     }
 }

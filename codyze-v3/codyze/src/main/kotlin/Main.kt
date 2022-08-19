@@ -48,7 +48,7 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
 class CodyzeCli(val configFile: Path? = null) :
     CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
     init {
-        versionOption(getVersion(), names = setOf("--version", "-V"))
+        versionOption(Codyze.version, names = setOf("--version", "-V"))
         context {
             if (configFile != null)
                 valueSource = JsonValueSource.from(configFile, requireValid = true)
@@ -56,40 +56,56 @@ class CodyzeCli(val configFile: Path? = null) :
         }
     }
 
-    override fun run() {
-        echo("In CodyzeCli")
-    } // TODO: change to NoOpCliktCommand?
+    /**
+     * Storage for constant application information.
+     *
+     * Note: Using `object` to keep information as singleton and prevent initialization on each
+     * object creation of [CodyzeCli].
+     */
+    private object Codyze {
+        /** Name of our application. */
+        private const val IMPLEMENTATION_TITLE: String = "Codyze v3"
 
-    // adapted example from
-    // https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java
-    private fun getVersion(): String {
-        return if (System.getProperty("codyze-v3-version") != null)
+        /** Default version to use, when no explicit version has been set. */
+        private const val DEFAULT_VERSION: String = "0.0.0-SNAPSHOT"
+
+        /**
+         * Determine version from system property `codyze-v3-version` or from Codyzes' JAR file
+         * manifests.
+         *
+         * Note: Using `lazy` delegate to calculate property once, when it is needed. Reduces
+         * overhead by not reading in all manifests on the classpath multiple times.
+         */
+        val version: String by lazy {
             System.getProperty("codyze-v3-version")
-        else {
-            val resources: Enumeration<URL> =
-                CodyzeCli::class.java.classLoader.getResources("META-INF/MANIFEST.MF")
-            while (resources.hasMoreElements()) {
-                val url = resources.nextElement()
-                try {
-                    val manifest = Manifest(url.openStream())
-                    val attr = manifest.mainAttributes
-                    if (isApplicableManifest(manifest))
-                        return get(attr, "Implementation-Version").toString()
-                } catch (ex: IOException) {
-                    return "Unable to read from $url: $ex"
+                ?: run {
+                    var v = DEFAULT_VERSION
+                    val resources: Enumeration<URL> =
+                        CodyzeCli::class.java.classLoader.getResources("META-INF/MANIFEST.MF")
+                    while (resources.hasMoreElements()) {
+                        val url = resources.nextElement()
+                        try {
+                            val manifest = Manifest(url.openStream())
+                            val mainAttributes = manifest.mainAttributes
+                            if (
+                                IMPLEMENTATION_TITLE ==
+                                    mainAttributes.getValue(Attributes.Name.IMPLEMENTATION_TITLE)
+                            ) {
+                                v = mainAttributes.getValue(Attributes.Name.IMPLEMENTATION_VERSION)
+                                break
+                            }
+                        } catch (ex: IOException) {
+                            logger.trace { "Unable to read from $url: $ex" }
+                        }
+                    }
+                    v
                 }
-            }
-            return "Unable to find manifest file."
         }
     }
 
-    private fun isApplicableManifest(manifest: Manifest): Boolean {
-        val attributes = manifest.mainAttributes
-        return "codyze-v3" == get(attributes, "Implementation-Title")
-    }
-    private fun get(attributes: Attributes, key: String): Any? {
-        return attributes[Attributes.Name(key)]
-    }
+    override fun run() {
+        echo("In CodyzeCli")
+    } // TODO: change to NoOpCliktCommand?
 }
 
 /** Entry point for Codyze. Hands over control to the chosen subcommand immediately. */

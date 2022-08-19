@@ -5,11 +5,15 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Task
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
 import io.mockk.*
+import java.nio.file.Path
+import kotlin.io.path.writeText
 import kotlin.script.experimental.api.valueOrThrow
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 
 class CokoScriptHostTest {
 
+    // test from groddler
     @Test
     fun `it works`() {
 
@@ -46,44 +50,62 @@ class CokoScriptHostTest {
         }
     }
 
-//    @Test
-//    fun `test basic type creation`() {
-//        val project = mockk<Project>()
-//
-//        val result =
-//            CokoExecutor.eval("""
-//                interface Logging: Concept {
-//                    fun log(message: String, varargs: Any)
-//                }
-//
-//                interface ObjectRelationalMapper: Concept {
-//                    fun insert(`object`: Any)
-//                }
-//
-//                interface UserContext: Concept {
-//                    val user: Any
-//                }
-//            """.trimIndent(),
-//                project
-//            )
-//        result.valueOrThrow()
-//    }
-//
-//    @Test
-//    fun `test import annotation`() {
-//        val project = mockk<Project>()
-//
-//        val result =
-//            CokoExecutor.eval("""
-//                @file:Import("model.codyze.kts")
-//
-//                class PythonLogging: Logging {
-//                    override fun log(message: String, varargs: Any) = call("logging.info(...)")
-//                }
-//            """.trimIndent(),
-//                project
-//            )
-//
-//        result.valueOrThrow()
-//    }
+    @Test
+    fun `test basic type creation`() {
+        val project = mockk<Project>()
+
+        val result =
+            CokoExecutor.eval(
+                """
+                interface Logging: Concept {
+                    fun log(message: String, varargs: Any)
+                }
+            """.trimIndent(),
+                project
+            )
+        result.valueOrThrow()
+    }
+
+    @Test
+    fun `test default imports`() {
+        val project = mockk<Project>()
+
+        val result =
+            CokoExecutor.eval(
+                """
+                interface Logging: Concept {
+                    fun log(message: String, varargs: Any) = call("logging.info(...)")
+                }
+            """.trimIndent(),
+                project
+            )
+        result.valueOrThrow()
+    }
+    @Test
+    fun `test import annotation`(@TempDir tempDir: Path) {
+        val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
+        modelDefinitionFile.writeText(
+            """
+            interface Logging: Concept {
+                fun log(message: String, varargs: Any)
+            }
+        """.trimIndent()
+        )
+
+        val project = mockk<Project>()
+
+        val result =
+            CokoExecutor.eval(
+                """
+                @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+
+                class PythonLogging: Logging {
+                    override fun log(message: String, varargs: Any) = Unit
+                }
+            """.trimIndent(),
+                project
+            )
+
+        result.valueOrThrow()
+    }
 }

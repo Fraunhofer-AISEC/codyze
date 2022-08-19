@@ -18,4 +18,4 @@ fun call(full_name: String) = Unit
 
 fun any(): String = ""
 
-fun variable(): String = ""
+fun variable(name: String): String = ""

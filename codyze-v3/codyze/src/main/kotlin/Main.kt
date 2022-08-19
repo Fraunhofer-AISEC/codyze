@@ -79,7 +79,6 @@ class CodyzeCli(val configFile: Path? = null) :
         val version: String by lazy {
             System.getProperty("codyze-v3-version")
                 ?: run {
-                    var v = DEFAULT_VERSION
                     val resources: Enumeration<URL> =
                         CodyzeCli::class.java.classLoader.getResources("META-INF/MANIFEST.MF")
                     while (resources.hasMoreElements()) {
@@ -91,14 +90,15 @@ class CodyzeCli(val configFile: Path? = null) :
                                 IMPLEMENTATION_TITLE ==
                                     mainAttributes.getValue(Attributes.Name.IMPLEMENTATION_TITLE)
                             ) {
-                                v = mainAttributes.getValue(Attributes.Name.IMPLEMENTATION_VERSION)
-                                break
+                                return@run mainAttributes.getValue(
+                                    Attributes.Name.IMPLEMENTATION_VERSION
+                                )
                             }
                         } catch (ex: IOException) {
                             logger.trace { "Unable to read from $url: $ex" }
                         }
                     }
-                    v
+                    DEFAULT_VERSION
                 }
         }
     }

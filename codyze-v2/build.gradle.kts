@@ -97,7 +97,7 @@ configurations.all {
 dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.0") // ok
-    api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
+    api("org.slf4j:log4j-over-slf4j:2.0.0") // needed for xtext.parser.antlr
     api("org.apache.logging.log4j:log4j-core:2.18.0") // impl in main; used only in test
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.18.0")
 

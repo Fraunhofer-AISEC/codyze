@@ -49,5 +49,3 @@ Arguments can be passed with the `--args` option.
 
 ## Docker
 We're also offering Codyze as a container image. You can find an image with the latest release in the [project's container registry <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/pkgs/container/codyze).
-
-<!-- TODO: add description of container -->

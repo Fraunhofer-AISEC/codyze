@@ -34,7 +34,7 @@ The full help is only available in __Codyze v3__ if a subcommand is specified.
 The configurations can also be defined with a YAML configuration file in __Codyze v2__ or a JSON configuration file in __Codyze v3__. 
 Use the option `--config=<filepath>` to specify the path to the config file.
 
-In __Codyze v2__ if `--config` is specified without an option parameter, Codyze will try to load the configuration file from `./codyze.yaml` in the working directory. 
+In __Codyze v2__ if `--config` is specified without an option parameter, Codyze will try to load the configuration file from `./codyze.yaml` in the current working directory. 
 If the option is not specified, no configuration file will be parsed.
 
 In __Codyze v3__ the configuration from `./codyze.json` will always be loaded if no other file is specified.

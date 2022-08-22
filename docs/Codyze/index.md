@@ -7,7 +7,7 @@ menu:
   main:
     weight: 20
 description: >
-  Codyze is a static analysis tool to support developers in verifying compliance to security requirements
+  Codyze is a static analysis tool to support developers in verifying compliance to security requirements.
 ---
 
 !!! info
@@ -39,7 +39,7 @@ Codyze checks source code for the correct usage of libraries. It is an addition 
 
 **Developers** verify their code against rules of modelled libraries using Codyze - either as an IDE-plugin or as a CI module.
 
-**Integrators** of open source components may want to verify these components using the automated analyis of Codyze or by manually search the code for critical patterns.
+**Integrators** of open source components may want to verify these components using the automated analysis of Codyze or by manually searching the code for critical patterns.
 
 
 

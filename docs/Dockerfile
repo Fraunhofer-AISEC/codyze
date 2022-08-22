@@ -11,3 +11,6 @@ RUN apk --no-cache add \
 RUN python -m pip install --no-cache-dir \
     mkdocs-git-revision-date-localized-plugin \
     mkdocs-glightbox
+
+# Trust git directory for git revision plugin
+RUN git config --global --add safe.directory /docs

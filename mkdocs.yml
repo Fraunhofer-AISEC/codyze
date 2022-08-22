@@ -69,9 +69,9 @@ plugins:
   - search
   - minify:
       minify_html: true
-#  - git-revision-date-localized:
-#      enable_creation_date: true
-#      type: timeago
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
 
 # Customization
 extra:

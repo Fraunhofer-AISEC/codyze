@@ -5,9 +5,7 @@ class GolangLogging : Logging {
 }
 
 class Gorm : ObjectRelationalMapper {
-    override fun insert(`object`: Any) {
-        call("db.Create($`object`")
-    }
+    override fun insert(`object`: Any) = call("db.Create($`object`)")
 }
 
 class GoJWTUserContext : UserContext {

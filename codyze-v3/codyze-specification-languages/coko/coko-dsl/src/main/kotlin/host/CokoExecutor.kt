@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.cpgEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
@@ -16,9 +17,9 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 
 class CokoExecutor : Executor {
     override val name: String
-        get() = CokoExecutor::class.simpleName ?: "NwtExecutor"
+        get() = CokoExecutor::class.simpleName ?: "CokoExecutor"
     override val supportedFileExtension: String
-        get() = "nwt.kts"
+        get() = "codyze.kts"
 
     lateinit var configuration: ExecutorConfiguration
 
@@ -55,14 +56,22 @@ class CokoExecutor : Executor {
     // this is used in the tests for now
     companion object {
         /** Evaluates the given project script [sourceCode] against the given [project]. */
-        fun eval(sourceCode: String, project: Project) = eval(sourceCode.toScriptSource(), project)
+        fun eval(sourceCode: String, project: Project, cpgEvaluator: cpgEvaluator) =
+            eval(sourceCode.toScriptSource(), project, cpgEvaluator)
 
         /** Evaluates the given project script [sourceCode] against the given [project]. */
         fun eval(
             sourceCode: SourceCode,
-            project: Project
+            project: Project,
+            cpgEvaluator: cpgEvaluator
         ): ResultWithDiagnostics<EvaluationResult> =
             BasicJvmScriptingHost()
-                .evalWithTemplate<CokoScript>(sourceCode, evaluation = { constructorArgs(project) })
+                .evalWithTemplate<CokoScript>(
+                    sourceCode,
+                    evaluation = {
+                        constructorArgs(project)
+                        implicitReceivers(cpgEvaluator)
+                    }
+                )
     }
 }

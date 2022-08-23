@@ -5,11 +5,7 @@ class PythonLogging : Logging {
 }
 
 class Sqlite3 : ObjectRelationalMapper {
-    val msg = ".*INSERT.*"
-
-    override fun insert(`object`: Any) {
-        call("sqlite3.Cursor.execute($msg)")
-    }
+    override fun insert(`object`: Any) = call("sqlite3.Cursor.execute('INSERT')")
 }
 
 class FlaskJWTUserContext : UserContext {

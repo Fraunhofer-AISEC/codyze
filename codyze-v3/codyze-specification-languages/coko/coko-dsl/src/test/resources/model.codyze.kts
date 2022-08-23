@@ -10,7 +10,7 @@ interface UserContext : Concept {
     val user: Any
 }
 
-@rule
+@Rule
 fun `DB actions are always logged`(db: ObjectRelationalMapper, log: Logging, ctx: UserContext) {
-    occurance(db::insert) follows occurance(log::log, any(), ctx::user)
+    call(db::insert) follows call(log::log, any(), ctx::user)
 }

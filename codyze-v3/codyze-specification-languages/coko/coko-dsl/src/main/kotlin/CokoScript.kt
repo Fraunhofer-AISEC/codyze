@@ -1,6 +1,8 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Import
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.cpgEvaluator
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
@@ -20,12 +22,13 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     displayName = "Codyze Specification Script",
     // file name extension by which this script type is recognized by mechanisms built into
     // scripting compiler plugin
-    // and IDE support, it is recommendend to use double extension with the last one being "kts", so
+    // and IDE support, it is recommended to use double extension with the last one being "kts", so
     // some non-specific
     // scripting support could be used, e.g. in IDE, if the specific support is not installed.
     fileExtension = "codyze.kts",
     // the class or object that defines script compilation configuration for this type of scripts
     compilationConfiguration = ProjectScriptCompilationConfiguration::class,
+    evaluationConfiguration = ProjectScriptEvaluationConfiguration::class
 )
 // the class is used as the script base class, therefore it should be open or abstract
 abstract class CokoScript(project: Project) : Project by project {
@@ -44,13 +47,16 @@ internal object ProjectScriptCompilationConfiguration :
     ScriptCompilationConfiguration({
         jvm { dependenciesFromClassContext(CokoScript::class, *baseLibraries) }
 
+        implicitReceivers(
+            cpgEvaluator::class
+        ) // the actual receiver must be passed to the script class in the constructor
+
         // adds implicit import statements (in this case `import
-        // de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.Import`, etc.)
+        // de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.*`, etc.)
         // to each script on compilation
-        defaultImports(Import::class)
         defaultImports.append("de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.*")
 
-        // section that callbacks during compilation
+        // section that defines callbacks during compilation
         refineConfiguration {
             beforeCompiling { context ->
                 val pluginsBlock = pluginsBlockOrNullFrom(context.script.text)
@@ -78,7 +84,7 @@ internal object ProjectScriptCompilationConfiguration :
             onAnnotations(Import::class, handler = ::configureImportDepsOnAnnotations)
         }
 
-        ide { acceptedLocations(ScriptAcceptedLocation.Project) }
+        ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
     })
 
 private val baseLibraries = arrayOf("coko-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect")
@@ -131,3 +137,10 @@ fun configureImportDepsOnAnnotations(
         }
         .asSuccess()
 }
+
+object ProjectScriptEvaluationConfiguration :
+    ScriptEvaluationConfiguration({
+        scriptsInstancesSharing(
+            true
+        ) // if a script is imported multiple times in the import hierarchy, use a single copy
+    })

@@ -3,6 +3,7 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Action
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Task
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.cpgEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
 import io.mockk.*
 import java.nio.file.Path
@@ -19,6 +20,7 @@ class CokoScriptHostTest {
 
         val task = mockk<Task>()
         val project = mockk<Project>()
+        val cpgEvaluator = mockk<cpgEvaluator>()
 
         every { task.dependsOn(any()) } just Runs
         every { task.perform(any()) } just Runs
@@ -39,7 +41,8 @@ class CokoScriptHostTest {
                     perform { println("🥧") }
                 }
             """,
-                project
+                project,
+                cpgEvaluator
             )
         result.valueOrThrow()
 
@@ -53,6 +56,7 @@ class CokoScriptHostTest {
     @Test
     fun `test basic type creation`() {
         val project = mockk<Project>()
+        val cpgEvaluator = mockk<cpgEvaluator>()
 
         val result =
             CokoExecutor.eval(
@@ -61,7 +65,8 @@ class CokoScriptHostTest {
                     fun log(message: String, varargs: Any)
                 }
             """.trimIndent(),
-                project
+                project,
+                cpgEvaluator
             )
         result.valueOrThrow()
     }
@@ -69,15 +74,37 @@ class CokoScriptHostTest {
     @Test
     fun `test default imports`() {
         val project = mockk<Project>()
+        val cpgEvaluator = mockk<cpgEvaluator>()
 
         val result =
             CokoExecutor.eval(
                 """
+                // Concept is a default import
                 interface Logging: Concept {
+                    fun log(message: String, varargs: Any) = Unit
+                }
+            """.trimIndent(),
+                project,
+                cpgEvaluator
+            )
+        result.valueOrThrow()
+    }
+
+    @Test
+    fun `test implicit receivers`() {
+        val project = mockk<Project>()
+        val cpgEvaluator = mockk<cpgEvaluator>()
+
+        val result =
+            CokoExecutor.eval(
+                """
+                // call is a method of an implicit receiver
+                class Logging {
                     fun log(message: String, varargs: Any) = call("logging.info(...)")
                 }
             """.trimIndent(),
-                project
+                project,
+                cpgEvaluator
             )
         result.valueOrThrow()
     }
@@ -86,13 +113,14 @@ class CokoScriptHostTest {
         val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
-            interface Logging: Concept {
+            interface Logging {
                 fun log(message: String, varargs: Any)
             }
         """.trimIndent()
         )
 
         val project = mockk<Project>()
+        val cpgEvaluator = mockk<cpgEvaluator>()
 
         val result =
             CokoExecutor.eval(
@@ -103,7 +131,70 @@ class CokoScriptHostTest {
                     override fun log(message: String, varargs: Any) = Unit
                 }
             """.trimIndent(),
-                project
+                project,
+                cpgEvaluator
+            )
+
+        result.valueOrThrow()
+    }
+
+    @Test
+    fun `test default imports, import annotation and implicit receivers at once`(
+        @TempDir tempDir: Path
+    ) {
+        val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
+        modelDefinitionFile.writeText(
+            """
+            interface Logging {
+                fun log(message: String, varargs: Any): Any
+            }
+        """.trimIndent()
+        )
+
+        val project = mockk<Project>()
+        val cpgEvaluator = mockk<cpgEvaluator>()
+
+        val result =
+            CokoExecutor.eval(
+                """
+                @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+
+                class PythonLogging: Logging {
+                    override fun log(message: String, varargs: Any) = call("test") `is` Called
+                }
+            """.trimIndent(),
+                project,
+                cpgEvaluator
+            )
+
+        result.valueOrThrow()
+    }
+
+    @Test
+    fun `test super simple rule evaluation`() {
+        val project = mockk<Project>()
+        val cpgEvaluator = mockk<cpgEvaluator>()
+
+        val result =
+            CokoExecutor.eval(
+                """
+                    interface Logging {
+                        fun log(message: String, varargs: Any)
+                    }
+
+                    class LoggingImpl : Logging {
+                        override fun log(message: String, varargs: Any) = call("logging.info(*)")
+                    }
+
+                    @rule
+                    fun `log is called`(log: Logging) {
+                        call(log::log) `is` Called
+                        // provide cpgWrapper as implicit receiver
+                        // expands to cpgEvaluator.call("logging.info(*)") `is` Called
+                    }
+                """.trimIndent(),
+                project,
+                cpgEvaluator
             )
 
         result.valueOrThrow()

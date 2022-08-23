@@ -8,14 +8,18 @@ interface Concept
 
 interface RuleConcept
 
-annotation class rule
+object Called
 
 infix fun <A, B> A.follows(that: B): Pair<A, B> = Pair(this, that)
 
-fun <T> occurance(func: KCallable<T>, vararg arguments: Any) = Unit
+infix fun <A, B> A.`is`(that: B): Pair<A, B> = Pair(this, that)
 
-fun call(full_name: String) = Unit
+class cpgEvaluator {
+    fun any(): String = ""
 
-fun any(): String = ""
+    fun variable(name: String): String = ""
 
-fun variable(name: String): String = ""
+    fun <T> call(func: KCallable<T>, vararg arguments: Any) = Unit
+
+    fun call(full_name: String) = Unit
+}

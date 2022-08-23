@@ -5,12 +5,9 @@ FROM ghcr.io/afritzler/mkdocs-material
 RUN apk --no-cache add \
     git
 
-# Install additional plugins
-# - mkdocs-git-revision-date-localized-plugin - Add last updated date to site using git revision
-# - mkdocs-glightbox - Add lightboxes for images, videos, etc.
-RUN python -m pip install --no-cache-dir \
-    mkdocs-git-revision-date-localized-plugin \
-    mkdocs-glightbox
+# Install additional plugins (cf. `./mkdocs-material-plugins.txt`)
+COPY mkdocs-material-plugins.txt /
+RUN python -m pip install --no-cache-dir -r /mkdocs-material-plugins.txt
 
 # Trust git directory for git revision plugin
 RUN git config --global --add safe.directory /docs

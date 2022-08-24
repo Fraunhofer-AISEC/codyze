@@ -1,12 +1,10 @@
 package de.fraunhofer.aisec.codyze.specification_languages.mark
 
-import de.fraunhofer.aisec.codyze.analysis.AnalysisContext
-import de.fraunhofer.aisec.codyze.analysis.AnalysisServer
-import de.fraunhofer.aisec.codyze.analysis.FindingDescription
-import de.fraunhofer.aisec.codyze.analysis.ServerConfiguration
+import de.fraunhofer.aisec.codyze.analysis.*
 import de.fraunhofer.aisec.codyze.analysis.TypestateMode as LegacyTypestateMode
 import de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator
 import de.fraunhofer.aisec.codyze.markmodel.Mark
+import de.fraunhofer.aisec.codyze.printer.SarifPrinter
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.cpg.ExperimentalGraph
@@ -14,7 +12,7 @@ import de.fraunhofer.aisec.cpg.TranslationManager
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.graph
 import de.fraunhofer.aisec.cpg.helpers.Benchmark
-import io.github.detekt.sarif4k.Result
+import io.github.detekt.sarif4k.*
 import kotlin.io.path.exists
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
@@ -101,6 +99,15 @@ class MarkExecutor : Executor {
 
         // TODO convert findings into results
         analysisContext.findings.forEach { println(it) }
-        return listOf()
+
+        return convertFindingsToSarif(analysisContext.findings)
+    }
+
+    private fun convertFindingsToSarif(findings: Set<Finding>): List<Result> {
+
+        val printer = SarifPrinter(findings)
+        val sarif = SarifSerializer.fromJson(printer.output)
+
+        return if (sarif.runs[0].results != null) sarif.runs[0].results!! else emptyList()
     }
 }

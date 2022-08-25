@@ -12,4 +12,4 @@ annotation class Import(vararg val paths: String)
 
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
-annotation class Rule
+annotation class Rule(val description: String = "")

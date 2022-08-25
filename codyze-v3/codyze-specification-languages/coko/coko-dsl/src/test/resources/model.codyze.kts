@@ -1,16 +1,16 @@
-interface Logging : Concept {
+interface Logging {
     fun log(message: String, varargs: Any)
 }
 
-interface ObjectRelationalMapper : Concept {
+interface ObjectRelationalMapper {
     fun insert(`object`: Any)
 }
 
-interface UserContext : Concept {
+interface UserContext {
     val user: Any
 }
 
-@Rule
+@Rule("This is a dummy description")
 fun `DB actions are always logged`(db: ObjectRelationalMapper, log: Logging, ctx: UserContext) {
-    call(db::insert) follows call(log::log, any(), ctx::user)
+    call(db::insert) follows call(log::log, ctx::user)
 }

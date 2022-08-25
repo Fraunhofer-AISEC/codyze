@@ -3,8 +3,8 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Action
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Task
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.cpgEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.cpgEvaluator
 import io.mockk.*
 import java.nio.file.Path
 import kotlin.io.path.writeText
@@ -34,13 +34,13 @@ class CokoScriptHostTest {
         val result =
             CokoExecutor.eval(
                 """
-                plugins { id("kotlin") } 
-                kotlin { isAwesome = true }
-                task("make an apple pie") {
-                    dependsOn("invent the universe")
-                    perform { println("🥧") }
-                }
-            """,
+                    plugins { id("kotlin") } 
+                    kotlin { isAwesome = true }
+                    task("make an apple pie") {
+                        dependsOn("invent the universe")
+                        perform { println("🥧") }
+                    }
+                """,
                 project,
                 cpgEvaluator
             )
@@ -61,10 +61,10 @@ class CokoScriptHostTest {
         val result =
             CokoExecutor.eval(
                 """
-                interface Logging: Concept {
-                    fun log(message: String, varargs: Any)
-                }
-            """.trimIndent(),
+                    interface Logging {
+                        fun log(message: String, varargs: Any)
+                    }
+                """.trimIndent(),
                 project,
                 cpgEvaluator
             )
@@ -79,11 +79,11 @@ class CokoScriptHostTest {
         val result =
             CokoExecutor.eval(
                 """
-                // Concept is a default import
-                interface Logging: Concept {
-                    fun log(message: String, varargs: Any) = Unit
-                }
-            """.trimIndent(),
+                    // Concept is a default import
+                    interface Logging {
+                        fun log(message: String, varargs: Any) = Unit
+                    }
+                """.trimIndent(),
                 project,
                 cpgEvaluator
             )
@@ -98,11 +98,11 @@ class CokoScriptHostTest {
         val result =
             CokoExecutor.eval(
                 """
-                // call is a method of an implicit receiver
-                class Logging {
-                    fun log(message: String, varargs: Any) = call("logging.info(...)")
-                }
-            """.trimIndent(),
+                    // call is a method of an implicit receiver
+                    class Logging {
+                        fun log(message: String, varargs: Any) = call("logging.info(...)")
+                    }
+                """.trimIndent(),
                 project,
                 cpgEvaluator
             )
@@ -113,10 +113,10 @@ class CokoScriptHostTest {
         val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
-            interface Logging {
-                fun log(message: String, varargs: Any)
-            }
-        """.trimIndent()
+                interface Logging {
+                    fun log(message: String, varargs: Any)
+                }
+            """.trimIndent()
         )
 
         val project = mockk<Project>()
@@ -125,12 +125,12 @@ class CokoScriptHostTest {
         val result =
             CokoExecutor.eval(
                 """
-                @file:Import("${modelDefinitionFile.toAbsolutePath()}")
-
-                class PythonLogging: Logging {
-                    override fun log(message: String, varargs: Any) = Unit
-                }
-            """.trimIndent(),
+                    @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+    
+                    class PythonLogging: Logging {
+                        override fun log(message: String, varargs: Any) = Unit
+                    }
+                """.trimIndent(),
                 project,
                 cpgEvaluator
             )
@@ -145,10 +145,10 @@ class CokoScriptHostTest {
         val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
-            interface Logging {
-                fun log(message: String, varargs: Any): Any
-            }
-        """.trimIndent()
+                interface Logging {
+                    fun log(message: String, varargs: Any): Any
+                }
+            """.trimIndent()
         )
 
         val project = mockk<Project>()
@@ -157,12 +157,12 @@ class CokoScriptHostTest {
         val result =
             CokoExecutor.eval(
                 """
-                @file:Import("${modelDefinitionFile.toAbsolutePath()}")
-
-                class PythonLogging: Logging {
-                    override fun log(message: String, varargs: Any) = call("test") `is` Called
-                }
-            """.trimIndent(),
+                    @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+    
+                    class PythonLogging: Logging {
+                        override fun log(message: String, varargs: Any) = call("test") `is` Called
+                    }
+                """.trimIndent(),
                 project,
                 cpgEvaluator
             )
@@ -185,8 +185,8 @@ class CokoScriptHostTest {
                     class LoggingImpl : Logging {
                         override fun log(message: String, varargs: Any) = call("logging.info(*)")
                     }
-
-                    @rule
+                    
+                    @Rule
                     fun `log is called`(log: Logging) {
                         call(log::log) `is` Called
                         // provide cpgWrapper as implicit receiver

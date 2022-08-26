@@ -71,6 +71,7 @@ internal object ProjectScriptCompilationConfiguration :
                             defaultImports.append(
                                 "de.fraunhofer.aisec.codyze.specification_languages.coko.coko_extensions.*"
                             )
+
                             updateClasspath(augmentedClasspath)
                         }
                         .asSuccess()

@@ -4,6 +4,9 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Rule
 import de.fraunhofer.aisec.cpg.TranslationManager
 import kotlin.reflect.*
 import kotlin.reflect.full.*
+import mu.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
 
 class CPGEvaluator(val cpg: TranslationManager) {
     val rules = mutableListOf<Pair<KCallable<*>, Any>>()
@@ -38,11 +41,13 @@ class CPGEvaluator(val cpg: TranslationManager) {
                 mutableMapOf<KParameter, Any?>(
                     rule.parameters[0] to ruleInstance
                 ) // TODO: ruleInstance might be null!
+
             parameterMap.putAll(
                 rule.parameters
                     .filter { it.kind == KParameter.Kind.VALUE }
                     .associateWith { param ->
                         // TODO: check for all implementations!
+                        null
                         implementations
                             .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
                             .map { (it, paramInstance) ->
@@ -50,6 +55,7 @@ class CPGEvaluator(val cpg: TranslationManager) {
                             }[0]
                     }
             )
+
             rule.callBy(parameterMap)
             println("Rule could be evaluated 🎉")
         }

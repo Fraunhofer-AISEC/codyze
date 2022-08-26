@@ -10,6 +10,8 @@ import io.github.detekt.sarif4k.Result
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
+import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
+import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
@@ -32,7 +34,7 @@ class CokoExecutor : Executor {
     @OptIn(ExperimentalTime::class)
     override fun evaluate(analyzer: TranslationManager): List<Result> {
 
-        val evaluator = cpgEvaluator(analyzer)
+        val evaluator = CPGEvaluator(analyzer)
         val project = CokoProject()
 
         logger.info { "Compiling specification scripts..." }
@@ -59,7 +61,11 @@ class CokoExecutor : Executor {
                 }
 
                 // analyze script contents
-                result.valueOrNull()?.returnValue?.scriptClass?.let { evaluator.addSpec(it) }
+                result.valueOrNull()?.returnValue?.let {
+                    if (it.scriptInstance != null && it.scriptClass != null) {
+                        evaluator.addSpec(it.scriptClass!!, it.scriptInstance!!)
+                    }
+                }
             }
         }
         logger.debug {
@@ -77,22 +83,29 @@ class CokoExecutor : Executor {
          * Evaluates the given project script [sourceCode] against the given [project] and
          * [evaluator].
          */
-        fun eval(sourceCode: String, project: Project, evaluator: cpgEvaluator) =
+        fun eval(sourceCode: String, project: Project, evaluator: CPGEvaluator) =
             eval(sourceCode.toScriptSource(), project, evaluator)
 
         /** Evaluates the given project script [sourceCode] against the given [project]. */
         fun eval(
             sourceCode: SourceCode,
             project: Project,
-            evaluator: cpgEvaluator
-        ): ResultWithDiagnostics<EvaluationResult> =
-            BasicJvmScriptingHost()
-                .evalWithTemplate<CokoScript>(
+            evaluator: CPGEvaluator,
+        ): ResultWithDiagnostics<EvaluationResult> {
+            val compilationConfiguration =
+                createJvmCompilationConfigurationFromTemplate<CokoScript>()
+            val evaluationConfiguration =
+                createJvmEvaluationConfigurationFromTemplate<CokoScript> {
+                    constructorArgs(project)
+                    implicitReceivers(evaluator)
+                }
+
+            return BasicJvmScriptingHost()
+                .eval(
                     sourceCode,
-                    evaluation = {
-                        constructorArgs(project)
-                        implicitReceivers(evaluator)
-                    }
+                    compilationConfiguration,
+                    evaluationConfiguration,
                 )
+        }
     }
 }

@@ -2,7 +2,7 @@
   "analyze": {
     "good-findings": false,
     "timeout": 5,
-    "spec": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/pyimpl.codyze.kts", "../codyze-specification-languages/coko/coko-dsl/src/test/resources/model.codyze.kts"],
+    "spec": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/model.codyze.kts", "../codyze-specification-languages/coko/coko-dsl/src/test/resources/pyimpl.codyze.kts"],
     "source": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/python/main.py"],
     "disabled-specs": [""],
     "typestate": "DFA"

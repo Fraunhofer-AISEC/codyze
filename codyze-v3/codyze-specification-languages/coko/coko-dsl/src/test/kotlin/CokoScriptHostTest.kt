@@ -3,8 +3,8 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Action
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Task
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CPGEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.cpgEvaluator
 import io.mockk.*
 import java.nio.file.Path
 import kotlin.io.path.writeText
@@ -20,7 +20,7 @@ class CokoScriptHostTest {
 
         val task = mockk<Task>()
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<cpgEvaluator>()
+        val cpgEvaluator = mockk<CPGEvaluator>()
 
         every { task.dependsOn(any()) } just Runs
         every { task.perform(any()) } just Runs
@@ -56,7 +56,7 @@ class CokoScriptHostTest {
     @Test
     fun `test basic type creation`() {
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<cpgEvaluator>()
+        val cpgEvaluator = mockk<CPGEvaluator>()
 
         val result =
             CokoExecutor.eval(
@@ -74,7 +74,7 @@ class CokoScriptHostTest {
     @Test
     fun `test default imports`() {
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<cpgEvaluator>()
+        val cpgEvaluator = mockk<CPGEvaluator>()
 
         val result =
             CokoExecutor.eval(
@@ -93,7 +93,7 @@ class CokoScriptHostTest {
     @Test
     fun `test implicit receivers`() {
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<cpgEvaluator>()
+        val cpgEvaluator = mockk<CPGEvaluator>()
 
         val result =
             CokoExecutor.eval(
@@ -120,7 +120,7 @@ class CokoScriptHostTest {
         )
 
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<cpgEvaluator>()
+        val cpgEvaluator = mockk<CPGEvaluator>()
 
         val result =
             CokoExecutor.eval(
@@ -152,7 +152,7 @@ class CokoScriptHostTest {
         )
 
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<cpgEvaluator>()
+        val cpgEvaluator = mockk<CPGEvaluator>()
 
         val result =
             CokoExecutor.eval(
@@ -173,7 +173,7 @@ class CokoScriptHostTest {
     @Test
     fun `test super simple rule evaluation`() {
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<cpgEvaluator>()
+        val cpgEvaluator = mockk<CPGEvaluator>()
 
         val result =
             CokoExecutor.eval(

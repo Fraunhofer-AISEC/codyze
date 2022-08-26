@@ -2,22 +2,21 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Rule
 import de.fraunhofer.aisec.cpg.TranslationManager
-import kotlin.reflect.KCallable
-import kotlin.reflect.KClass
-import kotlin.reflect.KParameter
-import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.*
+import kotlin.reflect.full.*
 
-class cpgEvaluator(val cpg: TranslationManager) {
-    val rules = mutableListOf<KCallable<*>>()
-    val types = mutableListOf<KClass<*>>()
-    val implementations = mutableListOf<Any>()
+class CPGEvaluator(val cpg: TranslationManager) {
+    val rules = mutableListOf<Pair<KCallable<*>, Any>>()
+    val types = mutableListOf<Pair<KClass<*>, Any>>()
+    val implementations = mutableListOf<Pair<KClass<*>, Any>>()
 
-    fun addSpec(scriptClass: KClass<*>) {
+    fun addSpec(scriptClass: KClass<*>, scriptInstance: Any) {
         for (type in scriptClass.nestedClasses) {
-            if (type.isAbstract) types.add(type) else implementations.add(type)
+            if (type.isAbstract) types.add(type to scriptInstance)
+            else implementations.add(type to scriptInstance)
         }
-        for (member in scriptClass.members.filter { it.findAnnotation<Rule>() != null }) {
-            rules.add(member)
+        for (member in scriptClass.functions.filter { it.findAnnotation<Rule>() != null }) {
+            rules.add(member to scriptInstance)
         }
     }
 
@@ -25,15 +24,34 @@ class cpgEvaluator(val cpg: TranslationManager) {
 
     fun variable(name: String): String = ""
 
-    fun <T> call(func: KCallable<T>, vararg arguments: Any) = Unit
+    fun <T> call(func: KCallable<T>, vararg arguments: Any) {
+        println("get all nodes for call to ${func.name} with arguments: [$arguments]")
+    }
 
-    fun call(full_name: String) = Unit
+    fun call(full_name: String) {
+        println("get all nodes for call to $full_name")
+    }
 
     fun evaluate() {
-        for (rule in rules) {
+        for ((rule, ruleInstance) in rules) {
             val parameterMap =
-                rule.parameters.filter { it.kind == KParameter.Kind.VALUE }.associateWith { it.name }
-            // rule.callBy()
+                mutableMapOf<KParameter, Any?>(
+                    rule.parameters[0] to ruleInstance
+                ) // TODO: ruleInstance might be null!
+            parameterMap.putAll(
+                rule.parameters
+                    .filter { it.kind == KParameter.Kind.VALUE }
+                    .associateWith { param ->
+                        // TODO: check for all implementations!
+                        implementations
+                            .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
+                            .map { (it, paramInstance) ->
+                                it.primaryConstructor?.call(paramInstance)
+                            }[0]
+                    }
+            )
+            rule.callBy(parameterMap)
+            println("Rule could be evaluated 🎉")
         }
     }
 }

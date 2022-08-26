@@ -2,7 +2,7 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Import
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.cpgEvaluator
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CPGEvaluator
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
@@ -28,7 +28,7 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     fileExtension = "codyze.kts",
     // the class or object that defines script compilation configuration for this type of scripts
     compilationConfiguration = ProjectScriptCompilationConfiguration::class,
-    // evaluationConfiguration = ProjectScriptEvaluationConfiguration::class  // using this caused
+    // evaluationConfiguration = ProjectScriptEvaluationConfiguration::class // using this caused
     // the resulting ResultWithDiagnostics<EvaluationResult> to be a failure instead of a success
     )
 // the class is used as the script base class, therefore it should be open or abstract
@@ -50,7 +50,7 @@ internal object ProjectScriptCompilationConfiguration :
         jvm { dependenciesFromClassContext(CokoScript::class, *baseLibraries) }
 
         implicitReceivers(
-            cpgEvaluator::class
+            CPGEvaluator::class
         ) // the actual receiver must be passed to the script class in the constructor
 
         // adds implicit import statements (in this case `import

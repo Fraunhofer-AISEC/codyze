@@ -10,7 +10,7 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.jsonschema2dataclass") version "4.2.0"
+    id("org.jsonschema2dataclass") version "4.3.0"
 
     id("org.sonarqube") version "3.4.0.2513"
     id("com.diffplug.spotless") version "6.10.0"

@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.7.10"
-cpg = "4.6.0"
+cpg = "4.6.1"
 
 [libraries]
 sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.0.1"}

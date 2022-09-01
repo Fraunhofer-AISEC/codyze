@@ -2,7 +2,9 @@ package de.fraunhofer.aisec.codyze_core
 
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
+import io.github.detekt.sarif4k.Notification
 import io.github.detekt.sarif4k.Result
+import io.github.detekt.sarif4k.ToolComponent
 import java.nio.file.Path
 
 /**
@@ -20,6 +22,15 @@ interface Executor {
 
     /** Supported file extension for specification language files */
     val supportedFileExtension: String
+
+    /** Desciption of the executor which is used for the SARIF output */
+    val toolExtension: ToolComponent
+
+    /** Notifications regarding the configuration of the executor, used for the SARIF output */
+    val configurationNotifications: List<Notification>
+
+    /** Notifications regarding the execution of the executor, used for the SARIF output */
+    val executionNotifications: List<Notification>
 
     // offer standard implementation
     // must only be called once

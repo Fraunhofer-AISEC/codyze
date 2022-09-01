@@ -3,11 +3,10 @@ package de.fraunhofer.aisec.codyze
 import de.fraunhofer.aisec.codyze.options.*
 import de.fraunhofer.aisec.codyze_core.Project
 import de.fraunhofer.aisec.codyze_core.ProjectServer
+import io.github.detekt.sarif4k.SarifSerializer
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -36,6 +35,6 @@ class Analyze : CodyzeSubcommand("Analyze a set of source files") {
 
         val result = project.doStuff()
         // TODO print results
-        println(Json.encodeToString(result))
+        println(SarifSerializer.toJson(result))
     }
 }

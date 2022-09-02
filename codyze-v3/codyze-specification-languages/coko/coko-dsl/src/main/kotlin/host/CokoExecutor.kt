@@ -36,11 +36,13 @@ class CokoExecutor : Executor {
 
     @OptIn(ExperimentalTime::class)
     override fun evaluate(analyzer: TranslationManager): List<Result> {
+        logger.info("Constructing the CPG...")
+        val cpg = analyzer.analyze().get()
 
-        val evaluator = CPGEvaluator(analyzer)
+        val evaluator = CPGEvaluator(cpg)
         val project = CokoProject()
 
-        logger.info { "Compiling specification scripts..." }
+        logger.info("Compiling specification scripts...")
         // compile the spec scripts
         val specCompilationDuration: Duration = measureTime {
             for (specFile in configuration.spec) {
@@ -63,7 +65,8 @@ class CokoExecutor : Executor {
                     }
                 }
 
-                // Get the class loader for the first loaded skript. We give that one to all the other skripts to ensure they find "the same" classes.
+                // Get the class loader for the first loaded skript. We give that one to all the
+                // other skripts to ensure they find "the same" classes.
                 if (actualClassLoader == null) {
                     actualClassLoader =
                         result
@@ -80,11 +83,11 @@ class CokoExecutor : Executor {
                 }
             }
         }
-        logger.debug {
+        logger.debug(
             "Compiled specification scripts in ${ specCompilationDuration.inWholeMilliseconds } ms"
-        }
+        )
 
-        logger.info { "Evaluating specification scripts..." }
+        logger.info("Evaluating specification scripts...")
         // evaluate the spec scripts
         val findings = evaluator.evaluate()
         return listOf()

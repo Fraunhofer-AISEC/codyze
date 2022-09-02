@@ -1,14 +1,16 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Rule
-import de.fraunhofer.aisec.cpg.TranslationManager
+import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-class CPGEvaluator(val cpg: TranslationManager) {
+class CPGEvaluator(val cpg: TranslationResult) {
     val rules = mutableListOf<Pair<KCallable<*>, Any>>()
     val types = mutableListOf<Pair<KClass<*>, Any>>()
     val implementations = mutableListOf<Pair<KClass<*>, Any>>()
@@ -31,8 +33,20 @@ class CPGEvaluator(val cpg: TranslationManager) {
         println("get all nodes for call to ${func.name} with arguments: [$arguments]")
     }
 
-    fun call(full_name: String) {
-        println("get all nodes for call to $full_name")
+    fun call(name: String): List<CallExpression> {
+        return SubgraphWalker.flattenAST(cpg).filter { node ->
+            (node as? CallExpression)?.invokes?.any { it.name == name } == true
+        } as List<CallExpression>
+        // TODO: Once we have a version of CPGv5, use the following line instead:
+        // return cpg.callsByName(full_name)
+    }
+
+    fun callFqn(fqn: String): List<CallExpression> {
+        val result =
+            SubgraphWalker.flattenAST(cpg).filter { node -> (node as? CallExpression)?.fqn == fqn }
+                as List<CallExpression>
+        println(result)
+        return result
     }
 
     fun evaluate() {

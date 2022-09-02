@@ -1,11 +1,13 @@
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Rule
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.follows
+import de.fraunhofer.aisec.cpg.graph.Node
 
 interface Logging {
-    fun log(message: String, varargs: Any)
+    fun log(message: String, varargs: Any): List<Node>
 }
 
 interface ObjectRelationalMapper {
-    fun insert(`object`: Any)
+    fun insert(`object`: Any): List<Node>
 }
 
 interface UserContext {
@@ -14,5 +16,5 @@ interface UserContext {
 
 @Rule("This is a dummy description.")
 fun DBActionsAreAlwaysLogged(db: ObjectRelationalMapper, log: Logging, ctx: UserContext) {
-    call(db::insert) follows call(log::log, ctx::user)
+    db.insert(Any()) follows log.log("*", ctx::user)
 }

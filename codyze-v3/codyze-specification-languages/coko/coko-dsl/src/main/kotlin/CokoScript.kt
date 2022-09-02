@@ -8,9 +8,7 @@ import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.FileScriptSource
-import kotlin.script.experimental.jvm.dependenciesFromClassContext
-import kotlin.script.experimental.jvm.jvm
-import kotlin.script.experimental.jvm.updateClasspath
+import kotlin.script.experimental.jvm.*
 import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
 
 // The KotlinScript annotation marks a class that can serve as a reference to the script definition
@@ -28,9 +26,8 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     fileExtension = "codyze.kts",
     // the class or object that defines script compilation configuration for this type of scripts
     compilationConfiguration = ProjectScriptCompilationConfiguration::class,
-    // evaluationConfiguration = ProjectScriptEvaluationConfiguration::class // using this caused
-    // the resulting ResultWithDiagnostics<EvaluationResult> to be a failure instead of a success
-    )
+    evaluationConfiguration = ProjectScriptEvaluationConfiguration::class
+)
 // the class is used as the script base class, therefore it should be open or abstract
 abstract class CokoScript(project: Project) : Project by project {
     // the interface delegation is used to implement the extension functionality
@@ -47,7 +44,9 @@ interface PluginDependenciesSpec {
 
 internal object ProjectScriptCompilationConfiguration :
     ScriptCompilationConfiguration({
-        jvm { dependenciesFromClassContext(CokoScript::class, *baseLibraries) }
+        jvm {
+            dependenciesFromClassContext(CPGEvaluator::class, *baseLibraries, wholeClasspath = true)
+        }
 
         implicitReceivers(
             CPGEvaluator::class
@@ -141,10 +140,8 @@ fun configureImportDepsOnAnnotations(
         .asSuccess()
 }
 
-// object ProjectScriptEvaluationConfiguration :
-//    ScriptEvaluationConfiguration({
-//        // script instance sharing causes problems somehow...
-//        scriptsInstancesSharing(
-//            true
-//        ) // if a script is imported multiple times in the import hierarchy, use a single copy
-//    })
+object ProjectScriptEvaluationConfiguration :
+    ScriptEvaluationConfiguration({
+        // if a script is imported multiple times in the import hierarchy, use a single copy
+        scriptsInstancesSharing(true)
+    })

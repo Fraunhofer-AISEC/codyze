@@ -96,6 +96,40 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
             )
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
             .multiple()
+
+    private val rawRules: List<Path> by
+        option("--rules", help = "Loads the given rules files.")
+            .path(mustExist = true, mustBeReadable = true, canBeDir = true)
+            .multiple(required = false)
+            .validateFromError { validateSpec(rules) }
+    private val rawRulesAdditions: List<Path> by
+        option(
+                "--rules-additions",
+                help =
+                    "See --rules, but appends the values to the ones specified in configuration file."
+            )
+            .path(mustExist = true, mustBeReadable = true, canBeDir = true)
+            .multiple()
+    private val rawDisabledRules: List<Path> by
+        option(
+                "--disabled-rules",
+                help =
+                    "The specified files will be excluded from being parsed and" +
+                        "processed. The rule has to be specified by its fully qualified name." +
+                        "If there is no package name, specify rule as \".<rule>\". Use" +
+                        "\"<package>.*\" to disable an entire package."
+            )
+            .path(mustExist = true, mustBeReadable = true, canBeDir = true)
+            .multiple()
+    private val rawDisabledRulesAdditions: List<Path> by
+        option(
+                "--disabled-rules-additions",
+                help =
+                    "See --disabled-rules, but appends the values to the ones specified in configuration file."
+            )
+            .path(mustExist = true, mustBeReadable = true, canBeDir = true)
+            .multiple()
+
     // TODO: get specDescription from spec files? Now that Codyze does not check their file type
     // anymore, this is an option
     val specDescription: Path by
@@ -127,6 +161,27 @@ class CodyzeOptions : OptionGroup(name = "Codyze Options") {
                     lazyProperty = it,
                     thisRef = this,
                     property = ::spec
+                )
+            }
+    /**
+     * Lazy property that combines all given specs from the different options into a list of spec
+     * files to use.
+     */
+    val rules: List<Path> by
+        lazy {
+                resolvePaths(
+                    source = rawRules,
+                    sourceAdditions = rawRulesAdditions,
+                    disabledSource = rawDisabledRules,
+                    disabledSourceAdditions = rawDisabledRulesAdditions
+                )
+            }
+            .also {
+                ConfigurationRegister.addLazy(
+                    name = "rules",
+                    lazyProperty = it,
+                    thisRef = this,
+                    property = ::rules
                 )
             }
 

@@ -47,7 +47,6 @@ class CPGEvaluator(val cpg: TranslationManager) {
                     .filter { it.kind == KParameter.Kind.VALUE }
                     .associateWith { param ->
                         // TODO: check for all implementations!
-                        null
                         implementations
                             .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
                             .map { (it, paramInstance) ->

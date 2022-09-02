@@ -9,9 +9,12 @@ import de.fraunhofer.aisec.cpg.TranslationManager
 import io.github.detekt.sarif4k.Result
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
+import kotlin.script.experimental.jvm.baseClassLoader
+import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
+import kotlin.script.experimental.util.PropertiesCollection
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
@@ -60,6 +63,15 @@ class CokoExecutor : Executor {
                     }
                 }
 
+                // Get the class loader for the first loaded skript. We give that one to all the other skripts to ensure they find "the same" classes.
+                if (actualClassLoader == null) {
+                    actualClassLoader =
+                        result
+                            .valueOrNull()
+                            ?.configuration
+                            ?.get(PropertiesCollection.Key<ClassLoader>("actualClassLoader"))
+                }
+
                 // analyze script contents
                 result.valueOrNull()?.returnValue?.let {
                     if (it.scriptInstance != null && it.scriptClass != null) {
@@ -86,6 +98,10 @@ class CokoExecutor : Executor {
         fun eval(sourceCode: String, project: Project, evaluator: CPGEvaluator) =
             eval(sourceCode.toScriptSource(), project, evaluator)
 
+        var actualClassLoader: ClassLoader? = null
+
+        val scriptingHost by lazy { BasicJvmScriptingHost() }
+
         /** Evaluates the given project script [sourceCode] against the given [project]. */
         fun eval(
             sourceCode: SourceCode,
@@ -98,14 +114,19 @@ class CokoExecutor : Executor {
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
                     constructorArgs(project)
                     implicitReceivers(evaluator)
+                    scriptsInstancesSharing(true)
+                    jvm {
+                        if (actualClassLoader != null) {
+                            baseClassLoader.put(actualClassLoader)
+                        }
+                    }
                 }
 
-            return BasicJvmScriptingHost()
-                .eval(
-                    sourceCode,
-                    compilationConfiguration,
-                    evaluationConfiguration,
-                )
+            return scriptingHost.eval(
+                sourceCode,
+                compilationConfiguration,
+                evaluationConfiguration,
+            )
         }
     }
 }

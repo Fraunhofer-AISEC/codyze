@@ -3,7 +3,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.follows
 import de.fraunhofer.aisec.cpg.graph.Node
 
 interface Logging {
-    fun log(message: String, varargs: Any): List<Node>
+    fun log(message: String, vararg args: Any): List<Node>
 }
 
 interface ObjectRelationalMapper {
@@ -16,5 +16,5 @@ interface UserContext {
 
 @Rule("This is a dummy description.")
 fun DBActionsAreAlwaysLogged(db: ObjectRelationalMapper, log: Logging, ctx: UserContext) {
-    db.insert(Any()) follows log.log("*", ctx::user)
+    db.insert(Any()) follows log.log(".*", ctx::user)
 }

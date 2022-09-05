@@ -1,7 +1,7 @@
 @file:Import("model.codyze.kts")
 
 class GolangLogging : Logging {
-    override fun log(message: String, varargs: Any) = call("log.Printf(*)")
+    override fun log(message: String, vararg args: Any) = call("log.Printf(*)")
 }
 
 class Gorm : ObjectRelationalMapper {

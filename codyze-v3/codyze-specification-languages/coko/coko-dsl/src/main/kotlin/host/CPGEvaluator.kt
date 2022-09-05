@@ -2,7 +2,9 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Rule
 import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
 import kotlin.reflect.*
 import kotlin.reflect.full.*
@@ -33,7 +35,7 @@ class CPGEvaluator(val cpg: TranslationResult) {
         println("get all nodes for call to ${func.name} with arguments: [$arguments]")
     }
 
-    fun call(name: String): List<CallExpression> {
+    fun call(name: String, vararg args: Any): List<CallExpression> {
         return SubgraphWalker.flattenAST(cpg).filter { node ->
             (node as? CallExpression)?.invokes?.any { it.name == name } == true
         } as List<CallExpression>
@@ -41,11 +43,24 @@ class CPGEvaluator(val cpg: TranslationResult) {
         // return cpg.callsByName(full_name)
     }
 
-    fun callFqn(fqn: String): List<CallExpression> {
-        val result =
+    fun matchValues(expected: Any, actual: Expression): Boolean {
+        val actualEvaluated = actual.evaluate()
+        if(expected is String) {
+            return Regex(expected).matches(actualEvaluated as String)
+        }
+        // TODO: Add more options here.
+        return false
+    }
+
+    fun callFqn(fqn: String, vararg args: Any): List<CallExpression> {
+        var result =
             SubgraphWalker.flattenAST(cpg).filter { node -> (node as? CallExpression)?.fqn == fqn }
                 as List<CallExpression>
-        println(result)
+        // Check the respective args
+        args.onEachIndexed { i, arg ->
+            result = result.filter { matchValues(arg, it.arguments[i]) }
+        }
+
         return result
     }
 

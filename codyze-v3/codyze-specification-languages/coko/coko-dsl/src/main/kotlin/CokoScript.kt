@@ -11,7 +11,7 @@ import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.jvm.*
 import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
 
-@Suppress("unused")  // this is copied to the script base class
+@Suppress("unused") // this is copied to the script base class
 // The KotlinScript annotation marks a class that can serve as a reference to the script definition
 // for
 // `createJvmCompilationConfigurationFromTemplate` call as well as for the discovery mechanism

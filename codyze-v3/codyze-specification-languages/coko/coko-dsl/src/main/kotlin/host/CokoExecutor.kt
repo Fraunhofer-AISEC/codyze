@@ -69,18 +69,20 @@ class CokoExecutor : Executor {
                     }
                 }
 
+                // throw an exception if the script could not be compiled
+                val scriptEvaluationResult = result.valueOrThrow()
+
                 // Get the class loader for the first loaded script. We give that one to all the
                 // other scripts to ensure they find "the same" classes.
                 if (sharedClassLoader == null) {
                     sharedClassLoader =
-                        result
-                            .valueOrNull()
-                            ?.configuration
+                        scriptEvaluationResult
+                            .configuration
                             ?.get(PropertiesCollection.Key<ClassLoader>("actualClassLoader"))
                 }
 
                 // analyze script contents
-                result.valueOrNull()?.returnValue?.let {
+                scriptEvaluationResult.returnValue.let {
                     if (it.scriptInstance != null && it.scriptClass != null) {
                         evaluator.addSpec(it.scriptClass!!, it.scriptInstance!!)
                     }

@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.7.0"
 gradle-kotlin = "1.5.31"  # TODO: remove in kotlin v1.7.10
-cpg = "unspecified"
+cpg = "4.6.2"
 
 [libraries]
 sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.0.1"}

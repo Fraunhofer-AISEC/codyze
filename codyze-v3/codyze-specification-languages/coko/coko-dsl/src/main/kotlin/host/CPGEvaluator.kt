@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Rule
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Wildcard
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
@@ -27,8 +28,6 @@ class CPGEvaluator(val cpg: TranslationResult) {
         }
     }
 
-    fun any(): String = ""
-
     fun variable(name: String): String = ""
 
     fun <T> call(func: KCallable<T>, vararg arguments: Any) {
@@ -43,43 +42,26 @@ class CPGEvaluator(val cpg: TranslationResult) {
         // return cpg.callsByName(full_name)
     }
 
-    fun matchValues(expected: Any, actual: Expression): Boolean {
-        if(expected.javaClass == Any().javaClass || "*" == expected) {
-            // Any() and * are placeholders. We don't care about the value, so everything matches.
-            return true
-        }
-        val actualEvaluated = actual.evaluate()
-        if (expected is String) {
-            return Regex(expected).matches(actualEvaluated as String)
-        }
-        // TODO: Add more options here.
-        return false
-    }
-
-    fun callFqn(fqn: String, vararg args: Any): List<CallExpression> {
-        var result =
+    fun callFqn(fqn: String, predicate: CallExpression.() -> Boolean): List<CallExpression> {
+        val result =
             SubgraphWalker.flattenAST(cpg).filter { node -> (node as? CallExpression)?.fqn == fqn }
                 as List<CallExpression>
-        // Check the respective args
-        args.onEachIndexed { i, arg ->
-            result = result.filter { matchValues(arg, it.arguments[i]) }
-        }
 
-        return result
+        return result.filter(predicate)
     }
 
-    fun callFqnUnordered(fqn: String, vararg args: Any): List<CallExpression> {
-        var result =
-            SubgraphWalker.flattenAST(cpg).filter { node -> (node as? CallExpression)?.fqn == fqn }
-                    as List<CallExpression>
-        // Check the respective args
-        result =
-            result.filter { ic ->
-                args.all { arg -> ic.arguments.any { matchValues(arg, it) } }
+    infix fun Any.flowsTo(that: Any): Boolean =
+        if (this is Wildcard) {
+            true
+        } else if (that is Collection<*>) {
+            this in that.map { (it as Expression).evaluate() }
+        } else {
+            if (this is String) {
+                Regex(this).matches((that as Expression).evaluate() as String)
+            } else {
+                false
             }
-
-        return result
-    }
+        }
 
     fun evaluate() {
         for ((rule, ruleInstance) in rules) {
@@ -101,8 +83,8 @@ class CPGEvaluator(val cpg: TranslationResult) {
                     }
             )
 
+            logger.debug { " : ${rule.name} ..." }
             rule.callBy(parameterMap)
-            println("Rule could be evaluated 🎉")
         }
     }
 }

@@ -10,7 +10,7 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.jsonschema2dataclass") version "4.2.0"
+    id("org.jsonschema2dataclass") version "4.3.1"
 
     id("org.sonarqube") version "3.4.0.2513"
     id("com.diffplug.spotless") version "6.10.0"
@@ -108,8 +108,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.6.0")
-    api("de.fraunhofer.aisec:cpg-analysis:4.6.0")
+    api("de.fraunhofer.aisec:cpg-core:4.6.2")
+    api("de.fraunhofer.aisec:cpg-analysis:4.6.2")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

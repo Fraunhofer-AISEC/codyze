@@ -11,6 +11,7 @@ import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.jvm.*
 import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
 
+@Suppress("unused")  // this is copied to the script base class
 // The KotlinScript annotation marks a class that can serve as a reference to the script definition
 // for
 // `createJvmCompilationConfigurationFromTemplate` call as well as for the discovery mechanism
@@ -26,8 +27,10 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     fileExtension = "codyze.kts",
     // the class or object that defines script compilation configuration for this type of scripts
     compilationConfiguration = ProjectScriptCompilationConfiguration::class,
-    evaluationConfiguration = ProjectScriptEvaluationConfiguration::class
-)
+    evaluationConfiguration =
+        ProjectScriptEvaluationConfiguration::class // UNTESTED: we expect this to improve
+    // performance. Does not seem to break anything
+    )
 // the class is used as the script base class, therefore it should be open or abstract
 abstract class CokoScript(project: Project) : Project by project {
     // the interface delegation is used to implement the extension functionality
@@ -45,7 +48,14 @@ interface PluginDependenciesSpec {
 internal object ProjectScriptCompilationConfiguration :
     ScriptCompilationConfiguration({
         jvm {
-            dependenciesFromClassContext(CPGEvaluator::class, *baseLibraries, wholeClasspath = true)
+            dependenciesFromClassContext( // extract dependencies from the host environment
+                ProjectScriptCompilationConfiguration::class, // use this class classloader for
+                // dependencies search
+                *baseLibraries, // search these libraries in it and use then as a script compilation
+                // classpath
+                wholeClasspath =
+                    false // manually add all needed dependencies using the baseLibraries
+            )
         }
 
         implicitReceivers(
@@ -89,7 +99,8 @@ internal object ProjectScriptCompilationConfiguration :
         ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
     })
 
-private val baseLibraries = arrayOf("coko-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect")
+private val baseLibraries =
+    arrayOf("coko-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect", "cpg-core")
 
 private fun pluginsBlockOrNullFrom(scriptText: String) =
     scriptText.run {

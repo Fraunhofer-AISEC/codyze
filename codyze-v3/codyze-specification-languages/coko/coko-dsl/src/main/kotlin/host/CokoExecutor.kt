@@ -15,9 +15,7 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 import kotlin.script.experimental.util.PropertiesCollection
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
+import kotlin.time.*
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -29,6 +27,7 @@ class CokoExecutor : Executor {
         get() = "codyze.kts"
 
     lateinit var configuration: ExecutorConfiguration
+    var sharedClassLoader: ClassLoader? = null
 
     override fun initialize(configuration: ExecutorConfiguration) {
         this.configuration = configuration
@@ -36,20 +35,25 @@ class CokoExecutor : Executor {
 
     @OptIn(ExperimentalTime::class)
     override fun evaluate(analyzer: TranslationManager): List<Result> {
-        logger.info("Constructing the CPG...")
+        logger.info { "Constructing the CPG..." }
         val cpg = analyzer.analyze().get()
 
         val evaluator = CPGEvaluator(cpg)
         val project = CokoProject()
 
-        logger.info("Compiling specification scripts...")
+        logger.info { "Compiling specification scripts..." }
         // compile the spec scripts
         val specCompilationDuration: Duration = measureTime {
             for (specFile in configuration.spec) {
 
                 // compile the script
                 val result =
-                    eval(specFile.toScriptSource(), project = project, evaluator = evaluator)
+                    eval(
+                        specFile.toScriptSource(),
+                        project = project,
+                        evaluator = evaluator,
+                        sharedClassLoader = sharedClassLoader
+                    )
 
                 // log script diagnostics
                 result.reports.forEach {
@@ -65,10 +69,10 @@ class CokoExecutor : Executor {
                     }
                 }
 
-                // Get the class loader for the first loaded skript. We give that one to all the
-                // other skripts to ensure they find "the same" classes.
-                if (actualClassLoader == null) {
-                    actualClassLoader =
+                // Get the class loader for the first loaded script. We give that one to all the
+                // other scripts to ensure they find "the same" classes.
+                if (sharedClassLoader == null) {
+                    sharedClassLoader =
                         result
                             .valueOrNull()
                             ?.configuration
@@ -83,13 +87,17 @@ class CokoExecutor : Executor {
                 }
             }
         }
-        logger.debug(
-            "Compiled specification scripts in ${ specCompilationDuration.inWholeMilliseconds } ms"
-        )
+        logger.debug {
+            "Compiled specification scripts in ${specCompilationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
+        }
 
-        logger.info("Evaluating specification scripts...")
+        logger.info { "Evaluating the specified rules..." }
         // evaluate the spec scripts
-        val findings = evaluator.evaluate()
+        val (findings: Unit, scriptEvaluationDuration: Duration) =
+            measureTimedValue { evaluator.evaluate() }
+        logger.debug {
+            "Evaluated specification scripts in ${scriptEvaluationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)} 🎉"
+        }
         return listOf()
     }
 
@@ -101,15 +109,12 @@ class CokoExecutor : Executor {
         fun eval(sourceCode: String, project: Project, evaluator: CPGEvaluator) =
             eval(sourceCode.toScriptSource(), project, evaluator)
 
-        var actualClassLoader: ClassLoader? = null
-
-        val scriptingHost by lazy { BasicJvmScriptingHost() }
-
         /** Evaluates the given project script [sourceCode] against the given [project]. */
         fun eval(
             sourceCode: SourceCode,
             project: Project,
             evaluator: CPGEvaluator,
+            sharedClassLoader: ClassLoader? = null
         ): ResultWithDiagnostics<EvaluationResult> {
             val compilationConfiguration =
                 createJvmCompilationConfigurationFromTemplate<CokoScript>()
@@ -117,19 +122,19 @@ class CokoExecutor : Executor {
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
                     constructorArgs(project)
                     implicitReceivers(evaluator)
-                    scriptsInstancesSharing(true)
                     jvm {
-                        if (actualClassLoader != null) {
-                            baseClassLoader.put(actualClassLoader)
+                        if (sharedClassLoader != null) {
+                            baseClassLoader.put(sharedClassLoader)
                         }
                     }
                 }
 
-            return scriptingHost.eval(
-                sourceCode,
-                compilationConfiguration,
-                evaluationConfiguration,
-            )
+            return BasicJvmScriptingHost()
+                .eval(
+                    sourceCode,
+                    compilationConfiguration,
+                    evaluationConfiguration,
+                )
         }
     }
 }

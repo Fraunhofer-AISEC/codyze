@@ -98,7 +98,7 @@ class CokoExecutor : Executor {
         val (findings: Unit, scriptEvaluationDuration: Duration) =
             measureTimedValue { evaluator.evaluate() }
         logger.debug {
-            "Evaluated specification scripts in ${scriptEvaluationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)} 🎉"
+            "Evaluated specification scripts in ${scriptEvaluationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }
         return listOf()
     }

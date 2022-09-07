@@ -83,8 +83,8 @@ class CPGEvaluator(val cpg: TranslationResult) {
                     }
             )
 
-            logger.debug { " : ${rule.name} ..." }
-            rule.callBy(parameterMap)
+            val ruleResult = rule.callBy(parameterMap)
+            logger.info { " : ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}" }
         }
     }
 }

@@ -44,8 +44,12 @@ class CPGEvaluator(val cpg: TranslationResult) {
     }
 
     fun matchValues(expected: Any, actual: Expression): Boolean {
+        if(expected.javaClass == Any().javaClass || "*" == expected) {
+            // Any() and * are placeholders. We don't care about the value, so everything matches.
+            return true
+        }
         val actualEvaluated = actual.evaluate()
-        if(expected is String) {
+        if (expected is String) {
             return Regex(expected).matches(actualEvaluated as String)
         }
         // TODO: Add more options here.

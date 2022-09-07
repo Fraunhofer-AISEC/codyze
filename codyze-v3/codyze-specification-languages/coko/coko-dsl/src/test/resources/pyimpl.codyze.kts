@@ -5,17 +5,9 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 
 class PythonLogging : Model_codyze.Logging {
     override fun log(message: String, vararg args: Any): List<CallExpression> {
-        // logging.info("*")
-        var interestingCalls = callFqn("logging.info", message)
-
-        // TODO: Put proper filter on args here. Won't work as it is now.
+        // logging.info(message, args)
         // We don't care about the order of the arguments. Just make sure that all objects in "args" somehow flow into the log message/args.
-        interestingCalls =
-            interestingCalls.filter { ic ->
-                args.all { arg -> ic.arguments.any { matchValues(arg, it) } }
-            }
-
-        return interestingCalls
+        return callFqnUnordered("logging.info", message, args)
     }
 }
 

@@ -68,6 +68,19 @@ class CPGEvaluator(val cpg: TranslationResult) {
         return result
     }
 
+    fun callFqnUnordered(fqn: String, vararg args: Any): List<CallExpression> {
+        var result =
+            SubgraphWalker.flattenAST(cpg).filter { node -> (node as? CallExpression)?.fqn == fqn }
+                    as List<CallExpression>
+        // Check the respective args
+        result =
+            result.filter { ic ->
+                args.all { arg -> ic.arguments.any { matchValues(arg, it) } }
+            }
+
+        return result
+    }
+
     fun evaluate() {
         for ((rule, ruleInstance) in rules) {
             val parameterMap =

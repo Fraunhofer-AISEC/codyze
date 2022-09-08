@@ -31,7 +31,8 @@ class SpecCollector {
     }
 
     fun evaluate() {
-        for ((rule, ruleInstance) in rules) {
+        for ((index, value) in rules.withIndex()) {
+            val (rule, ruleInstance) = value
             val parameterMap =
                 mutableMapOf<KParameter, Any?>(
                     rule.parameters[0] to ruleInstance
@@ -51,7 +52,7 @@ class SpecCollector {
             )
 
             val ruleResult = rule.callBy(parameterMap)
-            logger.info { " : ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}" }
+            logger.info { " (${index+1}/${rules.size}): ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}" }
         }
     }
 }

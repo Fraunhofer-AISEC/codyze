@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CPGEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoProject
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
@@ -38,6 +39,7 @@ class CokoExecutor : Executor {
         logger.info { "Constructing the CPG..." }
         val cpg = analyzer.analyze().get()
 
+        val specCollector = SpecCollector()
         val evaluator = CPGEvaluator(cpg)
         val project = CokoProject()
 
@@ -84,7 +86,7 @@ class CokoExecutor : Executor {
                 // analyze script contents
                 scriptEvaluationResult.returnValue.let {
                     if (it.scriptInstance != null && it.scriptClass != null) {
-                        evaluator.addSpec(it.scriptClass!!, it.scriptInstance!!)
+                        specCollector.addSpec(it.scriptClass!!, it.scriptInstance!!)
                     }
                 }
             }
@@ -96,7 +98,7 @@ class CokoExecutor : Executor {
         logger.info { "Evaluating the specified rules..." }
         // evaluate the spec scripts
         val (findings: Unit, scriptEvaluationDuration: Duration) =
-            measureTimedValue { evaluator.evaluate() }
+            measureTimedValue { specCollector.evaluate() }
         logger.debug {
             "Evaluated specification scripts in ${scriptEvaluationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }

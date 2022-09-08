@@ -6,9 +6,9 @@ object Called
 
 typealias called = Called
 
-infix fun <A, B> A.follows(that: B): Pair<A, B> = Pair(this, that)
+infix fun <A, B> A.follows(that: B): Boolean = this == that
 
-infix fun <A, B> A.`is`(that: B): Pair<A, B> = Pair(this, that)
+infix fun <A, B> A.`is`(that: B): Boolean = this == that
 
 object Wildcard
 

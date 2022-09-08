@@ -1,9 +1,9 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Action
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CPGEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Task
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CPGEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
 import io.mockk.*
 import java.nio.file.Path

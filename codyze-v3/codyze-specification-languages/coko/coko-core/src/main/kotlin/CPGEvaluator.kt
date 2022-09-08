@@ -7,7 +7,7 @@ import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
-import kotlin.reflect.KCallable
+import de.fraunhofer.aisec.cpg.query.dataFlow
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -41,7 +41,7 @@ class CPGEvaluator(val cpg: TranslationResult) {
                 is String ->
                     Regex(this).matches((that as? Expression)?.evaluate()?.toString() ?: "")
                 // TODO: CPGv5
-                // is Node -> dataFlow(this, that).value
+                is Node -> dataFlow(this, that).value
                 else -> false
             }
         }

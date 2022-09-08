@@ -1,5 +1,6 @@
 plugins {
     id("documented-module")
+    alias(libs.plugins.buildconfig)
 }
 
 dependencies {
@@ -24,4 +25,13 @@ tasks {
             attributes("Implementation-Title" to "Codyze v3 - Core Library")
         }
     }
+}
+
+buildConfig {
+    className("GeneratedVersionProvider")
+    packageName("de.fraunhofer.aisec.codyze_core.helper")
+    useKotlinOutput()
+
+    buildConfigField("String", "CODYZE_VERSION", provider { "\"${project.version}\"" })
+
 }

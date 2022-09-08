@@ -61,8 +61,8 @@ class CokoScriptHostTest {
         val result =
             CokoExecutor.eval(
                 """
-                    interface Logging {
-                        fun log(message: String, varargs: Any)
+                    interface TestInterface {
+                        fun test(param1: String, varargs: Any)
                     }
                 """.trimIndent(),
                 project,
@@ -79,9 +79,9 @@ class CokoScriptHostTest {
         val result =
             CokoExecutor.eval(
                 """
-                    // Concept is a default import
-                    interface Logging {
-                        fun log(message: String, varargs: Any) = Unit
+                    // Called is a default import
+                    interface TestInterface {
+                        fun test(param1: String, varargs: Any) = Called
                     }
                 """.trimIndent(),
                 project,
@@ -100,7 +100,10 @@ class CokoScriptHostTest {
                 """
                     // call is a method of an implicit receiver
                     class Logging {
-                        fun log(message: String, varargs: Any) = call("logging.info(...)")
+                        fun log(message: String, vararg args: Any) = 
+                            callFqn("logging.info") {
+                                message flowsTo arguments[0] && args.all { it flowsTo arguments }
+                            }
                     }
                 """.trimIndent(),
                 project,
@@ -160,7 +163,7 @@ class CokoScriptHostTest {
                     @file:Import("${modelDefinitionFile.toAbsolutePath()}")
 
                     class PythonLogging: Logging {
-                        override fun log(message: String, varargs: Any) = call("test") `is` Called
+                        override fun log(message: String, varargs: Any) = variable("test") follows Called
                     }
                 """.trimIndent(),
                 project,

@@ -95,7 +95,9 @@ class CokoExecutor : Executor {
             "Compiled specification scripts in ${specCompilationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }
 
-        logger.info { "Evaluating ${specCollector.rules.size} ${if (specCollector.rules.size == 1) "rule" else "rules"}..." }
+        logger.info {
+            "Evaluating ${specCollector.rules.size} ${if (specCollector.rules.size == 1) "rule" else "rules"}..."
+        }
         // evaluate the spec scripts
         val (findings: Unit, scriptEvaluationDuration: Duration) =
             measureTimedValue { specCollector.evaluate() }

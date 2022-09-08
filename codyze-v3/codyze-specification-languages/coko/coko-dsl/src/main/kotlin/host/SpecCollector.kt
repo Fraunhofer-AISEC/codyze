@@ -1,14 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Rule
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Wildcard
-import de.fraunhofer.aisec.cpg.TranslationResult
-import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
-import de.fraunhofer.aisec.cpg.graph.evaluate
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
-import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rule
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import mu.KotlinLogging
@@ -52,7 +44,9 @@ class SpecCollector {
             )
 
             val ruleResult = rule.callBy(parameterMap)
-            logger.info { " (${index+1}/${rules.size}): ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}" }
+            logger.info {
+                " (${index+1}/${rules.size}): ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}"
+            }
         }
     }
 }

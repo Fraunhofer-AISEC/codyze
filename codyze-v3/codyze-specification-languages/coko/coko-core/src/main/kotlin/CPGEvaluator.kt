@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Wildcard
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
@@ -7,7 +8,6 @@ import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
-import kotlin.reflect.KCallable
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}

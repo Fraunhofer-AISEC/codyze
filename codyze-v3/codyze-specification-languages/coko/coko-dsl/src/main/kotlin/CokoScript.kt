@@ -1,8 +1,8 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CPGEvaluator
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Import
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Import
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
@@ -11,7 +11,9 @@ import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.jvm.*
 import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
 
-@Suppress("UNUSED") // this is copied to the script base class
+@Suppress(
+    "UNUSED"
+) // this is copied to the script base class TODO: this is currently not working somehow
 // The KotlinScript annotation marks a class that can serve as a reference to the script definition
 // for
 // `createJvmCompilationConfigurationFromTemplate` call as well as for the discovery mechanism
@@ -63,9 +65,11 @@ internal object ProjectScriptCompilationConfiguration :
         ) // the actual receiver must be passed to the script class in the constructor
 
         // adds implicit import statements (in this case `import
-        // de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.*`, etc.)
+        // de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*`, etc.)
         // to each script on compilation
-        defaultImports.append("de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.*")
+        defaultImports.append(
+            "de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*"
+        )
 
         // section that defines callbacks during compilation
         refineConfiguration {

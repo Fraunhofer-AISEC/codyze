@@ -76,9 +76,9 @@ class CokoExecutor : Executor {
                 // other scripts to ensure they find "the same" classes.
                 if (sharedClassLoader == null) {
                     sharedClassLoader =
-                        scriptEvaluationResult
-                            .configuration
-                            ?.get(PropertiesCollection.Key<ClassLoader>("actualClassLoader"))
+                        scriptEvaluationResult.configuration?.get(
+                            PropertiesCollection.Key<ClassLoader>("actualClassLoader")
+                        )
                 }
 
                 // analyze script contents

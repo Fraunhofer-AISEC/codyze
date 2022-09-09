@@ -14,4 +14,4 @@ interface UserContext {
 
 @Rule("This is a dummy description.")
 fun DBActionsAreAlwaysLogged(db: ObjectRelationalMapper, log: Logging, ctx: UserContext) =
-    db.insert(Wildcard) follows log.log(".*", ctx::user)
+    db.insert(Wildcard) follows log.log(".*", ctx.user)

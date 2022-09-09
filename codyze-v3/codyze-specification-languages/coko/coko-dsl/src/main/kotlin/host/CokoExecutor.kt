@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CPGEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoProject
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.DSLReceiver
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
 import de.fraunhofer.aisec.codyze_core.Executor
@@ -34,13 +34,17 @@ class CokoExecutor : Executor {
         this.configuration = configuration
     }
 
+    /**
+     * Compiles all the specification files, translates the CPG and finally triggers the evaluation
+     * of the specs.
+     */
     @OptIn(ExperimentalTime::class)
     override fun evaluate(analyzer: TranslationManager): List<Result> {
         logger.info { "Constructing the CPG..." }
         val cpg = analyzer.analyze().get()
 
-        val specCollector = SpecCollector()
-        val evaluator = CPGEvaluator(cpg)
+        val specEvaluator = SpecEvaluator()
+        val evaluator = DSLReceiver(cpg)
         val project = CokoProject()
 
         logger.info { "Compiling specification scripts..." }
@@ -86,7 +90,7 @@ class CokoExecutor : Executor {
                 // analyze script contents
                 scriptEvaluationResult.returnValue.let {
                     if (it.scriptInstance != null && it.scriptClass != null) {
-                        specCollector.addSpec(it.scriptClass!!, it.scriptInstance!!)
+                        specEvaluator.addSpec(it.scriptClass!!, it.scriptInstance!!)
                     }
                 }
             }
@@ -95,10 +99,12 @@ class CokoExecutor : Executor {
             "Compiled specification scripts in ${specCompilationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }
 
-        logger.info { "Evaluating the specified rules..." }
+        logger.info {
+            "Evaluating ${specEvaluator.rules.size} ${if (specEvaluator.rules.size == 1) "rule" else "rules"}..."
+        }
         // evaluate the spec scripts
         val (findings: Unit, scriptEvaluationDuration: Duration) =
-            measureTimedValue { specCollector.evaluate() }
+            measureTimedValue { specEvaluator.evaluate() }
         logger.debug {
             "Evaluated specification scripts in ${scriptEvaluationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }
@@ -110,14 +116,14 @@ class CokoExecutor : Executor {
          * Evaluates the given project script [sourceCode] against the given [project] and
          * [evaluator].
          */
-        fun eval(sourceCode: String, project: Project, evaluator: CPGEvaluator) =
+        fun eval(sourceCode: String, project: Project, evaluator: DSLReceiver) =
             eval(sourceCode.toScriptSource(), project, evaluator)
 
         /** Evaluates the given project script [sourceCode] against the given [project]. */
         fun eval(
             sourceCode: SourceCode,
             project: Project,
-            evaluator: CPGEvaluator,
+            evaluator: DSLReceiver,
             sharedClassLoader: ClassLoader? = null
         ): ResultWithDiagnostics<EvaluationResult> {
             val compilationConfiguration =

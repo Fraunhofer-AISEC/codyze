@@ -40,7 +40,7 @@ class CokoScriptHostTest {
                 """
                     // Called is a default import
                     interface TestInterface {
-                        fun test(param1: String, varargs: Any) = Called
+                        fun test(param1: String, varargs: Any) = Wildcard
                     }
                 """.trimIndent(),
                 project,
@@ -123,7 +123,7 @@ class CokoScriptHostTest {
                     @file:Import("${modelDefinitionFile.toAbsolutePath()}")
 
                     class PythonLogging: Logging {
-                        override fun log(message: String, varargs: Any) = variable("test") follows Called
+                        override fun log(message: String, varargs: Any) = variable("test") follows Wildcard
                     }
                 """.trimIndent(),
                 project,

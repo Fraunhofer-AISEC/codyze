@@ -8,9 +8,9 @@ class JavaLogging : Logging {
 }
 
 class JDBC : ObjectRelationalMapper {
-    override fun insert(`object`: Any) =
+    override fun insert(obj: Any) =
         callFqn("java.sql.Statement.executeUpdate") {
-            "INSERT.*" flowsTo arguments[0] && `object` flowsTo arguments[0]
+            "INSERT.*" flowsTo arguments[0] && obj flowsTo arguments[0]
         }
 }
 

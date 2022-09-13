@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.executionPath
 import de.fraunhofer.aisec.cpg.query.exists
@@ -33,6 +34,12 @@ context(Project)
  */
 fun callFqn(fqn: String, predicate: CallExpression.() -> Boolean = { true }): List<CallExpression> {
     return cpg.calls { it.fqn == fqn && predicate(it) }
+}
+
+context(Project)
+/** Returns a list of [MemberExpression]s with the matching something. */
+fun memberExpr(predicate: MemberExpression.() -> Boolean): List<MemberExpression> {
+    return cpg.allChildren(predicate)
 }
 
 /**

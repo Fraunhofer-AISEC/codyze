@@ -11,12 +11,16 @@ enum class Language(private val className: String) {
     PYTHON("de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend"),
     GO("de.fraunhofer.aisec.cpg.frontends.golang.GoLanguageFrontend");
 
+    /** Component operator that returns the [Class] of this language. */
+    @Suppress("UNCHECKED_CAST")
     operator fun component1(): Class<out LanguageFrontend> {
         val clazz = Class.forName(className)
 
         return clazz as Class<out LanguageFrontend>
     }
 
+    /** Component operator that returns the list of supported file types by this language. */
+    @Suppress("UNCHECKED_CAST")
     operator fun component2(): List<String> {
         val clazz = component1()
 
@@ -26,6 +30,6 @@ enum class Language(private val className: String) {
                 it.name.endsWith("EXTENSIONS") && Modifier.isStatic(it.modifiers)
             }
 
-        return (field?.get(null) ?: listOf<String>()) as List<String>
+        return field?.get(null) as? List<String> ?: listOf()
     }
 }

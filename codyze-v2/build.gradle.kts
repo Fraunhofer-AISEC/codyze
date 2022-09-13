@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.dokka.base.DokkaBase
+import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.gradle.kotlin.dsl.attributes
 
 plugins {
@@ -20,6 +22,13 @@ plugins {
     id("org.jetbrains.dokka") version "1.7.10"
 
     kotlin("jvm") version "1.7.10" // we can only upgrade to Kotlin 1.5, if CPG does
+}
+
+// Allow access to Dokka configuration for custom assets and stylesheets
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.dokka:dokka-base:1.7.10")
+    }
 }
 
 group = "de.fraunhofer.aisec"
@@ -230,5 +239,14 @@ jsonSchema2Pojo {
 }
 
 tasks.dokkaHtml.configure {
-    outputDirectory.set(projectDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v2"))
+    outputDirectory.set(project.rootDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v2"))
+    dokkaSourceSets {
+        pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+            // use custom stylesheets without external content
+            customStyleSheets = listOf(
+                file(project.rootDir.resolve("..").resolve("docs").resolve("assets").resolve("dokka").resolve("style.css")),
+                file(project.rootDir.resolve("..").resolve("docs").resolve("assets").resolve("dokka").resolve("jetbrains-mono.css")),
+            )
+        }
+    }
 }

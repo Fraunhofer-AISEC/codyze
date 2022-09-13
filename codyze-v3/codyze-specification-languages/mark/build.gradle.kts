@@ -34,4 +34,8 @@ tasks {
             attributes("Implementation-Title" to "Codyze v3 - Specification Language MARK")
         }
     }
+
+    processResources {
+        from(projectProps)
+    }
 }

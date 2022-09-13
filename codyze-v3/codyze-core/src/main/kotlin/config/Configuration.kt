@@ -166,6 +166,9 @@ data class Configuration(
                     .useUnityBuild(useUnityBuild)
                     .processAnnotations(processAnnotations)
 
+            // TODO: very hacky, but needed for the Go frontend
+            translationConfiguration.topLevel(source.first().parent.toFile())
+
             includePaths.forEach { translationConfiguration.includePath(it.toString()) }
             includeWhitelist.forEach { translationConfiguration.includeWhitelist(it.toString()) }
             includeBlacklist.forEach { translationConfiguration.includeBlacklist(it.toString()) }
@@ -175,9 +178,11 @@ data class Configuration(
             if (defaultPasses) translationConfiguration.defaultPasses()
             passes.forEach { translationConfiguration.registerPass(it) }
 
-            // TODO:
-            // additionalLanguages.forEach {
-            // translationConfiguration.registerLanguage(it.toString()) }
+            additionalLanguages.forEach {
+                val (clazz, types) = it
+                translationConfiguration.registerLanguage(clazz, types)
+            }
+
             return translationConfiguration.build()
         }
     }

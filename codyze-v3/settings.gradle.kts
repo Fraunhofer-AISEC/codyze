@@ -13,7 +13,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
       - in the cpg/cpg-main/build.gradle.kts file: replace "cpg" with "cpg-main"
       - in the cpg/settings.gradle.kts file: replace ":cpg" with ":cpg-main"
  */
-// includeBuild("relative path to the cpg project")  // e.g., "../../cpg"
+includeBuild("../../cpg")
 
 include("codyze")
 include("codyze-core")

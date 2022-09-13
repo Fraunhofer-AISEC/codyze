@@ -5,6 +5,7 @@ allprojects {
 
 plugins {
     id("documented")
+    kotlin
 }
 
 tasks.dokkaHtmlMultiModule.configure {
@@ -30,8 +31,8 @@ subprojects {
             properties(mapOf("project.name" to project.name))
         }
 
+        withType<ProcessResources> {
+            from(projectProps)
+        }
     }
-
-
-
 }

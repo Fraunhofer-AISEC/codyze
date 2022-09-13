@@ -40,10 +40,6 @@ tasks {
             attributes("Implementation-Title" to "Codyze v3")
         }
     }
-
-    processResources {
-        from(projectProps)
-    }
 }
 
 /**

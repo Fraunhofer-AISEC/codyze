@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.DSLReceiver
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Import
 import java.io.File
@@ -34,8 +33,7 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     // performance. Does not seem to break anything
     )
 // the class is used as the script base class, therefore it should be open or abstract
-abstract class CokoScript(project: Project) : Project by project {
-    // the interface delegation is used to implement the extension functionality
+abstract class CokoScript {
 
     // Configures the plugins used by the project.
     fun plugins(configure: PluginDependenciesSpec.() -> Unit) = Unit
@@ -60,8 +58,10 @@ internal object ProjectScriptCompilationConfiguration :
             )
         }
 
+        compilerOptions("-Xcontext-receivers")
+
         implicitReceivers(
-            DSLReceiver::class
+            Project::class
         ) // the actual receiver must be passed to the script class in the constructor
 
         // adds implicit import statements (in this case `import

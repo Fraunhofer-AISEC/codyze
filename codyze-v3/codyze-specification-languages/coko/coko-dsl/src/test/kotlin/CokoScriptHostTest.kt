@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.DSLReceiver
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
 import io.mockk.*
@@ -15,7 +14,6 @@ class CokoScriptHostTest {
     @Test
     fun `test basic type creation`() {
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<DSLReceiver>()
 
         val result =
             CokoExecutor.eval(
@@ -25,7 +23,6 @@ class CokoScriptHostTest {
                     }
                 """.trimIndent(),
                 project,
-                cpgEvaluator
             )
         result.valueOrThrow()
     }
@@ -33,7 +30,6 @@ class CokoScriptHostTest {
     @Test
     fun `test default imports`() {
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<DSLReceiver>()
 
         val result =
             CokoExecutor.eval(
@@ -44,7 +40,6 @@ class CokoScriptHostTest {
                     }
                 """.trimIndent(),
                 project,
-                cpgEvaluator
             )
         result.valueOrThrow()
     }
@@ -52,7 +47,6 @@ class CokoScriptHostTest {
     @Test
     fun `test implicit receivers`() {
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<DSLReceiver>()
 
         val result =
             CokoExecutor.eval(
@@ -66,7 +60,6 @@ class CokoScriptHostTest {
                     }
                 """.trimIndent(),
                 project,
-                cpgEvaluator
             )
         result.valueOrThrow()
     }
@@ -82,7 +75,6 @@ class CokoScriptHostTest {
         )
 
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<DSLReceiver>()
 
         val result =
             CokoExecutor.eval(
@@ -94,7 +86,6 @@ class CokoScriptHostTest {
                     }
                 """.trimIndent(),
                 project,
-                cpgEvaluator
             )
 
         result.valueOrThrow()
@@ -115,7 +106,6 @@ class CokoScriptHostTest {
         )
 
         val project = mockk<Project>()
-        val cpgEvaluator = mockk<DSLReceiver>()
 
         val result =
             CokoExecutor.eval(
@@ -127,7 +117,6 @@ class CokoScriptHostTest {
                     }
                 """.trimIndent(),
                 project,
-                cpgEvaluator
             )
 
         result.valueOrThrow()

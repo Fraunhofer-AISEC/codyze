@@ -1,7 +1,5 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoProject
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.DSLReceiver
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
 import de.fraunhofer.aisec.codyze_core.Executor
@@ -44,8 +42,7 @@ class CokoExecutor : Executor {
         val cpg = analyzer.analyze().get()
 
         val specEvaluator = SpecEvaluator()
-        val evaluator = DSLReceiver(cpg)
-        val project = CokoProject()
+        val project = Project(cpg)
 
         logger.info { "Compiling specification scripts..." }
         // compile the spec scripts
@@ -57,7 +54,6 @@ class CokoExecutor : Executor {
                     eval(
                         specFile.toScriptSource(),
                         project = project,
-                        evaluator = evaluator,
                         sharedClassLoader = sharedClassLoader
                     )
 
@@ -116,22 +112,20 @@ class CokoExecutor : Executor {
          * Evaluates the given project script [sourceCode] against the given [project] and
          * [evaluator].
          */
-        fun eval(sourceCode: String, project: Project, evaluator: DSLReceiver) =
-            eval(sourceCode.toScriptSource(), project, evaluator)
+        fun eval(sourceCode: String, project: Project) = eval(sourceCode.toScriptSource(), project)
 
         /** Evaluates the given project script [sourceCode] against the given [project]. */
         fun eval(
             sourceCode: SourceCode,
             project: Project,
-            evaluator: DSLReceiver,
             sharedClassLoader: ClassLoader? = null
         ): ResultWithDiagnostics<EvaluationResult> {
             val compilationConfiguration =
                 createJvmCompilationConfigurationFromTemplate<CokoScript>()
             val evaluationConfiguration =
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
-                    constructorArgs(project)
-                    implicitReceivers(evaluator)
+                    // constructorArgs(...)
+                    implicitReceivers(project)
                     jvm {
                         if (sharedClassLoader != null) {
                             baseClassLoader.put(sharedClassLoader)

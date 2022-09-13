@@ -1,14 +1,10 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core
 
-typealias Action<T> = T.() -> Unit
+import de.fraunhofer.aisec.cpg.TranslationResult
 
-interface ExtensionAware
-
-interface Project : ExtensionAware {
-    fun task(name: String, configuration: Action<Any>)
-}
-
-open class CokoProject : Project {
-    override fun task(name: String, configuration: Action<Any>) =
-        TODO("task is an artifact from groddler")
-}
+@Suppress("UNUSED")
+/*
+ * Receives a [cpg] translation result to identify matching nodes and evaluate the expressions.
+ * All the functions of the DSL are implemented as extension functions of [Project].
+ */
+class Project(val cpg: TranslationResult)

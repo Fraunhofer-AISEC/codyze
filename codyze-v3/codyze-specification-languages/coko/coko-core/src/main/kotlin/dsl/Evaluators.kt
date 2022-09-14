@@ -23,7 +23,10 @@ fun Project.variable(name: String): List<ValueDeclaration> {
 }
 
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */
-fun Project.call(name: String, predicate: CallExpression.() -> Boolean = { true }): List<CallExpression> {
+fun Project.call(
+    name: String,
+    predicate: CallExpression.() -> Boolean = { true }
+): List<CallExpression> {
     return cpg.calls { it.name == name && predicate(it) }
 }
 
@@ -31,7 +34,10 @@ fun Project.call(name: String, predicate: CallExpression.() -> Boolean = { true 
  * Returns a list of [CallExpression]s with the matching [fqn] (fully-qualified name) and fulfilling
  * [predicate].
  */
-fun Project.callFqn(fqn: String, predicate: CallExpression.() -> Boolean = { true }): List<CallExpression> {
+fun Project.callFqn(
+    fqn: String,
+    predicate: CallExpression.() -> Boolean = { true }
+): List<CallExpression> {
     return cpg.calls { it.fqn == fqn && predicate(it) }
 }
 

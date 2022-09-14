@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED")
+
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
@@ -15,30 +17,26 @@ infix fun Collection<Node>.follows(that: Collection<Node>): Boolean {
     return this.all { from -> that.any { to -> executionPath(from, to).value } }
 }
 
-context(Project)
 /** Returns a list of [ValueDeclaration]s with the matching name. */
-fun variable(name: String): List<ValueDeclaration> {
+fun Project.variable(name: String): List<ValueDeclaration> {
     return cpg.allChildren { it.name == name }
 }
 
-context(Project)
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */
-fun call(name: String, predicate: CallExpression.() -> Boolean = { true }): List<CallExpression> {
+fun Project.call(name: String, predicate: CallExpression.() -> Boolean = { true }): List<CallExpression> {
     return cpg.calls { it.name == name && predicate(it) }
 }
 
-context(Project)
 /**
  * Returns a list of [CallExpression]s with the matching [fqn] (fully-qualified name) and fulfilling
  * [predicate].
  */
-fun callFqn(fqn: String, predicate: CallExpression.() -> Boolean = { true }): List<CallExpression> {
+fun Project.callFqn(fqn: String, predicate: CallExpression.() -> Boolean = { true }): List<CallExpression> {
     return cpg.calls { it.fqn == fqn && predicate(it) }
 }
 
-context(Project)
 /** Returns a list of [MemberExpression]s with the matching something. */
-fun memberExpr(predicate: MemberExpression.() -> Boolean): List<MemberExpression> {
+fun Project.memberExpr(predicate: MemberExpression.() -> Boolean): List<MemberExpression> {
     return cpg.allChildren(predicate)
 }
 

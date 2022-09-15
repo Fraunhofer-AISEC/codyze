@@ -1,6 +1,8 @@
+import org.jetbrains.kotlin.utils.keysToMap
+
 allprojects {
     group = "de.fraunhofer.aisec.codyze"
-    version = if(version != Project.DEFAULT_VERSION) version else "0.0.0-SNAPSHOT"
+    version = if (version != Project.DEFAULT_VERSION) version else "0.0.0-SNAPSHOT"
 }
 
 plugins {
@@ -12,27 +14,22 @@ tasks.dokkaHtmlMultiModule.configure {
     outputDirectory.set(projectDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v3"))
 }
 
-subprojects {
-    tasks {
-        val projectProps by registering(WriteProperties::class) {
-            description = "Write project properties in a file."
+// adapted from https://blog.mrhaki.com/2021/03/gradle-goodness-create-properties-file.html
+val projectProps by tasks.registering(WriteProperties::class) {
+    description = "Write project properties in a file."
 
-            // Set output file to build/project.properties
-            outputFile = file("${buildDir}/project.properties")
-            // Default encoding is ISO-8559-1, here we change it.
-            encoding = "UTF-8"
-            // Optionally we can specify the header comment.
-            comment = "Version and name of project"
+    // Set output file to build/project.properties
+    outputFile = file("${buildDir}/codyze.properties")
+    // Default encoding is ISO-8559-1, here we change it.
+    encoding = "UTF-8"
+    // Optionally we can specify the header comment.
+    comment = "Version of subprojects and name of project"
 
-            // Define property.
-            property("project.version", project.version)
+    // Add project name as property
+    property("project.name", project.name)
 
-            // Define properties using a Map.
-            properties(mapOf("project.name" to project.name))
-        }
-
-        withType<ProcessResources> {
-            from(projectProps)
-        }
+    // Add version of each subproject as separate properties
+    for(subproject in subprojects) {
+        property("${subproject.name}.version", subproject.version)
     }
 }

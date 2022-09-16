@@ -2,6 +2,7 @@
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
@@ -25,7 +26,7 @@ fun Project.variable(name: String): List<ValueDeclaration> {
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */
 fun Project.call(
     name: String,
-    predicate: CallExpression.() -> Boolean = { true }
+    predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
     return cpg.calls { it.name == name && predicate(it) }
 }
@@ -36,16 +37,21 @@ fun Project.call(
  */
 fun Project.callFqn(
     fqn: String,
-    predicate: CallExpression.() -> Boolean = { true }
+    predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
     return cpg.calls { it.fqn == fqn && predicate(it) }
 }
 
 /** Returns a list of [MemberExpression]s with the matching something. */
-fun Project.memberExpr(predicate: MemberExpression.() -> Boolean): List<MemberExpression> {
+fun Project.memberExpr(
+    predicate: (@CokoMarker MemberExpression).() -> Boolean
+): List<MemberExpression> {
     return cpg.allChildren(predicate)
 }
 
+context(
+    CallExpression
+) // this extension function should only be available in the context of a CallExpression
 /**
  * Checks if there's a data flow path from "this" to [that].
  * - If this is a String, we evaluate it as a regex.
@@ -64,7 +70,11 @@ infix fun Any.flowsTo(that: Node): Boolean =
         }
     }
 
-context(Project)
+context(
+    Project,
+    CallExpression
+) // this extension function needs Project as a context + it should only be available in the context
+// of a CallExpression
 /**
  * Checks if there's a data flow path from "this" to any of the elements in [that].
  * - If this is a String, we evaluate it as a regex.
@@ -86,5 +96,3 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
             else -> this in that.map { (it as Expression).evaluate() }
         }
     }
-
-// fun order(ordering: Order.() -> Unit) {}

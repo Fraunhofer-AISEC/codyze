@@ -6,7 +6,6 @@ import kotlin.reflect.full.*
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
-
 /**
  * Evaluates the rules. It first collects all scripts and divides it in the models and
  * implementations. Then, it generates inputs for the rules and calls the rules.
@@ -30,21 +29,24 @@ class SpecEvaluator {
         for ((index, value) in rules.withIndex()) {
             val (rule, ruleInstance) = value
             val parameterMap =
-                mutableMapOf<KParameter, Any?>(
-                    rule.parameters[0] to ruleInstance
-                ) // TODO: ruleInstance might be null!
+                mutableMapOf(
+                    rule.instanceParameter!! to ruleInstance
+                ) // rule.instanceParameter should never be null in a script because a script is
+            // compiled into a subclass of [CokoScript] which means that anything defined in a
+            // script will always need a CokoScript instance as a receiver
 
             parameterMap.putAll(
-                rule.parameters
-                    .filter { it.kind == KParameter.Kind.VALUE }
-                    .associateWith { param ->
-                        // TODO: check for all implementations!
-                        implementations
-                            .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
-                            .map { (it, paramInstance) ->
-                                it.primaryConstructor?.call(paramInstance)
-                            }[0]
-                    }
+                rule.valueParameters.associateWith { param ->
+                    // TODO: check for all implementations!
+                    implementations
+                        .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
+                        .map { (it, paramInstance) ->
+                            checkNotNull(it.primaryConstructor) {
+                                    "Could not create an instance of ${it.qualifiedName} to pass to rule ${rule.name} because it does not have a primary constructor. Aborting."
+                                }
+                                .call(paramInstance)
+                        }[0]
+                }
             )
 
             val ruleResult = rule.callBy(parameterMap)

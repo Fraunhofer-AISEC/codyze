@@ -28,10 +28,6 @@ abstract class OrderBuilder : OrderFragment {
         nodeDeque.add(fragment.toNode())
     }
 
-    fun testThis() {
-        println("test")
-    }
-
     /**
      * Represent this [OrderFragment] as a binary syntax tree.
      */

@@ -7,7 +7,6 @@ plugins {
 dependencies {
     implementation(projects.codyzeCore)
     implementation(projects.codyzeSpecificationLanguages.mark)
-    implementation(projects.codyzeSpecificationLanguages.nwtExample)
     implementation(projects.codyzeSpecificationLanguages.coko.cokoDsl)
 
     implementation(libs.clikt)

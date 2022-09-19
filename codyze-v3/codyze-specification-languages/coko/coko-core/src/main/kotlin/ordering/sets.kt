@@ -13,13 +13,17 @@ class OrderSet(private var negate: Boolean) : OrderBuilder() {
     operator fun not() = apply { negate = !negate }
 
     /**
-     * Represent this [OrderSet] ([OrderFragment]) as a binary tree.
+     * Represent this [OrderSet] ([OrderFragment]) as a binary syntax tree.
      */
     override fun toNode(): OrderFragment {
-        var currentNode =
-            AlternativeNode(left = nodeStack.removeFirst(), right = nodeStack.removeFirst())
-        while (nodeStack.size > 0) {
-            currentNode = AlternativeNode(left = currentNode, right = nodeStack.removeFirst())
+        var currentNode = when(nodeDeque.size) {
+            0 -> throw IllegalArgumentException("Groups and sets must have at least one element.")
+            1 -> return nodeDeque.removeFirst()
+            else -> AlternativeNode(left = nodeDeque.removeFirst(), right = nodeDeque.removeFirst())
+        }
+
+        while (nodeDeque.size > 0) {
+            currentNode = AlternativeNode(left = currentNode, right = nodeDeque.removeFirst())
         }
         return currentNode
     }

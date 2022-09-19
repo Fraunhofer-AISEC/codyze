@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.ord
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.query.executionPath
 
+context(Project)
 /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
 infix fun Collection<Node>.follows(that: Collection<Node>): Boolean {
     return this.all { from -> that.any { to -> executionPath(from, to).value } }

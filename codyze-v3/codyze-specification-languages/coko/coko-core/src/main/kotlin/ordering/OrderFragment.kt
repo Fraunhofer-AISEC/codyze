@@ -11,6 +11,9 @@ typealias OrderToken = KFunction<*>
 @CokoMarker
 sealed interface OrderFragment {
     fun toNode(): OrderFragment
+
+    val token: OrderFragment
+        get() = this
 }
 
 /**

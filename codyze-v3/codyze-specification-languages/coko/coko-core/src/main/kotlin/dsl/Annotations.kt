@@ -11,6 +11,7 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 @Retention(AnnotationRetention.SOURCE)
 annotation class Import(vararg val paths: String)
 
+/* Marks a function that should be evaluated as a rule by Codyze */
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
 annotation class Rule(val description: String = "")

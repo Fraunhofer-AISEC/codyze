@@ -58,7 +58,12 @@ internal object ProjectScriptCompilationConfiguration :
             )
         }
 
-        compilerOptions("-Xcontext-receivers")
+        /**
+         * - Enable the experimental context receivers feature
+         * - Make sure to set the jvm-target of the script compiler to the same jvm-target the rest
+         * of Codyze is using
+         */
+        compilerOptions("-Xcontext-receivers", "-jvm-target=11")
 
         implicitReceivers(
             Project::class

@@ -13,8 +13,9 @@ import de.fraunhofer.aisec.cpg.TranslationResult
 annotation class CokoMarker
 
 @Suppress("UNUSED")
+@CokoMarker
 /*
  * Receives a [cpg] translation result to identify matching nodes and evaluate the expressions.
- * All the functions of the DSL are implemented as extension functions of [Project].
+ * All the functionality of the DSL are implemented as extension functions on [Project].
  */
 class Project(val cpg: TranslationResult)

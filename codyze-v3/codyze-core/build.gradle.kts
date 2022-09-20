@@ -31,13 +31,4 @@ tasks {
     }
 }
 
-buildConfig {
-    className("GeneratedVersionProvider")
-    packageName("de.fraunhofer.aisec.codyze_core.helper")
-    useKotlinOutput()
-
-    buildConfigField("String", "CODYZE_VERSION", provider { "\"${project.version}\"" })
-
-}
-
 

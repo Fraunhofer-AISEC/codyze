@@ -108,8 +108,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.6.1")
-    api("de.fraunhofer.aisec:cpg-analysis:4.6.1")
+    api("de.fraunhofer.aisec:cpg-core:4.6.2")
+    api("de.fraunhofer.aisec:cpg-analysis:4.6.2")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
@@ -142,7 +142,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Parser for yaml configuration file
-    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.3")
+    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4")
 }
 
 application {

@@ -10,12 +10,7 @@ import com.github.ajalt.clikt.parameters.options.*
 import de.fraunhofer.aisec.codyze.options.configFileOption
 import de.fraunhofer.aisec.codyze.source.JsonValueSource
 import de.fraunhofer.aisec.codyze_core.helper.VersionProvider
-import java.io.IOException
-import java.net.URL
 import java.nio.file.Path
-import java.util.*
-import java.util.jar.Attributes
-import java.util.jar.Manifest
 import kotlin.io.path.Path
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
@@ -49,11 +44,8 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
 class CodyzeCli(val configFile: Path? = null) :
     CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
 
-    /** Stores the version of Codyze */
-    private val versionProvider = VersionProvider("Codyze v3")
-
     init {
-        versionOption(versionProvider.version, names = setOf("--version", "-V"))
+        versionOption(VersionProvider.getVersion("codyze"), names = setOf("--version", "-V"))
         context {
             if (configFile != null)
                 valueSource = JsonValueSource.from(configFile, requireValid = true)

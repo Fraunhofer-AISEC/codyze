@@ -1,51 +1,41 @@
 package de.fraunhofer.aisec.codyze_core.helper
 
-import java.io.IOException
-import java.net.URL
 import java.util.*
-import java.util.jar.Attributes
-import java.util.jar.Manifest
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-/** Provides the version for Codyze modules */
-class VersionProvider(private val IMPLEMENTATION_TITLE: String) {
-
+/** Provides the version for Codyze modules. The versions are read from a properties file. */
+object VersionProvider {
+    /** The name of the properties file  */
+    private const val PROPS_FILE = "codyze.properties"
     /** Default version to use, when no explicit version has been set. */
-    private val defaultVersion: String = "0.0.0-SNAPSHOT"
+    private const val DEFAULT_VERSION = "0.0.0-SNAPSHOT"
 
-    /**
-     * Determine version from system property `codyze-v3-version` or from Codyzes' JAR file
-     * manifests.
-     *
-     * Note: Using `lazy` delegate to calculate property once, when it is needed. Reduces
-     * overhead by not reading in all manifests on the classpath multiple times.
-     */
-    val version: String by lazy {
-        System.getProperty("codyze-v3-version")
-            ?: run {
-                val resources: Enumeration<URL> =
-                    VersionProvider::class.java.classLoader.getResources("META-INF/MANIFEST.MF")
-                while (resources.hasMoreElements()) {
-                    val url = resources.nextElement()
-                    try {
-                        val manifest = Manifest(url.openStream())
-                        val mainAttributes = manifest.mainAttributes
-                        if (
-                            IMPLEMENTATION_TITLE ==
-                                mainAttributes.getValue(Attributes.Name.IMPLEMENTATION_TITLE)
-                        ) {
-                            return@run mainAttributes.getValue(
-                                Attributes.Name.IMPLEMENTATION_VERSION
-                            )
-                        }
-                    } catch (ex: IOException) {
-                        logger.trace { "Unable to read from $url: $ex" }
-                    }
-                }
-                defaultVersion
-            }
+    /** Stores the properties */
+    private val props = Properties()
+    /** Loads the properties from the file */
+    init {
+        val file = javaClass.classLoader.getResourceAsStream(PROPS_FILE)
+        props.load(file)
+
+        // Check if the correct properties file was loaded
+        if (
+            !props.containsKey("project.name") || props.getProperty("project.name") != "codyze-v3"
+        ) {
+            logger.warn("Could not find correct version properties file")
+            props.clear()
+        }
     }
 
+    /**
+     * Get the version of a Codyze module.
+     *
+     * @param moduleName The name of the module
+     */
+    fun getVersion(moduleName: String): String {
+        // Append ".version" to the key since it is stored that way
+        val propKey = "$moduleName.version"
+        return props.getProperty(propKey, DEFAULT_VERSION)
+    }
 }

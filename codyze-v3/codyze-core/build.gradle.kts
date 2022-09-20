@@ -1,6 +1,5 @@
 plugins {
     id("documented-module")
-    alias(libs.plugins.buildconfig)
 }
 
 dependencies {

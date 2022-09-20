@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.utils.keysToMap
-
 allprojects {
     group = "de.fraunhofer.aisec.codyze"
     version = if (version != Project.DEFAULT_VERSION) version else "0.0.0-SNAPSHOT"
@@ -7,7 +5,6 @@ allprojects {
 
 plugins {
     id("documented")
-    kotlin
 }
 
 tasks.dokkaHtmlMultiModule.configure {

@@ -7,7 +7,7 @@ private val logger = KotlinLogging.logger {}
 
 /** Provides the version for Codyze modules. The versions are read from a properties file. */
 object VersionProvider {
-    /** The name of the properties file  */
+    /** The name of the properties file */
     private const val PROPS_FILE = "codyze.properties"
     /** Default version to use, when no explicit version has been set. */
     private const val DEFAULT_VERSION = "0.0.0-SNAPSHOT"

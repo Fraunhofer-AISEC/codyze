@@ -107,6 +107,8 @@ fun signature(vararg types: Type): Boolean {
 
 context(CallExpression)
 // TODO: better description
+// TODO: in mark there is "..." to symbolize that the last arguments don't matter
+// TODO: how to model return value assignments
 /**
  * Checks if the [CallExpression] matches the signature specified with [parameters].
  *

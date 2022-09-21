@@ -3,18 +3,18 @@ interface Concept {}
 interface Cipher : Concept {
     // to 'group' functions, we can use optional parameters and let the implementation kts file deal
     // with all the different signatures
-    fun instantiate(transform: String, provider: Any = Wildcard): Nodes
+    fun instantiate(transform: String, provider: Any? = null): Nodes
     fun init(
         opmode: Int,
-        certificate: Any = Wildcard,
-        random: Any = Wildcard,
-        key: Any = Wildcard,
-        params: Any = Wildcard,
-        paramspec: Any = Wildcard
+        certificate: Any? = null,
+        random: Any? = null,
+        key: Any? = null,
+        params: Any? = null,
+        paramspec: Any? = null,
     ): Nodes
-    fun aad(src: Any = Wildcard, vararg args: Any): Nodes
-    fun update(input: Any, output: Any = Wildcard, vararg args: Any): Nodes
-    // fun finalize(input: Any = Wildcard, output: Any = Wildcard, vararg args: Any): Nodes
+    fun aad(src: Any, vararg args: Any): Nodes
+    fun update(input: Any, output: Any? = null, vararg args: Any): Nodes
+    fun finalize(input: Any? = null, output: Any? = null, vararg args: Any): Nodes
 }
 
 // @Rule("")

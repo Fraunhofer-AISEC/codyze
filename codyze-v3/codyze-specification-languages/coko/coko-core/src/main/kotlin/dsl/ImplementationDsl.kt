@@ -90,3 +90,57 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
             else -> this in that.map { (it as Expression).evaluate() }
         }
     }
+
+context(CallExpression)
+/**
+ * Checks if the arguments of [CallExpression] have the same type and order as specified in [types].
+ *
+ * @param types specifies the order and types of the parameters of the function
+ */
+fun signature(vararg types: Type): Boolean {
+    return types.size == arguments.size &&
+        types
+            .mapIndexed { i: Int, type: Type -> type.fqn == arguments[i].type.typeName }
+            // check if all are `true`
+            .all { it }
+}
+
+context(CallExpression)
+// TODO: better description
+/**
+ * Checks if the [CallExpression] matches the signature specified with [parameters].
+ *
+ * @param parameters specifies the order of the parameters of the function
+ */
+fun signature(vararg parameters: Any?): Boolean {
+    // filters out the signature if any parameter is null
+    if (parameters.contains(null)) return false
+
+    // we already checked that the array does not contain nulls but Kotlin does not realize that
+    val notNullParams = parameters.filterNotNull()
+
+    return if (notNullParams.all { it is Type }) {
+        // There are situations where all parameters are `Type` objects but cast to `Object`
+        // so `signature(varargs types: Type)` is not called.
+        // This checks if `signature(varargs types: Type)` should be called instead.
+        signature(*notNullParams.map { it as Type }.toTypedArray())
+    } else {
+        // checks if amount of parameters is the same as amount of arguments of this CallExpression
+        notNullParams.size == arguments.size &&
+            // checks if there is dataflow from all parameters to the arguments in the correct
+            // position
+            notNullParams.foldIndexed(true) { i: Int, acc: Boolean, any: Any ->
+                acc && any flowsTo arguments[i]
+            }
+    }
+}
+
+context(CallExpression)
+/**
+ * Checks if [CallExpression] has no arguments
+ *
+ * Needed because of resolution ambiguity
+ */
+fun signature(): Boolean {
+    return arguments.isEmpty()
+}

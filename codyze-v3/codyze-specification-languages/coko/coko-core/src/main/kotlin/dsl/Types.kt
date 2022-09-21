@@ -4,3 +4,6 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 object Wildcard
 
 typealias wildcard = Wildcard
+
+/** Stores the fully qualified name of a class */
+data class Type(val fqn: String)

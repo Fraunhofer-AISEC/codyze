@@ -1,0 +1,10 @@
+{
+  "analyze": {
+    "good-findings": false,
+    "timeout": 5,
+    "spec": "../../codyze-v2/src/test/resources/real-examples/bc/rwedoff.Password-Manager",
+    "source": ["../../codyze-v2/src/test/resources/real-examples/bc/rwedoff.Password-Manager"],
+    "disabled-specs": [""],
+    "typestate": "DFA"
+  }
+}

@@ -39,10 +39,12 @@ internal class MarkLoadTest {
             allMarkRules.size -
                 disabledMarkRules
                     .getOrDefault("java", DisabledMarkRulesValue())
-                    .disabledMarkRuleNames.size -
+                    .disabledMarkRuleNames
+                    .size -
                 disabledMarkRules
                     .getOrDefault("", DisabledMarkRulesValue())
-                    .disabledMarkRuleNames.size
+                    .disabledMarkRuleNames
+                    .size
         assertEquals(
             expectedSize,
             actualMarkRuleNames.size,
@@ -139,7 +141,8 @@ internal class MarkLoadTest {
             allMarkRules.size -
                 disabledMarkRules
                     .getOrDefault("java", DisabledMarkRulesValue())
-                    .disabledMarkRuleNames.size -
+                    .disabledMarkRuleNames
+                    .size -
                 botanMarkRuleNames.size
         assertEquals(
             expectedSize,
@@ -190,7 +193,9 @@ internal class MarkLoadTest {
 
             val javaMarkResource =
                 MarkLoadTest::class
-                    .java.classLoader.getResource("real-examples/bc/rwedoff.Password-Manager")
+                    .java
+                    .classLoader
+                    .getResource("real-examples/bc/rwedoff.Password-Manager")
             assertNotNull(javaMarkResource)
             javaLocation = File(javaMarkResource.file)
             assertNotNull(javaLocation)

@@ -92,7 +92,9 @@ internal class RuleEnsureSemanticsTest {
         fun startup() {
             val resource =
                 RuleEnsureSemanticsTest::class
-                    .java.classLoader.getResource("mark/rules/ensure/semantics/")
+                    .java
+                    .classLoader
+                    .getResource("mark/rules/ensure/semantics/")
             assertNotNull(resource)
 
             val markFile = File(resource.file)

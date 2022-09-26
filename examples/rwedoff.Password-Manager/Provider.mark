@@ -1,0 +1,5 @@
+package java
+
+entity java.security.Provider {
+	
+}

@@ -10,11 +10,14 @@ plugins {
     `maven-publish`
     `java-library`
 
-    id("org.jsonschema2dataclass") version "4.2.0"
+    id("org.jsonschema2dataclass") version "4.3.1"
 
     id("org.sonarqube") version "3.4.0.2513"
-    id("com.diffplug.spotless") version "6.8.0"
+    id("com.diffplug.spotless") version "6.10.0"
     id("com.github.hierynomus.license") version "0.16.1"
+
+    // documentation
+    id("org.jetbrains.dokka") version "1.7.10"
 
     kotlin("jvm") version "1.7.10" // we can only upgrade to Kotlin 1.5, if CPG does
 }
@@ -96,8 +99,8 @@ configurations.all {
 
 dependencies {
     // Logging
-    implementation("org.slf4j:slf4j-api:1.8.0-beta4") // ok
-    api("org.slf4j:log4j-over-slf4j:1.8.0-beta4") // needed for xtext.parser.antlr
+    implementation("org.slf4j:slf4j-api:2.0.0") // ok
+    api("org.slf4j:log4j-over-slf4j:2.0.0") // needed for xtext.parser.antlr
     api("org.apache.logging.log4j:log4j-core:2.18.0") // impl in main; used only in test
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.18.0")
 
@@ -105,8 +108,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.6.0")
-    api("de.fraunhofer.aisec:cpg-analysis:4.6.0")
+    api("de.fraunhofer.aisec:cpg-core:4.6.2")
+    api("de.fraunhofer.aisec:cpg-analysis:4.6.2")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
@@ -118,7 +121,7 @@ dependencies {
     api("de.breakpointsec:pushdown:1.1") // ok
 
     // LSP interface support
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.14.0") // ok
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.15.0") // ok
 
     // Interactive console interface support using Jython (Scripting engine)
     implementation("org.python:jython-standalone:2.7.2") // ok
@@ -139,7 +142,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Parser for yaml configuration file
-    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.3")
+    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4")
 }
 
 application {
@@ -224,4 +227,8 @@ jsonSchema2Pojo {
     targetPackage.set("de.fraunhofer.aisec.codyze.sarif.schema")
     removeOldOutput.set(true)
     // ... more options
+}
+
+tasks.dokkaHtml.configure {
+    outputDirectory.set(projectDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v2"))
 }

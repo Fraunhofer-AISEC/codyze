@@ -16,7 +16,9 @@ class FSMBuilderTest {
     fun testSimpleOrder() {
         val resource =
             MarkLoadOutputTest::class
-                .java.classLoader.getResource("unittests/fsm_builder/order.mark")
+                .java
+                .classLoader
+                .getResource("unittests/fsm_builder/order.mark")
         assertNotNull(resource)
         val markPoC1 = File(resource.file)
         assertNotNull(markPoC1)
@@ -46,7 +48,9 @@ class FSMBuilderTest {
     fun testLoopOrder() {
         val resource =
             MarkLoadOutputTest::class
-                .java.classLoader.getResource("unittests/fsm_builder/order2.mark")
+                .java
+                .classLoader
+                .getResource("unittests/fsm_builder/order2.mark")
         assertNotNull(resource)
         val markPoC1 = File(resource.file)
         assertNotNull(markPoC1)
@@ -87,7 +91,9 @@ class FSMBuilderTest {
     fun testBranchOrder() {
         val resource =
             MarkLoadOutputTest::class
-                .java.classLoader.getResource("unittests/fsm_builder/order3.mark")
+                .java
+                .classLoader
+                .getResource("unittests/fsm_builder/order3.mark")
         assertNotNull(resource)
         val markPoC1 = File(resource.file)
         assertNotNull(markPoC1)
@@ -132,7 +138,9 @@ class FSMBuilderTest {
     fun testFailOrder() {
         val resource =
             MarkLoadOutputTest::class
-                .java.classLoader.getResource("unittests/fsm_builder/order_fail.mark")
+                .java
+                .classLoader
+                .getResource("unittests/fsm_builder/order_fail.mark")
         assertNotNull(resource)
         val markPoC1 = File(resource.file)
         assertNotNull(markPoC1)

@@ -26,7 +26,8 @@ class ForbiddenEvaluator(private val markModel: Mark) {
         for (entity in markModel.entities) {
             for (op in entity.ops) {
                 for ((node, value) in op.nodesToStatements) {
-                    if (value.stream().noneMatch { call: OpStatement ->
+                    if (
+                        value.stream().noneMatch { call: OpStatement ->
                             "forbidden" == call.forbidden
                         }
                     ) {

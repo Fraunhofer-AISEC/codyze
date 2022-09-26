@@ -11,6 +11,7 @@ import kotlin.Throws
 import kotlin.test.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 
 internal class ConfigLoadTest {
 
@@ -178,21 +179,50 @@ internal class ConfigLoadTest {
         var config = Configuration.initConfig(paths1File, "-c")
         assertNotNull(config.source)
         assertContentEquals(
-            listOf(File("/absolute/path/to/source").absolutePath),
+            listOf(
+                File(File.separator)
+                    .resolve("absolute")
+                    .resolve("path")
+                    .resolve("to")
+                    .resolve("source")
+                    .absolutePath
+            ),
             config.source.map { f -> f.absolutePath }
         )
         assertEquals(
-            File(paths1File.absoluteFile.parent, "../relative/path/to/output").absolutePath,
+            paths1File.absoluteFile.parentFile
+                .resolve("..")
+                .resolve("relative")
+                .resolve("path")
+                .resolve("to")
+                .resolve("output")
+                .absolutePath,
             config.output
         )
 
         config = Configuration.initConfig(paths2File, "-c")
         assertNotNull(config.source)
         assertContentEquals(
-            listOf(File(paths2File.absoluteFile.parent, "../relative/path/to/source").absolutePath),
+            listOf(
+                paths2File.absoluteFile.parentFile
+                    .resolve("..")
+                    .resolve("relative")
+                    .resolve("path")
+                    .resolve("to")
+                    .resolve("source")
+                    .absolutePath
+            ),
             config.source.map { f -> f.absolutePath }
         )
-        assertEquals("/absolute/path/to/output", config.output)
+        assertEquals(
+            File(File.separator)
+                .resolve("absolute")
+                .resolve("path")
+                .resolve("to")
+                .resolve("output")
+                .absolutePath,
+            config.output
+        )
     }
 
     companion object {
@@ -203,48 +233,107 @@ internal class ConfigLoadTest {
         private lateinit var paths1File: File
         private lateinit var paths2File: File
 
+        @TempDir @JvmStatic lateinit var tempDir: File
+
         @BeforeAll
         @JvmStatic
         fun startup() {
             val correctStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("config-files/correct_structure.yml")
+                    .java
+                    .classLoader
+                    .getResource("config-files/correct_structure.yml")
             assertNotNull(correctStructureResource)
             correctFile = File(correctStructureResource.file)
             assertNotNull(correctFile)
 
             val incorrectStructureResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("config-files/incorrect_structure.yml")
+                    .java
+                    .classLoader
+                    .getResource("config-files/incorrect_structure.yml")
             assertNotNull(incorrectStructureResource)
             incorrectFile = File(incorrectStructureResource.file)
             assertNotNull(incorrectFile)
 
             val additionalOptionResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("config-files/additional_options.yml")
+                    .java
+                    .classLoader
+                    .getResource("config-files/additional_options.yml")
             assertNotNull(additionalOptionResource)
             additionalOptionFile = File(additionalOptionResource.file)
             assertNotNull(additionalOptionFile)
 
             val unknownLanguageResource =
                 ConfigLoadTest::class
-                    .java.classLoader.getResource("config-files/unknown_language.yml")
+                    .java
+                    .classLoader
+                    .getResource("config-files/unknown_language.yml")
             assertNotNull(unknownLanguageResource)
             unknownLanguageFile = File(unknownLanguageResource.file)
             assertNotNull(unknownLanguageFile)
 
-            val paths1Resource =
-                ConfigLoadTest::class.java.classLoader.getResource("config-files/paths1.yml")
-            assertNotNull(paths1Resource)
-            paths1File = File(paths1Resource.file)
-            assertNotNull(paths1File)
+            // Build paths test files dynamically because different separators on different OS
+            assertNotNull(tempDir)
+            assertTrue(tempDir.isDirectory)
 
-            val paths2Resource =
-                ConfigLoadTest::class.java.classLoader.getResource("config-files/paths2.yml")
-            assertNotNull(paths2Resource)
-            paths2File = File(paths2Resource.file)
-            assertNotNull(paths2File)
+            paths1File = tempDir.resolve("paths1.yml")
+            paths2File = tempDir.resolve("paths2.yml")
+
+            val sb1 = StringBuilder()
+            sb1.append(
+                    """
+                source:
+                  - 
+            """.trimIndent()
+                )
+                .append(
+                    File(File.separator)
+                        .resolve("absolute")
+                        .resolve("path")
+                        .resolve("to")
+                        .resolve("source")
+                        .absolutePath
+                )
+                .append("\n")
+                .append("output: ")
+                .append(
+                    File("..")
+                        .resolve("relative")
+                        .resolve("path")
+                        .resolve("to")
+                        .resolve("output")
+                        .toString()
+                )
+            paths1File.writeText(sb1.toString())
+
+            val sb2 = StringBuilder()
+            sb2.append(
+                    """
+                source:
+                  - 
+            """.trimIndent()
+                )
+                .append(
+                    File("..")
+                        .resolve("relative")
+                        .resolve("path")
+                        .resolve("to")
+                        .resolve("source")
+                        .toString()
+                )
+                .append("\n")
+                .append("output: ")
+                .append(
+                    File(File.separator)
+                        .resolve("absolute")
+                        .resolve("path")
+                        .resolve("to")
+                        .resolve("output")
+                        .absolutePath
+                )
+            paths2File.writeText(sb2.toString())
         }
     }
 }

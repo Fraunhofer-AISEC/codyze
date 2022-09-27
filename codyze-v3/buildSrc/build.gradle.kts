@@ -13,4 +13,7 @@ dependencies {
     implementation(libs.spotless.gradle)
     implementation(libs.license.gradle)
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))  // this is only there to be able to import 'LibrariesForLibs' in the convention plugins
+
+    // additional dependencies used by plugins, e.g. for configuring tasks
+    implementation(libs.dokka.base)
 }

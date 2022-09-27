@@ -1,7 +1,6 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.base.DokkaBaseConfiguration
-import org.gradle.kotlin.dsl.attributes
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     // built-in
@@ -44,8 +43,10 @@ gradle.startParameter.excludedTaskNames += ":codyze-v2:licenseTest"
 tasks {
     jar {
         manifest {
-            attributes("Implementation-Title" to "codyze",
-                "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev"))
+            attributes(
+                "Implementation-Title" to "codyze",
+                "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev")
+            )
         }
     }
 }
@@ -68,13 +69,14 @@ repositories {
     mavenLocal()
     mavenCentral()
 
-    maven { setUrl("https://jitpack.io") }
-
+    maven {
+        setUrl("https://jitpack.io")
+    }
 
     // NOTE: Remove this when we "release". this is the public sonatype repo which is used to
-    // sync to maven central, but directly adding this repo is faster than waiting for a maven central sync,
-    // which takes 8 hours in the worse case. so it is useful during heavy development but should be removed
-    // if everything is more stable
+    // sync to maven central, but directly adding this repo is faster than waiting for a maven
+    // central sync, which takes 8 hours in the worse case. so it is useful during heavy
+    // development but should be removed if everything is more stable
     maven {
         setUrl("https://oss.sonatype.org/content/groups/public")
     }
@@ -121,10 +123,12 @@ dependencies {
     api("de.fraunhofer.aisec:cpg-analysis:4.6.2")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
-    //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
-    //api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:bbd54a7b11:repackaged") // pin to specific commit before annotations
-    api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:2.0.0:repackaged") // use GitHub release via JitPack
-
+    // api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") {
+    // isChanging = true } // ok
+    // api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:bbd54a7b11:repackaged") // pin to specific commit before annotations
+    api(
+        "com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:2.0.0:repackaged"
+    ) // use GitHub release via JitPack
 
     // Pushdown Systems
     api("de.breakpointsec:pushdown:1.1") // ok
@@ -200,7 +204,6 @@ spotless {
         targetExclude("build/generated/**/*.java")
         eclipse().configFile(rootProject.file("formatter-settings.xml"))
     }
-
     kotlin {
         ktfmt().kotlinlangStyle()
     }
@@ -217,7 +220,11 @@ tasks.named<CreateStartScripts>("startScripts") {
          *
          * The problem doesn't seem to exist in the current version, but may reappear, so we're keeping this one around.
          */
-        windowsScript.writeText(windowsScript.readText().replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*"))
+        windowsScript.writeText(
+            windowsScript
+                .readText()
+                .replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*")
+        )
     }
 }
 
@@ -238,15 +245,35 @@ jsonSchema2Pojo {
     // ... more options
 }
 
+// generate API documentation
 tasks.dokkaHtml.configure {
-    outputDirectory.set(project.rootDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v2"))
-    dokkaSourceSets {
-        pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-            // use custom stylesheets without external content
-            customStyleSheets = listOf(
-                file(project.rootDir.resolve("..").resolve("docs").resolve("assets").resolve("dokka").resolve("style.css")),
-                file(project.rootDir.resolve("..").resolve("docs").resolve("assets").resolve("dokka").resolve("jetbrains-mono.css")),
+    // add API docs to directory used for website generation
+    outputDirectory.set(
+        project.rootDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v2")
+    )
+    // path to Dokka assets
+    val dokkaAssetsBaseDirectory =
+        project.rootDir.resolve("..").resolve("docs").resolve("assets").resolve("dokka")
+    // configure custom assets
+    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+        // use custom stylesheets without external content
+        customStyleSheets =
+            listOf(
+                dokkaAssetsBaseDirectory.resolve("style.css"),
+                dokkaAssetsBaseDirectory.resolve("jetbrains-mono.css"),
             )
-        }
     }
+    // copy over font files
+    dokkaAssetsBaseDirectory
+        .resolve("JetBrainsMono")
+        .copyRecursively(
+            target = outputDirectory.get().resolve("styles").resolve("JetBrainsMono"),
+            overwrite = true,
+        )
+    dokkaAssetsBaseDirectory
+        .resolve("inter")
+        .copyRecursively(
+            target = outputDirectory.get().resolve("styles").resolve("inter"),
+            overwrite = true,
+        )
 }

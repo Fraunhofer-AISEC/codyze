@@ -122,8 +122,14 @@ fun signature(vararg parameters: Any?): Boolean {
     val notNullParams = parameters.filterNotNull()
 
     return if (notNullParams.all { it is Type }) {
-        // There are situations where all parameters are `Type` objects but cast to `Object`
+        // There are situations where all parameters are `Type` objects but cast to `Any`
         // so `signature(varargs types: Type)` is not called.
+
+        // Example:
+        // fun init(certificate: Any) = signature(certificate)
+        // fun rule() = init(certificate=Type("fqn"))
+        // Because `certificate` is an Any object in `init`, `signature(varargs parameters: Any)` is always called
+
         // This checks if `signature(varargs types: Type)` should be called instead.
         signature(*notNullParams.map { it as Type }.toTypedArray())
     } else {

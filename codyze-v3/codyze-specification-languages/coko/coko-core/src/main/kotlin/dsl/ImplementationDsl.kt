@@ -92,63 +92,36 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
     }
 
 context(CallExpression)
-/**
- * Checks if the arguments of [CallExpression] have the same type and order as specified in [types].
- *
- * @param types specifies the order and types of the parameters of the function
- */
-fun signature(vararg types: Type): Boolean {
-    return types.size == arguments.size &&
-        types
-            .mapIndexed { i: Int, type: Type -> type.fqn == arguments[i].type.typeName }
-            // check if all are `true`
-            .all { it }
-}
-
-context(CallExpression)
 // TODO: better description
 // TODO: in mark there is "..." to symbolize that the last arguments don't matter
 // TODO: how to model return value assignments
 /**
  * Checks if the [CallExpression] matches the signature specified with [parameters].
+ * Returns false if there are nulls in [parameters],
  *
  * @param parameters specifies the order of the parameters of the function
  */
-fun signature(vararg parameters: Any?): Boolean {
-    // filters out the signature if any parameter is null
-    if (parameters.contains(null)) return false
-
-    // we already checked that the array does not contain nulls but Kotlin does not realize that
+fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
+    // filter out all null in `parameters`
     val notNullParams = parameters.filterNotNull()
 
-    return if (notNullParams.all { it is Type }) {
-        // There are situations where all parameters are `Type` objects but cast to `Any`
-        // so `signature(varargs types: Type)` is not called.
-
-        // Example:
-        // fun init(certificate: Any) = signature(certificate)
-        // fun rule() = init(certificate=Type("fqn"))
-        // Because `certificate` is an Any object in `init`, `signature(varargs parameters: Any)` is always called
-
-        // This checks if `signature(varargs types: Type)` should be called instead.
-        signature(*notNullParams.map { it as Type }.toTypedArray())
-    } else {
-        // checks if amount of parameters is the same as amount of arguments of this CallExpression
-        notNullParams.size == arguments.size &&
+    // filters out the signature if any parameter is null
+    return notNullParams.size == parameters.size &&
+            // checks if amount of parameters is the same as amount of arguments of this CallExpression
+            checkArgsSize(parameters, hasVarargs) &&
             // checks if there is dataflow from all parameters to the arguments in the correct
             // position
             notNullParams.foldIndexed(true) { i: Int, acc: Boolean, any: Any ->
-                acc && any flowsTo arguments[i]
+                acc &&
+                        when (any) {
+                            is Type -> any.fqn == arguments[i].type.typeName
+                            else -> any flowsTo arguments[i]
+                        }
             }
-    }
 }
 
 context(CallExpression)
-/**
- * Checks if [CallExpression] has no arguments
- *
- * Needed because of resolution ambiguity
- */
-fun signature(): Boolean {
-    return arguments.isEmpty()
+/** Checks if the number of parameters matches the number of arguments of [CallExpression] */
+private fun checkArgsSize(parameters: Array<*>, hasVarargs: Boolean): Boolean {
+    return if (hasVarargs) parameters.size <= arguments.size else parameters.size == arguments.size
 }

@@ -3,7 +3,7 @@
 class CipherImpl : Cipher {
     // override val transform = variable("")
 
-    override fun instantiate(transform: String, provider: Any?) =
+    override fun instantiate(transform: Any, provider: Any?) =
         // deal with the different function signatures with a more complex configuration of the
         // CallExpression
         callFqn("javax.crypto.Cipher.getInstance") {
@@ -11,7 +11,7 @@ class CipherImpl : Cipher {
         }
 
     override fun init(
-        opmode: Int,
+        opmode: Any,
         certificate: Any?, // optional
         random: Any?, // optional
         key: Any?, // optional

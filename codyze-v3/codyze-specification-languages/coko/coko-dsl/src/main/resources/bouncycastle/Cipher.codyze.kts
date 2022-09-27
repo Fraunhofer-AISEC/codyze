@@ -3,9 +3,9 @@ interface Concept {}
 interface Cipher : Concept {
     // to 'group' functions, we can use optional parameters and let the implementation kts file deal
     // with all the different signatures
-    fun instantiate(transform: String, provider: Any? = null): Nodes
+    fun instantiate(transform: Any, provider: Any? = null): Nodes
     fun init(
-        opmode: Int,
+        opmode: Any,
         certificate: Any? = null,
         random: Any? = null,
         key: Any? = null,

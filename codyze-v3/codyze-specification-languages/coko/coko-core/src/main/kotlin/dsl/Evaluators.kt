@@ -16,6 +16,8 @@ infix fun Collection<Node>.follows(that: Collection<Node>): Boolean {
 /* Ensures the order of nodes as specified in the user configured [Order] object */
 inline fun Project.order(block: Order.() -> Unit): Boolean {
     val order = Order().apply(block)
+    val nfa = order.toNfa()
+    val dfa = nfa.toDfa()
     return false
     // TODO: evaluate the order!
 }

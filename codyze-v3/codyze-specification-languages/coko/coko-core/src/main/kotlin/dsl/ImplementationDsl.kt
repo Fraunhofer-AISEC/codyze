@@ -99,7 +99,8 @@ context(CallExpression)
  * Checks if the [CallExpression] matches the signature specified with [parameters].
  * Returns false if there are nulls in [parameters],
  *
- * @param parameters specifies the order of the parameters of the function
+ * @parameters specifies the order of the parameters of the function
+ * @hasVarargs specifies if the function has a variable number of arguments at the end which are not important to the analysis
  */
 fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     // filter out all null in `parameters`

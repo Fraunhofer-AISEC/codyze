@@ -1,6 +1,6 @@
 @file:Suppress("UNUSED")
 
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.ordering
+package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.set
 
@@ -9,21 +9,22 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.set
  * simplify the resulting binary tree
  */
 class OrderSet(private var negate: Boolean) : OrderBuilder() {
-    /** Negates the current set (`[^abcedfu]`), making it match any character *not* in the set. */
-    operator fun not() = apply { negate = !negate }
+//    TODO: implement. How should this be represented in the NFA?
+//    /** Negates the current set (`[^abcedfu]`), making it match any character *not* in the set. */
+//    operator fun not() = apply { negate = !negate }
 
     /**
      * Represent this [OrderSet] ([OrderFragment]) as a binary syntax tree.
      */
-    override fun toNode(): OrderFragment {
-        var currentNode = when(nodeDeque.size) {
+    override fun toNode(): OrderNode {
+        var currentNode = when(orderNodeDeque.size) {
             0 -> throw IllegalArgumentException("Groups and sets must have at least one element.")
-            1 -> return nodeDeque.removeFirst()
-            else -> AlternativeNode(left = nodeDeque.removeFirst(), right = nodeDeque.removeFirst())
+            1 -> return orderNodeDeque.removeFirst()
+            else -> AlternativeOrderNode(left = orderNodeDeque.removeFirst(), right = orderNodeDeque.removeFirst())
         }
 
-        while (nodeDeque.size > 0) {
-            currentNode = AlternativeNode(left = currentNode, right = nodeDeque.removeFirst())
+        while (orderNodeDeque.size > 0) {
+            currentNode = AlternativeOrderNode(left = currentNode, right = orderNodeDeque.removeFirst())
         }
         return currentNode
     }

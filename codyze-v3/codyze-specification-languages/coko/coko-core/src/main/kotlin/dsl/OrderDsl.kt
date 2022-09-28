@@ -2,26 +2,23 @@
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.ordering.*
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.OrderQuantifier
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
 import kotlin.jvm.internal.CallableReference
 
 //
 // token conversion
 //
 context(OrderBuilder)
-/** Convert a [OrderToken] into a TerminalNode */
-inline val OrderToken.token: TerminalNode
-    get() = TerminalNode((this as CallableReference).owner.toString(), name)
-
-context(OrderBuilder)
 /**
- * Convert a [OrderToken] into a TerminalNode and specify the arguments passed to the [OrderToken]
+ * Convert a [OrderToken] into a TerminalOrderNode and specify the arguments passed to the [OrderToken]
  * when evaluating the order
  */
-// TODO: add implicit receiver to 'block' that provides a way to specify arguments
-fun OrderToken.token(block: () -> Unit): OrderFragment =
-    TerminalNode((this as CallableReference).owner.toString(), name, block)
+fun OrderToken.use(block: () -> Nodes): OrderFragment = TerminalOrderNode((this as CallableReference).owner.toString(), name, block)
+
+context(OrderBuilder)
+/** Convert an [OrderToken] into a TerminalOrderNode */
+internal val OrderToken.token: TerminalOrderNode
+    get() = TerminalOrderNode((this as CallableReference).owner.toString(), name)
 
 //
 // groups
@@ -46,7 +43,7 @@ inline fun group(
 
 context(OrderBuilder)
 /**
- * Shortcut for creating a group with the [maybe] qualifier. See [group]
+ * Shortcut for creating a group with the [maybe] ('*') qualifier. See [group]
  */
 inline fun maybe(
     block: OrderGroup.() -> Unit,
@@ -54,7 +51,7 @@ inline fun maybe(
 
 context(OrderBuilder)
 /**
- * Shortcut for creating a group with the [option] qualifier. See [group]
+ * Shortcut for creating a group with the [option] ('?') qualifier. See [group]
  */
 inline fun option(
     block: OrderGroup.() -> Unit,
@@ -62,7 +59,7 @@ inline fun option(
 
 context(OrderBuilder)
 /**
- * Shortcut for creating a group with the [some] qualifier. See [group]
+ * Shortcut for creating a group with the [some] ('+') qualifier. See [group]
  */
 inline fun some(
     block: OrderGroup.() -> Unit,
@@ -109,19 +106,19 @@ fun group(vararg tokens: OrderToken) = group { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /**
- * Minimalist way to create a group with the [maybe] qualifier. See [group].
+ * Minimalist way to create a group with the [maybe] ('*') qualifier. See [group].
  */
 fun maybe(vararg tokens: OrderToken) = maybe { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /**
- * Minimalist way to create a group with the [some] qualifier. See [group].
+ * Minimalist way to create a group with the [some] ('+') qualifier. See [group].
  */
 fun some(vararg tokens: OrderToken) = some { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /**
- * Minimalist way to create a group with the [option] qualifier. See [group].
+ * Minimalist way to create a group with the [option] ('?') qualifier. See [group].
  */
 fun option(vararg tokens: OrderToken) = option { tokens.forEach { +it } }
 
@@ -182,7 +179,7 @@ context(OrderBuilder)
  * > Matches the specified quantity of the previous [OrderFragment]. > {3} will match exactly 3.
  */
 infix fun OrderFragment.count(count: Int): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
 
 context(OrderBuilder)
 /**
@@ -191,7 +188,7 @@ context(OrderBuilder)
  * > Matches the specified quantity of the previous [OrderFragment]. > {3} will match exactly 3.
  */
 infix fun OrderToken.count(count: Int): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
 
 
 context(OrderBuilder)
@@ -201,7 +198,7 @@ context(OrderBuilder)
  * > Matches the specified quantity of the previous [OrderFragment]. > {1,3} will match 1 to 3.
  */
 infix fun OrderFragment.between(range: IntRange): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
 
 context(OrderBuilder)
 /**
@@ -210,7 +207,7 @@ context(OrderBuilder)
  * > Matches the specified quantity of the previous [OrderFragment]. > {1,3} will match 1 to 3.
  */
 infix fun OrderToken.between(range: IntRange): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
 
 context(OrderBuilder)
 /**
@@ -219,7 +216,7 @@ context(OrderBuilder)
  * > Matches the specified quantity of the previous [OrderFragment]. > {3,} will match 3 or more.
  */
 infix fun OrderFragment.atLeast(min: Int): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
 
 context(OrderBuilder)
 /**
@@ -228,61 +225,63 @@ context(OrderBuilder)
  * > Matches the specified quantity of the previous [OrderFragment]. > {3,} will match 3 or more.
  */
 infix fun OrderToken.atLeast(min: Int): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
 
 context(OrderBuilder)
 /**
- * Appends a plus quantifier (`+`) to the current [OrderFragment].
+ * Appends a [some] quantifier (`+`) to the current [OrderFragment].
+ * The + quantifier is automatically converted into a 'ATLEAST(1)' quantifier.
  *
  * > Matches 1 or more of the preceding [OrderFragment].
  */
 fun OrderFragment.some(): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.SOME)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = 1)
 
 context(OrderBuilder)
 /**
- * Converts the [OrderToken] to an [OrderFragment] and appends a plus quantifier (`+`) to the current [OrderFragment].
+ * Converts the [OrderToken] to an [OrderFragment] and appends a [some] quantifier (`+`) to the current [OrderFragment].
+ * The + quantifier is automatically converted into a 'ATLEAST(1)' quantifier.
  *
  * > Matches 1 or more of the preceding [OrderFragment].
  */
 fun OrderToken.some(): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.SOME)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = 1)
 
 context(OrderBuilder)
 /**
- * Appends a star quantifier (`*`) to the current [OrderFragment].
+ * Appends a [maybe] quantifier (`*`) to the current [OrderFragment].
  *
  * > Matches 0 or more of the preceding [OrderFragment].
  */
 fun OrderFragment.maybe(): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
 
 context(OrderBuilder)
 /**
- * Converts the [OrderToken] to an [OrderFragment] and appends a star quantifier (`*`) to the current [OrderFragment].
+ * Converts the [OrderToken] to an [OrderFragment] and appends a [maybe] quantifier (`*`) to the current [OrderFragment].
  *
  * > Matches 0 or more of the preceding [OrderFragment].
  */
 fun OrderToken.maybe(): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
 
 context(OrderBuilder)
 /**
- * Appends an optional quantifier (`?`) to the current [OrderFragment].
+ * Appends an [option] quantifier (`?`) to the current [OrderFragment].
  *
  * > Matches 0 or 1 of the preceding [OrderFragment], effectively making it optional.
  */
 fun OrderFragment.option(): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.OPTION)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.OPTION)
 
 context(OrderBuilder)
 /**
- * Converts the [OrderToken] to an [OrderFragment] and appends an optional quantifier (`?`) to the current [OrderFragment].
+ * Converts the [OrderToken] to an [OrderFragment] and appends an [option] quantifier (`?`) to the current [OrderFragment].
  *
  * > Matches 0 or 1 of the preceding [OrderFragment], effectively making it optional.
  */
 fun OrderToken.option(): OrderFragment =
-    QuantifierNode(child = token.toNode(), type = OrderQuantifier.OPTION)
+    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.OPTION)
 
 //
 // OR stuff
@@ -295,7 +294,7 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderFragment): OrderFragment =
-    AlternativeNode(left = token.toNode(), right = other)
+    AlternativeOrderNode(left = toNode(), right = other.toNode())
 
 context(OrderBuilder)
 /**
@@ -305,7 +304,7 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderToken.or(other: OrderFragment): OrderFragment =
-    AlternativeNode(left = token.toNode(), right = other.toNode())
+    AlternativeOrderNode(left = token.toNode(), right = other.toNode())
 
 context(OrderBuilder)
 /**
@@ -315,7 +314,7 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderToken.or(other: OrderToken): OrderFragment =
-    AlternativeNode(left = token.toNode(), right = other.token.toNode())
+    AlternativeOrderNode(left = token.toNode(), right = other.token.toNode())
 
 
 context(OrderBuilder)
@@ -326,4 +325,4 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderToken): OrderFragment =
-    AlternativeNode(left = toNode(), right = other.token.toNode())
+    AlternativeOrderNode(left = toNode(), right = other.token.toNode())

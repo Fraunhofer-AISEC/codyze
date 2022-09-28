@@ -3,7 +3,7 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.ordering.Order
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.Order
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.query.executionPath
 

@@ -39,15 +39,17 @@ class NFA(states: Set<State> = setOf()): FSM(states) {
         // start with finding the ε-closures of the starting state
         val startStateClosure = getEpsilonClosure(mutableSetOf(states.first { it.isStart }))
         // add the new start state to the DFA corresponding to a set of NFA states
-        var state = dfa.addState(isStart = startStateClosure.any { it.isStart }, isAcceptingState = startStateClosure.any { it.isAcceptingState })
-        epsilonClosures += startStateClosure to state  // remember which DFA state maps to the startStateClosure
+        var nextDfaState = dfa.addState(isStart = startStateClosure.any { it.isStart }, isAcceptingState = startStateClosure.any { it.isAcceptingState })
+        epsilonClosures += startStateClosure to nextDfaState  // remember which DFA state maps to the startStateClosure
         // and add it to the yet to be explored states
-        statesToExplore.add(state to startStateClosure)
+        statesToExplore.add(nextDfaState to startStateClosure)
 
-        // now this is walking through the NFA and converting it to a DFA
+        // do the same thing for the rest of the NFA
+        // by walking through the NFA starting with the start state, this algorithm only converts the
+        // reachable part of the NFA
         while (statesToExplore.size > 0){
             // get the state to explore next (starts with the new start state created above)
-            val (dfaState, epsilonClosure) = statesToExplore.removeFirst()
+            val (currentDfaState, epsilonClosure) = statesToExplore.removeFirst()
             // for each state in the epsilonClosure of the currently explored state, we have to get all possible transitions/edges
             // and group them by their 'name' (the base and op attributes)
             val allPossibleEdges = epsilonClosure.flatMap { it.outgoingEdges.filter { it.op != EPSILON } }.groupBy { it.base to it.op }
@@ -59,15 +61,15 @@ class NFA(states: Set<State> = setOf()): FSM(states) {
                 val transitionClosure = getEpsilonClosure(edges.map { it.nextState }.toMutableSet())
                 if (transitionClosure in epsilonClosures) {
                     // if the transitionClosure is already in the DFA, get the DFA state it corresponds to
-                    state = epsilonClosures[transitionClosure]!!
+                    nextDfaState = epsilonClosures[transitionClosure]!!
                 } else {
                     // else create a new DFA state and add it to the known and to be explored states
-                    state = dfa.addState(isStart = transitionClosure.any { it.isStart }, isAcceptingState = transitionClosure.any { it.isAcceptingState })
-                    statesToExplore.add(state to transitionClosure)
-                    epsilonClosures += transitionClosure to state
+                    nextDfaState = dfa.addState(isStart = transitionClosure.any { it.isStart }, isAcceptingState = transitionClosure.any { it.isAcceptingState })
+                    statesToExplore.add(nextDfaState to transitionClosure)
+                    epsilonClosures += transitionClosure to nextDfaState
                 }
                 // either way, we must create an edge connecting the states
-                dfaState.outgoingEdges.add(Edge(base = transitionBase, op = transitionOp, nextState = state))
+                currentDfaState.outgoingEdges.add(Edge(base = transitionBase, op = transitionOp, nextState = nextDfaState))
             }
         }
         return dfa

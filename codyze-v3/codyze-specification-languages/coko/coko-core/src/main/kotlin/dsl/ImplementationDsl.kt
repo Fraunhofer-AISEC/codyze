@@ -96,11 +96,18 @@ context(CallExpression)
 // TODO: in mark there is "..." to symbolize that the last arguments don't matter
 // TODO: how to model return value assignments
 /**
- * Checks if the [CallExpression] matches the signature specified with [parameters].
- * Returns false if there are nulls in [parameters],
+ * Checks if the [CallExpression] matches the signature specified with [parameters]. Returns false
+ * if there are nulls in [parameters],
  *
- * @parameters specifies the order of the parameters of the function
- * @hasVarargs specifies if the function has a variable number of arguments at the end which are not important to the analysis
+ * @param parameters specifies the order of the parameters of the function.
+ *
+ * If a parameter is a [Type] object, the function will check if the argument has the same type.
+ *
+ * If a parameter is a [Pair]< [Any], [Type]> object, the function will check if the argument has
+ * the same type and if the [Any] object flows to the argument
+ *
+ * @param hasVarargs specifies if the function has a variable number of arguments at the end which
+ * are not important to the analysis
  */
 fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     // filter out all null in `parameters`
@@ -110,12 +117,12 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     return notNullParams.size == parameters.size &&
         // checks if amount of parameters is the same as amount of arguments of this CallExpression
         checkArgsSize(parameters, hasVarargs) &&
-
         notNullParams.foldIndexed(true) { i: Int, acc: Boolean, parameter: Any ->
             acc &&
                 when (parameter) {
                     is Pair<*, *> ->
-                        // if `parameter` is a `Pair<Any,Type>` object we want to check the type and if there is dataflow
+                        // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
+                        // if there is dataflow
                         if (parameter.second is Type)
                             checkType(parameter.second as Type, i) &&
                                 parameter.first != null &&
@@ -123,7 +130,8 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
                         else parameter flowsTo arguments[i]
                     // checks if the type of the argument is the same
                     is Type -> checkType(parameter, i)
-                    // checks if there is dataflow from the parameter to the argument in the same position
+                    // checks if there is dataflow from the parameter to the argument in the same
+                    // position
                     else -> parameter flowsTo arguments[i]
                 }
         }

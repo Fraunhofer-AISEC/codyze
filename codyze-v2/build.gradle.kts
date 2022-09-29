@@ -101,33 +101,33 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.0") // ok
     api("org.slf4j:log4j-over-slf4j:2.0.0") // needed for xtext.parser.antlr
-    api("org.apache.logging.log4j:log4j-core:2.18.0") // impl in main; used only in test
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.18.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.18.0") // impl in main; used only in test
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:2.19.0")
 
     // pull in explicitly to prevent mixing versions
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.6.2")
-    api("de.fraunhofer.aisec:cpg-analysis:4.6.2")
+    implementation("de.fraunhofer.aisec:cpg-core:4.6.2")
+    implementation("de.fraunhofer.aisec:cpg-analysis:4.6.2")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok
     //api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:bbd54a7b11:repackaged") // pin to specific commit before annotations
-    api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:2.0.0:repackaged") // use GitHub release via JitPack
+    implementation("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:2.0.0:repackaged") // use GitHub release via JitPack
 
 
     // Pushdown Systems
-    api("de.breakpointsec:pushdown:1.1") // ok
+    implementation("de.breakpointsec:pushdown:1.1") // ok
 
     // LSP interface support
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.15.0") // ok
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.15.0") // ok
 
     // Interactive console interface support using Jython (Scripting engine)
     implementation("org.python:jython-standalone:2.7.2") // ok
 
     // Command line interface support
-    api("info.picocli:picocli:4.6.3")
+    implementation("info.picocli:picocli:4.6.3")
     annotationProcessor("info.picocli:picocli-codegen:4.6.3")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
@@ -142,7 +142,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Parser for yaml configuration file
-    api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4")
 }
 
 application {

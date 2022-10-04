@@ -1,50 +1,36 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
-abstract class FSM(states: Set<State>) {
-    companion object {
-        @JvmStatic val EPSILON: String = "ε"
-    }
+sealed class FSM(states: Set<State>) {
 
-    protected val _states: MutableSet<State> = mutableSetOf()
+    private val _states: MutableSet<State> = mutableSetOf()
     val states: Set<State>
         get() = _states
 
     init {
-        check(states.count { it.isStart } <= 1) { "Cannot create a FSM with multiple start states" }
-        _states.addAll(states)
+        check( states.count{ it.isStart } <= 1) { "Cannot create a FSM with multiple start states" }
+        for (state in states) addState(state)
     }
 
     /** Generates a new state and adds it to this FSM. */
-    fun addState(isStart: Boolean = false, isAcceptingState: Boolean = false): State {
-        val newState = State(name=_states.size, isStart=isStart, isAcceptingState=isAcceptingState)
-        if (isStart) {
-            check( _states.firstOrNull{ it.isStart } == null) { "This FSM already has a start state." }
+    abstract fun addState(isStart: Boolean = false, isAcceptingState: Boolean = false): State
+
+    protected fun addState(state: State) {
+        if (!_states.contains(state)) {
+            if (state.isStart) {
+                check( states.firstOrNull{ it.isStart } == null) { "This FSM already has a start state." }
+            }
+            _states.add(state)
         }
-        _states.add(newState)
-        return newState
     }
+
 
     /**
      * Creates an edge between two nodes with a given label (operator and optional base).
      */
     open fun addEdge(from: State, edge: Edge) {
-        _states.add(from)
-        _states.add(edge.nextState)
-        from.outgoingEdges.add(edge)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        val res = other is FSM && other.states == states
-
-        if (res) {
-            for (s in states) {
-                val otherState = (other as DFA).states.first { otherS -> s.name == otherS.name }
-                if (s.outgoingEdges != otherState.outgoingEdges) {
-                    return false
-                }
-            }
-        }
-        return res
+        addState(from)
+        addState(edge.nextState)
+        from.addEdge(edge)
     }
 
     /**
@@ -70,5 +56,17 @@ abstract class FSM(states: Set<State>) {
             }
         }
         return "$str$edges}"
+    }
+
+    protected abstract fun copy(): FSM
+
+    /** Creates a deep copy of this FSM to enable multiple independent branches of execution. */
+    open fun deepCopy(): FSM {
+        val newFSM = copy()
+        val startingState = this.states.singleOrNull { it.isStart }
+        check(startingState != null) { "Only FSMs with a single starting state can be deep copied" }
+        startingState.deepCopy().forEach { newFSM.addState(it) }
+
+        return newFSM
     }
 }

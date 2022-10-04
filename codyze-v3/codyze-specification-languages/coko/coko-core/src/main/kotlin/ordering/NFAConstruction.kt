@@ -14,8 +14,8 @@ internal fun concatenateMultipleNfa(vararg multipleNFA: NFA): NFA {
         // First create edges from all accepting states of the first NFA to all start states of the second NFA
         // add the epsilon edges to all accepting states of the first NFA
         secondNfa.states.filter { it.isStart }.map {
-            val edge = Edge(op=FSM.EPSILON, nextState = it)
-            firstNfa.states.filter { it.isAcceptingState }.map { it.outgoingEdges.add(edge) }
+            val edge = Edge(op=NFA.EPSILON, nextState = it)
+            firstNfa.states.filter { it.isAcceptingState }.map { it.addEdge(edge) }
         }
         // then make the accepting states in the first NFA non-accepting
         firstNfa.states.filter { it.isAcceptingState }.map { it.isAcceptingState = false }
@@ -44,8 +44,8 @@ internal fun alternateTwoNfa(firstNfa: NFA, secondNfa: NFA): NFA {
     secondNfa.states.map { it.name = (it.name+firstNfa.states.size) }
 
     // first create new epsilon edges to the start states of both NFAs
-    val epsilonEdgesFirst = firstNfa.states.filter { it.isStart }.map { Edge(op=FSM.EPSILON, nextState = it) }
-    val epsilonEdgesSecond = secondNfa.states.filter { it.isStart }.map { Edge(op=FSM.EPSILON, nextState = it) }
+    val epsilonEdgesFirst = firstNfa.states.filter { it.isStart }.map { Edge(op=NFA.EPSILON, nextState = it) }
+    val epsilonEdgesSecond = secondNfa.states.filter { it.isStart }.map { Edge(op=NFA.EPSILON, nextState = it) }
 
     // then make the old start states non-start states
     firstNfa.states.filter { it.isStart }.map { it.isStart = false }
@@ -58,8 +58,8 @@ internal fun alternateTwoNfa(firstNfa: NFA, secondNfa: NFA): NFA {
     val newStartState = combinedNfa.addState(isStart = true)
 
     // and lastly add the epsilonEdges to the new start state
-    epsilonEdgesFirst.forEach { newStartState.outgoingEdges.add(it) }
-    epsilonEdgesSecond.forEach { newStartState.outgoingEdges.add(it) }
+    epsilonEdgesFirst.forEach { newStartState.addEdge(it) }
+    epsilonEdgesSecond.forEach { newStartState.addEdge(it) }
 
     return combinedNfa
 }
@@ -73,12 +73,12 @@ internal fun addMaybeQuantifierToNFA(nfa: NFA): NFA {
     val startState = nfa.addState()
     // create epsilon edges from the accepting states to the new start state and add them to the NFA
     nfa.states.filter { it.isAcceptingState }.map {
-        val edge = Edge(op=FSM.EPSILON, nextState = startState)
+        val edge = Edge(op=NFA.EPSILON, nextState = startState)
         nfa.addEdge(it, edge)
     }
     // create epsilon edges from the new start state to all previous start states and add them to the NFA
     nfa.states.filter { it.isStart }.map {
-        val edge = Edge(op=FSM.EPSILON, nextState = it)
+        val edge = Edge(op=NFA.EPSILON, nextState = it)
         nfa.addEdge(startState, edge)
     }
     // convert the old start states to non-start states
@@ -103,7 +103,7 @@ internal fun addOptionQuantifierToNFA(nfa: NFA): NFA {
 
     // create epsilon edges from the new start state to all previous start states and add them to the NFA
     nfa.states.filter { it.isStart }.map {
-        val edge = Edge(op=FSM.EPSILON, nextState = it)
+        val edge = Edge(op=NFA.EPSILON, nextState = it)
         nfa.addEdge(startState, edge)
     }
     // convert the old start states to non-start states

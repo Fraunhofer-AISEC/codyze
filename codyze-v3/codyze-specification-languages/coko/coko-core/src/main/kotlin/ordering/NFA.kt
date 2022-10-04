@@ -2,15 +2,28 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.orderi
 
 /** A representation of a non-deterministic finite automaton (NFA). */
 class NFA(states: Set<State> = setOf()): FSM(states) {
-    override fun equals(other: Any?) = super.equals(other) && other is NFA
+    companion object {
+        @JvmStatic val EPSILON: String = "ε"
+    }
 
-//    /** Copies the FSM to enable multiple independent branches of execution. */
-//    fun deepCopy(): NFA {
-//        val nfa = NFA()
-//        val startingState = states.firstOrNull { it.isStart }
-//        nfa.states.addAll(startingState.cloneRecursively())
-//        return nfa
-//    }
+    /**
+     * Checks whether the given object is an FSM and whether it accepts the same language as this NFA
+     */
+    override fun equals(other: Any?) = if (other is FSM) this.toDfa() == other else false
+
+    /**
+     * Create a new state and add it to this NFA. Returns the newly created state.
+     */
+    override fun addState(isStart: Boolean, isAcceptingState: Boolean): State {
+        val newState = NfaState(name=states.size, isStart=isStart, isAcceptingState=isAcceptingState)
+        addState(newState)
+        return newState
+    }
+
+    /**
+     * Create a shallow copy
+     */
+    override fun copy() = NFA(states=states)
 
     /**
      * Compute the ε-closure for this ε-NFA and then use the [powerset construction](https://en.wikipedia.org/wiki/Powerset_construction)
@@ -69,7 +82,7 @@ class NFA(states: Set<State> = setOf()): FSM(states) {
                     epsilonClosures += transitionClosure to nextDfaState
                 }
                 // either way, we must create an edge connecting the states
-                currentDfaState.outgoingEdges.add(Edge(base = transitionBase, op = transitionOp, nextState = nextDfaState))
+                currentDfaState.addEdge(Edge(base = transitionBase, op = transitionOp, nextState = nextDfaState))
             }
         }
         return dfa

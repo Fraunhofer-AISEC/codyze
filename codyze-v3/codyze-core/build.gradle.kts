@@ -24,4 +24,10 @@ tasks {
             attributes("Implementation-Title" to "Codyze v3 - Core Library")
         }
     }
+
+    processResources {
+        from(rootProject.tasks.named("projectProps"))
+    }
 }
+
+

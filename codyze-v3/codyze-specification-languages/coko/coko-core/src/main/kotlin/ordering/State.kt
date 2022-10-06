@@ -66,6 +66,7 @@ sealed class State(var name: Int, var isStart: Boolean = false, var isAcceptingS
  */
 class DfaState (name: Int, isStart: Boolean = false, isAcceptingState: Boolean = false): State(name=name, isStart=isStart, isAcceptingState=isAcceptingState){
     override fun addEdge(edge: Edge) {
+        check (edge.op != NFA.EPSILON) { "A DFA must not contain EPSILON edges!" }
         check (outgoingEdges.none { e -> e.matches(edge) && e.nextState != edge.nextState }) {
             "State already has an outgoing edge with the same label but a different target!"
         }

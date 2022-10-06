@@ -4,19 +4,16 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.orderi
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.token
 
-/** Extends the [OrderBuilder] with the [toNfa] and [toDfa] methods, which represents the [Order] as a [NFA] and [DFA] respectively*/
+/**
+ * Extends the [OrderBuilder] with the [toNfa] and [toDfa] methods, which represents the [Order] as
+ * a [NFA] and [DFA] respectively
+ */
 class Order : OrderBuilder() {
     /**
      * Constructs a NFA using Thompson's construction algorithm
      * @see [YouTube](https://youtu.be/HLOAwCCYVxE)
      */
     fun toNfa() = toNode().toNfa()
-
-//    /**
-//     * Constructs a NFA using Thompson's construction algorithm
-//     * @see [YouTube](https://youtu.be/HLOAwCCYVxE)
-//     */
-//    fun toDfa() = toNode().toNfa()
 }
 
 /**
@@ -40,18 +37,25 @@ abstract class OrderBuilder : OrderFragment {
         orderNodeDeque.add(fragment.toNode())
     }
 
-    /**
-     * Represent this [OrderFragment] as a binary syntax tree.
-     */
+    /** Represent this [OrderFragment] as a binary syntax tree. */
     override fun toNode(): OrderNode {
-        var currentNode = when(orderNodeDeque.size) {
-            0 -> throw IllegalArgumentException("Groups and sets must have at least one element.")
-            1 -> return orderNodeDeque.removeFirst()
-            else -> SequenceOrderNode(left = orderNodeDeque.removeFirst(), right = orderNodeDeque.removeFirst())
-        }
+        var currentNode =
+            when (orderNodeDeque.size) {
+                0 ->
+                    throw IllegalArgumentException(
+                        "Groups and sets must have at least one element."
+                    )
+                1 -> return orderNodeDeque.removeFirst()
+                else ->
+                    SequenceOrderNode(
+                        left = orderNodeDeque.removeFirst(),
+                        right = orderNodeDeque.removeFirst()
+                    )
+            }
 
         while (orderNodeDeque.size > 0) {
-            currentNode = SequenceOrderNode(left = currentNode, right = orderNodeDeque.removeFirst())
+            currentNode =
+                SequenceOrderNode(left = currentNode, right = orderNodeDeque.removeFirst())
         }
         return currentNode
     }

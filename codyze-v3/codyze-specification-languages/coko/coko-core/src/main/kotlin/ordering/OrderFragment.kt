@@ -9,9 +9,7 @@ typealias OrderToken = KFunction<*>
 
 @CokoMarker
 sealed interface OrderFragment {
-    /**
-     * Convert this [OrderFragment] to a binary syntax tree
-     */
+    /** Convert this [OrderFragment] to a binary syntax tree */
     fun toNode(): OrderNode
 
     val token: OrderFragment

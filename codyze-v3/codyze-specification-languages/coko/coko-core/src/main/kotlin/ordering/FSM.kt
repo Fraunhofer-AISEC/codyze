@@ -7,7 +7,7 @@ sealed class FSM(states: Set<State>) {
         get() = _states
 
     init {
-        check( states.count{ it.isStart } <= 1) { "Cannot create a FSM with multiple start states" }
+        check(states.count { it.isStart } <= 1) { "Cannot create a FSM with multiple start states" }
         for (state in states) addState(state)
     }
 
@@ -17,16 +17,15 @@ sealed class FSM(states: Set<State>) {
     protected fun addState(state: State) {
         if (!_states.contains(state)) {
             if (state.isStart) {
-                check( states.firstOrNull{ it.isStart } == null) { "This FSM already has a start state." }
+                check(states.firstOrNull { it.isStart } == null) {
+                    "This FSM already has a start state."
+                }
             }
             _states.add(state)
         }
     }
 
-
-    /**
-     * Creates an edge between two nodes with a given label (operator and optional base).
-     */
+    /** Creates an edge between two nodes with a given label (operator and optional base). */
     open fun addEdge(from: State, edge: Edge) {
         addState(from)
         addState(edge.nextState)

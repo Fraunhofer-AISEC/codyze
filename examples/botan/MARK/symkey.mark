@@ -1,0 +1,28 @@
+package botan
+
+/* typedef for Botan::OctetString
+class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
+*/
+entity Botan.SymmetricKey {
+	
+	var bytes; // can be `const std::string&` OR `const uint8_t[]` OR `const secure_vector<uint8_t>&` OR `const std::vector< uint8_t >&`
+	var length;
+
+	op create {
+		OctetString(bytes);
+        OctetString(RandomNumberGenerator, length);
+        OctetString(bytes, length);
+        SymmetricKey(bytes, length);
+	}
+	
+	op getKey {
+		Botan::OctetString::bits_of();
+        Botan::OctetString::to_string();
+
+        // TODO because it's hard for us to analyze?
+        forbidden Botan::OctetString::begin();
+        forbidden Botan::OctetString::end();
+	}
+
+}
+

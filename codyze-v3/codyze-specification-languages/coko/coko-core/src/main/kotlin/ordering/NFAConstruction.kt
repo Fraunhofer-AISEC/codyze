@@ -10,7 +10,7 @@ internal fun concatenateMultipleNfa(vararg multipleNFA: NFA): NFA {
     fun concatenateTwoNfa(firstNfa: NFA, secondNfa: NFA): NFA {
         // first, it's important to make sure that all states have unique names because
         // states are only differentiated by their name
-        secondNfa.states.map { it.name = (it.name + firstNfa.states.size) }
+        secondNfa.states.map { it.name += firstNfa.states.size }
 
         // First create edges from all accepting states of the first NFA to all start states of the
         // second NFA

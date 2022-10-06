@@ -117,7 +117,7 @@ class DFA(states: Set<State> = setOf()) : FSM(states) {
                 }
             // it's important to make sure that all states have unique names because
             // states are only differentiated by their name
-            otherDfa.states.map { it.name = (it.name + states.size) }
+            otherDfa.states.map { it.name += states.size }
 
             // first get the start state of both DFAs and make sure that both DFAs have exactly one
             val p0 = states.singleOrNull { it.isStart }

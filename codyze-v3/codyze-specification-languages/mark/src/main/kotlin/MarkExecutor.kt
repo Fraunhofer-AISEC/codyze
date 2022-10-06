@@ -24,7 +24,7 @@ private val logger = KotlinLogging.logger {}
 
 class MarkExecutor : Executor {
     private val organization = "Fraunhofer AISEC"
-    private val version = "" // TODO: VersionProvider("Codyze v3 - Specification Language MARK").version
+    private val version = VersionProvider.getVersion("mark")
 
     override val name: String
         get() = MarkExecutor::class.simpleName ?: "MarkExecutor"

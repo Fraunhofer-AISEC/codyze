@@ -55,7 +55,7 @@ class Project(val config: Configuration) {
         private val downloadURI = "https://github.com/Fraunhofer-AISEC/codyze/releases"
         private val informationURI = "https://www.codyze.io/docs/"
 
-        private val codyzeVersion: String = "" // TODO: VersionProvider("Codyze v3 - Core Library").version
+        private val codyzeVersion: String = VersionProvider.getVersion("codyze-core")
 
         private val driver: ToolComponent =
             ToolComponent(

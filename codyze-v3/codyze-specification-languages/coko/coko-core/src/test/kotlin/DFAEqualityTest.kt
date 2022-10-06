@@ -6,7 +6,7 @@ import kotlin.test.assertNotEquals
 import org.junit.jupiter.api.Test
 
 /**
- * Tests whether a the [DFA.equals] method works as expected and correctly identifies whether two
+ * Tests whether the [DFA.equals] method works as expected and correctly identifies whether two
  * DFAs accept the same language. If this test fails, the [NFAConstructionTest] suite and
  * [DFAConstructionTest] suite will also fail.
  */

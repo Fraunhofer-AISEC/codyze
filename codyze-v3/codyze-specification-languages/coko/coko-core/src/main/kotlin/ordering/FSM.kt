@@ -62,6 +62,10 @@ sealed class FSM(states: Set<State>) {
     /** Creates a deep copy of this FSM to enable multiple independent branches of execution. */
     open fun deepCopy(): FSM {
         val newFSM = copy()
+        if (newFSM.states.isEmpty())
+            return newFSM // this is needed for an empty FSM because empty ones cannot be deepCopied
+        // currently
+
         val startingState = this.states.singleOrNull { it.isStart }
         check(startingState != null) { "Only FSMs with a single starting state can be deep copied" }
         startingState.deepCopy().forEach { newFSM.addState(it) }

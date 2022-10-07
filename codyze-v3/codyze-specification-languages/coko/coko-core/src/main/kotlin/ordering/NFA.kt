@@ -99,7 +99,6 @@ class NFA(states: Set<State> = setOf()) : FSM(states) {
                     // else create a new DFA state and add it to the known and to be explored states
                     nextDfaState =
                         dfa.addState(
-                            isStart = transitionClosure.any { it.isStart },
                             isAcceptingState = transitionClosure.any { it.isAcceptingState }
                         )
                     statesToExplore.add(nextDfaState to transitionClosure)

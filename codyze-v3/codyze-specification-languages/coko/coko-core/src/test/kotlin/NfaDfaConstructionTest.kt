@@ -3,6 +3,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.orderin
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 
+// TODO: add tests for the other [OrderQuantifier] types
 /**
  * Tests whether a coko order expression can be correctly converted to a NFA. This also tests
  * whether the NFAs are correctly converted to DFAs because the [NFA.equals] method converts the NFA
@@ -23,17 +24,15 @@ class NfaDfaConstructionTest {
         fun reset() = {}
     }
 
-    val baseName = "class NfaDfaConstructionTest\$TestClass"
+    private val baseName = "class NfaDfaConstructionTest\$TestClass"
 
-    inline fun orderExpressionToNfa(block: Order.() -> Unit): NFA {
+    private inline fun orderExpressionToNfa(block: Order.() -> Unit): NFA {
         val order = Order().apply(block)
         return order.toNfa()
     }
 
-    inline fun orderExpressionToDfa(block: Order.() -> Unit): DFA {
-        val order = Order().apply(block)
-        return order.toNfa().toDfa()
-    }
+    private inline fun orderExpressionToDfa(block: Order.() -> Unit) =
+        orderExpressionToNfa { block() }.toDfa()
 
     @Test
     /**
@@ -61,11 +60,11 @@ class NfaDfaConstructionTest {
 
     @Test
     /**
-     * Tests a simple alternative order.
+     * Tests a simple order with a branch.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
-    fun `test simple alternative order`() {
+    fun `test simple order with branch`() {
         val nfa = orderExpressionToNfa { +(TestClass::create or TestClass::init) }
 
         val expectedNfa = NFA()
@@ -88,7 +87,7 @@ class NfaDfaConstructionTest {
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
-    fun `test simple maybe qualifier order`() {
+    fun `test simple order with maybe qualifier`() {
         val nfa = orderExpressionToNfa { +TestClass::create.maybe() }
 
         val expectedNfa = NFA()
@@ -108,7 +107,7 @@ class NfaDfaConstructionTest {
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
-    fun `test simple option qualifier order`() {
+    fun `test simple order with option qualifier`() {
         val nfa = orderExpressionToNfa { +TestClass::create.option() }
 
         val expectedNfa = NFA()
@@ -127,7 +126,7 @@ class NfaDfaConstructionTest {
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
-    fun testLoopOrder() {
+    fun `test complex order with loop`() {
         // equivalent MARK:
         // order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
         val dfa = orderExpressionToDfa {
@@ -168,7 +167,7 @@ class NfaDfaConstructionTest {
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
-    fun testBranchOrder() {
+    fun `test complex order with branch and loop`() {
         // equivalent MARK:
         // order cm.init(), (cm.bigStep() | (cm.start(), cm.process()*, cm.finish()))+, cm.reset()?
         val dfa = orderExpressionToDfa {
@@ -215,7 +214,7 @@ class NfaDfaConstructionTest {
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
-    fun testFailOrder() {
+    fun `test even more complex order with branch and loop`() {
         // equivalent MARK:
         // order cm.init(), (cm.create() | (cm.start()*, cm.process()*, cm.start()*, cm.finish()))+,
         // cm.reset()?

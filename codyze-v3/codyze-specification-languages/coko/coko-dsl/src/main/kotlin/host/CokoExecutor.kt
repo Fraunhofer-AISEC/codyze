@@ -16,6 +16,7 @@ import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTe
 import kotlin.script.experimental.util.PropertiesCollection
 import kotlin.time.*
 import mu.KotlinLogging
+import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -26,7 +27,6 @@ class CokoExecutor : Executor {
         get() = "codyze.kts"
 
     lateinit var configuration: ExecutorConfiguration
-    var sharedClassLoader: ClassLoader? = null
 
     override fun initialize(configuration: ExecutorConfiguration) {
         this.configuration = configuration
@@ -39,57 +39,16 @@ class CokoExecutor : Executor {
     @OptIn(ExperimentalTime::class)
     override fun evaluate(analyzer: TranslationManager): List<Result> {
         logger.info { "Constructing the CPG..." }
-        val cpg = analyzer.analyze().get()
-
-        val specEvaluator = SpecEvaluator()
-        val project = Project(cpg)
+        val (cpg, cpgConstructionDuration: Duration) = measureTimedValue {
+            analyzer.analyze().get()
+        }
+        logger.debug {
+            "Constructed CPG in ${cpgConstructionDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
+        }
 
         logger.info { "Compiling specification scripts..." }
-        // compile the spec scripts
-        val specCompilationDuration: Duration = measureTime {
-            for (specFile in configuration.spec) {
-
-                // compile the script
-                val result =
-                    eval(
-                        specFile.toScriptSource(),
-                        project = project,
-                        sharedClassLoader = sharedClassLoader
-                    )
-
-                // log script diagnostics
-                result.reports.forEach {
-                    val message =
-                        " : ${specFile.fileName}: ${it.message}" +
-                            if (it.exception == null) "" else ": ${it.exception}"
-                    when (it.severity) {
-                        ScriptDiagnostic.Severity.DEBUG -> logger.debug { message }
-                        ScriptDiagnostic.Severity.INFO -> logger.info { message }
-                        ScriptDiagnostic.Severity.WARNING -> logger.warn { message }
-                        ScriptDiagnostic.Severity.ERROR -> logger.error { message }
-                        ScriptDiagnostic.Severity.FATAL -> logger.error { message }
-                    }
-                }
-
-                // throw an exception if the script could not be compiled
-                val scriptEvaluationResult = result.valueOrThrow()
-
-                // Get the class loader for the first loaded script. We give that one to all the
-                // other scripts to ensure they find "the same" classes.
-                if (sharedClassLoader == null) {
-                    sharedClassLoader =
-                        scriptEvaluationResult.configuration?.get(
-                            PropertiesCollection.Key<ClassLoader>("actualClassLoader")
-                        )
-                }
-
-                // analyze script contents
-                scriptEvaluationResult.returnValue.let {
-                    if (it.scriptInstance != null && it.scriptClass != null) {
-                        specEvaluator.addSpec(it.scriptClass!!, it.scriptInstance!!)
-                    }
-                }
-            }
+        val (specEvaluator, specCompilationDuration: Duration) = measureTimedValue {
+            compileScriptsIntoSpecEvaluator(project=Project(cpg), specFiles = configuration.spec)
         }
         logger.debug {
             "Compiled specification scripts in ${specCompilationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
@@ -139,6 +98,60 @@ class CokoExecutor : Executor {
                     compilationConfiguration,
                     evaluationConfiguration,
                 )
+        }
+
+        /**
+         * Compiles the given specification files and analyzes the script contents by
+         * adding all the extracted information into a [SpecEvaluator].
+         *
+         * @return A [SpecEvaluator] object containing the extracted information from all [specFiles]
+         */
+        fun compileScriptsIntoSpecEvaluator(project: Project, specFiles: List<Path>): SpecEvaluator {
+            var sharedClassLoader: ClassLoader? = null
+            val specEvaluator = SpecEvaluator()
+            for (specFile in specFiles) {
+                // compile the script
+                val result =
+                    eval(
+                        specFile.toScriptSource(),
+                        project = project,
+                        sharedClassLoader = sharedClassLoader
+                    )
+
+                // log script diagnostics
+                result.reports.forEach {
+                    val message =
+                        " : ${specFile.fileName}: ${it.message}" +
+                                if (it.exception == null) "" else ": ${it.exception}"
+                    when (it.severity) {
+                        ScriptDiagnostic.Severity.DEBUG -> logger.debug { message }
+                        ScriptDiagnostic.Severity.INFO -> logger.info { message }
+                        ScriptDiagnostic.Severity.WARNING -> logger.warn { message }
+                        ScriptDiagnostic.Severity.ERROR -> logger.error { message }
+                        ScriptDiagnostic.Severity.FATAL -> logger.error { message }
+                    }
+                }
+
+                // throw an exception if the script could not be compiled
+                val scriptEvaluationResult = result.valueOrThrow()
+
+                // Get the class loader for the first loaded script. We give that one to all the
+                // other scripts to ensure they find "the same" classes.
+                if (sharedClassLoader == null) {
+                    sharedClassLoader =
+                        scriptEvaluationResult.configuration?.get(
+                            PropertiesCollection.Key<ClassLoader>("actualClassLoader")
+                        )
+                }
+
+                // analyze script contents
+                scriptEvaluationResult.returnValue.let {
+                    if (it.scriptInstance != null && it.scriptClass != null) {
+                        specEvaluator.addSpec(it.scriptClass!!, it.scriptInstance!!)
+                    }
+                }
+            }
+            return specEvaluator
         }
     }
 }

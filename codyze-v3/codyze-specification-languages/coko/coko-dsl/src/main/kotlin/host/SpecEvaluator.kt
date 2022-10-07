@@ -11,7 +11,7 @@ private val logger = KotlinLogging.logger {}
  * implementations. Then, it generates inputs for the rules and calls the rules.
  */
 class SpecEvaluator {
-    val rules = mutableListOf<Pair<KCallable<*>, Any>>() // TODO: change to KFunction?
+    val rules = mutableListOf<Pair<KFunction<*>, Any>>()
     val types = mutableListOf<Pair<KClass<*>, Any>>()
     val implementations = mutableListOf<Pair<KClass<*>, Any>>()
 

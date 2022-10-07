@@ -108,6 +108,8 @@ class DFA(states: Set<State> = setOf()) : FSM(states) {
                 return stateSet1 + stateSet2
             }
 
+            // for some reason, this when statement sometimes breaks the compilation...
+            // it that is the case, a gradle build clean should help
             val otherDfa =
                 when (other) {
                     is NFA -> other.toDfa()

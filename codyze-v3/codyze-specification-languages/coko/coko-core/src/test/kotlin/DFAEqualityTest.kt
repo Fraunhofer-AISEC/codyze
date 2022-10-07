@@ -6,8 +6,8 @@ import kotlin.test.assertNotEquals
 import org.junit.jupiter.api.Test
 
 /**
- * Tests whether the [DFA.equals] method works as expected and correctly identifies whether two
- * DFAs accept the same language. If this test fails, the [NFAConstructionTest] suite and
+ * Tests whether the [DFA.equals] method works as expected and correctly identifies whether two DFAs
+ * accept the same language. If this test fails, the [NfaDfaConstructionTest] suite and
  * [DFAConstructionTest] suite will also fail.
  */
 class DFAEqualityTest {
@@ -112,7 +112,7 @@ class DFAEqualityTest {
     }
 
     @Test
-    /** Tests whether we can correctly flag non-equivalent DFAs */
+    /** Tests whether we can correctly flag non-equivalent DFAs. */
     fun `test non equivalent DFA`() {
         val state6 = DfaState(6) // f
         val state5 = DfaState(5, isAcceptingState = true) // e
@@ -171,7 +171,7 @@ class DFAEqualityTest {
     }
 
     @Test
-    /** Tests whether we can correctly flag non-equivalent DFAs */
+    /** Tests whether we can correctly flag non-equivalent DFAs a second time. */
     fun `test DFA with a single difference`() {
         // construct another DFA that does not accept the same language
         val state3 = DfaState(3).apply { addEdge(Edge("1", nextState = this)) } // a,b

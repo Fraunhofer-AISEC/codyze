@@ -1,10 +1,24 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Op
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Parameter
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
+
+/**
+ * Represents a group of functions that serve the same purpose in the API.
+ *
+ * @property definitions stores all definitions for the different functions
+ */
+@CokoMarker
+class Op internal constructor() {
+    val definitions = arrayListOf<Definition>()
+
+    operator fun Definition.unaryPlus() {
+        this@Op.definitions.add(this)
+    }
+}
 
 context(Project)
 /**
@@ -41,7 +55,7 @@ context(Project)
  *
  * @param block defines the [Definition]s of this [Op]
  */
-inline fun op(block: Op.() -> Unit): Op {
+fun op(block: Op.() -> Unit): Op {
     val op = Op()
     op.block()
     return op

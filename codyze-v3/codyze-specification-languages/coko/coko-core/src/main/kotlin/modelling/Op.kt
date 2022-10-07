@@ -3,8 +3,9 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modell
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 
 /**
- * Goal: fun init() =
+ * Goal:
  * ```
+ *  fun init() =
  *      function {
  *          +definition("javax.crypto.Cipher.init") {
  *              +signature(...)
@@ -20,20 +21,19 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMar
  *      }
  * ```
  */
-
 typealias Parameter = Any?
 
 /**
- * Represents a group of functions that have the same goal in the API.
+ * Represents a group of functions that serve the same purpose in the API.
  *
  * @property definitions stores all definitions for the different functions
  */
 @CokoMarker
-class Function {
+class Op {
     val definitions = arrayListOf<Definition>()
 
     operator fun Definition.unaryPlus() {
-        this@Function.definitions.add(this)
+        this@Op.definitions.add(this)
     }
 }
 

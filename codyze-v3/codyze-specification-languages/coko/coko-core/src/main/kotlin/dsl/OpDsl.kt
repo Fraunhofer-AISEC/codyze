@@ -2,13 +2,13 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Function
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Op
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Parameter
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
 
 context(Project)
 /**
- * Create a [Function].
+ * Create a [Op].
  *
  * A full example:
  * ```kt
@@ -39,17 +39,17 @@ context(Project)
  * my.other.function(arg2, arg1)
  * ```
  *
- * @param block defines the [Definition]s of this [Function]
+ * @param block defines the [Definition]s of this [Op]
  */
-inline fun function(block: Function.() -> Unit): Function {
-    val function = Function()
-    function.block()
-    return function
+inline fun op(block: Op.() -> Unit): Op {
+    val op = Op()
+    op.block()
+    return op
 }
 
-context(Function)
+context(Op)
 /**
- * Create a [Definition] which can be added to the [Function].
+ * Create a [Definition] which can be added to the [Op].
  *
  * A minimal example
  * ```kt
@@ -78,17 +78,17 @@ context(Definition)
 fun signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
 
 context(Project)
-/** Get all [Nodes] that are associated with this [Function]. */
-fun Function.getAllNodes(): Nodes =
-    this@Function.definitions.map { def -> this@Project.callFqn(def.fqn) }.flatten()
+/** Get all [Nodes] that are associated with this [Op]. */
+fun Op.getAllNodes(): Nodes =
+    this@Op.definitions.map { def -> this@Project.callFqn(def.fqn) }.flatten()
 
 context(Project)
 /**
- * Get all [Nodes] that are associated with this [Function] and fulfill the [Signature]s of the
+ * Get all [Nodes] that are associated with this [Op] and fulfill the [Signature]s of the
  * [Definition]s.
  */
-fun Function.getNodes(): Nodes =
-    this@Function.definitions
+fun Op.getNodes(): Nodes =
+    this@Op.definitions
         .map { def ->
             this@Project.callFqn(def.fqn) {
                 def.signatures.all { sig -> signature(*sig.parameters.toTypedArray()) }

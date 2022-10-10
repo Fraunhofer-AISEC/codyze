@@ -139,12 +139,20 @@ context(OrderBuilder)
  * Add a set to the [Order] containing any valid OrderDsl provided by a lambda (see [group]).
  *
  * > Match any [OrderToken] in the set.
- *
- * @param negate when set to true, the set will be negated (`[^arg1::func1, arg1::func2]`) and match
- * any [OrderToken]] not in the set.
- * @see [OrderSet.not]
  */
-inline fun set(negate: Boolean = false, block: OrderSet.() -> Unit) = OrderSet(negate).apply(block)
+inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block)
+
+// TODO: negating an [OrderSet] is currently not implemented -> combine with above function
+// /**
+// *  * Add a set to the [Order] containing any valid OrderDsl provided by a lambda (see [group]).
+// *
+// * > Match any [OrderToken] in the set.
+// *
+// * @param negate when set to true, the set will be negated (`[^arg1::func1, arg1::func2]`) and match
+// * any [OrderToken]] not in the set.
+// * @see [OrderSet.not]
+// */
+// inline fun set(negate: Boolean = false, block: OrderSet.() -> Unit) = OrderSet(negate).apply(block)
 
 //
 // quantifiers

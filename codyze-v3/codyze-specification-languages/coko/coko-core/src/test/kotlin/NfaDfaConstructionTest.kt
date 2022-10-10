@@ -1,7 +1,10 @@
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
+import de.fraunhofer.aisec.cpg.analysis.fsm.DFA
+import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
+import de.fraunhofer.aisec.cpg.analysis.fsm.NFA
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 
 // TODO: add tests for the other [OrderQuantifier] types
 /**
@@ -12,7 +15,7 @@ import org.junit.jupiter.api.Test
  * If this test fails, make sure that the following tests work first as the functionality these test
  * is needed for this test:
  * - [OrderSyntaxTreeConstructionTest]
- * - [DFAEqualityTest]
+ * - [cpg-analysis.DFAEqualityTest]
  */
 class NfaDfaConstructionTest {
     class TestClass {

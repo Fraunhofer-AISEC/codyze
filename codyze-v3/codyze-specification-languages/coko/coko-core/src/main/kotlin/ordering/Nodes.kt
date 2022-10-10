@@ -1,13 +1,14 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Nodes
+import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
+import de.fraunhofer.aisec.cpg.analysis.fsm.NFA
 
 /** Represents an [OrderToken] */
 data class TerminalOrderNode(val base: String, val op: String, val block: (() -> Nodes)? = null) :
     OrderNode {
     /**
-     * Constructs a NFA using Thompson's construction algorithm
-     * @see [YouTube](https://youtu.be/HLOAwCCYVxE?t=237)
+     * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE?t=237))
      */
     override fun toNfa(): NFA {
         val nfa = NFA()
@@ -51,8 +52,7 @@ data class QuantifierOrderNode(
     }
 
     /**
-     * Constructs a NFA using Thompson's construction algorithm
-     * @see [YouTube](https://youtu.be/HLOAwCCYVxE)
+     * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE))
      */
     override fun toNfa(): NFA =
         when (type) {

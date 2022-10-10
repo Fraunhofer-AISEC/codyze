@@ -2,7 +2,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 
 /**
  * Tests whether a coko order expression can be correctly converted into a syntax tree. This is the

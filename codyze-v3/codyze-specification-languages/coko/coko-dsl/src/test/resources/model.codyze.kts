@@ -1,11 +1,9 @@
-import de.fraunhofer.aisec.cpg.graph.Node
-
 interface Logging {
-    fun log(message: String, vararg args: Any): List<Node>
+    fun log(message: String, vararg args: Any): Op
 }
 
 interface ObjectRelationalMapper {
-    fun insert(obj: Any): List<Node>
+    fun insert(obj: Any): Op
 }
 
 interface UserContext {
@@ -15,4 +13,4 @@ interface UserContext {
 // TODO: can we "assert" that the ctx.user is not null here?
 @Rule("This is a dummy description.")
 fun DBActionsAreAlwaysLogged(db: ObjectRelationalMapper, log: Logging, ctx: UserContext) =
-    db.insert(Wildcard) follows log.log(".*", ctx.user)
+    db.insert(Wildcard).getNodes() follows log.log(".*", ctx.user).getNodes()

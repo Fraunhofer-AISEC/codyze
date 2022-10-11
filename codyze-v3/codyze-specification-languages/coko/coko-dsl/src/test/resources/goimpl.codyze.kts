@@ -5,12 +5,13 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 
 class GolangLogging : Logging {
     // TODO(oxisto): arguments flow into
-    override fun log(message: String, vararg args: Any) =
-        callFqn("log.Printf") { args.all { it flowsTo arguments } }
+    override fun log(message: String, vararg args: Any) = op {
+        +definition("log.Printf") { +signature().unordered(*args) }
+    }
 }
 
 class Gorm : ObjectRelationalMapper {
-    override fun insert(obj: Any) = callFqn("db.Create") { obj flowsTo arguments[0] }
+    override fun insert(obj: Any) = op { +definition("db.Create") { +signature(obj) } }
 }
 
 class GoJWTUserContext : UserContext {

@@ -141,6 +141,6 @@ class MarkExecutor : Executor {
         val printer = SarifPrinter(findings)
         val sarif = SarifSerializer.fromJson(printer.output)
 
-        return if (sarif.runs[0].results != null) sarif.runs[0].results!! else emptyList()
+        return sarif.runs[0].results ?: emptyList()
     }
 }

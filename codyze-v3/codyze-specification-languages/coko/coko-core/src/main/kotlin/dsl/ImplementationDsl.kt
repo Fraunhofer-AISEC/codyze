@@ -113,30 +113,28 @@ context(CallExpression)
  * are not important to the analysis
  */
 fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
-    // filter out all null in `parameters`
-    val notNullParams = parameters.filterNotNull()
 
-    // filters out the signature if any parameter is null
-    return notNullParams.size == parameters.size &&
-        // checks if amount of parameters is the same as amount of arguments of this CallExpression
-        checkArgsSize(parameters, hasVarargs) &&
-        notNullParams.foldIndexed(true) { i: Int, acc: Boolean, parameter: Any ->
-            acc &&
-                when (parameter) {
-                    is Pair<*, *> ->
-                        // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
-                        // if there is dataflow
-                        if (parameter.second is Type)
-                            checkType(parameter.second as Type, i) &&
-                                parameter.first != null &&
-                                parameter.first!! flowsTo arguments[i]
-                        else parameter flowsTo arguments[i]
-                    // checks if the type of the argument is the same
-                    is Type -> checkType(parameter, i)
-                    // checks if there is dataflow from the parameter to the argument in the same
-                    // position
-                    else -> parameter flowsTo arguments[i]
-                }
+    // checks if amount of parameters is the same as amount of arguments of this CallExpression
+    return checkArgsSize(parameters, hasVarargs) &&
+        // checks if the CallExpression matches with the parameters
+        parameters.withIndex().all { (i: Int, parameter: Any?) ->
+            when (parameter) {
+                // if any parameter is null, signature returns false
+                null -> false
+                is Pair<*, *> ->
+                    // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
+                    // if there is dataflow
+                    if (parameter.second is Type)
+                        checkType(parameter.second as Type, i) &&
+                            parameter.first != null &&
+                            parameter.first!! flowsTo arguments[i]
+                    else parameter flowsTo arguments[i]
+                // checks if the type of the argument is the same
+                is Type -> checkType(parameter, i)
+                // checks if there is dataflow from the parameter to the argument in the same
+                // position
+                else -> parameter flowsTo arguments[i]
+            }
         }
 }
 

@@ -5,6 +5,15 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMar
 /** Represents a parameter in the [Signature] */
 typealias Parameter = Any?
 
+/** Represents a group of parameters that all belong to the same index */
+class ParameterGroup {
+    val parameters = arrayListOf<Parameter>()
+
+    operator fun Parameter.unaryPlus() {
+        parameters.add(this)
+    }
+}
+
 /**
  * Represents the definitions of a function with the fully qualified name [fqn].
  *

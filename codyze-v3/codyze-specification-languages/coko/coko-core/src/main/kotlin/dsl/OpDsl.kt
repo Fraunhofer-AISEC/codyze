@@ -2,18 +2,17 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Parameter
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.*
 
 /**
  * Represents a group of functions that serve the same purpose in the API.
  *
  * @property definitions stores all definitions for the different functions
  */
+// `Op` is defined here with an internal constructor because we only want the user to use the `op` function to make an `Op` object
 @CokoMarker
 class Op internal constructor() {
-    val definitions = arrayListOf<Definition>()
+    internal val definitions = arrayListOf<Definition>()
 
     operator fun Definition.unaryPlus() {
         this@Op.definitions.add(this)
@@ -90,6 +89,10 @@ context(Definition)
  * the vararg.
  */
 fun signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
+
+context(Signature)
+/** Create a [ParameterGroup] which can be added to the [Signature]. */
+fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
 
 context(Project)
 /** Get all [Nodes] that are associated with this [Op]. */

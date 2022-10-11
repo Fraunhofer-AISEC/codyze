@@ -53,7 +53,7 @@ class Project(val config: Configuration) {
         private val organization = "Fraunhofer AISEC"
         private val name = "Codyze v3"
         private val downloadURI = "https://github.com/Fraunhofer-AISEC/codyze/releases"
-        private val informationURI = "https://www.codyze.io/docs/"
+        private val informationURI = "https://www.codyze.io/Codyze/"
 
         private val codyzeVersion: String = VersionProvider.getVersion("codyze-core")
 

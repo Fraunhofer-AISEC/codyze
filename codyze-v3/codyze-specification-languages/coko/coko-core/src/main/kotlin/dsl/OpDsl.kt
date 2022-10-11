@@ -9,7 +9,8 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelli
  *
  * @property definitions stores all definitions for the different functions
  */
-// `Op` is defined here with an internal constructor because we only want the user to use the `op` function to make an `Op` object
+// `Op` is defined here with an internal constructor because we only want the user to use the `op`
+// function to make an `Op` object
 @CokoMarker
 class Op internal constructor() {
     internal val definitions = arrayListOf<Definition>()
@@ -35,7 +36,7 @@ context(Project)
  *      +signature(arg1, arg2)
  *      +signature {
  *          +arg2
- *          arg3
+ *          +arg3
  *      }
  *   }
  *   +definition("my.other.function") {
@@ -80,8 +81,11 @@ context(Definition)
 /**
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are defined in the
  * [block].
+ *
+ * @param unordered are all [Parameter]s for which the order is irrelevant and that only need to
  */
-inline fun signature(block: Signature.() -> Unit) = Signature().apply(block)
+inline fun signature(unordered: Array<Parameter> = emptyArray(), block: Signature.() -> Unit) =
+    Signature().apply(block).apply { unorderedParameters.addAll(unordered) }
 
 context(Definition)
 /**
@@ -93,6 +97,10 @@ fun signature(vararg parameters: Parameter) = signature { parameters.forEach { +
 context(Signature)
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
 fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
+
+/** Specify that a [Parameter] is orderless, turning it into an [OrderlessParameter]. */
+fun Signature.unordered(vararg unordered: Parameter) =
+    this.apply { unorderedParameters.addAll(unordered) }
 
 context(Project)
 /** Get all [Nodes] that are associated with this [Op]. */
@@ -108,7 +116,10 @@ fun Op.getNodes(): Nodes =
     this@Op.definitions
         .map { def ->
             this@Project.callFqn(def.fqn) {
-                def.signatures.all { sig -> signature(*sig.parameters.toTypedArray()) }
+                def.signatures.any { sig ->
+                    signature(*sig.parameters.toTypedArray()) &&
+                        sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                }
             }
         }
         .flatten()

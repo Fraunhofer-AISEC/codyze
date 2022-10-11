@@ -31,11 +31,15 @@ class Definition(val fqn: String) {
 /**
  * Represents a signature of a function.
  *
- * @property parameters stores all [Parameter]s of this signature
+ * @property parameters stores [Parameter]s of this signature in the correct order
+ * @property unorderedParameters store all unordered [Parameter]s of this signature. These
+ * [Parameter]s don't correspond to a fixed index in the signature but need to flow to the function.
  */
 @CokoMarker
 class Signature {
     val parameters = arrayListOf<Parameter>()
+
+    val unorderedParameters = arrayListOf<Parameter>()
 
     operator fun Parameter.unaryPlus() {
         parameters.add(this)

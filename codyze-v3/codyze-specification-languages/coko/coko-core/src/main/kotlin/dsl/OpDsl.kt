@@ -84,7 +84,7 @@ context(Definition)
  *
  * @param unordered are all [Parameter]s for which the order is irrelevant and that only need to
  */
-inline fun signature(unordered: Array<Parameter> = emptyArray(), block: Signature.() -> Unit) =
+inline fun signature(unordered: Array<out Parameter> = emptyArray(), block: Signature.() -> Unit) =
     Signature().apply(block).apply { unorderedParameters.addAll(unordered) }
 
 context(Definition)

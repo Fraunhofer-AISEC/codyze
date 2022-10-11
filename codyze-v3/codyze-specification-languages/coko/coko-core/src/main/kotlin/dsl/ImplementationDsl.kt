@@ -4,6 +4,7 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.ParameterGroup
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
@@ -60,6 +61,7 @@ infix fun Any.flowsTo(that: Node): Boolean =
             is String -> Regex(this).matches((that as? Expression)?.evaluate()?.toString() ?: "")
             is Collection<*> -> this.any { it?.flowsTo(that) ?: false }
             is Node -> dataFlow(this, that).value
+            is ParameterGroup -> this.parameters.all { it?.flowsTo(that) ?: false }
             else -> false
         }
     }
@@ -87,6 +89,7 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
             }
             is Collection<*> -> this.any { it?.flowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
+            is ParameterGroup -> this.parameters.all { it?.flowsTo(that) ?: false }
             else -> this in that.map { (it as Expression).evaluate() }
         }
     }

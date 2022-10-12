@@ -34,13 +34,11 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     )
 // the class is used as the script base class, therefore it should be open or abstract
 abstract class CokoScript {
-
     // Configures the plugins used by the project.
     fun plugins(configure: PluginDependenciesSpec.() -> Unit) = Unit
 }
 
 interface PluginDependenciesSpec {
-
     // Applies a plugin by id.
     fun id(id: String)
 }
@@ -63,7 +61,7 @@ internal object ProjectScriptCompilationConfiguration :
          * - Make sure to set the jvm-target of the script compiler to the same jvm-target the rest
          * of Codyze is using
          */
-        compilerOptions("-Xcontext-receivers", "-jvm-target=11")
+        compilerOptions("-Xcontext-receivers", "-jvm-target=11", "-Xskip-prerelease-check")
 
         implicitReceivers(
             Project::class

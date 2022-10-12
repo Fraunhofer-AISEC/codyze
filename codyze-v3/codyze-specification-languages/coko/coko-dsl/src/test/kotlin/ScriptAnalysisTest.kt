@@ -4,15 +4,15 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rul
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Wildcard
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
 import io.mockk.mockk
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.io.path.writeText
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.script.experimental.api.valueOrThrow
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.io.TempDir
 
 class ScriptAnalysisTest {
     @Test
@@ -25,7 +25,8 @@ class ScriptAnalysisTest {
                 }
             """.trimIndent()
         )
-        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf( modelDefinitionFile))
+        val specEvaluator =
+            CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
         assertTrue(specEvaluator.types.size == 1)
         assertTrue(specEvaluator.types[0].first.simpleName == "TestInterface")
     }
@@ -41,9 +42,13 @@ class ScriptAnalysisTest {
                 }
             """.trimIndent()
         )
-        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf( modelDefinitionFile))
+        val specEvaluator =
+            CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
         assertTrue(specEvaluator.types.size == 1)
-        assertEquals(specEvaluator.types[0].first.members.first().returnType, Wildcard::class.createType())
+        assertEquals(
+            specEvaluator.types[0].first.members.first().returnType,
+            Wildcard::class.createType()
+        )
     }
 
     @Test
@@ -60,7 +65,8 @@ class ScriptAnalysisTest {
                 }
             """.trimIndent()
         )
-        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf( modelDefinitionFile))
+        val specEvaluator =
+            CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
         assertTrue(specEvaluator.implementations.size == 1)
     }
 
@@ -112,10 +118,11 @@ class ScriptAnalysisTest {
             """.trimIndent(),
         )
 
-        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(
-            mockk(),
-            listOf(modelDefinitionFile, implementationFile),
-        )
+        val specEvaluator =
+            CokoExecutor.compileScriptsIntoSpecEvaluator(
+                mockk(),
+                listOf(modelDefinitionFile, implementationFile),
+            )
 
         assertTrue(specEvaluator.types.size == 1)
         assertTrue(specEvaluator.implementations.size == 1)
@@ -132,10 +139,14 @@ class ScriptAnalysisTest {
                 fun notARule() { }
             """.trimIndent()
         )
-        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf( modelDefinitionFile))
+        val specEvaluator =
+            CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
 
         assertTrue(specEvaluator.rules.size == 1)
-        assertEquals(specEvaluator.rules.single().first.findAnnotation<Rule>()!!.description, "Some description")
+        assertEquals(
+            specEvaluator.rules.single().first.findAnnotation<Rule>()!!.description,
+            "Some description"
+        )
     }
 
     @Test
@@ -165,13 +176,17 @@ class ScriptAnalysisTest {
             """.trimIndent(),
         )
 
-        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(
-            mockk(),
-            listOf(modelDefinitionFile, implementationFile),
-        )
+        val specEvaluator =
+            CokoExecutor.compileScriptsIntoSpecEvaluator(
+                mockk(),
+                listOf(modelDefinitionFile, implementationFile),
+            )
 
         assertTrue(specEvaluator.rules.size == 1)
-        assertEquals(specEvaluator.rules.single().first.findAnnotation<Rule>()!!.description, "Some description")
+        assertEquals(
+            specEvaluator.rules.single().first.findAnnotation<Rule>()!!.description,
+            "Some description"
+        )
         assertTrue(specEvaluator.types.size == 1)
         assertTrue(specEvaluator.implementations.size == 1)
     }

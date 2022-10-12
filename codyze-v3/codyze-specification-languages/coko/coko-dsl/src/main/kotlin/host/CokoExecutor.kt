@@ -6,6 +6,7 @@ import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 import io.github.detekt.sarif4k.Result
+import java.nio.file.Path
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
@@ -16,7 +17,6 @@ import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTe
 import kotlin.script.experimental.util.PropertiesCollection
 import kotlin.time.*
 import mu.KotlinLogging
-import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -39,17 +39,20 @@ class CokoExecutor : Executor {
     @OptIn(ExperimentalTime::class)
     override fun evaluate(analyzer: TranslationManager): List<Result> {
         logger.info { "Constructing the CPG..." }
-        val (cpg, cpgConstructionDuration: Duration) = measureTimedValue {
-            analyzer.analyze().get()
-        }
+        val (cpg, cpgConstructionDuration: Duration) =
+            measureTimedValue { analyzer.analyze().get() }
         logger.debug {
             "Constructed CPG in ${cpgConstructionDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }
 
         logger.info { "Compiling specification scripts..." }
-        val (specEvaluator, specCompilationDuration: Duration) = measureTimedValue {
-            compileScriptsIntoSpecEvaluator(project=Project(cpg), specFiles = configuration.spec)
-        }
+        val (specEvaluator, specCompilationDuration: Duration) =
+            measureTimedValue {
+                compileScriptsIntoSpecEvaluator(
+                    project = Project(cpg),
+                    specFiles = configuration.spec
+                )
+            }
         logger.debug {
             "Compiled specification scripts in ${specCompilationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }
@@ -101,12 +104,16 @@ class CokoExecutor : Executor {
         }
 
         /**
-         * Compiles the given specification files and analyzes the script contents by
-         * adding all the extracted information into a [SpecEvaluator].
+         * Compiles the given specification files and analyzes the script contents by adding all the
+         * extracted information into a [SpecEvaluator].
          *
-         * @return A [SpecEvaluator] object containing the extracted information from all [specFiles]
+         * @return A [SpecEvaluator] object containing the extracted information from all
+         * [specFiles]
          */
-        fun compileScriptsIntoSpecEvaluator(project: Project, specFiles: List<Path>): SpecEvaluator {
+        fun compileScriptsIntoSpecEvaluator(
+            project: Project,
+            specFiles: List<Path>
+        ): SpecEvaluator {
             var sharedClassLoader: ClassLoader? = null
             val specEvaluator = SpecEvaluator()
             for (specFile in specFiles) {
@@ -122,7 +129,7 @@ class CokoExecutor : Executor {
                 result.reports.forEach {
                     val message =
                         " : ${specFile.fileName}: ${it.message}" +
-                                if (it.exception == null) "" else ": ${it.exception}"
+                            if (it.exception == null) "" else ": ${it.exception}"
                     when (it.severity) {
                         ScriptDiagnostic.Severity.DEBUG -> logger.debug { message }
                         ScriptDiagnostic.Severity.INFO -> logger.info { message }

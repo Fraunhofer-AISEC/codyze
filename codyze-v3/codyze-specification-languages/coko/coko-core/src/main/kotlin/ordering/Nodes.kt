@@ -1,28 +1,25 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Nodes
-import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
-import de.fraunhofer.aisec.cpg.analysis.fsm.NFA
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Nodes
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
+import kotlin.reflect.KFunction
 
-/** Represents an [OrderToken] */
-data class TerminalOrderNode(val base: String, val op: String, val block: (() -> Nodes)? = null) :
-    OrderNode {
-    /**
-     * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE?t=237))
-     */
-    override fun toNfa(): NFA {
-        val nfa = NFA()
-
-        // create a start state
-        val startState = nfa.addState(isStart = true)
-        // create an accepting state
-        val endState = nfa.addState(isAcceptingState = true)
-        // create an edge connecting the two states
-        val edge = Edge(op = op, base = base, nextState = endState)
-        // add the edge to the NFA
-        nfa.addEdge(startState, edge)
-        return nfa
-    }
+/**
+ * Represents an [OrderToken].
+ *
+ * @param correspondingNodes: A lambda that returns the cpg [Nodes], which correspond to the user
+ * specified in coko using e.g., an [Op].
+ */
+data class TerminalOrderNode(
+    val opReference: KFunction<*>,
+    val correspondingNodes: (() -> Nodes) = { listOf() }
+) : OrderNode {
+    /** Constructs a NFA using Thompson's construction algorithm */
+    override fun toNfa() = nfaForTerminalOrderNode(this)
+    override fun equals(other: Any?) =
+        if (other is TerminalOrderNode)
+            opReference == other.opReference
+        else false
 }
 
 /** Represents a regex sequence, where one [OrderNode] must be followed by another [OrderNode] */
@@ -51,25 +48,8 @@ data class QuantifierOrderNode(
         }
     }
 
-    /**
-     * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE))
-     */
-    override fun toNfa(): NFA =
-        when (type) {
-            OrderQuantifier.MAYBE -> addMaybeQuantifierToNFA(child.toNfa()) // '*'
-            OrderQuantifier.OPTION -> addOptionQuantifierToNFA(child.toNfa()) // '?'
-            OrderQuantifier.COUNT -> concatenateMultipleNfa(*Array(value as Int) { child.toNfa() })
-            OrderQuantifier.ATLEAST ->
-                concatenateMultipleNfa(
-                    concatenateMultipleNfa(*Array(value as Int) { child.toNfa() }),
-                    addMaybeQuantifierToNFA(child.toNfa())
-                ) // '{..,}'
-            OrderQuantifier.BETWEEN ->
-                concatenateMultipleNfa(
-                    *Array((value as IntRange).first) { child.toNfa() },
-                    *Array(value.last - value.first) { addMaybeQuantifierToNFA(child.toNfa()) }
-                )
-        }
+    /** Constructs a NFA using Thompson's construction algorithm */
+    override fun toNfa() = nfaForQuantifierOrderNode(this)
 }
 
 /** All the available quantifiers for this simple regex like DSL. */

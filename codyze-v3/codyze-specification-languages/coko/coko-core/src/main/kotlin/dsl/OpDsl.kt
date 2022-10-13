@@ -94,6 +94,7 @@ context(Signature)
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
 inline fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
 
-/** Specify that a [Parameter] is orderless, turning it into an [OrderlessParameter]. */
+context(Definition)
+/** Add unordered [Parameter]s to the [Signature]. */
 fun Signature.unordered(vararg unordered: Parameter) =
     this.apply { unorderedParameters.addAll(unordered) }

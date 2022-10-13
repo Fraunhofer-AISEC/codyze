@@ -13,4 +13,4 @@ interface UserContext {
 // TODO: can we "assert" that the ctx.user is not null here?
 @Rule("This is a dummy description.")
 fun DBActionsAreAlwaysLogged(db: ObjectRelationalMapper, log: Logging, ctx: UserContext) =
-    db.insert(Wildcard).getNodes() follows log.log(".*", ctx.user).getNodes()
+    db.insert(Wildcard) follows log.log(".*", ctx.user)

@@ -2,6 +2,8 @@
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.token
 
 /**
@@ -16,6 +18,7 @@ class Order : OrderBuilder() {
     fun toNfa() = toNode().toNfa()
 }
 
+@CokoMarker
 /**
  * Base class for [Order], [OrderGroup] and [OrderSet]. Uses a deque to create a binary tree of the
  * given regex with its [toNode] method.
@@ -23,14 +26,16 @@ class Order : OrderBuilder() {
 abstract class OrderBuilder : OrderFragment {
     protected val orderNodeDeque = ArrayDeque<OrderNode>()
 
+    context(Project)
     /** Add an [OrderToken] to the [orderNodeDeque] */
     operator fun OrderToken.unaryPlus() = this@OrderBuilder.add(this)
 
     /** Add an [OrderFragment] to the [orderNodeDeque] */
     operator fun OrderFragment.unaryPlus() = this@OrderBuilder.add(this)
 
+    context(Project)
     private fun add(token: OrderToken) {
-        orderNodeDeque.add(token.token)
+        this@OrderBuilder.orderNodeDeque.add(token.token)
     }
 
     private fun add(fragment: OrderFragment) {

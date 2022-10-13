@@ -2,29 +2,30 @@
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.getAllNodes
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.getNodes
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
-import kotlin.jvm.internal.CallableReference
 
 //
 // token conversion
 //
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Convert a [OrderToken] into a TerminalOrderNode and specify the arguments passed to the
  * [OrderToken] when evaluating the order
  */
-fun OrderToken.use(block: () -> Nodes): OrderFragment =
-    TerminalOrderNode((this as CallableReference).owner.toString(), name, block)
+fun OrderToken.use(block: () -> Op): OrderFragment = TerminalOrderNode(this) { block().getNodes() }
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Convert an [OrderToken] into a TerminalOrderNode */
 internal val OrderToken.token: TerminalOrderNode
-    get() = TerminalOrderNode((this as CallableReference).owner.toString(), name)
+    get() = TerminalOrderNode(this) { (this.call() as Op).getAllNodes() }
 
 //
 // groups
 //
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Add a group containing any valid OrderDsl provided as a lambda
  *
@@ -42,46 +43,46 @@ inline fun group(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Shortcut for creating a group with the [maybe] ('*') qualifier. See [group] */
 inline fun maybe(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).maybe()
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Shortcut for creating a group with the [option] ('?') qualifier. See [group] */
 inline fun option(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).option()
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Shortcut for creating a group with the [some] ('+') qualifier. See [group] */
 inline fun some(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).some()
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Shortcut for creating a group with the [count] qualifier. See [group] */
 inline fun count(
     count: Int,
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).count(count)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Shortcut for creating a group with the [between] qualifier. See [group] */
 inline fun between(
     range: IntRange,
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).between(range)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Shortcut for creating a group with the [atLeast] qualifier. See [group] */
 inline fun atLeast(
     count: Int,
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).atLeast(count)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Minimalist way to create a group with a function call. However, this minimalist [group]
  * constructor only works with [OrderToken]s
@@ -93,34 +94,34 @@ context(OrderBuilder)
  */
 fun group(vararg tokens: OrderToken) = group { tokens.forEach { +it } }
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Minimalist way to create a group with the [maybe] ('*') qualifier. See [group]. */
 fun maybe(vararg tokens: OrderToken) = maybe { tokens.forEach { +it } }
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Minimalist way to create a group with the [some] ('+') qualifier. See [group]. */
 fun some(vararg tokens: OrderToken) = some { tokens.forEach { +it } }
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Minimalist way to create a group with the [option] ('?') qualifier. See [group]. */
 fun option(vararg tokens: OrderToken) = option { tokens.forEach { +it } }
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Minimalist way to create a group with the [count] qualifier. See [group]. */
 fun count(count: Int, vararg tokens: OrderToken) = count(count) { tokens.forEach { +it } }
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Minimalist way to create a group with the [between] qualifier. See [group]. */
 fun between(range: IntRange, vararg tokens: OrderToken) = between(range) { tokens.forEach { +it } }
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /** Minimalist way to create a group with the [atLeast] qualifier. See [group]. */
 fun atLeast(count: Int, vararg tokens: OrderToken) = atLeast(count) { tokens.forEach { +it } }
 
 //
 // sets
 //
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Use this to create a set with the [OrderSetGetOperator.get] operator.
  *
@@ -134,7 +135,7 @@ context(OrderBuilder)
  */
 val set by lazy { OrderSetGetOperator() }
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Add a set to the [Order] containing any valid OrderDsl provided by a lambda (see [group]).
  *
@@ -148,16 +149,18 @@ inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block)
 // *
 // * > Match any [OrderToken] in the set.
 // *
-// * @param negate when set to true, the set will be negated (`[^arg1::func1, arg1::func2]`) and match
+// * @param negate when set to true, the set will be negated (`[^arg1::func1, arg1::func2]`) and
+// match
 // * any [OrderToken]] not in the set.
 // * @see [OrderSet.not]
 // */
-// inline fun set(negate: Boolean = false, block: OrderSet.() -> Unit) = OrderSet(negate).apply(block)
+// inline fun set(negate: Boolean = false, block: OrderSet.() -> Unit) =
+// OrderSet(negate).apply(block)
 
 //
 // quantifiers
 //
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Appends an exact quantifier (`{3}`) to the current [OrderFragment].
  *
@@ -166,7 +169,7 @@ context(OrderBuilder)
 infix fun OrderFragment.count(count: Int): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends an exact quantifier (`{3}`) to the
  * current [OrderFragment].
@@ -176,7 +179,7 @@ context(OrderBuilder)
 infix fun OrderToken.count(count: Int): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Appends a range quantifier (`{1,3}`) to the current [OrderFragment].
  *
@@ -185,7 +188,7 @@ context(OrderBuilder)
 infix fun OrderFragment.between(range: IntRange): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends a range quantifier (`{1,3}`) to the
  * current [OrderFragment].
@@ -195,7 +198,7 @@ context(OrderBuilder)
 infix fun OrderToken.between(range: IntRange): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Appends a minimum quantifier (`{3,}`) to the current [OrderFragment].
  *
@@ -204,7 +207,7 @@ context(OrderBuilder)
 infix fun OrderFragment.atLeast(min: Int): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends a minimum quantifier (`{3,}`) to the
  * current [OrderFragment].
@@ -214,7 +217,7 @@ context(OrderBuilder)
 infix fun OrderToken.atLeast(min: Int): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Appends a [some] quantifier (`+`) to the current [OrderFragment]. The + quantifier is
  * automatically converted into a 'ATLEAST(1)' quantifier.
@@ -224,7 +227,7 @@ context(OrderBuilder)
 fun OrderFragment.some(): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = 1)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends a [some] quantifier (`+`) to the
  * current [OrderFragment]. The + quantifier is automatically converted into a 'ATLEAST(1)'
@@ -235,7 +238,7 @@ context(OrderBuilder)
 fun OrderToken.some(): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = 1)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Appends a [maybe] quantifier (`*`) to the current [OrderFragment].
  *
@@ -244,7 +247,7 @@ context(OrderBuilder)
 fun OrderFragment.maybe(): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends a [maybe] quantifier (`*`) to the
  * current [OrderFragment].
@@ -254,7 +257,7 @@ context(OrderBuilder)
 fun OrderToken.maybe(): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Appends an [option] quantifier (`?`) to the current [OrderFragment].
  *
@@ -263,7 +266,7 @@ context(OrderBuilder)
 fun OrderFragment.option(): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.OPTION)
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends an [option] quantifier (`?`) to the
  * current [OrderFragment].
@@ -276,7 +279,7 @@ fun OrderToken.option(): OrderFragment =
 //
 // OR stuff
 //
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Appends an alternation token (`|`) to the current [OrderFragment].
  *
@@ -286,7 +289,7 @@ context(OrderBuilder)
 infix fun OrderFragment.or(other: OrderFragment): OrderFragment =
     AlternativeOrderNode(left = toNode(), right = other.toNode())
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends an alternation token (`|`) to the
  * current [OrderFragment].
@@ -297,7 +300,7 @@ context(OrderBuilder)
 infix fun OrderToken.or(other: OrderFragment): OrderFragment =
     AlternativeOrderNode(left = token.toNode(), right = other.toNode())
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends an alternation token (`|`) to the
  * current [OrderFragment].
@@ -308,7 +311,7 @@ context(OrderBuilder)
 infix fun OrderToken.or(other: OrderToken): OrderFragment =
     AlternativeOrderNode(left = token.toNode(), right = other.token.toNode())
 
-context(OrderBuilder)
+context(OrderBuilder, Project)
 /**
  * Converts the [OrderToken] to an [OrderFragment] and appends an alternation token (`|`) to the
  * current [OrderFragment].

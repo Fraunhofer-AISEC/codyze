@@ -2,8 +2,10 @@
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.set
 
+context(Project, OrderBuilder)
 /**
  * Represents a regex set. Its [toNode] method converts the set into a group with OR expressions to
  * simplify the resulting binary tree
@@ -40,6 +42,6 @@ class OrderSet(private var negate: Boolean) : OrderBuilder() {
 
 /** Allows the syntactic sugar to create a set with the 'get' operator. */
 class OrderSetGetOperator {
-    context(OrderBuilder)
+    context(OrderBuilder, Project)
     operator fun get(vararg tokens: OrderToken) = set { tokens.forEach { +it } }
 }

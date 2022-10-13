@@ -55,11 +55,7 @@ context(Project)
  *
  * @param block defines the [Definition]s of this [Op]
  */
-fun op(block: Op.() -> Unit): Op {
-    val op = Op()
-    op.block()
-    return op
-}
+fun op(block: Op.() -> Unit) = Op().apply(block)
 
 context(Op)
 /**
@@ -96,30 +92,8 @@ fun signature(vararg parameters: Parameter) = signature { parameters.forEach { +
 
 context(Signature)
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
-fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
+inline fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
 
 /** Specify that a [Parameter] is orderless, turning it into an [OrderlessParameter]. */
 fun Signature.unordered(vararg unordered: Parameter) =
     this.apply { unorderedParameters.addAll(unordered) }
-
-context(Project)
-/** Get all [Nodes] that are associated with this [Op]. */
-fun Op.getAllNodes(): Nodes =
-    this@Op.definitions.map { def -> this@Project.callFqn(def.fqn) }.flatten()
-
-context(Project)
-/**
- * Get all [Nodes] that are associated with this [Op] and fulfill the [Signature]s of the
- * [Definition]s.
- */
-fun Op.getNodes(): Nodes =
-    this@Op.definitions
-        .map { def ->
-            this@Project.callFqn(def.fqn) {
-                def.signatures.any { sig ->
-                    signature(*sig.parameters.toTypedArray()) &&
-                        sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
-                }
-            }
-        }
-        .flatten()

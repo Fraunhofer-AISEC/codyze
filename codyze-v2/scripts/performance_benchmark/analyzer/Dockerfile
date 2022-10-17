@@ -1,4 +1,4 @@
-FROM gradle:6.0-jdk11 as build
+FROM gradle:6.9-jdk11 as build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 COPY codyze_m2 /root/.m2/repository/de/fraunhofer/aisec/codyze

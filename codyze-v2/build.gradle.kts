@@ -111,8 +111,8 @@ dependencies {
     implementation(kotlin("reflect")) // pull in explicitly to prevent mixing versions
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:4.6.2")
-    implementation("de.fraunhofer.aisec:cpg-analysis:4.6.2")
+    api("de.fraunhofer.aisec:cpg-core:4.6.3")
+    implementation("de.fraunhofer.aisec:cpg-analysis:4.6.3")
 
     // MARK DSL (use fat jar). changing=true circumvents gradle cache
     //api("de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark:1.4.0-SNAPSHOT:repackaged") { isChanging = true } // ok

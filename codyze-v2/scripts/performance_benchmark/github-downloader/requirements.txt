@@ -3,4 +3,4 @@ simplejson==3.13.2
 urllib3==1.26.12
 PyGithub==1.55
 celery==5.2.2
-python-dotenv==0.10.3
+python-dotenv==0.21.0

@@ -70,7 +70,7 @@ task fatJar(type: Jar) {
 
 dependencies {
     compile group: "de.fraunhofer.aisec", name: "codyze", version: "+"
-    compile group: "org.eclipse.jgit", name: "org.eclipse.jgit", version: "5.13.1.202206130422-r"
+    compile group: "org.eclipse.jgit", name: "org.eclipse.jgit", version: "6.3.0.202209071007-r"
     compile group: "org.slf4j", name: "jul-to-slf4j", version: "2.0.2"
     compile group: "commons-cli", name: "commons-cli", version: "1.5.0"
     compile group: "redis.clients", name: "jedis", version: "3.9.0"

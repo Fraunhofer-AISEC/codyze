@@ -13,6 +13,21 @@ class ParameterGroup {
     operator fun Parameter.unaryPlus() {
         parameters.add(this)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ParameterGroup
+
+        if (parameters != other.parameters) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return parameters.hashCode()
+    }
 }
 
 /**
@@ -26,6 +41,24 @@ class Definition(val fqn: String) {
 
     operator fun Signature.unaryPlus() {
         this@Definition.signatures.add(this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Definition
+
+        if (fqn != other.fqn) return false
+        if (signatures != other.signatures) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = fqn.hashCode()
+        result = 31 * result + signatures.hashCode()
+        return result
     }
 }
 
@@ -44,5 +77,23 @@ class Signature {
 
     operator fun Parameter.unaryPlus() {
         parameters.add(this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Signature
+
+        if (parameters != other.parameters) return false
+        if (unorderedParameters != other.unorderedParameters) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = parameters.hashCode()
+        result = 31 * result + unorderedParameters.hashCode()
+        return result
     }
 }

@@ -18,6 +18,21 @@ class Op internal constructor() {
     operator fun Definition.unaryPlus() {
         this@Op.definitions.add(this)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Op
+
+        if (definitions != other.definitions) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return definitions.hashCode()
+    }
 }
 
 context(Project)

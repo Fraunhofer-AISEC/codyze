@@ -1,9 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Type
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.group
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.signature
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.unordered
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import io.mockk.mockk
@@ -108,6 +105,38 @@ class OpComponentsTest {
         }
     }
 
+    @Test
+    fun `test unaryPlus in Definition`() {
+        val expectedSignatures = arrayListOf<Signature>()
+        for(i in 1 ..5) {
+            expectedSignatures.add(mockk<Signature>())
+        }
+
+        val def = Definition("test.fqn")
+        with(def) {
+            expectedSignatures.forEach { +it }
+        }
+        assertContentEquals(expectedSignatures, def.signatures, "signatures in Definition were not as expected")
+    }
+
+    @Test
+    fun `test definition`() {
+        val sig1 = mockk<Signature>()
+        val sig2 = mockk<Signature>()
+
+        with(mockk<Op>()) {
+            val def = definition("fqn") {
+                +sig1
+                +sig2
+            }
+
+            val expected = Definition("fqn")
+            expected.signatures.add(sig1)
+            expected.signatures.add(sig2)
+
+            assertEquals(expected, def)
+        }
+    }
 
 
     companion object {

@@ -33,5 +33,5 @@ cpg = ["cpg-core", "cpg-analysis"]
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
 dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
 sonarqube = { id = "org.sonarqube", version = "3.4.0.2513" }
-spotless = { id = "com.diffplug.spotless", version = "6.10.0" }
+spotless = { id = "com.diffplug.spotless", version = "6.11.0" }
 license = { id = "com.github.hierynomus.license", version = "0.16.1" }

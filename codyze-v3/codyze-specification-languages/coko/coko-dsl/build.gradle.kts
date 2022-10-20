@@ -10,6 +10,7 @@ dependencies {
     implementation(libs.kotlin.reflect)
 
     implementation(libs.sarif4k)
+    implementation(libs.koin)
 
     implementation(libs.kotlin.scripting.common)
     implementation(libs.kotlin.scripting.jvm)

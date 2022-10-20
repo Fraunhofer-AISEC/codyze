@@ -2,31 +2,21 @@ package de.fraunhofer.aisec.codyze_core
 
 import de.fraunhofer.aisec.codyze_core.config.Configuration
 import mu.KotlinLogging
-import org.koin.java.KoinJavaComponent.getKoin
+import org.koin.core.component.KoinComponent
 
 private val logger = KotlinLogging.logger {}
 
 /**
  * A server that manages [Project]s. Each [Configuration] corresponds to one potential [Project] .
  */
-object ProjectServer {
+object ProjectServer : KoinComponent {
 
     /** All projects that are connected to the server. */
     val projects: MutableMap<Configuration, Project> = mutableMapOf()
     /** All built-in executors that are available for the analysis. */
-    var executors: List<Executor> = emptyList() // initialized in <registerExecutors>
+    val executors: List<Executor> = getKoin().getAll()
 
     init {
-        registerExecutors()
-    }
-
-    /**
-     * Run once when first initializing the [ProjectServer].
-     *
-     * Uses Koin (a DI library) to get access to all built-in [Executor]s
-     */
-    private fun registerExecutors() {
-        executors = getKoin().getAll<Executor>()
         logger.debug {
             "Found executors for following file types: ${executors.map { it.supportedFileExtension }}"
         }

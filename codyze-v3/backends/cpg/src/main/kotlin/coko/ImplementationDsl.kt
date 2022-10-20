@@ -1,10 +1,11 @@
-@file:Suppress("UNUSED")
-
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
+package de.fraunhofer.aisec.codyze.backends.cpg.coko
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Type
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Wildcard
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.ParameterGroup
+import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
@@ -13,39 +14,42 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.exists
 
+val EvaluationContext.cpg: TranslationResult
+    get() = this.backend.cpg as TranslationResult
+
 /** Returns a list of [ValueDeclaration]s with the matching name. */
-fun Project.variable(name: String): List<ValueDeclaration> {
-    return cpg.allChildren { it.name == name }
+fun EvaluationContext.variable(name: String): List<ValueDeclaration> {
+    return (backend.cpg as TranslationResult).allChildren { it.name == name }
 }
 
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */
-fun Project.call(
+fun EvaluationContext.call(
     name: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
-    return cpg.calls { it.name == name && predicate(it) }
+    return (backend.cpg as TranslationResult).calls { it.name == name && predicate(it) }
 }
 
 /**
  * Returns a list of [CallExpression]s with the matching [fqn] (fully-qualified name) and fulfilling
  * [predicate].
  */
-fun Project.callFqn(
+fun EvaluationContext.callFqn(
     fqn: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
-    return cpg.calls { it.fqn == fqn && predicate(it) }
+    return (backend.cpg as TranslationResult).calls { it.fqn == fqn && predicate(it) }
 }
 
 /** Returns a list of [MemberExpression]s with the matching something. */
-fun Project.memberExpr(
+fun EvaluationContext.memberExpr(
     predicate: (@CokoMarker MemberExpression).() -> Boolean
 ): List<MemberExpression> {
-    return cpg.allChildren(predicate)
+    return (backend.cpg as TranslationResult).allChildren(predicate)
 }
 
 context(
-    CallExpression
+CallExpression
 ) // this extension function should only be available in the context of a CallExpression
 /**
  * Checks if there's a data flow path from "this" to [that].
@@ -67,8 +71,8 @@ infix fun Any.flowsTo(that: Node): Boolean =
     }
 
 context(
-    Project,
-    CallExpression
+EvaluationContext,
+CallExpression
 ) // this extension function needs Project as a context + it should only be available in the context
 // of a CallExpression
 /**
@@ -84,7 +88,7 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
         when (this) {
             is String -> {
                 val thisRegex = Regex(this)
-                cpg.exists<Expression>(mustSatisfy = { thisRegex.matches(it.evaluate() as String) })
+                (backend.cpg as TranslationResult).exists<Expression>(mustSatisfy = { thisRegex.matches(it.evaluate() as String) })
                     .first
             }
             is Collection<*> -> this.any { it?.flowsTo(that) ?: false }
@@ -113,29 +117,28 @@ context(CallExpression)
  * are not important to the analysis
  */
 fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
-
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
     return checkArgsSize(parameters, hasVarargs) &&
-        // checks if the CallExpression matches with the parameters
-        parameters.withIndex().all { (i: Int, parameter: Any?) ->
-            when (parameter) {
-                // if any parameter is null, signature returns false
-                null -> false
-                is Pair<*, *> ->
-                    // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
-                    // if there is dataflow
-                    if (parameter.second is Type)
-                        checkType(parameter.second as Type, i) &&
-                            parameter.first != null &&
-                            parameter.first!! flowsTo arguments[i]
-                    else parameter flowsTo arguments[i]
-                // checks if the type of the argument is the same
-                is Type -> checkType(parameter, i)
-                // checks if there is dataflow from the parameter to the argument in the same
-                // position
-                else -> parameter flowsTo arguments[i]
+            // checks if the CallExpression matches with the parameters
+            parameters.withIndex().all { (i: Int, parameter: Any?) ->
+                when (parameter) {
+                    // if any parameter is null, signature returns false
+                    null -> false
+                    is Pair<*, *> ->
+                        // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
+                        // if there is dataflow
+                        if (parameter.second is Type)
+                            checkType(parameter.second as Type, i) &&
+                                    parameter.first != null &&
+                                    parameter.first!! flowsTo arguments[i]
+                        else parameter flowsTo arguments[i]
+                    // checks if the type of the argument is the same
+                    is Type -> checkType(parameter, i)
+                    // checks if there is dataflow from the parameter to the argument in the same
+                    // position
+                    else -> parameter flowsTo arguments[i]
+                }
             }
-        }
 }
 
 context(CallExpression)

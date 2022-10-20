@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.*
 
 /**
@@ -13,14 +13,14 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelli
 // function to make an `Op` object
 @CokoMarker
 class Op internal constructor() {
-    internal val definitions = arrayListOf<Definition>()
+    val definitions = arrayListOf<Definition>()
 
     operator fun Definition.unaryPlus() {
         this@Op.definitions.add(this)
     }
 }
 
-context(Project)
+context(EvaluationContext)
 /**
  * Create a [Op].
  *

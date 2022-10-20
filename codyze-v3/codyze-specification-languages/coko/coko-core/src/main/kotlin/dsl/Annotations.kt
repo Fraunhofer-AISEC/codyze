@@ -5,7 +5,7 @@ See: https://github.com/Kotlin/kotlin-script-examples/blob/master/jvm/simple-mai
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
-/** Import other script(s) */
+/** Import other coko script(s) */
 @Target(AnnotationTarget.FILE)
 @Repeatable
 @Retention(AnnotationRetention.SOURCE)

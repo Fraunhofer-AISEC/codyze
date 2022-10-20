@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze_core.config
+package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.cpg.frontends.LanguageFrontend
 import java.lang.reflect.Modifier

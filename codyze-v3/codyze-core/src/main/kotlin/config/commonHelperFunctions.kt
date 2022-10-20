@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.options
+package de.fraunhofer.aisec.codyze_core.config
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -11,7 +11,7 @@ import kotlin.streams.asSequence
  * This function normalizes the given paths to filter out duplicates and only returns files and not
  * directories.
  */
-internal fun combineSources(vararg sources: List<Path>): Set<Path> {
+fun combineSources(vararg sources: List<Path>): Set<Path> {
     val allSources = mutableSetOf<Path>()
     sources.toList().flatten().forEach { path ->
         // it is necessary to make the paths absolute because this function is used to combine paths

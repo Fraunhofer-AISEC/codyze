@@ -1,8 +1,9 @@
-package de.fraunhofer.aisec.codyze
+package de.fraunhofer.aisec.codyze.subcommands
 
-import de.fraunhofer.aisec.codyze.options.*
+import de.fraunhofer.aisec.codyze.CodyzeSubcommand
 import de.fraunhofer.aisec.codyze_core.Project
 import de.fraunhofer.aisec.codyze_core.ProjectServer
+import de.fraunhofer.aisec.codyze_core.config.buildConfiguration
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
@@ -22,17 +23,17 @@ class Analyze : CodyzeSubcommand("Analyze a set of source files") {
 
         val (project: Project, projectServerDuration: Duration) =
             measureTimedValue {
-                ProjectServer.connect(config = ConfigurationRegister.toConfiguration())
+                ProjectServer.connect(
+                    config =
+                        buildConfiguration(
+                            codyzeConfigurationRegister,
+                            backendConfigurationRegister
+                        )
+                )
             }
         logger.debug {
             "Project server started in ${ projectServerDuration.inWholeMilliseconds } ms"
         }
-
-        logger.info { "Analyzing following sources ${project.config.cpgConfiguration.source}" }
-        logger.info {
-            "Following following includes ${project.config.cpgConfiguration.includePaths}"
-        }
-        logger.info { "Using following specs ${project.config.spec}" }
 
         val result = project.doStuff()
         // TODO print results

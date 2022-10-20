@@ -1,7 +1,8 @@
 package de.fraunhofer.aisec.codyze_core
 
+import de.fraunhofer.aisec.codyze_core.config.Configuration
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
-import de.fraunhofer.aisec.cpg.TranslationManager
+import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
 
@@ -24,9 +25,9 @@ interface Executor {
     // offer standard implementation
     // must only be called once
     // TODO: proper initialization parameters
-    fun initialize(configuration: ExecutorConfiguration)
+    fun initialize(backendConfiguration: BackendConfiguration, configuration: ExecutorConfiguration)
 
-    fun evaluate(analyzer: TranslationManager): List<Result>
+    fun evaluate(): List<Result>
 
     // load speclang files
     // -  create AST from speclang files

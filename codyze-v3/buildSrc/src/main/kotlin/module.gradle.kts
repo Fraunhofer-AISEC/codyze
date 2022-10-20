@@ -72,16 +72,16 @@ tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs = listOf(
             "-opt-in=kotlin.RequiresOptIn",
-            "-Xcontext-receivers"
+            "-Xcontext-receivers",
         )
         allWarningsAsErrors = project.findProperty("warningsAsErrors") == "true"
     }
 }
 
 // state that JSON schema parser must run before compiling Kotlin
-tasks.named("compileKotlin") {
-    dependsOn("spotlessApply")
-}
+//tasks.named("compileKotlin") {
+//    dependsOn("spotlessApply")
+//}
 
 tasks.named("sonarqube") {
     dependsOn(":jacocoTestReport")

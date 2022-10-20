@@ -1,6 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Import
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
@@ -64,7 +64,7 @@ internal object ProjectScriptCompilationConfiguration :
         compilerOptions("-Xcontext-receivers", "-jvm-target=11", "-Xskip-prerelease-check")
 
         implicitReceivers(
-            Project::class
+            EvaluationContext::class
         ) // the actual receiver must be passed to the script class in the constructor
 
         // adds implicit import statements (in this case `import

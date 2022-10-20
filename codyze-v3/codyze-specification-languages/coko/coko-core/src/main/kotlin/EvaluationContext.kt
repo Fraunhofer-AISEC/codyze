@@ -1,7 +1,5 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core
 
-import de.fraunhofer.aisec.cpg.TranslationResult
-
 @DslMarker
 @Target(
     AnnotationTarget.FUNCTION,
@@ -16,6 +14,6 @@ annotation class CokoMarker
 @CokoMarker
 /*
  * Receives a [cpg] translation result to identify matching nodes and evaluate the expressions.
- * All the functionality of the DSL are implemented as extension functions on [Project].
+ * All the functionality of the DSL are implemented as extension functions on [Coko].
  */
-class Project(val cpg: TranslationResult)
+class EvaluationContext(val backend: CokoBackendManager)

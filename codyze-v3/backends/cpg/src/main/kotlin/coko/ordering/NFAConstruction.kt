@@ -1,8 +1,21 @@
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
 import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.analysis.fsm.NFA
+import de.fraunhofer.aisec.cpg.graph.Node
 import kotlin.jvm.internal.CallableReference
+
+/**
+ * Constructs a NFA using Thompson's construction algorithm
+ * ([YouTube](https://youtu.be/HLOAwCCYVxE))
+ */
+fun OrderNode.toNfa(): NFA = when (this) {
+    is TerminalOrderNode -> nfaForTerminalOrderNode(this)
+    is SequenceOrderNode -> concatenateMultipleNfa(left.toNfa(), right.toNfa())
+    is AlternativeOrderNode -> alternateTwoNfa(left.toNfa(), right.toNfa())
+    is QuantifierOrderNode -> nfaForQuantifierOrderNode(this)
+}
 
 /**
  * Construct a NFA for a single node using Thompson's construction algorithm (
@@ -21,12 +34,25 @@ internal fun nfaForTerminalOrderNode(node: TerminalOrderNode): NFA {
             op = node.opReference.name,
             base = (node.opReference as CallableReference).owner.toString(),
             nextState = endState,
-            nodeGetter = node.correspondingNodes
+            nodeGetter = node.correspondingNodes as () -> Collection<Node>
         )
     // add the edge to the NFA
     nfa.addEdge(startState, edge)
     return nfa
 }
+
+//context(OrderBuilder, EvaluationContext)
+//        /**
+//         * Convert a [OrderToken] into a TerminalOrderNode and specify the arguments passed to the
+//         * [OrderToken] when evaluating the order
+//         */
+//fun OrderToken.use(block: () -> Op): OrderFragment = TerminalOrderNode(this) { block().getNodes() }
+//
+//context(OrderBuilder, Project)
+//        /** Convert an [OrderToken] into a TerminalOrderNode */
+//        internal val OrderToken.token: TerminalOrderNode
+//    get() = TerminalOrderNode(this) { (this.call() as Op).getAllNodes() }
+
 
 /**
  * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE)
@@ -46,7 +72,7 @@ internal fun nfaForQuantifierOrderNode(node: QuantifierOrderNode): NFA =
         OrderQuantifier.BETWEEN ->
             concatenateMultipleNfa(
                 *Array((node.value as IntRange).first) { node.child.toNfa() },
-                *Array(node.value.last - node.value.first) {
+                *Array((node.value as IntRange).last - (node.value as IntRange).first) {
                     addMaybeQuantifierToNFA(node.child.toNfa())
                 }
             )

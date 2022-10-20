@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.bundles.cpg)
+    implementation(projects.codyzeCore)
 
     implementation(libs.kotlin.reflect)
 

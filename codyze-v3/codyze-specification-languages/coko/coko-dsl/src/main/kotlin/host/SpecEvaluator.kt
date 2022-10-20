@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rule
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import mu.KotlinLogging
@@ -49,7 +50,8 @@ class SpecEvaluator {
                 }
             )
 
-            val ruleResult = rule.callBy(parameterMap)
+            val rawRuleResult = rule.callBy(parameterMap)
+            val ruleResult = (rawRuleResult as? Evaluator)?.evaluate(rule) ?: rawRuleResult
             logger.info {
                 " (${index+1}/${rules.size}): ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}"
             }

@@ -3,20 +3,13 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.token
 
 /**
- * Extends the [OrderBuilder] with the [toNfa] and [toDfa] methods, which represents the [Order] as
- * a [NFA] and [DFA] respectively
+ * [OrderBuilder] subclass to hide some implementation details of [OrderBuilder] to coko users.
  */
-class Order : OrderBuilder() {
-    /**
-     * Constructs a NFA using Thompson's construction algorithm
-     * @see [YouTube](https://youtu.be/HLOAwCCYVxE)
-     */
-    fun toNfa() = toNode().toNfa()
-}
+class Order : OrderBuilder()
 
 @CokoMarker
 /**
@@ -26,14 +19,14 @@ class Order : OrderBuilder() {
 abstract class OrderBuilder : OrderFragment {
     protected val orderNodeDeque = ArrayDeque<OrderNode>()
 
-    context(Project)
+    context(EvaluationContext)
     /** Add an [OrderToken] to the [orderNodeDeque] */
     operator fun OrderToken.unaryPlus() = this@OrderBuilder.add(this)
 
     /** Add an [OrderFragment] to the [orderNodeDeque] */
     operator fun OrderFragment.unaryPlus() = this@OrderBuilder.add(this)
 
-    context(Project)
+    context(EvaluationContext)
     private fun add(token: OrderToken) {
         this@OrderBuilder.orderNodeDeque.add(token.token)
     }

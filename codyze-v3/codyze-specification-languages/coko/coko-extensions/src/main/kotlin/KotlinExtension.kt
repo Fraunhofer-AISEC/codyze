@@ -1,6 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_extensions
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 
 /** A simulated [Project] extension. */
 class KotlinExtension {
@@ -8,4 +8,4 @@ class KotlinExtension {
 }
 
 /** Simulates a generated accessor to configure a [Project] extension. */
-fun Project.kotlin(configure: KotlinExtension.() -> Unit) = Unit
+fun EvaluationContext.kotlin(configure: KotlinExtension.() -> Unit) = Unit

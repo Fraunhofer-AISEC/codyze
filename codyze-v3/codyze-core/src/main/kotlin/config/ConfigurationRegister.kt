@@ -1,17 +1,17 @@
-package de.fraunhofer.aisec.codyze.options
+package de.fraunhofer.aisec.codyze_core.config
 
 import com.github.ajalt.clikt.parameters.options.Option
 import com.github.ajalt.clikt.parameters.options.OptionDelegate
-import de.fraunhofer.aisec.codyze_core.config.Configuration
 import kotlin.reflect.KProperty
+import org.koin.core.component.KoinComponent
 
 /**
  * Helper singleton responsible for registering CLI options that should be passed to the
  * [Configuration] class
  */
-object ConfigurationRegister {
+class ConfigurationRegister : KoinComponent {
     private val options = mutableMapOf<String, Any?>()
-    val configurationMap: Map<String, Any?> by lazy {
+    val configurationMap by lazy {
         options.mapValues {
             when (it.value) {
                 is OptionDelegate<*> -> (it.value as OptionDelegate<*>).value
@@ -24,24 +24,8 @@ object ConfigurationRegister {
         }
     }
 
-    /**
-     * Build a [Configuration] from the registered options/properties.
-     *
-     * @param normalize Whether to normalize the [Configuration]. Defaults to [true]
-     */
-    fun toConfiguration(normalize: Boolean = true): Configuration =
-        configurationMap.let {
-            val config =
-                Configuration.from(
-                    map = it,
-                    cpgConfiguration = Configuration.CPGConfiguration.from(it)
-                )
-            if (normalize) config.normalize()
-            return config
-        }
-
     fun addOption(name: String, option: Option) {
-        options.put(name, option)
+        options[name] = option
     }
 
     private data class LazyPropertyInitializer(
@@ -49,7 +33,7 @@ object ConfigurationRegister {
         val thisRef: Any,
         val property: KProperty<*>
     )
-    fun addLazy(name: String, lazyProperty: Lazy<*>, thisRef: Any, property: KProperty<*>) {
-        options.put(name, LazyPropertyInitializer(lazyProperty, thisRef, property))
+    fun addLazyOption(name: String, lazyProperty: Lazy<*>, thisRef: Any, property: KProperty<*>) {
+        options[name] = LazyPropertyInitializer(lazyProperty, thisRef, property)
     }
 }

@@ -1,10 +1,11 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackendManager
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
-import de.fraunhofer.aisec.cpg.TranslationManager
+import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
 import kotlin.script.experimental.api.*
@@ -17,40 +18,47 @@ import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTe
 import kotlin.script.experimental.util.PropertiesCollection
 import kotlin.time.*
 import mu.KotlinLogging
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 
 private val logger = KotlinLogging.logger {}
 
-class CokoExecutor : Executor {
+class CokoExecutor : Executor, KoinComponent {
     override val name: String
         get() = CokoExecutor::class.simpleName ?: "CokoExecutor"
     override val supportedFileExtension: String
         get() = "codyze.kts"
 
-    lateinit var configuration: ExecutorConfiguration
+    lateinit var backendConfiguration: BackendConfiguration
+    lateinit var config: ExecutorConfiguration
 
-    override fun initialize(configuration: ExecutorConfiguration) {
-        this.configuration = configuration
+    override fun initialize(backendConfiguration: BackendConfiguration, configuration: ExecutorConfiguration) {
+        this.backendConfiguration = backendConfiguration
+        this.config = configuration
     }
+
+    private val backend: CokoBackendManager = get { parametersOf(backendConfiguration) }
 
     /**
      * Compiles all the specification files, translates the CPG and finally triggers the evaluation
      * of the specs.
      */
     @OptIn(ExperimentalTime::class)
-    override fun evaluate(analyzer: TranslationManager): List<Result> {
-        logger.info { "Constructing the CPG..." }
-        val (cpg, cpgConstructionDuration: Duration) =
-            measureTimedValue { analyzer.analyze().get() }
+    override fun evaluate(): List<Result> {
+        logger.info { "Initializing the backend..." }
+        val backendInitializationDuration: Duration =
+            measureTime { backend.initialize() }
         logger.debug {
-            "Constructed CPG in ${cpgConstructionDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
+            "Initialized backend in ${backendInitializationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }
 
         logger.info { "Compiling specification scripts..." }
         val (specEvaluator, specCompilationDuration: Duration) =
             measureTimedValue {
                 compileScriptsIntoSpecEvaluator(
-                    project = Project(cpg),
-                    specFiles = configuration.spec
+                    evaluationContext = EvaluationContext(backend),
+                    specFiles = config.spec
                 )
             }
         logger.debug {
@@ -74,12 +82,12 @@ class CokoExecutor : Executor {
          * Evaluates the given project script [sourceCode] against the given [project] and
          * [evaluator].
          */
-        fun eval(sourceCode: String, project: Project) = eval(sourceCode.toScriptSource(), project)
+        fun eval(sourceCode: String, project: EvaluationContext) = eval(sourceCode.toScriptSource(), project)
 
-        /** Evaluates the given project script [sourceCode] against the given [project]. */
+        /** Evaluates the given project script [sourceCode] against the given [evaluationContext]. */
         fun eval(
             sourceCode: SourceCode,
-            project: Project,
+            evaluationContext: EvaluationContext,
             sharedClassLoader: ClassLoader? = null
         ): ResultWithDiagnostics<EvaluationResult> {
             val compilationConfiguration =
@@ -87,7 +95,7 @@ class CokoExecutor : Executor {
             val evaluationConfiguration =
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
                     // constructorArgs(...)
-                    implicitReceivers(project)
+                    implicitReceivers(evaluationContext)
                     jvm {
                         if (sharedClassLoader != null) {
                             baseClassLoader.put(sharedClassLoader)
@@ -111,7 +119,7 @@ class CokoExecutor : Executor {
          * [specFiles]
          */
         fun compileScriptsIntoSpecEvaluator(
-            project: Project,
+            evaluationContext: EvaluationContext,
             specFiles: List<Path>
         ): SpecEvaluator {
             var sharedClassLoader: ClassLoader? = null
@@ -121,7 +129,7 @@ class CokoExecutor : Executor {
                 val result =
                     eval(
                         specFile.toScriptSource(),
-                        project = project,
+                        evaluationContext = evaluationContext,
                         sharedClassLoader = sharedClassLoader
                     )
 

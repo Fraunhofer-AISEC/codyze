@@ -6,8 +6,10 @@ plugins {
 
 dependencies {
     implementation(projects.codyzeCore)
-    implementation(projects.codyzeSpecificationLanguages.mark)
+    implementation(projects.backends.cpg)
+    // implementation(projects.codyzeSpecificationLanguages.mark)
     implementation(projects.codyzeSpecificationLanguages.coko.cokoDsl)
+
 
     implementation(libs.clikt)
     implementation(libs.koin)

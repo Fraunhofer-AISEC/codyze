@@ -1,5 +1,6 @@
-package de.fraunhofer.aisec.codyze
+package de.fraunhofer.aisec.codyze.subcommands
 
+import de.fraunhofer.aisec.codyze.CodyzeSubcommand
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}

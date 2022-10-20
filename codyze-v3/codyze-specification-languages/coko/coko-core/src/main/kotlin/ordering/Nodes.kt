@@ -12,27 +12,20 @@ import kotlin.reflect.KFunction
  */
 data class TerminalOrderNode(
     val opReference: KFunction<*>,
-    val correspondingNodes: (() -> Nodes) = { listOf() }
+    val correspondingNodes: () -> Nodes = { listOf() }
 ) : OrderNode {
-    /** Constructs a NFA using Thompson's construction algorithm */
-    override fun toNfa() = nfaForTerminalOrderNode(this)
     override fun equals(other: Any?) =
         if (other is TerminalOrderNode)
             opReference == other.opReference
         else false
+    override fun hashCode() = opReference.hashCode()
 }
 
 /** Represents a regex sequence, where one [OrderNode] must be followed by another [OrderNode] */
-data class SequenceOrderNode(val left: OrderNode, val right: OrderNode) : OrderNode {
-    /** Constructs a NFA using Thompson's construction algorithm */
-    override fun toNfa() = concatenateMultipleNfa(left.toNfa(), right.toNfa())
-}
+data class SequenceOrderNode(val left: OrderNode, val right: OrderNode) : OrderNode
 
 /** Represents a regex OR ('|') */
-data class AlternativeOrderNode(val left: OrderNode, val right: OrderNode) : OrderNode {
-    /** Constructs a NFA using Thompson's construction algorithm */
-    override fun toNfa() = alternateTwoNfa(left.toNfa(), right.toNfa())
-}
+data class AlternativeOrderNode(val left: OrderNode, val right: OrderNode) : OrderNode
 
 /** Represents a regex quantifier like: '*', '?', etc. */
 data class QuantifierOrderNode(
@@ -47,9 +40,6 @@ data class QuantifierOrderNode(
             checkNotNull(value) { "You must provide a value for this kind of quantifier." }
         }
     }
-
-    /** Constructs a NFA using Thompson's construction algorithm */
-    override fun toNfa() = nfaForQuantifierOrderNode(this)
 }
 
 /** All the available quantifiers for this simple regex like DSL. */

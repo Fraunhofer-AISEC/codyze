@@ -3,9 +3,6 @@ plugins {
 }
 
 dependencies {
-    // Code Property Graph
-    api(libs.bundles.cpg)
-
     implementation(libs.kotlin.reflect)
 
     implementation(libs.clikt)

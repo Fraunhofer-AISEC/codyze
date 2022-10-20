@@ -9,9 +9,10 @@ includeBuild("../../cpg")  // e.g., "../../cpg"
 
 include("codyze")
 include("codyze-core")
+include(":backends:cpg")
 
 // MARK specification language
-include(":codyze-specification-languages:mark")
+// include(":codyze-specification-languages:mark")
 
 
 // Codyze Kotlin specification language

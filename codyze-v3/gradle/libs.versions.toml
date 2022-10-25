@@ -1,6 +1,6 @@
 [versions]
-kotlin = "1.7.20"
-# gradle-kotlin = "1.5.31"  # TODO: remove in kotlin v1.7.10
+kotlin = "1.7.0"
+gradle-kotlin = "1.5.31"  # TODO: remove in kotlin v1.7.10
 cpg = "4.6.2"
 
 [libraries]
@@ -28,7 +28,7 @@ kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.
 
 # when changing this to a kotlin version != gradle kotlin version, it puts multiple versions of runtime JAR files into the classpath
 # see: https://github.com/Kotlin/dokka/issues/2546 and https://github.com/gradle/gradle/issues/16345
-dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }  # TODO: change back to normal kotlin version
+dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "gradle-kotlin" }  # TODO: change back to normal kotlin version
 sonarqube-gradle = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version = "3.4.0.2513" }
 spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.8.0" }
 license-gradle = { module = "com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin", version = "0.16.1" }

@@ -1,7 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.*
 
 /**
@@ -35,7 +34,6 @@ class Op internal constructor() {
     }
 }
 
-context(EvaluationContext)
 /**
  * Create a [Op].
  *

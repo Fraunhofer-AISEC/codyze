@@ -1,13 +1,13 @@
 @file:Suppress("UNUSED")
-package de.fraunhofer.aisec.codyze.backends.cpg
+package de.fraunhofer.aisec.codyze_backends.cpg
 
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendManager
+import de.fraunhofer.aisec.codyze_core.wrapper.Backend
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 
-open class CPGManager(config: CPGConfiguration): BackendManager {
+open class CPGBackend(config: CPGConfiguration): Backend {
     private val translationManager: TranslationManager
-    override lateinit var cpg: Any
+    override lateinit var graph: Any
 
     init {
         translationManager = TranslationManager.builder()
@@ -53,6 +53,6 @@ open class CPGManager(config: CPGConfiguration): BackendManager {
     }
 
     override fun initialize() {
-        cpg = translationManager.analyze().get()
+        graph = translationManager.analyze().get()
     }
 }

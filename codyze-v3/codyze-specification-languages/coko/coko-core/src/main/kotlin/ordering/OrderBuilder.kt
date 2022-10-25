@@ -2,8 +2,8 @@
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.token
 
 /**
@@ -19,14 +19,14 @@ class Order : OrderBuilder()
 abstract class OrderBuilder : OrderFragment {
     protected val orderNodeDeque = ArrayDeque<OrderNode>()
 
-    context(EvaluationContext)
+    context(CokoBackend)
     /** Add an [OrderToken] to the [orderNodeDeque] */
     operator fun OrderToken.unaryPlus() = this@OrderBuilder.add(this)
 
     /** Add an [OrderFragment] to the [orderNodeDeque] */
     operator fun OrderFragment.unaryPlus() = this@OrderBuilder.add(this)
 
-    context(EvaluationContext)
+    context(CokoBackend)
     private fun add(token: OrderToken) {
         this@OrderBuilder.orderNodeDeque.add(token.token)
     }

@@ -1,8 +1,7 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.order
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.getAllNodes
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
 import io.mockk.mockk
 import kotlin.test.Test
@@ -15,12 +14,13 @@ import kotlin.test.assertFailsWith
  * is converted to a DFA afterwards.
  */
 class OrderSyntaxTreeConstructionTest {
+    context(CokoBackend)
     class TestClass {
-        fun fun1() = {}
-        fun fun2() = {}
+        fun fun1() = op {}
+        fun fun2() = op {}
     }
 
-    context(Project)
+    context(CokoBackend)
     private fun orderExpressionToSyntaxTree(block: Order.() -> Unit): OrderNode {
         val order = Order().apply(block)
         return order.toNode()
@@ -29,7 +29,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     /** Tests an order with a no token at all -> this should error */
     fun `test zero node order`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoBackend>()) {
             assertFailsWith<IllegalArgumentException>(
                 message = "Groups and sets must have at least one element.",
                 block = { orderExpressionToSyntaxTree {} }
@@ -40,7 +40,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     /** Tests an order with an empty group -> this should error */
     fun `test order with empty set`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoBackend>()) {
             assertFailsWith<IllegalArgumentException>(
                 message = "Groups and sets must have at least one element.",
                 block = {
@@ -56,7 +56,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     /** Tests a simple sequence order */
     fun `test simple sequence order`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
                 +TestClass::fun1
                 +TestClass::fun2
@@ -75,7 +75,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     /** Tests a simple alternative order */
     fun `test simple alternative order`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree { +(TestClass::fun1 or TestClass::fun2) }
 
             val expectedSyntaxTree =
@@ -91,7 +91,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     /** Tests an order with a [QuantifierOrderNode] */
     fun `test order with an QuantifierOrderNode`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree { +TestClass::fun1.between(1..4) }
             val expectedSyntaxTree =
                 QuantifierOrderNode(
@@ -107,7 +107,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     /** Tests an order with a group */
     fun `test order with group`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
                 +group {
                         +TestClass::fun1
@@ -140,7 +140,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     /** Tests an order with a set */
     fun `test order with set`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
                 +set {
                     +TestClass::fun1
@@ -167,7 +167,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     /** Tests a complex order */
     fun `test complex order`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
                 +TestClass::fun1.between(1..4)
                 +maybe(TestClass::fun1, TestClass::fun2)

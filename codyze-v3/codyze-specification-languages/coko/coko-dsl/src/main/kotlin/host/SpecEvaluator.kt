@@ -42,10 +42,15 @@ class SpecEvaluator {
                     implementations
                         .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
                         .map { (it, paramInstance) ->
-                            checkNotNull(it.primaryConstructor) {
+                            val primaryConstructor = checkNotNull(it.primaryConstructor) {
                                     "Could not create an instance of ${it.qualifiedName} to pass to rule ${rule.name} because it does not have a primary constructor. Aborting."
                                 }
-                                .call(paramInstance)
+                            // TODO: how do we access primaryConstructor.arity ? -> then we would not need the try..catch
+                            try {
+                                primaryConstructor.call(paramInstance)
+                            } catch (e: IllegalArgumentException) {
+                                primaryConstructor.call()
+                            }
                         }[0]
                 }
             )

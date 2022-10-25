@@ -1,8 +1,9 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.order
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Project
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
+import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
+import de.fraunhofer.aisec.codyze_backends.cpg.coko.ordering.toNfa
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFA
 import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.analysis.fsm.NFA
@@ -23,23 +24,21 @@ import kotlin.test.assertEquals
  */
 class NfaDfaConstructionTest {
     class TestClass {
-        fun create() = {}
-        fun init() = {}
-        fun start() = {}
-        fun process() = {}
-        fun finish() = {}
-        fun reset() = {}
+        fun create() = op {}
+        fun init() = op {}
+        fun start() = op {}
+        fun process() = op {}
+        fun finish() = op {}
+        fun reset() = op {}
     }
 
     private val baseName = "class de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.order.NfaDfaConstructionTest\$TestClass"
 
-    context(Project)
     private fun orderExpressionToNfa(block: Order.() -> Unit): NFA {
         val order = Order().apply(block)
-        return order.toNfa()
+        return order.toNode().toNfa()
     }
 
-    context(Project)
     private fun orderExpressionToDfa(block: Order.() -> Unit) =
         orderExpressionToNfa { block() }.toDfa()
 
@@ -50,7 +49,7 @@ class NfaDfaConstructionTest {
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
     fun `test simple sequence order`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoCpgBackend>()) {
             val nfa = orderExpressionToNfa {
                 +TestClass::create
                 +TestClass::init
@@ -76,7 +75,7 @@ class NfaDfaConstructionTest {
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
     fun `test simple order with branch`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoCpgBackend>()) {
             val nfa = orderExpressionToNfa { +(TestClass::create or TestClass::init) }
 
             val expectedNfa = NFA()
@@ -101,7 +100,7 @@ class NfaDfaConstructionTest {
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
     fun `test simple order with maybe qualifier`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoCpgBackend>()) {
             val nfa = orderExpressionToNfa { +TestClass::create.maybe() }
 
             val expectedNfa = NFA()
@@ -123,7 +122,7 @@ class NfaDfaConstructionTest {
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
     fun `test simple order with option qualifier`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoCpgBackend>()) {
             val nfa = orderExpressionToNfa { +TestClass::create.option() }
 
             val expectedNfa = NFA()
@@ -144,7 +143,7 @@ class NfaDfaConstructionTest {
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
     fun `test complex order with loop`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoCpgBackend>()) {
             // equivalent MARK:
             // order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
             val dfa = orderExpressionToDfa {
@@ -187,7 +186,7 @@ class NfaDfaConstructionTest {
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
     fun `test complex order with branch and loop`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoCpgBackend>()) {
             // equivalent MARK:
             // order cm.init(), (cm.bigStep() | (cm.start(), cm.process()*, cm.finish()))+,
             // cm.reset()?
@@ -237,7 +236,7 @@ class NfaDfaConstructionTest {
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
     fun `test even more complex order with branch and loop`() {
-        with(mockk<Project>()) {
+        with(mockk<CokoCpgBackend>()) {
             // equivalent MARK:
             // order cm.init(), (cm.create() | (cm.start()*, cm.process()*, cm.start()*,
             // cm.finish()))+,

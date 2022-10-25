@@ -1,7 +1,7 @@
-package de.fraunhofer.aisec.codyze.backends.cpg.coko
+package de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Type
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Wildcard
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.ParameterGroup
@@ -14,38 +14,38 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.exists
 
-val EvaluationContext.cpg: TranslationResult
-    get() = this.backend.cpg as TranslationResult
+val CokoBackend.cpg: TranslationResult
+    get() = this.graph as TranslationResult
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */
-fun EvaluationContext.variable(name: String): List<ValueDeclaration> {
-    return (backend.cpg as TranslationResult).allChildren { it.name == name }
+fun CokoBackend.variable(name: String): List<ValueDeclaration> {
+    return (graph as TranslationResult).allChildren { it.name == name }
 }
 
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */
-fun EvaluationContext.call(
+fun CokoBackend.call(
     name: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
-    return (backend.cpg as TranslationResult).calls { it.name == name && predicate(it) }
+    return (graph as TranslationResult).calls { it.name == name && predicate(it) }
 }
 
 /**
  * Returns a list of [CallExpression]s with the matching [fqn] (fully-qualified name) and fulfilling
  * [predicate].
  */
-fun EvaluationContext.callFqn(
+fun CokoBackend.callFqn(
     fqn: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
-    return (backend.cpg as TranslationResult).calls { it.fqn == fqn && predicate(it) }
+    return (graph as TranslationResult).calls { it.fqn == fqn && predicate(it) }
 }
 
 /** Returns a list of [MemberExpression]s with the matching something. */
-fun EvaluationContext.memberExpr(
+fun CokoBackend.memberExpr(
     predicate: (@CokoMarker MemberExpression).() -> Boolean
 ): List<MemberExpression> {
-    return (backend.cpg as TranslationResult).allChildren(predicate)
+    return (graph as TranslationResult).allChildren(predicate)
 }
 
 context(
@@ -71,7 +71,7 @@ infix fun Any.flowsTo(that: Node): Boolean =
     }
 
 context(
-EvaluationContext,
+CokoBackend,
 CallExpression
 ) // this extension function needs Project as a context + it should only be available in the context
 // of a CallExpression
@@ -88,7 +88,7 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
         when (this) {
             is String -> {
                 val thisRegex = Regex(this)
-                (backend.cpg as TranslationResult).exists<Expression>(mustSatisfy = { thisRegex.matches(it.evaluate() as String) })
+                (graph as TranslationResult).exists<Expression>(mustSatisfy = { thisRegex.matches(it.evaluate() as String) })
                     .first
             }
             is Collection<*> -> this.any { it?.flowsTo(that) ?: false }

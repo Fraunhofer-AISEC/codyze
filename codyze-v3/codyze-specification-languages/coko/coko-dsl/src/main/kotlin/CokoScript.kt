@@ -1,6 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Import
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
@@ -33,7 +33,7 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     // performance. Does not seem to break anything
     )
 // the class is used as the script base class, therefore it should be open or abstract
-abstract class CokoScript {
+abstract class CokoScript(backend: CokoBackend): CokoBackend by backend {
     // Configures the plugins used by the project.
     fun plugins(configure: PluginDependenciesSpec.() -> Unit) = Unit
 }
@@ -63,10 +63,6 @@ internal object ProjectScriptCompilationConfiguration :
          */
         compilerOptions("-Xcontext-receivers", "-jvm-target=11", "-Xskip-prerelease-check")
 
-        implicitReceivers(
-            EvaluationContext::class
-        ) // the actual receiver must be passed to the script class in the constructor
-
         // adds implicit import statements (in this case `import
         // de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*`, etc.)
         // to each script on compilation
@@ -85,9 +81,8 @@ internal object ProjectScriptCompilationConfiguration :
                     context.compilationConfiguration
                         .with {
                             defaultImports.append(
-                                "de.fraunhofer.aisec.codyze.specification_languages.coko.coko_extensions.*"
+                                "de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.*"
                             )
-
                             updateClasspath(augmentedClasspath)
                         }
                         .asSuccess()
@@ -107,7 +102,7 @@ internal object ProjectScriptCompilationConfiguration :
     })
 
 private val baseLibraries =
-    arrayOf("coko-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect", "cpg-core")
+    arrayOf("coko-core", "codyze-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect", "cpg-core")
 
 private fun pluginsBlockOrNullFrom(scriptText: String) =
     scriptText.run {
@@ -124,7 +119,7 @@ private fun pluginsBlockOrNullFrom(scriptText: String) =
 private fun resolveClasspathAndGenerateExtensionsFor(pluginsBlock: String?): List<File> {
     println("Generating extensions for $pluginsBlock")
 
-    val baseLibrariesPlusExtensions = arrayOf("coko-extensions", *baseLibraries)
+    val baseLibrariesPlusExtensions = arrayOf("cpg", *baseLibraries)
 
     return scriptCompilationClasspathFromContext(
         *baseLibrariesPlusExtensions,

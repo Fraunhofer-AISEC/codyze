@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.backends.cpg
+package de.fraunhofer.aisec.codyze_backends.cpg
 
 import de.fraunhofer.aisec.codyze_core.config.Configuration
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration

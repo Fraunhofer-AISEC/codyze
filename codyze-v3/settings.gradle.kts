@@ -9,7 +9,7 @@ includeBuild("../../cpg")  // e.g., "../../cpg"
 
 include("codyze")
 include("codyze-core")
-include(":backends:cpg")
+include(":codyze-backends:cpg")
 
 // MARK specification language
 // include(":codyze-specification-languages:mark")

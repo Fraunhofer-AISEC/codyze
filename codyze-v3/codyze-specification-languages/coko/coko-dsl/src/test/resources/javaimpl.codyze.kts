@@ -1,8 +1,6 @@
 @file:Import("model.codyze.kts")
 
-plugins {
-    id("cpg")
-}
+plugins { id("cpg") }
 
 class JavaLogging : Logging {
     override fun log(message: String, vararg args: Any) = op {

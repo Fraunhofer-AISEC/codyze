@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rule
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rule
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import mu.KotlinLogging
@@ -42,10 +42,12 @@ class SpecEvaluator {
                     implementations
                         .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
                         .map { (it, paramInstance) ->
-                            val primaryConstructor = checkNotNull(it.primaryConstructor) {
+                            val primaryConstructor =
+                                checkNotNull(it.primaryConstructor) {
                                     "Could not create an instance of ${it.qualifiedName} to pass to rule ${rule.name} because it does not have a primary constructor. Aborting."
                                 }
-                            // TODO: how do we access primaryConstructor.arity ? -> then we would not need the try..catch
+                            // TODO: how do we access primaryConstructor.arity ? -> then we would
+                            // not need the try..catch
                             try {
                                 primaryConstructor.call(paramInstance)
                             } catch (e: IllegalArgumentException) {

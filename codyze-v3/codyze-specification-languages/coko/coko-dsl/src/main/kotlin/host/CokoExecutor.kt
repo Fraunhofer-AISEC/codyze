@@ -33,7 +33,10 @@ class CokoExecutor : Executor, KoinComponent {
     lateinit var config: ExecutorConfiguration
     lateinit var backend: CokoBackend
 
-    override fun initialize(backendConfiguration: BackendConfiguration, configuration: ExecutorConfiguration) {
+    override fun initialize(
+        backendConfiguration: BackendConfiguration,
+        configuration: ExecutorConfiguration
+    ) {
         this.backendConfiguration = backendConfiguration
         this.config = configuration
 
@@ -47,8 +50,7 @@ class CokoExecutor : Executor, KoinComponent {
     @OptIn(ExperimentalTime::class)
     override fun evaluate(): List<Result> {
         logger.info { "Initializing the backend..." }
-        val backendInitializationDuration: Duration =
-            measureTime { backend.initialize() }
+        val backendInitializationDuration: Duration = measureTime { backend.initialize() }
         logger.debug {
             "Initialized backend in ${backendInitializationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
         }
@@ -56,10 +58,7 @@ class CokoExecutor : Executor, KoinComponent {
         logger.info { "Compiling specification scripts..." }
         val (specEvaluator, specCompilationDuration: Duration) =
             measureTimedValue {
-                compileScriptsIntoSpecEvaluator(
-                    backend = backend,
-                    specFiles = config.spec
-                )
+                compileScriptsIntoSpecEvaluator(backend = backend, specFiles = config.spec)
             }
         logger.debug {
             "Compiled specification scripts in ${specCompilationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
@@ -78,10 +77,9 @@ class CokoExecutor : Executor, KoinComponent {
     }
 
     companion object {
-        /**
-         * Evaluates the given project script [sourceCode] against the given [backend].
-         */
-        fun eval(sourceCode: String, backend: CokoBackend, sharedClassLoader: ClassLoader? = null) = eval(sourceCode.toScriptSource(), backend, sharedClassLoader)
+        /** Evaluates the given project script [sourceCode] against the given [backend]. */
+        fun eval(sourceCode: String, backend: CokoBackend, sharedClassLoader: ClassLoader? = null) =
+            eval(sourceCode.toScriptSource(), backend, sharedClassLoader)
 
         /** Evaluates the given project script [sourceCode] against the given [backend]. */
         fun eval(

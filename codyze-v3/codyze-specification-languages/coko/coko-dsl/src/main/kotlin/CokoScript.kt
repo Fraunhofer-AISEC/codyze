@@ -33,7 +33,7 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     // performance. Does not seem to break anything
     )
 // the class is used as the script base class, therefore it should be open or abstract
-abstract class CokoScript(backend: CokoBackend): CokoBackend by backend {
+abstract class CokoScript(backend: CokoBackend) : CokoBackend by backend {
     // Configures the plugins used by the project.
     fun plugins(configure: PluginDependenciesSpec.() -> Unit) = Unit
 }
@@ -45,9 +45,10 @@ interface PluginDependenciesSpec {
 
 internal object ProjectScriptCompilationConfiguration :
     ScriptCompilationConfiguration({
+        baseClass(CokoScript::class)
         jvm {
             dependenciesFromClassContext( // extract dependencies from the host environment
-                ProjectScriptCompilationConfiguration::class, // use this class classloader for
+                CokoScript::class, // use this class classloader for
                 // dependencies search
                 *baseLibraries, // search these libraries in it and use then as a script compilation
                 // classpath

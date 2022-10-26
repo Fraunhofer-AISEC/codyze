@@ -11,6 +11,7 @@ import org.junit.jupiter.api.io.TempDir
 
 /** Tests whether the basic functionality of [CokoScript] works. */
 class CokoScriptHostTest {
+
     @Test
     fun `test basic type creation`() =
         assertAll({
@@ -20,7 +21,7 @@ class CokoScriptHostTest {
                     fun log(message: String)
                 }
             """.trimIndent(),
-                    mockk()
+                    backend = mockk()
                 )
                 .valueOrThrow()
         })
@@ -45,11 +46,11 @@ class CokoScriptHostTest {
         assertAll({
             CokoExecutor.eval(
                     """
-                // callFqn & flowsTo is a method of an implicit receiver
+                // op & definition is a method of an implicit receiver
                 class TestImpl {
                     fun log(message: String) = 
-                        callFqn("logging.info") {
-                            message flowsTo arguments[0]
+                        op {
+                            definition("") {}
                         }
                 }
             """.trimIndent(),

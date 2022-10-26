@@ -3,18 +3,18 @@ package de.fraunhofer.aisec.codyze
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
-import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze_backends.cpg.CPGBackend
-import de.fraunhofer.aisec.codyze_backends.cpg.CPGOptions
+import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
+import de.fraunhofer.aisec.codyze_backends.cpg.CPGOptionGroup
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze_core.Executor
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.codyze_core.wrapper.Backend
+import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val codyzeModule = module {
-    factory { params -> CPGOptions(params.get()) } bind OptionGroup::class
+    factory { params -> CPGOptionGroup(params.get()) } bind OptionGroup::class
     factory { params ->
         CPGConfiguration(
             source = params[0],

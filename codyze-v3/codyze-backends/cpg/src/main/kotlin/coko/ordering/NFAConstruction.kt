@@ -7,15 +7,16 @@ import de.fraunhofer.aisec.cpg.graph.Node
 import kotlin.jvm.internal.CallableReference
 
 /**
- * Constructs a NFA using Thompson's construction algorithm
- * ([YouTube](https://youtu.be/HLOAwCCYVxE))
+ * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE)
+ * )
  */
-fun OrderNode.toNfa(): NFA = when (this) {
-    is TerminalOrderNode -> nfaForTerminalOrderNode(this)
-    is SequenceOrderNode -> concatenateMultipleNfa(left.toNfa(), right.toNfa())
-    is AlternativeOrderNode -> alternateTwoNfa(left.toNfa(), right.toNfa())
-    is QuantifierOrderNode -> nfaForQuantifierOrderNode(this)
-}
+fun OrderNode.toNfa(): NFA =
+    when (this) {
+        is TerminalOrderNode -> nfaForTerminalOrderNode(this)
+        is SequenceOrderNode -> concatenateMultipleNfa(left.toNfa(), right.toNfa())
+        is AlternativeOrderNode -> alternateTwoNfa(left.toNfa(), right.toNfa())
+        is QuantifierOrderNode -> nfaForQuantifierOrderNode(this)
+    }
 
 /**
  * Construct a NFA for a single node using Thompson's construction algorithm (
@@ -41,18 +42,18 @@ internal fun nfaForTerminalOrderNode(node: TerminalOrderNode): NFA {
     return nfa
 }
 
-//context(OrderBuilder, EvaluationContext)
+// context(OrderBuilder, EvaluationContext)
 //        /**
 //         * Convert a [OrderToken] into a TerminalOrderNode and specify the arguments passed to the
 //         * [OrderToken] when evaluating the order
 //         */
-//fun OrderToken.use(block: () -> Op): OrderFragment = TerminalOrderNode(this) { block().getNodes() }
+// fun OrderToken.use(block: () -> Op): OrderFragment = TerminalOrderNode(this) { block().getNodes()
+// }
 //
-//context(OrderBuilder, Project)
+// context(OrderBuilder, Project)
 //        /** Convert an [OrderToken] into a TerminalOrderNode */
 //        internal val OrderToken.token: TerminalOrderNode
 //    get() = TerminalOrderNode(this) { (this.call() as Op).getAllNodes() }
-
 
 /**
  * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE)

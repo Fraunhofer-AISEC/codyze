@@ -49,7 +49,7 @@ fun CokoBackend.memberExpr(
 }
 
 context(
-CallExpression
+    CallExpression
 ) // this extension function should only be available in the context of a CallExpression
 /**
  * Checks if there's a data flow path from "this" to [that].
@@ -71,8 +71,8 @@ infix fun Any.flowsTo(that: Node): Boolean =
     }
 
 context(
-CokoBackend,
-CallExpression
+    CokoBackend,
+    CallExpression
 ) // this extension function needs Project as a context + it should only be available in the context
 // of a CallExpression
 /**
@@ -88,7 +88,10 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
         when (this) {
             is String -> {
                 val thisRegex = Regex(this)
-                (graph as TranslationResult).exists<Expression>(mustSatisfy = { thisRegex.matches(it.evaluate() as String) })
+                (graph as TranslationResult)
+                    .exists<Expression>(
+                        mustSatisfy = { thisRegex.matches(it.evaluate() as String) }
+                    )
                     .first
             }
             is Collection<*> -> this.any { it?.flowsTo(that) ?: false }
@@ -119,26 +122,26 @@ context(CallExpression)
 fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
     return checkArgsSize(parameters, hasVarargs) &&
-            // checks if the CallExpression matches with the parameters
-            parameters.withIndex().all { (i: Int, parameter: Any?) ->
-                when (parameter) {
-                    // if any parameter is null, signature returns false
-                    null -> false
-                    is Pair<*, *> ->
-                        // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
-                        // if there is dataflow
-                        if (parameter.second is Type)
-                            checkType(parameter.second as Type, i) &&
-                                    parameter.first != null &&
-                                    parameter.first!! flowsTo arguments[i]
-                        else parameter flowsTo arguments[i]
-                    // checks if the type of the argument is the same
-                    is Type -> checkType(parameter, i)
-                    // checks if there is dataflow from the parameter to the argument in the same
-                    // position
-                    else -> parameter flowsTo arguments[i]
-                }
+        // checks if the CallExpression matches with the parameters
+        parameters.withIndex().all { (i: Int, parameter: Any?) ->
+            when (parameter) {
+                // if any parameter is null, signature returns false
+                null -> false
+                is Pair<*, *> ->
+                    // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
+                    // if there is dataflow
+                    if (parameter.second is Type)
+                        checkType(parameter.second as Type, i) &&
+                            parameter.first != null &&
+                            parameter.first!! flowsTo arguments[i]
+                    else parameter flowsTo arguments[i]
+                // checks if the type of the argument is the same
+                is Type -> checkType(parameter, i)
+                // checks if there is dataflow from the parameter to the argument in the same
+                // position
+                else -> parameter flowsTo arguments[i]
             }
+        }
 }
 
 context(CallExpression)

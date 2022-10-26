@@ -14,7 +14,7 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 
 @Suppress("UNUSED")
-class CodyzeOptions(configurationRegister: ConfigurationRegister) :
+class CodyzeOptionGroup(configurationRegister: ConfigurationRegister) :
     OptionGroup(name = "Codyze Options") {
     private val rawSpec: List<Path> by
         option("--spec", help = "Loads the given specification files.")

@@ -13,7 +13,8 @@ context(OrderBuilder, CokoBackend)
  * Convert a [OrderToken] into a TerminalOrderNode and specify the arguments passed to the
  * [OrderToken] when evaluating the order
  */
-fun OrderToken.use(block: () -> Op): OrderFragment = TerminalOrderNode(this) { with(this@CokoBackend) { block().getNodes() } }
+fun OrderToken.use(block: () -> Op): OrderFragment =
+    TerminalOrderNode(this) { with(this@CokoBackend) { block().getNodes() } }
 
 context(OrderBuilder, CokoBackend)
 /** Convert an [OrderToken] into a TerminalOrderNode */
@@ -41,39 +42,39 @@ inline fun group(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block)
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /** Shortcut for creating a group with the [maybe] ('*') qualifier. See [group] */
 inline fun maybe(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).maybe()
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /** Shortcut for creating a group with the [option] ('?') qualifier. See [group] */
 inline fun option(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).option()
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /** Shortcut for creating a group with the [some] ('+') qualifier. See [group] */
 inline fun some(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).some()
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /** Shortcut for creating a group with the [count] qualifier. See [group] */
 inline fun count(
     count: Int,
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).count(count)
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /** Shortcut for creating a group with the [between] qualifier. See [group] */
 inline fun between(
     range: IntRange,
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).between(range)
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /** Shortcut for creating a group with the [atLeast] qualifier. See [group] */
 inline fun atLeast(
     count: Int,
@@ -133,7 +134,7 @@ context(OrderBuilder, CokoBackend)
  */
 val set by lazy { OrderSetGetOperator() }
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /**
  * Add a set to the [Order] containing any valid OrderDsl provided by a lambda (see [group]).
  *
@@ -158,7 +159,7 @@ inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block)
 //
 // quantifiers
 //
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /**
  * Appends an exact quantifier (`{3}`) to the current [OrderFragment].
  *
@@ -177,7 +178,7 @@ context(OrderBuilder, CokoBackend)
 infix fun OrderToken.count(count: Int): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /**
  * Appends a range quantifier (`{1,3}`) to the current [OrderFragment].
  *
@@ -196,7 +197,7 @@ context(OrderBuilder, CokoBackend)
 infix fun OrderToken.between(range: IntRange): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /**
  * Appends a minimum quantifier (`{3,}`) to the current [OrderFragment].
  *
@@ -215,7 +216,7 @@ context(OrderBuilder, CokoBackend)
 infix fun OrderToken.atLeast(min: Int): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /**
  * Appends a [some] quantifier (`+`) to the current [OrderFragment]. The + quantifier is
  * automatically converted into a 'ATLEAST(1)' quantifier.
@@ -236,7 +237,7 @@ context(OrderBuilder, CokoBackend)
 fun OrderToken.some(): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = 1)
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /**
  * Appends a [maybe] quantifier (`*`) to the current [OrderFragment].
  *
@@ -255,7 +256,7 @@ context(OrderBuilder, CokoBackend)
 fun OrderToken.maybe(): OrderFragment =
     QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
 
-context(OrderBuilder, CokoBackend)
+context(OrderBuilder)
 /**
  * Appends an [option] quantifier (`?`) to the current [OrderFragment].
  *

@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze_core.config
 
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.codyze_core.Executor
+import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import java.nio.file.Path
 import mu.KotlinLogging
 
@@ -10,13 +10,12 @@ private val logger = KotlinLogging.logger {}
 /**
  * Holds the whole configuration to run Codyze with
  *
- * To add a new configuration option do the following:
- * 1. add a property to either [Configuration] or [Configuration.CPGConfiguration]
- * 2. add the new property to all factory methods of the [Configuration] class (e.g.,
- * [Configuration.from] or [Configuration.CPGConfiguration.from])
+ * To add a new Codyze configuration option do the following:
+ * 1. add a property to [Configuration]
+ * 2. add the new property to the [Configuration.from] factory method
  * 3. add a new CLI option to one (or all) subcommand(s). It does not matter whether the option is
- * inside an [OptionGroup].
- * 4. make sure to add a '?' for any CLI option that might be [null]. Options that might be [null]
+ * inside an (already existing) OptionGroup.
+ * 4. make sure to add a '?' for any CLI option that might be null. Options that might be null
  * and are not specified as such can cause issues with the map delegate used in the factory methods.
  * 5. after adding the new CLI option, register it at the [ConfigurationRegister]. Only then will it
  * be part of the map returned by [ConfigurationRegister.options] which is used to initialize the

@@ -5,17 +5,16 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluat
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.Order
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.ordering.toNfa
-import de.fraunhofer.aisec.cpg.analysis.fsm.DFA
 import kotlin.reflect.KFunction
 
 context(CokoCpgBackend)
-class OrderEvaluator(val order: Order): Evaluator {
-    private fun findInstancesForEntities(rule: KFunction<*>) {
 
-    }
+class OrderEvaluator(val order: Order) : Evaluator {
+    private fun findInstancesForEntities(rule: KFunction<*>) {}
+
     override fun evaluate(rule: KFunction<*>): EvaluationResult {
         val dfa = order.toNode().toNfa().toDfa()
-        val entities = findInstancesForEntities(rule);
+        val entities = findInstancesForEntities(rule)
 
         dfa.states
         //    if (markInstances.size > 1) {

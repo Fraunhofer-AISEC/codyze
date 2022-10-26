@@ -12,4 +12,5 @@ infix fun Op.follows(that: Op) = this@CokoBackend.evaluateFollows(ifOp = this, t
 
 context(CokoBackend)
 /* Ensures the order of nodes as specified in the user configured [Order] object */
-inline fun order(baseNodes: OrderToken, block: Order.() -> Unit) = this@CokoBackend.evaluateOrder(order = Order().apply(block))
+inline fun order(baseNodes: OrderToken, block: Order.() -> Unit) =
+    this@CokoBackend.evaluateOrder(order = Order().apply(block))

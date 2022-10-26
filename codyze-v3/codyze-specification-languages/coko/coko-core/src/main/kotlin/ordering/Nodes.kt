@@ -15,9 +15,7 @@ data class TerminalOrderNode(
     val correspondingNodes: () -> Nodes = { listOf() }
 ) : OrderNode {
     override fun equals(other: Any?) =
-        if (other is TerminalOrderNode)
-            opReference == other.opReference
-        else false
+        if (other is TerminalOrderNode) opReference == other.opReference else false
     override fun hashCode() = opReference.hashCode()
 }
 

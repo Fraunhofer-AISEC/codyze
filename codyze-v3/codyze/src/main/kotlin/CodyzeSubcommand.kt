@@ -3,7 +3,7 @@ package de.fraunhofer.aisec.codyze
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.options.*
-import de.fraunhofer.aisec.codyze.options.CodyzeOptions
+import de.fraunhofer.aisec.codyze.options.CodyzeOptionGroup
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import java.nio.file.Path
 import org.koin.core.component.KoinComponent
@@ -19,7 +19,7 @@ abstract class CodyzeSubcommand(help: String = "") : CliktCommand(help = help), 
     protected val codyzeConfigurationRegister = ConfigurationRegister()
     protected val backendConfigurationRegister = ConfigurationRegister()
 
-    val codyzeOptions by CodyzeOptions(codyzeConfigurationRegister)
+    val codyzeOptions by CodyzeOptionGroup(codyzeConfigurationRegister)
     val backendOptions by get {
         parametersOf(backendConfigurationRegister)
     } // inject the backend options that were configured in koin

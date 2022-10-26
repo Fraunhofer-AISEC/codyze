@@ -1,13 +1,10 @@
-package de.fraunhofer.aisec.codyze
+package de.fraunhofer.aisec.codyze_backends.cpg
 
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.options.CPGOptions
-import de.fraunhofer.aisec.codyze.options.CodyzeOptions
-import de.fraunhofer.aisec.codyze.options.TranslationOptions
-import de.fraunhofer.aisec.codyze.options.combineSources
-import de.fraunhofer.aisec.codyze_core.Executor
+import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
+import de.fraunhofer.aisec.codyze_core.config.combineSources
 import de.fraunhofer.aisec.cpg.passes.CallResolver
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.FilenameMapper
@@ -26,27 +23,24 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.koin.core.context.startKoin
 
-class OptionGroupTest {
-    class CodyzeOptionsCommand : CliktCommand() {
-        val codyzeOptions by CodyzeOptions()
-        override fun run() {}
-    }
+class CpgOptionGroupTest {
 
     class CPGOptionsCommand : CliktCommand() {
-        val cpgOptions by CPGOptions()
+        private val configurationRegister = ConfigurationRegister()
+
+        val cpgOptions by CPGOptionGroup(configurationRegister)
         override fun run() {}
     }
 
     @ParameterizedTest
     @MethodSource("sourceParamHelper")
     fun resolveSourceTest(argv: Array<String>, expectedSource: List<Path>) {
-        val cli = CodyzeOptionsCommand()
+        val cli = CPGOptionsCommand()
         cli.parse(argv)
 
         val mappedSource =
-            cli.codyzeOptions.source
+            cli.cpgOptions.source
                 .map { p -> p.toString() }
                 .sorted() // the source option should only contain already normalized absolute paths
         val mappedExpectedSource =
@@ -62,118 +56,16 @@ class OptionGroupTest {
     fun combineSourcesTest(expectedSource: List<Path>, vararg sources: List<Path>) {
         val combinedSource = combineSources(*sources)
 
-        val mapppedCombinedSource =
+        val mappedCombinedSource =
             combinedSource.map { p -> p.normalize().absolute().toString() }.sorted()
         val mappedExpectedSource =
             expectedSource.map { p -> p.normalize().absolute().toString() }.sorted()
 
         assertContentEquals(
             mappedExpectedSource.toTypedArray(),
-            mapppedCombinedSource.toTypedArray()
+            mappedCombinedSource.toTypedArray()
         )
     }
-
-    /** Test that all available executors are available as choices */
-    @Test
-    fun executorOptionTest() {
-        val argv: Array<String> =
-            arrayOf(
-                "--source", // source is a required option
-                testDir1.toString(),
-                "--spec",
-                testDir1.toString(),
-                "--executor",
-                "testExecutor" // invalid choice
-            )
-        val cli = CodyzeOptionsCommand()
-
-        val exception: Exception =
-            Assertions.assertThrows(BadParameterValue::class.java) { cli.parse(argv) }
-
-        val expectedMessage =
-            "Invalid value for \"--executor\": invalid choice: testExecutor. (choose from "
-        val actualMessage = exception.message
-
-        assertTrue(actualMessage!!.contains(expectedMessage))
-    }
-
-    /** Test that executor choices are cast correctly */
-    @Test
-    fun executorOptionCastTest() {
-        val argv: Array<String> =
-            arrayOf(
-                "--source", // source is a required option
-                testDir1.toString(),
-                "--spec",
-                testDir1.toString(),
-                "--executor",
-                "MarkExecutor" // valid choice
-            )
-        val cli = CodyzeOptionsCommand()
-        cli.parse(argv)
-
-        assertTrue(cli.codyzeOptions.executor is Executor)
-    }
-
-    /**
-     * Test that all specs are combined correctly.
-     *
-     * This is not tested as thoroughly as with sources because it uses the same code internally.
-     */
-    @Test
-    fun combineSpecTest() {
-        val argv: Array<String> =
-            arrayOf(
-                "--source", // source is a required option
-                testDir1.toString(),
-                "--spec",
-                testDir3Spec.div("same-file-extension").toString()
-            )
-        val cli = CodyzeOptionsCommand()
-        cli.parse(argv)
-
-        val mappedSpec = cli.codyzeOptions.spec.map { it.toString() }.sorted()
-        val expectedSpec =
-            Files.walk(testDir3Spec.div("same-file-extension"))
-                .asSequence()
-                .filter { it.isRegularFile() }
-                .toList()
-                .map { it.toString() }
-                .sorted()
-
-        assertContentEquals(
-            actual = mappedSpec.toTypedArray(),
-            expected = expectedSpec.toTypedArray()
-        )
-    }
-
-    // Disabled for now  because spec file type is not validated by Codyze anymore. The Executors
-    // must filter
-    // the received files by file type
-    //    /**
-    //     * Test that the spec files must have the same file extensions and if not an exception is
-    //     * thrown.
-    //     */
-    //    @Test
-    //    fun mixedSpecTest() {
-    //        val argv: Array<String> =
-    //            arrayOf(
-    //                "--source",
-    //                testDir1.toString(),
-    //                "--spec",
-    //                testDir3Spec.div("mixed-file-extension").toString()
-    //            )
-    //        val cli = CodyzeOptionsCommand()
-    //
-    //        val exception: Exception =
-    //            Assertions.assertThrows(BadParameterValue::class.java) { cli.parse(argv) }
-    //
-    //        val expectedMessage = "Invalid value for \"--spec\":
-    // ${localization.invalidSpecFileType()}"
-    //        val actualMessage = exception.message
-    //
-    //        assertTrue(actualMessage!!.contains(expectedMessage))
-    //    }
 
     @Test
     fun passesTest() {
@@ -187,6 +79,8 @@ class OptionGroupTest {
         val cli = CPGOptionsCommand()
         cli.parse(
             arrayOf(
+                "--source",
+                testDir1.toString(),
                 "--passes",
                 edgeCachePassName,
                 "--passes",
@@ -218,7 +112,6 @@ class OptionGroupTest {
         lateinit var topTestDir: Path
         private lateinit var testDir1: Path
         private lateinit var testDir2: Path
-        private lateinit var testDir3Spec: Path
         private lateinit var testFile1: Path
 
         private lateinit var allFiles: List<Path>
@@ -227,38 +120,29 @@ class OptionGroupTest {
         @BeforeAll
         @JvmStatic
         fun startup() {
-            // starting koin is necessary because some options (e.g., --executor)
-            // dynamically look up available choices for the by options(...).choice() command
-            startKoin { // Initialize the koin dependency injection
-                // declare modules necessary for testing
-                modules(executorModule)
-            }
-
             val topTestDirResource =
-                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory")
+                CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory")
             assertNotNull(topTestDirResource)
             topTestDir = Path(topTestDirResource.path)
             assertNotNull(topTestDir) // TODO: why is this necessary
 
             val testDir1Resource =
-                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir1")
+                CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir1")
             assertNotNull(testDir1Resource)
             testDir1 = Path(testDir1Resource.path)
             assertNotNull(testDir1)
 
             val testDir2Resource =
-                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir2")
+                CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir2")
             assertNotNull(testDir2Resource)
             testDir2 = Path(testDir2Resource.path)
             assertNotNull(testDir2)
 
-            val testDir3SpecResource =
-                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir3-spec")
-            assertNotNull(testDir3SpecResource)
-            testDir3Spec = Path(testDir3SpecResource.path)
-
             val testFile1Resource =
-                OptionGroupTest::class.java.classLoader.getResource("cli-test-directory/file1.java")
+                CpgOptionGroupTest::class
+                    .java
+                    .classLoader
+                    .getResource("cli-test-directory/file1.java")
             assertNotNull(testFile1Resource)
             testFile1 = Path(testFile1Resource.path)
             assertNotNull(testFile1)
@@ -278,8 +162,6 @@ class OptionGroupTest {
                         testFile1.toString(),
                         "--source-additions",
                         testDir2.toString(),
-                        "--spec",
-                        testDir1.toString()
                     ),
                     listOf(
                         testFile1,
@@ -303,8 +185,6 @@ class OptionGroupTest {
                         testDir2.div("dir2dir1").div("dir2dir1file2.java").toString(),
                         "--disabled-source-additions",
                         testDir2.div("dir2dir2").toString(),
-                        "--spec",
-                        testDir1.toString()
                     ),
                     listOf(
                         testDir1.div("dir1file1.java"),
@@ -359,7 +239,7 @@ class OptionGroupTest {
             val passName = Pass::class.qualifiedName
             assertNotNull(passName)
 
-            val translationOptionName = TranslationOptions::class.qualifiedName
+            val translationOptionName = CPGOptionGroup::class.qualifiedName
             assertNotNull(translationOptionName)
 
             return Stream.of(

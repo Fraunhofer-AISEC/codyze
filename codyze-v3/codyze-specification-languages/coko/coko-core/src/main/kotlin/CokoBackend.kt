@@ -1,12 +1,22 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.Order
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.Order
 import de.fraunhofer.aisec.codyze_core.wrapper.Backend
 
 typealias Nodes = Collection<Any>
+
+@DslMarker
+@Target(
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.CLASS,
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.TYPEALIAS,
+    AnnotationTarget.TYPE
+)
+annotation class CokoMarker
 
 @Suppress("UNUSED")
 @CokoMarker
@@ -15,16 +25,16 @@ typealias Nodes = Collection<Any>
  * All the functionality of the DSL are implemented as extension functions on [CokoBackend].
  */
 interface CokoBackend : Backend {
-        /** Get all [Nodes] that are associated with this [Op]. */
-        fun Op.getAllNodes(): Nodes
+    /** Get all [Nodes] that are associated with this [Op]. */
+    fun Op.getAllNodes(): Nodes
 
-        /**
-         * Get all [Nodes] that are associated with this [Op] and fulfill the [Signature]s of the
-         * [Definition]s.
-         */
-        fun Op.getNodes(): Nodes
+    /**
+     * Get all [Nodes] that are associated with this [Op] and fulfill the [Signature]s of the
+     * [Definition]s.
+     */
+    fun Op.getNodes(): Nodes
 
-        fun evaluateOrder(order: Order): Evaluator
+    fun evaluateOrder(order: Order): Evaluator
 
-        fun evaluateFollows(ifOp: Op, thenOp: Op): Evaluator
+    fun evaluateFollows(ifOp: Op, thenOp: Op): Evaluator
 }

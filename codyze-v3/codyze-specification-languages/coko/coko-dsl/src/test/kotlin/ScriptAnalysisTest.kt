@@ -56,11 +56,11 @@ class ScriptAnalysisTest {
         val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
-                // callFqn & flowsTo is a method of an implicit receiver
+                // op & definition are methods of an implicit receiver
                 class TestImpl {
                     fun log(message: String) = 
-                        callFqn("logging.info") {
-                            message flowsTo arguments[0]
+                        op {
+                            definition("logging.info") { }
                         }
                 }
             """.trimIndent()
@@ -157,7 +157,7 @@ class ScriptAnalysisTest {
         modelDefinitionFile.writeText(
             """
                 interface TestConcept {
-                    fun log(message: String): Nodes
+                    fun log(message: String): Op
                 }
             """.trimIndent()
         )
@@ -168,7 +168,9 @@ class ScriptAnalysisTest {
                 @file:Import("${modelDefinitionFile.toAbsolutePath()}")
     
                 class TestImpl: TestConcept {
-                    override fun log(message: String) = variable(message)
+                    override fun log(message: String) = op {
+                        definition("") { }
+                    }
                 }
                 
                 @Rule("Some description")

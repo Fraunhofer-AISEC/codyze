@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.order
+package de.fraunhofer.aisec.codyze_backends.cpg
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
@@ -32,7 +32,8 @@ class NfaDfaConstructionTest {
         fun reset() = op {}
     }
 
-    private val baseName = "class de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.order.NfaDfaConstructionTest\$TestClass"
+    private val baseName =
+        "class de.fraunhofer.aisec.codyze_backends.cpg.NfaDfaConstructionTest\$TestClass"
 
     private fun orderExpressionToNfa(block: Order.() -> Unit): NFA {
         val order = Order().apply(block)

@@ -2,64 +2,65 @@ package de.fraunhofer.aisec.codyze_backends.cpg
 
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendOptions
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import de.fraunhofer.aisec.codyze_core.config.combineSources
+import de.fraunhofer.aisec.codyze_core.wrapper.BackendOptions
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.nio.file.Path
 
 @Suppress("UNUSED")
-class CPGOptions(configurationRegister: ConfigurationRegister) : BackendOptions(name = "CPG Backend Options") {
+class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
+    BackendOptions(name = "CPG Backend Options") {
     private val rawSource: List<Path> by
-    option("-s", "--source", "-ss", help = "Source files or folders to analyze.")
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple(required = true)
+        option("-s", "--source", "-ss", help = "Source files or folders to analyze.")
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple(required = true)
     private val rawSourceAdditions: List<Path> by
-    option(
-        "--source-additions",
-        help =
-        "See --source, but appends the values to the ones specified in configuration file"
-    )
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
+        option(
+                "--source-additions",
+                help =
+                    "See --source, but appends the values to the ones specified in configuration file"
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
     private val rawDisabledSource: List<Path> by
-    option(
-        "--disabled-source",
-        help =
-        "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"
-    )
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
+        option(
+                "--disabled-source",
+                help =
+                    "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
     private val rawDisabledSourceAdditions: List<Path> by
-    option(
-        "--disabled-source-additions",
-        help =
-        "See --disabled-sources, but appends the values to the ones specified in configuration file."
-    )
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
+        option(
+                "--disabled-source-additions",
+                help =
+                    "See --disabled-sources, but appends the values to the ones specified in configuration file."
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
 
     /**
      * Lazy property that combines all given sources from the different options into a list of files
      * to analyze.
      */
     val source: List<Path> by
-    lazy {
-        resolvePaths(
-            source = rawSource,
-            sourceAdditions = rawSourceAdditions,
-            disabledSource = rawDisabledSource,
-            disabledSourceAdditions = rawDisabledSourceAdditions
-        )
-    }
-        .also {
-            configurationRegister.addLazyOption(
-                name = "source",
-                lazyProperty = it,
-                thisRef = this,
-                property = ::source
-            )
-        }
+        lazy {
+                resolvePaths(
+                    source = rawSource,
+                    sourceAdditions = rawSourceAdditions,
+                    disabledSource = rawDisabledSource,
+                    disabledSourceAdditions = rawDisabledSourceAdditions
+                )
+            }
+            .also {
+                configurationRegister.addLazyOption(
+                    name = "source",
+                    lazyProperty = it,
+                    thisRef = this,
+                    property = ::source
+                )
+            }
 
     val useUnityBuild: Boolean by
         option("--unity", help = "Enables unity builds (C++ only) for files in the path.")
@@ -205,134 +206,134 @@ class CPGOptions(configurationRegister: ConfigurationRegister) : BackendOptions(
             }
 
     val loadIncludes: Boolean by
-    option(
-        "--analyze-includes",
-        help =
-        "Enables parsing of include files. By default, if --includes are given,\n" +
-                "the parser will resolve symbols/templates from these include, but\n" +
-                "not load their parse tree. This will enforced to true, if unity\n" +
-                "builds are used."
-    )
-        .flag("--no-analyze-includes", "--disable-analyze-includes", default = false)
-        .also { configurationRegister.addOption("loadIncludes", it) }
+        option(
+                "--analyze-includes",
+                help =
+                    "Enables parsing of include files. By default, if --includes are given,\n" +
+                        "the parser will resolve symbols/templates from these include, but\n" +
+                        "not load their parse tree. This will enforced to true, if unity\n" +
+                        "builds are used."
+            )
+            .flag("--no-analyze-includes", "--disable-analyze-includes", default = false)
+            .also { configurationRegister.addOption("loadIncludes", it) }
 
     private val rawIncludes: List<Path> by
-    option("--includes", help = "Path(s) containing include files.")
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
+        option("--includes", help = "Path(s) containing include files.")
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
     private val rawIncludeAdditions: List<Path> by
-    option(
-        "--include-additions",
-        help =
-        "See --includes, but appends the values to the ones specified in configuration file."
-    )
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
+        option(
+                "--include-additions",
+                help =
+                    "See --includes, but appends the values to the ones specified in configuration file."
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
     private val rawEnabledIncludes: List<Path> by
-    option(
-        "--enabled-includes",
-        help =
-        "If includes is not empty, only the specified files will be parsed and\n" +
-                "processed in the cpg, unless it is a part of the disabled list, in\n" +
-                "which it will be ignored."
-    )
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
-        .validate {
-            if (it.isNotEmpty())
-                require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
-                    "--enabled-includes can only be used when includes are given."
-                }
-        }
+        option(
+                "--enabled-includes",
+                help =
+                    "If includes is not empty, only the specified files will be parsed and\n" +
+                        "processed in the cpg, unless it is a part of the disabled list, in\n" +
+                        "which it will be ignored."
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
+            .validate {
+                if (it.isNotEmpty())
+                    require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                        "--enabled-includes can only be used when includes are given."
+                    }
+            }
     private val rawEnabledIncludesAdditions: List<Path> by
-    option(
-        "--enabled-includes-additions",
-        help =
-        "See --enabled-includes, but appends the values to the ones specified in configuration file."
-    )
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
-        .validate {
-            if (it.isNotEmpty())
-                require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
-                    "--enabled-includes-additions can only be used when includes are given."
-                }
-        }
+        option(
+                "--enabled-includes-additions",
+                help =
+                    "See --enabled-includes, but appends the values to the ones specified in configuration file."
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
+            .validate {
+                if (it.isNotEmpty())
+                    require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                        "--enabled-includes-additions can only be used when includes are given."
+                    }
+            }
     private val rawDisabledIncludes: List<Path> by
-    option(
-        "--disabled-includes",
-        help =
-        "If includes is not empty, the specified files will be excluded from\n" +
-                "being parsed and processed in the cpg. The disabled list entries\n" +
-                "always take priority over the enabled list entries."
-    )
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
-        .validate {
-            if (it.isNotEmpty())
-                require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
-                    "--disabled-includes can only be used when includes are given."
-                }
-        }
+        option(
+                "--disabled-includes",
+                help =
+                    "If includes is not empty, the specified files will be excluded from\n" +
+                        "being parsed and processed in the cpg. The disabled list entries\n" +
+                        "always take priority over the enabled list entries."
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
+            .validate {
+                if (it.isNotEmpty())
+                    require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                        "--disabled-includes can only be used when includes are given."
+                    }
+            }
     private val rawDisabledIncludesAdditions: List<Path> by
-    option(
-        "--disabled-includes-additions",
-        help =
-        "See --disabled-includes, but appends the values to the ones specified in configuration file."
-    )
-        .path(mustExist = true, mustBeReadable = true)
-        .multiple()
-        .validate {
-            if (it.isNotEmpty())
-                require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
-                    "--disabled-includes-additions can only be used when includes are given."
-                }
-        }
+        option(
+                "--disabled-includes-additions",
+                help =
+                    "See --disabled-includes, but appends the values to the ones specified in configuration file."
+            )
+            .path(mustExist = true, mustBeReadable = true)
+            .multiple()
+            .validate {
+                if (it.isNotEmpty())
+                    require(rawIncludes.isNotEmpty() or rawIncludeAdditions.isNotEmpty()) {
+                        "--disabled-includes-additions can only be used when includes are given."
+                    }
+            }
 
     val includePaths: List<Path> by
-    lazy { combineSources(rawIncludes, rawIncludeAdditions).toList() }
-        .also {
-            configurationRegister.addLazyOption(
-                name = "includePaths",
-                lazyProperty = it,
-                thisRef = this,
-                property = ::includePaths
-            )
-        }
+        lazy { combineSources(rawIncludes, rawIncludeAdditions).toList() }
+            .also {
+                configurationRegister.addLazyOption(
+                    name = "includePaths",
+                    lazyProperty = it,
+                    thisRef = this,
+                    property = ::includePaths
+                )
+            }
 
     val includeWhitelist: List<Path> by
-    lazy { combineSources(rawEnabledIncludes, rawEnabledIncludesAdditions).toList() }
-        .also {
-            configurationRegister.addLazyOption(
-                name = "includeWhitelist",
-                lazyProperty = it,
-                thisRef = this,
-                property = ::includeWhitelist
-            )
-        }
+        lazy { combineSources(rawEnabledIncludes, rawEnabledIncludesAdditions).toList() }
+            .also {
+                configurationRegister.addLazyOption(
+                    name = "includeWhitelist",
+                    lazyProperty = it,
+                    thisRef = this,
+                    property = ::includeWhitelist
+                )
+            }
 
     val includeBlacklist: List<Path> by
-    lazy { combineSources(rawDisabledIncludes, rawDisabledIncludesAdditions).toList() }
-        .also {
-            configurationRegister.addLazyOption(
-                name = "includeBlacklist",
-                lazyProperty = it,
-                thisRef = this,
-                property = ::includeBlacklist
-            )
-        }
+        lazy { combineSources(rawDisabledIncludes, rawDisabledIncludesAdditions).toList() }
+            .also {
+                configurationRegister.addLazyOption(
+                    name = "includeBlacklist",
+                    lazyProperty = it,
+                    thisRef = this,
+                    property = ::includeBlacklist
+                )
+            }
 
     val typestate: TypestateMode by
-    option(
-        "--typestate",
-        help =
-        "Typestate analysis mode.\n" +
-                "DFA:  Deterministic finite automaton (faster, intraprocedural)\n" +
-                "WPDS: Weighted pushdown system (slower, interprocedural)"
-    )
-        .enum<TypestateMode>(ignoreCase = true)
-        .default(TypestateMode.DFA)
-        .also { configurationRegister.addOption("typestate", it) }
+        option(
+                "--typestate",
+                help =
+                    "Typestate analysis mode.\n" +
+                        "DFA:  Deterministic finite automaton (faster, intraprocedural)\n" +
+                        "WPDS: Weighted pushdown system (slower, interprocedural)"
+            )
+            .enum<TypestateMode>(ignoreCase = true)
+            .default(TypestateMode.DFA)
+            .also { configurationRegister.addOption("typestate", it) }
 
     private fun resolveSymbols(
         symbols: Map<String, String>,

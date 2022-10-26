@@ -1,10 +1,8 @@
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.order
+package de.fraunhofer.aisec.codyze_backends.cpg
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.Order
-import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
-import de.fraunhofer.aisec.codyze_backends.cpg.TypestateMode
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -20,7 +18,7 @@ import kotlin.test.assertFalse
  */
 class OrderEvaluationTest {
     class CokoOrderImpl {
-        fun getOrderNodes() = op {  }
+        fun getOrderNodes() = op {}
         fun init() = op { +definition("Botan.set_key") { +signature(Wildcard) } }
         fun start() = op { +definition("Botan.start") { +signature(Wildcard) } }
         fun finish() = op { +definition("Botan.finish") { +signature(Wildcard) } }
@@ -34,8 +32,10 @@ class OrderEvaluationTest {
         +testObj::finish
     }
 
-    // function with the same signature as the 'rule' [createSimpleDfa] because the kotlin compiler crashes
-    // when trying to create a function reference to [createSimpleDfa] using: '::createSimpleOrder' (probably because
+    // function with the same signature as the 'rule' [createSimpleDfa] because the kotlin compiler
+    // crashes
+    // when trying to create a function reference to [createSimpleDfa] using: '::createSimpleOrder'
+    // (probably because
     // of the context receiver)
     // this is needed as an argument to [evaluateOrder]
     private fun dummyFunction(testObj: CokoOrderImpl): Order = TODO()
@@ -72,7 +72,7 @@ class OrderEvaluationTest {
         // mocking doesn't work here. We need an actual Project instance
         val sourceFile = getPath("order.java")
         val backend = CokoCpgBackend(config = createCpgConfiguration(sourceFile))
-        backend.initialize()  // Initialize the CPG, based on the given Configuration
+        backend.initialize() // Initialize the CPG, based on the given Configuration
 
         with(backend) {
             val order = createSimpleOrder(CokoOrderImpl())

@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.codyze_core
 
-import de.fraunhofer.aisec.codyze_core.config.Configuration
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result

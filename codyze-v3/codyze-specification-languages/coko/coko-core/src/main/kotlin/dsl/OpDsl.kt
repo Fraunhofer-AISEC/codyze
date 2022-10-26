@@ -70,7 +70,6 @@ class Op internal constructor() {
  */
 fun op(block: Op.() -> Unit) = Op().apply(block)
 
-context(Op)
 /**
  * Create a [Definition] which can be added to the [Op].
  *
@@ -84,16 +83,15 @@ context(Op)
  * @param fqn the fully qualified name of the function this [Definition] is representing
  * @param block defines the [Signature]s of this [Definition]
  */
-inline fun definition(fqn: String, block: Definition.() -> Unit) = Definition(fqn).apply(block)
+inline fun Op.definition(fqn: String, block: Definition.() -> Unit) = Definition(fqn).apply(block)
 
-context(Definition)
 /**
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are defined in the
  * [block].
  *
  * @param unordered are all [Parameter]s for which the order is irrelevant and that only need to
  */
-inline fun signature(unordered: Array<out Parameter> = emptyArray(), block: Signature.() -> Unit) =
+inline fun Definition.signature(unordered: Array<out Parameter> = emptyArray(), block: Signature.() -> Unit) =
     Signature().apply(block).apply { unorderedParameters.addAll(unordered) }
 
 context(Definition)
@@ -103,9 +101,8 @@ context(Definition)
  */
 fun signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
 
-context(Signature)
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
-inline fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
+inline fun Signature.group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
 
 context(Definition)
 /** Add unordered [Parameter]s to the [Signature]. */

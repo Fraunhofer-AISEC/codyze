@@ -19,7 +19,7 @@ val CokoBackend.cpg: TranslationResult
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */
 fun CokoBackend.variable(name: String): List<ValueDeclaration> {
-    return (graph as TranslationResult).allChildren { it.name == name }
+    return cpg.allChildren { it.name == name }
 }
 
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */
@@ -27,7 +27,7 @@ fun CokoBackend.call(
     name: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
-    return (graph as TranslationResult).calls { it.name == name && predicate(it) }
+    return cpg.calls { it.name == name && predicate(it) }
 }
 
 /**
@@ -38,14 +38,14 @@ fun CokoBackend.callFqn(
     fqn: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
-    return (graph as TranslationResult).calls { it.fqn == fqn && predicate(it) }
+    return cpg.calls { it.fqn == fqn && predicate(it) }
 }
 
 /** Returns a list of [MemberExpression]s with the matching something. */
 fun CokoBackend.memberExpr(
     predicate: (@CokoMarker MemberExpression).() -> Boolean
 ): List<MemberExpression> {
-    return (graph as TranslationResult).allChildren(predicate)
+    return cpg.allChildren(predicate)
 }
 
 context(

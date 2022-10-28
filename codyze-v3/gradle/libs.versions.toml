@@ -1,29 +1,29 @@
 [versions]
-kotlin = "1.7.10"
-cpg = "4.6.2"
+kotlin = "1.7.20"
+cpg = "4.6.3"
 
 [libraries]
 sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.0.1"}
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.4.0"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.4.1"}
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
 cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
-kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "2.1.23"}
+kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "3.0.2"}
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version = "2.18.0"}
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.0"}
-koin = { module = "io.insert-koin:koin-core", version = "3.2.0"}
-koin-test = { module = "io.insert-koin:koin-test", version = "3.2.0"}
-koin-junit5 = { module = "io.insert-koin:koin-test-junit5", version = "3.2.0"}
+koin = { module = "io.insert-koin:koin-core", version = "3.2.2"}
+koin-test = { module = "io.insert-koin:koin-test", version = "3.2.2"}
+koin-junit5 = { module = "io.insert-koin:koin-test-junit5", version = "3.2.2"}
 
 # test
-junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.9.0"}
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.9.1"}
 
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 
 dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }
 sonarqube-gradle = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version = "3.4.0.2513" }
-spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.10.0" }
+spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.11.0" }
 license-gradle = { module = "com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin", version = "0.16.1" }
 
 [bundles]
@@ -33,5 +33,5 @@ cpg = ["cpg-core", "cpg-analysis"]
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
 dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
 sonarqube = { id = "org.sonarqube", version = "3.4.0.2513" }
-spotless = { id = "com.diffplug.spotless", version = "6.10.0" }
+spotless = { id = "com.diffplug.spotless", version = "6.11.0" }
 license = { id = "com.github.hierynomus.license", version = "0.16.1" }

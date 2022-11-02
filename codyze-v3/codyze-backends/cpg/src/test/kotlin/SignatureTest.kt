@@ -1,6 +1,8 @@
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
+package de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Type
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import io.mockk.*
 import org.junit.jupiter.api.AfterEach
@@ -82,7 +84,7 @@ class SignatureTest {
         every { node.arguments } returns listOf(pairArgument)
         every { pairArgument.value } returns (1 to "one")
 
-        mockkStatic("de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.ImplementationDslKt")
+        mockkStatic("de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.ImplementationDslKt")
         every { with(node) { param.flowsTo(pairArgument) } } returns true
 
         // tests that with normal pair only flowsTo is called
@@ -91,18 +93,36 @@ class SignatureTest {
     }
 
     @Test
-    fun `test signature with String`() {
+    fun `test signature with single param`() {
+        val param = "test"
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.value } returns "test"
 
-        assertTrue { with(node) { signature("test") } }
+        mockkStatic("de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.ImplementationDslKt")
+        every { with(node) { param.flowsTo(stringArgument) } } returns true
+
+        // assert that signature checks the dataflow from the parameter to the argument
+        with(node) { signature(param) }
+        verify { with(node) { param.flowsTo(stringArgument) } }
     }
 
     @Test
-    fun `test signature with Wildcard`() {
-        every { node.arguments } returns listOf(stringArgument)
+    fun `test signature with multiple params`() {
+        val params = arrayOf("test", 1, mockk<CallExpression>(), listOf(1,2,5), Any())
+        val args = arrayListOf<Expression>()
+        mockkStatic("de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.ImplementationDslKt")
+        for(p in params) {
+            val a = mockk<Literal<String>>()
+            args.add(a)
+            every { a.value } returns "test"
+            every { with(node) { p.flowsTo(a) } } returns true
+        }
+        every { node.arguments } returns args
 
-        assertTrue { with(node) { signature(Wildcard) } }
+        // assert that signature checks the dataflow from the parameter to the argument at the same position
+        with(node) { signature(*params) }
+        for(i in args.indices)
+            verify { with(node) { params[i].flowsTo(args[i]) } }
     }
     //TODO hasVarargs
 

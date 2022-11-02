@@ -13,7 +13,7 @@ plugins {
 
     id("org.jsonschema2dataclass") version "4.5.0"
 
-    id("org.sonarqube") version "3.4.0.2513"
+    id("org.sonarqube") version "3.5.0.2730"
     id("com.diffplug.spotless") version "6.11.0"
     id("com.github.hierynomus.license") version "0.16.1"
 

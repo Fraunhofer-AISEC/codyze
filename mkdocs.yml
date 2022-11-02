@@ -12,7 +12,11 @@ repo_url: https://github.com/Fraunhofer-AISEC/codyze
 edit_uri: edit/main/docs/
 
 # Copyright
-copyright: © 2022 Fraunhofer AISEC All Rights Reserved, <a href="https://www.aisec.fraunhofer.de/en/data_protection.html">Privacy Policy</a>
+copyright: >
+  <p>
+    <a href="https://www.aisec.fraunhofer.de/en/data_protection.html">Privacy Policy</a>, <a href="#__consent">Change cookie settings</a>
+  </p>
+  Copyright &copy; 2022 Fraunhofer AISEC
 
 # Configuration
 theme:
@@ -58,6 +62,8 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  
+  font: false
 
 extra_css:
   - stylesheets/extra.css
@@ -85,6 +91,21 @@ extra:
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/FraunhoferAISEC
       name: Follow Fraunhofer AISEC on Twitter.
+
+  consent:
+    title: Consent
+    description: >-
+      We use external services to enrich information presented on our website. This information is not essential 
+      for the operation of this website. You can opt-in, if you want to see additional information. Your choice 
+      will be saved in a cookie.
+    actions:
+      - reject
+      - accept
+      - manage
+    cookies:
+      github:
+        name: GitHub
+        checked: false
 
 # Extensions
 markdown_extensions:

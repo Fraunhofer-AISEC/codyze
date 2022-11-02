@@ -26,7 +26,7 @@ plugins {
 // Allow access to Dokka configuration for custom assets and stylesheets
 buildscript {
     dependencies {
-        classpath("org.jetbrains.dokka:dokka-base:1.7.10")
+        classpath("org.jetbrains.dokka:dokka-base:1.7.20")
     }
 }
 

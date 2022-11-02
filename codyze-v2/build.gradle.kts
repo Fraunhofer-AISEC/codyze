@@ -138,8 +138,8 @@ dependencies {
     implementation("org.python:jython-standalone:2.7.3") // ok
 
     // Command line interface support
-    api("info.picocli:picocli:4.6.3") // e.g., exposed by de.fraunhofer.aisec.codyze.ManifestVersionProvider
-    annotationProcessor("info.picocli:picocli-codegen:4.6.3")
+    api("info.picocli:picocli:4.7.0") // e.g., exposed by de.fraunhofer.aisec.codyze.ManifestVersionProvider
+    annotationProcessor("info.picocli:picocli-codegen:4.7.0")
 
     // Reflections for OverflowDB and registering Crymlin built-ins
     implementation("org.reflections:reflections:0.10.2")

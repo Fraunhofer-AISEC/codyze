@@ -1,8 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import io.mockk.mockk
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -141,7 +139,7 @@ class OpComponentsTest {
 
     companion object {
         val singleParam = arrayListOf<Parameter>("test")
-        val multipleParams =  arrayListOf<Parameter>("test", emptyList<Parameter>(), Type("fqn"), arrayOf(1,2), Literal<Int>(), mockk<CallExpression>())
+        val multipleParams =  arrayListOf<Parameter>("test", emptyList<Parameter>(), Type("fqn"), arrayOf(1,2))
 
         @JvmStatic
         private fun unaryPlusParamHelper(): Stream<Arguments> {

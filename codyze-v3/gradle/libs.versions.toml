@@ -3,7 +3,7 @@ kotlin = "1.7.20"
 cpg = "4.6.3"
 
 [libraries]
-sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.0.1"}
+sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.2.0"}
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.4.1"}
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}

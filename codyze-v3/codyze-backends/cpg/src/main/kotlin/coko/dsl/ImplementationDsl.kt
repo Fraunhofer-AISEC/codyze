@@ -63,10 +63,11 @@ infix fun Any.flowsTo(that: Node): Boolean =
     } else {
         when (this) {
             is String -> Regex(this).matches((that as? Expression)?.evaluate()?.toString() ?: "")
-            is Collection<*> -> this.any { it?.flowsTo(that) ?: false }
+            is Iterable<*> -> this.any { it?.flowsTo(that) ?: false }
+            is Array<*> -> this.any { it?.flowsTo(that) ?: false }
             is Node -> dataFlow(this, that).value
             is ParameterGroup -> this.parameters.all { it?.flowsTo(that) ?: false }
-            else -> false
+            else -> this == (that as? Expression)?.evaluate()
         }
     }
 
@@ -94,7 +95,8 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
                     )
                     .first
             }
-            is Collection<*> -> this.any { it?.flowsTo(that) ?: false }
+            is Iterable<*> -> this.any { it?.flowsTo(that) ?: false }
+            is Array<*> -> this.any { it?.flowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
             is ParameterGroup -> this.parameters.all { it?.flowsTo(that) ?: false }
             else -> this in that.map { (it as Expression).evaluate() }

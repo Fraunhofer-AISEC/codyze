@@ -145,7 +145,7 @@ dependencies {
     implementation("org.reflections:reflections:0.10.2")
 
     // Parser for yaml configuration file
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.0")
 
     // Unit tests
     testImplementation(kotlin("test"))

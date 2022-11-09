@@ -11,6 +11,7 @@ import de.fraunhofer.aisec.codyze_backends.cpg.CPGBackend
 import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.*
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.FollowsEvaluator
+import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.OnlyEvaluator
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.OrderEvaluator
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 
@@ -41,4 +42,6 @@ class CokoCpgBackend(config: BackendConfiguration) :
 
     override fun evaluateFollows(ifOp: Op, thenOp: Op): Evaluator =
         FollowsEvaluator(ifOp = ifOp, thenOp = thenOp)
+
+    override fun evaluateOnly(ops: List<Op>): Evaluator = OnlyEvaluator(ops)
 }

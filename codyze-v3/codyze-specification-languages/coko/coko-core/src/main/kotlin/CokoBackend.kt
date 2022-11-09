@@ -37,4 +37,6 @@ interface CokoBackend : Backend {
     fun evaluateOrder(order: Order): Evaluator
 
     fun evaluateFollows(ifOp: Op, thenOp: Op): Evaluator
+
+    fun evaluateOnly(ops: List<Op>): Evaluator
 }

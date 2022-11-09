@@ -14,3 +14,7 @@ context(CokoBackend)
 /* Ensures the order of nodes as specified in the user configured [Order] object */
 inline fun order(baseNodes: OrderToken, block: Order.() -> Unit) =
     this@CokoBackend.evaluateOrder(order = Order().apply(block))
+
+context(CokoBackend)
+/** Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops] */
+fun only(vararg ops: Op) = this@CokoBackend.evaluateOnly(ops.toList())

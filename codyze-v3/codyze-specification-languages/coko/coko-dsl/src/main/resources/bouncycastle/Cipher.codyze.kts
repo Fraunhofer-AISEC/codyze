@@ -3,7 +3,7 @@ interface Concept {}
 interface Cipher : Concept {
     // to 'group' functions, we can use optional parameters and let the implementation kts file deal
     // with all the different signatures
-    fun instantiate(transform: Any, provider: Any? = null): Nodes
+    fun instantiate(transform: Any, provider: Any? = null): Op
     fun init(
         opmode: Any,
         certificate: Any? = null,
@@ -11,10 +11,10 @@ interface Cipher : Concept {
         key: Any? = null,
         params: Any? = null,
         paramspec: Any? = null,
-    ): Nodes
-    fun aad(src: Any, vararg args: Any): Nodes
-    fun update(input: Any, output: Any? = null, vararg args: Any): Nodes
-    fun finalize(input: Any? = null, output: Any? = null, vararg args: Any): Nodes
+    ): Op
+    fun aad(src: Any, vararg args: Any): Op
+    fun update(input: Any, output: Any? = null, vararg args: Any): Op
+    fun finalize(input: Any? = null, output: Any? = null, vararg args: Any): Op
 }
 
 // @Rule("")

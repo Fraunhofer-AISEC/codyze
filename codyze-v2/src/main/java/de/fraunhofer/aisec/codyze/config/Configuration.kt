@@ -489,6 +489,10 @@ class Configuration {
     fun setCpgConfiguration(cpg: CpgConfiguration) {
         this.cpg = cpg
     }
+
+    override fun toString(): String {
+        return YAMLMapper().writeValueAsString(this)
+    }
 }
 
 /**

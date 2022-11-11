@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Type
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Wildcard
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.ParameterGroup
@@ -111,7 +112,7 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
         }
     }
 
-context(CallExpression)
+context(CallExpression, CokoBackend)
 // TODO: better description
 // TODO: in mark there is "..." to symbolize that the last arguments don't matter
 // TODO: how to model return value assignments
@@ -144,6 +145,7 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
                             parameter.first!! flowsTo arguments[i]
                     else parameter flowsTo arguments[i]
                 is Type -> checkType(parameter, i) // checks if the type of the argument is the same
+                is Op -> parameter.getNodes() flowsTo arguments[i] // check if any of the Nodes from the Op flow to the argument
                 else -> parameter flowsTo arguments[i] // checks if there is dataflow from the parameter to the argument in the same position
             }
         }

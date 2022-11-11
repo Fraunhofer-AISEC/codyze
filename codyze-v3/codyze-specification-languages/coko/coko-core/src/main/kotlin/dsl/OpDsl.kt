@@ -149,6 +149,10 @@ context(Signature)
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
 inline fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
 
+context(Signature)
+/** Create a [ParameterGroup] which can be added to the [Signature]. */
+fun group(vararg parameters: Parameter) = group { parameters.forEach { +it } }
+
 context(Definition)
 /** Add unordered [Parameter]s to the [Signature]. */
 fun Signature.unordered(vararg unordered: Parameter) = this.apply { unorderedParameters.addAll(unordered) }

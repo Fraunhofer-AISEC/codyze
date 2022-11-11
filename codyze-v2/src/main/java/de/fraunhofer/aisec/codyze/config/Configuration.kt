@@ -473,6 +473,22 @@ class Configuration {
             else ""
         }
     }
+
+    fun getCodyzeConfiguration(): CodyzeConfiguration {
+        return codyze
+    }
+
+    fun setCodyzeConfiguration(codyze: CodyzeConfiguration) {
+        this.codyze = codyze
+    }
+
+    fun getCpgConfiguration(): CpgConfiguration {
+        return cpg
+    }
+
+    fun setCpgConfiguration(cpg: CpgConfiguration) {
+        this.cpg = cpg
+    }
 }
 
 /**

@@ -132,7 +132,7 @@ dependencies {
     api("de.breakpointsec:pushdown:1.1") // e.g., exposed in de.fraunhofer.aisec.codyze.analysis.wpds
 
     // LSP interface support
-    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.17.0") // e.g., exposed in de.fraunhofer.aisec.codyze.crymlin.connectors.lsp
+    api("org.eclipse.lsp4j:org.eclipse.lsp4j:0.18.0") // e.g., exposed in de.fraunhofer.aisec.codyze.crymlin.connectors.lsp
 
     // Interactive console interface support using Jython (Scripting engine)
     implementation("org.python:jython-standalone:2.7.3") // ok

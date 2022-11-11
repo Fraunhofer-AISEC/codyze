@@ -39,17 +39,27 @@ open class CPGBackend(config: CPGConfiguration) : Backend {
 
         includePaths.forEach { translationConfiguration.includePath(it.toString()) }
         includeWhitelist.forEach { translationConfiguration.includeWhitelist(it.toString()) }
-        includeBlacklist.forEach { translationConfiguration.includeBlacklist(it.toString()) }
+        includeBlocklist.forEach { translationConfiguration.includeBlocklist(it.toString()) }
 
         if (disableCleanup) translationConfiguration.disableCleanup()
 
         if (defaultPasses) translationConfiguration.defaultPasses()
         passes.forEach { translationConfiguration.registerPass(it) }
 
-        additionalLanguages.forEach {
-            val (clazz, types) = it
-            translationConfiguration.registerLanguage(clazz, types)
-        }
+        translationConfiguration.optionalLanguage(
+            "de.fraunhofer.aisec.cpg.frontends.python.PythonLanguage"
+        )
+        translationConfiguration.optionalLanguage(
+            "de.fraunhofer.aisec.cpg.frontends.golang.GoLanguage"
+        )
+        translationConfiguration.optionalLanguage(
+            "de.fraunhofer.aisec.cpg.frontends.llvm.LLVMIRLanguage"
+        )
+        translationConfiguration.optionalLanguage(
+            "de.fraunhofer.aisec.cpg.frontends.typescript.TypeScriptLanguage"
+        )
+
+        additionalLanguages.forEach { translationConfiguration.registerLanguage(it) }
 
         return translationConfiguration.build()
     }

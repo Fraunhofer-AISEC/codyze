@@ -148,14 +148,12 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
             )
             .also { configurationRegister.addOption("defaultPasses", it) }
 
-    val additionalLanguages: Set<Language> by
+    val additionalLanguage: Set<String> by
         option(
-                "--additional-languages",
+                "--additional-language",
                 help =
-                    "Enables the experimental support for additional languages (${Language.values().joinToString(", ")}). " +
-                        "Additional files need to be placed in certain locations. Please follow the CPG README."
+                    "Add an additional language frontend by its fully qualified class name (FQN). You must make sure that the class is available on the class path."
             )
-            .enum<Language>(ignoreCase = true)
             .multiple()
             .unique()
             .also { configurationRegister.addOption("additionalLanguages", it) }
@@ -312,14 +310,14 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
                 )
             }
 
-    val includeBlacklist: List<Path> by
+    val includeBlocklist: List<Path> by
         lazy { combineSources(rawDisabledIncludes, rawDisabledIncludesAdditions).toList() }
             .also {
                 configurationRegister.addLazyOption(
-                    name = "includeBlacklist",
+                    name = "includeBlocklist",
                     lazyProperty = it,
                     thisRef = this,
-                    property = ::includeBlacklist
+                    property = ::includeBlocklist
                 )
             }
 

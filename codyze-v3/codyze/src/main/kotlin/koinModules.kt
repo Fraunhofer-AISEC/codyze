@@ -34,7 +34,7 @@ val codyzeModule = module {
             loadIncludes = params[14],
             includePaths = params[15],
             includeWhitelist = params[16],
-            includeBlacklist = params[17],
+            includeBlocklist = params[17],
             typestate = params[18]
         )
     } bind BackendConfiguration::class

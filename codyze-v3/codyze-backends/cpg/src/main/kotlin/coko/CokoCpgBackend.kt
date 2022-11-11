@@ -22,36 +22,39 @@ class CokoCpgBackend(config: BackendConfiguration) :
 
     /** Get all [Nodes] that are associated with this [Op]. */
     override fun Op.getAllNodes(): Nodes =
-        when(this@Op) {
-            is FunctionOp -> this@Op.definitions.map { def -> this@CokoCpgBackend.callFqn(def.fqn) }.flatten()
+        when (this@Op) {
+            is FunctionOp ->
+                this@Op.definitions.map { def -> this@CokoCpgBackend.callFqn(def.fqn) }.flatten()
             is ConstructorOp -> this@CokoCpgBackend.constructor(this.classFqn)
         }
-
 
     /**
      * Get all [Nodes] that are associated with this [Op] and fulfill the [Signature]s of the
      * [Definition]s.
      */
     override fun Op.getNodes(): Nodes =
-        when(this@Op) {
-            is FunctionOp -> this@Op.definitions
-                .map { def ->
-                    this@CokoCpgBackend.callFqn(def.fqn) {
-                        def.signatures.any { sig ->
+        when (this@Op) {
+            is FunctionOp ->
+                this@Op.definitions
+                    .map { def ->
+                        this@CokoCpgBackend.callFqn(def.fqn) {
+                            def.signatures.any { sig ->
                                 signature(*sig.parameters.toTypedArray()) &&
-                                        sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                                    sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                            }
                         }
                     }
-                }.flatten()
-            is ConstructorOp -> this@Op.signatures
-                .map { sig ->
-                    this@CokoCpgBackend.constructor(this@Op.classFqn) {
-                        signature(*sig.parameters.toTypedArray()) &&
+                    .flatten()
+            is ConstructorOp ->
+                this@Op.signatures
+                    .map { sig ->
+                        this@CokoCpgBackend.constructor(this@Op.classFqn) {
+                            signature(*sig.parameters.toTypedArray()) &&
                                 sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                        }
                     }
-                }.flatten()
+                    .flatten()
         }
-
 
     override fun evaluateOrder(order: Order): Evaluator = OrderEvaluator(order)
 

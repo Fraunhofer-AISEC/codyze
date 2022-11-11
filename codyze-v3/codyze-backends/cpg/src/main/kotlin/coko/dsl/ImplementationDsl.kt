@@ -28,7 +28,9 @@ fun CokoBackend.constructor(
     classFqn: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<ConstructExpression> {
-    return cpg.calls.filterIsInstance<ConstructExpression>().filter { it.type.typeName == classFqn && predicate(it) }
+    return cpg.calls.filterIsInstance<ConstructExpression>().filter {
+        it.type.typeName == classFqn && predicate(it)
+    }
 }
 
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */
@@ -139,14 +141,24 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
                 // if any parameter is null, signature returns false
                 null -> false
                 is Pair<*, *> ->
-                    if (parameter.second is Type) // if `parameter` is a `Pair<Any,Type>` object we want to check the type and if there is dataflow
-                        checkType(parameter.second as Type, i) &&
+                    if (
+                        parameter.second is Type
+                    ) // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
+                    // if there is dataflow
+                    checkType(parameter.second as Type, i) &&
                             parameter.first != null &&
                             parameter.first!! flowsTo arguments[i]
                     else parameter flowsTo arguments[i]
                 is Type -> checkType(parameter, i) // checks if the type of the argument is the same
-                is Op -> parameter.getNodes() flowsTo arguments[i] // check if any of the Nodes from the Op flow to the argument
-                else -> parameter flowsTo arguments[i] // checks if there is dataflow from the parameter to the argument in the same position
+                is Op ->
+                    parameter.getNodes() flowsTo
+                        arguments[i] // check if any of the Nodes from the Op flow to the argument
+                else ->
+                    parameter flowsTo
+                        arguments[
+                            i
+                        ] // checks if there is dataflow from the parameter to the argument in the
+            // same position
             }
         }
 }

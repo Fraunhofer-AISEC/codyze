@@ -15,8 +15,8 @@ private val logger = KotlinLogging.logger {}
  * 2. add the new property to the [Configuration.from] factory method
  * 3. add a new CLI option to one (or all) subcommand(s). It does not matter whether the option is
  * inside an (already existing) OptionGroup.
- * 4. make sure to add a '?' for any CLI option that might be null. Options that might be null
- * and are not specified as such can cause issues with the map delegate used in the factory methods.
+ * 4. make sure to add a '?' for any CLI option that might be null. Options that might be null and
+ * are not specified as such can cause issues with the map delegate used in the factory methods.
  * 5. after adding the new CLI option, register it at the [ConfigurationRegister]. Only then will it
  * be part of the map returned by [ConfigurationRegister.options] which is used to initialize the
  * [Configuration] object

@@ -49,7 +49,16 @@ class OpComponentsTest {
         }
     }
 
-    // TODO: test unordered
+    @Test
+    fun `test signature with unordered`() {
+        with(mockk<Definition>()) {
+            // TODO: which version do we keep or all?
+            val unordered = signature().unordered(*multipleParams.toTypedArray())
+
+            val expectedSig = Signature().apply { unorderedParameters.addAll(multipleParams) }
+            assertEquals(expectedSig, unordered)
+        }
+    }
 
     @Test
     fun `test signature with group`() {
@@ -87,9 +96,7 @@ class OpComponentsTest {
                     grouped.forEach {+it}
                 }
                 ordered.forEach { +it }
-            }.unordered {
-                unordered.forEach { +it }
-            }
+            }.unordered(*unordered.toTypedArray())
 
             val expectedSig = Signature().apply {
                 parameters.add(singleParam)

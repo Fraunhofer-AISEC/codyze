@@ -3,26 +3,35 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.*
 
+sealed interface Op
+
 /**
  * Represents a group of functions that serve the same purpose in the API.
+ *
+ * Two [Op]s will be considered equal if they have the same [definitions].
+ * This means that structure of the [Op]s have to be equal as well as the [Definition.fqn]s but not the actual [Parameter]s that are stored in the [Signature]s.
  *
  * @property definitions stores all definitions for the different functions
  */
 // `Op` is defined here with an internal constructor because we only want the user to use the `op`
 // function to make an `Op` object
 @CokoMarker
-class Op internal constructor() {
+class FunctionOp internal constructor(): Op {
     val definitions = arrayListOf<Definition>()
 
     operator fun Definition.unaryPlus() {
-        this@Op.definitions.add(this)
+        this@FunctionOp.definitions.add(this)
     }
 
+    /**
+     * Two [Op]s will be considered equal if they have the same [definitions].
+     * This means that structure of the [Op]s have to be equal as well as the [Definition.fqn]s but not the actual [Parameter]s that are stored in the [Signature]s.
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Op
+        other as FunctionOp
 
         if (definitions != other.definitions) return false
 
@@ -35,7 +44,35 @@ class Op internal constructor() {
 }
 
 /**
- * Create a [Op].
+ * Represents the constructor of a class.
+ *
+ * @property signatures stores all different signatures of the constructor.
+ */
+class ConstructorOp internal constructor(val classFqn: String): Op {
+    val signatures = arrayListOf<Signature>()
+
+    operator fun Signature.unaryPlus() {
+        this@ConstructorOp.signatures.add(this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ConstructorOp) return false
+
+        if (signatures != other.signatures) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return signatures.hashCode()
+    }
+
+
+}
+
+/**
+ * Create a [FunctionOp].
  *
  * A full example:
  * ```kt
@@ -68,9 +105,14 @@ class Op internal constructor() {
  *
  * @param block defines the [Definition]s of this [Op]
  */
-fun op(block: Op.() -> Unit) = Op().apply(block)
+fun op(block: FunctionOp.() -> Unit) = FunctionOp().apply(block)
 
-context(Op)
+/**
+ * Create a [ConstructorOp].
+ */
+fun constructor(classFqn: String, block: ConstructorOp.() -> Unit) = ConstructorOp(classFqn).apply(block)
+
+context(FunctionOp)
 /**
  * Create a [Definition] which can be added to the [Op].
  *
@@ -109,5 +151,19 @@ inline fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(bloc
 
 context(Definition)
 /** Add unordered [Parameter]s to the [Signature]. */
-fun Signature.unordered(vararg unordered: Parameter) =
-    this.apply { unorderedParameters.addAll(unordered) }
+fun Signature.unordered(vararg unordered: Parameter) = this.apply { unorderedParameters.addAll(unordered) }
+
+context(ConstructorOp)
+/**
+* Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are defined in the
+* [block].
+*/
+inline fun signature(block: Signature.() -> Unit) =
+    Signature().apply(block)
+
+context(ConstructorOp)
+/**
+ * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are passed through
+ * the vararg.
+ */
+fun signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }

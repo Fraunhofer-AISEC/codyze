@@ -65,6 +65,8 @@ class Definition(val fqn: String) {
 /**
  * Represents a signature of a function.
  *
+ * Two [Signature]s are considered equal if they have the same amount of [parameters] and [unorderedParameters]. The [equals] function will not check the content of [parameters] and [unorderedParameters].
+ *
  * @property parameters stores [Parameter]s of this signature in the correct order
  * @property unorderedParameters store all unordered [Parameter]s of this signature. These
  * [Parameter]s don't correspond to a fixed index in the signature but need to flow to the function.
@@ -79,21 +81,24 @@ class Signature {
         parameters.add(this)
     }
 
+    /**
+     * Two [Signature]s are considered equal if they have the same amount of [parameters] and [unorderedParameters]. The [equals] function will not check the content of [parameters] and [unorderedParameters].
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
         other as Signature
 
-        if (parameters != other.parameters) return false
-        if (unorderedParameters != other.unorderedParameters) return false
+        if (parameters.size != other.parameters.size) return false
+        if (unorderedParameters.size != other.unorderedParameters.size) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = parameters.hashCode()
-        result = 31 * result + unorderedParameters.hashCode()
+        var result = parameters.size.hashCode()
+        result = 31 * result + unorderedParameters.size.hashCode()
         return result
     }
 }

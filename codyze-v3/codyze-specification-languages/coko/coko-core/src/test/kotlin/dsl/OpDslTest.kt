@@ -16,7 +16,7 @@ class OpDslTest {
         val actualOp = op {
             +mockDefinition
         }
-        val expectedOp = Op().apply { definitions.add(mockDefinition) }
+        val expectedOp = FunctionOp().apply { definitions.add(mockDefinition) }
 
         assertEquals(expectedOp, actualOp)
     }
@@ -83,7 +83,7 @@ class OpDslTest {
             )
         })
 
-        val expectedOp = Op()
+        val expectedOp = FunctionOp()
         expectedOp.definitions.add(def1)
         expectedOp.definitions.add(def2)
 

@@ -122,7 +122,7 @@ class OpComponentsTest {
         val sig1 = mockk<Signature>()
         val sig2 = mockk<Signature>()
 
-        with(mockk<Op>()) {
+        with(mockk<FunctionOp>()) {
             val def = definition("fqn") {
                 +sig1
                 +sig2

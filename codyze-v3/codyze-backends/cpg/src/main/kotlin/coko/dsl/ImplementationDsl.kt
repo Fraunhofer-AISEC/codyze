@@ -9,6 +9,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.query.dataFlow
@@ -20,6 +21,13 @@ val CokoBackend.cpg: TranslationResult
 /** Returns a list of [ValueDeclaration]s with the matching name. */
 fun CokoBackend.variable(name: String): List<ValueDeclaration> {
     return cpg.allChildren { it.name == name }
+}
+
+fun CokoBackend.constructor(
+    classFqn: String,
+    predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
+): List<ConstructExpression> {
+    return cpg.calls.filterIsInstance<ConstructExpression>().filter { it.type.typeName == classFqn && predicate(it) }
 }
 
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */

@@ -82,6 +82,8 @@ public class AnalysisServer {
 
 		AnalysisServer.instance = this;
 
+		log.info("Creating AnalysisServer with the following Configuration:\n{}", config);
+
 		// Register built-in functions
 		Benchmark bench = new Benchmark(AnalysisServer.class, "Registration of built-ins");
 		Reflections reflections = new Reflections(Builtin.class.getPackageName());
@@ -123,6 +125,7 @@ public class AnalysisServer {
 	 * Starts the server in a separate threat, returns as soon as the server is ready to operate.
 	 */
 	public void start() {
+		log.info("Starting AnalysisServer with the following Configuration:\n{}", config);
 		if (serverConfig.launchLsp) {
 			launchLspServer();
 		} else if (serverConfig.launchConsole) {

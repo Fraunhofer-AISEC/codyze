@@ -20,7 +20,7 @@ export function activate(context: ExtensionContext) {
 
 	// This is the path to our server binary
 	let serverBinaryPath = context.asAbsolutePath(
-		path.join('codyze', 'bin', 'codyze')
+		path.join('codyze', 'bin', 'codyze-v2')
 	);
 
 	// If the extension is launched in debug mode then the debug server options are used.

@@ -1,0 +1,173 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+# Project information
+site_name: Codyze
+site_url: https://www.codyze.io
+site_author: Fraunhofer AISEC
+site_description: Spotting flaws in C/C++, Java, Golang and Python code - automagically!
+
+# Repository
+repo_name: Fraunhofer-AISEC/codyze
+repo_url: https://github.com/Fraunhofer-AISEC/codyze
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: >
+  <p>
+    <a href="https://www.aisec.fraunhofer.de/en/data_protection.html">Privacy Policy</a>, <a href="#__consent">Change cookie settings</a>
+  </p>
+  Copyright &copy; 2022 Fraunhofer AISEC
+
+# Configuration
+theme:
+  name: material
+  custom_dir: docs/theme-overrides
+
+  icon:
+    repo: fontawesome/brands/github
+
+  language: en
+  features:
+    - content.code.annotate
+    # - content.tabs.link
+    - content.tooltips
+    # - header.autohide
+    # - navigation.expand
+    # - navigation.indexes
+    # - navigation.instant
+    # - navigation.prune
+    # - navigation.sections
+    - navigation.tabs
+    # - navigation.tabs.sticky
+    # - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    # - toc.integrate
+
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: light
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  
+  font: false
+
+extra_css:
+  - stylesheets/extra.css
+
+# Plugins
+plugins:
+  - glightbox:
+      zoomable: true
+  - search
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+
+# Customization
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Fraunhofer-AISEC
+      name: Visit us on GitHub to get involved.
+    - icon: fontawesome/solid/envelope
+      link: mailto:codyze@aisec.fraunhofer.de
+      name: Email us about Codyze.
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/FraunhoferAISEC
+      name: Follow Fraunhofer AISEC on Twitter.
+
+  consent:
+    title: Consent
+    description: >-
+      We use external services to enrich information presented on our website. This information is not essential 
+      for the operation of this website. You can opt-in, if you want to see additional information. Your choice 
+      will be saved in a cookie.
+    actions:
+      - reject
+      - accept
+      - manage
+    cookies:
+      github:
+        name: GitHub
+        checked: false
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:materialx.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: squidfunk
+      repo: mkdocs-material
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - 'Home': index.md
+  - 'Documentation':
+    - 'Codyze':
+        - 'What is Codyze?': Codyze/index.md
+        - 'Why Codyze v3?': Codyze/why-v3.md
+    - 'Getting Started':
+        - 'Install Codyze': Getting Started/installation.md
+        - 'Using CLI mode': Getting Started/cli.md
+        - 'Using plugins': Getting Started/lsp.md
+        - 'Configure Codyze': Getting Started/configuration.md
+    - 'Write MARK Policies':
+        - 'What is MARK?': Mark Authors/index.md
+        - 'Install MARK IDE': Mark Authors/installation.md
+        - 'MARK Entities': Mark Authors/Define Entities.md
+        - 'MARK Rules': Mark Authors/mark-authors.md
+    - 'Contributing':
+        - 'Contributing to Codyze': contributors/index.md
+        - 'Build the project': contributors/code.md
+        - 'How to Contribute?': contributors/CONTRIBUTING.md
+    - 'API':
+        - 'Codyze v2': api/codyze-v2
+        - 'Codyze v3': api/codyze-v3

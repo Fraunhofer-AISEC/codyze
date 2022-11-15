@@ -1,0 +1,34 @@
+package bouncycastle
+
+entity org.bouncycastle.crypto.generators.PKCS12ParametersGenerator isa org.bouncycastle.crypto.PBEParametersGenerator {
+	
+	var digest;
+	
+	var keySize;
+	var ivSize;
+	var cipherParams;
+	
+	op instantiate {
+		this = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator(digest: org.bouncycastle.crypto.Digest);
+	}
+	
+	op generateCipherParameters {
+		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedMacParameters(keySize: int);
+		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedParameters(keySize: int);
+		cipherParams = org.bouncycastle.crypto.generators.PKCS12ParametersGenerator.generateDerivedParameters(keySize: int, ivSize: int);
+	}
+	
+}
+
+
+rule ProperDigest {
+	using 
+		org.bouncycastle.crypto.generators.PKCS12ParametersGenerator as pkcs12_pg, 
+		org.bouncycastle.crypto.digests.SHA512Digest as sha512_digest
+	ensure
+		_is_instance(pkcs12_pg.digest, "org.bouncycastle.crypto.digests.SHA512Digest")
+		// list all other types representing allowed digests; cf. TR-2102-1, ch. 4
+		// || _instanceOf(pkcs12_pg.digest, sha256_digest)
+		// ...
+	onfail BadDigest
+}

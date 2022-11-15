@@ -1,0 +1,165 @@
+package botan
+
+
+entity Botan.Cipher_Mode {
+	
+	var algorithm;
+    	var direction; // an enum of underlying type int
+    	var provider;
+
+    	var symkey : Botan.SymmetricKey; // aka Botan::OctetString; class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
+    	var svkey;
+
+    	var iv; // aka Botan::OctetString; class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
+
+    	var input;
+    	var input_length;
+
+    	var buffer;
+
+    	var nonce;
+    	var nonce_length;
+
+
+    	op create {
+    		/*
+    		 * method call(s):
+    		 * - static std::unique_ptr<Cipher_Mode> create(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
+    		 * - static std::unique_ptr<Cipher_Mode> create_or_throw(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
+    		 *
+    		 * function call(s):
+    		 * - Cipher_Mode* get_cipher_mode(const std::string& algo_spec, Cipher_Dir direction, const std::string& provider = "")
+    		 */
+    		 Botan::get_cipher(algorithm: std::string, symkey: Botan::SymmetricKey, iv: Botan::InitializationVector, direction);
+             Botan::get_cipher(algorithm: std::string, svkey: Botan::secure_vector<uint8_t>, iv: Botan::InitializationVector, direction);
+
+    		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir);
+    		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir, provider: std::string);
+
+    		/* this is only for botan version >= 2.6.0
+    		Botan::Cipher_Mode::create(algorithm: std::string, direction: Botan::Cipher_Dir);
+    		Botan::Cipher_Mode::create(algorithm: std::string, direction: Botan::Cipher_Dir, provider: std::string);
+
+    		Botan::Cipher_Mode::create_or_throw(algorithm: std::string, direction: Botan::Cipher_Dir);
+    		Botan::Cipher_Mode::create_or_throw(algorithm: std::string, direction: Botan::Cipher_Dir, provider: std::string);
+    		*/
+    	}
+
+    	op init {
+    		/*
+    		 * method call(s) inherited from Botan::SymmetricAlgorithm:
+    		 * - void set_key(const SymmetricKey& key)
+    		 * - template<typename Alloc>
+    		 *   void set_key(const std::vector<uint8_t, Alloc>& key)
+    		 * - void set_key(const uint8_t key[], size_t length);
+    		 */
+    		Botan::Cipher_Mode::set_key(symkey: Botan::SymmetricKey);
+    		Botan::Cipher_Mode::set_key(svkey: Botan::secure_vector<uint8_t>);
+    		forbidden Botan::Cipher_Mode::set_key(_, _);
+    	}
+
+    	op start {
+    		/*
+    		 * method call(s):
+    		 * - template<typename Alloc>
+    		 *   void start(const std::vector<uint8_t, Alloc>& nonce)
+    		 * - void start(const uint8_t nonce[], size_t nonce_len)
+    		 * - void start()
+    		 *
+    		 * - virtual void start_msg(const uint8_t nonce[], size_t nonce_len) = 0;
+    		 */
+        	forbidden Botan::Cipher_Mode::start();
+    		Botan::Cipher_Mode::start(iv: Botan::InitializationVector);
+    		forbidden Botan::Cipher_Mode::start(nonce: std::uint8_t[], nonce_length: std::size_t);
+
+    		forbidden Botan::Cipher_Mode::start_msg(nonce: std::uint8_t[], nonce_length: std::size_t);
+    	}
+
+    	op process {
+    		/*
+    		 * method call(s):
+    		 * - void update(secure_vector<uint8_t>& buffer, size_t offset = 0)
+    		 *
+    		 * - virtual size_t process(uint8_t msg[], size_t msg_len) = 0;
+    		 */
+    		Botan::Cipher_Mode::process(input: Botan::secure_vector<uint8_t>, input_length: std::size_t);
+
+    		Botan::Cipher_Mode::update(buffer: std::uint8_t[]);
+    		Botan::Cipher_Mode::update(buffer: std::uint8_t[], _);
+    	}
+
+    	op finish {
+    		/*
+    		 * method call(s):
+    		 * - virtual void finish(secure_vector<uint8_t>& final_block, size_t offset = 0) = 0;
+    		 */
+    		Botan::Cipher_Mode::finish(input);
+    		Botan::Cipher_Mode::finish(input, _);
+    	}
+
+    	op reset {
+    		/*
+    		 * method call(s):
+    		 * - virtual void reset() = 0;
+    		 */
+    		Botan::Cipher_Mode::reset();
+    	}
+	
+}
+
+
+rule BlockCiphers {
+	using Botan.Cipher_Mode as cm
+	ensure
+		(_split(cm.algorithm, "/", 0) == "AES")
+		|| (_split(_split(cm.algorithm, "/", 0), "-", 0) == "AES")
+	onfail WrongBlockCipher
+}
+
+rule UseOfPipe {
+	using Botan.Cipher_Mode as cm,
+		Botan.Pipe as p
+	ensure
+		_receives_value_from(p.filter, cm) ||
+		cm in p.filterList
+	onfail WrongUseOfBotan_CipherMode
+}
+
+
+rule KeyLength {
+	using Botan.Cipher_Mode as cm,
+		Botan.SymmetricKey as sk
+	ensure
+		cm.symkey.length in [16, 24, 32]  // 128, 192, 256 bit
+	onfail BadKeyLength
+}
+
+rule CBCRandomIV  {
+	using Botan.Cipher_Mode as cm,
+		Botan.AutoSeeded_RNG as rng
+	when 
+		_split(cm.algorithm, "/", 1) == "CBC" 
+		&& cm.direction == Botan::Cipher_Dir::ENCRYPTION   //TODO Mark/CPG: evaluate enums?
+	ensure
+		_receives_value_from(cm.iv, rng.random_data)
+	onfail NoRandomIV	
+}
+
+rule NonRepeatedIV {
+// Initialisierungsvektoren dürfen sich innerhalb einer Schlüsselwechselperiode nicht wiederholen
+	using Botan.Cipher_Mode as cm,
+		Botan.AutoSeeded_RNG as rng
+	when _split(cm.algorithm, "/", 1) in ["CCM", "GCM"]
+	ensure
+		_receives_value_directly_from(cm.iv, rng.random_data)
+	onfail RepeatedIV 
+}
+
+rule IVLengthGCM {
+// Die für den Authentisierungsmechanismus verwendeten Noncen sollen genau 96 Bit lang sein.
+	using Botan.Cipher_Mode as cm
+	when _split(cm.algorithm, "/", 1) == "GCM"
+	ensure
+		cm.iv.length == 12 // 96 bit
+	onfail WrongIVLengthGCM 
+}

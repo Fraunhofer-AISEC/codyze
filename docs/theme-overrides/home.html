@@ -1,0 +1,136 @@
+{% extends "main-styles.html" %}
+
+{% block extrahead %}
+    {{ super() }}
+    <link href="/assets/fontawesome/css/fontawesome.css" rel="stylesheet">
+    <link href="/assets/fontawesome/css/solid.css" rel="stylesheet">
+{% endblock %}
+
+{% block tabs %}
+{{ super() }}
+
+<!-- Main site Entry button descriptions -->
+<section class="tx-container">
+    <div class="md-grid md-typeset">
+        <div class="tx-hero">
+<!--            <div class="tx-hero__image">-->
+<!--                <img src="assets/img/overall-view.svg" draggable="false">-->
+<!--            </div>-->
+            <div class="tx-hero__content">
+                <h1> Codyze: Automated Code Compliance </h1>
+                <p>Spotting flaws in  C/C++, Java, Golang and Python code - automagically!</p>
+
+                <div>
+                    <a href="{{ page.next_page.url | url }}" title="{{ page.next_page.title | striptags }}" class="md-button md-button--primary">
+                        Get started
+                    </a>
+                    <a href="{{ config.repo_url }}" title="{{ lang.t('source.link.title') }}" class="md-button">
+                        Contribute on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="funding-container">
+    <div class="md-grid">
+        <div class="funding">
+            <p>
+                Codyze has been funded by the Bundesamt für Sicherheit in der Informationstechnik (BSI).<br>
+                The Code Property Graph project is funded by the Bavarian Ministry of Economic Affairs (StMWi).
+            </p>
+
+            <div class="funding__logo">
+                <div>
+                    <img src="assets/img/logo-bsi.png"/>
+                </div>
+                <div>
+                    <img src="assets/img/logo-aisec.jpg"/>
+                </div>
+                <div>
+                    <img src="assets/img/logo-stmwi.jpg"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Main site box descriptions -->
+<section class="tx-container-feature">
+        <div class="md-grid">
+            <div class="feature-container">
+                <div class="feature-item">
+                    <div class="video-container">
+                        <!--<iframe src="https://www.youtube-nocookie.com/embed/3CNrVWk_qs0" title="Codyze: Automated Code Compliance" frameborder="0" allow="clipboard-write; encrypted-media; picture-in-picture" allowfullscreen></iframe>-->
+                        <video controls preload="none" poster="/assets/video/Fraunhofer_AISEC_Codyze_eng_poster.jpg">
+                            <source src="/assets/video/Fraunhofer_AISEC_Codyze_eng.mp4" type="video/mp4">
+                            <p>We're sorry; your browser doesn't support HTML video. You may see the video on <span class="fas fa-external-link-alt"></span><a href="https://www.youtube-nocookie.com/embed/3CNrVWk_qs0">Youtube</a> instead.</p>
+                        </video>
+                    </div>
+                    <div class="feature-item--text">
+                        <h1><span class="fas fa-solid fa-shield-check"></span>Verifying Compliance to Security Requirements</h1>
+                        <p>
+                            Codyze is a static analysis tool to support developers in verifying compliance to security requirements.
+                        </p>
+                        <p>Head to the <a href="https://github.com/Fraunhofer-AISEC/codyze/releases"><span class="fas fa-external-link-alt"></span>release page</a> and download Codyze.<br>
+                            We offer IDE plugins for <a href="https://github.com/Fraunhofer-AISEC/codyze-eclipse-plugin/releases"><span class="fas fa-external-link-alt"></span>Eclipse</a>,
+                            <a href="https://github.com/Fraunhofer-AISEC/codyze-vs-plugin/releases"><span class="fas fa-external-link-alt"></span>Visual Studio</a> and
+                            <a href="https://github.com/Fraunhofer-AISEC/codyze/releases"><span class="fas fa-external-link-alt"></span>Visual Studio Code</a>.
+                            Moreover, we <a href="Getting Started/lsp/#integration-through-lsp-mode"><span class="fas fa-external-link-alt"></span>support LSP</a> for integration into your favorite IDE or text editor.
+                        </p>
+                    </div>
+                </div>
+    <!--            <div class="feature-item">-->
+    <!--                <div class="feature-item&#45;&#45;text">-->
+    <!--                    <h2>Verifying Compliance to Security Requirements</h2>-->
+    <!--                    <p>-->
+    <!--                        Codyze is a static analysis tool to support developers in verifying compliance to security requirements.-->
+    <!--                    </p>-->
+    <!--                </div>-->
+
+    <!--                &lt;!&ndash;        <h2> <span class="fas fa-film"></span><br>&ndash;&gt;-->
+    <!--                &lt;!&ndash;            Codyze in Action!</h2>&ndash;&gt;-->
+    <!--                <div class="feature-item&#45;&#45;image">-->
+    <!--                    <div class="video-container">-->
+    <!--                        <iframe src="https://www.youtube.com/embed/3CNrVWk_qs0" title="Codyze: Automated Code Compliance" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
+    <!--                    </div>-->
+    <!--                </div>-->
+    <!--            </div>-->
+            </div>
+        </div>
+</section>
+
+<section style="background-color: var(--md-footer-bg-color);">
+    <div style="background-color: var(--md-footer-bg-color--dark);">
+        <div class="md-grid">
+            <div class="community-section">
+                <h1>
+                    Sparked your Interest? Join the Codyze Community!
+                </h1>
+                <div class="community-container">
+                    <div class="community-item">
+                        <h2>Develop and Contribute</h2>
+                        <p>We are happy to accept pull requests for bugfixes and improvements on GitHub!</p>
+                        <p>If you are interested to write a bachelor/master/PhD thesis in static analysis, we encourage you to get in contact with us. Besides the open research topics offered by the <a href="https://www.sec.in.tum.de/i20/student-work"><span class="fas fa-external-link-alt"></span>Chair of IT Security at the Technical University of Munich</a>, we are open to discuss further topics which might be of interest for you and us.</p>
+                    </div>
+
+                    <div class="community-item">
+                        <h2>Funding and Collaboration</h2>
+                        <p>Codyze is a non-profit project under a commercial-friendly open source license. We are happy to either improve and extend Codyze in funded research projects or build a tailored version for your enterprise.
+
+                        <h3>Commercial Development</h3>
+                        <p>We offer tailoring and integration of Codyze into your CI pipeline or audit processes. This includes development of rule sets for specific software platforms (Java EE, Spring, Android, Boost, etc.), development of interfaces to standard CI tools (Gitlab CI, Jenkins, Bamboo, Sonarqube, etc.), and development of additional analyses tailored to your needs. The results will not be public and remain solely at your disposal.</p>
+                        <p></p>
+                        <h3>Research Collaboration</h3>
+                        <p>We regularly participate in publicly funded research projects at state, nation, and EU level. If you are interested in pushing the boundaries in static code analysis with us, we are happy to explore funding opportunities together with you.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block content %}{% endblock %}

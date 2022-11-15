@@ -1,6 +1,0 @@
-redis==3.3.11
-simplejson==3.13.2
-urllib3==1.26.5
-PyGithub==1.44.1
-celery==5.2.2
-python-dotenv==0.10.3

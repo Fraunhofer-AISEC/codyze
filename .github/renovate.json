@@ -1,28 +1,35 @@
 {
   "extends": [
     "config:base",
-    ":disableDependencyDashboard",
     ":assignAndReview(fwendland)",
+    ":label(dependencies)",
     ":enableVulnerabilityAlerts",
-    ":separateMultipleMajorReleases"
+    ":separateMultipleMajorReleases",
+    "docker:disableMajor",
+    "npm:unpublishSafe"
   ],
-  "ignoreDeps": [
-    "de.fraunhofer.aisec.mark:de.fraunhofer.aisec.mark"
-  ],
-  "ignorePaths": ["codyze-v2/scripts", "docs"],
+  "internalChecksFilter": "strict",
   "packageRules": [
     {
-      "matchPackagePrefixes": ["de.fraunhofer.aisec:cpg"],
-      "groupName": "CPG packages"
+      "matchDatasources": ["maven"],
+      "stabilityDays": 1
+    },
+    {
+      "groupName": "CPG packages",
+      "matchPackagePrefixes": ["de.fraunhofer.aisec:cpg"]
     },
     {
       "groupName": "picocli packages",
-      "matchPackagePatterns": ["^info.picocli:"]
+      "matchPackagePrefixes": ["info.picocli:"]
     },
     {
       "groupName": "VSCode plugin dependencies",
       "matchPaths": ["vscode_plugin/**"],
       "extends": ["schedule:earlyMondays"]
+    },
+    {
+      "matchPackagePrefixes": ["com.github.Fraunhofer-AISEC"],
+      "registryUrls": ["https://jitpack.io/"]
     },
     {
       "matchPackageNames": ["vscode"],

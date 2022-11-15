@@ -77,7 +77,7 @@ jobs:
       - name: Push Release Docker Image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker build -t ghcr.io/fraunhofer-aisec/codyze:latest .
+          docker build -t ghcr.io/fraunhofer-aisec/codyze:latest codyze-v2/
           docker tag ghcr.io/fraunhofer-aisec/codyze:latest ghcr.io/fraunhofer-aisec/codyze:$VERSION
           docker push ghcr.io/fraunhofer-aisec/codyze:$VERSION
           docker push ghcr.io/fraunhofer-aisec/codyze:latest
@@ -103,7 +103,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: codyze-v2/build/distributions/codyze-${{ steps.determine_version.outputs.version }}.zip
+          asset_path: codyze-v2/build/distributions/codyze-v2-${{ steps.determine_version.outputs.version }}.zip
           asset_name: codyze-${{ steps.determine_version.outputs.version }}.zip
           asset_content_type: application/zip
       - name: "Upload Plugin Asset"

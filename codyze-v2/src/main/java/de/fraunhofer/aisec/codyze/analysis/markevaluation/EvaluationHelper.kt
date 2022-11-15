@@ -532,7 +532,8 @@ fun MRule.getMatchingReferences(
                 vars.add(opStmt)
             }
             // Function parameter, i.e. "something(..., var, ...)"
-            if (opStmt.call.params.stream().anyMatch { p: Parameter ->
+            if (
+                opStmt.call.params.stream().anyMatch { p: Parameter ->
                     p.getVar() == finalAttribute
                 }
             ) {
@@ -658,7 +659,8 @@ fun MRule.getMatchingReferences(
                             baseOfCallExpression = v.getSuitableDFGTarget()
                         } else {
                             baseOfCallExpression = v.getBaseDeclaration()
-                            if (baseOfCallExpression == null
+                            if (
+                                baseOfCallExpression == null
                             ) { // if we did not find a base the "easy way", try to find a base
                                 // using the simple-DFG
                                 baseOfCallExpression = v.getSuitableDFGTarget()

@@ -1,4 +1,4 @@
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:11.0.17_8-jre
 
 LABEL org.opencontainers.image.authors="Fraunhofer AISEC <codyze@aisec.fraunhofer.de>"
 
@@ -6,14 +6,14 @@ LABEL org.opencontainers.image.authors="Fraunhofer AISEC <codyze@aisec.fraunhofe
 EXPOSE 9000
 
 # extract versioned distribution
-ADD build/distributions/codyze-*.tar /usr/local/lib/
+ADD build/distributions/codyze-v2-*.tar /usr/local/lib/
 # make Codyze script accessible through PATH and create version independent directory
-RUN ln -s /usr/local/lib/codyze-*/bin/codyze /usr/local/bin/ \
-    && ln -s /usr/local/lib/codyze-* /codyze
+RUN ln -s /usr/local/lib/codyze-v2-*/bin/codyze-v2 /usr/local/bin/ \
+    && ln -s /usr/local/lib/codyze-v2-* /codyze-v2
 
 # default location for project to be analyzed
 WORKDIR /source
 
 # default execution
-ENTRYPOINT ["codyze"]
-CMD ["-c", "-m", "/codyze/mark/", "-s", "."]
+ENTRYPOINT ["codyze-v2"]
+CMD ["-c", "-m", "/codyze-v2/mark/", "-s", "."]

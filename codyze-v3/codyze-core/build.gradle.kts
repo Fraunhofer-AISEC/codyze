@@ -14,3 +14,17 @@ dependencies {
     // The code in it was generated using https://app.quicktype.io/ with minor manual additions
     implementation(libs.sarif4k)
 }
+
+tasks {
+    jar {
+        manifest {
+            attributes("Implementation-Title" to "Codyze v3 - Core Library")
+        }
+    }
+
+    processResources {
+        from(rootProject.tasks.named("projectProps"))
+    }
+}
+
+

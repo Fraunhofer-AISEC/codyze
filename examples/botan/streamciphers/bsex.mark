@@ -1,0 +1,142 @@
+package botan
+
+entity Botan.RSA_PrivateKey {
+
+    var key_length;
+
+    op init {
+        Botan::RSA_PrivateKey(_, key_length: int);
+    }
+}
+
+entity Botan.StreamCipher {
+	
+	var algorithm;
+    	var direction; // an enum of underlying type int
+    	var provider;
+
+    	var symkey; // aka Botan::OctetString; class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
+    	var svkey;
+
+    	var iv; // aka Botan::OctetString; class wrapping Botan::secure_vector<T, secure_allocator<T>>; secure_vector<> scrubs memory on deallocate()
+
+    	var input;
+    	var input_length;
+
+    	var buffer;
+
+    	var nonce;
+    	var nonce_length;
+
+
+    	op create {
+    		/*
+    		 * method call(s):
+    		 * - static std::unique_ptr<StreamCipher> create(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
+    		 * - static std::unique_ptr<StreamCipher> create_or_throw(const std::string& algo, Cipher_Dir direction, const std::string& provider = "")
+    		 *
+    		 * function call(s):
+    		 * - StreamCipher* get_cipher_mode(const std::string& algo_spec, Cipher_Dir direction, const std::string& provider = "")
+    		 */
+    		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir);
+    		Botan::get_cipher_mode(algorithm: std::string, direction: Botan::Cipher_Dir, provider: std::string);
+
+    		/* this is only for botan version >= 2.6.0
+    		Botan::StreamCipher::create(algorithm: std::string, direction: Botan::Cipher_Dir);
+    		Botan::StreamCipher::create(algorithm: std::string, direction: Botan::Cipher_Dir, provider: std::string);
+
+    		Botan::StreamCipher::create_or_throw(algorithm: std::string, direction: Botan::Cipher_Dir);
+    		Botan::StreamCipher::create_or_throw(algorithm: std::string, direction: Botan::Cipher_Dir, provider: std::string);
+    		*/
+    	}
+
+    	op init {
+    		/*
+    		 * method call(s) inherited from Botan::SymmetricAlgorithm:
+    		 * - void set_key(const SymmetricKey& key)
+    		 * - template<typename Alloc>
+    		 *   void set_key(const std::vector<uint8_t, Alloc>& key)
+    		 * - void set_key(const uint8_t key[], size_t length);
+    		 */
+    		Botan::StreamCipher::set_key(symkey: Botan::SymmetricKey);
+    		Botan::StreamCipher::set_key(svkey: Botan::secure_vector<uint8_t>);
+    		forbidden Botan::StreamCipher::set_key(_, _);
+    	}
+
+    	op start {
+    		/*
+    		 * method call(s):
+    		 * - template<typename Alloc>
+    		 *   void start(const std::vector<uint8_t, Alloc>& nonce)
+    		 * - void start(const uint8_t nonce[], size_t nonce_len)
+    		 * - void start()
+    		 *
+    		 * - virtual void start_msg(const uint8_t nonce[], size_t nonce_len) = 0;
+    		 */
+        	forbidden Botan::StreamCipher::start();
+    		Botan::StreamCipher::start(iv: Botan::InitializationVector);
+    		forbidden Botan::StreamCipher::start(nonce: std::uint8_t[], nonce_length: std::size_t);
+
+    		forbidden Botan::StreamCipher::start_msg(nonce: std::uint8_t[], nonce_length: std::size_t);
+    	}
+
+    	op process {
+    		/*
+    		 * method call(s):
+    		 * - void update(secure_vector<uint8_t>& buffer, size_t offset = 0)
+    		 *
+    		 * - virtual size_t process(uint8_t msg[], size_t msg_len) = 0;
+    		 */
+    		Botan::StreamCipher::process(input: Botan::secure_vector<uint8_t>, input_length: std::size_t);
+
+    		Botan::StreamCipher::update(buffer: std::uint8_t[]);
+    		Botan::StreamCipher::update(buffer: std::uint8_t[], _);
+    	}
+
+    	op finish {
+    		/*
+    		 * method call(s):
+    		 * - virtual void finish(secure_vector<uint8_t>& final_block, size_t offset = 0) = 0;
+    		 */
+    		Botan::StreamCipher::finish(input);
+    		Botan::StreamCipher::finish(input, _);
+    	}
+
+    	op reset {
+    		/*
+    		 * method call(s):
+    		 * - virtual void reset() = 0;
+    		 */
+    		Botan::StreamCipher::reset();
+    	}
+	
+}
+
+
+rule StreamCiphers {
+	using Botan.StreamCipher as sc
+	ensure
+		sc.algorithm in [ "CTR(AES-256)" ]
+	onfail WrongStreamCipher
+}
+
+rule UseOfBotan_StreamMode {
+	using Botan.StreamCipher as sc
+	ensure
+		order sc.create(), sc.init(), (sc.start(), sc.process()*, sc.finish())+, sc.reset()?
+	onfail WrongUseOfBotan_StreamCipher
+}
+
+rule KeySize {
+	using Botan.RSA_PrivateKey as pk
+	ensure
+		pk.key_length >= 4096
+	onfail CorrectPrivateKeyLength
+}
+
+rule KeySize {
+	using Botan.RSA_PrivateKey as pk
+	ensure
+		pk.key_length > 4096
+	onfail WrongPrivateKeyLength
+}

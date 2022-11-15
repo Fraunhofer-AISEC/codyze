@@ -1,0 +1,5 @@
+package bouncycastle
+
+entity org.bouncycastle.jce.provider.BouncyCastleProvider isa java.security.Provider {
+	
+}

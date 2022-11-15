@@ -26,7 +26,7 @@ class Project(val config: Configuration) {
     fun doStuff(): SarifSchema210 {
         executor.initialize(config.backendConfiguration, config.toExecutorConfiguration())
         val results: List<Result> =
-            executor.evaluate() // TODO: pass the translation manager instead?
+            executor.evaluate()
 
         // complete SARIF model by integrating results, e.g. add "Codyze" as tool name, etc.
         // TODO what format should we give to LSP?
@@ -34,12 +34,12 @@ class Project(val config: Configuration) {
             schema = "https://json.schemastore.org/sarif-2.1.0.json",
             version = Version.The210,
             runs =
-                listOf(
-                    Run(
-                        tool = Tool(driver = ToolComponent(name = "Codyze v3")),
-                        results = listOf() // results,
-                    )
+            listOf(
+                Run(
+                    tool = Tool(driver = ToolComponent(name = "Codyze v3")),
+                    results = results,
                 )
+            )
         )
     }
 }

@@ -189,7 +189,8 @@ class Configuration {
                 translationConfig.includePath(file.absolutePath)
             }
 
-        if (!cpg.translation.enabledIncludesCLI.matched || cpg.translation.enabledIncludesCLI.append
+        if (
+            !cpg.translation.enabledIncludesCLI.matched || cpg.translation.enabledIncludesCLI.append
         ) {
             for (s in cpg.translation.enabledIncludes) {
                 translationConfig.includeWhitelist(s.absolutePath)
@@ -200,7 +201,8 @@ class Configuration {
                 translationConfig.includeWhitelist(file.absolutePath)
             }
 
-        if (!cpg.translation.disabledIncludesCLI.matched ||
+        if (
+            !cpg.translation.disabledIncludesCLI.matched ||
                 cpg.translation.disabledIncludesCLI.append
         ) {
             for (s in cpg.translation.disabledIncludes) {
@@ -286,16 +288,17 @@ class Configuration {
 
             for (includedFile in result) {
                 // excludedPath is located under includedFile
-                if (includedFile.isDirectory &&
+                if (
+                    includedFile.isDirectory &&
                         excludedNormalizedFile.startsWith(
                             includedFile.absolutePath + File.separator
                         )
                 ) {
                     newResult.addAll(findSiblings(excludedNormalizedFile, includedFile))
                 } else if (
-                // includedFile is located under excludedPath or excludedPath is equal to
-                // includedFile
-                (excludedNormalizedFile.isDirectory &&
+                    // includedFile is located under excludedPath or excludedPath is equal to
+                    // includedFile
+                    (excludedNormalizedFile.isDirectory &&
                         includedFile.startsWith(
                             excludedNormalizedFile.absolutePath + File.separator
                         )) || excludedNormalizedFile == includedFile
@@ -462,12 +465,29 @@ class Configuration {
         }
 
         fun getLocation(tokenLocation: JsonLocation): String {
-            return if (tokenLocation.contentReference() != null &&
+            return if (
+                tokenLocation.contentReference() != null &&
                     tokenLocation.contentReference().rawContent is File
             )
                 " (${(tokenLocation.contentReference().rawContent as File).absolutePath})"
             else ""
         }
+    }
+
+    fun getCodyzeConfiguration(): CodyzeConfiguration {
+        return codyze
+    }
+
+    fun setCodyzeConfiguration(codyze: CodyzeConfiguration) {
+        this.codyze = codyze
+    }
+
+    fun getCpgConfiguration(): CpgConfiguration {
+        return cpg
+    }
+
+    fun setCpgConfiguration(cpg: CpgConfiguration) {
+        this.cpg = cpg
     }
 }
 

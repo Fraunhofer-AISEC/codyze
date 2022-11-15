@@ -33,7 +33,7 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     // performance. Does not seem to break anything
     )
 // the class is used as the script base class, therefore it should be open or abstract
-abstract class CokoScript(backend: CokoBackend) : CokoBackend by backend {
+abstract class CokoScript {
     // Configures the plugins used by the project.
     fun plugins(configure: PluginDependenciesSpec.() -> Unit) = Unit
 }
@@ -56,6 +56,10 @@ internal object ProjectScriptCompilationConfiguration :
                     false // manually add all needed dependencies using the baseLibraries
             )
         }
+
+        implicitReceivers(
+            CokoBackend::class
+        ) // the actual receiver must be passed to the script class in the constructor
 
         /**
          * - Enable the experimental context receivers feature
@@ -103,7 +107,7 @@ internal object ProjectScriptCompilationConfiguration :
     })
 
 private val baseLibraries =
-    arrayOf("coko-core", "codyze-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect", "cpg-core")
+arrayOf("coko-core", "codyze-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect")
 
 private fun pluginsBlockOrNullFrom(scriptText: String) =
     scriptText.run {

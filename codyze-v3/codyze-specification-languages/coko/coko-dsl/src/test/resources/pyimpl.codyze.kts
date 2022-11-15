@@ -1,5 +1,7 @@
 @file:Import("model.codyze.kts")
 
+plugins { id("cpg") }
+
 class PythonLogging : Logging {
     override fun log(message: String, vararg args: Any) =
     // logging.info(message, args)
@@ -11,12 +13,12 @@ class PythonLogging : Logging {
 }
 
 class Sqlite3 : ObjectRelationalMapper {
-    override fun insert(`object`: Any) = op {
+    override fun insert(obj: Any) = op {
         +definition("sqlite3.Cursor.execute") {
             +signature {
                 +group {
                     +"INSERT.*"
-                    +`object`
+                    +obj
                 }
             }
         }

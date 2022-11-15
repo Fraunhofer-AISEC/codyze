@@ -4,6 +4,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBac
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
+import de.fraunhofer.aisec.codyze_core.timed
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
@@ -49,31 +50,18 @@ class CokoExecutor : Executor, KoinComponent {
      */
     @OptIn(ExperimentalTime::class)
     override fun evaluate(): List<Result> {
-        logger.info { "Initializing the backend..." }
-        val backendInitializationDuration: Duration = measureTime { backend.initialize() }
-        logger.debug {
-            "Initialized backend in ${backendInitializationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
-        }
-
-        logger.info { "Compiling specification scripts..." }
-        val (specEvaluator, specCompilationDuration: Duration) =
-            measureTimedValue {
-                compileScriptsIntoSpecEvaluator(backend = backend, specFiles = config.spec)
-            }
-        logger.debug {
-            "Compiled specification scripts in ${specCompilationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
+        val specEvaluator = timed("Compiled specification scripts in") {
+            compileScriptsIntoSpecEvaluator(backend = backend, specFiles = config.spec)
         }
 
         logger.info {
             "Evaluating ${specEvaluator.rules.size} ${if (specEvaluator.rules.size == 1) "rule" else "rules"}..."
         }
         // evaluate the spec scripts
-        val (findings: Unit, scriptEvaluationDuration: Duration) =
-            measureTimedValue { specEvaluator.evaluate() }
-        logger.debug {
-            "Evaluated specification scripts in ${scriptEvaluationDuration.toString(unit = DurationUnit.SECONDS, decimals = 2)}"
+        val findings = timed("Evaluation of specification scripts took") {
+            specEvaluator.evaluate()
         }
-        return listOf()
+        return listOf()  // TODO: return findings
     }
 
     companion object {
@@ -91,7 +79,7 @@ class CokoExecutor : Executor, KoinComponent {
                 createJvmCompilationConfigurationFromTemplate<CokoScript>()
             val evaluationConfiguration =
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
-                    constructorArgs(backend)
+                    implicitReceivers(backend)
                     jvm {
                         if (sharedClassLoader != null) {
                             baseClassLoader.put(sharedClassLoader)

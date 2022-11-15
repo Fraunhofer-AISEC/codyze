@@ -17,15 +17,16 @@ class Analyze : CodyzeSubcommand("Analyze a set of source files") {
     override fun run() {
         logger.debug { "Executing 'analyze' subcommand..." }
 
-        val project = timed("Starting project server took") {
-            ProjectServer.connect(
-                config =
-                buildConfiguration(
-                    codyzeConfigurationRegister,
-                    backendConfigurationRegister
+        val project =
+            timed("Starting project server took") {
+                ProjectServer.connect(
+                    config =
+                        buildConfiguration(
+                            codyzeConfigurationRegister,
+                            backendConfigurationRegister
+                        )
                 )
-            )
-        }
+            }
 
         val result = project.doStuff()
         // TODO print results

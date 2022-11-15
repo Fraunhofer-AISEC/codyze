@@ -1,8 +1,10 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.*
 
+@CokoMarker
 sealed interface Op
 
 /**
@@ -15,7 +17,6 @@ sealed interface Op
  */
 // `Op` is defined here with an internal constructor because we only want the user to use the `op`
 // function to make an `Op` object
-@CokoMarker
 class FunctionOp internal constructor(): Op {
     val definitions = arrayListOf<Definition>()
 
@@ -67,8 +68,6 @@ class ConstructorOp internal constructor(val classFqn: String): Op {
     override fun hashCode(): Int {
         return signatures.hashCode()
     }
-
-
 }
 
 /**
@@ -112,7 +111,6 @@ fun op(block: FunctionOp.() -> Unit) = FunctionOp().apply(block)
  */
 fun constructor(classFqn: String, block: ConstructorOp.() -> Unit) = ConstructorOp(classFqn).apply(block)
 
-context(FunctionOp)
 /**
  * Create a [Definition] which can be added to the [Op].
  *
@@ -126,48 +124,42 @@ context(FunctionOp)
  * @param fqn the fully qualified name of the function this [Definition] is representing
  * @param block defines the [Signature]s of this [Definition]
  */
-inline fun definition(fqn: String, block: Definition.() -> Unit) = Definition(fqn).apply(block)
+inline fun FunctionOp.definition(fqn: String, block: Definition.() -> Unit) = Definition(fqn).apply(block)
 
-context(Definition)
 /**
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are defined in the
  * [block].
  *
  * @param unordered are all [Parameter]s for which the order is irrelevant and that only need to
  */
-inline fun signature(unordered: Array<out Parameter> = emptyArray(), block: Signature.() -> Unit) =
+inline fun Definition.signature(unordered: Array<out Parameter> = emptyArray(), block: Signature.() -> Unit) =
     Signature().apply(block).apply { unorderedParameters.addAll(unordered) }
 
-context(Definition)
 /**
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are passed through
  * the vararg.
  */
-fun signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
+fun Definition.signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
 
-context(Signature)
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
-inline fun group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
+inline fun Signature.group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
 
-context(Signature)
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
-fun group(vararg parameters: Parameter) = group { parameters.forEach { +it } }
+fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { +it } }
 
 context(Definition)
 /** Add unordered [Parameter]s to the [Signature]. */
 fun Signature.unordered(vararg unordered: Parameter) = this.apply { unorderedParameters.addAll(unordered) }
 
-context(ConstructorOp)
 /**
 * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are defined in the
 * [block].
 */
-inline fun signature(block: Signature.() -> Unit) =
+inline fun ConstructorOp.signature(block: Signature.() -> Unit) =
     Signature().apply(block)
 
-context(ConstructorOp)
 /**
  * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are passed through
  * the vararg.
  */
-fun signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
+fun ConstructorOp.signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }

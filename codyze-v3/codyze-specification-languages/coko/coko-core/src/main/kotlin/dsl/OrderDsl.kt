@@ -5,6 +5,9 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
 
+/** [OrderBuilder] subclass to hide some implementation details of [OrderBuilder] to coko users. */
+class Order : OrderBuilder()
+
 //
 // token conversion
 //
@@ -24,7 +27,6 @@ internal val OrderToken.token: TerminalOrderNode
 //
 // groups
 //
-context(OrderBuilder)
 /**
  * Add a group containing any valid OrderDsl provided as a lambda
  *
@@ -38,50 +40,44 @@ context(OrderBuilder)
  * }
  * ```
  */
-inline fun group(
+inline fun OrderBuilder.group(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block)
 
-context(OrderBuilder)
 /** Shortcut for creating a group with the [maybe] ('*') qualifier. See [group] */
-inline fun maybe(
+inline fun OrderBuilder.maybe(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).maybe()
 
-context(OrderBuilder)
 /** Shortcut for creating a group with the [option] ('?') qualifier. See [group] */
-inline fun option(
+inline fun OrderBuilder.option(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).option()
 
-context(OrderBuilder)
 /** Shortcut for creating a group with the [some] ('+') qualifier. See [group] */
-inline fun some(
+inline fun OrderBuilder.some(
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).some()
 
-context(OrderBuilder)
 /** Shortcut for creating a group with the [count] qualifier. See [group] */
-inline fun count(
+inline fun OrderBuilder.count(
     count: Int,
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).count(count)
 
-context(OrderBuilder)
 /** Shortcut for creating a group with the [between] qualifier. See [group] */
-inline fun between(
+inline fun OrderBuilder.between(
     range: IntRange,
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).between(range)
 
-context(OrderBuilder)
 /** Shortcut for creating a group with the [atLeast] qualifier. See [group] */
-inline fun atLeast(
+inline fun OrderBuilder.atLeast(
     count: Int,
     block: OrderGroup.() -> Unit,
 ) = OrderGroup().apply(block).atLeast(count)
 
-context(OrderBuilder, CokoBackend)
+context(CokoBackend)
 /**
  * Minimalist way to create a group with a function call. However, this minimalist [group]
  * constructor only works with [OrderToken]s
@@ -91,36 +87,36 @@ context(OrderBuilder, CokoBackend)
  * }
  * ```
  */
-fun group(vararg tokens: OrderToken) = group { tokens.forEach { +it } }
+fun OrderBuilder.group(vararg tokens: OrderToken) = group { tokens.forEach { +it } }
 
-context(OrderBuilder, CokoBackend)
+context(CokoBackend)
 /** Minimalist way to create a group with the [maybe] ('*') qualifier. See [group]. */
-fun maybe(vararg tokens: OrderToken) = maybe { tokens.forEach { +it } }
+fun OrderBuilder.maybe(vararg tokens: OrderToken) = maybe { tokens.forEach { +it } }
 
-context(OrderBuilder, CokoBackend)
+context(CokoBackend)
 /** Minimalist way to create a group with the [some] ('+') qualifier. See [group]. */
-fun some(vararg tokens: OrderToken) = some { tokens.forEach { +it } }
+fun OrderBuilder.some(vararg tokens: OrderToken) = some { tokens.forEach { +it } }
 
-context(OrderBuilder, CokoBackend)
+context(CokoBackend)
 /** Minimalist way to create a group with the [option] ('?') qualifier. See [group]. */
-fun option(vararg tokens: OrderToken) = option { tokens.forEach { +it } }
+fun OrderBuilder.option(vararg tokens: OrderToken) = option { tokens.forEach { +it } }
 
-context(OrderBuilder, CokoBackend)
+context(CokoBackend)
 /** Minimalist way to create a group with the [count] qualifier. See [group]. */
-fun count(count: Int, vararg tokens: OrderToken) = count(count) { tokens.forEach { +it } }
+fun OrderBuilder.count(count: Int, vararg tokens: OrderToken) = count(count) { tokens.forEach { +it } }
 
-context(OrderBuilder, CokoBackend)
+context(CokoBackend)
 /** Minimalist way to create a group with the [between] qualifier. See [group]. */
-fun between(range: IntRange, vararg tokens: OrderToken) = between(range) { tokens.forEach { +it } }
+fun OrderBuilder.between(range: IntRange, vararg tokens: OrderToken) = between(range) { tokens.forEach { +it } }
 
-context(OrderBuilder, CokoBackend)
+context(CokoBackend)
 /** Minimalist way to create a group with the [atLeast] qualifier. See [group]. */
-fun atLeast(count: Int, vararg tokens: OrderToken) = atLeast(count) { tokens.forEach { +it } }
+fun OrderBuilder.atLeast(count: Int, vararg tokens: OrderToken) = atLeast(count) { tokens.forEach { +it } }
 
 //
 // sets
 //
-context(OrderBuilder, CokoBackend)
+context(CokoBackend)
 /**
  * Use this to create a set with the [OrderSetGetOperator.get] operator.
  *
@@ -132,15 +128,14 @@ context(OrderBuilder, CokoBackend)
  * }
  * ```
  */
-val set by lazy { OrderSetGetOperator() }
+val OrderBuilder.set by lazy { OrderSetGetOperator() }
 
-context(OrderBuilder)
 /**
  * Add a set to the [Order] containing any valid OrderDsl provided by a lambda (see [group]).
  *
  * > Match any [OrderToken] in the set.
  */
-inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block)
+inline fun OrderBuilder.set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block)
 
 // TODO: negating an [OrderSet] is currently not implemented -> combine with above function
 // /**

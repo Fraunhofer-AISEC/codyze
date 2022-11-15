@@ -6,9 +6,6 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBac
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.token
 
-/** [OrderBuilder] subclass to hide some implementation details of [OrderBuilder] to coko users. */
-class Order : OrderBuilder()
-
 @CokoMarker
 /**
  * Base class for [Order], [OrderGroup] and [OrderSet]. Uses a deque to create a binary tree of the

@@ -3,18 +3,16 @@
 package de.fraunhofer.aisec.codyze_backends.cpg
 
 import de.fraunhofer.aisec.codyze_core.wrapper.Backend
+import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 
-open class CPGBackend(config: CPGConfiguration) : Backend {
-    private val translationManager: TranslationManager
-    override lateinit var graph: Any
-
-    init {
-        translationManager =
-            TranslationManager.builder()
-                .config(config = config.toTranslationConfiguration())
-                .build() // Initialize the CPG, based on the given Configuration
+open class CPGBackend(config: BackendConfiguration) : Backend {
+    override val graph: Any by lazy {
+        TranslationManager.builder()
+            .config(config = (config as CPGConfiguration).toTranslationConfiguration())
+            .build() // Initialize the CPG, based on the given Configuration
+            .analyze().get()
     }
 
     /** Return a [TranslationConfiguration] object to pass to the CPG */
@@ -62,9 +60,5 @@ open class CPGBackend(config: CPGConfiguration) : Backend {
         additionalLanguages.forEach { translationConfiguration.registerLanguage(it) }
 
         return translationConfiguration.build()
-    }
-
-    override fun initialize() {
-        graph = translationManager.analyze().get()
     }
 }

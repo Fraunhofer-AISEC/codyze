@@ -15,9 +15,22 @@ import kotlin.streams.asSequence
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
-import org.koin.core.context.startKoin
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.koin.test.KoinTest
+import org.koin.test.junit5.KoinTestExtension
 
-class CodyzeOptionGroupTest {
+class CodyzeOptionGroupTest: KoinTest {
+
+    @JvmField
+    @RegisterExtension
+    // starting koin is necessary because some options (e.g., --executor)
+    // dynamically look up available choices for the by options(...).choice() command
+    val koinTestExtension =
+        KoinTestExtension.create { // Initialize the koin dependency injection
+            // declare modules necessary for testing
+            modules(executorModule)
+        }
+
     class CodyzeOptionsCommand : CliktCommand() {
         val configurationRegister = ConfigurationRegister()
         val codyzeOptions by CodyzeOptionGroup(configurationRegister)
@@ -127,13 +140,6 @@ class CodyzeOptionGroupTest {
         @BeforeAll
         @JvmStatic
         fun startup() {
-            // starting koin is necessary because some options (e.g., --executor)
-            // dynamically look up available choices for the by options(...).choice() command
-            startKoin { // Initialize the koin dependency injection
-                // declare modules necessary for testing
-                modules(executorModule)
-            }
-
             val topTestDirResource =
                 CodyzeOptionGroupTest::class.java.classLoader.getResource("cli-test-directory")
             assertNotNull(topTestDirResource)

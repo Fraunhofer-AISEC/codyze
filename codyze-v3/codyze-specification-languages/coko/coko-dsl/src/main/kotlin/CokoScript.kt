@@ -107,7 +107,7 @@ internal object ProjectScriptCompilationConfiguration :
     })
 
 private val baseLibraries =
-arrayOf("coko-core", "codyze-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect")
+    arrayOf("coko-core", "codyze-core", "coko-dsl", "kotlin-stdlib", "kotlin-reflect")
 
 private fun pluginsBlockOrNullFrom(scriptText: String) =
     scriptText.run {

@@ -50,18 +50,18 @@ class CokoExecutor : Executor, KoinComponent {
      */
     @OptIn(ExperimentalTime::class)
     override fun evaluate(): List<Result> {
-        val specEvaluator = timed("Compiled specification scripts in") {
-            compileScriptsIntoSpecEvaluator(backend = backend, specFiles = config.spec)
-        }
+        val specEvaluator =
+            timed("Compiled specification scripts in") {
+                compileScriptsIntoSpecEvaluator(backend = backend, specFiles = config.spec)
+            }
 
         logger.info {
             "Evaluating ${specEvaluator.rules.size} ${if (specEvaluator.rules.size == 1) "rule" else "rules"}..."
         }
         // evaluate the spec scripts
-        val findings = timed("Evaluation of specification scripts took") {
-            specEvaluator.evaluate()
-        }
-        return listOf()  // TODO: return findings
+        val findings =
+            timed("Evaluation of specification scripts took") { specEvaluator.evaluate() }
+        return listOf() // TODO: return findings
     }
 
     companion object {

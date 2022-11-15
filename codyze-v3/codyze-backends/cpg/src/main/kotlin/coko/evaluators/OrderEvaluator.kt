@@ -2,7 +2,7 @@ package de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationResult
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.Order
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Order
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.ordering.toNfa
 import kotlin.reflect.KFunction

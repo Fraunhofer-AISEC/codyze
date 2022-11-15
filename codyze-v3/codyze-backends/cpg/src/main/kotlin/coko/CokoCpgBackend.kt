@@ -1,14 +1,14 @@
 package de.fraunhofer.aisec.codyze_backends.cpg.coko
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Nodes
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.ConstructorOp
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.FunctionOp
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Order
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.Order
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.OrderToken
 import de.fraunhofer.aisec.codyze_backends.cpg.CPGBackend
 import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.*
@@ -56,10 +56,13 @@ class CokoCpgBackend(config: BackendConfiguration) :
                     .flatten()
         }
 
-    override fun evaluateOrder(order: Order): Evaluator = OrderEvaluator(order)
+    /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
+    override infix fun Op.follows(that: Op) = FollowsEvaluator(ifOp = this, thenOp = that)
 
-    override fun evaluateFollows(ifOp: Op, thenOp: Op): Evaluator =
-        FollowsEvaluator(ifOp = ifOp, thenOp = thenOp)
+    /* Ensures the order of nodes as specified in the user configured [Order] object */
+    override fun order(baseNodes: OrderToken, block: Order.() -> Unit) =
+        OrderEvaluator(order = Order().apply(block))
 
-    override fun evaluateOnly(ops: List<Op>): Evaluator = OnlyEvaluator(ops)
+    /** Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops] */
+    override fun only(vararg ops: Op) = OnlyEvaluator(ops.toList())
 }

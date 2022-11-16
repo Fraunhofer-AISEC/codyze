@@ -30,6 +30,8 @@ dependencies {
     testImplementation(libs.koin.junit5){
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-test-junit")
     }
+
+    testImplementation(libs.mockk)
 }
 
 application {

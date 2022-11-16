@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Type
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
@@ -12,6 +13,7 @@ import kotlin.test.assertFalse
 
 class SignatureTest {
     val node = mockk<CallExpression>()
+    val backend = mockk<CokoBackend>()
     val stringArgument = mockk<Literal<String>>()
     val pairArgument = mockk<Literal<Pair<Int, String>>>()
 
@@ -24,14 +26,14 @@ class SignatureTest {
     fun `test signature with wrong number of params`() {
         every { node.arguments } returns listOf()
 
-        assertFalse { with(node) { signature("test") } }
+        assertFalse { with(backend) { with(node) { signature("test") } } }
     }
 
     @Test
     fun `test signature with null`() {
         every { node.arguments } returns listOf(mockk<CallExpression>())
 
-        assertFalse { with(node) { signature(null) } }
+        assertFalse { with(backend) { with(node) { signature(null) } } }
     }
 
     @Test
@@ -39,7 +41,7 @@ class SignatureTest {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
 
-        assertTrue { with(node) { signature(Type("kotlin.String")) } }
+        assertTrue { with(backend) { with(node) { signature(Type("kotlin.String")) } } }
     }
 
     @Test
@@ -47,7 +49,7 @@ class SignatureTest {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
 
-        assertFalse { with(node) { signature(Type("kotlin.Int")) } }
+        assertFalse { with(backend) { with(node) { signature(Type("kotlin.Int")) } } }
     }
 
     @Test
@@ -56,7 +58,7 @@ class SignatureTest {
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertTrue { with(node) { signature("test" to Type("kotlin.String")) } }
+        assertTrue { with(backend) { with(node) { signature("test" to Type("kotlin.String")) } } }
     }
 
     @Test
@@ -65,7 +67,7 @@ class SignatureTest {
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertFalse { with(node) { signature("test" to Type("kotlin.Int")) } }
+        assertFalse { with(backend) { with(node) { signature("test" to Type("kotlin.Int")) } } }
     }
 
     @Test
@@ -74,7 +76,7 @@ class SignatureTest {
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertFalse { with(node) { signature(1 to Type("kotlin.String")) } }
+        assertFalse { with(backend) { with(node) { signature(1 to Type("kotlin.String")) } } }
     }
 
     @Test
@@ -88,7 +90,7 @@ class SignatureTest {
         every { with(node) { param.flowsTo(pairArgument) } } returns true
 
         // tests that with normal pair only flowsTo is called
-        with(node) { signature(param) }
+        with(backend) { with(node) { signature(param) } }
         verify { with(node) { param.flowsTo(pairArgument) } }
     }
 
@@ -102,7 +104,7 @@ class SignatureTest {
         every { with(node) { param.flowsTo(stringArgument) } } returns true
 
         // assert that signature checks the dataflow from the parameter to the argument
-        with(node) { signature(param) }
+        with(backend) { with(node) { signature(param) } }
         verify { with(node) { param.flowsTo(stringArgument) } }
     }
 
@@ -120,7 +122,7 @@ class SignatureTest {
         every { node.arguments } returns args
 
         // assert that signature checks the dataflow from the parameter to the argument at the same position
-        with(node) { signature(*params) }
+        with(backend) { with(node) { signature(*params) } }
         for(i in args.indices)
             verify { with(node) { params[i].flowsTo(args[i]) } }
     }

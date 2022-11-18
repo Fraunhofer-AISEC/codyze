@@ -5,8 +5,8 @@ sealed interface OrderNode : OrderFragment {
     override fun toNode() = this
 
     /**
-     * Apply the given [block] to each [OrderNode] in this [OrderNode].
-     * Uses Depth First Search (DFS).
+     * Apply the given [block] to each [OrderNode] in this [OrderNode]. Uses Depth First Search
+     * (DFS).
      */
     fun applyToAll(block: OrderNode.() -> Unit) {
         val stack = ArrayDeque<OrderNode>()

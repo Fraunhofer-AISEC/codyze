@@ -3,7 +3,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
-import kotlin.jvm.internal.CallableReference
 
 /** [OrderBuilder] subclass to hide some implementation details of [OrderBuilder] to coko users. */
 class Order : OrderBuilder()
@@ -17,7 +16,7 @@ context(OrderBuilder)
  * [OrderToken] when evaluating the order
  */
 fun OrderToken.use(block: () -> Op): OrderFragment {
-    val opName = this.name+"$"+block.hashCode()
+    val opName = this.name + "$" + block.hashCode()
     this@OrderBuilder.userDefinedOps[opName] = block
     return toTerminalOrderNode(opName = opName)
 }

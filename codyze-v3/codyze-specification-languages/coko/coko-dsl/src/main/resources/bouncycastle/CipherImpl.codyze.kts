@@ -4,15 +4,14 @@ class CipherImpl : Cipher {
     // override val transform = variable("")
 
     override fun instantiate(transform: Any, provider: Any?) =
-        // deal with the different function signatures with a more complex configuration of the
-        // CallExpression
-        op {
-            +definition("javax.crypto.Cipher.getInstance") {
-                +signature(transform)
-                +signature(transform, provider)
-            }
+    // deal with the different function signatures with a more complex configuration of the
+    // CallExpression
+    op {
+        +definition("javax.crypto.Cipher.getInstance") {
+            +signature(transform)
+            +signature(transform, provider)
         }
-
+    }
 
     override fun init(
         opmode: Any,
@@ -41,29 +40,25 @@ class CipherImpl : Cipher {
         }
     }
 
-
-    override fun update(input: Any, output: Any?, vararg args: Any) =
-        op {
-            +definition("javax.crypto.Cipher.update") {
-                +signature(input)
-                +signature(input, Wildcard, Wildcard)
-                +signature(input, Wildcard, Wildcard, output)
-                +signature(input, Wildcard, Wildcard, output, Wildcard)
-                +signature(input, output)
-            }
+    override fun update(input: Any, output: Any?, vararg args: Any) = op {
+        +definition("javax.crypto.Cipher.update") {
+            +signature(input)
+            +signature(input, Wildcard, Wildcard)
+            +signature(input, Wildcard, Wildcard, output)
+            +signature(input, Wildcard, Wildcard, output, Wildcard)
+            +signature(input, output)
         }
+    }
 
-    override fun finalize(input: Any?, output: Any?, vararg args: Any) =
-        op {
-            +definition("javax.crypto.Cipher.doFinal") {
-                +signature()
-                +signature(input)
-                +signature(output, Wildcard)
-                +signature(input, Wildcard, Wildcard)
-                +signature(input, Wildcard, Wildcard, output)
-                +signature(input, Wildcard, Wildcard, output, Wildcard)
-                +signature(input, output)
-            }
+    override fun finalize(input: Any?, output: Any?, vararg args: Any) = op {
+        +definition("javax.crypto.Cipher.doFinal") {
+            +signature()
+            +signature(input)
+            +signature(output, Wildcard)
+            +signature(input, Wildcard, Wildcard)
+            +signature(input, Wildcard, Wildcard, output)
+            +signature(input, Wildcard, Wildcard, output, Wildcard)
+            +signature(input, output)
         }
-
+    }
 }

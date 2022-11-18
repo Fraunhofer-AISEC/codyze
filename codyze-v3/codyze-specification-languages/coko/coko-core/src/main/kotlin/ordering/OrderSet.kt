@@ -31,8 +31,7 @@ class OrderSet(private var negate: Boolean) : OrderBuilder() {
             }
 
         while (orderNodes.size > 0) {
-            currentNode =
-                AlternativeOrderNode(left = currentNode, right = orderNodes.removeFirst())
+            currentNode = AlternativeOrderNode(left = currentNode, right = orderNodes.removeFirst())
         }
         return currentNode
     }

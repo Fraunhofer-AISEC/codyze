@@ -5,17 +5,15 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelli
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.ParameterGroup
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
 import io.mockk.mockk
-import org.junit.jupiter.api.Test
 import kotlin.reflect.KFunction
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
 
 class OpDslTest {
     @Test
     fun `test simple op`() {
         val mockDefinition = mockk<Definition>()
-        val actualOp = op {
-            +mockDefinition
-        }
+        val actualOp = op { +mockDefinition }
         val expectedOp = FunctionOp().apply { definitions.add(mockDefinition) }
 
         assertEquals(expectedOp, actualOp)
@@ -32,14 +30,13 @@ class OpDslTest {
 
         val actualOp = op {
             +definition("fqn1") {
-                +signature {
-                    +stringParam
-                }
+                +signature { +stringParam }
                 +signature(stringParam, callTestParam)
                 +signature {
-                    +stringParam
-                    +callTestParam
-                }.unordered(numberParam)
+                        +stringParam
+                        +callTestParam
+                    }
+                    .unordered(numberParam)
                 +signature(numberParam, collectionParam, stringParam)
             }
             +definition("fqn2") {
@@ -54,34 +51,40 @@ class OpDslTest {
         }
 
         val def1 = Definition("fqn1")
-        def1.signatures.add(Signature().apply {
-            parameters.add(stringParam)
-        })
-        def1.signatures.add(Signature().apply {
-            parameters.add(stringParam)
-            parameters.add(callTestParam)
-        })
-        def1.signatures.add(Signature().apply {
-            parameters.add(stringParam)
-            parameters.add(callTestParam)
-            unorderedParameters.add(numberParam)
-        })
-        def1.signatures.add(Signature().apply {
-            parameters.add(numberParam)
-            parameters.add(collectionParam)
-            parameters.add(stringParam)
-        })
+        def1.signatures.add(Signature().apply { parameters.add(stringParam) })
+        def1.signatures.add(
+            Signature().apply {
+                parameters.add(stringParam)
+                parameters.add(callTestParam)
+            }
+        )
+        def1.signatures.add(
+            Signature().apply {
+                parameters.add(stringParam)
+                parameters.add(callTestParam)
+                unorderedParameters.add(numberParam)
+            }
+        )
+        def1.signatures.add(
+            Signature().apply {
+                parameters.add(numberParam)
+                parameters.add(collectionParam)
+                parameters.add(stringParam)
+            }
+        )
 
         val def2 = Definition("fqn2")
-        def2.signatures.add(Signature().apply {
-            parameters.add(typeParam)
-            parameters.add(
-                ParameterGroup().apply {
-                    parameters.add(stringParam)
-                    parameters.add(arrayParam)
-                }
-            )
-        })
+        def2.signatures.add(
+            Signature().apply {
+                parameters.add(typeParam)
+                parameters.add(
+                    ParameterGroup().apply {
+                        parameters.add(stringParam)
+                        parameters.add(arrayParam)
+                    }
+                )
+            }
+        )
 
         val expectedOp = FunctionOp()
         expectedOp.definitions.add(def1)

@@ -26,10 +26,11 @@ class OrderEvaluationTest {
     }
 
     context(CokoBackend)
-    private fun createSimpleOrder(testObj: CokoOrderImpl) = order(testObj::constructor) {
-        +testObj::start
-        +testObj::finish
-    }
+    private fun createSimpleOrder(testObj: CokoOrderImpl) =
+        order(testObj::constructor) {
+            +testObj::start
+            +testObj::finish
+        }
 
     // function with the same signature as the 'rule' [createSimpleDfa] because the kotlin compiler
     // crashes
@@ -75,7 +76,17 @@ class OrderEvaluationTest {
         with(backend) {
             val instance = CokoOrderImpl()
             val orderEvaluator = createSimpleOrder(instance)
-            assertFalse { orderEvaluator.evaluate(EvaluationContext(rule=::dummyFunction, parameterMap=::dummyFunction.valueParameters.associateWith { instance })).ruleEvaluationOutcome }
+            assertFalse {
+                orderEvaluator
+                    .evaluate(
+                        EvaluationContext(
+                            rule = ::dummyFunction,
+                            parameterMap =
+                                ::dummyFunction.valueParameters.associateWith { instance }
+                        )
+                    )
+                    .ruleEvaluationOutcome
+            }
         }
     }
 }

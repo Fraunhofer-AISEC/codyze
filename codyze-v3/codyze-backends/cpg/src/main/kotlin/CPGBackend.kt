@@ -12,7 +12,8 @@ open class CPGBackend(config: BackendConfiguration) : Backend {
         TranslationManager.builder()
             .config(config = (config as CPGConfiguration).toTranslationConfiguration())
             .build() // Initialize the CPG, based on the given Configuration
-            .analyze().get()
+            .analyze()
+            .get()
     }
 
     /** Return a [TranslationConfiguration] object to pass to the CPG */

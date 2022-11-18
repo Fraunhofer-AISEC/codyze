@@ -65,7 +65,9 @@ class Definition(val fqn: String) {
 /**
  * Represents a signature of a function.
  *
- * Two [Signature]s are considered equal if they have the same amount of [parameters] and [unorderedParameters]. The [equals] function will not check the content of [parameters] and [unorderedParameters].
+ * Two [Signature]s are considered equal if they have the same amount of [parameters] and
+ * [unorderedParameters]. The [equals] function will not check the content of [parameters] and
+ * [unorderedParameters].
  *
  * @property parameters stores [Parameter]s of this signature in the correct order
  * @property unorderedParameters store all unordered [Parameter]s of this signature. These
@@ -82,7 +84,9 @@ class Signature {
     }
 
     /**
-     * Two [Signature]s are considered equal if they have the same amount of [parameters] and [unorderedParameters]. The [equals] function will not check the content of [parameters] and [unorderedParameters].
+     * Two [Signature]s are considered equal if they have the same amount of [parameters] and
+     * [unorderedParameters]. The [equals] function will not check the content of [parameters] and
+     * [unorderedParameters].
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

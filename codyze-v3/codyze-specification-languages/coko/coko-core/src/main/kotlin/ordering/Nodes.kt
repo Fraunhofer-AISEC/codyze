@@ -2,13 +2,13 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.orderi
 
 import kotlin.jvm.internal.CallableReference
 
-/**
- * Represents an [OrderToken].
- */
+/** Represents an [OrderToken]. */
 data class TerminalOrderNode(val baseName: String, val opName: String) : OrderNode
 
-fun OrderToken.toTerminalOrderNode(baseName: String = (this as CallableReference).owner.toString(), opName: String = name) =
-    TerminalOrderNode(baseName, opName)
+fun OrderToken.toTerminalOrderNode(
+    baseName: String = (this as CallableReference).owner.toString(),
+    opName: String = name
+) = TerminalOrderNode(baseName, opName)
 
 /** Represents a regex sequence, where one [OrderNode] must be followed by another [OrderNode] */
 data class SequenceOrderNode(val left: OrderNode, val right: OrderNode) : OrderNode

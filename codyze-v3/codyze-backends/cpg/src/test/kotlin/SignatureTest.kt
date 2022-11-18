@@ -6,10 +6,10 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import io.mockk.*
-import org.junit.jupiter.api.AfterEach
-import kotlin.test.assertTrue
-import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Test
 
 class SignatureTest {
     val node = mockk<CallExpression>()
@@ -110,10 +110,10 @@ class SignatureTest {
 
     @Test
     fun `test signature with multiple params`() {
-        val params = arrayOf("test", 1, mockk<CallExpression>(), listOf(1,2,5), Any())
+        val params = arrayOf("test", 1, mockk<CallExpression>(), listOf(1, 2, 5), Any())
         val args = arrayListOf<Expression>()
         mockkStatic("de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.ImplementationDslKt")
-        for(p in params) {
+        for (p in params) {
             val a = mockk<Literal<String>>()
             args.add(a)
             every { a.value } returns "test"
@@ -121,11 +121,11 @@ class SignatureTest {
         }
         every { node.arguments } returns args
 
-        // assert that signature checks the dataflow from the parameter to the argument at the same position
+        // assert that signature checks the dataflow from the parameter to the argument at the same
+        // position
         with(backend) { with(node) { signature(*params) } }
-        for(i in args.indices)
-            verify { with(node) { params[i].flowsTo(args[i]) } }
+        for (i in args.indices) verify { with(node) { params[i].flowsTo(args[i]) } }
     }
-    //TODO hasVarargs
+    // TODO hasVarargs
 
 }

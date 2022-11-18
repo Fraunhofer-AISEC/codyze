@@ -139,8 +139,8 @@ fun configureImportDepsOnAnnotations(
 ): ResultWithDiagnostics<ScriptCompilationConfiguration> {
     val annotations =
         context.collectedData?.get(ScriptCollectedData.foundAnnotations)?.takeIf { it.isNotEmpty() }
-            ?: return context.compilationConfiguration
-                .asSuccess() // If no action is performed, the original configuration should be
+            ?: return context.compilationConfiguration.asSuccess(
+            ) // If no action is performed, the original configuration should be
     // returned
 
     val scriptBaseDir = (context.script as? FileBasedScriptSource)?.file?.parentFile

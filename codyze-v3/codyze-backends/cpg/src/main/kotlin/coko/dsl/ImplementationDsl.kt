@@ -156,9 +156,8 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
                 else ->
                     parameter flowsTo
                         arguments[
-                            i
-                        ] // checks if there is dataflow from the parameter to the argument in the
-            // same position
+                            i] // checks if there is dataflow from the parameter to the argument in
+            // the same position
             }
         }
 }

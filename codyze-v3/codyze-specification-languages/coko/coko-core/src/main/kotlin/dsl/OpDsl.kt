@@ -1,6 +1,5 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.*
 

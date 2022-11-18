@@ -16,6 +16,7 @@ import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.FollowsEvaluator
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.OnlyEvaluator
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.OrderEvaluator
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.cpg.graph.Node
 
 class CokoCpgBackend(config: BackendConfiguration) :
     CPGBackend(config = config as CPGConfiguration), CokoBackend {
@@ -60,8 +61,8 @@ class CokoCpgBackend(config: BackendConfiguration) :
     override infix fun Op.follows(that: Op) = FollowsEvaluator(ifOp = this, thenOp = that)
 
     /* Ensures the order of nodes as specified in the user configured [Order] object */
-    override fun order(baseNodes: OrderToken, block: Order.() -> Unit) =
-        OrderEvaluator(order = Order().apply(block))
+    override fun order(baseNodes: OrderToken?, block: Order.() -> Unit) =
+        OrderEvaluator(baseNodes = baseNodes?.call()?.getAllNodes()?.filterIsInstance<Node>(), order = Order().apply(block))  // TODO: use getNodes here instead?
 
     /** Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops] */
     override fun only(vararg ops: Op) = OnlyEvaluator(ops.toList())

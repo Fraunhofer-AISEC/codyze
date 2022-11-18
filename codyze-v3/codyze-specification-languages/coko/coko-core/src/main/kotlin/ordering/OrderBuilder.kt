@@ -2,8 +2,8 @@
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.token
 
 @CokoMarker
@@ -12,43 +12,40 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.tok
  * given regex with its [toNode] method.
  */
 abstract class OrderBuilder : OrderFragment {
-    protected val orderNodeDeque = ArrayDeque<OrderNode>()
+    // the nodes for the [Op]s in this map must be retrieved using [Op.getNodes]
+    val userDefinedOps = mutableMapOf<String, () -> Op>()
 
-    context(CokoBackend)
-    /** Add an [OrderToken] to the [orderNodeDeque] */
-    operator fun OrderToken.unaryPlus() = this@OrderBuilder.add(this)
+    protected val orderNodes = mutableListOf<OrderNode>()  // this is emptied in [toNode]
 
-    /** Add an [OrderFragment] to the [orderNodeDeque] */
-    operator fun OrderFragment.unaryPlus() = this@OrderBuilder.add(this)
+    /** Add an [OrderToken] to the [orderNodes] */
+    operator fun OrderToken.unaryPlus() = add(this)
 
-    context(CokoBackend)
-    private fun add(token: OrderToken) {
-        this@OrderBuilder.orderNodeDeque.add(token.token)
-    }
+    /** Add an [OrderFragment] to the [orderNodes] */
+    operator fun OrderFragment.unaryPlus() = add(this)
 
-    private fun add(fragment: OrderFragment) {
-        orderNodeDeque.add(fragment.toNode())
-    }
+    private fun add(token: OrderToken) = orderNodes.add(token.token)
+
+    private fun add(fragment: OrderFragment) = orderNodes.add(fragment.toNode())
 
     /** Represent this [OrderFragment] as a binary syntax tree. */
     override fun toNode(): OrderNode {
         var currentNode =
-            when (orderNodeDeque.size) {
+            when (orderNodes.size) {
                 0 ->
                     throw IllegalArgumentException(
                         "Groups and sets must have at least one element."
                     )
-                1 -> return orderNodeDeque.removeFirst()
+                1 -> return orderNodes.removeFirst()
                 else ->
                     SequenceOrderNode(
-                        left = orderNodeDeque.removeFirst(),
-                        right = orderNodeDeque.removeFirst()
+                        left = orderNodes.removeFirst(),
+                        right = orderNodes.removeFirst()
                     )
             }
 
-        while (orderNodeDeque.size > 0) {
+        while (orderNodes.size > 0) {
             currentNode =
-                SequenceOrderNode(left = currentNode, right = orderNodeDeque.removeFirst())
+                SequenceOrderNode(left = currentNode, right = orderNodes.removeFirst())
         }
         return currentNode
     }

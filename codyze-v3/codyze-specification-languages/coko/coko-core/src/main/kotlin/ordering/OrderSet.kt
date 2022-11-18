@@ -2,7 +2,6 @@
 
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.set
 
 /**
@@ -18,22 +17,22 @@ class OrderSet(private var negate: Boolean) : OrderBuilder() {
     /** Represent this [OrderSet] ([OrderFragment]) as a binary syntax tree. */
     override fun toNode(): OrderNode {
         var currentNode =
-            when (orderNodeDeque.size) {
+            when (orderNodes.size) {
                 0 ->
                     throw IllegalArgumentException(
                         "Groups and sets must have at least one element."
                     )
-                1 -> return orderNodeDeque.removeFirst()
+                1 -> return orderNodes.removeFirst()
                 else ->
                     AlternativeOrderNode(
-                        left = orderNodeDeque.removeFirst(),
-                        right = orderNodeDeque.removeFirst()
+                        left = orderNodes.removeFirst(),
+                        right = orderNodes.removeFirst()
                     )
             }
 
-        while (orderNodeDeque.size > 0) {
+        while (orderNodes.size > 0) {
             currentNode =
-                AlternativeOrderNode(left = currentNode, right = orderNodeDeque.removeFirst())
+                AlternativeOrderNode(left = currentNode, right = orderNodes.removeFirst())
         }
         return currentNode
     }
@@ -41,6 +40,6 @@ class OrderSet(private var negate: Boolean) : OrderBuilder() {
 
 /** Allows the syntactic sugar to create a set with the 'get' operator. */
 class OrderSetGetOperator {
-     context(CokoBackend)
-     operator fun OrderBuilder.get(vararg tokens: OrderToken) = set { tokens.forEach { +it } }
+    context(OrderBuilder)
+    operator fun get(vararg tokens: OrderToken) = set { tokens.forEach { +it } }
 }

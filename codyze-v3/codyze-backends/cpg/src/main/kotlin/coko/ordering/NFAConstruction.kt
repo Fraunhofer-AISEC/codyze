@@ -3,8 +3,6 @@ package de.fraunhofer.aisec.codyze_backends.cpg.coko.ordering
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
 import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.analysis.fsm.NFA
-import de.fraunhofer.aisec.cpg.graph.Node
-import kotlin.jvm.internal.CallableReference
 
 /**
  * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE)
@@ -32,10 +30,9 @@ internal fun nfaForTerminalOrderNode(node: TerminalOrderNode): NFA {
     // create an edge connecting the two states
     val edge =
         Edge(
-            op = node.opReference.name,
-            base = (node.opReference as CallableReference).owner.toString(),
+            op = node.opName,
+            base = node.baseName,
             nextState = endState,
-            nodeGetter = node.correspondingNodes as () -> Collection<Node>
         )
     // add the edge to the NFA
     nfa.addEdge(startState, edge)

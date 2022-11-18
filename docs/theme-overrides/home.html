@@ -2,7 +2,8 @@
 
 {% block extrahead %}
     {{ super() }}
-    <script src="https://kit.fontawesome.com/b1760cf7b8.js" crossorigin="anonymous"></script>
+    <link href="/assets/fontawesome/css/fontawesome.css" rel="stylesheet">
+    <link href="/assets/fontawesome/css/solid.css" rel="stylesheet">
 {% endblock %}
 
 {% block tabs %}
@@ -62,7 +63,11 @@
             <div class="feature-container">
                 <div class="feature-item">
                     <div class="video-container">
-                        <iframe src="https://www.youtube-nocookie.com/embed/3CNrVWk_qs0" title="Codyze: Automated Code Compliance" frameborder="0" allow="clipboard-write; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                        <!--<iframe src="https://www.youtube-nocookie.com/embed/3CNrVWk_qs0" title="Codyze: Automated Code Compliance" frameborder="0" allow="clipboard-write; encrypted-media; picture-in-picture" allowfullscreen></iframe>-->
+                        <video controls preload="none" poster="/assets/video/Fraunhofer_AISEC_Codyze_eng_poster.jpg">
+                            <source src="/assets/video/Fraunhofer_AISEC_Codyze_eng.mp4" type="video/mp4">
+                            <p>We're sorry; your browser doesn't support HTML video. You may see the video on <span class="fas fa-external-link-alt"></span><a href="https://www.youtube-nocookie.com/embed/3CNrVWk_qs0">Youtube</a> instead.</p>
+                        </video>
                     </div>
                     <div class="feature-item--text">
                         <h1><span class="fas fa-solid fa-shield-check"></span>Verifying Compliance to Security Requirements</h1>

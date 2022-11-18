@@ -28,6 +28,10 @@
       "extends": ["schedule:earlyMondays"]
     },
     {
+      "matchPackagePrefixes": ["com.github.Fraunhofer-AISEC"],
+      "registryUrls": ["https://jitpack.io/"]
+    },
+    {
       "matchPackageNames": ["vscode"],
       "rangeStrategy": "bump",
       "allowedVersions": "<1.999.0"

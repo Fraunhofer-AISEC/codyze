@@ -3,24 +3,31 @@ import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    // built-in
+    // authoring
     java
-    application
-    jacoco
-    idea
-    `maven-publish`
     `java-library`
+    kotlin("jvm") version "1.7.20"
+    application
 
+    // generators
     id("org.jsonschema2dataclass") version "4.5.0"
 
+    // vulnerability detection and quality assurance
+    jacoco
     id("org.sonarqube") version "3.5.0.2730"
     id("com.diffplug.spotless") version "6.11.0"
-    id("com.github.hierynomus.license") version "0.16.1"
 
     // documentation
     id("org.jetbrains.dokka") version "1.7.20"
 
-    kotlin("jvm") version "1.7.20"
+    // licensing
+    id("com.github.hierynomus.license-report") version "0.16.1"
+
+    // publishing
+    `maven-publish`
+
+    // IDE support
+    idea
 }
 
 // Allow access to Dokka configuration for custom assets and stylesheets
@@ -30,81 +37,34 @@ buildscript {
     }
 }
 
-group = "de.fraunhofer.aisec"
-
-/* License plugin needs a special treatment, as long as the main project does not have a license yet.
- * See https://github.com/hierynomus/license-gradle-plugin/issues/155
- */
-// TODO this does not affect the build when built in a composite build
-// TODO see the composite root settings.gradle.kts which disables these tasks for now
-gradle.startParameter.excludedTaskNames += ":codyze-v2:licenseMain"
-gradle.startParameter.excludedTaskNames += ":codyze-v2:licenseTest"
-
-tasks {
-    jar {
-        manifest {
-            attributes(
-                "Implementation-Title" to "codyze",
-                "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev")
-            )
-        }
-    }
-}
-
-tasks.jacocoTestReport {
-    reports {
-        xml.required.set(true)
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
-}
-
 repositories {
-    mavenLocal()
-    mavenCentral()
-
+    // on demand Maven package repo assembled from Git repositories; used for own GitHub projects
     maven {
         setUrl("https://jitpack.io")
-    }
-
-    // NOTE: Remove this when we "release". this is the public sonatype repo which is used to
-    // sync to maven central, but directly adding this repo is faster than waiting for a maven
-    // central sync, which takes 8 hours in the worse case. so it is useful during heavy
-    // development but should be removed if everything is more stable
-    maven {
-        setUrl("https://oss.sonatype.org/content/groups/public")
+        content {
+            includeGroup("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin")
+        }
     }
 
     // Eclipse CDT repo
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+        setUrl("https://archive.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
         metadataSources {
             artifact()
         }
         patternLayout {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
+        content {
+            includeGroup("org.eclipse.cdt")
+        }
     }
 
-    maven {
-        setUrl("https://jitpack.io")
-    }
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
-configurations.all {
-    resolutionStrategy {
-        cacheChangingModulesFor(0, "seconds")
+    mavenCentral {
+        content {
+            excludeGroup("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin")
+            excludeGroup("org.eclipse.cdt")
+        }
     }
 }
 
@@ -128,7 +88,7 @@ dependencies {
     // MARK DSL; use GitHub release via JitPack; e.g. exposed by de.fraunhofer.aisec.cpg.analysis.fsm.FSMBuilder
     api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:2.0.0:repackaged")
 
-    // Pushdown Systems
+    // Pushdown systems
     api("de.breakpointsec:pushdown:1.1") // e.g., exposed in de.fraunhofer.aisec.codyze.analysis.wpds
 
     // LSP interface support
@@ -141,7 +101,7 @@ dependencies {
     api("info.picocli:picocli:4.7.0") // e.g., exposed by de.fraunhofer.aisec.codyze.ManifestVersionProvider
     annotationProcessor("info.picocli:picocli-codegen:4.7.0")
 
-    // Reflections for OverflowDB and registering Crymlin built-ins
+    // Reflections for registering Crymlin built-ins
     implementation("org.reflections:reflections:0.10.2")
 
     // Parser for yaml configuration file
@@ -155,51 +115,39 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
 }
 
+/*
+ * General project configuration
+ */
+
+group = "de.fraunhofer.aisec"
+
+/*
+ * Plugin configuration block
+ */
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 application {
     mainClass.set("de.fraunhofer.aisec.codyze.Main")
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-    maxHeapSize = "6000m"
-}
-
-// Add generated sources from annotation processor to source sets so they can be picked up
-sourceSets.configureEach {
-    tasks.named<JavaCompile>(compileJavaTaskName) {
-        java.srcDir(options.generatedSourceOutputDirectory.get())
-    }
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    }
-}
-
-// Added mark files from dist folder to test resources
-sourceSets.getByName("test").resources {
-    srcDir("src/dist")
-}
-
-tasks.named("compileJava") {
-    dependsOn(":spotlessApply")
-}
-
-// state that JSON schema parser must run before compiling Kotlin
-tasks.named("compileKotlin") {
-    dependsOn(":generateJsonSchema2DataClass")
-}
-
-tasks.named("sonarqube") {
-    dependsOn(":jacocoTestReport")
+jsonSchema2Pojo {
+    source.setFrom("src/main/resources/json")
+    targetPackage.set("de.fraunhofer.aisec.codyze.sarif.schema")
+    removeOldOutput.set(true)
 }
 
 spotless {
+    ratchetFrom("origin/main")
     java {
-        // exclude automatically generated files
+        importOrder()
+        removeUnusedImports()
+        googleJavaFormat()
+        // exclude generated files
         targetExclude("build/generated/**/*.java")
-        eclipse().configFile(rootProject.file("formatter-settings.xml"))
     }
     kotlin {
         ktfmt().kotlinlangStyle()
@@ -211,35 +159,55 @@ downloadLicenses {
     dependencyConfiguration = "compileClasspath"
 }
 
-tasks.named<CreateStartScripts>("startScripts") {
-    doLast {
-        /* On Windows the classpath can be too long. This is a workaround for https://github.com/gradle/gradle/issues/1989
-         *
-         * The problem doesn't seem to exist in the current version, but may reappear, so we're keeping this one around.
-         */
-        windowsScript.writeText(
-            windowsScript
-                .readText()
-                .replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*")
-        )
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
     }
 }
 
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "11"
+/*
+ * Task configuration block
+ */
+
+// Add generated sources from annotation processor to source sets so they can be picked up
+sourceSets.configureEach {
+    tasks.named<JavaCompile>(compileJavaTaskName) {
+        java.srcDir(options.generatedSourceOutputDirectory.get())
+    }
 }
 
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "11"
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        jvmTarget = "11"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
+    }
 }
 
-jsonSchema2Pojo {
-    source.setFrom("src/main/resources/json")
-    targetPackage.set("de.fraunhofer.aisec.codyze.sarif.schema")
-    removeOldOutput.set(true)
-    // ... more options
+// state that JSON schema parser must run before compiling Kotlin
+tasks.named("compileKotlin") {
+    dependsOn(":generateJsonSchema2DataClass")
+}
+
+// Added mark files from dist folder to test resources
+sourceSets.getByName("test").resources {
+    srcDir("src/dist")
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+    maxHeapSize = "6000m"
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.required.set(true)
+    }
+}
+
+tasks.named("sonarqube") {
+    dependsOn(":jacocoTestReport")
 }
 
 // generate API documentation
@@ -273,4 +241,29 @@ tasks.dokkaHtml.configure {
             target = outputDirectory.get().resolve("styles").resolve("inter"),
             overwrite = true,
         )
+}
+
+tasks.named<CreateStartScripts>("startScripts") {
+    doLast {
+        /* On Windows the classpath can be too long. This is a workaround for https://github.com/gradle/gradle/issues/1989
+         *
+         * The problem doesn't seem to exist in the current version, but may reappear, so we're keeping this one around.
+         */
+        windowsScript.writeText(
+            windowsScript
+                .readText()
+                .replace(Regex("set CLASSPATH=.*"), "set CLASSPATH=%APP_HOME%\\\\lib\\\\*")
+        )
+    }
+}
+
+tasks {
+    jar {
+        manifest {
+            attributes(
+                "Implementation-Title" to "codyze",
+                "Implementation-Version" to archiveVersion.getOrElse("0.0.0-dev"),
+            )
+        }
+    }
 }

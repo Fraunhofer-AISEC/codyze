@@ -1,5 +1,6 @@
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rule
 import kotlin.reflect.*
@@ -36,8 +37,7 @@ class SpecEvaluator {
             // compiled into a subclass of [CokoScript] which means that anything defined in a
             // script will always need a CokoScript instance as a receiver
 
-            parameterMap.putAll(
-                rule.valueParameters.associateWith { param ->
+            val valueParameterMap = rule.valueParameters.associateWith { param ->
                     // TODO: check for all implementations!
                     implementations
                         .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
@@ -55,10 +55,11 @@ class SpecEvaluator {
                             }
                         }[0]
                 }
-            )
+
+            parameterMap.putAll(valueParameterMap)
 
             val rawRuleResult = rule.callBy(parameterMap)
-            val ruleResult = (rawRuleResult as? Evaluator)?.evaluate(rule) ?: rawRuleResult
+            val ruleResult = (rawRuleResult as? Evaluator)?.evaluate(EvaluationContext(rule=rule, parameterMap=valueParameterMap)) ?: rawRuleResult
             logger.info {
                 " (${index+1}/${rules.size}): ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}"
             }

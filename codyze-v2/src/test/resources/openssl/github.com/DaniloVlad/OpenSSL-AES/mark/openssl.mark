@@ -1,5 +1,0 @@
-package openssl
-
-entity OpenSSL {
-	
-}

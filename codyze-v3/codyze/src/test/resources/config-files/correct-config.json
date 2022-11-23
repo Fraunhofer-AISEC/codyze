@@ -3,11 +3,6 @@
     "good-findings": false,
     "timeout": 5,
     "spec": "spec",
-    "source": ["src/main/java"],
-    "disabled-source": "src/main/java/File2.java",
-    "typestate": "DFA",
-    "unity": true,
-    "additional-languages": ["go"],
-    "analyze-includes": true
+    "output": "out"
   }
 }

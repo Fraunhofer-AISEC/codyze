@@ -1,6 +1,5 @@
 {
   "test-subcommand": {
-    "spec": "spec",
-    "source": ["file.yml"]
+    "spec": "spec"
   }
 }

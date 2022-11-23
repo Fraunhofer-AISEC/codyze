@@ -74,9 +74,10 @@ kotlin {
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs = listOf(
-            "-opt-in=kotlin.RequiresOptIn"
+            "-opt-in=kotlin.RequiresOptIn",
+            "-Xcontext-receivers"
         )
-        allWarningsAsErrors = project.findProperty("warningsAsErrors") == "true"
+        // allWarningsAsErrors = true
     }
 }
 

@@ -2,20 +2,25 @@ package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
-import de.fraunhofer.aisec.codyze_core.config.Language
-import de.fraunhofer.aisec.codyze_core.config.TypestateMode
+import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import de.fraunhofer.aisec.codyze_core.Executor
+import io.mockk.clearAllMocks
+import io.mockk.mockk
 import java.nio.file.Path
-import kotlin.io.path.Path
-import kotlin.io.path.div
-import kotlin.io.path.exists
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.koin.dsl.bind
+import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
+import kotlin.io.path.*
 
-class CodyzeCliTest : KoinTest {
+class CodyzeCliTest: KoinTest {
+
+    val mockkExecutor = mockk<Executor>(relaxed = true)
+    val mockkOptionGroup = mockk<OptionGroup>(relaxed = true)
 
     @JvmField
     @RegisterExtension
@@ -24,8 +29,18 @@ class CodyzeCliTest : KoinTest {
     val koinTestExtension =
         KoinTestExtension.create { // Initialize the koin dependency injection
             // declare modules necessary for testing
-            modules(executorModule)
+            modules(
+                module {
+                    factory { mockkOptionGroup } bind OptionGroup::class
+                    factory { mockkExecutor } bind Executor::class
+                }
+            )
         }
+
+    @AfterEach
+    fun clearMockks() {
+        clearAllMocks()
+    }
 
     class TestSubcommand : CodyzeSubcommand() {
         override fun run() {}
@@ -40,11 +55,7 @@ class CodyzeCliTest : KoinTest {
     @Test
     fun configRelativePathResolutionTest() {
         val testSubcommand = TestSubcommand()
-        val codyzeCli =
-            initCli(pathConfigFile, arrayOf(testSubcommand), arrayOf(testSubcommand.commandName))
-
-        val expectedSource = listOf<Path>(fileYml)
-        assertContentEquals(expectedSource, testSubcommand.codyzeOptions.source)
+        initCli(pathConfigFile, arrayOf(testSubcommand), arrayOf(testSubcommand.commandName))
 
         val expectedSpecs = listOf(specMark)
         assertContentEquals(expectedSpecs, testSubcommand.codyzeOptions.spec)
@@ -53,46 +64,37 @@ class CodyzeCliTest : KoinTest {
     // Test the behavior of command if both config file and command line options are present
     @Test
     fun configFileWithArgsTest() {
+        val tempDir = createTempDirectory()
+
         val testSubcommand = TestSubcommand()
-        val codyzeCli =
-            initCli(
-                correctConfigFile,
-                arrayOf(testSubcommand),
-                arrayOf(
-                    testSubcommand.commandName,
-                    "-s",
-                    srcMainJava.div("dir1").toString(),
-                    "--additional-languages",
-                    "python",
-                    "--no-unity",
-                    "--spec-additions",
-                    spec2Mark.toString(),
-                )
+        initCli(
+            correctConfigFile,
+            arrayOf(testSubcommand),
+            arrayOf(
+                testSubcommand.commandName,
+                "--output",
+                tempDir.absolutePathString(),
+                "--spec-additions",
+                spec2Mark.absolutePathString(),
+                "--timeout",
+                "10"
             )
+        )
 
         // should be overwritten by args
         val overwrittenMessage = "CLI options should take precedence over config file"
-        val expectedSource = listOf(srcMainJava.div("dir1").div("File3.java"))
-        assertContentEquals(expectedSource, testSubcommand.codyzeOptions.source, overwrittenMessage)
-        assertFalse(testSubcommand.cpgOptions.useUnityBuild, overwrittenMessage)
-        assertContentEquals(
-            listOf(Language.PYTHON),
-            testSubcommand.cpgOptions.additionalLanguages,
-            overwrittenMessage
-        )
+        assertEquals(tempDir.absolute(), testSubcommand.codyzeOptions.output.absolute(), overwrittenMessage)
+        assertEquals(10, testSubcommand.codyzeOptions.timeout, overwrittenMessage)
 
         // args values should be appended to config values
         val appendMessage = "Values from CLI option should be appended to config values"
         val expectedSpecs = listOf(specMark, spec2Mark)
-        assertContentEquals(expectedSpecs, testSubcommand.codyzeOptions.spec, appendMessage)
+        assertContentEquals(expectedSpecs.map { it.absolute() }, testSubcommand.codyzeOptions.spec.map { it.absolute() }, appendMessage)
 
         // should be config values
         val staySameMessage =
             "Config file options should stay the same if it was not matched on CLI"
         assertFalse(testSubcommand.codyzeOptions.goodFindings, staySameMessage)
-        assertEquals(TypestateMode.DFA, testSubcommand.analysisOptions.typestate, staySameMessage)
-        assertEquals(5, testSubcommand.codyzeOptions.timeout, staySameMessage)
-        assertTrue(testSubcommand.translationOptions.loadIncludes, staySameMessage)
     }
 
     companion object {

@@ -29,12 +29,15 @@ class JsonValueSource(
                 // listOf(OptionParser.Invocation(name = "source", values =
                 // listOf(cursor[0].jsonPrimitive.content))))  // instead of relying on metavar, it
                 // is also possible to parse the option and look at the return type
-                "PATH" ->
-                    filePath.parent
-                        .div(content)
-                        .normalize()
-                        .toString() // make all paths given in the config file relative to the path
-                // of the config file
+                "PATH" -> // make all paths given in the config file relative to the path of the
+                    // config file
+                    filePath
+                        .toAbsolutePath() // needed for when the given config file path is a
+                        // relative path
+                        .parent
+                        .div(content) // combine with the path in content
+                        .normalize() // remove redundant pieces like '../'
+                        .toString()
                 else -> content
             }
 

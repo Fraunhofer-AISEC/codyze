@@ -2,16 +2,23 @@ rootProject.name = "codyze-v3"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
+/*
+ enable this if you want to develop codyze and the cpg together
+ */
+// includeBuild("../../cpg")  // e.g., "../../cpg"
+
 include("codyze")
 include("codyze-core")
+include(":codyze-backends:cpg")
+
+// MARK specification language
+// include(":codyze-specification-languages:mark")
+
+
+// Codyze Kotlin specification language
+include(":codyze-specification-languages:coko:coko-core")
+include(":codyze-specification-languages:coko:coko-dsl")
 
 // TODO re-enable modules once adapted to codyze v3
 // include("codyze-lsp")
 // include("codyze-console")
-
-// TODO: re-enable once mark can be compiled
-// include all submodules in the 'codyze-specification-languages' folder
-file("codyze-specification-languages").listFiles()?.filter{ it.isDirectory }?.forEach { dir: File ->
-    include(":codyze-specification-languages:${dir.name}")
-    project(":codyze-specification-languages:${dir.name}").projectDir = dir
-}

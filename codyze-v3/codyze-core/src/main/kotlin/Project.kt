@@ -1,7 +1,6 @@
 package de.fraunhofer.aisec.codyze_core
 
 import de.fraunhofer.aisec.codyze_core.config.Configuration
-import de.fraunhofer.aisec.cpg.TranslationManager
 import io.github.detekt.sarif4k.*
 
 /**
@@ -10,11 +9,6 @@ import io.github.detekt.sarif4k.*
  * This enables switching between different analyses (e.g. switching between projects in an IDE).
  */
 class Project(val config: Configuration) {
-    /** The CPG basesd on the given [config] */
-    val translationManager =
-        TranslationManager.builder()
-            .config(config = config.cpgConfiguration.toTranslationConfiguration())
-            .build() // Initialize the CPG, based on the given Configuration
     /** [Executor] that is capable of evaluating the [Configuration.spec] given in [config] */
     val executor = config.executor ?: getRandomCapableExecutor()
 
@@ -30,11 +24,8 @@ class Project(val config: Configuration) {
     }
 
     fun doStuff(): SarifSchema210 {
-        executor.initialize(config.toExecutorConfiguration())
-        val results: List<Result> =
-            executor.evaluate(
-                analyzer = translationManager
-            ) // TODO: pass the translation manager instead?
+        executor.initialize(config.backendConfiguration, config.toExecutorConfiguration())
+        val results: List<Result> = executor.evaluate()
 
         // complete SARIF model by integrating results, e.g. add "Codyze" as tool name, etc.
         // TODO what format should we give to LSP?

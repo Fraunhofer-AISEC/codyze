@@ -1,18 +1,48 @@
 package de.fraunhofer.aisec.codyze
 
-import com.github.ajalt.clikt.core.CliktCommand
-import de.fraunhofer.aisec.codyze.specification_languages.mark.MarkExecutor
+import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
+import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
+import de.fraunhofer.aisec.codyze_backends.cpg.CPGBackend
+import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
+import de.fraunhofer.aisec.codyze_backends.cpg.CPGOptionGroup
+import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze_core.Executor
-import org.koin.core.module.dsl.factoryOf
-import org.koin.core.module.dsl.singleOf
+import de.fraunhofer.aisec.codyze_core.wrapper.Backend
+import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-// Constructor DSL
-val executorModule = module { factoryOf(::MarkExecutor) bind Executor::class }
+val codyzeModule = module {
+    factory { params -> CPGOptionGroup(params.get()) } bind OptionGroup::class
+    factory { params ->
+        CPGConfiguration(
+            source = params[0],
+            useUnityBuild = params[1],
+            typeSystemActiveInFrontend = params[2],
+            debugParser = params[3],
+            disableCleanup = params[4],
+            codeInNodes = params[5],
+            matchCommentsToNodes = params[6],
+            processAnnotations = params[7],
+            failOnError = params[8],
+            useParallelFrontends = params[9],
+            defaultPasses = params[10],
+            additionalLanguages = params[11],
+            symbols = params[12],
+            passes = params[13],
+            loadIncludes = params[14],
+            includePaths = params[15],
+            includeWhitelist = params[16],
+            includeBlocklist = params[17],
+            typestate = params[18]
+        )
+    } bind BackendConfiguration::class
+    factory { params -> CPGBackend(params.get()) } bind Backend::class
+    factory { params -> CokoCpgBackend(params.get()) } bind CokoBackend::class
+}
 
-val subcommandModule = module {
-    singleOf(::Analyze) bind CliktCommand::class
-    singleOf(::Interactive) bind CliktCommand::class
-    singleOf(::LSP) bind CliktCommand::class
+val executorModule = module {
+    // factoryOf(::MarkExecutor) bind Executor::class
+    factory { CokoExecutor() } bind Executor::class
 }

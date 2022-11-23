@@ -33,7 +33,7 @@ tasks.withType<DokkaTaskPartial>().configureEach {
 // configure task for individual module
 tasks.withType<DokkaTask>().configureEach {
     // path to Dokka assets
-    val dokkaAssetsBaseDirectory = project.rootDir.resolve("..").resolve("docs").resolve("assets").resolve("dokka")
+    val dokkaAssetsBaseDirectory = project.rootDir.resolve("docs").resolve("assets").resolve("dokka")
     // configure custom assets
     pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
         // use custom stylesheets without external content

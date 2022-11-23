@@ -5,7 +5,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 /*
  enable this if you want to develop codyze and the cpg together
  */
-includeBuild("../../cpg")  // e.g., "../../cpg"
+// includeBuild("../../cpg")  // e.g., "../../cpg"
 
 include("codyze")
 include("codyze-core")

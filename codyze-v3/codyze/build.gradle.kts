@@ -6,7 +6,9 @@ plugins {
 
 dependencies {
     implementation(projects.codyzeCore)
-    implementation(projects.codyzeSpecificationLanguages.mark)
+    implementation(projects.codyzeBackends.cpg)
+    // implementation(projects.codyzeSpecificationLanguages.mark)
+    implementation(projects.codyzeSpecificationLanguages.coko.cokoDsl)
 
     implementation(libs.clikt)
     implementation(libs.koin)
@@ -28,6 +30,8 @@ dependencies {
     testImplementation(libs.koin.junit5){
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-test-junit")
     }
+
+    testImplementation(libs.mockk)
 }
 
 application {
@@ -40,13 +44,4 @@ tasks {
             attributes("Implementation-Title" to "Codyze v3")
         }
     }
-}
-
-/**
- * Set version as system property when using run task, because there isn't a JAR file manifest.
- *
- * We already defined a sensible version in our parent project for all modules.
- */
-tasks.named<JavaExec>("run") {
-    systemProperty("codyze-v3-version", project.version)
 }

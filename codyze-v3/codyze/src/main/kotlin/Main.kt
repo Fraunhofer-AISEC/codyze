@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.output.CliktHelpFormatter
@@ -9,12 +10,11 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.*
 import de.fraunhofer.aisec.codyze.options.configFileOption
 import de.fraunhofer.aisec.codyze.source.JsonValueSource
-import de.fraunhofer.aisec.codyze_core.helper.VersionProvider
+import de.fraunhofer.aisec.codyze.subcommands.*
 import java.nio.file.Path
 import kotlin.io.path.Path
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
-import org.koin.java.KoinJavaComponent.getKoin
 
 private val logger = KotlinLogging.logger {}
 
@@ -24,7 +24,6 @@ private val logger = KotlinLogging.logger {}
  * This class is only used as a pre-parser to parse the --config option and provide the received
  * config[[Path]] as context to the [[CodyzeCli]] command.
  */
-@Suppress("UNUSED")
 class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
     val configFile: Path? by configFileOption()
     val arguments by
@@ -38,35 +37,30 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
 /**
  * Main [CliktCommand]. Provides some options to all included subcommands.
  *
- * @param configFile The configFile is actually parsed in the [ConfigFileParser] command and then
- * passed to this class as an argument
+ * The configFile is actually parsed in the [ConfigFileParser] command and then passed to this class
+ * as an argument
  */
-class CodyzeCli(val configFile: Path? = null) :
-    CliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
-
+class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "config.json")) :
+    NoOpCliktCommand(
+        help = "Codyze finds security flaws in source code",
+        printHelpOnEmptyArgs = true
+    ) {
     init {
-        versionOption(VersionProvider.getVersion("codyze"), names = setOf("--version", "-V"))
+        versionOption("1.0", names = setOf("--version", "-V")) // TODO get actual version
         context {
-            if (configFile != null)
-                valueSource = JsonValueSource.from(configFile, requireValid = true)
+            valueSource = JsonValueSource.from(configFile, requireValid = true)
             helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")
         }
     }
-
-    override fun run() {
-        echo("In CodyzeCli")
-    } // TODO: change to NoOpCliktCommand?
 }
 
 /** Entry point for Codyze. Hands over control to the chosen subcommand immediately. */
 fun main(args: Array<String>) {
-    // TODO: move this to the CodyzeCli.run or AnalysisServer.init?
-    // TODO: if we move it there, we cannot use Koin to inject the subcommands...
     startKoin { // Initialize the koin dependency injection
         // use Koin logger
         printLogger()
         // declare modules
-        modules(executorModule, subcommandModule)
+        modules(executorModule, codyzeModule)
     }
 
     val configFileParser =
@@ -81,9 +75,7 @@ fun main(args: Array<String>) {
         } // recreate the codyze parser if the user used the config file option
     } finally {
         codyzeCli
-            .subcommands(
-                getKoin().getAll<CliktCommand>()
-            ) // use koin DI to register all available subcommands
+            .subcommands(Analyze(), LSP(), Interactive())
             .main(
                 args
             ) // parse the given arguments and run the <run> method of the chosen subcommand.

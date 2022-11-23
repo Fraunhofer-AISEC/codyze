@@ -3,12 +3,10 @@ package de.fraunhofer.aisec.codyze
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
-import de.fraunhofer.aisec.codyze_backends.cpg.CPGBackend
 import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze_backends.cpg.CPGOptionGroup
 import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze_core.Executor
-import de.fraunhofer.aisec.codyze_core.wrapper.Backend
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -38,11 +36,9 @@ val codyzeModule = module {
             typestate = params[18]
         )
     } bind BackendConfiguration::class
-    factory { params -> CPGBackend(params.get()) } bind Backend::class
     factory { params -> CokoCpgBackend(params.get()) } bind CokoBackend::class
 }
 
 val executorModule = module {
-    // factoryOf(::MarkExecutor) bind Executor::class
     factory { CokoExecutor() } bind Executor::class
 }

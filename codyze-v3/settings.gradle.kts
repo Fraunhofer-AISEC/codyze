@@ -5,15 +5,11 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 /*
  enable this if you want to develop codyze and the cpg together
  */
-// includeBuild("../../cpg")  // e.g., "../../cpg"
+includeBuild("../../cpg")  // e.g., "../../cpg"
 
 include("codyze")
 include("codyze-core")
 include(":codyze-backends:cpg")
-
-// MARK specification language
-// include(":codyze-specification-languages:mark")
-
 
 // Codyze Kotlin specification language
 include(":codyze-specification-languages:coko:coko-core")

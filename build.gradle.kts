@@ -14,11 +14,11 @@ plugins {
 tasks.dokkaHtmlMultiModule.configure {
     // add API docs to directory used for website generation
     outputDirectory.set(
-        project.rootDir.resolve("..").resolve("docs").resolve("api").resolve("codyze-v3")
+        project.rootDir.resolve("docs").resolve("api").resolve("codyze-v3")
     )
     // path to Dokka assets
     val dokkaAssetsBaseDirectory =
-        project.rootDir.resolve("..").resolve("docs").resolve("assets").resolve("dokka")
+        project.rootDir.resolve("docs").resolve("assets").resolve("dokka")
     // configure custom assets
     pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
         // use custom stylesheets without external content

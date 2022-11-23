@@ -8,15 +8,15 @@
 #/logs/
 
 # Generated source code
-/src/main/generated/
+/modules/main/generated/
 
 # Temporary execution files
 graph-cache-overflow.bin
 codyze.log
 
 # Benchmark files
-scripts/owasp_sast_benchmark/owasp_sast
-scripts/owasp_sast_benchmark/master.zip
+src/codyze_scripts/owasp_sast_benchmark/owasp_sast
+src/codyze_scripts/owasp_sast_benchmark/master.zip
 
 #node_modules
 #package-lock.json
@@ -28,7 +28,7 @@ scripts/owasp_sast_benchmark/master.zip
 #####
 .gradle
 **/build/
-!src/**/build/
+!modules/**/build/
 
 # Ignore Gradle GUI config
 gradle-app.setting

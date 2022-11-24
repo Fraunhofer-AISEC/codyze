@@ -14,7 +14,7 @@ plugins {
 tasks.dokkaHtmlMultiModule.configure {
     // add API docs to directory used for website generation
     outputDirectory.set(
-        project.rootDir.resolve("docs").resolve("api").resolve("codyze-v3")
+        project.rootDir.resolve("docs").resolve("api").resolve("codyze")
     )
     // path to Dokka assets
     val dokkaAssetsBaseDirectory =

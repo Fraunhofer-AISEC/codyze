@@ -168,6 +168,4 @@ nav:
         - 'Contributing to Codyze': contributors/index.md
         - 'Build the project': contributors/code.md
         - 'How to Contribute?': contributors/CONTRIBUTING.md
-    - 'API':
-        - 'Codyze v2': api/codyze-v2
-        - 'Codyze v3': api/codyze-v3
+    - 'API': api/codyze

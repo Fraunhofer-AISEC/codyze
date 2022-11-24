@@ -21,7 +21,7 @@ tasks.withType<DokkaTaskPartial>().configureEach {
                 // ensure we're including path segment to module
                 remoteUrl.set(
                     URL(
-                        "https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-v3/${project.projectDir.relativeTo(project.rootDir)}/src/main/kotlin"
+                        "https://github.com/Fraunhofer-AISEC/codyze/blob/main/${project.projectDir.relativeTo(project.rootDir)}/src/main/kotlin"
                     )
                 )
                 remoteLineSuffix.set("#L")

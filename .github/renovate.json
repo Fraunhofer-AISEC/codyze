@@ -19,10 +19,6 @@
       "matchPackagePrefixes": ["de.fraunhofer.aisec:cpg"]
     },
     {
-      "groupName": "picocli packages",
-      "matchPackagePrefixes": ["info.picocli:"]
-    },
-    {
       "groupName": "VSCode plugin dependencies",
       "matchPaths": ["vscode_plugin/**"],
       "extends": ["schedule:earlyMondays"]

@@ -17,22 +17,22 @@ Codyze is a static code analyzer that focuses on verifying security compliance i
 ## Build & Run Codyze
 A Java SE 11 JDK is a prerequisite. We build and test using Eclipse Temurin but any distribution should work.
 
-To build an executable version of Codyze v3, use the `installDist` task in the project's root:
+To build an executable version of Codyze, use the `installDist` task in the project's root:
 
 ```shell
 $ ./gradlew :codyze-cli:installDist
 ```
 This will provide you with an executable Codyze installation under `codyze-cli/build/install/codyze-cli`.
 
-To run Codyze v3 you can either run this executable or use the `run` task:
+To run Codyze you can either run this executable or use the `run` task:
 ```shell
-$ ./gradlew :codyze-cli:run
+$ ./gradlew run
 ```
 This will print the help message and return an error.
 
-To actually run Codyze v3 you must specify a subcommand:
+To actually run Codyze you must specify a subcommand:
 ```shell
-$ ./gradlew :codyze-cli:run --args="analyze"
+$ ./gradlew run --args="analyze"
 ```
 This will run the 'analyze' subcommand using the demo config file [`./codyze-cli/codyze.json`](./codyze-cli/codyze.json).
 

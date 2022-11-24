@@ -1,3 +1,5 @@
+rootProject.name = "codyze-conventions"
+
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {

@@ -2,28 +2,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
+    id("metadata")
+    id("code-quality")
     kotlin("jvm")
-    jacoco
     idea
-
-    id("org.sonarqube")
-    id("com.diffplug.spotless")
-}
-
-// configure shared attributes for JAR file manifests
-tasks.withType<Jar>().configureEach {
-    manifest {
-        attributes(
-            "Implementation-Version" to project.version,
-            "Implementation-Vendor" to "Fraunhofer AISEC"
-        )
-    }
-}
-
-tasks.jacocoTestReport {
-    reports {
-        xml.required.set(true)
-    }
 }
 
 val libs = the<LibrariesForLibs>()
@@ -53,7 +35,7 @@ repositories {
         setUrl("https://jitpack.io")
     }
 
-    // Eclipse CDT repo
+    // Eclipse CDT repo --> needed for CPG
     ivy {
         setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
         metadataSources {
@@ -78,21 +60,6 @@ tasks.withType<KotlinCompile>().configureEach {
             "-Xcontext-receivers"
         )
         // allWarningsAsErrors = true
-    }
-}
-
-// state that JSON schema parser must run before compiling Kotlin
-tasks.named("compileKotlin") {
-    dependsOn("spotlessApply")
-}
-
-tasks.named("sonarqube") {
-    dependsOn(":jacocoTestReport")
-}
-
-spotless {
-    kotlin {
-        ktfmt().kotlinlangStyle()
     }
 }
 

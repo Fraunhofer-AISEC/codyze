@@ -36,11 +36,3 @@ dependencies {
 application {
     mainClass.set("de.fraunhofer.aisec.codyze.MainKt")
 }
-
-tasks {
-    jar {
-        manifest {
-            attributes("Implementation-Title" to "Codyze v3")
-        }
-    }
-}

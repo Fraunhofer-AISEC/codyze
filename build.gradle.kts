@@ -1,13 +1,9 @@
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.base.DokkaBaseConfiguration
 
-allprojects {
-    group = "de.fraunhofer.aisec.codyze"
-    version = if (version != Project.DEFAULT_VERSION) version else "0.0.0-SNAPSHOT"
-}
-
 plugins {
     id("documented")
+    id("code-quality")
 }
 
 // generate API documentation for website

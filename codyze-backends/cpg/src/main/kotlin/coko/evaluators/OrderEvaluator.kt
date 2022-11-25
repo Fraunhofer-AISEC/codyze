@@ -101,7 +101,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
                         node.followPrevEOG { it.start is Declaration }!!.last().start
                     )
         }
-        // TODO: implement fine grained results e.g., for each orderStartNode
+        // TODO: implement fine-grained results e.g., for each orderStartNode
         return EvaluationResult(isOrderValid)
     }
 }

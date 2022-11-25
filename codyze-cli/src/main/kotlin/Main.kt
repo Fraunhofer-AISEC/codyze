@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.options.*
 import de.fraunhofer.aisec.codyze.options.configFileOption
 import de.fraunhofer.aisec.codyze.source.JsonValueSource
 import de.fraunhofer.aisec.codyze.subcommands.*
+import de.fraunhofer.aisec.codyze_core.helper.VersionProvider
 import java.nio.file.Path
 import kotlin.io.path.Path
 import mu.KotlinLogging
@@ -46,7 +47,7 @@ class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "con
         printHelpOnEmptyArgs = true
     ) {
     init {
-        versionOption("1.0", names = setOf("--version", "-V")) // TODO get actual version
+        versionOption(VersionProvider.getVersion("codyze-core"), names = setOf("--version", "-V"), message = { "Codyze version $it"})
         context {
             valueSource = JsonValueSource.from(configFile, requireValid = true)
             helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")

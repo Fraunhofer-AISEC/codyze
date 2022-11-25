@@ -9,8 +9,6 @@ private val logger = KotlinLogging.logger {}
 object VersionProvider {
     /** The name of the properties file */
     private const val PROPS_FILE = "codyze.properties"
-    /** Default version to use, when no explicit version has been set. */
-    private const val DEFAULT_VERSION = "0.0.0-SNAPSHOT"
 
     /** Stores the properties */
     private val props = Properties()
@@ -21,7 +19,7 @@ object VersionProvider {
 
         // Check if the correct properties file was loaded
         if (
-            !props.containsKey("project.name") || props.getProperty("project.name") != "codyze-v3"
+            !props.containsKey("project.name") || props.getProperty("project.name").lowercase() != "codyze"
         ) {
             logger.warn("Could not find correct version properties file")
             props.clear()
@@ -36,6 +34,6 @@ object VersionProvider {
     fun getVersion(moduleName: String): String {
         // Append ".version" to the key since it is stored that way
         val propKey = "$moduleName.version"
-        return props.getProperty(propKey, DEFAULT_VERSION)
+        return props.getProperty(propKey, "unspecified")
     }
 }

@@ -4,7 +4,7 @@ cpg = "4.6.3"
 koin = "3.2.2"
 
 [libraries]
-sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.2.0"}
+sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.2.0"}  # The code can be found here: https://github.com/detekt/sarif4k. It was generated using https://app.quicktype.io/
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.4.1"}
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
@@ -31,6 +31,8 @@ dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref
 sonarqube-gradle = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version = "3.5.0.2730" }
 spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.11.0" }
 license-gradle = { module = "com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin", version = "0.16.1" }
+detekt-gradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version = "1.22.0" }
+kotlinter-gradle = { module = "org.jmailen.gradle:kotlinter-gradle", version = "3.12.0"}
 
 # additional dependencies for plugins in buildSrc
 dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "kotlin" }

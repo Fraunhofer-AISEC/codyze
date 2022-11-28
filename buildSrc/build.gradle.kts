@@ -12,7 +12,11 @@ dependencies {
     implementation(libs.sonarqube.gradle)
     implementation(libs.spotless.gradle)
     implementation(libs.license.gradle)
-    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))  // this is only there to be able to import 'LibrariesForLibs' in the convention plugins
+    implementation(libs.detekt.gradle)
+    implementation(libs.kotlinter.gradle)
+
+    // this is only there to be able to import 'LibrariesForLibs' in the convention plugins
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 
     // additional dependencies used by plugins, e.g. for configuring tasks
     implementation(libs.dokka.base)

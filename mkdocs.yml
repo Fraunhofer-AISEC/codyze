@@ -155,17 +155,11 @@ nav:
         - 'What is Codyze?': Codyze/index.md
         - 'Why Codyze v3?': Codyze/why-v3.md
     - 'Getting Started':
-        - 'Install Codyze': Getting Started/installation.md
-        - 'Using CLI mode': Getting Started/cli.md
-        - 'Using plugins': Getting Started/lsp.md
-        - 'Configure Codyze': Getting Started/configuration.md
-    - 'Write MARK Policies':
-        - 'What is MARK?': Mark Authors/index.md
-        - 'Install MARK IDE': Mark Authors/installation.md
-        - 'MARK Entities': Mark Authors/Define Entities.md
-        - 'MARK Rules': Mark Authors/mark-authors.md
+        - 'Installing Codyze': Getting Started/installation.md
+        - 'Analyzing with Codyze': Getting Started/cli.md
+        - 'Configuring Codyze': Getting Started/configuration.md
     - 'Contributing':
         - 'Contributing to Codyze': contributors/index.md
-        - 'Build the project': contributors/code.md
+        - 'Building the project': contributors/code.md
         - 'How to Contribute?': contributors/CONTRIBUTING.md
     - 'API': api/codyze

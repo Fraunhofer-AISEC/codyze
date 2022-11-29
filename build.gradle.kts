@@ -58,3 +58,19 @@ val projectProps by tasks.registering(WriteProperties::class) {
         property("${subproject.name}.version", subproject.version)
     }
 }
+
+// configure detekt to combine the results of all submodules into a single sarif file
+val reportMerge by tasks.registering(io.gitlab.arturbosch.detekt.report.ReportMergeTask::class) {
+    output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.sarif"))
+}
+subprojects {
+    plugins.withType<io.gitlab.arturbosch.detekt.DetektPlugin> {
+        tasks.withType<io.gitlab.arturbosch.detekt.Detekt> detekt@{ // Sadly it has to be eager.
+            finalizedBy(reportMerge)
+
+            reportMerge.configure {
+                input.from(this@detekt.sarifReportFile)
+            }
+        }
+    }
+}

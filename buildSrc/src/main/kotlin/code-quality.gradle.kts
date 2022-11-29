@@ -28,18 +28,6 @@ detekt {
     basePath = "${rootDir.absolutePath}"
 }
 
-val reportMerge by tasks.registering(ReportMergeTask::class) {
-    output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.sarif"))
-}
-
-tasks.withType<Detekt> detekt@{ // Sadly it has to be eager.
-    finalizedBy(reportMerge)
-
-    reportMerge.configure {
-        input.from(this@detekt.sarifReportFile)
-    }
-}
-
 // for now we use spotless just for the license headers
 spotless {
     kotlin {

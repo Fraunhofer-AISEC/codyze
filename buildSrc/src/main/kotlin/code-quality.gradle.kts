@@ -54,11 +54,6 @@ val header = """
  */
 """.trimIndent()
 
-// state that JSON schema parser must run before compiling Kotlin
-tasks.named("compileKotlin") {
-    dependsOn("spotlessApply")
-}
-
 detekt {
     config = files("$rootDir/detekt.yml")
 }

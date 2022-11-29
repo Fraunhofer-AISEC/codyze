@@ -8,9 +8,9 @@ import com.github.ajalt.clikt.output.CliktHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.*
-import de.fraunhofer.aisec.codyze.options.configFileOption
 import de.fraunhofer.aisec.codyze.source.JsonValueSource
 import de.fraunhofer.aisec.codyze.subcommands.*
+import de.fraunhofer.aisec.codyze_core.config.configFileOption
 import de.fraunhofer.aisec.codyze_core.helper.VersionProvider
 import java.nio.file.Path
 import kotlin.io.path.Path

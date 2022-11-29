@@ -9,6 +9,7 @@ import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.ProjectServer
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import de.fraunhofer.aisec.codyze_core.config.combineSources
+import de.fraunhofer.aisec.codyze_core.config.validateFromError
 import de.fraunhofer.aisec.codyze_core.config.validateSpec
 import java.nio.file.Path
 import kotlin.io.path.Path

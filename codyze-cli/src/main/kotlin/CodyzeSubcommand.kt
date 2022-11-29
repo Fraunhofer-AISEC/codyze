@@ -2,9 +2,9 @@ package de.fraunhofer.aisec.codyze
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.options.*
 import de.fraunhofer.aisec.codyze.options.CodyzeOptionGroup
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
+import de.fraunhofer.aisec.codyze_core.config.configFileOption
 import java.nio.file.Path
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get

@@ -5,7 +5,33 @@ on:
   push:
 
 jobs:
-  with-type-resolution:
+# does not work yet
+#  with-type-resolution:
+#    runs-on: ubuntu-latest
+#    env:
+#      GRADLE_OPTS: -Dorg.gradle.daemon=false
+#    steps:
+#      - name: Checkout Repo
+#        uses: actions/checkout@v3
+#
+#      - name: Setup Java
+#        uses: actions/setup-java@v3
+#        with:
+#          distribution: "zulu"
+#          java-version: 11
+#
+#      - name: Run detekt
+#        run: ./gradlew detektMain detektTest --continue
+#
+#      # Make sure we always run this upload task,
+#      # because the previous step may fail if there are findings.
+#      - name: Upload SARIF to Github using the upload-sarif action
+#        uses: github/codeql-action/upload-sarif@v2
+#        if: success() || failure()
+#        with:
+#          sarif_file: build/reports/detekt/detekt.sarif
+
+  without-type-resolution:
     runs-on: ubuntu-latest
     env:
       GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -20,7 +46,7 @@ jobs:
           java-version: 11
 
       - name: Run detekt
-        run: ./gradlew detektMain detektTest --continue
+        run: ./gradlew detekt --continue
 
       # Make sure we always run this upload task,
       # because the previous step may fail if there are findings.

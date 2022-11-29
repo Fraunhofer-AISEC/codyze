@@ -1,12 +1,19 @@
 import com.diffplug.gradle.spotless.SpotlessApply
 import com.diffplug.gradle.spotless.SpotlessCheck
+import io.gitlab.arturbosch.detekt.Detekt
+import io.gitlab.arturbosch.detekt.report.ReportMergeTask
+import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
     kotlin("jvm")
     jacoco
     id("com.diffplug.spotless")
     id("io.gitlab.arturbosch.detekt")
-    id("org.jmailen.kotlinter")
+}
+
+val libs = the<LibrariesForLibs>()
+dependencies {
+    detektPlugins(libs.detekt.formatting)
 }
 
 tasks.jacocoTestReport {
@@ -18,7 +25,7 @@ tasks.jacocoTestReport {
 
 val header = """
 /*
- * Copyright (c) 2022, Fraunhofer AISEC. All rights reserved.
+ * Copyright (c) ${"$"}YEAR, Fraunhofer AISEC. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,18 +59,26 @@ tasks.named("compileKotlin") {
     dependsOn("spotlessApply")
 }
 
-// use kotlinter until spotless
-// supports passing the .editorconfig to ktlint
-// see: https://github.com/diffplug/spotless/issues/142
-tasks.withType<SpotlessCheck> {
-    dependsOn(tasks.lintKotlin)
+detekt {
+    config = files("$rootDir/detekt.yml")
 }
-tasks.withType<SpotlessApply> {
-    dependsOn(tasks.formatKotlin)
+
+val reportMerge by tasks.registering(ReportMergeTask::class) {
+    output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.sarif"))
 }
-// so for now we use spotless just for the license headers
+
+tasks.withType<Detekt> detekt@{ // Sadly it has to be eager.
+    finalizedBy(reportMerge)
+
+    reportMerge.configure {
+        input.from(this@detekt.sarifReportFile)
+    }
+}
+
+// for now we use spotless just for the license headers
 spotless {
     kotlin {
         licenseHeader(header).yearSeparator(" - ")
+        targetExclude("**/*.codyze.kts")
     }
 }

@@ -30,11 +30,8 @@ mockk = { module = "io.mockk:mockk", version = "1.12.5"}
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }
-sonarqube-gradle = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version = "3.5.0.2730" }
 spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.11.0" }
-license-gradle = { module = "com.github.hierynomus.license:com.github.hierynomus.license.gradle.plugin", version = "0.16.1" }
 detekt-gradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
-kotlinter-gradle = { module = "org.jmailen.gradle:kotlinter-gradle", version = "3.12.0"}
 
 # additional dependencies for plugins in buildSrc
 dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "kotlin" }
@@ -48,4 +45,3 @@ kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
 sonarqube = { id = "org.sonarqube", version = "3.5.0.2730" }
 spotless = { id = "com.diffplug.spotless", version = "6.11.0" }
-license = { id = "com.github.hierynomus.license", version = "0.16.1" }

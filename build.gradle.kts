@@ -1,9 +1,13 @@
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.base.DokkaBaseConfiguration
+import io.gitlab.arturbosch.detekt.report.ReportMergeTask
+import io.gitlab.arturbosch.detekt.DetektPlugin
+import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
     id("documented")
     id("code-quality")
+    alias(libs.plugins.sonarqube)
 }
 
 // generate API documentation for website
@@ -59,18 +63,36 @@ val projectProps by tasks.registering(WriteProperties::class) {
     }
 }
 
-// configure detekt to combine the results of all submodules into a single sarif file
-val reportMerge by tasks.registering(io.gitlab.arturbosch.detekt.report.ReportMergeTask::class) {
+// configure detekt to combine the results of all submodules into a single sarif file -> for github code scanning
+val detektReportMergeSarif by tasks.registering(ReportMergeTask::class) {
     output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.sarif"))
 }
+// configure detekt to combine the results of all submodules into a single xml file -> for sonarqube
+val detektReportMergeXml by tasks.registering(ReportMergeTask::class) {
+    output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.xml"))
+}
 subprojects {
-    plugins.withType<io.gitlab.arturbosch.detekt.DetektPlugin> {
-        tasks.withType<io.gitlab.arturbosch.detekt.Detekt> detekt@{ // Sadly it has to be eager.
-            finalizedBy(reportMerge)
+    plugins.withType<DetektPlugin> {
+        tasks.withType<Detekt> detekt@{ // Sadly it has to be eager.
+            finalizedBy(detektReportMergeSarif, detektReportMergeXml)
 
-            reportMerge.configure {
+            detektReportMergeSarif.configure {
                 input.from(this@detekt.sarifReportFile)
+            }
+            detektReportMergeXml.configure {
+                input.from(this@detekt.xmlReportFile)
             }
         }
     }
 }
+
+//
+// Configure sonarqube for the whole codyze project
+// TODO: does not work -> test codecov instead?
+//sonarqube {
+//    properties {
+//        property("sonar.sourceEncoding", "UTF-8")
+//        property("sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/code-coverage-report/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml")
+//        property("sonar.kotlin.detekt.reportPaths", "${rootProject.buildDir}/reports/detekt/detekt.xml")
+//    }
+//}

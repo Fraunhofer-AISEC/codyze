@@ -4,6 +4,9 @@ name: "Run Detekt and upload SARIF"
 on:
   push:
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
 # does not work yet
 #  with-type-resolution:
@@ -33,8 +36,9 @@ jobs:
 
   without-type-resolution:
     runs-on: ubuntu-latest
-    env:
-      GRADLE_OPTS: -Dorg.gradle.daemon=false
+    permissions:
+      # required for all workflows
+      security-events: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -55,3 +59,6 @@ jobs:
         if: success() || failure()
         with:
           sarif_file: build/reports/detekt/detekt.sarif
+          # Optional category for the results
+          # Used to differentiate multiple results for one commit
+          category: detekt

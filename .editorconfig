@@ -1,7 +1,0 @@
-root = true
-
-[*.{kt,kts}]
-ktlint_code_style = official
-ktlint_disabled_rules = no-wildcard-imports
-ktlint_ignore_back_ticked_identifier = true
-max_line_length = 120

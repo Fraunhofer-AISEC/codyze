@@ -25,7 +25,7 @@ tasks.jacocoTestReport {
 
 detekt {
     config = files("$rootDir/detekt.yml")
-    basePath = "$rootDir"
+    basePath = "${rootDir.absolutePath}"
 }
 
 val reportMerge by tasks.registering(ReportMergeTask::class) {

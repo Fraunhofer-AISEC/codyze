@@ -22,18 +22,19 @@ tasks.jacocoTestReport {
     dependsOn(tasks.test) // tests are required to run before generating the report
 }
 
+// not using the detekt extension 'detekt { }' because with this
+// it is possible to configure the custom 'detektFix' task as well
 // in the main rootDir/build.gradle.kts, the reports for each submodule are combined into
 // a merged report
-detekt {
+tasks.withType<Detekt>().configureEach {
     basePath = "${rootDir.absolutePath}"
-    config = files("$rootDir/detekt.yml")
+    config.setFrom(files("$rootDir/detekt.yml"))
 }
 
 // custom task for fixing formatting issues
 val detektFix by tasks.registering(Detekt::class) {
     description = "Run detekt and auto correct formatting issues."
     autoCorrect = true
-    config.setFrom(files("$rootDir/detekt.yml"))
     ignoreFailures = true
     setSource(files(projectDir))
     include("**/*.kt")

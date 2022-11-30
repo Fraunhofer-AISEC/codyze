@@ -20,7 +20,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Ord
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.OrderToken
-import de.fraunhofer.aisec.codyze_core.wrapper.Backend
+import de.fraunhofer.aisec.codyze.core.wrapper.Backend
 
 typealias Nodes = Collection<Any>
 

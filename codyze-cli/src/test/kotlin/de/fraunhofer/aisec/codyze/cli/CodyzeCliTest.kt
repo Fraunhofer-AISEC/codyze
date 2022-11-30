@@ -18,7 +18,7 @@ package de.fraunhofer.aisec.codyze.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
-import de.fraunhofer.aisec.codyze_core.Executor
+import de.fraunhofer.aisec.codyze.core.Executor
 import io.mockk.clearAllMocks
 import io.mockk.mockk
 import org.junit.jupiter.api.*

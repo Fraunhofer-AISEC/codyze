@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.config
+package de.fraunhofer.aisec.codyze.core.wrapper
 
-import java.nio.file.Path
+import com.github.ajalt.clikt.parameters.groups.OptionGroup
 
-val Path.extensions: String
-    get() = fileName?.toString()?.substringAfter('.', "") ?: ""
+class BackendOptions(name: String) : OptionGroup(name = name)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.config
+package de.fraunhofer.aisec.codyze.core.config
 
 import com.github.ajalt.clikt.parameters.options.Option
 import com.github.ajalt.clikt.parameters.options.OptionDelegate
@@ -32,7 +32,11 @@ class ConfigurationRegister : KoinComponent {
                 is OptionDelegate<*> -> (it.value as OptionDelegate<*>).value
                 is LazyPropertyInitializer ->
                     (it.value as LazyPropertyInitializer).let {
-                        it.lazyProperty.getValue(it.thisRef, it.property)
+                            propertyInitializer ->
+                        propertyInitializer.lazyProperty.getValue(
+                            propertyInitializer.thisRef,
+                            propertyInitializer.property
+                        )
                     }
                 else -> it.value
             }

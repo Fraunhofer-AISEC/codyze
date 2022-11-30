@@ -20,12 +20,12 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
-import de.fraunhofer.aisec.codyze_core.Executor
-import de.fraunhofer.aisec.codyze_core.ProjectServer
-import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
-import de.fraunhofer.aisec.codyze_core.config.combineSources
-import de.fraunhofer.aisec.codyze_core.config.validateFromError
-import de.fraunhofer.aisec.codyze_core.config.validateSpec
+import de.fraunhofer.aisec.codyze.core.Executor
+import de.fraunhofer.aisec.codyze.core.ProjectServer
+import de.fraunhofer.aisec.codyze.core.config.ConfigurationRegister
+import de.fraunhofer.aisec.codyze.core.config.combineSources
+import de.fraunhofer.aisec.codyze.core.config.validateFromError
+import de.fraunhofer.aisec.codyze.core.config.validateSpec
 import java.nio.file.Path
 import kotlin.io.path.Path
 

@@ -30,7 +30,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Ord
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.OrderToken
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.cpg.graph.Node
 
 class CokoCpgBackend(config: BackendConfiguration) :

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.config
+package de.fraunhofer.aisec.codyze.core.config
 
-import de.fraunhofer.aisec.codyze_core.Executor
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.Executor
+import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import mu.KotlinLogging
 import java.nio.file.Path
 

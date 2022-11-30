@@ -23,8 +23,8 @@ import de.fraunhofer.aisec.codyze.backends.cpg.CPGOptionGroup
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
-import de.fraunhofer.aisec.codyze_core.Executor
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.Executor
+import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import org.koin.dsl.bind
 import org.koin.dsl.module
 

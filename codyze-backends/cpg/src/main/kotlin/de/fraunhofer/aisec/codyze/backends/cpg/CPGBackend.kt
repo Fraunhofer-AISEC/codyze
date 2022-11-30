@@ -17,8 +17,8 @@
 
 package de.fraunhofer.aisec.codyze.backends.cpg
 
-import de.fraunhofer.aisec.codyze_core.wrapper.Backend
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.wrapper.Backend
+import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 

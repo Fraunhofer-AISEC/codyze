@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.helper
+package de.fraunhofer.aisec.codyze.core.helper
 
 import mu.KotlinLogging
 import java.util.*

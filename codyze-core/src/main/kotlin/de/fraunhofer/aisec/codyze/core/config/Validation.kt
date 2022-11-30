@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.config
+package de.fraunhofer.aisec.codyze.core.config
 
-import de.fraunhofer.aisec.codyze_core.output.localization
+import de.fraunhofer.aisec.codyze.core.output.localization
 import java.nio.file.Path
 import kotlin.io.path.isRegularFile
 

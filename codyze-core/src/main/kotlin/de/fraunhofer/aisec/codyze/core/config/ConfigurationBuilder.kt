@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.config
+package de.fraunhofer.aisec.codyze.core.config
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject

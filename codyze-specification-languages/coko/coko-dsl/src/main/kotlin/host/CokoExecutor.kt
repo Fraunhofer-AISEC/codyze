@@ -17,10 +17,10 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
-import de.fraunhofer.aisec.codyze_core.Executor
-import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
-import de.fraunhofer.aisec.codyze_core.timed
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.Executor
+import de.fraunhofer.aisec.codyze.core.config.ExecutorConfiguration
+import de.fraunhofer.aisec.codyze.core.timed
+import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result
 import mu.KotlinLogging
 import org.koin.core.component.KoinComponent

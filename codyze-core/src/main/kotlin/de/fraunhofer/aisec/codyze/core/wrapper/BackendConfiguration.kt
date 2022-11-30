@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.wrapper
+package de.fraunhofer.aisec.codyze.core.wrapper
 
-import de.fraunhofer.aisec.codyze_core.config.Configuration
+import de.fraunhofer.aisec.codyze.core.config.Configuration
 
 interface BackendConfiguration {
     fun normalize(configuration: Configuration): BackendConfiguration

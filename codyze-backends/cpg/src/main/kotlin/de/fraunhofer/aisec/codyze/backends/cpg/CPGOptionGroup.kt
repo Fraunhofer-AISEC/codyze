@@ -17,9 +17,9 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
-import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
-import de.fraunhofer.aisec.codyze_core.config.combineSources
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendOptions
+import de.fraunhofer.aisec.codyze.core.config.ConfigurationRegister
+import de.fraunhofer.aisec.codyze.core.config.combineSources
+import de.fraunhofer.aisec.codyze.core.wrapper.BackendOptions
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.nio.file.Path
 

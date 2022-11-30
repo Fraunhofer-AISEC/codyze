@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.wrapper
+package de.fraunhofer.aisec.codyze.core.config
 
-interface Backend {
-    val graph: Any // implement using 'by lazy {}'
-}
+import java.nio.file.Path
+
+val Path.extensions: String
+    get() = fileName?.toString()?.substringAfter('.', "").orEmpty()

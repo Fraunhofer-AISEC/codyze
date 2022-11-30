@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core
+package de.fraunhofer.aisec.codyze.core
 
-import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
-import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.config.ExecutorConfiguration
+import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
 

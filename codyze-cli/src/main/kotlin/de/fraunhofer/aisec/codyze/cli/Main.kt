@@ -25,8 +25,8 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.*
 import de.fraunhofer.aisec.codyze.cli.source.JsonValueSource
 import de.fraunhofer.aisec.codyze.cli.subcommands.*
-import de.fraunhofer.aisec.codyze_core.config.configFileOption
-import de.fraunhofer.aisec.codyze_core.helper.VersionProvider
+import de.fraunhofer.aisec.codyze.core.config.configFileOption
+import de.fraunhofer.aisec.codyze.core.helper.VersionProvider
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
 import java.nio.file.Path

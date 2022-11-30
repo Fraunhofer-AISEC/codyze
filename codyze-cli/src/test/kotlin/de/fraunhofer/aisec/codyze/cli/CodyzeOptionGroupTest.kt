@@ -19,8 +19,8 @@ import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.cli.options.CodyzeOptionGroup
-import de.fraunhofer.aisec.codyze_core.Executor
-import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
+import de.fraunhofer.aisec.codyze.core.Executor
+import de.fraunhofer.aisec.codyze.core.config.ConfigurationRegister
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

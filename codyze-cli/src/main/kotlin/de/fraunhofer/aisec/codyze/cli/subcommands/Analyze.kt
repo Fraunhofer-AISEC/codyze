@@ -16,9 +16,9 @@
 package de.fraunhofer.aisec.codyze.cli.subcommands
 
 import de.fraunhofer.aisec.codyze.cli.CodyzeSubcommand
-import de.fraunhofer.aisec.codyze_core.ProjectServer
-import de.fraunhofer.aisec.codyze_core.config.buildConfiguration
-import de.fraunhofer.aisec.codyze_core.timed
+import de.fraunhofer.aisec.codyze.core.ProjectServer
+import de.fraunhofer.aisec.codyze.core.config.buildConfiguration
+import de.fraunhofer.aisec.codyze.core.timed
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging

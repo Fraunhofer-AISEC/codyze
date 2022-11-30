@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core
+package de.fraunhofer.aisec.codyze.core
 
 import mu.KotlinLogging
 import kotlin.time.Duration
@@ -27,6 +27,7 @@ val log = KotlinLogging.logger {}
  * Simply helper function to log how long a given task took.
  * @param message The message to log. The resulting log has the format: '{message} {time the task
  * took in milliseconds} ms.'
+ * @param block The code block to time.
  * @return The result of the given task
  */
 inline fun <reified T> timed(message: String? = null, block: () -> T): T {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.config
+package de.fraunhofer.aisec.codyze.core.config
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.*
@@ -23,7 +23,8 @@ import kotlin.io.path.Path
 fun CliktCommand.configFileOption() =
     option(
         "--config",
-        help = "Parse configuration settings from this file. If no file path is specified, Codyze will try to load the configuration file from the default path",
+        help = "Parse configuration settings from this file. " +
+            "If no file path is specified, Codyze will try to load the configuration file from the default path"
     )
         .path(mustExist = true, canBeDir = false, mustBeReadable = true)
         .default(Path(System.getProperty("user.dir"), "codyze.json"))
@@ -43,7 +44,7 @@ inline fun <AllT : Any, EachT, ValueT> OptionWithValues<AllT, EachT, ValueT>.val
                 errorValidator(it)
                 true to ""
             } catch (e: IllegalArgumentException) {
-                false to (e.message ?: "")
+                false to (e.message.orEmpty())
             }
         require(result) { message }
     }

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_core.wrapper
+package de.fraunhofer.aisec.codyze.core.wrapper
 
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
-
-abstract class BackendOptions(name: String) : OptionGroup(name = name)
+interface Backend {
+    val graph: Any // implement using 'by lazy {}'
+}

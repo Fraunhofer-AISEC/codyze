@@ -73,7 +73,7 @@ comments:
     matchDeclarationsOrder: true
     allowParamOnConstructorProperties: false
   UndocumentedPublicClass:
-    active: true
+    active: false
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     searchInNestedClass: true
     searchInInnerClass: true
@@ -340,7 +340,7 @@ naming:
     ignoreOverridden: true
   InvalidPackageDeclaration:
     active: true
-    rootPackage: 'de.fraunhofer.aisec'
+    rootPackage: 'de.fraunhofer.aisec.codyze'
     requireRootInDeclaration: true
   LambdaParameterNaming:
     active: false
@@ -796,7 +796,7 @@ formatting:
   MaximumLineLength:
     active: true
     maxLineLength: 120
-    ignoreBackTickedIdentifier: false
+    ignoreBackTickedIdentifier: true
   ModifierListSpacing:
     active: false
     autoCorrect: true

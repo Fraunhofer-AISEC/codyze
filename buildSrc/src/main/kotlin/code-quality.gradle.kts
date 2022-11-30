@@ -16,6 +16,8 @@ dependencies {
     detektPlugins(libs.detekt.formatting)
 }
 
+// this just generates a report for a single submodule
+// a combined report is generated using the 'code-coverage-report' submodule
 tasks.jacocoTestReport {
     reports {
         xml.required.set(true)
@@ -23,6 +25,8 @@ tasks.jacocoTestReport {
     dependsOn(tasks.test) // tests are required to run before generating the report
 }
 
+// in the main rootDir/build.gradle.kts, the reports for each submodule are combined into
+// a merged report
 detekt {
     config = files("$rootDir/detekt.yml")
     basePath = "${rootDir.absolutePath}"

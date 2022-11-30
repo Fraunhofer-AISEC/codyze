@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationResult
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.query.executionPath
 

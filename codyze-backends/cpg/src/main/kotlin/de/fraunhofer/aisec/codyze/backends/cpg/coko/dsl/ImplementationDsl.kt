@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
@@ -88,7 +88,7 @@ infix fun Any.flowsTo(that: Node): Boolean =
         true
     } else {
         when (this) {
-            is String -> Regex(this).matches((that as? Expression)?.evaluate()?.toString() ?: "")
+            is String -> Regex(this).matches((that as? Expression)?.evaluate()?.toString().orEmpty())
             is Iterable<*> -> this.any { it?.flowsTo(that) ?: false }
             is Array<*> -> this.any { it?.flowsTo(that) ?: false }
             is Node -> dataFlow(this, that).value
@@ -159,13 +159,18 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
                     if (parameter.second is Type) {
                         // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
                         // if there is dataflow
-                        checkType(parameter.second as Type, i) && parameter.first != null && parameter.first!! flowsTo arguments[i]
+                        checkType(parameter.second as Type, i) &&
+                            parameter.first != null &&
+                            parameter.first!! flowsTo arguments[i]
                     } else {
                         parameter flowsTo arguments[i]
                     }
-                is Type -> checkType(parameter, i) // checks if the type of the argument is the same
-                is Op -> parameter.getNodes() flowsTo arguments[i] // check if any of the Nodes from the Op flow to the argument
-                else -> parameter flowsTo arguments[i] // checks if there is dataflow from the parameter to the argument in the same position
+                // checks if the type of the argument is the same
+                is Type -> checkType(parameter, i)
+                // check if any of the Nodes from the Op flow to the argument
+                is Op -> parameter.getNodes() flowsTo arguments[i]
+                // checks if there is dataflow from the parameter to the argument in the same position
+                else -> parameter flowsTo arguments[i]
             }
         }
 }

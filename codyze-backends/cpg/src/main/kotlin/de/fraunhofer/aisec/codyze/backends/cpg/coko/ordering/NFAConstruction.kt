@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg.coko.ordering
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
 import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
@@ -168,7 +168,7 @@ internal fun concatenateMultipleNfa(vararg multipleNFA: NFA): NFA {
             .filter { it.isStart }
             .map {
                 val edge = Edge(op = NFA.EPSILON, nextState = it)
-                firstNfa.states.filter { it.isAcceptingState }.map { it.addEdge(edge) }
+                firstNfa.states.filter { state -> state.isAcceptingState }.map { state -> state.addEdge(edge) }
             }
         // then make the accepting states in the first NFA non-accepting
         firstNfa.states

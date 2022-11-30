@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg
 
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering.toNfa
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.ordering.toNfa
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFA
 import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.analysis.fsm.NFA

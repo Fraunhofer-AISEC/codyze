@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg.coko
+package de.fraunhofer.aisec.codyze.backends.cpg.coko
 
+import de.fraunhofer.aisec.codyze.backends.cpg.CPGBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.*
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.FollowsEvaluator
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OnlyEvaluator
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OrderEvaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Nodes
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.ConstructorOp
@@ -24,12 +30,6 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Ord
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.OrderToken
-import de.fraunhofer.aisec.codyze_backends.cpg.CPGBackend
-import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.*
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.FollowsEvaluator
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.OnlyEvaluator
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators.OrderEvaluator
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.cpg.graph.Node
 

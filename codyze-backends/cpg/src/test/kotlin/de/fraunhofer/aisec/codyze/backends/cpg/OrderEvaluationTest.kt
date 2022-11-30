@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg
 
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.reflect.full.valueParameters

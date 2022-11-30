@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationResult
@@ -21,7 +21,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluat
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
 import de.fraunhofer.aisec.cpg.graph.Node
 
-context(de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend)
+context(de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend)
 
 class OnlyEvaluator(val ops: List<Op>) : Evaluator {
     override fun evaluate(context: EvaluationContext): EvaluationResult {

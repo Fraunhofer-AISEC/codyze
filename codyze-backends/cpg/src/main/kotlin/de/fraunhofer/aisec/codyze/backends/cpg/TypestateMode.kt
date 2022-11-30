@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg
 
 /** Enum containing all supported typestate modes. */
 enum class TypestateMode {

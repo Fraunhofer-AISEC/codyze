@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze_core.config.Configuration
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
@@ -42,7 +42,8 @@ private val logger = KotlinLogging.logger {}
 data class CPGConfiguration(
     val source: List<Path>, // this is the first argument and thus must be registered first in the [CPGOptions]
     val useUnityBuild: Boolean,
-    val typeSystemActiveInFrontend: Boolean, // this is the third argument and thus must be the third CLI option to be registered in [CPGOptions]
+    // this is the third argument and thus must be the third CLI option to be registered in [CPGOptions]
+    val typeSystemActiveInFrontend: Boolean,
     val debugParser: Boolean,
     val disableCleanup: Boolean,
     val codeInNodes: Boolean,

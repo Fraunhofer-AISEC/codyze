@@ -15,7 +15,7 @@
  */
 @file:Suppress("UNUSED")
 
-package de.fraunhofer.aisec.codyze_backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze_core.wrapper.Backend
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration

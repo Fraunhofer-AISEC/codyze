@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg.coko.evaluators
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering.toNfa
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationResult
@@ -24,7 +25,6 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Fun
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Order
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.ordering.toNfa
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFAOrderEvaluator
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.Declaration
@@ -82,7 +82,12 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
 
         val nodesToOp =
             opsInConcept
-                .flatMap { ((it.call(implementation)) as Op).getAllNodes().filterIsInstance<Node>().map { node -> node to it.name } }
+                .flatMap {
+                    ((it.call(implementation)) as Op).getAllNodes().filterIsInstance<Node>().map {
+                            node ->
+                        node to it.name
+                    }
+                }
                 .toMap()
                 .toMutableMap()
 

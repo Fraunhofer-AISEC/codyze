@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze_backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg
 
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
@@ -26,7 +26,12 @@ import java.nio.file.Path
 @Suppress("UNUSED")
 class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
     BackendOptions(name = "CPG Backend Options") {
-    private val rawSource: List<Path> by option("-s", "--source", "-ss", help = "Source files or folders to analyze.")
+    private val rawSource: List<Path> by option(
+        "-s",
+        "--source",
+        "-ss",
+        help = "Source files or folders to analyze."
+    )
         .path(mustExist = true, mustBeReadable = true)
         .multiple(required = true)
     private val rawSourceAdditions: List<Path> by option(
@@ -38,8 +43,8 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
         .multiple()
     private val rawDisabledSource: List<Path> by option(
         "--disabled-source",
-        help =
-        "Files or folders specified here will not be analyzed. Symbolic links are not followed when filtering out these paths"
+        help = "Files or folders specified here will not be analyzed. " +
+            "Symbolic links are not followed when filtering out these paths"
     )
         .path(mustExist = true, mustBeReadable = true)
         .multiple()
@@ -72,13 +77,16 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
             )
         }
 
-    val useUnityBuild: Boolean by option("--unity", help = "Enables unity builds (C++ only) for files in the path.")
+    val useUnityBuild: Boolean by option(
+        "--unity",
+        help = "Enables unity builds (C++ only) for files in the path."
+    )
         .flag("--no-unity", "--disable-unity", default = false)
         .also { configurationRegister.addOption("useUnityBuild", it) }
     val typeSystemActiveInFrontend: Boolean by option(
         "--type-system-in-frontend",
-        help =
-        "If deactivated, the type listener system starts after the frontends are done building the initial AST structure."
+        help = "If deactivated, the type listener system starts after the frontends " +
+            "are done building the initial AST structure."
     )
         .flag(
             "--no-type-system-in-frontend",
@@ -110,8 +118,8 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
         .also { configurationRegister.addOption("codeInNodes", it) }
     val matchCommentsToNodes: Boolean by option(
         "--match-comments-to-nodes",
-        help =
-        "Controls whether the CPG frontend shall use a heuristic matching of comments found in the source file to match them to the closest AST node and save it in the comment property."
+        help = "Controls whether the CPG frontend shall use a heuristic matching of comments " +
+            "found in the source file to match them to the closest AST node and save it in the comment property."
     )
         .flag(
             "--no-match-comments-to-nodes",
@@ -134,12 +142,15 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
         .also { configurationRegister.addOption("failOnError", it) }
     val useParallelFrontends: Boolean by option(
         "--parallel-frontends",
-        help =
-        "Enables parsing the ASTs for the source files in parallel, but the passes afterwards will still run in a single thread."
+        help = "Enables parsing the ASTs for the source files in parallel, " +
+            "but the passes afterwards will still run in a single thread."
     )
         .flag("--no-parallel-frontends", "--synchronous-frontends", default = false)
         .also { configurationRegister.addOption("useParallelFrontends", it) }
-    val defaultPasses: Boolean by option("--default-passes", help = "Controls the usage of default passes for cpg.")
+    val defaultPasses: Boolean by option(
+        "--default-passes",
+        help = "Controls the usage of default passes for cpg."
+    )
         .flag(
             "--no-default-passes",
             "--disable-default-passes",
@@ -150,14 +161,17 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
 
     val additionalLanguage: Set<String> by option(
         "--additional-language",
-        help =
-        "Add an additional language frontend by its fully qualified class name (FQN). You must make sure that the class is available on the class path."
+        help = "Add an additional language frontend by its fully qualified class name (FQN). " +
+            "You must make sure that the class is available on the class path."
     )
         .multiple()
         .unique()
         .also { configurationRegister.addOption("additionalLanguages", it) }
 
-    private val rawSymbols: Map<String, String> by option("--symbols", help = "Definition of additional symbols.").associate()
+    private val rawSymbols: Map<String, String> by option(
+        "--symbols",
+        help = "Definition of additional symbols."
+    ).associate()
     private val rawSymbolsAdditions: Map<String, String> by option(
         "--symbols-additions",
         help =
@@ -295,7 +309,9 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
             )
         }
 
-    val includeWhitelist: List<Path> by lazy { combineSources(rawEnabledIncludes, rawEnabledIncludesAdditions).toList() }
+    val includeWhitelist: List<Path> by lazy {
+        combineSources(rawEnabledIncludes, rawEnabledIncludesAdditions).toList()
+    }
         .also {
             configurationRegister.addLazyOption(
                 name = "includeWhitelist",
@@ -305,7 +321,9 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
             )
         }
 
-    val includeBlocklist: List<Path> by lazy { combineSources(rawDisabledIncludes, rawDisabledIncludesAdditions).toList() }
+    val includeBlocklist: List<Path> by lazy {
+        combineSources(rawDisabledIncludes, rawDisabledIncludesAdditions).toList()
+    }
         .also {
             configurationRegister.addLazyOption(
                 name = "includeBlocklist",

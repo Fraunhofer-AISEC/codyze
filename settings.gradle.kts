@@ -7,6 +7,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
  */
 // includeBuild("../cpg")  // e.g., "../cpg"
 
+include("code-coverage-report")
 include("codyze-cli")
 include("codyze-core")
 include(":codyze-backends:cpg")

@@ -25,11 +25,25 @@ tasks.jacocoTestReport {
     dependsOn(tasks.test) // tests are required to run before generating the report
 }
 
+// configure Detekt with this instead of the 'detekt { }' extension because
+// then this configuration is also used for our custom 'detektFix' task
 // in the main rootDir/build.gradle.kts, the reports for each submodule are combined into
 // a merged report
-detekt {
-    config = files("$rootDir/detekt.yml")
+tasks.withType<Detekt>().configureEach {
     basePath = "${rootDir.absolutePath}"
+    config.setFrom(files("$rootDir/detekt.yml"))
+}
+
+// custom task for fixing formatting issues
+val detektFix by tasks.registering(Detekt::class) {
+    description = "Run detekt and auto correct formatting issues."
+    autoCorrect = true
+    ignoreFailures = true
+    setSource(files(projectDir))
+    include("**/*.kt")
+    include("**/*.kts")
+    exclude("**/resources/**")
+    exclude("**/build/**")
 }
 
 // for now we use spotless just for the license headers

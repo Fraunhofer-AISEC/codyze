@@ -1,4 +1,4 @@
-rootProject.name = "codyze-conventions"
+rootProject.name = "buildSrc"
 
 dependencyResolutionManagement {
     versionCatalogs {

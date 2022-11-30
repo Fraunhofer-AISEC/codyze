@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.source
+package de.fraunhofer.aisec.codyze.cli.source
 
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.InvalidFileFormat

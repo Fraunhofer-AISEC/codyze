@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.options
+package de.fraunhofer.aisec.codyze.cli.options
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.*
@@ -29,7 +29,7 @@ import de.fraunhofer.aisec.codyze_core.config.validateSpec
 import java.nio.file.Path
 import kotlin.io.path.Path
 
-@Suppress("UNUSED")
+@Suppress("UNUSED", "MagicNumber")
 class CodyzeOptionGroup(configurationRegister: ConfigurationRegister) :
     OptionGroup(name = "Codyze Options") {
     private val rawSpec: List<Path> by option("--spec", help = "Loads the given specification files.")
@@ -100,8 +100,9 @@ class CodyzeOptionGroup(configurationRegister: ConfigurationRegister) :
 
     val executor: Executor? by option(
         "--executor",
-        help =
-        "Manually choose Executor to use with the given spec files. If unspecified, Codyze randomly selects an executor capable of evaluating the given specification files."
+        help = "Manually choose Executor to use with the given spec files. " +
+            "If unspecified, Codyze randomly selects an executor capable of evaluating " +
+            "the given specification files."
     )
         .choice(*(ProjectServer.executors.map { it.name }).toTypedArray(), ignoreCase = true)
         .convert {

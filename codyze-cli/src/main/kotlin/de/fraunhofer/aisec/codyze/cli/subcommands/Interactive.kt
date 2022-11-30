@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.subcommands
+package de.fraunhofer.aisec.codyze.cli.subcommands
 
-import de.fraunhofer.aisec.codyze.CodyzeSubcommand
+import de.fraunhofer.aisec.codyze.cli.CodyzeSubcommand
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}

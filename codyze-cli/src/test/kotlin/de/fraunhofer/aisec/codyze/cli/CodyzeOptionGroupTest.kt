@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze
+package de.fraunhofer.aisec.codyze.cli
 
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.options.CodyzeOptionGroup
+import de.fraunhofer.aisec.codyze.cli.options.CodyzeOptionGroup
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import org.junit.jupiter.api.*

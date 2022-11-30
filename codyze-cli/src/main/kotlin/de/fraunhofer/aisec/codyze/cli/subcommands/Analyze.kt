@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.subcommands
+package de.fraunhofer.aisec.codyze.cli.subcommands
 
-import de.fraunhofer.aisec.codyze.CodyzeSubcommand
+import de.fraunhofer.aisec.codyze.cli.CodyzeSubcommand
 import de.fraunhofer.aisec.codyze_core.ProjectServer
 import de.fraunhofer.aisec.codyze_core.config.buildConfiguration
 import de.fraunhofer.aisec.codyze_core.timed
@@ -41,6 +41,6 @@ class Analyze : CodyzeSubcommand("Analyze a set of source files") {
 
         val result = project.doStuff()
         // TODO print results
-        println(Json.encodeToString(result))
+        logger.info { Json.encodeToString(result) }
     }
 }

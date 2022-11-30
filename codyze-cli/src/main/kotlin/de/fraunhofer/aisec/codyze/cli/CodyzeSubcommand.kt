@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze
+package de.fraunhofer.aisec.codyze.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.options.CodyzeOptionGroup
+import de.fraunhofer.aisec.codyze.cli.options.CodyzeOptionGroup
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import de.fraunhofer.aisec.codyze_core.config.configFileOption
 import org.koin.core.component.KoinComponent
@@ -26,7 +26,7 @@ import org.koin.core.parameter.parametersOf
 import java.nio.file.Path
 
 /** Contains all options that are shared among all Codyze subcommands. */
-@Suppress("UNUSED")
+@Suppress("UNUSED", "UnusedPrivateMember")
 abstract class CodyzeSubcommand(help: String = "") : CliktCommand(help = help), KoinComponent {
     // This is only here to correctly display the help message
     private val unusedConfigFile: Path by configFileOption()

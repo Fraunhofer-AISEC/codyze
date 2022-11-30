@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze
+@file:Suppress("MagicNumber")
+
+package de.fraunhofer.aisec.codyze.cli
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
+import de.fraunhofer.aisec.codyze.backends.cpg.CPGOptionGroup
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
-import de.fraunhofer.aisec.codyze_backends.cpg.CPGConfiguration
-import de.fraunhofer.aisec.codyze_backends.cpg.CPGOptionGroup
-import de.fraunhofer.aisec.codyze_backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import org.koin.dsl.bind

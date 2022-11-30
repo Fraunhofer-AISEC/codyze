@@ -13,6 +13,7 @@ object ProjectServer : KoinComponent {
 
     /** All projects that are connected to the server. */
     val projects: MutableMap<Configuration, Project> = mutableMapOf()
+
     /** All built-in executors that are available for the analysis. */
     val executors: List<Executor> = getKoin().getAll()
 

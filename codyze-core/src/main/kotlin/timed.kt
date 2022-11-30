@@ -1,9 +1,9 @@
 package de.fraunhofer.aisec.codyze_core
 
+import mu.KotlinLogging
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
-import mu.KotlinLogging
 
 val log = KotlinLogging.logger {}
 

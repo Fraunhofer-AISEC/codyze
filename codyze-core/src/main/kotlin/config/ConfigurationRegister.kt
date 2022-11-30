@@ -2,8 +2,8 @@ package de.fraunhofer.aisec.codyze_core.config
 
 import com.github.ajalt.clikt.parameters.options.Option
 import com.github.ajalt.clikt.parameters.options.OptionDelegate
-import kotlin.reflect.KProperty
 import org.koin.core.component.KoinComponent
+import kotlin.reflect.KProperty
 
 /**
  * Helper singleton responsible for registering CLI options that should be passed to the

@@ -16,11 +16,13 @@ class Project(val config: Configuration) {
     private fun getRandomCapableExecutor(): Executor {
         val randomCapableExecutor: Executor? =
             ProjectServer.executors.find { it.supportedFileExtension == config.specFileExtension }
-        if (randomCapableExecutor != null) return randomCapableExecutor
-        else
+        if (randomCapableExecutor != null) {
+            return randomCapableExecutor
+        } else {
             throw RuntimeException(
                 "Did not find any Executor supporting '${config.specFileExtension}' files."
             ) // TODO change to custom exception
+        }
     }
 
     fun doStuff(): SarifSchema210 {
@@ -32,13 +34,7 @@ class Project(val config: Configuration) {
         return SarifSchema210(
             schema = "https://json.schemastore.org/sarif-2.1.0.json",
             version = Version.The210,
-            runs =
-                listOf(
-                    Run(
-                        tool = Tool(driver = ToolComponent(name = "Codyze v3")),
-                        results = results,
-                    )
-                )
+            runs = listOf(Run(tool = Tool(driver = ToolComponent(name = "Codyze v3")), results = results,))
         )
     }
 }

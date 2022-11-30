@@ -2,8 +2,8 @@ package de.fraunhofer.aisec.codyze_core.config
 
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
-import java.nio.file.Path
 import mu.KotlinLogging
+import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -51,28 +51,28 @@ data class Configuration(
          */
         fun from(map: Map<String, Any?>, backendConfiguration: BackendConfiguration) =
             object {
-                    val spec: List<Path> by map
-                    val specDescription: Path by map
-                    val disabledSpecRules: List<String> by map
-                    val output: Path by map
-                    val goodFindings: Boolean by map
-                    val pedantic: Boolean by map
-                    val timeout: Int by map
-                    val executor: Executor? by map
+                val spec: List<Path> by map
+                val specDescription: Path by map
+                val disabledSpecRules: List<String> by map
+                val output: Path by map
+                val goodFindings: Boolean by map
+                val pedantic: Boolean by map
+                val timeout: Int by map
+                val executor: Executor? by map
 
-                    val data =
-                        Configuration(
-                            spec = spec,
-                            specDescription = specDescription,
-                            disabledSpecRules = disabledSpecRules,
-                            output = output,
-                            goodFindings = goodFindings,
-                            pedantic = pedantic,
-                            timeout = timeout,
-                            executor = executor,
-                            backendConfiguration = backendConfiguration,
-                        )
-                }
+                val data =
+                    Configuration(
+                        spec = spec,
+                        specDescription = specDescription,
+                        disabledSpecRules = disabledSpecRules,
+                        output = output,
+                        goodFindings = goodFindings,
+                        pedantic = pedantic,
+                        timeout = timeout,
+                        executor = executor,
+                        backendConfiguration = backendConfiguration,
+                    )
+            }
                 .data
     }
 

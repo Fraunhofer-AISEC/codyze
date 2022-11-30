@@ -5,9 +5,9 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelli
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.ParameterGroup
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
 import io.mockk.mockk
+import org.junit.jupiter.api.Test
 import kotlin.reflect.KFunction
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.Test
 
 class OpDslTest {
     @Test
@@ -33,9 +33,9 @@ class OpDslTest {
                 +signature { +stringParam }
                 +signature(stringParam, callTestParam)
                 +signature {
-                        +stringParam
-                        +callTestParam
-                    }
+                    +stringParam
+                    +callTestParam
+                }
                     .unordered(numberParam)
                 +signature(numberParam, collectionParam, stringParam)
             }

@@ -26,8 +26,8 @@ class OrderSyntaxTreeConstructionTest {
         return order.toNode()
     }
 
-    @Test
     /** Tests an order with a no token at all -> this should error */
+    @Test
     fun `test zero node order`() {
         with(mockk<CokoBackend>()) {
             assertFailsWith<IllegalArgumentException>(
@@ -37,8 +37,8 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
-    @Test
     /** Tests an order with an empty group -> this should error */
+    @Test
     fun `test order with empty set`() {
         with(mockk<CokoBackend>()) {
             assertFailsWith<IllegalArgumentException>(
@@ -53,8 +53,8 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
-    @Test
     /** Tests a simple sequence order */
+    @Test
     fun `test simple sequence order`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
@@ -72,8 +72,8 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
-    @Test
     /** Tests a simple alternative order */
+    @Test
     fun `test simple alternative order`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree { +(TestClass::fun1 or TestClass::fun2) }
@@ -88,8 +88,8 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
-    @Test
     /** Tests an order with a [QuantifierOrderNode] */
+    @Test
     fun `test order with an QuantifierOrderNode`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree { +TestClass::fun1.between(1..4) }
@@ -104,15 +104,15 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
-    @Test
     /** Tests an order with a group */
+    @Test
     fun `test order with group`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
                 +group {
-                        +TestClass::fun1
-                        +TestClass::fun2
-                    }
+                    +TestClass::fun1
+                    +TestClass::fun2
+                }
                     .maybe()
             }
 
@@ -137,8 +137,8 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
-    @Test
     /** Tests an order with a set */
+    @Test
     fun `test order with set`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
@@ -164,8 +164,8 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
-    @Test
     /** Tests a complex order */
+    @Test
     fun `test complex order`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {

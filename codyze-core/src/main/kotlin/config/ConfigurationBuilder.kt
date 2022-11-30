@@ -6,10 +6,7 @@ import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.parameter.parametersOf
 
 inline fun <reified T> getKoinInstance(noinline params: ParametersDefinition): T {
-    return object : KoinComponent {
-            val value: T by inject(parameters = params)
-        }
-        .value
+    return object : KoinComponent { val value: T by inject(parameters = params) }.value
 }
 
 /**
@@ -23,16 +20,14 @@ fun buildConfiguration(
     normalize: Boolean = true
 ) =
     codyzeConfigurationRegister.configurationMap.let {
-        val config =
-            Configuration.from(
-                map = it,
-                backendConfiguration =
-                    getKoinInstance {
-                        parametersOf(
-                            *backendConfigurationRegister.configurationMap.values.toTypedArray()
-                        )
-                    }
-            )
+        val config = Configuration.from(
+            map = it,
+            backendConfiguration = getKoinInstance {
+                parametersOf(
+                    *backendConfigurationRegister.configurationMap.values.toTypedArray()
+                )
+            }
+        )
         if (normalize) config.normalize()
         config
     }

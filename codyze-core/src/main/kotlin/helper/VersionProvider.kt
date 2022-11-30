@@ -1,7 +1,7 @@
 package de.fraunhofer.aisec.codyze_core.helper
 
-import java.util.*
 import mu.KotlinLogging
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -12,6 +12,7 @@ object VersionProvider {
 
     /** Stores the properties */
     private val props = Properties()
+
     /** Loads the properties from the file */
     init {
         val file = javaClass.classLoader.getResourceAsStream(PROPS_FILE)

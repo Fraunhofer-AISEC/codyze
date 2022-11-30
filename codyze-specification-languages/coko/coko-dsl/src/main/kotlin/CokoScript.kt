@@ -29,9 +29,9 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     // the class or object that defines script compilation configuration for this type of scripts
     compilationConfiguration = ProjectScriptCompilationConfiguration::class,
     evaluationConfiguration =
-        ProjectScriptEvaluationConfiguration::class // UNTESTED: we expect this to improve
+    ProjectScriptEvaluationConfiguration::class // UNTESTED: we expect this to improve
     // performance. Does not seem to break anything
-    )
+)
 // the class is used as the script base class, therefore it should be open or abstract
 abstract class CokoScript {
     // Configures the plugins used by the project.
@@ -53,7 +53,7 @@ internal object ProjectScriptCompilationConfiguration :
                 *baseLibraries, // search these libraries in it and use then as a script compilation
                 // classpath
                 wholeClasspath =
-                    false // manually add all needed dependencies using the baseLibraries
+                false // manually add all needed dependencies using the baseLibraries
             )
         }
 
@@ -139,8 +139,7 @@ fun configureImportDepsOnAnnotations(
 ): ResultWithDiagnostics<ScriptCompilationConfiguration> {
     val annotations =
         context.collectedData?.get(ScriptCollectedData.foundAnnotations)?.takeIf { it.isNotEmpty() }
-            ?: return context.compilationConfiguration.asSuccess(
-            ) // If no action is performed, the original configuration should be
+            ?: return context.compilationConfiguration.asSuccess() // If no action is performed, the original configuration should be
     // returned
 
     val scriptBaseDir = (context.script as? FileBasedScriptSource)?.file?.parentFile
@@ -153,8 +152,8 @@ fun configureImportDepsOnAnnotations(
         }
 
     return ScriptCompilationConfiguration(context.compilationConfiguration) {
-            if (importedSources.isNotEmpty()) importScripts.append(importedSources)
-        }
+        if (importedSources.isNotEmpty()) importScripts.append(importedSources)
+    }
         .asSuccess()
 }
 

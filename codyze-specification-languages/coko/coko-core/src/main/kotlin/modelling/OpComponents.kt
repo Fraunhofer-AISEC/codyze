@@ -5,8 +5,8 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMar
 /** Represents a parameter in the [Signature] */
 typealias Parameter = Any?
 
-@CokoMarker
 /** Represents a group of parameters that all belong to the same index */
+@CokoMarker
 class ParameterGroup {
     val parameters = arrayListOf<Parameter>()
 

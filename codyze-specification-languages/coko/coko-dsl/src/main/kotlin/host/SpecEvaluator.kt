@@ -3,11 +3,12 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rule
+import mu.KotlinLogging
 import kotlin.reflect.*
 import kotlin.reflect.full.*
-import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
+
 /**
  * Evaluates the rules. It first collects all scripts and divides it in the models and
  * implementations. Then, it generates inputs for the rules and calls the rules.
@@ -19,8 +20,11 @@ class SpecEvaluator {
 
     fun addSpec(scriptClass: KClass<*>, scriptInstance: Any) {
         for (type in scriptClass.nestedClasses) {
-            if (type.isAbstract) types.add(type to scriptInstance)
-            else implementations.add(type to scriptInstance)
+            if (type.isAbstract) {
+                types.add(type to scriptInstance)
+            } else {
+                implementations.add(type to scriptInstance)
+            }
         }
         for (member in scriptClass.functions.filter { it.findAnnotation<Rule>() != null }) {
             rules.add(member to scriptInstance)
@@ -66,7 +70,7 @@ class SpecEvaluator {
                 )
                     ?: rawRuleResult
             logger.info {
-                " (${index+1}/${rules.size}): ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}"
+                " (${index + 1}/${rules.size}): ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}"
             }
         }
     }

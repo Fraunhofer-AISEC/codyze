@@ -2,14 +2,14 @@ package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modell
 
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
 import io.mockk.mockk
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 
 class OpComponentsTest {
 
@@ -87,10 +87,10 @@ class OpComponentsTest {
         with(mockk<Definition>()) {
             val sig =
                 signature {
-                        +singleParam
-                        +group { grouped.forEach { +it } }
-                        ordered.forEach { +it }
-                    }
+                    +singleParam
+                    +group { grouped.forEach { +it } }
+                    ordered.forEach { +it }
+                }
                     .unordered(*unordered.toTypedArray())
 
             val expectedSig =

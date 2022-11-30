@@ -7,6 +7,10 @@ import de.fraunhofer.aisec.codyze_core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.codyze_core.timed
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result
+import mu.KotlinLogging
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 import java.nio.file.Path
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
@@ -17,10 +21,6 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 import kotlin.script.experimental.util.PropertiesCollection
 import kotlin.time.*
-import mu.KotlinLogging
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
 
 private val logger = KotlinLogging.logger {}
 

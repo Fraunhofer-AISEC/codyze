@@ -19,12 +19,12 @@ typealias Nodes = Collection<Any>
 )
 annotation class CokoMarker
 
-@Suppress("UNUSED")
-@CokoMarker
 /*
  * Receives a [cpg] translation result to identify matching nodes and evaluate the expressions.
  * All the functionality of the DSL are implemented as extension functions on [CokoBackend].
  */
+@Suppress("UNUSED")
+@CokoMarker
 interface CokoBackend : Backend {
     /** Get all [Nodes] that are associated with this [Op]. */
     fun Op.getAllNodes(): Nodes

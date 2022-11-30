@@ -4,6 +4,7 @@ import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rul
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Wildcard
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
 import io.mockk.mockk
+import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.io.path.writeText
 import kotlin.reflect.full.createType
@@ -12,7 +13,6 @@ import kotlin.script.experimental.api.valueOrThrow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import org.junit.jupiter.api.io.TempDir
 
 class ScriptAnalysisTest {
     @Test

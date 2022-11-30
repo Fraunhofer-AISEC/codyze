@@ -27,7 +27,7 @@ tasks.jacocoTestReport {
 // in the main rootDir/build.gradle.kts, the reports for each submodule are combined into
 // a merged report
 tasks.withType<Detekt>().configureEach {
-    basePath = "${rootDir.absolutePath}"
+    basePath = "${rootProject.projectDir.absolutePath}"
     config.setFrom(files("$rootDir/detekt.yml"))
 }
 

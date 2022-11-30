@@ -4,8 +4,8 @@ import de.fraunhofer.aisec.codyze_core.config.Configuration
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
 import de.fraunhofer.aisec.codyze_core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.cpg.passes.Pass
-import java.nio.file.Path
 import mu.KotlinLogging
+import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -25,14 +25,9 @@ private val logger = KotlinLogging.logger {}
  * (e.g., source is registered first in the [CPGOptionGroup])
  */
 data class CPGConfiguration(
-    val source:
-        List<
-            Path
-        >, // this is the first argument and thus must be registered first in the [CPGOptions]
+    val source: List<Path>, // this is the first argument and thus must be registered first in the [CPGOptions]
     val useUnityBuild: Boolean,
-    val typeSystemActiveInFrontend:
-        Boolean, // this is the third argument and thus must be the third CLI option to be
-    // registered in [CPGOptions]
+    val typeSystemActiveInFrontend: Boolean, // this is the third argument and thus must be the third CLI option to be registered in [CPGOptions]
     val debugParser: Boolean,
     val disableCleanup: Boolean,
     val codeInNodes: Boolean,

@@ -6,6 +6,11 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.options.CodyzeOptionGroup
 import de.fraunhofer.aisec.codyze_core.Executor
 import de.fraunhofer.aisec.codyze_core.config.ConfigurationRegister
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.koin.test.KoinTest
+import org.koin.test.junit5.KoinTestExtension
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -13,18 +18,13 @@ import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
 import kotlin.streams.asSequence
 import kotlin.test.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.RegisterExtension
-import org.koin.test.KoinTest
-import org.koin.test.junit5.KoinTestExtension
 
-class CodyzeOptionGroupTest: KoinTest {
+class CodyzeOptionGroupTest : KoinTest {
 
-    @JvmField
-    @RegisterExtension
     // starting koin is necessary because some options (e.g., --executor)
     // dynamically look up available choices for the by options(...).choice() command
+    @JvmField
+    @RegisterExtension
     val koinTestExtension =
         KoinTestExtension.create { // Initialize the koin dependency injection
             // declare modules necessary for testing

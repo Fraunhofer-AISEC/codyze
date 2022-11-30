@@ -43,12 +43,12 @@ class NfaDfaConstructionTest {
     private fun orderExpressionToDfa(block: Order.() -> Unit) =
         orderExpressionToNfa { block() }.toDfa()
 
-    @Test
     /**
      * Tests a simple sequence order.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
+    @Test
     fun `test simple sequence order`() {
         with(mockk<CokoCpgBackend>()) {
             val nfa = orderExpressionToNfa {
@@ -69,12 +69,12 @@ class NfaDfaConstructionTest {
         }
     }
 
-    @Test
     /**
      * Tests a simple order with a branch.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
+    @Test
     fun `test simple order with branch`() {
         with(mockk<CokoCpgBackend>()) {
             val nfa = orderExpressionToNfa { +(TestClass::create or TestClass::init) }
@@ -94,12 +94,12 @@ class NfaDfaConstructionTest {
         }
     }
 
-    @Test
     /**
      * Tests a simple order with a maybe qualifier.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
+    @Test
     fun `test simple order with maybe qualifier`() {
         with(mockk<CokoCpgBackend>()) {
             val nfa = orderExpressionToNfa { +TestClass::create.maybe() }
@@ -116,12 +116,12 @@ class NfaDfaConstructionTest {
         }
     }
 
-    @Test
     /**
      * Tests a simple order with an option qualifier.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
+    @Test
     fun `test simple order with option qualifier`() {
         with(mockk<CokoCpgBackend>()) {
             val nfa = orderExpressionToNfa { +TestClass::create.option() }
@@ -137,12 +137,12 @@ class NfaDfaConstructionTest {
         }
     }
 
-    @Test
     /**
      * Tests a more complex order with a loop.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
+    @Test
     fun `test complex order with loop`() {
         with(mockk<CokoCpgBackend>()) {
             // equivalent MARK:
@@ -180,12 +180,12 @@ class NfaDfaConstructionTest {
         }
     }
 
-    @Test
     /**
      * Tests a more complex order with a branch and a loop.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
+    @Test
     fun `test complex order with branch and loop`() {
         with(mockk<CokoCpgBackend>()) {
             // equivalent MARK:
@@ -194,12 +194,14 @@ class NfaDfaConstructionTest {
             val dfa = orderExpressionToDfa {
                 +TestClass::init
                 +some {
-                    +(TestClass::create or
-                        group {
-                            +TestClass::start
-                            +TestClass::process.maybe()
-                            +TestClass::finish
-                        })
+                    +(
+                        TestClass::create or
+                            group {
+                                +TestClass::start
+                                +TestClass::process.maybe()
+                                +TestClass::finish
+                            }
+                        )
                 }
                 +TestClass::reset.option()
             }
@@ -230,12 +232,12 @@ class NfaDfaConstructionTest {
         }
     }
 
-    @Test
     /**
      * Tests an even more complex order branches and loops.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].
      */
+    @Test
     fun `test even more complex order with branch and loop`() {
         with(mockk<CokoCpgBackend>()) {
             // equivalent MARK:
@@ -245,13 +247,15 @@ class NfaDfaConstructionTest {
             val dfa = orderExpressionToNfa {
                 +TestClass::init
                 +some {
-                    +(TestClass::create or
-                        group {
-                            +TestClass::start.maybe()
-                            +TestClass::process.maybe()
-                            +TestClass::start.maybe()
-                            +TestClass::finish
-                        })
+                    +(
+                        TestClass::create or
+                            group {
+                                +TestClass::start.maybe()
+                                +TestClass::process.maybe()
+                                +TestClass::start.maybe()
+                                +TestClass::finish
+                            }
+                        )
                 }
                 +TestClass::reset.option()
             }

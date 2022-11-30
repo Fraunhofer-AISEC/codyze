@@ -81,8 +81,7 @@ class OrderEvaluationTest {
                     .evaluate(
                         EvaluationContext(
                             rule = ::dummyFunction,
-                            parameterMap =
-                                ::dummyFunction.valueParameters.associateWith { instance }
+                            parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
                         )
                     )
                     .ruleEvaluationOutcome

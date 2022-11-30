@@ -12,10 +12,10 @@ import de.fraunhofer.aisec.codyze.source.JsonValueSource
 import de.fraunhofer.aisec.codyze.subcommands.*
 import de.fraunhofer.aisec.codyze_core.config.configFileOption
 import de.fraunhofer.aisec.codyze_core.helper.VersionProvider
-import java.nio.file.Path
-import kotlin.io.path.Path
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
+import java.nio.file.Path
+import kotlin.io.path.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -27,9 +27,8 @@ private val logger = KotlinLogging.logger {}
  */
 class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
     val configFile: Path? by configFileOption()
-    val arguments by
-        argument()
-            .multiple() // necessary when using 'treatUnknownOptionsAsArgs'. Contains all given
+    val arguments by argument().multiple() // necessary when using 'treatUnknownOptionsAsArgs'. Contains all given
+
     // arguments except for configFile.
     override fun run() {} // does nothing because this command is only used to parse the config file
     // for the [[Codyze]] command.
@@ -47,7 +46,11 @@ class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "con
         printHelpOnEmptyArgs = true
     ) {
     init {
-        versionOption(VersionProvider.getVersion("codyze-core"), names = setOf("--version", "-V"), message = { "Codyze version $it"})
+        versionOption(
+            VersionProvider.getVersion("codyze-core"),
+            names = setOf("--version", "-V"),
+            message = { "Codyze version $it" }
+        )
         context {
             valueSource = JsonValueSource.from(configFile, requireValid = true)
             helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")

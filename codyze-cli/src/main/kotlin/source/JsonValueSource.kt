@@ -4,10 +4,10 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.InvalidFileFormat
 import com.github.ajalt.clikt.parameters.options.Option
 import com.github.ajalt.clikt.sources.ValueSource
-import java.nio.file.Path
-import kotlin.io.path.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.*
+import java.nio.file.Path
+import kotlin.io.path.*
 
 /**
  * A [ValueSource] that uses Kotlin serialization to parse JSON config files as context to Clikt
@@ -74,8 +74,9 @@ class JsonValueSource(
                     Json.parseToJsonElement(file.readText()) as? JsonObject
                         ?: throw InvalidFileFormat(file.name, "object expected", 1)
                 } catch (e: SerializationException) {
-                    if (requireValid)
+                    if (requireValid) {
                         throw InvalidFileFormat(file.name, e.message ?: "could not read file")
+                    }
                     JsonObject(emptyMap())
                 }
             return JsonValueSource(file, json)

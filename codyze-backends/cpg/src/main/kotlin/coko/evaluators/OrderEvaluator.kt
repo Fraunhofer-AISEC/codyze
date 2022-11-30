@@ -15,10 +15,10 @@ import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.Declaration
 import de.fraunhofer.aisec.cpg.graph.followPrevEOG
 import de.fraunhofer.aisec.cpg.passes.followNextEOG
+import mu.KotlinLogging
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberFunctions
-import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
@@ -67,12 +67,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
 
         val nodesToOp =
             opsInConcept
-                .flatMap {
-                    ((it.call(implementation)) as Op).getAllNodes().filterIsInstance<Node>().map {
-                        node ->
-                        node to it.name
-                    }
-                }
+                .flatMap { ((it.call(implementation)) as Op).getAllNodes().filterIsInstance<Node>().map { node -> node to it.name } }
                 .toMap()
                 .toMutableMap()
 
@@ -88,18 +83,14 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
         // TODO: activate [de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass]
         var isOrderValid = true
         for (node in orderStartNodes) { // TODO: orderStartNodes should be variable declarations!
-            val dfaEvaluator =
-                DFAOrderEvaluator(
-                    consideredBases =
-                        setOf(node.followNextEOG { it.end is Declaration }!!.last().end),
-                    nodeToRelevantMethod = nodesToOp,
-                )
-            isOrderValid =
-                isOrderValid &&
-                    dfaEvaluator.evaluateOrder(
-                        dfa,
-                        node.followPrevEOG { it.start is Declaration }!!.last().start
-                    )
+            val dfaEvaluator = DFAOrderEvaluator(
+                consideredBases = setOf(node.followNextEOG { it.end is Declaration }!!.last().end),
+                nodeToRelevantMethod = nodesToOp
+            )
+            isOrderValid = isOrderValid && dfaEvaluator.evaluateOrder(
+                dfa,
+                node.followPrevEOG { it.start is Declaration }!!.last().start
+            )
         }
         // TODO: implement fine-grained results e.g., for each orderStartNode
         return EvaluationResult(isOrderValid)

@@ -20,11 +20,7 @@ class Analyze : CodyzeSubcommand("Analyze a set of source files") {
         val project =
             timed("Starting project server took") {
                 ProjectServer.connect(
-                    config =
-                        buildConfiguration(
-                            codyzeConfigurationRegister,
-                            backendConfigurationRegister
-                        )
+                    config = buildConfiguration(codyzeConfigurationRegister, backendConfigurationRegister)
                 )
             }
 

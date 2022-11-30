@@ -6,10 +6,10 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import io.mockk.*
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class SignatureTest {
     val node = mockk<CallExpression>()
@@ -127,5 +127,4 @@ class SignatureTest {
         for (i in args.indices) verify { with(node) { params[i].flowsTo(args[i]) } }
     }
     // TODO hasVarargs
-
 }

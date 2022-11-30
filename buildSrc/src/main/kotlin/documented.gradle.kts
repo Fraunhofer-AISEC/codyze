@@ -1,8 +1,8 @@
-import java.net.URL
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
+import java.net.URL
 
 plugins {
     id("org.jetbrains.dokka")
@@ -21,7 +21,9 @@ tasks.withType<DokkaTaskPartial>().configureEach {
                 // ensure we're including path segment to module
                 remoteUrl.set(
                     URL(
-                        "https://github.com/Fraunhofer-AISEC/codyze/blob/main/${project.projectDir.relativeTo(project.rootDir)}/src/main/kotlin"
+                        "https://github.com/Fraunhofer-AISEC/codyze/blob/main/${project.projectDir.relativeTo(
+                            project.rootDir
+                        )}/src/main/kotlin"
                     )
                 )
                 remoteLineSuffix.set("#L")

@@ -6,8 +6,6 @@ import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import de.fraunhofer.aisec.codyze_core.Executor
 import io.mockk.clearAllMocks
 import io.mockk.mockk
-import java.nio.file.Path
-import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -15,17 +13,19 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
+import java.nio.file.Path
 import kotlin.io.path.*
+import kotlin.test.*
 
-class CodyzeCliTest: KoinTest {
+class CodyzeCliTest : KoinTest {
 
     val mockkExecutor = mockk<Executor>(relaxed = true)
     val mockkOptionGroup = mockk<OptionGroup>(relaxed = true)
 
-    @JvmField
-    @RegisterExtension
     // starting koin is necessary because some options (e.g., --executor)
     // dynamically look up available choices for the by options(...).choice() command
+    @JvmField
+    @RegisterExtension
     val koinTestExtension =
         KoinTestExtension.create { // Initialize the koin dependency injection
             // declare modules necessary for testing
@@ -89,7 +89,11 @@ class CodyzeCliTest: KoinTest {
         // args values should be appended to config values
         val appendMessage = "Values from CLI option should be appended to config values"
         val expectedSpecs = listOf(specMark, spec2Mark)
-        assertContentEquals(expectedSpecs.map { it.absolute() }, testSubcommand.codyzeOptions.spec.map { it.absolute() }, appendMessage)
+        assertContentEquals(
+            expectedSpecs.map { it.absolute() },
+            testSubcommand.codyzeOptions.spec.map { it.absolute() },
+            appendMessage
+        )
 
         // should be config values
         val staySameMessage =
@@ -109,7 +113,6 @@ class CodyzeCliTest: KoinTest {
         @BeforeAll
         @JvmStatic
         fun startup() {
-
             val pathConfigFileResource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/path-config.json")
             assertNotNull(pathConfigFileResource)

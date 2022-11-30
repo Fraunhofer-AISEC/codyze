@@ -26,7 +26,7 @@ dependencies {
     testImplementation(libs.koin.test) {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-test-junit")
     }
-    testImplementation(libs.koin.junit5){
+    testImplementation(libs.koin.junit5) {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-test-junit")
     }
 

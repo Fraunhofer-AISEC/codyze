@@ -1,7 +1,4 @@
-import com.diffplug.gradle.spotless.SpotlessApply
-import com.diffplug.gradle.spotless.SpotlessCheck
 import io.gitlab.arturbosch.detekt.Detekt
-import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
@@ -25,19 +22,18 @@ tasks.jacocoTestReport {
     dependsOn(tasks.test) // tests are required to run before generating the report
 }
 
-// configure Detekt with this instead of the 'detekt { }' extension because
-// then this configuration is also used for our custom 'detektFix' task
 // in the main rootDir/build.gradle.kts, the reports for each submodule are combined into
 // a merged report
-tasks.withType<Detekt>().configureEach {
+detekt {
     basePath = "${rootDir.absolutePath}"
-    config.setFrom(files("$rootDir/detekt.yml"))
+    config = files("$rootDir/detekt.yml")
 }
 
 // custom task for fixing formatting issues
 val detektFix by tasks.registering(Detekt::class) {
     description = "Run detekt and auto correct formatting issues."
     autoCorrect = true
+    config.setFrom(files("$rootDir/detekt.yml"))
     ignoreFailures = true
     setSource(files(projectDir))
     include("**/*.kt")

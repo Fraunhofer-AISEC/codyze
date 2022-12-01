@@ -36,28 +36,12 @@ jobs:
           echo "##[set-output name=version;]$VERSION"
         id: determine_version
       - name: Build ${{ steps.determine_version.outputs.version }}
-        run: |
-          if [ "$SONAR_TOKEN" != "" ]
-          then
-            ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze-cli:build :codyze-cli:sonarqube \
-            -Dsonar.projectKey=codyze \
-            -Dsonar.organization=fraunhofer-aisec \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN
-          else
-            ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze-cli:build
-          fi
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: check :codyze-cli:build --parallel --no-daemon -Pversion=$VERSION
         id: build
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Archive test reports
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: test
-          path: codyze/build/reports/tests/test
       - name: Push Release Docker Image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin

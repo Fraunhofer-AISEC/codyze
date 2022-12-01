@@ -33,7 +33,7 @@ class Analyze : CodyzeSubcommand("Analyze a set of source files") {
         logger.debug { "Executing 'analyze' subcommand..." }
 
         val project =
-            timed("Starting project server took") {
+            timed({ logger.info { "Starting project server took $it." } }) {
                 ProjectServer.connect(
                     config = buildConfiguration(codyzeConfigurationRegister, backendConfigurationRegister)
                 )

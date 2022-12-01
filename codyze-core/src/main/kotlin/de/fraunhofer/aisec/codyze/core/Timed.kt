@@ -15,14 +15,10 @@
  */
 package de.fraunhofer.aisec.codyze.core
 
-import mu.KotlinLogging
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
-val log = KotlinLogging.logger {}
-
-@OptIn(ExperimentalTime::class)
 /**
  * Simply helper function to log how long a given task took.
  * @param message The message to log. The resulting log has the format: '{message} {time the task
@@ -30,8 +26,9 @@ val log = KotlinLogging.logger {}
  * @param block The code block to time.
  * @return The result of the given task
  */
-inline fun <reified T> timed(message: String? = null, block: () -> T): T {
+@OptIn(ExperimentalTime::class)
+fun <T> timed(message: (Duration) -> Unit, block: () -> T): T {
     val (result: T, blockDuration: Duration) = measureTimedValue { block() }
-    log.debug { message + " ${ blockDuration.inWholeMilliseconds } ms." }
+    message.invoke(blockDuration)
     return result
 }

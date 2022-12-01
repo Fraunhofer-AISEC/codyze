@@ -87,7 +87,7 @@ internal object ProjectScriptCompilationConfiguration :
         // de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*`, etc.)
         // to each script on compilation
         defaultImports.append(
-            "de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*"
+            "de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*"
         )
 
         // section that defines callbacks during compilation
@@ -101,7 +101,7 @@ internal object ProjectScriptCompilationConfiguration :
                     context.compilationConfiguration
                         .with {
                             defaultImports.append(
-                                "de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.*"
+                                "de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.*"
                             )
                             updateClasspath(augmentedClasspath)
                         }

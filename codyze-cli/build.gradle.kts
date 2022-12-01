@@ -34,5 +34,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("de.fraunhofer.aisec.codyze.MainKt")
+    mainClass.set("de.fraunhofer.aisec.codyze.cli.MainKt")
 }

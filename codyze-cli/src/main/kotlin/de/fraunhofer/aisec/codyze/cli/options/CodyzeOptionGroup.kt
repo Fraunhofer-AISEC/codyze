@@ -21,17 +21,20 @@ import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze.core.Executor
-import de.fraunhofer.aisec.codyze.core.ProjectServer
 import de.fraunhofer.aisec.codyze.core.config.ConfigurationRegister
 import de.fraunhofer.aisec.codyze.core.config.combineSources
 import de.fraunhofer.aisec.codyze.core.config.validateFromError
 import de.fraunhofer.aisec.codyze.core.config.validateSpec
+import mu.KotlinLogging
+import org.koin.core.component.KoinComponent
 import java.nio.file.Path
 import kotlin.io.path.Path
 
+private val logger = KotlinLogging.logger {}
+
 @Suppress("UNUSED", "MagicNumber")
 class CodyzeOptionGroup(configurationRegister: ConfigurationRegister) :
-    OptionGroup(name = "Codyze Options") {
+    OptionGroup(name = "Codyze Options"), KoinComponent {
     private val rawSpec: List<Path> by option("--spec", help = "Loads the given specification files.")
         .path(mustExist = true, mustBeReadable = true, canBeDir = true)
         .multiple(required = true)
@@ -104,11 +107,14 @@ class CodyzeOptionGroup(configurationRegister: ConfigurationRegister) :
             "If unspecified, Codyze randomly selects an executor capable of evaluating " +
             "the given specification files."
     )
-        .choice(*(ProjectServer.executors.map { it.name }).toTypedArray(), ignoreCase = true)
+        .choice(*(getKoin().getAll<Executor>().map { it.name }).toTypedArray(), ignoreCase = true)
         .convert {
-            it.let { ProjectServer.executors.first { executor -> executor.name == it } }
+            it.let { getKoin().getAll<Executor>().first { executor -> executor.name == it } }
         }
-        .also { configurationRegister.addOption("executor", it) }
+        .also {
+            configurationRegister.addOption("executor", it)
+            logger.debug { "Found following executors: ${it.completionCandidates}" }
+        }
 
     val output: Path by option("-o", "--output", help = "Write results to file. Use - for stdout.")
         .path(mustBeWritable = true)

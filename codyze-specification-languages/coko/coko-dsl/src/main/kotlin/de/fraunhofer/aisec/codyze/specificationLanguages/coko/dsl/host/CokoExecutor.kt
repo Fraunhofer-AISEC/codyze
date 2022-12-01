@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
 import de.fraunhofer.aisec.codyze.core.Executor
 import de.fraunhofer.aisec.codyze.core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.codyze.core.timed
 import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoScript
 import io.github.detekt.sarif4k.Result
 import mu.KotlinLogging
 import org.koin.core.component.KoinComponent
@@ -74,8 +74,7 @@ class CokoExecutor : Executor, KoinComponent {
             "Evaluating ${specEvaluator.rules.size} ${if (specEvaluator.rules.size == 1) "rule" else "rules"}..."
         }
         // evaluate the spec scripts
-        val findings =
-            timed("Evaluation of specification scripts took") { specEvaluator.evaluate() }
+        val findings = timed("Evaluation of specification scripts took") { specEvaluator.evaluate() }
         return listOf() // TODO: return findings
     }
 

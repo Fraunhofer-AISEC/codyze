@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
 import io.mockk.mockk
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.io.TempDir

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
@@ -64,7 +64,8 @@ class SpecEvaluator {
                         .map { (it, paramInstance) ->
                             val primaryConstructor =
                                 checkNotNull(it.primaryConstructor) {
-                                    "Could not create an instance of ${it.qualifiedName} to pass to rule ${rule.name} because it does not have a primary constructor. Aborting."
+                                    "Could not create an instance of ${it.qualifiedName} to pass to rule " +
+                                        "${rule.name} because it does not have a primary constructor. Aborting."
                                 }
                             // TODO: how do we access primaryConstructor.arity ? -> then we would
                             // not need the try..catch

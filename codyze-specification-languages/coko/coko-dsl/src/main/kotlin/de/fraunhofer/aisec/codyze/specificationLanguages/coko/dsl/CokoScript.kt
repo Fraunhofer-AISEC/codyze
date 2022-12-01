@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Import
@@ -48,7 +48,7 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
     // performance. Does not seem to break anything
 )
 // the class is used as the script base class, therefore it should be open or abstract
-abstract class CokoScript {
+open class CokoScript {
     // Configures the plugins used by the project.
     fun plugins(configure: PluginDependenciesSpec.() -> Unit) = Unit
 }
@@ -153,17 +153,16 @@ fun configureImportDepsOnAnnotations(
     context: ScriptConfigurationRefinementContext
 ): ResultWithDiagnostics<ScriptCompilationConfiguration> {
     val annotations =
+        // If no action is performed, the original configuration should be returned
         context.collectedData?.get(ScriptCollectedData.foundAnnotations)?.takeIf { it.isNotEmpty() }
-            ?: return context.compilationConfiguration.asSuccess() // If no action is performed, the original configuration should be
-    // returned
+            ?: return context.compilationConfiguration.asSuccess()
 
     val scriptBaseDir = (context.script as? FileBasedScriptSource)?.file?.parentFile
     val importedSources =
         annotations.flatMap {
             (it as? Import)?.paths?.map { sourceName ->
                 FileScriptSource(scriptBaseDir?.resolve(sourceName) ?: File(sourceName))
-            }
-                ?: emptyList()
+            }.orEmpty()
         }
 
     return ScriptCompilationConfiguration(context.compilationConfiguration) {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 
 import java.nio.file.Path
 import kotlin.script.experimental.api.SourceCode

@@ -70,7 +70,7 @@ repositories {
 
 dependencies {
     // Logging
-    api("org.slf4j:slf4j-api:2.0.3") // e.g., exposed by de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator
+    api("org.slf4j:slf4j-api:2.0.5") // e.g., exposed by de.fraunhofer.aisec.codyze.analysis.markevaluation.Evaluator
     runtimeOnly("org.slf4j:log4j-over-slf4j:2.0.3") {
         because("Needed for `xtext.parser.antlr`")
     }

@@ -37,21 +37,11 @@ jobs:
         id: determine_version
       - name: Build ${{ steps.determine_version.outputs.version }}
         run: |
-          if [ "$SONAR_TOKEN" != "" ]
-          then
-            ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze-cli:build :codyze-cli:sonarqube \
-            -Dsonar.projectKey=codyze \
-            -Dsonar.organization=fraunhofer-aisec \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN
-          else
-            ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze-cli:build
-          fi
+          ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze-cli:build
         id: build
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Codecov
         uses: codecov/codecov-action@v3
       - name: Archive test reports

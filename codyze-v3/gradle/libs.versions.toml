@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.7.20"
-cpg = "4.6.3"
+cpg = "5.1.0"
 koin = "3.2.2"
 
 [libraries]

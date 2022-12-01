@@ -52,6 +52,8 @@ jobs:
           VERSION: ${{ steps.determine_version.outputs.version }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Codecov
+        uses: codecov/codecov-action@v3
       - name: Archive test reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v3

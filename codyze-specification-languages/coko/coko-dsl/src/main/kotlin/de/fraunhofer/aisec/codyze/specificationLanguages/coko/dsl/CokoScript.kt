@@ -17,6 +17,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Import
+import mu.KotlinLogging
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
@@ -25,8 +26,11 @@ import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.jvm.*
 import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
 
+private val logger = KotlinLogging.logger {}
+
 @Suppress(
-    "UNUSED"
+    "UNUSED",
+    "UnusedPrivateMember"
 ) // this is copied to the script base class TODO: this is currently not working somehow
 // The KotlinScript annotation marks a class that can serve as a reference to the script definition
 // for
@@ -137,9 +141,9 @@ private fun pluginsBlockOrNullFrom(scriptText: String) =
     }
 
 private fun resolveClasspathAndGenerateExtensionsFor(pluginsBlock: String?): List<File> {
-    println("Generating extensions for $pluginsBlock")
+    logger.debug { "Generating extensions for $pluginsBlock" }
 
-    val baseLibrariesPlusExtensions = arrayOf("cpg", *baseLibraries)
+    val baseLibrariesPlusExtensions = arrayOf("cpg") + baseLibraries
 
     return scriptCompilationClasspathFromContext(
         *baseLibrariesPlusExtensions,

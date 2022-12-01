@@ -35,17 +35,6 @@ jobs:
 
           echo "##[set-output name=version;]$VERSION"
         id: determine_version
-      - name: Build code coverage report
-        if: ${{ always() }}
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: testCodeCoverageReport --parallel --no-daemon --continue
-      - name: Archive test reports
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: test
-          path: ./code-coverage-report/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
       - name: Build ${{ steps.determine_version.outputs.version }}
         uses: gradle/gradle-build-action@v2
         with:

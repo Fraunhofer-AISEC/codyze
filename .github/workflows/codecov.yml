@@ -23,6 +23,11 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: testCodeCoverageReport --continue
+      - name: Archive test reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: test
+          path: ./code-coverage-report/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

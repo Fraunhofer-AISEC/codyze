@@ -35,21 +35,24 @@ jobs:
 
           echo "##[set-output name=version;]$VERSION"
         id: determine_version
-      - name: Build ${{ steps.determine_version.outputs.version }}
-        run: |
-          ./gradlew --parallel --no-daemon -Pversion=$VERSION :codyze-cli:build
-        id: build
-        env:
-          VERSION: ${{ steps.determine_version.outputs.version }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - name: Codecov
-        uses: codecov/codecov-action@v3
+      - name: Build code coverage report
+        if: ${{ always() }}
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: testCodeCoverageReport --parallel --no-daemon --continue
       - name: Archive test reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
           name: test
-          path: codyze/build/reports/tests/test
+          path: ./code-coverage-report/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
+      - name: Build ${{ steps.determine_version.outputs.version }}
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: check :codyze-cli:build --parallel --no-daemon -Pversion=$VERSION
+        id: build
+        env:
+          VERSION: ${{ steps.determine_version.outputs.version }}
       - name: Push Release Docker Image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin

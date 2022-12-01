@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 
 @CokoMarker sealed interface Op
 
@@ -138,8 +138,7 @@ fun constructor(classFqn: String, block: ConstructorOp.() -> Unit) =
  * @param fqn the fully qualified name of the function this [Definition] is representing
  * @param block defines the [Signature]s of this [Definition]
  */
-inline fun FunctionOp.definition(fqn: String, block: Definition.() -> Unit) =
-    Definition(fqn).apply(block)
+inline fun FunctionOp.definition(fqn: String, block: Definition.() -> Unit) = Definition(fqn).apply(block)
 
 /**
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are defined in the

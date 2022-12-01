@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core
+@file:Suppress("UNUSED")
 
-interface Evaluator {
-    fun evaluate(context: EvaluationContext): EvaluationResult
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
+
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import kotlin.reflect.KFunction
+
+typealias OrderToken = KFunction<Op>
+
+sealed interface OrderFragment {
+    /** Convert this [OrderFragment] to a binary syntax tree */
+    fun toNode(): OrderNode
+
+    val token: OrderFragment
+        get() = this
 }

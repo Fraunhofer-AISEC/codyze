@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.CokoScript
 import de.fraunhofer.aisec.codyze.core.Executor
 import de.fraunhofer.aisec.codyze.core.config.ExecutorConfiguration

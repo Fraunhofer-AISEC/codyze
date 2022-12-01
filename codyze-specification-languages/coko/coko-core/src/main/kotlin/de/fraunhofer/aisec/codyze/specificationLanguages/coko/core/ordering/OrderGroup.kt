@@ -15,7 +15,7 @@
  */
 @file:Suppress("UNUSED")
 
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
 /** Represents a regex group */
 class OrderGroup : OrderBuilder()

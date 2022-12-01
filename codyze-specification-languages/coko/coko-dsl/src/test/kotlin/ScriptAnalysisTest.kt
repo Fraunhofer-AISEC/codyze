@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rule
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Wildcard
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Wildcard
 import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host.CokoExecutor
 import io.mockk.mockk
 import org.junit.jupiter.api.io.TempDir

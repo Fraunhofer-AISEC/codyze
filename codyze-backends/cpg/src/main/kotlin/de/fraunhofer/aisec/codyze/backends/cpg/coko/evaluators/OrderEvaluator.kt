@@ -16,15 +16,15 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering.toNfa
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationResult
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.ConstructorOp
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.FunctionOp
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Order
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.ConstructorOp
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.FunctionOp
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFAOrderEvaluator
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.Declaration

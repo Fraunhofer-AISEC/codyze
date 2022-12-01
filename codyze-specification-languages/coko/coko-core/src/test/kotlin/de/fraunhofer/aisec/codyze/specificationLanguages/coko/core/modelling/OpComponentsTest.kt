@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import io.mockk.mockk
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -143,11 +143,10 @@ class OpComponentsTest {
         val sig2 = mockk<Signature>()
 
         with(mockk<FunctionOp>()) {
-            val def =
-                definition("fqn") {
-                    +sig1
-                    +sig2
-                }
+            val def = definition("fqn") {
+                +sig1
+                +sig2
+            }
 
             val expected = Definition("fqn")
             expected.signatures.add(sig1)
@@ -160,7 +159,7 @@ class OpComponentsTest {
     companion object {
         val singleParam = arrayListOf<Parameter>("test")
         val multipleParams =
-            arrayListOf<Parameter>("test", emptyList<Parameter>(), Type("fqn"), arrayOf(1, 2))
+            arrayListOf<Parameter>("test", emptyList<Parameter>(), Type("fqn"), intArrayOf(1, 2))
 
         @JvmStatic
         private fun unaryPlusParamHelper(): Stream<Arguments> {

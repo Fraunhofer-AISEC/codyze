@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Import
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Import
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*

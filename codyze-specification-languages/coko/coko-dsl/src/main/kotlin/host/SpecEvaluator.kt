@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_dsl.host
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Rule
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import mu.KotlinLogging
 import kotlin.reflect.*
 import kotlin.reflect.full.*

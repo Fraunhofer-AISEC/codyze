@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
-/**
- * The result of a rule evaluation.
- */
-class EvaluationResult(val ruleEvaluationOutcome: Boolean) {
-    override fun equals(other: Any?) =
-        when (other) {
-            is Boolean -> other == ruleEvaluationOutcome
-            is EvaluationResult -> ruleEvaluationOutcome == other.ruleEvaluationOutcome
-            else -> false
-        }
+interface Evaluator {
+    fun evaluate(context: EvaluationContext): EvaluationResult
 }

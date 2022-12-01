@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationResult
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.Evaluator
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.cpg.graph.Node
 
 context(de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend)

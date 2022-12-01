@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.order
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.order
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 import io.mockk.mockk
 import kotlin.test.Test
 import kotlin.test.assertEquals

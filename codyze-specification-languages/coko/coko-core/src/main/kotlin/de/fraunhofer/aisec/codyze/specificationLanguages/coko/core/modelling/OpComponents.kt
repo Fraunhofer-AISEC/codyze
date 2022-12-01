@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 
 /** Represents a parameter in the [Signature] */
 typealias Parameter = Any?

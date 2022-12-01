@@ -15,18 +15,18 @@
  */
 @file:Suppress("UNUSED")
 
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.token
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.token
 
 @CokoMarker
 /**
  * Base class for [Order], [OrderGroup] and [OrderSet]. Uses a deque to create a binary tree of the
  * given regex with its [toNode] method.
  */
-abstract class OrderBuilder : OrderFragment {
+open class OrderBuilder : OrderFragment {
     // the nodes for the [Op]s in this map must be retrieved using [Op.getNodes]
     val userDefinedOps = mutableMapOf<String, () -> Op>()
 

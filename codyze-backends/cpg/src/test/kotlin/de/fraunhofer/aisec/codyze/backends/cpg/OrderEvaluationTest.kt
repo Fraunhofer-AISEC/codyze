@@ -16,9 +16,9 @@
 package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.reflect.full.valueParameters

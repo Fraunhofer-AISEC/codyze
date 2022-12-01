@@ -15,12 +15,12 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoBackend
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.CokoMarker
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Type
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Wildcard
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.ParameterGroup
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Type
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Wildcard
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Order
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.OrderToken
 import de.fraunhofer.aisec.codyze.core.wrapper.Backend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken
 
 typealias Nodes = Collection<Any>
 

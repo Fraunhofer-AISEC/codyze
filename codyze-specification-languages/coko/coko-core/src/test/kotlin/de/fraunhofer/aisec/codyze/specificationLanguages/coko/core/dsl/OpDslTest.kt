@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Parameter
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.ParameterGroup
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Parameter
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import kotlin.reflect.KFunction

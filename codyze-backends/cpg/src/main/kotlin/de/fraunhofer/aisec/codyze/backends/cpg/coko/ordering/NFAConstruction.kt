@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.analysis.fsm.NFA
 

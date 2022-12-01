@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("UNUSED")
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
 
-/** Matches any value. */
-object Wildcard
-
-typealias wildcard = Wildcard
-
-/** Stores the fully qualified name of a class */
-data class Type(val fqn: String)
+/**
+ * The context used during rule evaluation.
+ */
+data class EvaluationContext(val rule: KFunction<*>, val parameterMap: Map<KParameter, Any>)

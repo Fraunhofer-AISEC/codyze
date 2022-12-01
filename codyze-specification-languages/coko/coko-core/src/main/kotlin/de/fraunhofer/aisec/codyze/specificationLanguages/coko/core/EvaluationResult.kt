@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("UNUSED")
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
-
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.Op
-import kotlin.reflect.KFunction
-
-typealias OrderToken = KFunction<Op>
-
-sealed interface OrderFragment {
-    /** Convert this [OrderFragment] to a binary syntax tree */
-    fun toNode(): OrderNode
-
-    val token: OrderFragment
-        get() = this
+/**
+ * The result of a rule evaluation.
+ */
+class EvaluationResult(val ruleEvaluationOutcome: Boolean) {
+    override fun equals(other: Any?) =
+        when (other) {
+            is Boolean -> other == ruleEvaluationOutcome
+            is EvaluationResult -> ruleEvaluationOutcome == other.ruleEvaluationOutcome
+            else -> false
+        }
 }

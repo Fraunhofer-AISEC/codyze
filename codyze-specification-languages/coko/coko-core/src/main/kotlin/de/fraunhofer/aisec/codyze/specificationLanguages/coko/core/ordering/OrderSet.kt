@@ -15,9 +15,9 @@
  */
 @file:Suppress("UNUSED")
 
-package de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.ordering
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
-import de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.set
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.set
 
 /**
  * Represents a regex set. Its [toNode] method converts the set into a group with OR expressions to

@@ -21,6 +21,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.*
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.FollowsEvaluator
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OnlyEvaluator
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OrderEvaluator
+import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Nodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.ConstructorOp
@@ -30,7 +31,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.cpg.graph.Node
 
 class CokoCpgBackend(config: BackendConfiguration) :

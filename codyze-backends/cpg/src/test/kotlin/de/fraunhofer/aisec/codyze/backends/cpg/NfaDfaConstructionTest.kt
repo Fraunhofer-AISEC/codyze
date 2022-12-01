@@ -48,7 +48,7 @@ class NfaDfaConstructionTest {
     }
 
     private val baseName =
-        "class de.fraunhofer.aisec.codyze_backends.cpg.NfaDfaConstructionTest\$TestClass"
+        "class de.fraunhofer.aisec.codyze.backends.cpg.NfaDfaConstructionTest\$TestClass"
 
     private fun orderExpressionToNfa(block: Order.() -> Unit): NFA {
         val order = Order().apply(block)

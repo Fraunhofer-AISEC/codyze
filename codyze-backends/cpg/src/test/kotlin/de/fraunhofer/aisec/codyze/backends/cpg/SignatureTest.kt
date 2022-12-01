@@ -102,7 +102,7 @@ class SignatureTest {
         every { node.arguments } returns listOf(pairArgument)
         every { pairArgument.value } returns (1 to "one")
 
-        mockkStatic("de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.ImplementationDslKt")
+        mockkStatic("de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.ImplementationDslKt")
         every { with(node) { param.flowsTo(pairArgument) } } returns true
 
         // tests that with normal pair only flowsTo is called
@@ -116,7 +116,7 @@ class SignatureTest {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.value } returns "test"
 
-        mockkStatic("de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.ImplementationDslKt")
+        mockkStatic("de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.ImplementationDslKt")
         every { with(node) { param.flowsTo(stringArgument) } } returns true
 
         // assert that signature checks the dataflow from the parameter to the argument
@@ -128,7 +128,7 @@ class SignatureTest {
     fun `test signature with multiple params`() {
         val params = arrayOf("test", 1, mockk<CallExpression>(), listOf(1, 2, 5), Any())
         val args = arrayListOf<Expression>()
-        mockkStatic("de.fraunhofer.aisec.codyze_backends.cpg.coko.dsl.ImplementationDslKt")
+        mockkStatic("de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.ImplementationDslKt")
         for (p in params) {
             val a = mockk<Literal<String>>()
             args.add(a)

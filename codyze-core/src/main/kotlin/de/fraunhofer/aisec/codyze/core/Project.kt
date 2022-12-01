@@ -17,20 +17,21 @@ package de.fraunhofer.aisec.codyze.core
 
 import de.fraunhofer.aisec.codyze.core.config.Configuration
 import io.github.detekt.sarif4k.*
+import org.koin.core.component.KoinComponent
 
 /**
  * An object that saves the context of an analysis.
  *
  * This enables switching between different analyses (e.g. switching between projects in an IDE).
  */
-class Project(val config: Configuration) {
+class Project(val config: Configuration) : KoinComponent {
     /** [Executor] that is capable of evaluating the [Configuration.spec] given in [config] */
     val executor = config.executor ?: getRandomCapableExecutor()
 
     /** Return the first registered Executor capable of evaluating [config.specFileExtension] */
     private fun getRandomCapableExecutor(): Executor {
         val randomCapableExecutor: Executor? =
-            ProjectServer.executors.find { it.supportedFileExtension == config.specFileExtension }
+            getKoin().getAll<Executor>().find { it.supportedFileExtension == config.specFileExtension }
         if (randomCapableExecutor != null) {
             return randomCapableExecutor
         } else {

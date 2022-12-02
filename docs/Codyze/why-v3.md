@@ -17,4 +17,4 @@ Through Executors, Codyze can verify rules written in different specification la
 We're also working on a new specification language Coko which comes inbuilt with Codyze.
 
 Additionally, we reworked the organisation of code in Codyze to be able to handle multiple projects with their own configurations with only one Codyze instance.
-his, for example, allows switching between projects in an IDE without losing the context of any analysis and should better support LSP mode.
+This, for example, allows switching between projects in an IDE without losing the context of any analysis and should better support LSP mode.

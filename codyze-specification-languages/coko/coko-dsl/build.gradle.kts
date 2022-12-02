@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation(projects.codyzeCore)
     api(projects.codyzeSpecificationLanguages.coko.cokoCore)
-    implementation(projects.codyzeBackends.cpg)  // used only for the CokoScript plugin block configuration
+    implementation(projects.codyzeBackends.cpg) // used only for the CokoScript plugin block configuration
 
     implementation(libs.kotlin.reflect)
 

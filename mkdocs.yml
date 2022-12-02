@@ -153,7 +153,7 @@ nav:
   - 'Documentation':
     - 'Codyze':
         - 'What is Codyze?': Codyze/index.md
-        - 'Why Codyze v3?': Codyze/why-v3.md
+        - 'Redesign of Codyze': Codyze/why-v3.md
     - 'Getting Started':
         - 'Installing Codyze': Getting Started/installation.md
         - 'Analyzing with Codyze': Getting Started/cli.md

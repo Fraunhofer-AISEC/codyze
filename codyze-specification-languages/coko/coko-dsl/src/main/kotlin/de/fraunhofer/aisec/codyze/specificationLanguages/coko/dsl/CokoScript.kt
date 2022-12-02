@@ -28,10 +28,7 @@ import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
 
 private val logger = KotlinLogging.logger {}
 
-@Suppress(
-    "UNUSED",
-    "UnusedPrivateMember"
-) // this is copied to the script base class TODO: this is currently not working somehow
+@Suppress("UNUSED") // this is copied to the script base class TODO: this is currently not working somehow
 // The KotlinScript annotation marks a class that can serve as a reference to the script definition
 // for
 // `createJvmCompilationConfigurationFromTemplate` call as well as for the discovery mechanism

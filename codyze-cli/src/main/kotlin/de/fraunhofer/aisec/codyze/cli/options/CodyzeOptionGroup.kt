@@ -32,7 +32,7 @@ import kotlin.io.path.Path
 
 private val logger = KotlinLogging.logger {}
 
-@Suppress("UNUSED", "MagicNumber")
+@Suppress("UNUSED")
 class CodyzeOptionGroup(configurationRegister: ConfigurationRegister) :
     OptionGroup(name = "Codyze Options"), KoinComponent {
     private val rawSpec: List<Path> by option("--spec", help = "Loads the given specification files.")

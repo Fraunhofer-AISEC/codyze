@@ -82,8 +82,8 @@ dependencies {
     implementation(kotlin("reflect")) // pull in explicitly to prevent mixing versions
 
     // Code Property Graph
-    api("de.fraunhofer.aisec:cpg-core:5.1.0")
-    implementation("de.fraunhofer.aisec:cpg-analysis:5.1.0")
+    api("de.fraunhofer.aisec:cpg-core:4.6.3")
+    implementation("de.fraunhofer.aisec:cpg-analysis:4.6.3")
 
     // MARK DSL; use GitHub release via JitPack; e.g. exposed by de.fraunhofer.aisec.cpg.analysis.fsm.FSMBuilder
     api("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:2.0.0:repackaged")

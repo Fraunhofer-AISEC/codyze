@@ -34,8 +34,8 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 class FunctionOp internal constructor() : Op {
     val definitions = arrayListOf<Definition>()
 
-    operator fun Definition.unaryPlus() {
-        this@FunctionOp.definitions.add(this)
+    fun add(definition: Definition) {
+        this.definitions.add(definition)
     }
 
     /**
@@ -67,8 +67,8 @@ class FunctionOp internal constructor() : Op {
 class ConstructorOp internal constructor(val classFqn: String) : Op {
     val signatures = arrayListOf<Signature>()
 
-    operator fun Signature.unaryPlus() {
-        this@ConstructorOp.signatures.add(this)
+    fun add(signature: Signature) {
+        this.signatures.add(signature)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -90,21 +90,21 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
  *
  * A full example:
  * ```kt
- * function {
- *   +definition("my.fully.qualified.name") {
- *      +signature {
+ * op {
+ *   definition("my.fully.qualified.name") {
+ *      signature {
  *          +arg1
  *          +arg2
  *          +arg3
  *      }
- *      +signature(arg1, arg2)
- *      +signature {
+ *      signature(arg1, arg2)
+ *      signature {
  *          +arg2
  *          +arg3
  *      }
  *   }
- *   +definition("my.other.function") {
- *      +signature(arg2, arg1)
+ *   definition("my.other.function") {
+ *      signature(arg2, arg1)
  *   }
  * }
  * ```
@@ -138,7 +138,8 @@ fun constructor(classFqn: String, block: ConstructorOp.() -> Unit) =
  * @param fqn the fully qualified name of the function this [Definition] is representing
  * @param block defines the [Signature]s of this [Definition]
  */
-inline fun FunctionOp.definition(fqn: String, block: Definition.() -> Unit) = Definition(fqn).apply(block)
+inline fun FunctionOp.definition(fqn: String, block: Definition.() -> Unit) =
+    Definition(fqn).apply(block).also { this.add(it) }
 
 /**
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are defined in the
@@ -149,7 +150,7 @@ inline fun FunctionOp.definition(fqn: String, block: Definition.() -> Unit) = De
 inline fun Definition.signature(
     unordered: Array<out Parameter> = emptyArray(),
     block: Signature.() -> Unit
-) = Signature().apply(block).apply { unorderedParameters.addAll(unordered) }
+) = Signature().apply(block).apply { unorderedParameters.addAll(unordered) }.also { this.add(it) }
 
 /**
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are passed through
@@ -158,7 +159,7 @@ inline fun Definition.signature(
 fun Definition.signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
 
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
-inline fun Signature.group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block)
+inline fun Signature.group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block).also { this.add(it) }
 
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
 fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { +it } }
@@ -172,7 +173,7 @@ fun Signature.unordered(vararg unordered: Parameter) =
  * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are defined in
  * the [block].
  */
-inline fun ConstructorOp.signature(block: Signature.() -> Unit) = Signature().apply(block)
+inline fun ConstructorOp.signature(block: Signature.() -> Unit) = Signature().apply(block).also { this.add(it) }
 
 /**
  * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are passed

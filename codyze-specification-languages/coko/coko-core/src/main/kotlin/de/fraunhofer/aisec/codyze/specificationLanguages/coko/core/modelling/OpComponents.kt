@@ -54,8 +54,8 @@ class ParameterGroup {
 class Definition(val fqn: String) {
     val signatures = arrayListOf<Signature>()
 
-    operator fun Signature.unaryPlus() {
-        this@Definition.signatures.add(this)
+    fun add(signature: Signature) {
+        this.signatures.add(signature)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -96,6 +96,12 @@ class Signature {
 
     operator fun Parameter.unaryPlus() {
         parameters.add(this)
+    }
+
+    operator fun ParameterGroup.unaryPlus() {}
+
+    fun add(parameterGroup: ParameterGroup) {
+        parameters.add(parameterGroup)
     }
 
     /**

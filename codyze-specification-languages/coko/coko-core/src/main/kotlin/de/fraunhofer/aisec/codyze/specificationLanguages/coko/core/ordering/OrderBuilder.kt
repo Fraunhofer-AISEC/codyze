@@ -35,12 +35,16 @@ open class OrderBuilder : OrderFragment {
     /** Add an [OrderToken] to the [orderNodes] */
     operator fun OrderToken.unaryPlus() = add(this)
 
-    /** Add an [OrderFragment] to the [orderNodes] */
-    operator fun OrderFragment.unaryPlus() = add(this)
-
     private fun add(token: OrderToken) = orderNodes.add(token.token)
 
-    private fun add(fragment: OrderFragment) = orderNodes.add(fragment.toNode())
+    /** Add an [OrderFragment] to the [orderNodes] */
+    fun add(fragment: OrderFragment) {
+        orderNodes.add(fragment.toNode())
+    }
+
+    fun remove(fragment: OrderFragment) {
+        orderNodes.remove(fragment)
+    }
 
     /** Represent this [OrderFragment] as a binary syntax tree. */
     override fun toNode(): OrderNode {

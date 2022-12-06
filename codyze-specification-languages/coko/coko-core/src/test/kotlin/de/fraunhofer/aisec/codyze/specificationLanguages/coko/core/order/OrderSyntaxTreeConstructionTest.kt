@@ -61,7 +61,7 @@ class OrderSyntaxTreeConstructionTest {
                 block = {
                     orderExpressionToSyntaxTree {
                         +TestClass::fun1
-                        +group {}
+                        group {}
                     }
                 }
             )
@@ -91,7 +91,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     fun `test simple alternative order`() {
         with(mockk<CokoBackend>()) {
-            val syntaxTree = orderExpressionToSyntaxTree { +(TestClass::fun1 or TestClass::fun2) }
+            val syntaxTree = orderExpressionToSyntaxTree { TestClass::fun1 or TestClass::fun2 }
 
             val expectedSyntaxTree =
                 AlternativeOrderNode(
@@ -103,11 +103,35 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
+    /** Tests a simple alternative order */
+    @Test
+    fun `test alternative order with group`() {
+        with(mockk<CokoBackend>()) {
+            val syntaxTree = orderExpressionToSyntaxTree {
+                maybe(TestClass::fun1, TestClass::fun2) or TestClass::fun2
+            }
+
+            val expectedSyntaxTree =
+                AlternativeOrderNode(
+                    left = QuantifierOrderNode(
+                        SequenceOrderNode(
+                            left = TestClass::fun1.toTerminalOrderNode(),
+                            right = TestClass::fun2.toTerminalOrderNode()
+                        ),
+                        OrderQuantifier.MAYBE
+                    ),
+                    right = TestClass::fun2.toTerminalOrderNode()
+                )
+
+            assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
+        }
+    }
+
     /** Tests an order with a [QuantifierOrderNode] */
     @Test
     fun `test order with an QuantifierOrderNode`() {
         with(mockk<CokoBackend>()) {
-            val syntaxTree = orderExpressionToSyntaxTree { +TestClass::fun1.between(1..4) }
+            val syntaxTree = orderExpressionToSyntaxTree { TestClass::fun1.between(1..4) }
             val expectedSyntaxTree =
                 QuantifierOrderNode(
                     child = TestClass::fun1.toTerminalOrderNode(),
@@ -123,21 +147,12 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     fun `test order with group`() {
         with(mockk<CokoBackend>()) {
-            val syntaxTree = orderExpressionToSyntaxTree {
-                +group {
-                    +TestClass::fun1
-                    +TestClass::fun2
-                }
-                    .maybe()
-            }
-
-            val syntaxTreeShortcut = orderExpressionToSyntaxTree {
-                +maybe {
+            val syntaxTree =  orderExpressionToSyntaxTree {
+                maybe {
                     +TestClass::fun1
                     +TestClass::fun2
                 }
             }
-            assertEquals(syntaxTree, syntaxTreeShortcut)
 
             val expectedSyntaxTree =
                 QuantifierOrderNode(
@@ -157,14 +172,14 @@ class OrderSyntaxTreeConstructionTest {
     fun `test order with set`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
-                +set {
+                set {
                     +TestClass::fun1
                     +TestClass::fun2
                 }
             }
 
             val syntaxTreeShortcut = orderExpressionToSyntaxTree {
-                +set[TestClass::fun1, TestClass::fun2]
+                set[TestClass::fun1, TestClass::fun2]
             }
 
             assertEquals(syntaxTree, syntaxTreeShortcut)
@@ -184,9 +199,9 @@ class OrderSyntaxTreeConstructionTest {
     fun `test complex order`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
-                +TestClass::fun1.between(1..4)
-                +maybe(TestClass::fun1, TestClass::fun2)
-                +set[TestClass::fun2, TestClass::fun1]
+                TestClass::fun1.between(1..4)
+                maybe(TestClass::fun1, TestClass::fun2)
+                set[TestClass::fun2, TestClass::fun1]
                 +TestClass::fun1
             }
 

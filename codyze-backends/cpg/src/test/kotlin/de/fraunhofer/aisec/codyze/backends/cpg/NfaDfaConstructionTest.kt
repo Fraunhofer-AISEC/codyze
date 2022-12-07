@@ -92,7 +92,7 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple order with branch`() {
         with(mockk<CokoCpgBackend>()) {
-            val nfa = orderExpressionToNfa { +(TestClass::create or TestClass::init) }
+            val nfa = orderExpressionToNfa { TestClass::create or TestClass::init }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true)
@@ -117,7 +117,7 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple order with maybe qualifier`() {
         with(mockk<CokoCpgBackend>()) {
-            val nfa = orderExpressionToNfa { +TestClass::create.maybe() }
+            val nfa = orderExpressionToNfa { TestClass::create.maybe() }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true, isAcceptingState = true)
@@ -139,7 +139,7 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple order with option qualifier`() {
         with(mockk<CokoCpgBackend>()) {
-            val nfa = orderExpressionToNfa { +TestClass::create.option() }
+            val nfa = orderExpressionToNfa { TestClass::create.option() }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true, isAcceptingState = true)
@@ -165,12 +165,12 @@ class NfaDfaConstructionTest {
             val dfa = orderExpressionToDfa {
                 +TestClass::create
                 +TestClass::init
-                +some {
+                some {
                     +TestClass::start
-                    +TestClass::process.maybe()
+                    TestClass::process.maybe()
                     +TestClass::finish
                 }
-                +TestClass::reset.option()
+                TestClass::reset.option()
             }
 
             val expected = DFA()
@@ -208,17 +208,15 @@ class NfaDfaConstructionTest {
             // cm.reset()?
             val dfa = orderExpressionToDfa {
                 +TestClass::init
-                +some {
-                    +(
-                        TestClass::create or
-                            group {
-                                +TestClass::start
-                                +TestClass::process.maybe()
-                                +TestClass::finish
-                            }
-                        )
+                some {
+                    TestClass::create or
+                        group {
+                            +TestClass::start
+                            TestClass::process.maybe()
+                            +TestClass::finish
+                        }
                 }
-                +TestClass::reset.option()
+                TestClass::reset.option()
             }
 
             val expected = DFA()
@@ -261,18 +259,16 @@ class NfaDfaConstructionTest {
             // cm.reset()?
             val dfa = orderExpressionToNfa {
                 +TestClass::init
-                +some {
-                    +(
-                        TestClass::create or
-                            group {
-                                +TestClass::start.maybe()
-                                +TestClass::process.maybe()
-                                +TestClass::start.maybe()
-                                +TestClass::finish
-                            }
-                        )
+                some {
+                    TestClass::create or
+                        group {
+                            TestClass::start.maybe()
+                            TestClass::process.maybe()
+                            TestClass::start.maybe()
+                            +TestClass::finish
+                        }
                 }
-                +TestClass::reset.option()
+                TestClass::reset.option()
             }
 
             // the equivalent min-DFA was obtained from:

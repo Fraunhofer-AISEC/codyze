@@ -103,9 +103,30 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
-    /** Tests a simple alternative order */
+    /** Tests an alternative order with a group */
     @Test
     fun `test alternative order with group`() {
+        with(mockk<CokoBackend>()) {
+            val syntaxTree = orderExpressionToSyntaxTree {
+                group(TestClass::fun1, TestClass::fun2) or TestClass::fun2
+            }
+
+            val expectedSyntaxTree =
+                AlternativeOrderNode(
+                    left = SequenceOrderNode(
+                        left = TestClass::fun1.toTerminalOrderNode(),
+                        right = TestClass::fun2.toTerminalOrderNode()
+                    ),
+                    right = TestClass::fun2.toTerminalOrderNode()
+                )
+
+            assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
+        }
+    }
+
+    /** Tests an alternative order with a quantified group */
+    @Test
+    fun `test alternative order with quantifier`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
                 maybe(TestClass::fun1, TestClass::fun2) or TestClass::fun2

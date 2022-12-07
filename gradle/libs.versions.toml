@@ -1,16 +1,25 @@
 [versions]
 kotlin = "1.7.20"
-cpg = "4.6.3"
+cpg = "main-SNAPSHOT"   # revert to official releases when features become available
 koin = "3.2.2"
 detekt = "1.22.0"
+
 
 [libraries]
 sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.2.0"}  # The code can be found here: https://github.com/detekt/sarif4k. It was generated using https://app.quicktype.io/
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.4.1"}
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
-cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
-cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
-cpg-language-go = { module = "de.fraunhofer.aisec:cpg-language-go", version.ref = "cpg"}
+
+# CPG official releases
+#cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
+#cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
+#cpg-language-go = { module = "de.fraunhofer.aisec:cpg-language-go", version.ref = "cpg"}
+
+# CPG GitHub builds using JitPack
+cpg-core = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-core", version.ref = "cpg"}
+cpg-analysis = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-analysis", version.ref = "cpg"}
+#cpg-language-go = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-language-go", version.ref = "cpg"}
+
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "3.0.4"}
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version = "2.18.0"}
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.0"}
@@ -38,7 +47,7 @@ dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "kotlin"
 
 
 [bundles]
-cpg = ["cpg-core", "cpg-analysis", "cpg-language-go"]
+cpg = ["cpg-core", "cpg-analysis"]  # without "cpg-language-go"
 
 [plugins]
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}

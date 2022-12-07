@@ -43,13 +43,13 @@ jobs:
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
       - name: Push Release Docker Image
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker build -t ghcr.io/fraunhofer-aisec/codyze:latest codyze-v2/
+          docker build -t ghcr.io/fraunhofer-aisec/codyze:latest .
           docker tag ghcr.io/fraunhofer-aisec/codyze:latest ghcr.io/fraunhofer-aisec/codyze:$VERSION
           docker push ghcr.io/fraunhofer-aisec/codyze:$VERSION
           docker push ghcr.io/fraunhofer-aisec/codyze:latest
-        if: startsWith(github.ref, 'refs/tags/v')
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}
       - name: "Create Release"
@@ -71,6 +71,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: codyze/build/distributions/codyze-${{ steps.determine_version.outputs.version }}.zip
-          asset_name: codyze-${{ steps.determine_version.outputs.version }}.zip
+          asset_path: codyze-cli/build/distributions/codyze-cli-${{ steps.determine_version.outputs.version }}.zip
+          asset_name: codyze-cli-${{ steps.determine_version.outputs.version }}.zip
           asset_content_type: application/zip

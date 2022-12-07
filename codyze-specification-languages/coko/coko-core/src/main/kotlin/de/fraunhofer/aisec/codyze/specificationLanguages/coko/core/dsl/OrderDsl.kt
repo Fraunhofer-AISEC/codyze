@@ -60,7 +60,7 @@ context(OrderBuilder)
  */
 inline fun group(
     block: OrderGroup.() -> Unit,
-) = OrderGroup().apply(block).also { this@OrderBuilder.add(it) }
+) = this@OrderBuilder.add(OrderGroup().apply(block))
 
 context(OrderBuilder)
         /**
@@ -71,40 +71,40 @@ context(OrderBuilder)
 /** Shortcut for creating a group with the [maybe] ('*') qualifier. See [group] */
 inline fun maybe(
     block: OrderGroup.() -> Unit,
-) = QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.MAYBE).also { this@OrderBuilder.add(it) }
+) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.MAYBE))
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [option] ('?') qualifier. See [group] */
 inline fun option(
     block: OrderGroup.() -> Unit,
-) = QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.OPTION).also { this@OrderBuilder.add(it) }
+) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.OPTION))
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [some] ('+') qualifier. See [group] */
 inline fun some(
     block: OrderGroup.() -> Unit,
-) = QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = 1).also { this@OrderBuilder.add(it) }
+) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = 1))
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [count] qualifier. See [group] */
 inline fun count(
     count: Int,
     block: OrderGroup.() -> Unit,
-) = QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.COUNT, value = count).also { this@OrderBuilder.add(it) }
+) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.COUNT, value = count))
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [between] qualifier. See [group] */
 inline fun between(
     range: IntRange,
     block: OrderGroup.() -> Unit,
-) = QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.BETWEEN, value = range).also { this@OrderBuilder.add(it) }
+) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.BETWEEN, value = range))
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [atLeast] qualifier. See [group] */
 inline fun atLeast(
     count: Int,
     block: OrderGroup.() -> Unit,
-) = QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = count).also { this@OrderBuilder.add(it) }
+) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = count))
 
 /**
  * Minimalist way to create a group with a function call. However, this minimalist [group]
@@ -256,8 +256,7 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderFragment): OrderFragment =
-    AlternativeOrderNode(left = toNode(), right = other.toNode()).also {
-        this@OrderBuilder.add(it)
+    this@OrderBuilder.add(AlternativeOrderNode(left = toNode(), right = other.toNode())).also {
         this@OrderBuilder.remove(this@OrderFragment)
         this@OrderBuilder.remove(other)
     }
@@ -271,8 +270,7 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderToken.or(other: OrderFragment): OrderFragment =
-    AlternativeOrderNode(left = token.toNode(), right = other.toNode()).also {
-        this@OrderBuilder.add(it)
+    this@OrderBuilder.add(AlternativeOrderNode(left = token.toNode(), right = other.toNode())).also {
         this@OrderBuilder.remove(other)
     }
 
@@ -285,9 +283,7 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderToken.or(other: OrderToken): OrderFragment =
-    AlternativeOrderNode(left = token.toNode(), right = other.token.toNode()).also {
-        this@OrderBuilder.add(it)
-    }
+    this@OrderBuilder.add(AlternativeOrderNode(left = token.toNode(), right = other.token.toNode()))
 
 context(OrderBuilder)
 /**
@@ -298,7 +294,6 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderToken): OrderFragment =
-    AlternativeOrderNode(left = toNode(), right = other.token.toNode()).also {
-        this@OrderBuilder.add(it)
+    this@OrderBuilder.add(AlternativeOrderNode(left = toNode(), right = other.token.toNode())).also {
         this@OrderBuilder.remove(this@OrderFragment)
     }

@@ -38,9 +38,8 @@ open class OrderBuilder : OrderFragment {
     private fun add(token: OrderToken) = orderNodes.add(token.token)
 
     /** Add an [OrderFragment] to the [orderNodes] */
-    fun add(fragment: OrderFragment) {
-        orderNodes.add(fragment.toNode())
-    }
+    fun add(fragment: OrderFragment): OrderNode =
+        fragment.toNode().also { orderNodes.add(it) }
 
     fun remove(fragment: OrderFragment) {
         orderNodes.remove(fragment)

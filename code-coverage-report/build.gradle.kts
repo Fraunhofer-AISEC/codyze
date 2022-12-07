@@ -18,6 +18,11 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
+
+    // JitPack -> just-in-time Maven repo assembled from Git repos
+    maven {
+        setUrl("https://jitpack.io/")
+    }
 }
 
 reporting {

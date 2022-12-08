@@ -63,7 +63,7 @@ class CokoExecutor : Executor, KoinComponent {
      * Compiles all the specification files, translates the CPG and finally triggers the evaluation
      * of the specs.
      */
-    @OptIn(ExperimentalTime::class)
+    @Suppress("UnusedPrivateMember")
     override fun evaluate(): List<Result> {
         val specEvaluator =
             timed({ logger.info { "Compiled specification scripts in $it." } }) {
@@ -160,6 +160,7 @@ class CokoExecutor : Executor, KoinComponent {
                 }
 
                 // analyze script contents
+                @Suppress("UnsafeCallOnNullableType")
                 scriptEvaluationResult.returnValue.let {
                     if (it.scriptInstance != null && it.scriptClass != null) {
                         specEvaluator.addSpec(it.scriptClass!!, it.scriptInstance!!)

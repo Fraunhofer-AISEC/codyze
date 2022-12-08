@@ -49,6 +49,8 @@ class SpecEvaluator {
     fun evaluate() {
         for ((index, value) in rules.withIndex()) {
             val (rule, ruleInstance) = value
+
+            @Suppress("UnsafeCallOnNullableType")
             val parameterMap =
                 mutableMapOf(
                     rule.instanceParameter!! to ruleInstance
@@ -72,6 +74,7 @@ class SpecEvaluator {
                             try {
                                 primaryConstructor.call(paramInstance)
                             } catch (e: IllegalArgumentException) {
+                                logger.debug { "Called constructor '$primaryConstructor' without paramInstance ($e)" }
                                 primaryConstructor.call()
                             }
                         }[0]

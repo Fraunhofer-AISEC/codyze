@@ -28,6 +28,7 @@ class Project(val config: Configuration) : KoinComponent {
     /** [Executor] that is capable of evaluating the [Configuration.spec] given in [config] */
     val executor = config.executor ?: getRandomCapableExecutor()
 
+    @Suppress("TooGenericExceptionThrown")
     /** Return the first registered Executor capable of evaluating [config.specFileExtension] */
     private fun getRandomCapableExecutor(): Executor {
         val randomCapableExecutor: Executor? =

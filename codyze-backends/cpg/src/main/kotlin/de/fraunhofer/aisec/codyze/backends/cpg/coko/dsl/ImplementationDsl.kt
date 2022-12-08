@@ -147,6 +147,7 @@ context(CallExpression, CokoBackend)
  * @param hasVarargs specifies if the function has a variable number of arguments at the end which
  * are not important to the analysis
  */
+@Suppress("UnsafeCallOnNullableType")
 fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
     return checkArgsSize(parameters, hasVarargs) &&

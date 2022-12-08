@@ -32,6 +32,7 @@ class JsonValueSource(
     private val filePath: Path, // path to config file
     private val root: JsonObject,
 ) : ValueSource {
+    @Suppress("ReturnCount")
     override fun getValues(context: Context, option: Option): List<ValueSource.Invocation> {
         /**
          * Preprocess the values read from the config file depending on the metavar (the type) of
@@ -81,6 +82,7 @@ class JsonValueSource(
     }
 
     companion object {
+        @Suppress("SwallowedException")
         fun from(file: Path, requireValid: Boolean = false): JsonValueSource {
             if (!file.isRegularFile()) return JsonValueSource(file, JsonObject(emptyMap()))
 

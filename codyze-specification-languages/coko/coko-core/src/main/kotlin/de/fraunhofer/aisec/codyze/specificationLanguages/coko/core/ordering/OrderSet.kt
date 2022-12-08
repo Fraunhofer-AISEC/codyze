@@ -23,6 +23,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.set
  * Represents a regex set. Its [toNode] method converts the set into a group with OR expressions to
  * simplify the resulting binary tree
  */
+@Suppress("UnusedPrivateMember")
 class OrderSet(private var negate: Boolean) : OrderBuilder() {
     //    TODO: implement. How should this be represented in the NFA?
     //    /** Negates the current set (`[^abcedfu]`), making it match any character *not* in the

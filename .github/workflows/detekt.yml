@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  without-type-resolution:  # TODO: rename to with-type-resolution once using detektMain & detektTest
+  with-type-resolution:
     runs-on: ubuntu-latest
     permissions:
       contents: read  # for actions/checkout to fetch code
@@ -28,7 +28,7 @@ jobs:
       - name: Run analysis
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: detekt --continue  # TODO: switch to: 'detektMain detektTest --continue' once Codyze works with a released cpg again
+          arguments: detektMain --continue
 
       # Make sure we always run this upload task,
       # because the previous step may fail if there are findings.

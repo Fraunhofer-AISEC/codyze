@@ -51,6 +51,7 @@ private val logger = KotlinLogging.logger {}
 // the class is used as the script base class, therefore it should be open or abstract
 open class CokoScript {
     // Configures the plugins used by the project.
+    @Suppress("UnusedPrivateMember")
     fun plugins(configure: PluginDependenciesSpec.() -> Unit) = Unit
 }
 

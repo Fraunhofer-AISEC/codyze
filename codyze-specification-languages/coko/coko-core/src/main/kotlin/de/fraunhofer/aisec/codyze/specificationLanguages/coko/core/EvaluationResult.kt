@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 /**
  * The result of a rule evaluation.
  */
+@Suppress("EqualsWithHashCodeExist") // very much WIP!
 class EvaluationResult(val ruleEvaluationOutcome: Boolean) {
     override fun equals(other: Any?) =
         when (other) {

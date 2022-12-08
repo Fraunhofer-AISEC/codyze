@@ -45,7 +45,7 @@ class CpgOptionGroupTest {
         private val configurationRegister = ConfigurationRegister()
 
         val cpgOptions by CPGOptionGroup(configurationRegister)
-        override fun run() {}
+        override fun run() { }
     }
 
     @ParameterizedTest

@@ -31,6 +31,7 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 
 private val logger = KotlinLogging.logger {}
+private const val DEFAULT_TIMEOUT_MINUTES = 120
 
 @Suppress("UNUSED")
 class CodyzeOptionGroup(configurationRegister: ConfigurationRegister) :
@@ -143,7 +144,7 @@ class CodyzeOptionGroup(configurationRegister: ConfigurationRegister) :
         .also { configurationRegister.addOption("pedantic", it) }
     val timeout: Int by option("--timeout", help = "Terminate analysis after timeout. [minutes]")
         .int()
-        .default(120)
+        .default(DEFAULT_TIMEOUT_MINUTES)
         .also { configurationRegister.addOption("timeout", it) }
 
     private fun resolvePaths(

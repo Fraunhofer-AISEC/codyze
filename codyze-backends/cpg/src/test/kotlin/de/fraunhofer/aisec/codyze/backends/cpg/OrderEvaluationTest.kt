@@ -53,6 +53,7 @@ class OrderEvaluationTest {
     // (probably because
     // of the context receiver)
     // this is needed as an argument to [evaluateOrder]
+    @Suppress("UnusedPrivateMember")
     private fun dummyFunction(testObj: CokoOrderImpl): Order = TODO()
 
     private val basePath = Path("src", "test", "resources", "OrderEvaluationTest")

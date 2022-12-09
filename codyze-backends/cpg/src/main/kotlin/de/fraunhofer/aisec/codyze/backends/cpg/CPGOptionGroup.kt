@@ -355,12 +355,13 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
         return passes + additionalPasses
     }
 
-    private fun convertPass(className: String): Pass {
+    @Suppress("SwallowedException", "ThrowsCount")
+    private fun convertPass(className: String) =
         try {
             val clazz = Class.forName(className)
             if (Pass::class.java.isAssignableFrom(clazz)) {
                 // TODO: use 'isSubtypeOf' ?
-                return clazz.getDeclaredConstructor().newInstance() as Pass
+                clazz.getDeclaredConstructor().newInstance() as Pass
             } else {
                 throw ReflectiveOperationException("$className is not a CPG Pass")
             }
@@ -369,7 +370,6 @@ class CPGOptionGroup(configurationRegister: ConfigurationRegister) :
         } catch (e: ClassNotFoundException) {
             throw ClassNotFoundException("$className is not a known class", e)
         }
-    }
 
     private fun resolvePaths(
         source: List<Path>,

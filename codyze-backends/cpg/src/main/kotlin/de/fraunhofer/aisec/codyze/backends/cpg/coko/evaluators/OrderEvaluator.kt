@@ -41,7 +41,7 @@ context(CokoBackend)
 
 class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evaluator {
     private fun findInstancesForEntities(rule: KFunction<*>): Collection<Node> =
-        TODO("Use Codyze-v2 algorithm to find VariableDeclarations for Entities automatically")
+        TODO("Use Codyze-v2 algorithm to find VariableDeclarations for Entities automatically ($rule)")
 
     /**
      * Filter the [OrderNode] by the given type. This also works for nested [OrderNodes]s using
@@ -58,6 +58,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
         return result
     }
 
+    @Suppress("UnsafeCallOnNullableType")
     override fun evaluate(context: EvaluationContext): EvaluationResult {
         // first check whether it is an order rule that we can evaluate
         val syntaxTree = order.toNode()

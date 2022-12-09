@@ -36,6 +36,7 @@ class OpDslTest {
     }
 
     @Test
+    @Suppress("LongMethod")
     fun `test complete op`() {
         val stringParam: Parameter = "test string"
         val numberParam: Parameter = 123

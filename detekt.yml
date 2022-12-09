@@ -2,6 +2,8 @@ build:
   maxIssues: 0
   excludeCorrectable: false
   weights:
+    empty-blocks: 0
+    performance: 0
     # complexity: 2
     # LongParameterList: 1
     # style: 1

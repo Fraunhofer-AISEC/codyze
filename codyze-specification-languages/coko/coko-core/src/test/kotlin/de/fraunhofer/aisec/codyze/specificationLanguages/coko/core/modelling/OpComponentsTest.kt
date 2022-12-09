@@ -30,7 +30,7 @@ class OpComponentsTest {
 
     @ParameterizedTest(name = "[{index}] test with {0} parameters")
     @MethodSource("unaryPlusParamHelper")
-    fun `test group`(expectedParams: ArrayList<Parameter>, description: String = "") {
+    fun `test group`(expectedParams: ArrayList<Parameter>) {
         with(mockk<Signature>(relaxed = true)) {
             val paramGroup = group { expectedParams.forEach { +it } }
 
@@ -41,8 +41,7 @@ class OpComponentsTest {
     @ParameterizedTest(name = "[{index}] {1}")
     @MethodSource("unaryPlusParamHelper")
     fun `test unaryPlus in Signature`(
-        expectedParams: ArrayList<Parameter>,
-        description: String = ""
+        expectedParams: ArrayList<Parameter>
     ) {
         val sig = Signature()
         with(sig) { expectedParams.forEach { +it } }
@@ -145,6 +144,7 @@ class OpComponentsTest {
             arrayListOf<Parameter>("test", emptyList<Parameter>(), Type("fqn"), intArrayOf(1, 2))
 
         @JvmStatic
+        @Suppress("UnusedPrivateMember")
         private fun unaryPlusParamHelper(): Stream<Arguments> {
             return Stream.of(
                 Arguments.of(singleParam, "Test with single parameter"),

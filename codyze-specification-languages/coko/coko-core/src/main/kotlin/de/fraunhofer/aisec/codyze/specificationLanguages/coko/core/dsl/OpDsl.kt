@@ -35,6 +35,7 @@ class FunctionOp internal constructor() : Op {
     val definitions = arrayListOf<Definition>()
 
     fun add(definition: Definition) {
+        this.definitions.removeIf { it === definition }
         this.definitions.add(definition)
     }
 
@@ -68,6 +69,7 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
     val signatures = arrayListOf<Signature>()
 
     fun add(signature: Signature) {
+        this.signatures.removeIf { it === signature }
         this.signatures.add(signature)
     }
 

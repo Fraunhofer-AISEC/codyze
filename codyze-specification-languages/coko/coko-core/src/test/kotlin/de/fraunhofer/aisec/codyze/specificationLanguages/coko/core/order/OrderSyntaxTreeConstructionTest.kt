@@ -215,6 +215,150 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
+    /** Tests an order where the same object is added twice */
+    @Test
+    fun `test order with multiple usages of same object`() {
+        with(mockk<CokoBackend>()) {
+            val nodeFun1 = TestClass::fun1.toTerminalOrderNode()
+            val nodeFun2 = TestClass::fun2.toTerminalOrderNode()
+
+            // regex:  fun1 (fun1 fun2)* fun2
+
+            val syntaxTree = orderExpressionToSyntaxTree {
+                // `maybe` is added to list
+                val maybe = maybe {
+                    +TestClass::fun1
+                    +TestClass::fun2
+                }
+                +TestClass::fun1
+                // `maybe` is removed from list and added again
+                add(maybe)
+                +TestClass::fun2
+            }
+
+            val expectedSyntaxTree =
+                SequenceOrderNode(
+                    SequenceOrderNode(
+                        nodeFun1,
+                        QuantifierOrderNode(
+                            child = SequenceOrderNode(
+                                nodeFun1,
+                                nodeFun2
+                            ),
+                            type = OrderQuantifier.MAYBE
+                        )
+                    ),
+                    nodeFun2
+                )
+
+            assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
+        }
+    }
+
+    /** Tests an order where the same object is added twice */
+    @Test
+    fun `test order with usages of same groups`() {
+        with(mockk<CokoBackend>()) {
+            val nodeFun1 = TestClass::fun1.toTerminalOrderNode()
+            val nodeFun2 = TestClass::fun2.toTerminalOrderNode()
+
+            // regex: (fun1 fun2)* fun1 ((fun1 fun2)* | fun2) fun2
+
+            val syntaxTree = orderExpressionToSyntaxTree {
+                // `maybe` is added to list
+                maybe {
+                    +TestClass::fun1
+                    +TestClass::fun2
+                }
+                +TestClass::fun1
+                // `maybe` is removed from list and added within the Node from `or`
+                maybe {
+                    +TestClass::fun1
+                    +TestClass::fun2
+                } or TestClass::fun2
+                +TestClass::fun2
+            }
+
+            val expectedSyntaxTree =
+                SequenceOrderNode(
+                    SequenceOrderNode(
+                        SequenceOrderNode(
+                            QuantifierOrderNode(
+                                child = SequenceOrderNode(
+                                    nodeFun1,
+                                    nodeFun2
+                                ),
+                                type = OrderQuantifier.MAYBE
+                            ),
+                            nodeFun1
+                        ),
+                        AlternativeOrderNode(
+                            QuantifierOrderNode(
+                                child = SequenceOrderNode(
+                                    nodeFun1,
+                                    nodeFun2
+                                ),
+                                type = OrderQuantifier.MAYBE
+                            ),
+                            nodeFun2
+                        )
+                    ),
+                    nodeFun2
+                )
+
+            assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
+        }
+    }
+
+    /** Tests an order where the same object is added twice and used within an `or` */
+    @Test
+    fun `test order with multiple usages of same object in or`() {
+        with(mockk<CokoBackend>()) {
+            val nodeFun1 = TestClass::fun1.toTerminalOrderNode()
+            val nodeFun2 = TestClass::fun2.toTerminalOrderNode()
+
+            // regex: fun1 fun1 ((fun1 fun2)* | fun2) fun2
+
+            val syntaxTree = orderExpressionToSyntaxTree {
+                // `maybe` is added to list
+                val maybe = maybe {
+                    +TestClass::fun1
+                    +TestClass::fun2
+                }
+                +TestClass::fun1
+                // `maybe` is removed from list and added again
+                add(maybe)
+                +TestClass::fun1
+                // `maybe` is removed from list and added within the Node from `or`
+                maybe or TestClass::fun2
+                +TestClass::fun2
+            }
+
+            val expectedSyntaxTree =
+                SequenceOrderNode(
+                    SequenceOrderNode(
+                        SequenceOrderNode(
+                            nodeFun1,
+                            nodeFun1
+                        ),
+                        AlternativeOrderNode(
+                            QuantifierOrderNode(
+                                child = SequenceOrderNode(
+                                    nodeFun1,
+                                    nodeFun2
+                                ),
+                                type = OrderQuantifier.MAYBE
+                            ),
+                            nodeFun2
+                        )
+                    ),
+                    nodeFun2
+                )
+
+            assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
+        }
+    }
+
     /** Tests a complex order */
     @Test
     fun `test complex order`() {

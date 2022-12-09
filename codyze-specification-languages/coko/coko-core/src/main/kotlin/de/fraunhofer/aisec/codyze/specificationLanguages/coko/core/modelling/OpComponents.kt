@@ -55,6 +55,7 @@ class Definition(val fqn: String) {
     val signatures = arrayListOf<Signature>()
 
     fun add(signature: Signature) {
+        this.signatures.removeIf { it === signature }
         this.signatures.add(signature)
     }
 
@@ -101,6 +102,7 @@ class Signature {
     operator fun ParameterGroup.unaryPlus() {}
 
     fun add(parameterGroup: ParameterGroup) {
+        parameters.removeIf { it === parameterGroup }
         parameters.add(parameterGroup)
     }
 

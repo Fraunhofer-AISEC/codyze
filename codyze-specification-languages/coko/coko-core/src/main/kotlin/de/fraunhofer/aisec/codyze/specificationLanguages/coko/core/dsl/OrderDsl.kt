@@ -63,11 +63,11 @@ inline fun group(
 ) = this@OrderBuilder.add(OrderGroup().apply(block))
 
 context(OrderBuilder)
-        /**
-         * Appends a [maybe] quantifier (`*`) to the current [OrderFragment].
-         *
-         * > Matches 0 or more of the preceding [OrderFragment].
-         */
+/**
+ * Appends a [maybe] quantifier (`*`) to the current [OrderFragment].
+ *
+ * > Matches 0 or more of the preceding [OrderFragment].
+ */
 /** Shortcut for creating a group with the [maybe] ('*') qualifier. See [group] */
 inline fun maybe(
     block: OrderGroup.() -> Unit,
@@ -77,34 +77,44 @@ context(OrderBuilder)
 /** Shortcut for creating a group with the [option] ('?') qualifier. See [group] */
 inline fun option(
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.OPTION))
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.OPTION)
+)
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [some] ('+') qualifier. See [group] */
 inline fun some(
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = 1))
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = 1)
+)
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [count] qualifier. See [group] */
 inline fun count(
     count: Int,
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.COUNT, value = count))
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.COUNT, value = count)
+)
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [between] qualifier. See [group] */
 inline fun between(
     range: IntRange,
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.BETWEEN, value = range))
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.BETWEEN, value = range)
+)
 
 context(OrderBuilder)
 /** Shortcut for creating a group with the [atLeast] qualifier. See [group] */
 inline fun atLeast(
     count: Int,
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = count))
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = count)
+)
 
 /**
  * Minimalist way to create a group with a function call. However, this minimalist [group]

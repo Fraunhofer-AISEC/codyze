@@ -168,7 +168,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     fun `test order with group`() {
         with(mockk<CokoBackend>()) {
-            val syntaxTree =  orderExpressionToSyntaxTree {
+            val syntaxTree = orderExpressionToSyntaxTree {
                 maybe {
                     +TestClass::fun1
                     +TestClass::fun2

@@ -17,7 +17,7 @@ dependencies {
     implementation("com.github.Fraunhofer-AISEC.codyze-mark-eclipse-plugin:de.fraunhofer.aisec.mark:2.0.0:repackaged") // use GitHub release via JitPack
 
     // Codyze v2 MARK evaluation
-    implementation("com.github.Fraunhofer-AISEC:codyze:main-SNAPSHOT") // use GitHub release via JitPack
+    implementation("com.github.Fraunhofer-AISEC:codyze:v2.3.0") // use GitHub release via JitPack
 
     // TODO remove after moving to Kotlin
     // Reflections for OverflowDB and registering Crymlin built-ins

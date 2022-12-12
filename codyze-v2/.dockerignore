@@ -1,5 +1,0 @@
-# exclude everything
-*
-
-# except the assembled distributions
-!build/distributions/*

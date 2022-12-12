@@ -1,8 +1,0 @@
-package rules.bsi.tr_02102_1.v2019_01
-
-/**
- * BSI TR-02102-1 (Version 2019-01), 6. Instanzauthentisierung
- * 
- * Note:
- * - requirements ID 6.1.01 and ID 6.1.02 already covered by rules for Cipher and MAC
- */

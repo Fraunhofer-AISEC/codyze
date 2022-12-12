@@ -1,8 +1,0 @@
-package java.bcjca
-
-entity BouncyCastleProvider {
-    
-    op instantiate {
-        org.bouncycastle.jce.provider.BouncyCastleProvider();
-    }
-}

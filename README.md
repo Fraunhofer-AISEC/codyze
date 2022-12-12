@@ -8,32 +8,35 @@
 ![GitHub](https://img.shields.io/github/license/Fraunhofer-AISEC/codyze)
 [![](https://jitpack.io/v/Fraunhofer-AISEC/codyze.svg)](https://jitpack.io/#Fraunhofer-AISEC/codyze)
 
-> :warning: Note: We are currently redesigning Codyze. We have moved most of the functionality into a subpackage `codyze-v2`. For the foreseeable future, we continue to maintain the legacy version of Codyze.
-> 
-> Gradually, we are replacing legacy functionality with the redesigned one. Where this approach isn't feasible due to breaking changes, we're going to offer a switch to either use the legacy version or redesigned version.
->
-> If you are looking for a _stable_ version, please use the [2.0.0-beta](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.0.0-beta) release.
+> :warning: This version of Codyze is still under development.
+> If you are looking for a _stable_ version, please use the [2.3.0](https://github.com/Fraunhofer-AISEC/codyze/releases/tag/v2.3.0) release.
 
 
 Codyze is a static code analyzer that focuses on verifying security compliance in source code, i.e. by inferring the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
 
-Codyze has three execution modes:
-
-* __Analyze mode__ checks the source code against a set of rules. This mode can be integrated into scripts and automated build processes.
-* __Language Server Protocol mode__ integrates Codyze into an IDE and automatically analyzes code while developing.
-* __Interactive Console mode__ allows to explore and analyze the source code interactively.
-
-
-
 ## Build & Run Codyze
+A Java SE 11 JDK is a prerequisite. We build and test using Eclipse Temurin but any distribution should work.
 
-This repository contains two versions of Codyze, Codyze v2 and Codyze v3. It is set up as a separate composite build so both versions can be built separately.
-Please refer to the READMEs in the [`codyze-v2`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v2) and [`codyze-v3`](https://github.com/Fraunhofer-AISEC/codyze/tree/main/codyze-v3) directories for the concrete build instructions.
+To build an executable version of Codyze, use the `installDist` task in the project's root:
 
+```shell
+$ ./gradlew :codyze-cli:installDist
+```
+This will provide you with an executable Codyze installation under `codyze-cli/build/install/codyze-cli`.
 
-## Documentation
-The full documentation can be found at https://www.codyze.io.
+To run Codyze you can either run this executable or use the `run` task:
+```shell
+$ ./gradlew run
+```
+This will print the help message and return an error.
 
+To actually run Codyze you must specify a subcommand:
+```shell
+$ ./gradlew run --args="analyze"
+```
+This will run the 'analyze' subcommand using the demo config file [`./codyze-cli/codyze.json`](./codyze-cli/codyze.json).
+
+For more information, please refer to the [documentation](https://www.codyze.io).
 
 ## Research & Student Work
 

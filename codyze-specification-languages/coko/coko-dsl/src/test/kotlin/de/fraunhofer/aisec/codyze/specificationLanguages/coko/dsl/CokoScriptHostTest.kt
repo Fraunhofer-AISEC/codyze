@@ -33,7 +33,7 @@ class CokoScriptHostTest {
             CokoExecutor.eval(
                 """
                 interface TestInterface {
-                    fun log(message: String)
+                    fun log(message: String): Ops
                 }
                 """.trimIndent(),
                 mockk()

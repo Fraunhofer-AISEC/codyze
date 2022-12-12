@@ -69,14 +69,14 @@ internal object ProjectScriptCompilationConfiguration :
                 // dependencies search
                 *baseLibraries, // search these libraries in it and use then as a script compilation
                 // classpath
-                wholeClasspath =
-                false // manually add all needed dependencies using the baseLibraries
+                wholeClasspath = false // manually add all needed dependencies using the baseLibraries
             )
         }
 
+        // the actual receiver must be passed to the script class in the constructor
         implicitReceivers(
             CokoBackend::class
-        ) // the actual receiver must be passed to the script class in the constructor
+        )
 
         /**
          * - Enable the experimental context receivers feature

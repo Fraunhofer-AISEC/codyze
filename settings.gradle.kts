@@ -11,6 +11,7 @@ include("code-coverage-report")
 include("codyze-cli")
 include("codyze-core")
 include(":codyze-backends:cpg")
+include(":codyze-backends:testing")
 
 // Codyze Kotlin specification language
 include(":codyze-specification-languages:coko:coko-core")

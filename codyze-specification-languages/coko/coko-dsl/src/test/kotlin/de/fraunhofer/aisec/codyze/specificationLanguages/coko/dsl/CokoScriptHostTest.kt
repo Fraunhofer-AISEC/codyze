@@ -15,9 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
+import de.fraunhofer.aisec.codyze.backends.testing.coko.CokoTestingBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
-import io.mockk.mockk
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -26,7 +25,6 @@ import kotlin.script.experimental.api.valueOrThrow
 import kotlin.test.Test
 
 /** Tests whether the basic functionality of [CokoScript] works. */
-@Disabled("Disabled because these tests fail in github CI/CD")
 class CokoScriptHostTest {
 
     @Test
@@ -38,7 +36,7 @@ class CokoScriptHostTest {
                     fun log(message: String)
                 }
                 """.trimIndent(),
-                backend = mockk()
+                backend = CokoTestingBackend()
             )
                 .valueOrThrow()
         }
@@ -54,7 +52,7 @@ class CokoScriptHostTest {
                     fun log(message: String) = Wildcard
                 }
                 """.trimIndent(),
-                mockk()
+                CokoTestingBackend()
             )
                 .valueOrThrow()
         }
@@ -73,7 +71,7 @@ class CokoScriptHostTest {
                         }
                 }
                 """.trimIndent(),
-                mockk()
+                CokoTestingBackend()
             )
                 .valueOrThrow()
         }
@@ -99,7 +97,7 @@ class CokoScriptHostTest {
                         override fun log(message: String) { }
                     }
                 """.trimIndent(),
-                mockk(),
+                CokoTestingBackend(),
             )
                 .valueOrThrow()
         }

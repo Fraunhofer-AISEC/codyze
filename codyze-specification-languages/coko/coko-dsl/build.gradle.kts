@@ -18,4 +18,5 @@ dependencies {
     implementation(libs.kotlin.scripting.dependencies)
 
     testImplementation(libs.mockk)
+    testImplementation(projects.codyzeBackends.testing)
 }

@@ -7,10 +7,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
@@ -23,6 +23,11 @@ jobs:
           python -m pip install mkdocs-material
           python -m pip install -r ./docs/mkdocs-material-plugins.txt
       - name: 'Build API pages'
-        run: ./gradlew -Dorg.gradle.internal.repository.max.tentatives=5 -Dorg.gradle.internal.repository.initial.backoff=10000 :codyze-v2:dokkaHtml :codyze-v3:dokkaHtmlMultiModule
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: |
+            dokkaHtmlMultiModule
+            -Dorg.gradle.internal.repository.max.tentatives=5
+            -Dorg.gradle.internal.repository.initial.backoff=10000
       - name: 'Build & deploy docs'
         run: mkdocs gh-deploy --force

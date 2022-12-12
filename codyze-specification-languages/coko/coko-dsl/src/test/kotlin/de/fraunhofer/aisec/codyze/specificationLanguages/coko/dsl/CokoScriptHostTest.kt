@@ -17,7 +17,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
 import io.mockk.mockk
-import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.io.path.writeText
@@ -29,7 +29,7 @@ class CokoScriptHostTest {
 
     @Test
     fun `test basic type creation`() =
-        assertAll({
+        assertDoesNotThrow {
             CokoExecutor.eval(
                 """
                 interface TestInterface {
@@ -39,11 +39,11 @@ class CokoScriptHostTest {
                 backend = mockk()
             )
                 .valueOrThrow()
-        })
+        }
 
     @Test
     fun `test default imports`() =
-        assertAll({
+        assertDoesNotThrow {
             CokoExecutor.eval(
                 """
                 // Wildcard is a default import
@@ -54,11 +54,11 @@ class CokoScriptHostTest {
                 mockk()
             )
                 .valueOrThrow()
-        })
+        }
 
     @Test
     fun `test implicit receivers`() =
-        assertAll({
+        assertDoesNotThrow {
             CokoExecutor.eval(
                 """
                 // op & definition is a method of an implicit receiver
@@ -72,7 +72,7 @@ class CokoScriptHostTest {
                 mockk()
             )
                 .valueOrThrow()
-        })
+        }
 
     @Test
     fun `test import annotation`(@TempDir tempDir: Path) {
@@ -85,7 +85,7 @@ class CokoScriptHostTest {
             """.trimIndent()
         )
 
-        assertAll({
+        assertDoesNotThrow {
             CokoExecutor.eval(
                 """
                     @file:Import("${modelDefinitionFile.toAbsolutePath()}")
@@ -97,6 +97,6 @@ class CokoScriptHostTest {
                 mockk(),
             )
                 .valueOrThrow()
-        })
+        }
     }
 }

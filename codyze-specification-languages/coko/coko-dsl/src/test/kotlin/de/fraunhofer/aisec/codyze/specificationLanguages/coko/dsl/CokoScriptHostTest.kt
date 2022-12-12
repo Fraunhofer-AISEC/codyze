@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
-import de.fraunhofer.aisec.codyze.backends.testing.coko.CokoTestingBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
+import io.mockk.mockk
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -36,7 +36,7 @@ class CokoScriptHostTest {
                     fun log(message: String)
                 }
                 """.trimIndent(),
-                backend = CokoTestingBackend()
+                mockk()
             )
                 .valueOrThrow()
         }
@@ -52,7 +52,7 @@ class CokoScriptHostTest {
                     fun log(message: String) = Wildcard
                 }
                 """.trimIndent(),
-                CokoTestingBackend()
+                mockk()
             )
                 .valueOrThrow()
         }
@@ -71,7 +71,7 @@ class CokoScriptHostTest {
                         }
                 }
                 """.trimIndent(),
-                CokoTestingBackend()
+                mockk()
             )
                 .valueOrThrow()
         }
@@ -97,7 +97,7 @@ class CokoScriptHostTest {
                         override fun log(message: String) { }
                     }
                 """.trimIndent(),
-                CokoTestingBackend(),
+                mockk(),
             )
                 .valueOrThrow()
         }

@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
-import de.fraunhofer.aisec.codyze.backends.testing.coko.CokoTestingBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Wildcard
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
@@ -42,7 +41,7 @@ class ScriptAnalysisTest {
             """.trimIndent()
         )
         val specEvaluator =
-            CokoExecutor.compileScriptsIntoSpecEvaluator(CokoTestingBackend(), listOf(modelDefinitionFile))
+            CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
         assertTrue(specEvaluator.types.size == 1)
         assertTrue(specEvaluator.types[0].first.simpleName == "TestInterface")
     }
@@ -59,7 +58,7 @@ class ScriptAnalysisTest {
             """.trimIndent()
         )
         val specEvaluator =
-            CokoExecutor.compileScriptsIntoSpecEvaluator(CokoTestingBackend(), listOf(modelDefinitionFile))
+            CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
         assertTrue(specEvaluator.types.size == 1)
         assertEquals(
             specEvaluator.types[0].first.members.first().returnType,
@@ -82,7 +81,7 @@ class ScriptAnalysisTest {
             """.trimIndent()
         )
         val specEvaluator =
-            CokoExecutor.compileScriptsIntoSpecEvaluator(CokoTestingBackend(), listOf(modelDefinitionFile))
+            CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
         assertTrue(specEvaluator.implementations.size == 1)
     }
 
@@ -156,7 +155,7 @@ class ScriptAnalysisTest {
             """.trimIndent()
         )
         val specEvaluator =
-            CokoExecutor.compileScriptsIntoSpecEvaluator(CokoTestingBackend(), listOf(modelDefinitionFile))
+            CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
 
         assertTrue(specEvaluator.rules.size == 1)
         assertEquals(

@@ -190,70 +190,7 @@ inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block).apply 
 // inline fun set(negate: Boolean = false, block: OrderSet.() -> Unit) =
 // OrderSet(negate).apply(block)
 
-//
-// quantifiers
-//
 
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends an exact quantifier (`{3}`) to the
- * current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {3} will match exactly 3.
- */
-infix fun OrderToken.count(count: Int): OrderFragment =
-    count(count) { +this@OrderToken }
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends a range quantifier (`{1,3}`) to the
- * current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {1,3} will match 1 to 3.
- */
-infix fun OrderToken.between(range: IntRange): OrderFragment =
-    between(range) { +this@OrderToken }
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends a minimum quantifier (`{3,}`) to the
- * current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {3,} will match 3 or more.
- */
-infix fun OrderToken.atLeast(min: Int): OrderFragment =
-    atLeast(min) { +this@OrderToken }
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends a [some] quantifier (`+`) to the
- * current [OrderFragment]. The + quantifier is automatically converted into a 'ATLEAST(1)'
- * quantifier.
- *
- * > Matches 1 or more of the preceding [OrderFragment].
- */
-fun OrderToken.some(): OrderFragment =
-    some { +this@OrderToken }
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends a [maybe] quantifier (`*`) to the
- * current [OrderFragment].
- *
- * > Matches 0 or more of the preceding [OrderFragment].
- */
-fun OrderToken.maybe(): OrderFragment =
-    maybe { +this@OrderToken }
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends an [option] quantifier (`?`) to the
- * current [OrderFragment].
- *
- * > Matches 0 or 1 of the preceding [OrderFragment], effectively making it optional.
- */
-fun OrderToken.option(): OrderFragment =
-    option { +this@OrderToken }
 
 //
 // OR stuff

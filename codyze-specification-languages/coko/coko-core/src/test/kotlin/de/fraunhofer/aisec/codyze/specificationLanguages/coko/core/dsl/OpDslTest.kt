@@ -36,6 +36,19 @@ class OpDslTest {
     }
 
     @Test
+    fun `test add same definition twice in FunctionOp`() {
+        val mockDefinition = mockk<Definition>()
+
+        val actualOp = op {
+            add(mockDefinition)
+            add(mockDefinition)
+        }
+        val expectedOp = FunctionOp().apply { definitions.add(mockDefinition) }
+
+        assertEquals(expectedOp, actualOp)
+    }
+
+    @Test
     @Suppress("LongMethod")
     fun `test complete op`() {
         val stringParam: Parameter = "test string"
@@ -107,5 +120,28 @@ class OpDslTest {
         expectedOp.definitions.add(def2)
 
         assertEquals(expectedOp, actualOp)
+    }
+
+    @Test
+    fun `test simple ConstructorOp`() {
+        val mockSignature = mockk<Signature>()
+
+        val actualConstructorOp = constructor("fqn") { add(mockSignature) }
+        val expectedConstructorOp = ConstructorOp("fqn").apply { signatures.add(mockSignature) }
+
+        assertEquals(expectedConstructorOp, actualConstructorOp)
+    }
+
+    @Test
+    fun `test add same signature twice in ConstructorOp`() {
+        val mockSignature = mockk<Signature>()
+
+        val actualConstructorOp = constructor("fqn") {
+            add(mockSignature)
+            add(mockSignature)
+        }
+        val expectedConstructorOp = ConstructorOp("fqn").apply { signatures.add(mockSignature) }
+
+        assertEquals(expectedConstructorOp, actualConstructorOp)
     }
 }

@@ -68,9 +68,12 @@ class OpComponentsTest {
     @Test
     fun `test signature with unordered`() {
         with(mockk<Definition>(relaxed = true)) {
-            val unordered = signature().unordered(*multipleParams.toTypedArray())
+            val unordered = signature(multipleParams.toTypedArray()) {}
+            val unorderedShortcut = signature().unordered(*multipleParams.toTypedArray())
+
 
             val expectedSig = Signature().apply { unorderedParameters.addAll(multipleParams) }
+            assertEquals(expectedSig, unorderedShortcut)
             assertEquals(expectedSig, unordered)
         }
     }
@@ -133,6 +136,23 @@ class OpComponentsTest {
             val expected = Definition("fqn")
             expected.signatures.add(sig1)
             expected.signatures.add(sig2)
+
+            assertEquals(expected, def)
+        }
+    }
+
+    @Test
+    fun `test add component twice`() {
+        val sig = mockk<Signature>()
+
+        with(mockk<FunctionOp>(relaxed = true)) {
+            val def = definition("fqn") {
+                add(sig)
+                add(sig)
+            }
+
+            val expected = Definition("fqn")
+            expected.signatures.add(sig)
 
             assertEquals(expected, def)
         }

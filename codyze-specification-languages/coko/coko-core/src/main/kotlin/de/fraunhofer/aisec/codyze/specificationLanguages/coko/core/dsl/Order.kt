@@ -63,18 +63,13 @@ inline fun group(
 ) = this@OrderBuilder.add(OrderGroup().apply(block))
 
 context(OrderBuilder)
-/**
- * Appends a [maybe] quantifier (`*`) to the current [OrderFragment].
- *
- * > Matches 0 or more of the preceding [OrderFragment].
- */
-/** Shortcut for creating a group with the [maybe] ('*') qualifier. See [group] */
+/** Adds a group with the [maybe] ('*') qualifier. See [group] */
 inline fun maybe(
     block: OrderGroup.() -> Unit,
 ) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.MAYBE))
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [option] ('?') qualifier. See [group] */
+/** Adds a group with the [option] ('?') qualifier. See [group] */
 inline fun option(
     block: OrderGroup.() -> Unit,
 ) = this@OrderBuilder.add(
@@ -82,7 +77,7 @@ inline fun option(
 )
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [some] ('+') qualifier. See [group] */
+/** Adds a group with the [some] ('+') qualifier. See [group] */
 inline fun some(
     block: OrderGroup.() -> Unit,
 ) = this@OrderBuilder.add(
@@ -90,7 +85,7 @@ inline fun some(
 )
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [count] qualifier. See [group] */
+/** Adds a group with the [count] qualifier. See [group] */
 inline fun count(
     count: Int,
     block: OrderGroup.() -> Unit,
@@ -99,7 +94,7 @@ inline fun count(
 )
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [between] qualifier. See [group] */
+/** Adds a group with the [between] qualifier. See [group] */
 inline fun between(
     range: IntRange,
     block: OrderGroup.() -> Unit,
@@ -108,7 +103,7 @@ inline fun between(
 )
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [atLeast] qualifier. See [group] */
+/** Adds a group with the [atLeast] qualifier. See [group] */
 inline fun atLeast(
     count: Int,
     block: OrderGroup.() -> Unit,

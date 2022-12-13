@@ -71,7 +71,6 @@ class OpComponentsTest {
             val unordered = signature(multipleParams.toTypedArray()) {}
             val unorderedShortcut = signature().unordered(*multipleParams.toTypedArray())
 
-
             val expectedSig = Signature().apply { unorderedParameters.addAll(multipleParams) }
             assertEquals(expectedSig, unorderedShortcut)
             assertEquals(expectedSig, unordered)

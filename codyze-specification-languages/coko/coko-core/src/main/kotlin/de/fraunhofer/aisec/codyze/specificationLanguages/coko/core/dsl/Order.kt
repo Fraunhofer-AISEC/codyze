@@ -185,8 +185,6 @@ inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block).apply 
 // inline fun set(negate: Boolean = false, block: OrderSet.() -> Unit) =
 // OrderSet(negate).apply(block)
 
-
-
 //
 // OR stuff
 //

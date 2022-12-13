@@ -152,7 +152,7 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     fun `test order with an QuantifierOrderNode`() {
         with(mockk<CokoBackend>()) {
-            val syntaxTree = orderExpressionToSyntaxTree { TestClass::fun1.between(1..4) }
+            val syntaxTree = orderExpressionToSyntaxTree { between(1..4, TestClass::fun1) }
             val expectedSyntaxTree =
                 QuantifierOrderNode(
                     child = TestClass::fun1.toTerminalOrderNode(),
@@ -364,7 +364,7 @@ class OrderSyntaxTreeConstructionTest {
     fun `test complex order`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
-                TestClass::fun1.between(1..4)
+                between(1..4, TestClass::fun1)
                 maybe(TestClass::fun1, TestClass::fun2)
                 set[TestClass::fun2, TestClass::fun1]
                 +TestClass::fun1

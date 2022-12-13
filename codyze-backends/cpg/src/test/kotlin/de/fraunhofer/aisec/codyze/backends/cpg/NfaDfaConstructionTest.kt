@@ -117,7 +117,7 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple order with maybe qualifier`() {
         with(mockk<CokoCpgBackend>()) {
-            val nfa = orderExpressionToNfa { TestClass::create.maybe() }
+            val nfa = orderExpressionToNfa { maybe(TestClass::create) }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true, isAcceptingState = true)
@@ -139,7 +139,7 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple order with option qualifier`() {
         with(mockk<CokoCpgBackend>()) {
-            val nfa = orderExpressionToNfa { TestClass::create.option() }
+            val nfa = orderExpressionToNfa { option(TestClass::create) }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true, isAcceptingState = true)
@@ -167,10 +167,10 @@ class NfaDfaConstructionTest {
                 +TestClass::init
                 some {
                     +TestClass::start
-                    TestClass::process.maybe()
+                    maybe(TestClass::process)
                     +TestClass::finish
                 }
-                TestClass::reset.option()
+                option(TestClass::reset)
             }
 
             val expected = DFA()
@@ -212,11 +212,11 @@ class NfaDfaConstructionTest {
                     TestClass::create or
                         group {
                             +TestClass::start
-                            TestClass::process.maybe()
+                            maybe(TestClass::process)
                             +TestClass::finish
                         }
                 }
-                TestClass::reset.option()
+                option(TestClass::reset)
             }
 
             val expected = DFA()
@@ -262,13 +262,13 @@ class NfaDfaConstructionTest {
                 some {
                     TestClass::create or
                         group {
-                            TestClass::start.maybe()
-                            TestClass::process.maybe()
-                            TestClass::start.maybe()
+                            maybe(TestClass::start)
+                            maybe(TestClass::process)
+                            maybe(TestClass::start)
                             +TestClass::finish
                         }
                 }
-                TestClass::reset.option()
+                option(TestClass::reset)
             }
 
             // the equivalent min-DFA was obtained from:

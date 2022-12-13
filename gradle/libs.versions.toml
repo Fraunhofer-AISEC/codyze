@@ -39,7 +39,7 @@ mockk = { module = "io.mockk:mockk", version = "1.13.3"}
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }
-spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.11.0" }
+spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "6.12.0" }
 detekt-gradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 
 # additional dependencies for plugins in buildSrc

@@ -35,7 +35,7 @@ open class OrderBuilder : OrderFragment {
     /** Add an [OrderToken] to the [orderNodes] */
     operator fun OrderToken.unaryPlus() = add(this)
 
-    private fun add(token: OrderToken) = orderNodes.add(token.token)
+    fun add(token: OrderToken) = orderNodes.add(token.token)
 
     /** Add an [OrderFragment] to the [orderNodes]. All instances of the [fragment] object are removed from the list before the OrderNode from [fragment] is added. */
     fun add(fragment: OrderFragment): OrderNode =

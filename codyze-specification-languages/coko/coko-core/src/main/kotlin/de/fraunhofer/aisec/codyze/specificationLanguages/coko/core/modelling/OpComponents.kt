@@ -26,7 +26,11 @@ class ParameterGroup {
     val parameters = arrayListOf<Parameter>()
 
     operator fun Parameter.unaryPlus() {
-        parameters.add(this)
+        add(this)
+    }
+
+    fun add(parameter: Parameter) {
+        parameters.add(parameter)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -96,10 +100,12 @@ class Signature {
     val unorderedParameters = arrayListOf<Parameter>()
 
     operator fun Parameter.unaryPlus() {
-        parameters.add(this)
+        add(this)
     }
 
-    operator fun ParameterGroup.unaryPlus() {}
+    fun add(parameter: Parameter) {
+        parameters.add(parameter)
+    }
 
     fun add(parameterGroup: ParameterGroup) {
         parameters.removeIf { it === parameterGroup }

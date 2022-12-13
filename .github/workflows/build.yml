@@ -38,7 +38,7 @@ jobs:
       - name: Build ${{ steps.determine_version.outputs.version }}
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: check :codyze-cli:build --parallel --no-daemon -Pversion=$VERSION
+          arguments: :codyze-cli:build -x check --parallel -Pversion=$VERSION
         id: build
         env:
           VERSION: ${{ steps.determine_version.outputs.version }}

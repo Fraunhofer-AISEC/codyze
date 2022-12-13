@@ -28,7 +28,7 @@ jobs:
       - name: Run analysis
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: detektMain --continue
+          arguments: detektMain detektTest --continue
 
       # Make sure we always run this upload task,
       # because the previous step may fail if there are findings.

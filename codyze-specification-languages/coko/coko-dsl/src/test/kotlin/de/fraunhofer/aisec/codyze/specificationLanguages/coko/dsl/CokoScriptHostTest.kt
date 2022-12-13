@@ -17,7 +17,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
 import io.mockk.mockk
-import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.io.path.writeText
@@ -28,22 +28,23 @@ import kotlin.test.Test
 class CokoScriptHostTest {
 
     @Test
-    fun `test basic type creation`() =
-        assertAll({
+    fun `test basic type creation`() {
+        assertDoesNotThrow {
             CokoExecutor.eval(
                 """
                 interface TestInterface {
                     fun log(message: String)
                 }
                 """.trimIndent(),
-                backend = mockk()
+                mockk()
             )
                 .valueOrThrow()
-        })
+        }
+    }
 
     @Test
-    fun `test default imports`() =
-        assertAll({
+    fun `test default imports`() {
+        assertDoesNotThrow {
             CokoExecutor.eval(
                 """
                 // Wildcard is a default import
@@ -54,11 +55,12 @@ class CokoScriptHostTest {
                 mockk()
             )
                 .valueOrThrow()
-        })
+        }
+    }
 
     @Test
-    fun `test implicit receivers`() =
-        assertAll({
+    fun `test implicit receivers`() {
+        assertDoesNotThrow {
             CokoExecutor.eval(
                 """
                 // op & definition is a method of an implicit receiver
@@ -72,7 +74,8 @@ class CokoScriptHostTest {
                 mockk()
             )
                 .valueOrThrow()
-        })
+        }
+    }
 
     @Test
     fun `test import annotation`(@TempDir tempDir: Path) {
@@ -85,7 +88,7 @@ class CokoScriptHostTest {
             """.trimIndent()
         )
 
-        assertAll({
+        assertDoesNotThrow {
             CokoExecutor.eval(
                 """
                     @file:Import("${modelDefinitionFile.toAbsolutePath()}")
@@ -97,6 +100,6 @@ class CokoScriptHostTest {
                 mockk(),
             )
                 .valueOrThrow()
-        })
+        }
     }
 }

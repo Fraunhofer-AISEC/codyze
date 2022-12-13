@@ -44,9 +44,8 @@ private val logger = KotlinLogging.logger {}
     fileExtension = "codyze.kts",
     // the class or object that defines script compilation configuration for this type of scripts
     compilationConfiguration = ProjectScriptCompilationConfiguration::class,
-    evaluationConfiguration =
-    ProjectScriptEvaluationConfiguration::class // UNTESTED: we expect this to improve
-    // performance. Does not seem to break anything
+    // UNTESTED: we expect this to improve performance. Does not seem to break anything
+    evaluationConfiguration = ProjectScriptEvaluationConfiguration::class
 )
 // the class is used as the script base class, therefore it should be open or abstract
 open class CokoScript {
@@ -65,18 +64,16 @@ internal object ProjectScriptCompilationConfiguration :
         baseClass(CokoScript::class)
         jvm {
             dependenciesFromClassContext( // extract dependencies from the host environment
-                CokoScript::class, // use this class classloader for
-                // dependencies search
-                *baseLibraries, // search these libraries in it and use then as a script compilation
-                // classpath
-                wholeClasspath =
-                false // manually add all needed dependencies using the baseLibraries
+                CokoScript::class, // use this class classloader for dependencies search
+                *baseLibraries, // search these libraries in it and use then as a script compilation classpath
+                wholeClasspath = false // manually add all needed dependencies using the baseLibraries
             )
         }
 
+        // the actual receiver must be passed to the script class in the constructor
         implicitReceivers(
             CokoBackend::class
-        ) // the actual receiver must be passed to the script class in the constructor
+        )
 
         /**
          * - Enable the experimental context receivers feature

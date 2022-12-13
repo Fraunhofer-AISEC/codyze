@@ -24,6 +24,7 @@ import de.fraunhofer.aisec.cpg.passes.CallResolver
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.FilenameMapper
 import de.fraunhofer.aisec.cpg.passes.Pass
+import mu.KotlinLogging
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -38,6 +39,8 @@ import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
 import kotlin.streams.asSequence
 import kotlin.test.*
+
+private val logger = KotlinLogging.logger { }
 
 class CpgOptionGroupTest {
 
@@ -111,7 +114,7 @@ class CpgOptionGroupTest {
             }
         val actualPassesNames = cli.cpgOptions.passes.map { p -> p::class.qualifiedName }
 
-        println(actualPassesNames.joinToString(","))
+        logger.info { actualPassesNames.joinToString(",") }
 
         assertContentEquals(expectedPassesNames, actualPassesNames)
     }

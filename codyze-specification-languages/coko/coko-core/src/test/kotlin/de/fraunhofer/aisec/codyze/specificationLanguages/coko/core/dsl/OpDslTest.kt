@@ -28,7 +28,21 @@ class OpDslTest {
     @Test
     fun `test simple op`() {
         val mockDefinition = mockk<Definition>()
-        val actualOp = op { +mockDefinition }
+
+        val actualOp = op { add(mockDefinition) }
+        val expectedOp = FunctionOp().apply { definitions.add(mockDefinition) }
+
+        assertEquals(expectedOp, actualOp)
+    }
+
+    @Test
+    fun `test add same definition twice in FunctionOp`() {
+        val mockDefinition = mockk<Definition>()
+
+        val actualOp = op {
+            add(mockDefinition)
+            add(mockDefinition)
+        }
         val expectedOp = FunctionOp().apply { definitions.add(mockDefinition) }
 
         assertEquals(expectedOp, actualOp)
@@ -45,20 +59,19 @@ class OpDslTest {
         val collectionParam = mockk<Collection<Any>>()
 
         val actualOp = op {
-            +definition("fqn1") {
-                +signature { +stringParam }
-                +signature(stringParam, callTestParam)
-                +signature {
+            definition("fqn1") {
+                signature { +stringParam }
+                signature(stringParam, callTestParam)
+                signature {
                     +stringParam
                     +callTestParam
-                }
-                    .unordered(numberParam)
-                +signature(numberParam, collectionParam, stringParam)
+                }.unordered(numberParam)
+                signature(numberParam, collectionParam, stringParam)
             }
-            +definition("fqn2") {
-                +signature {
+            definition("fqn2") {
+                signature {
                     +typeParam
-                    +group {
+                    group {
                         +stringParam
                         +arrayParam
                     }
@@ -107,5 +120,28 @@ class OpDslTest {
         expectedOp.definitions.add(def2)
 
         assertEquals(expectedOp, actualOp)
+    }
+
+    @Test
+    fun `test simple ConstructorOp`() {
+        val mockSignature = mockk<Signature>()
+
+        val actualConstructorOp = constructor("fqn") { add(mockSignature) }
+        val expectedConstructorOp = ConstructorOp("fqn").apply { signatures.add(mockSignature) }
+
+        assertEquals(expectedConstructorOp, actualConstructorOp)
+    }
+
+    @Test
+    fun `test add same signature twice in ConstructorOp`() {
+        val mockSignature = mockk<Signature>()
+
+        val actualConstructorOp = constructor("fqn") {
+            add(mockSignature)
+            add(mockSignature)
+        }
+        val expectedConstructorOp = ConstructorOp("fqn").apply { signatures.add(mockSignature) }
+
+        assertEquals(expectedConstructorOp, actualConstructorOp)
     }
 }

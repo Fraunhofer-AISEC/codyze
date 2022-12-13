@@ -35,12 +35,24 @@ open class OrderBuilder : OrderFragment {
     /** Add an [OrderToken] to the [orderNodes] */
     operator fun OrderToken.unaryPlus() = add(this)
 
-    /** Add an [OrderFragment] to the [orderNodes] */
-    operator fun OrderFragment.unaryPlus() = add(this)
+    fun add(token: OrderToken) = orderNodes.add(token.token)
 
-    private fun add(token: OrderToken) = orderNodes.add(token.token)
+    /**
+     * Add an [OrderFragment] to the [orderNodes].
+     * All instances of the [fragment] object are removed from the list before the OrderNode from [fragment] is added.
+     */
+    fun add(fragment: OrderFragment): OrderNode =
+        fragment.toNode().also {
+            remove(fragment)
+            remove(it)
+            orderNodes.add(it)
+        }
 
-    private fun add(fragment: OrderFragment) = orderNodes.add(fragment.toNode())
+    fun remove(fragment: OrderFragment) {
+        orderNodes.removeIf {
+            it === fragment
+        }
+    }
 
     /** Represent this [OrderFragment] as a binary syntax tree. */
     override fun toNode(): OrderNode {

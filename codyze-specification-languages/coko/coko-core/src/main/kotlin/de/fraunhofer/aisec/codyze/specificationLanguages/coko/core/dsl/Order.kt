@@ -60,46 +60,56 @@ context(OrderBuilder)
  */
 inline fun group(
     block: OrderGroup.() -> Unit,
-) = OrderGroup().apply(block)
+) = this@OrderBuilder.add(OrderGroup().apply(block))
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [maybe] ('*') qualifier. See [group] */
+/** Adds a group with the [maybe] ('*') qualifier. See [group] */
 inline fun maybe(
     block: OrderGroup.() -> Unit,
-) = OrderGroup().apply(block).maybe()
+) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.MAYBE))
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [option] ('?') qualifier. See [group] */
+/** Adds a group with the [option] ('?') qualifier. See [group] */
 inline fun option(
     block: OrderGroup.() -> Unit,
-) = OrderGroup().apply(block).option()
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.OPTION)
+)
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [some] ('+') qualifier. See [group] */
+/** Adds a group with the [some] ('+') qualifier. See [group] */
 inline fun some(
     block: OrderGroup.() -> Unit,
-) = OrderGroup().apply(block).some()
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = 1)
+)
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [count] qualifier. See [group] */
+/** Adds a group with the [count] qualifier. See [group] */
 inline fun count(
     count: Int,
     block: OrderGroup.() -> Unit,
-) = OrderGroup().apply(block).count(count)
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.COUNT, value = count)
+)
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [between] qualifier. See [group] */
+/** Adds a group with the [between] qualifier. See [group] */
 inline fun between(
     range: IntRange,
     block: OrderGroup.() -> Unit,
-) = OrderGroup().apply(block).between(range)
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.BETWEEN, value = range)
+)
 
 context(OrderBuilder)
-/** Shortcut for creating a group with the [atLeast] qualifier. See [group] */
+/** Adds a group with the [atLeast] qualifier. See [group] */
 inline fun atLeast(
     count: Int,
     block: OrderGroup.() -> Unit,
-) = OrderGroup().apply(block).atLeast(count)
+) = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = count)
+)
 
 /**
  * Minimalist way to create a group with a function call. However, this minimalist [group]
@@ -134,7 +144,7 @@ fun between(range: IntRange, vararg tokens: OrderToken) = between(range) { token
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [atLeast] qualifier. See [group]. */
-fun atLeast(count: Int, vararg tokens: OrderToken) = atLeast(count) { tokens.forEach { +it } }
+fun atLeast(min: Int, vararg tokens: OrderToken) = atLeast(min) { tokens.forEach { +it } }
 
 //
 // sets
@@ -159,7 +169,7 @@ context(OrderBuilder)
  *
  * > Match any [OrderToken] in the set.
  */
-inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block)
+inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block).apply { this@OrderBuilder.add(this.toNode()) }
 
 // TODO: negating an [OrderSet] is currently not implemented -> combine with above function
 // /**
@@ -176,125 +186,6 @@ inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block)
 // OrderSet(negate).apply(block)
 
 //
-// quantifiers
-//
-context(OrderBuilder)
-/**
- * Appends an exact quantifier (`{3}`) to the current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {3} will match exactly 3.
- */
-infix fun OrderFragment.count(count: Int): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends an exact quantifier (`{3}`) to the
- * current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {3} will match exactly 3.
- */
-infix fun OrderToken.count(count: Int): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.COUNT, value = count)
-
-context(OrderBuilder)
-/**
- * Appends a range quantifier (`{1,3}`) to the current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {1,3} will match 1 to 3.
- */
-infix fun OrderFragment.between(range: IntRange): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends a range quantifier (`{1,3}`) to the
- * current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {1,3} will match 1 to 3.
- */
-infix fun OrderToken.between(range: IntRange): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.BETWEEN, value = range)
-
-context(OrderBuilder)
-/**
- * Appends a minimum quantifier (`{3,}`) to the current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {3,} will match 3 or more.
- */
-infix fun OrderFragment.atLeast(min: Int): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends a minimum quantifier (`{3,}`) to the
- * current [OrderFragment].
- *
- * > Matches the specified quantity of the previous [OrderFragment]. > {3,} will match 3 or more.
- */
-infix fun OrderToken.atLeast(min: Int): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = min)
-
-context(OrderBuilder)
-/**
- * Appends a [some] quantifier (`+`) to the current [OrderFragment]. The + quantifier is
- * automatically converted into a 'ATLEAST(1)' quantifier.
- *
- * > Matches 1 or more of the preceding [OrderFragment].
- */
-fun OrderFragment.some(): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = 1)
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends a [some] quantifier (`+`) to the
- * current [OrderFragment]. The + quantifier is automatically converted into a 'ATLEAST(1)'
- * quantifier.
- *
- * > Matches 1 or more of the preceding [OrderFragment].
- */
-fun OrderToken.some(): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.ATLEAST, value = 1)
-
-context(OrderBuilder)
-/**
- * Appends a [maybe] quantifier (`*`) to the current [OrderFragment].
- *
- * > Matches 0 or more of the preceding [OrderFragment].
- */
-fun OrderFragment.maybe(): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends a [maybe] quantifier (`*`) to the
- * current [OrderFragment].
- *
- * > Matches 0 or more of the preceding [OrderFragment].
- */
-fun OrderToken.maybe(): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.MAYBE)
-
-context(OrderBuilder)
-/**
- * Appends an [option] quantifier (`?`) to the current [OrderFragment].
- *
- * > Matches 0 or 1 of the preceding [OrderFragment], effectively making it optional.
- */
-fun OrderFragment.option(): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.OPTION)
-
-context(OrderBuilder)
-/**
- * Converts the [OrderToken] to an [OrderFragment] and appends an [option] quantifier (`?`) to the
- * current [OrderFragment].
- *
- * > Matches 0 or 1 of the preceding [OrderFragment], effectively making it optional.
- */
-fun OrderToken.option(): OrderFragment =
-    QuantifierOrderNode(child = token.toNode(), type = OrderQuantifier.OPTION)
-
-//
 // OR stuff
 //
 context(OrderBuilder)
@@ -305,7 +196,10 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderFragment): OrderFragment =
-    AlternativeOrderNode(left = toNode(), right = other.toNode())
+    this@OrderBuilder.add(AlternativeOrderNode(left = toNode(), right = other.toNode())).also {
+        this@OrderBuilder.remove(this@OrderFragment)
+        this@OrderBuilder.remove(other)
+    }
 
 context(OrderBuilder)
 /**
@@ -316,7 +210,9 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderToken.or(other: OrderFragment): OrderFragment =
-    AlternativeOrderNode(left = token.toNode(), right = other.toNode())
+    this@OrderBuilder.add(AlternativeOrderNode(left = token.toNode(), right = other.toNode())).also {
+        this@OrderBuilder.remove(other)
+    }
 
 context(OrderBuilder)
 /**
@@ -327,7 +223,7 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderToken.or(other: OrderToken): OrderFragment =
-    AlternativeOrderNode(left = token.toNode(), right = other.token.toNode())
+    this@OrderBuilder.add(AlternativeOrderNode(left = token.toNode(), right = other.token.toNode()))
 
 context(OrderBuilder)
 /**
@@ -338,4 +234,6 @@ context(OrderBuilder)
  * group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderToken): OrderFragment =
-    AlternativeOrderNode(left = toNode(), right = other.token.toNode())
+    this@OrderBuilder.add(AlternativeOrderNode(left = toNode(), right = other.token.toNode())).also {
+        this@OrderBuilder.remove(this@OrderFragment)
+    }

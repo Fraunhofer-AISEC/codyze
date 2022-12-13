@@ -35,9 +35,9 @@ import kotlin.test.assertFalse
 class OrderEvaluationTest {
     class CokoOrderImpl {
         fun constructor() = constructor("Botan") {}
-        fun init() = op { +definition("Botan.set_key") { +signature(Wildcard) } }
-        fun start() = op { +definition("Botan.start") { +signature(Wildcard) } }
-        fun finish() = op { +definition("Botan.finish") { +signature(Wildcard) } }
+        fun init() = op { definition("Botan.set_key") { signature(Wildcard) } }
+        fun start() = op { definition("Botan.start") { signature(Wildcard) } }
+        fun finish() = op { definition("Botan.finish") { signature(Wildcard) } }
     }
 
     context(CokoBackend)

@@ -52,7 +52,7 @@ open class CPGBackend(config: BackendConfiguration) : Backend {
         source.firstOrNull()?.parent?.toFile().let { translationConfiguration.topLevel(it) }
 
         includePaths.forEach { translationConfiguration.includePath(it.toString()) }
-        includeWhitelist.forEach { translationConfiguration.includeWhitelist(it.toString()) }
+        includeAllowlist.forEach { translationConfiguration.includeWhitelist(it.toString()) }
         includeBlocklist.forEach { translationConfiguration.includeBlocklist(it.toString()) }
 
         if (disableCleanup) translationConfiguration.disableCleanup()

@@ -15,8 +15,6 @@
  */
 package de.fraunhofer.aisec.codyze.core.wrapper
 
-import de.fraunhofer.aisec.codyze.core.config.Configuration
-
 interface BackendConfiguration {
-    fun normalize(configuration: Configuration): BackendConfiguration
+    fun normalize(): BackendConfiguration
 }

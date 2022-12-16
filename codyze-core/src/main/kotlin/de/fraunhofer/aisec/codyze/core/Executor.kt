@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.aisec.codyze.core
 
-import de.fraunhofer.aisec.codyze.core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
@@ -30,28 +29,5 @@ import java.nio.file.Path
  * @since v3.0.0
  */
 interface Executor {
-    /** Name of executor for a specification language */
-    val name: String
-
-    /** Supported file extension for specification language files */
-    val supportedFileExtension: String
-
-    // offer standard implementation
-    // must only be called once
-    // TODO: proper initialization parameters
-    fun initialize(backendConfiguration: BackendConfiguration, configuration: ExecutorConfiguration)
-
     fun evaluate(): List<Result>
-
-    // load speclang files
-    // -  create AST from speclang files
-    // -  store AST model
-    // can be called multiple times to update model
-    fun loadSpec(paths: List<Path>) {}
-
-    // compute results from speclang AST and return findings as SARIF
-    // fun evaluate(graph: TranslationResult): List<Result>
-
-    // common functionality of reading files from HDD
-    private fun loadFiles() {}
 }

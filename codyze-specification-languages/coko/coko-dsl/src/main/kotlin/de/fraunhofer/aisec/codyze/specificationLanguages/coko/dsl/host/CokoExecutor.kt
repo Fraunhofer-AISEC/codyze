@@ -16,16 +16,13 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 
 import de.fraunhofer.aisec.codyze.core.Executor
-import de.fraunhofer.aisec.codyze.core.config.ExecutorConfiguration
 import de.fraunhofer.aisec.codyze.core.timed
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoScript
 import io.github.detekt.sarif4k.Result
 import mu.KotlinLogging
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
 import java.nio.file.Path
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
@@ -35,29 +32,11 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 import kotlin.script.experimental.util.PropertiesCollection
-import kotlin.time.*
 
 private val logger = KotlinLogging.logger {}
 
-class CokoExecutor : Executor, KoinComponent {
-    override val name: String
-        get() = CokoExecutor::class.simpleName ?: "CokoExecutor"
-    override val supportedFileExtension: String
-        get() = "codyze.kts"
-
-    lateinit var backendConfiguration: BackendConfiguration
-    lateinit var config: ExecutorConfiguration
-    lateinit var backend: CokoBackend
-
-    override fun initialize(
-        backendConfiguration: BackendConfiguration,
-        configuration: ExecutorConfiguration
-    ) {
-        this.backendConfiguration = backendConfiguration
-        this.config = configuration
-
-        backend = get { parametersOf(backendConfiguration) }
-    }
+class CokoExecutor(private val configuration: CokoConfiguration, private val backend: CokoBackend) :
+    Executor, KoinComponent {
 
     /**
      * Compiles all the specification files, translates the CPG and finally triggers the evaluation
@@ -67,7 +46,7 @@ class CokoExecutor : Executor, KoinComponent {
     override fun evaluate(): List<Result> {
         val specEvaluator =
             timed({ logger.info { "Compiled specification scripts in $it." } }) {
-                compileScriptsIntoSpecEvaluator(backend = backend, specFiles = config.spec)
+                compileScriptsIntoSpecEvaluator(backend = backend, specFiles = configuration.spec)
             }
 
         logger.info {

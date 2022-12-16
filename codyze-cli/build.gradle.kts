@@ -35,4 +35,5 @@ dependencies {
 
 application {
     mainClass.set("de.fraunhofer.aisec.codyze.cli.MainKt")
+    applicationName = "codyze"
 }

@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Type
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.withType
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
@@ -69,30 +70,30 @@ class SignatureTest {
     }
 
     @Test
-    fun `test signature with Value to Type Pair`() {
+    fun `test signature with ParamWithType`() {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertTrue { with(backend) { with(node) { signature("test" to Type("kotlin.String")) } } }
+        assertTrue { with(backend) { with(node) { signature("test" withType "kotlin.String") } } }
     }
 
     @Test
-    fun `test signature with Pair with wrong Type`() {
+    fun `test signature with ParamWithType with wrong Type`() {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertFalse { with(backend) { with(node) { signature("test" to Type("kotlin.Int")) } } }
+        assertFalse { with(backend) { with(node) { signature("test" withType "kotlin.Int") } } }
     }
 
     @Test
-    fun `test signature with Pair with wrong value`() {
+    fun `test signature with ParamWithType with wrong value`() {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertFalse { with(backend) { with(node) { signature(1 to Type("kotlin.String")) } } }
+        assertFalse { with(backend) { with(node) { signature(1 withType "kotlin.String") } } }
     }
 
     @Test

@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.7.20"
 cpg = "main-SNAPSHOT"   # revert to official releases when features become available
-koin = "3.2.2"
+koin = "3.3.0"
 detekt = "1.22.0"
 spotless = "6.12.0"
 

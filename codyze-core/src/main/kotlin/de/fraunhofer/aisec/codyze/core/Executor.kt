@@ -15,9 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.core
 
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import io.github.detekt.sarif4k.Result
-import java.nio.file.Path
 
 /**
  * An executor that drives the validation of a specification language against source code and

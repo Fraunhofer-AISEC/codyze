@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg
 
-import de.fraunhofer.aisec.codyze.core.config.Configuration
 import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.cpg.passes.Pass
 import mu.KotlinLogging

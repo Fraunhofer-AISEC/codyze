@@ -45,7 +45,7 @@ fun main(args: Array<String>) {
     // get the used subcommands
     val executorCommand = codyzeCli.currentContext.invokedSubcommand as? ExecutorCommand<*>
     val backendCommand = executorCommand?.currentContext?.invokedSubcommand as? BackendCommand<*>
-    require (executorCommand != null && backendCommand != null) { "UsageError!" }
+    require(executorCommand != null && backendCommand != null) { "UsageError!" }
 
     // the subcommands know how to instantiate their respective backend/executor
     val backend = backendCommand.getBackend()

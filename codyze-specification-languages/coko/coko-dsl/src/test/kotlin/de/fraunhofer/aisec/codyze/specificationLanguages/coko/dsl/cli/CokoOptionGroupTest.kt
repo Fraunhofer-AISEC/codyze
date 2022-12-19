@@ -41,7 +41,6 @@ class CokoOptionGroupTest : KoinTest {
             modules(module { })
         }
 
-
     /**
      * Test that all specs are combined correctly.
      *

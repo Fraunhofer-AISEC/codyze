@@ -77,10 +77,9 @@ class OrderEvaluationTest {
             symbols = mapOf(),
             includeBlocklist = listOf(),
             includePaths = listOf(),
-            includeWhitelist = listOf(),
+            includeAllowlist = listOf(),
             loadIncludes = false,
             passes = listOf(),
-            typestate = TypestateMode.DFA
         )
 
     @Test

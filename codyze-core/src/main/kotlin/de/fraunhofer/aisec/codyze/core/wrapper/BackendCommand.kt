@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.cli.subcommands
+package de.fraunhofer.aisec.codyze.core.wrapper
 
-import de.fraunhofer.aisec.codyze.cli.CodyzeSubcommand
-import mu.KotlinLogging
+import com.github.ajalt.clikt.core.NoOpCliktCommand
+import kotlin.reflect.KClass
 
-private val logger = KotlinLogging.logger {}
-
-/**
- * Subcommand that starts a language server.
- *
- * This server can be connected to an IDE to automatically analyze source code while programming.
- */
-class LSP : CodyzeSubcommand("Start a language server") {
-    // possibly add subcommand-lsp specific options here
-
-    override fun run() {
-        logger.debug { "Executing 'lsp' subcommand..." }
-        echo("When I grow up, I'll start a language server!")
-    }
+/** Contains all options that are shared among all Codyze subcommands. */
+abstract class BackendCommand<T : Backend>(cliName: String? = null) : NoOpCliktCommand(hidden = true, name = cliName) {
+    abstract val backend: KClass<T>
+    abstract fun getBackend(): T
 }

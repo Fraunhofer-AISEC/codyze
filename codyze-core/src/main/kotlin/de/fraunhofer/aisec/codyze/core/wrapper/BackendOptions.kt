@@ -17,4 +17,4 @@ package de.fraunhofer.aisec.codyze.core.wrapper
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 
-open class BackendOptions(name: String) : OptionGroup(name = name)
+open class BackendOptions(helpName: String?) : OptionGroup(name = helpName)

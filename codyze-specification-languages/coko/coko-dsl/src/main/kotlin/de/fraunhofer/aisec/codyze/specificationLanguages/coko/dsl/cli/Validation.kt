@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.backends.cpg
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli
 
-/** Enum containing all supported typestate modes. */
-enum class TypestateMode {
-    /** Non-deterministic finite automaton. Intraprocedural, not alias-aware. */
-    DFA,
+import java.nio.file.Path
+import kotlin.io.path.isRegularFile
 
-    /** Weighted Pushdown System. Interprocedural, alias-aware, context-aware. */
-    WPDS
+val Path.extensions: String
+    get() = fileName?.toString()?.substringAfter('.', "").orEmpty()
+
+fun validateSpec(spec: List<Path>): List<Path> {
+    require(spec.all { it.isRegularFile() }) { "All given spec paths must be files." }
+    require(spec.all { it.extensions == "codyze.kts" }) {
+        "All given specification files must be coko specification files (*.codyze.kts)."
+    }
+    return spec
 }

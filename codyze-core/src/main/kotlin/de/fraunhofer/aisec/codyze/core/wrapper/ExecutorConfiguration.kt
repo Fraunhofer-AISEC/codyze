@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.config
+package de.fraunhofer.aisec.codyze.core.wrapper
 
-import de.fraunhofer.aisec.codyze.core.output.localization
-import java.nio.file.Path
-import kotlin.io.path.isRegularFile
-
-fun validateSpec(spec: List<Path>) {
-    require(spec.all { it.isRegularFile() }) { localization.pathsMustBeFiles() }
-    // require(spec.all { it.extension == spec[0].extension }) { localization.invalidSpecFileType()
-    // }  // disabled for now. The parsers of the Executors must filter the files by file type
+interface ExecutorConfiguration {
+    fun normalize(): ExecutorConfiguration
 }

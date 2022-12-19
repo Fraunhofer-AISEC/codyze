@@ -13,15 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.output
+package de.fraunhofer.aisec.codyze.core.wrapper
 
-/** Strings to use for help output and error messages */
-interface Localization {
-    /** The given spec files do not share the same file type */
-    fun invalidSpecFileType() = "All given specification files must be of the same file type."
+import com.github.ajalt.clikt.parameters.groups.OptionGroup
 
-    /** All given paths must point to a file and not a directory */
-    fun pathsMustBeFiles() = "All given spec paths must be files."
-}
-
-val localization = object : Localization {}
+open class ExecutorOptions(helpName: String?) : OptionGroup(name = helpName)

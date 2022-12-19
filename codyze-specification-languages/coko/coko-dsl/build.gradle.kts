@@ -11,6 +11,7 @@ dependencies {
 
     implementation(libs.sarif4k)
     implementation(libs.koin)
+    implementation(libs.clikt)
 
     implementation(libs.kotlin.scripting.common)
     implementation(libs.kotlin.scripting.jvm)

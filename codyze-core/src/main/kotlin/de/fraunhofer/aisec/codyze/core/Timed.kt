@@ -20,7 +20,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
 /**
- * Simply helper function to log how long a given task took.
+ * Simple helper function to log how long a given task took.
  * @param message The message to log. The resulting log has the format: '{message} {time the task
  * took in milliseconds} ms.'
  * @param block The code block to time.

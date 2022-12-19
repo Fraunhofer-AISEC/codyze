@@ -70,7 +70,6 @@ class CodyzeCli(val configFile: Path? = null) :
             valueSource = configFile?.let { JsonValueSource.from(it, requireValid = true) }
             helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")
         }
-        subcommands(getKoin().getAll<ExecutorCommand<*>>())
     }
 
     // This is only here to correctly display the help message

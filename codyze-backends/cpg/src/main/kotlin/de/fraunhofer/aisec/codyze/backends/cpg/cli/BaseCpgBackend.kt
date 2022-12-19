@@ -22,7 +22,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.CPGOptionGroup
 import de.fraunhofer.aisec.codyze.core.wrapper.BackendCommand
 
 class BaseCpgBackend : BackendCommand<CPGBackend>("cpg") {
-    private val backendOptions by CPGOptionGroup()
+    val backendOptions by CPGOptionGroup()
     override val backend = CPGBackend::class
 
     override fun getBackend() = with(backendOptions) {

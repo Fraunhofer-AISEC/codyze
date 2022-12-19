@@ -15,11 +15,13 @@
  */
 package de.fraunhofer.aisec.codyze.cli
 
+import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.wrapper.BackendCommand
 import de.fraunhofer.aisec.codyze.core.wrapper.ExecutorCommand
 import io.github.detekt.sarif4k.*
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
+import org.koin.java.KoinJavaComponent.getKoin
 
 private val logger = KotlinLogging.logger {}
 
@@ -37,6 +39,7 @@ fun main(args: Array<String>) {
 
     // parse the arguments based on the codyze options and the executorOptions/backendOptions
     val codyzeCli = CodyzeCli(configFile = configFileParser.configFile)
+        .subcommands(getKoin().getAll<ExecutorCommand<*>>())
     codyzeCli.main(args)
 
     // get the used subcommands

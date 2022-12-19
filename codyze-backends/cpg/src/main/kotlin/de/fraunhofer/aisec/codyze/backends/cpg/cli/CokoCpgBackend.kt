@@ -23,7 +23,7 @@ import de.fraunhofer.aisec.codyze.core.wrapper.BackendCommand
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 
 class CokoCpgBackend : BackendCommand<CokoBackend>("cokoCpg") {
-    private val backendOptions by CPGOptionGroup()
+    val backendOptions by CPGOptionGroup()
     override val backend = CokoBackend::class
 
     override fun getBackend() = with(backendOptions) {

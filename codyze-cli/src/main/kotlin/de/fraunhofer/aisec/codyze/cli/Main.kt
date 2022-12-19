@@ -23,7 +23,7 @@ import org.koin.core.context.startKoin
 
 private val logger = KotlinLogging.logger {}
 
-/** Entry point for Codyze. Hands over control to the chosen subcommand immediately. */
+/** Entry point for Codyze. */
 fun main(args: Array<String>) {
     startKoin { // Initialize the koin dependency injection
         // use Koin logger

@@ -36,6 +36,7 @@ class CokoSubcommand : ExecutorCommand<CokoExecutor>("runCoko") {
             CokoConfiguration(
                 codyzeConfiguration = codyzeConfiguration,
                 spec = spec,
+                disabledSpecRules = disabledSpecRules,
             ),
             backend as CokoBackend
         )

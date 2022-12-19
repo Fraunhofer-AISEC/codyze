@@ -26,6 +26,7 @@ private val logger = KotlinLogging.logger { }
 data class CokoConfiguration(
     val codyzeConfiguration: Configuration,
     val spec: List<Path>,
+    val disabledSpecRules: List<String>,
 ): ExecutorConfiguration {
     // perform some validation
     // the same validation should be performed when parsing the CLI arguments/options

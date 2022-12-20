@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.wrapper
+package de.fraunhofer.aisec.codyze.core.executor
 
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
-import de.fraunhofer.aisec.codyze.core.Executor
+import de.fraunhofer.aisec.codyze.core.backend.Backend
+import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.config.Configuration
 import org.koin.java.KoinJavaComponent
 
@@ -25,7 +26,7 @@ import org.koin.java.KoinJavaComponent
 abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
     NoOpCliktCommand(hidden = true, name = cliName) {
 
-    abstract fun getExecutor(codyzeConfiguration: Configuration, backend: Backend): T
+    abstract fun getExecutor(codyzeConfiguration: Configuration, backend: Backend?): T
 
     /**
      * This should be called in each [ExecutorCommand] to register possible backends.

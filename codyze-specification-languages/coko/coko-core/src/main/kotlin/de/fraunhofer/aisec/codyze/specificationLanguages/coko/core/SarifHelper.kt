@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.wrapper
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Severity
+import io.github.detekt.sarif4k.Level
 
-open class ExecutorOptions(helpName: String?) : OptionGroup(name = helpName)
+fun Severity.toResultLevel() = when (this) {
+    Severity.ERROR -> Level.Error
+    Severity.WARNING -> Level.Warning
+    Severity.INFO -> Level.Note
+}

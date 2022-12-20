@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.wrapper
+package de.fraunhofer.aisec.codyze.core.executor
 
-interface Backend {
-    val graph: Any // implement using 'by lazy {}'
+import io.github.detekt.sarif4k.Run
+
+/**
+ * An executor that drives the validation of a specification language against source code and
+ * provides evaluation results.
+ *
+ * For our dependency injection library (Koin), this interface is a 'service interface' and all
+ * implementations are 'services'.
+ *
+ * @since v3.0.0
+ */
+fun interface Executor {
+    fun evaluate(): Run
 }

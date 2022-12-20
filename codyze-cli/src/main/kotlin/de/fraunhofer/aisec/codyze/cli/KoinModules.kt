@@ -17,8 +17,10 @@ package de.fraunhofer.aisec.codyze.cli
 
 import de.fraunhofer.aisec.codyze.backends.cpg.cli.BaseCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.cli.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendCommand
-import de.fraunhofer.aisec.codyze.core.wrapper.ExecutorCommand
+import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
+import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
+import de.fraunhofer.aisec.codyze.core.output.SarifBuilder
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli.CokoSubcommand
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
@@ -37,4 +39,8 @@ val backendCommands = module {
  */
 val executorCommands = module {
     factoryOf(::CokoSubcommand) bind(ExecutorCommand::class)
+}
+
+val outputBuilders = module {
+    factoryOf(::SarifBuilder) bind(OutputBuilder::class)
 }

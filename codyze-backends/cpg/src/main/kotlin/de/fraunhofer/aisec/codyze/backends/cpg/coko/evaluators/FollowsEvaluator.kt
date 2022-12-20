@@ -16,22 +16,23 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgEvaluationResult
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.Finding
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
-import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.query.executionPath
 
 context(CokoCpgBackend)
-
 class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
-    override fun evaluate(context: EvaluationContext): EvaluationResult {
+    override fun evaluate(context: EvaluationContext): EvaluationResult<Finding> {
         val evaluator = {
-            val thisNodes = with(this@CokoCpgBackend) { ifOp.getNodes() }.filterIsInstance<Node>()
-            val thatNodes = with(this@CokoCpgBackend) { thenOp.getNodes() }.filterIsInstance<Node>()
+            val thisNodes = with(this@CokoCpgBackend) { ifOp.getNodes() }
+            val thatNodes = with(this@CokoCpgBackend) { thenOp.getNodes() }
             thisNodes.all { from -> thatNodes.any { to -> executionPath(from, to).value } }
         }
-        return EvaluationResult(evaluator())
+        return CpgEvaluationResult(listOf(Finding("TODO")))
     }
 }

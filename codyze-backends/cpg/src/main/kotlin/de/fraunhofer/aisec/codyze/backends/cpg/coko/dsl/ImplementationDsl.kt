@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("TooManyFunctions")
+
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Type
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Wildcard
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
@@ -29,10 +32,51 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.query.dataFlow
-import de.fraunhofer.aisec.cpg.query.exists
 
+//
+// all functions/properties defined here must use CokoBackend
+// when they should be available in Coko
+//
 val CokoBackend.cpg: TranslationResult
-    get() = this.graph as TranslationResult
+    get() = this.backendData as TranslationResult
+
+/** Get all [Nodes] that are associated with this [Op]. */
+context(CokoBackend)
+fun Op.getAllNodes(): Nodes =
+    when (this@Op) {
+        is FunctionOp ->
+            this@Op.definitions.map { def -> this@CokoBackend.callFqn(def.fqn) }.flatten()
+        is ConstructorOp -> this@CokoBackend.constructor(this.classFqn)
+    }
+
+/**
+ * Get all [Nodes] that are associated with this [Op] and fulfill the [Signature]s of the
+ * [Definition]s.
+ */
+context(CokoBackend)
+fun Op.getNodes(): Nodes =
+    when (this@Op) {
+        is FunctionOp ->
+            this@Op.definitions
+                .map { def ->
+                    this@CokoBackend.callFqn(def.fqn) {
+                        def.signatures.any { sig ->
+                            signature(*sig.parameters.toTypedArray()) &&
+                                sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                        }
+                    }
+                }
+                .flatten()
+        is ConstructorOp ->
+            this@Op.signatures
+                .map { sig ->
+                    this@CokoBackend.constructor(this@Op.classFqn) {
+                        signature(*sig.parameters.toTypedArray()) &&
+                            sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                    }
+                }
+                .flatten()
+    }
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */
 fun CokoBackend.variable(name: String): List<ValueDeclaration> {
@@ -74,9 +118,8 @@ fun CokoBackend.memberExpr(
     return cpg.allChildren(predicate)
 }
 
-context(
-    CallExpression
-) // this extension function should only be available in the context of a CallExpression
+// this extension function should only be available in the context of a CallExpression
+context(CallExpression)
 /**
  * Checks if there's a data flow path from "this" to [that].
  * - If this is a String, we evaluate it as a regex.
@@ -97,11 +140,8 @@ infix fun Any.flowsTo(that: Node): Boolean =
         }
     }
 
-context(
-    CokoBackend,
-    CallExpression
-) // this extension function needs Project as a context + it should only be available in the context
-// of a CallExpression
+// it should only be available in the context of a CallExpression
+context(CallExpression)
 /**
  * Checks if there's a data flow path from "this" to any of the elements in [that].
  * - If this is a String, we evaluate it as a regex.
@@ -112,24 +152,17 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
     if (this is Wildcard) {
         true
     } else {
-        when (this) {
-            is String -> {
-                val thisRegex = Regex(this)
-                (graph as TranslationResult)
-                    .exists<Expression>(
-                        mustSatisfy = { thisRegex.matches(it.evaluate() as String) }
-                    )
-                    .first
-            }
+        when (this@flowsTo) {
+            is String -> that.any { Regex(this).matches((it as? Expression)?.evaluate()?.toString().orEmpty()) }
             is Iterable<*> -> this.any { it?.flowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.flowsTo(that) ?: false }
+            is Array<*> -> this.any { it?.flowsTo((that)) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
             is ParameterGroup -> this.parameters.all { it?.flowsTo(that) ?: false }
             else -> this in that.map { (it as Expression).evaluate() }
         }
     }
 
-context(CallExpression, CokoBackend)
+context(CokoBackend)
 // TODO: better description
 // TODO: in mark there is "..." to symbolize that the last arguments don't matter
 // TODO: how to model return value assignments
@@ -148,7 +181,7 @@ context(CallExpression, CokoBackend)
  * are not important to the analysis
  */
 @Suppress("UnsafeCallOnNullableType")
-fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
+fun CallExpression.signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
     return checkArgsSize(parameters, hasVarargs) &&
         // checks if the CallExpression matches with the parameters
@@ -176,14 +209,12 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
         }
 }
 
-context(CallExpression)
 /** Checks the [type] against the type of the argument at [index] for the Call Expression */
-private fun checkType(type: Type, index: Int): Boolean {
+private fun CallExpression.checkType(type: Type, index: Int): Boolean {
     return type.fqn == arguments[index].type.typeName
 }
 
-context(CallExpression)
 /** Checks if the number of parameters matches the number of arguments of [CallExpression] */
-private fun checkArgsSize(parameters: Array<*>, hasVarargs: Boolean): Boolean {
+private fun CallExpression.checkArgsSize(parameters: Array<*>, hasVarargs: Boolean): Boolean {
     return if (hasVarargs) parameters.size <= arguments.size else parameters.size == arguments.size
 }

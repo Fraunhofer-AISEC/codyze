@@ -16,8 +16,8 @@
 package de.fraunhofer.aisec.codyze.cli
 
 import com.github.ajalt.clikt.core.subcommands
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendCommand
-import de.fraunhofer.aisec.codyze.core.wrapper.ExecutorCommand
+import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import io.github.detekt.sarif4k.*
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
         // use Koin logger
         printLogger()
         // declare modules
-        modules(executorCommands, backendCommands)
+        modules(executorCommands, backendCommands, outputBuilders)
     }
 
     val configFileParser = ConfigFileParser() // use a pre-parser that only parses the config file option
@@ -45,17 +45,15 @@ fun main(args: Array<String>) {
     // get the used subcommands
     val executorCommand = codyzeCli.currentContext.invokedSubcommand as? ExecutorCommand<*>
     val backendCommand = executorCommand?.currentContext?.invokedSubcommand as? BackendCommand<*>
-    require(executorCommand != null && backendCommand != null) { "UsageError!" }
 
+    // this should already be checked by clikt in [codyzeCli.main(args)]
+    requireNotNull(executorCommand) { "UsageError! Please select one of the possible executors." }
+
+    val codyzeConfiguration = codyzeCli.codyzeOptions.asConfiguration()
     // the subcommands know how to instantiate their respective backend/executor
-    val backend = backendCommand.getBackend()
-    val executor = executorCommand.getExecutor(codyzeCli.codyzeOptions.asConfiguration(), backend)
+    val backend = backendCommand?.getBackend() // [null] if the chosen executor does not support modular backends
+    val executor = executorCommand.getExecutor(codyzeConfiguration, backend)
 
-    val results = executor.evaluate()
-    val sarifSchema = SarifSchema210(
-        schema = "https://json.schemastore.org/sarif-2.1.0.json",
-        version = Version.The210,
-        runs = listOf(Run(tool = Tool(driver = ToolComponent(name = "Codyze v3")), results = results,))
-    )
-    logger.info { sarifSchema.toString() }
+    val run = executor.evaluate()
+    codyzeConfiguration.outputBuilder.toFile(run, codyzeConfiguration.output)
 }

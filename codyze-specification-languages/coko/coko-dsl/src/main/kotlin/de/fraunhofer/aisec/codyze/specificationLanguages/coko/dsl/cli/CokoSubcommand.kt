@@ -16,10 +16,11 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli
 
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
+import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.config.Configuration
-import de.fraunhofer.aisec.codyze.core.wrapper.Backend
-import de.fraunhofer.aisec.codyze.core.wrapper.ExecutorCommand
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWithSarifOutput
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
 
@@ -31,14 +32,14 @@ class CokoSubcommand : ExecutorCommand<CokoExecutor>("runCoko") {
         registerBackendOptions<CokoBackend>()
     }
 
-    override fun getExecutor(codyzeConfiguration: Configuration, backend: Backend) = with(executorOptions) {
+    override fun getExecutor(codyzeConfiguration: Configuration, backend: Backend?) = with(executorOptions) {
         CokoExecutor(
             CokoConfiguration(
                 codyzeConfiguration = codyzeConfiguration,
                 spec = spec,
                 disabledSpecRules = disabledSpecRules,
             ),
-            backend as CokoBackend
+            backend as CokoBackendWithSarifOutput
         )
     }
 }

@@ -19,19 +19,33 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.path
-import de.fraunhofer.aisec.codyze.core.Executor
+import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.config.Configuration
 import de.fraunhofer.aisec.codyze.core.config.combineSources
-import de.fraunhofer.aisec.codyze.core.wrapper.Backend
-import de.fraunhofer.aisec.codyze.core.wrapper.ExecutorCommand
+import de.fraunhofer.aisec.codyze.core.executor.Executor
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import io.mockk.mockk
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.koin.test.KoinTest
+import org.koin.test.junit5.KoinTestExtension
 import java.nio.file.Path
 import kotlin.io.path.*
 import kotlin.test.*
 
-class CodyzeCliTest {
+class CodyzeCliTest : KoinTest {
+
+    // starting koin is necessary because some options (e.g., --executor)
+    // dynamically look up available choices for the by options(...).choice() command
+    @JvmField
+    @RegisterExtension
+    val koinTestExtension =
+        KoinTestExtension.create { // Initialize the koin dependency injection
+            // declare modules necessary for testing
+            modules(outputBuilders)
+        }
+
     class TestExecutorSubcommand : ExecutorCommand<Executor>() {
         private val rawSpec: List<Path> by option("--spec")
             .path(mustExist = true, mustBeReadable = true, canBeDir = true)
@@ -39,7 +53,10 @@ class CodyzeCliTest {
 
         val spec by lazy { combineSources(rawSpec) }
 
-        override fun getExecutor(codyzeConfiguration: Configuration, backend: Backend) = mockk<Executor>(relaxed = true)
+        override fun getExecutor(
+            codyzeConfiguration: Configuration,
+            backend: Backend?
+        ) = mockk<Executor>(relaxed = true)
     }
 
     // Test that relative paths are resolved relative to the config file

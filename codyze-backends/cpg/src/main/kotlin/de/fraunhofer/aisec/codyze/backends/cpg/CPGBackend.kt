@@ -17,13 +17,14 @@
 
 package de.fraunhofer.aisec.codyze.backends.cpg
 
-import de.fraunhofer.aisec.codyze.core.wrapper.Backend
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.backend.Backend
+import de.fraunhofer.aisec.codyze.core.backend.BackendConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
+import de.fraunhofer.aisec.cpg.TranslationResult
 
 open class CPGBackend(config: BackendConfiguration) : Backend {
-    override val graph: Any by lazy {
+    override val backendData: TranslationResult by lazy {
         TranslationManager.builder()
             .config(config = (config as CPGConfiguration).toTranslationConfiguration())
             .build() // Initialize the CPG, based on the given Configuration

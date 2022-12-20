@@ -18,7 +18,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze.core.config.resolvePaths
-import de.fraunhofer.aisec.codyze.core.wrapper.ExecutorOptions
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorOptions
 import mu.KotlinLogging
 import java.nio.file.Path
 

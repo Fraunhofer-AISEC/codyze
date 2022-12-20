@@ -15,29 +15,30 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgEvaluationResult
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.Finding
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getAllNodes
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
-import de.fraunhofer.aisec.cpg.graph.Node
 
-context(de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend)
-
+context(CokoCpgBackend)
 class OnlyEvaluator(val ops: List<Op>) : Evaluator {
-    override fun evaluate(context: EvaluationContext): EvaluationResult {
+    override fun evaluate(context: EvaluationContext): EvaluationResult<Finding> {
         val nodes =
             with(this@CokoCpgBackend) { ops.map { it.getNodes() } }
                 .flatten()
-                .filterIsInstance<Node>()
                 .toSet()
 
         val distinctOps = ops.toSet()
         val allNodes =
             with(this@CokoCpgBackend) { distinctOps.map { it.getAllNodes() } }
                 .flatten()
-                .filterIsInstance<Node>()
                 .toSet()
 
-        return EvaluationResult(nodes == allNodes)
+        return CpgEvaluationResult(listOf(Finding("TODO")))
     }
 }

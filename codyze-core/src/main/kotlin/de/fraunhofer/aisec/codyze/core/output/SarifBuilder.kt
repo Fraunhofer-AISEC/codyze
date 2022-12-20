@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.config
+package de.fraunhofer.aisec.codyze.core.output
 
-import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
-import mu.KotlinLogging
+import io.github.detekt.sarif4k.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.nio.file.Path
+import kotlin.io.path.writeText
 
-private val logger = KotlinLogging.logger {}
+class SarifBuilder : OutputBuilder {
+    override val cliName = "sarif"
 
-/**
- * Holds the main configuration to run Codyze with
- *
- * To add a new CPG configuration option do the following:
- * 1. add a property to [Configuration]
- * 2. add a new CLI option to the [CodyzeOptionGroup]
- * 3. update the [CodyzeOptionGroup.asConfiguration] method
- */
-data class Configuration(
-    val output: Path,
-    val outputBuilder: OutputBuilder,
-    val goodFindings: Boolean,
-    val pedantic: Boolean,
-)
+    override fun toFile(run: Run, path: Path) {
+        val format = Json(builderAction = { prettyPrint = true })
+        val sarifSchema = SarifSchema210(
+            schema = "https://json.schemastore.org/sarif-2.1.0.json",
+            version = Version.The210,
+            runs = listOf(run)
+        )
+        path.writeText(format.encodeToString(sarifSchema))
+    }
+}

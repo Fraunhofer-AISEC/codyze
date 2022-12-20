@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
+package de.fraunhofer.aisec.codyze.core.backend
 
-import kotlin.reflect.KParameter
+import com.github.ajalt.clikt.parameters.groups.OptionGroup
 
-/**
- * The context used during rule evaluation.
- */
-data class EvaluationContext(val rule: CokoRule, val parameterMap: Map<KParameter, Any>)
+open class BackendOptions(helpName: String?) : OptionGroup(name = helpName)

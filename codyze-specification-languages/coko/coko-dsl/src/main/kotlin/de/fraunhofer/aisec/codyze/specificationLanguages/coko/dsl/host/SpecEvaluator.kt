@@ -15,8 +15,9 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import mu.KotlinLogging
 import kotlin.reflect.*
@@ -29,28 +30,36 @@ private val logger = KotlinLogging.logger {}
  * implementations. Then, it generates inputs for the rules and calls the rules.
  */
 class SpecEvaluator {
-    val rules = mutableListOf<Pair<KFunction<*>, Any>>()
-    val types = mutableListOf<Pair<KClass<*>, Any>>()
-    val implementations = mutableListOf<Pair<KClass<*>, Any>>()
+    private val rulesAndInstances = mutableListOf<Pair<CokoRule, Any>>()
+    val rules
+        get() = rulesAndInstances.map { it.first }
+    private val typesAndInstances = mutableListOf<Pair<KClass<*>, Any>>()
+    val types
+        get() = typesAndInstances.map { it.first }
+    private val implementationsAndInstances = mutableListOf<Pair<KClass<*>, Any>>()
+    val implementations
+        get() = implementationsAndInstances.map { it.first }
 
     fun addSpec(scriptClass: KClass<*>, scriptInstance: Any) {
         for (type in scriptClass.nestedClasses) {
             if (type.isAbstract) {
-                types.add(type to scriptInstance)
+                typesAndInstances.add(type to scriptInstance)
             } else {
-                implementations.add(type to scriptInstance)
+                implementationsAndInstances.add(type to scriptInstance)
             }
         }
-        for (member in scriptClass.functions.filter { it.findAnnotation<Rule>() != null }) {
-            rules.add(member to scriptInstance)
+        // TODO: does the isInstance filter work?
+        for (member in scriptClass.functions.filter { it.findAnnotation<Rule>() != null }
+            .filterIsInstance<CokoRule>()) {
+            rulesAndInstances.add(member to scriptInstance)
         }
     }
 
-    fun evaluate() {
-        for ((index, value) in rules.withIndex()) {
+    @Suppress("UnsafeCallOnNullableType")
+    fun evaluate(): Map<CokoRule, List<EvaluationResult<*>>> {
+        val results = mutableMapOf<CokoRule, MutableList<EvaluationResult<*>>>()
+        for ((index, value) in rulesAndInstances.withIndex()) {
             val (rule, ruleInstance) = value
-
-            @Suppress("UnsafeCallOnNullableType")
             val parameterMap =
                 mutableMapOf(
                     rule.instanceParameter!! to ruleInstance
@@ -61,7 +70,7 @@ class SpecEvaluator {
             val valueParameterMap =
                 rule.valueParameters.associateWith { param ->
                     // TODO: check for all implementations!
-                    implementations
+                    implementationsAndInstances
                         .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
                         .map { (it, paramInstance) ->
                             val primaryConstructor =
@@ -82,15 +91,15 @@ class SpecEvaluator {
 
             parameterMap.putAll(valueParameterMap)
 
-            val rawRuleResult = rule.callBy(parameterMap)
-            val ruleResult =
-                (rawRuleResult as? Evaluator)?.evaluate(
-                    EvaluationContext(rule = rule, parameterMap = valueParameterMap)
-                )
-                    ?: rawRuleResult
+            val ruleEvaluator = rule.callBy(parameterMap)
+            val ruleResult = ruleEvaluator.evaluate(EvaluationContext(rule = rule, parameterMap = valueParameterMap))
             logger.info {
-                " (${index + 1}/${rules.size}): ${rule.name} -> ${if (ruleResult == true) "🎉" else "💩"}"
+                " (${index + 1}/${rules.size}): ${rule.name} generated " +
+                    if (ruleResult.findings.size == 1) "1 finding" else "${ruleResult.findings.size} findings"
             }
+
+            results.getOrPut(rule) { mutableListOf(ruleResult) } += ruleResult
         }
+        return results
     }
 }

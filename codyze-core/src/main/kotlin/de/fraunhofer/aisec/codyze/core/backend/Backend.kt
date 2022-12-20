@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.wrapper
+package de.fraunhofer.aisec.codyze.core.backend
 
-interface ExecutorConfiguration {
-    fun normalize(): ExecutorConfiguration
+import io.github.detekt.sarif4k.Artifact
+import io.github.detekt.sarif4k.ToolComponent
+import java.nio.file.Path
+
+interface Backend {
+    val backendData: Any // implement using 'by lazy {}'
+}
+
+interface WithSarifOutput : Backend {
+    val toolInfo: ToolComponent
+    val artifacts: Map<Path, Artifact>
 }

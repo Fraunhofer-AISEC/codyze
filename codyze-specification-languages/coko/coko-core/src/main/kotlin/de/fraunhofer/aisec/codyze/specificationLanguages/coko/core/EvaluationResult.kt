@@ -15,15 +15,14 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
+import io.github.detekt.sarif4k.Artifact
+import io.github.detekt.sarif4k.Result
+import java.nio.file.Path
+
 /**
  * The result of a rule evaluation.
  */
-@Suppress("EqualsWithHashCodeExist") // very much WIP!
-class EvaluationResult(val ruleEvaluationOutcome: Boolean) {
-    override fun equals(other: Any?) =
-        when (other) {
-            is Boolean -> other == ruleEvaluationOutcome
-            is EvaluationResult -> ruleEvaluationOutcome == other.ruleEvaluationOutcome
-            else -> false
-        }
+interface EvaluationResult<T> {
+    val findings: Collection<T>
+    fun toSarif(rule: CokoRule, rules: List<CokoRule>, artifacts: Map<Path, Artifact>?): List<Result>
 }

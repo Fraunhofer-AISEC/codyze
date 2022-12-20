@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
+package de.fraunhofer.aisec.codyze.core.output
 
-import kotlin.reflect.KParameter
+import io.github.detekt.sarif4k.*
+import java.nio.file.Path
 
-/**
- * The context used during rule evaluation.
- */
-data class EvaluationContext(val rule: CokoRule, val parameterMap: Map<KParameter, Any>)
+interface OutputBuilder {
+    val cliName: String
+
+    fun toFile(run: Run, path: Path): Unit
+}

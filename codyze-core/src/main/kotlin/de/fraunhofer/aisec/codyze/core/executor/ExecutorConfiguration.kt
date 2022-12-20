@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.wrapper
+package de.fraunhofer.aisec.codyze.core.executor
 
-interface BackendConfiguration {
-    fun normalize(): BackendConfiguration
+interface ExecutorConfiguration {
+    fun normalize(): ExecutorConfiguration
 }

@@ -26,7 +26,7 @@ import com.github.ajalt.clikt.parameters.options.versionOption
 import de.fraunhofer.aisec.codyze.cli.options.CodyzeOptionGroup
 import de.fraunhofer.aisec.codyze.cli.options.configFileOption
 import de.fraunhofer.aisec.codyze.cli.source.JsonValueSource
-import de.fraunhofer.aisec.codyze.core.helper.VersionProvider
+import de.fraunhofer.aisec.codyze.core.VersionProvider
 import java.nio.file.Path
 import kotlin.io.path.Path
 

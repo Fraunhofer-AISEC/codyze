@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core.wrapper
+package de.fraunhofer.aisec.codyze.backends.cpg.coko
 
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import de.fraunhofer.aisec.cpg.graph.Node
 
-open class BackendOptions(helpName: String?) : OptionGroup(name = helpName)
+data class Finding(
+    val message: String,
+    val node: Node? = null,
+    val relatedNodes: Nodes? = null
+)

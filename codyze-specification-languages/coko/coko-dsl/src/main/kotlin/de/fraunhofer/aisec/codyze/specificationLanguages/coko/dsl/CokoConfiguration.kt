@@ -16,7 +16,7 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.core.config.Configuration
-import de.fraunhofer.aisec.codyze.core.wrapper.ExecutorConfiguration
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli.validateSpec
 import mu.KotlinLogging
 import java.nio.file.Path

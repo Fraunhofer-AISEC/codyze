@@ -19,7 +19,7 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGOptionGroup
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendCommand
+import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 
 class CokoCpgBackend : BackendCommand<CokoBackend>("cokoCpg") {

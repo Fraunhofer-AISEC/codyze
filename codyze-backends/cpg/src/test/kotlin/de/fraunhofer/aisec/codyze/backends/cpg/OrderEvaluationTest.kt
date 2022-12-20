@@ -18,12 +18,13 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.reflect.full.valueParameters
 import kotlin.test.Test
-import kotlin.test.assertFalse
+import kotlin.test.assertEquals
 
 /**
  * Tests the order evaluation starting from a coko order expression.
@@ -54,7 +55,7 @@ class OrderEvaluationTest {
     // of the context receiver)
     // this is needed as an argument to [evaluateOrder]
     @Suppress("UnusedPrivateMember")
-    private fun dummyFunction(testObj: CokoOrderImpl): Order = TODO()
+    private fun dummyFunction(testObj: CokoOrderImpl): Evaluator = TODO()
 
     private val basePath = Path("src", "test", "resources", "OrderEvaluationTest")
 
@@ -91,16 +92,14 @@ class OrderEvaluationTest {
         with(backend) {
             val instance = CokoOrderImpl()
             val orderEvaluator = createSimpleOrder(instance)
-            assertFalse {
-                orderEvaluator
-                    .evaluate(
-                        EvaluationContext(
-                            rule = ::dummyFunction,
-                            parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
-                        )
+            val evaluationResult = orderEvaluator
+                .evaluate(
+                    EvaluationContext(
+                        rule = ::dummyFunction,
+                        parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
                     )
-                    .ruleEvaluationOutcome
-            }
+                )
+            assertEquals(9, evaluationResult.findings.size)
         }
     }
 }

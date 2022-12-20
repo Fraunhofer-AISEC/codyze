@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.core
+package de.fraunhofer.aisec.codyze.core.backend
 
-import io.github.detekt.sarif4k.Result
-
-/**
- * An executor that drives the validation of a specification language against source code and
- * provides evaluation results.
- *
- * For our dependency injection library (Koin), this interface is a 'service interface' and all
- * implementations are 'services'.
- *
- * @since v3.0.0
- */
-interface Executor {
-    fun evaluate(): List<Result>
+interface BackendConfiguration {
+    fun normalize(): BackendConfiguration
 }

@@ -23,7 +23,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OnlyEvaluator
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OrderEvaluator
 import de.fraunhofer.aisec.codyze.core.VersionProvider
 import de.fraunhofer.aisec.codyze.core.backend.BackendConfiguration
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWithSarifOutput
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWithOutput
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken
@@ -39,7 +39,7 @@ typealias Nodes = Collection<Node>
  * The CPG backend for Coko.
  */
 class CokoCpgBackend(config: BackendConfiguration) :
-    CPGBackend(config = config as CPGConfiguration), CokoBackendWithSarifOutput {
+    CPGBackend(config = config as CPGConfiguration), CokoBackendWithOutput {
     private val cpgConfiguration = config as CPGConfiguration
 
     override val toolInfo = ToolComponent(

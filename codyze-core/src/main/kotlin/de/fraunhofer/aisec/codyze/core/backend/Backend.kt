@@ -23,7 +23,7 @@ interface Backend {
     val backendData: Any // implement using 'by lazy {}'
 }
 
-interface WithOutput : Backend {
+interface BackendWithOutput : Backend {
     val toolInfo: ToolComponent
     val artifacts: Map<Path, Artifact>
 }

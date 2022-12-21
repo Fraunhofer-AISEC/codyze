@@ -19,7 +19,7 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWithSarifOutput
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWithOutput
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
 
@@ -40,7 +40,7 @@ class CokoSubcommand : ExecutorCommand<CokoExecutor>("runCoko") {
                 spec = spec,
                 disabledSpecRules = disabledSpecRules,
             ),
-            backend as CokoBackendWithSarifOutput
+            backend as CokoBackendWithOutput
         )
     }
 }

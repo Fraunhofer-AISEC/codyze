@@ -15,11 +15,9 @@
  */
 package de.fraunhofer.aisec.codyze.cli
 
-import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
-import io.github.detekt.sarif4k.*
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin

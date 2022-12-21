@@ -36,7 +36,7 @@ class CodyzeOptionGroupTest : KoinTest {
             modules(outputBuilders)
         }
 
-    /** Test that all available executors are available as choices */
+    /** Test that all available [outputBuilders] are available as choices. */
     @Test
     fun outputBuilderOptionTest() {
         val argv: Array<String> =
@@ -56,7 +56,7 @@ class CodyzeOptionGroupTest : KoinTest {
         assertTrue(actualMessage!!.contains(expectedMessage))
     }
 
-    /** Test that executor choices are cast correctly */
+    /** Test that [OutputBuilder] choices are cast correctly. */
     @Test
     fun outputBuilderOptionCastTest() {
         val argv: Array<String> =

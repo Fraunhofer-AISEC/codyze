@@ -35,6 +35,9 @@ import kotlin.io.path.absolutePathString
 
 typealias Nodes = Collection<Node>
 
+/**
+ * The CPG backend for Coko.
+ */
 class CokoCpgBackend(config: BackendConfiguration) :
     CPGBackend(config = config as CPGConfiguration), CokoBackendWithSarifOutput {
     private val cpgConfiguration = config as CPGConfiguration

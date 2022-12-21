@@ -38,8 +38,13 @@ fun main(args: Array<String>) {
     configFileParser.parse(args)
 
     // parse the arguments based on the codyze options and the executorOptions/backendOptions
-    val codyzeCli = CodyzeCli(configFile = configFileParser.configFile)
-        .subcommands(getKoin().getAll<ExecutorCommand<*>>())
+    val codyzeCli = if (configFileParser.configFile != null) {
+        @Suppress("UnsafeCallOnNullableType")
+        CodyzeCli(configFile = configFileParser.configFile!!)
+    } else {
+        CodyzeCli()
+    }
+    codyzeCli.subcommands(getKoin().getAll<ExecutorCommand<*>>())
     codyzeCli.main(args)
 
     // get the used subcommands
@@ -47,13 +52,15 @@ fun main(args: Array<String>) {
     val backendCommand = executorCommand?.currentContext?.invokedSubcommand as? BackendCommand<*>
 
     // this should already be checked by clikt in [codyzeCli.main(args)]
-    requireNotNull(executorCommand) { "UsageError! Please select one of the possible executors." }
+    requireNotNull(executorCommand) { "UsageError! Please select one of the available executors." }
 
     val codyzeConfiguration = codyzeCli.codyzeOptions.asConfiguration()
     // the subcommands know how to instantiate their respective backend/executor
     val backend = backendCommand?.getBackend() // [null] if the chosen executor does not support modular backends
-    val executor = executorCommand.getExecutor(codyzeConfiguration, backend)
+    val executor = executorCommand.getExecutor(codyzeConfiguration.goodFindings, codyzeConfiguration.pedantic, backend)
 
     val run = executor.evaluate()
+
+    // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the correct format
     codyzeConfiguration.outputBuilder.toFile(run, codyzeConfiguration.output)
 }

@@ -19,14 +19,13 @@ import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
-import de.fraunhofer.aisec.codyze.core.config.Configuration
 import org.koin.java.KoinJavaComponent
 
 /** Contains all options that are shared among all Codyze subcommands. */
 abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
     NoOpCliktCommand(hidden = true, name = cliName) {
 
-    abstract fun getExecutor(codyzeConfiguration: Configuration, backend: Backend?): T
+    abstract fun getExecutor(goodFindings: Boolean, pedantic: Boolean, backend: Backend?): T
 
     /**
      * This should be called in each [ExecutorCommand] to register possible backends.

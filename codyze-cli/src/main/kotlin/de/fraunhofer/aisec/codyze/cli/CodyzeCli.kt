@@ -38,7 +38,7 @@ import kotlin.io.path.Path
  */
 @Suppress("Unused")
 class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
-    val configFile: Path by configFileOption()
+    val configFile: Path? by configFileOption()
 
     // necessary when using 'treatUnknownOptionsAsArgs'. Contains all given arguments except for configFile
     val arguments by argument().multiple()
@@ -48,13 +48,14 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
 }
 
 /**
- * Main [CliktCommand]. Provides some options to all included subcommands.
+ * Main [CliktCommand]. Provides the common Codyze options. Each executor must provide a [CliktCommand] that is
+ * registered as a subcommand on [CodyzeCli].
  *
  * The configFile is actually parsed in the [ConfigFileParser] command and then passed to this class
  * as an argument
  */
 @Suppress("Unused", "UnusedPrivateMember")
-class CodyzeCli(val configFile: Path? = null) :
+class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "codyze.json")) :
     NoOpCliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
 
     init {
@@ -64,13 +65,13 @@ class CodyzeCli(val configFile: Path? = null) :
             message = { "Codyze version $it" }
         )
         context {
-            valueSource = configFile?.let { JsonValueSource.from(it, requireValid = true) }
+            valueSource = JsonValueSource.from(configFile, requireValid = true)
             helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")
         }
     }
 
     // This is only here to correctly display the help message
-    private val unusedConfigFile: Path by configFileOption()
+    private val unusedConfigFile: Path? by configFileOption()
 
     val codyzeOptions by CodyzeOptionGroup()
 }

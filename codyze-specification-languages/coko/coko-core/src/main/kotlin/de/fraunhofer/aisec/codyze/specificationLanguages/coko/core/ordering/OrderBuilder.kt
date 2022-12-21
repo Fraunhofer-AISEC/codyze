@@ -23,7 +23,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.token
 
 @CokoMarker
 /**
- * Base class for [Order], [OrderGroup] and [OrderSet]. Uses a deque to create a binary tree of the
+ * Base class for [Order], [OrderGroup] and [OrderSet]. Creates a binary tree of the
  * given regex with its [toNode] method.
  */
 open class OrderBuilder : OrderFragment {

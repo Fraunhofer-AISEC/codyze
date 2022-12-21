@@ -20,7 +20,6 @@ import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze.core.backend.Backend
-import de.fraunhofer.aisec.codyze.core.config.Configuration
 import de.fraunhofer.aisec.codyze.core.config.combineSources
 import de.fraunhofer.aisec.codyze.core.executor.Executor
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
@@ -54,7 +53,8 @@ class CodyzeCliTest : KoinTest {
         val spec by lazy { combineSources(rawSpec) }
 
         override fun getExecutor(
-            codyzeConfiguration: Configuration,
+            goodFindings: Boolean,
+            pedantic: Boolean,
             backend: Backend?
         ) = mockk<Executor>(relaxed = true)
     }

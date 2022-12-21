@@ -15,6 +15,14 @@
  */
 package de.fraunhofer.aisec.codyze.core.executor
 
+/**
+ * This interface should be implemented as a data class to contain all the configuration options of an [Executor].
+ * An [ExecutorConfiguration] should also contain the shared codyze options passed to [ExecutorCommand.getExecutor].
+ *
+ * When using Codyze as a CMD program, the [ExecutorCommand] is responsible to instantiate the
+ * respective [Executor]. However, to facilitate the usage of Codyze as a library, an [Executor] should have a
+ * configuration object and a [Backend] as its two constructor arguments.
+ */
 interface ExecutorConfiguration {
     fun normalize(): ExecutorConfiguration
 }

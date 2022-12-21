@@ -31,9 +31,8 @@ private val logger = KotlinLogging.logger {}
  * 3. update the [BackendCommand.getBackend] methods for all implementations of that interface e.g., [BaseCpgBackend]
  */
 data class CPGConfiguration(
-    val source: List<Path>, // this is the first argument and thus must be registered first in the [CPGOptions]
+    val source: List<Path>,
     val useUnityBuild: Boolean,
-    // this is the third argument and thus must be the third CLI option to be registered in [CPGOptions]
     val typeSystemActiveInFrontend: Boolean,
     val debugParser: Boolean,
     val disableCleanup: Boolean,

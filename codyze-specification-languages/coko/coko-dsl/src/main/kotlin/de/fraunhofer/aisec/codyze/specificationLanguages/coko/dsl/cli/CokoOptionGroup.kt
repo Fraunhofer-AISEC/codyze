@@ -24,6 +24,9 @@ import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Contains all the options specific to the [CokoExecutor].
+ */
 @Suppress("UNUSED")
 class CokoOptionGroup : ExecutorOptions("Coko Options") {
     private val rawSpec: List<Path> by option("--spec", help = "Loads the given specification files.")

@@ -17,7 +17,6 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli
 
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.core.backend.Backend
-import de.fraunhofer.aisec.codyze.core.config.Configuration
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWithSarifOutput
@@ -29,13 +28,15 @@ class CokoSubcommand : ExecutorCommand<CokoExecutor>("runCoko") {
     val executorOptions by CokoOptionGroup()
 
     init {
+        // allow only the backends that implement the [CokoBackend] interface as subcommands
         registerBackendOptions<CokoBackend>()
     }
 
-    override fun getExecutor(codyzeConfiguration: Configuration, backend: Backend?) = with(executorOptions) {
+    override fun getExecutor(goodFindings: Boolean, pedantic: Boolean, backend: Backend?) = with(executorOptions) {
         CokoExecutor(
             CokoConfiguration(
-                codyzeConfiguration = codyzeConfiguration,
+                goodFindings = goodFindings,
+                pedantic = pedantic,
                 spec = spec,
                 disabledSpecRules = disabledSpecRules,
             ),

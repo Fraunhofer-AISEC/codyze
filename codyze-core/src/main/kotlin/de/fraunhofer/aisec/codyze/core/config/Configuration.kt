@@ -28,6 +28,7 @@ private val logger = KotlinLogging.logger {}
  * 1. add a property to [Configuration]
  * 2. add a new CLI option to the [CodyzeOptionGroup]
  * 3. update the [CodyzeOptionGroup.asConfiguration] method
+ * 4. Optionally: Add the newly added option as an argument to [ExecutorCommand.getExecutor] to pass it to [Executor]s.
  */
 data class Configuration(
     val output: Path,

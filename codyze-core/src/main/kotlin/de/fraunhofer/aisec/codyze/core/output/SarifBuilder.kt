@@ -21,6 +21,9 @@ import kotlinx.serialization.json.Json
 import java.nio.file.Path
 import kotlin.io.path.writeText
 
+/**
+ * An [OutputBuilder] for the SARIF format.
+ */
 class SarifBuilder : OutputBuilder {
     override val cliName = "sarif"
 

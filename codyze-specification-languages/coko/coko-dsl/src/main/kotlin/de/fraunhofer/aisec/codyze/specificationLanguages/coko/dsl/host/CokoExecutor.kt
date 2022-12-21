@@ -26,6 +26,8 @@ import io.github.detekt.sarif4k.Run
 import mu.KotlinLogging
 import java.nio.file.Path
 import kotlin.script.experimental.api.*
+import kotlin.script.experimental.api.SourceCode
+import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
 import kotlin.script.experimental.jvm.jvm
@@ -36,12 +38,15 @@ import kotlin.script.experimental.util.PropertiesCollection
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * The [Executor] to evaluate Coko (codyze.kts) specification files.
+ */
 class CokoExecutor(private val configuration: CokoConfiguration, private val backend: CokoBackendWithSarifOutput) :
     Executor {
 
     /**
      * Compiles all the specification files, translates the CPG and finally triggers the evaluation
-     * of the specs.
+     * of the rules defined in the specs.
      */
     @Suppress("UnusedPrivateMember")
     override fun evaluate(): Run {
@@ -110,7 +115,7 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
                 // compile the script
                 val result =
                     eval(
-                        specFile.toScriptSource(),
+                        FileScriptSource(specFile.toFile()),
                         backend = backend,
                         sharedClassLoader = sharedClassLoader
                     )

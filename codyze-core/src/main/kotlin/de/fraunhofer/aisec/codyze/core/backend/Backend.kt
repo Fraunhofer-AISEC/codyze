@@ -23,7 +23,7 @@ interface Backend {
     val backendData: Any // implement using 'by lazy {}'
 }
 
-interface WithSarifOutput : Backend {
+interface WithOutput : Backend {
     val toolInfo: ToolComponent
     val artifacts: Map<Path, Artifact>
 }

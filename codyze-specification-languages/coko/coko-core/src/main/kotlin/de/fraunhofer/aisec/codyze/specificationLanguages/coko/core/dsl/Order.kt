@@ -50,10 +50,13 @@ context(OrderBuilder)
  *
  * ```kt
  * order {
- *   +group {
+ *   group {
  *      +arg1::func1
- *      +arg1::func2.token.many()
- *      +group(arg1::func2, arg1::func3).option()
+ *      many(arg1::func2)
+ *      option {
+ *          +arg1::func2
+ *          +arg1::func3
+*       }
  *   }
  * }
  * ```
@@ -116,7 +119,7 @@ inline fun atLeast(
  * constructor only works with [OrderToken]s
  * ```kt
  * order {
- *   +group(arg1::func1, arg1::func2, arg1::func3)
+ *   group(arg1::func1, arg1::func2, arg1::func3)
  * }
  * ```
  */

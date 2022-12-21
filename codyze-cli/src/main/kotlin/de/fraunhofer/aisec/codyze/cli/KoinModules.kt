@@ -41,6 +41,9 @@ val executorCommands = module {
     factoryOf(::CokoSubcommand) bind(ExecutorCommand::class)
 }
 
+/**
+ * List all available [OutputBuilder]s. They convert the internally used SARIF format into the final output.
+ */
 val outputBuilders = module {
     factoryOf(::SarifBuilder) bind(OutputBuilder::class)
 }

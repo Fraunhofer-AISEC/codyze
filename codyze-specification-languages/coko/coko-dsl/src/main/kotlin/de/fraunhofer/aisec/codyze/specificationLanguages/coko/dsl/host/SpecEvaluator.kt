@@ -27,7 +27,7 @@ private val logger = KotlinLogging.logger {}
 
 /**
  * Evaluates the rules. It first collects all scripts and divides it in the models and
- * implementations. Then, it generates inputs for the rules and calls the rules.
+ * implementations. Then, it generates inputs for the rules and calls the rules with the found implementations.
  */
 class SpecEvaluator {
     private val rulesAndInstances = mutableListOf<Pair<CokoRule, Any>>()

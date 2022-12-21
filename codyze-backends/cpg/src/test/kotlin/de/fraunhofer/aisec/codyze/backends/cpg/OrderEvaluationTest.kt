@@ -85,7 +85,7 @@ class OrderEvaluationTest {
 
     @Test
     fun `test simple order expression for java`() {
-        // mocking doesn't work here. We need an actual Project instance
+        // mocking doesn't work here. We need an actual backend instance
         val sourceFile = getPath("SimpleOrder.java")
         val backend = CokoCpgBackend(config = createCpgConfiguration(sourceFile))
 

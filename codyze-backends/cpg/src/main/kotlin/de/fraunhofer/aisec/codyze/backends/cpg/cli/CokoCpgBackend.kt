@@ -22,6 +22,9 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 
+/**
+ * The [CliktCommand] to add the cokoCpg backend to the codyze-cli.
+ */
 class CokoCpgBackend : BackendCommand<CokoBackend>("cokoCpg") {
     val backendOptions by CPGOptionGroup()
     override val backend = CokoBackend::class

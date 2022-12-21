@@ -20,11 +20,6 @@ import io.github.detekt.sarif4k.Run
 /**
  * An executor that drives the validation of a specification language against source code and
  * provides evaluation results.
- *
- * For our dependency injection library (Koin), this interface is a 'service interface' and all
- * implementations are 'services'.
- *
- * @since v3.0.0
  */
 fun interface Executor {
     fun evaluate(): Run

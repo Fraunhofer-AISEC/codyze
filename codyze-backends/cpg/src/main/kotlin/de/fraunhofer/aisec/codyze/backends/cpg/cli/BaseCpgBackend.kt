@@ -21,6 +21,9 @@ import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGOptionGroup
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 
+/**
+ * The [CliktCommand] to add the plain cpg backend to the codyze-cli.
+ */
 class BaseCpgBackend : BackendCommand<CPGBackend>("cpg") {
     val backendOptions by CPGOptionGroup()
     override val backend = CPGBackend::class

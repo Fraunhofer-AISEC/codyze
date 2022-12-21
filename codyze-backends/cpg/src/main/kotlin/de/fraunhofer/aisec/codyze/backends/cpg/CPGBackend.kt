@@ -23,6 +23,9 @@ import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 import de.fraunhofer.aisec.cpg.TranslationResult
 
+/**
+ * A plain CPG backend providing only the [TranslationResult] in the [cpg] property.
+ */
 open class CPGBackend(config: BackendConfiguration) : Backend {
     override val backendData: TranslationResult by lazy {
         TranslationManager.builder()
@@ -31,6 +34,8 @@ open class CPGBackend(config: BackendConfiguration) : Backend {
             .analyze()
             .get()
     }
+    val cpg: TranslationResult
+        get() = backendData
 
     /** Return a [TranslationConfiguration] object to pass to the CPG */
     private fun CPGConfiguration.toTranslationConfiguration(): TranslationConfiguration {

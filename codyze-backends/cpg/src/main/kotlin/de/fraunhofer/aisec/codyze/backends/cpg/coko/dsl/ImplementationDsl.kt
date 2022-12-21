@@ -152,10 +152,10 @@ infix fun Any.flowsTo(that: Collection<Node>): Boolean =
     if (this is Wildcard) {
         true
     } else {
-        when (this@flowsTo) {
+        when (this) {
             is String -> that.any { Regex(this).matches((it as? Expression)?.evaluate()?.toString().orEmpty()) }
             is Iterable<*> -> this.any { it?.flowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.flowsTo((that)) ?: false }
+            is Array<*> -> this.any { it?.flowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
             is ParameterGroup -> this.parameters.all { it?.flowsTo(that) ?: false }
             else -> this in that.map { (it as Expression).evaluate() }

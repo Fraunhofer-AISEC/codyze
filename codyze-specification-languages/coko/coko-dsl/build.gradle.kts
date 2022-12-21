@@ -18,4 +18,6 @@ dependencies {
     implementation(libs.kotlin.scripting.dependencies)
 
     testImplementation(libs.mockk)
+
+    implementation(libs.ksp)
 }

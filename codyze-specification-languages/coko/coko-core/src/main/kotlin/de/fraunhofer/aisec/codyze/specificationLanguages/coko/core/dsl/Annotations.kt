@@ -31,3 +31,9 @@ annotation class Import(vararg val paths: String)
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
 annotation class Rule(val description: String = "")
+
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.FILE)
+annotation class Requires(vararg val requirement: String)
+
+@Target(AnnotationTarget.FUNCTION)
+annotation class Ensures(vararg val ensure: String)

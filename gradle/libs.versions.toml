@@ -46,6 +46,9 @@ detekt-gradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", v
 # additional dependencies for plugins in buildSrc
 dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "kotlin" }
 
+# prefix in ksp version should be the same as kotlin version
+ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version = "1.7.20-1.0.7"}
+
 
 [bundles]
 cpg = ["cpg-core", "cpg-analysis"]  # without "cpg-language-go"

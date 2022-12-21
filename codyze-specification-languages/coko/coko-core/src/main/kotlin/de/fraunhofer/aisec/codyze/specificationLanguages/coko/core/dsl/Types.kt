@@ -24,3 +24,7 @@ typealias wildcard = Wildcard
 
 /** Stores the fully qualified name of a class */
 data class Type(val fqn: String)
+
+data class ParamWithType(val param: Any, val type: Type)
+
+infix fun Any.withType(fqn: String) = ParamWithType(this, Type(fqn))

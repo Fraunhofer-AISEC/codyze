@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.ParamWithType
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Type
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Wildcard
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
@@ -141,7 +142,7 @@ context(CallExpression, CokoBackend)
  *
  * If a parameter is a [Type] object, the function will check if the argument has the same type.
  *
- * If a parameter is a [Pair]< [Any], [Type]> object, the function will check if the argument has
+ * If a parameter is a [ParamWithType] object, the function will check if the argument has
  * the same type and if the [Any] object flows to the argument
  *
  * @param hasVarargs specifies if the function has a variable number of arguments at the end which
@@ -156,16 +157,11 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
             when (parameter) {
                 // if any parameter is null, signature returns false
                 null -> false
-                is Pair<*, *> ->
-                    if (parameter.second is Type) {
-                        // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
-                        // if there is dataflow
-                        checkType(parameter.second as Type, i) &&
-                            parameter.first != null &&
-                            parameter.first!! flowsTo arguments[i]
-                    } else {
-                        parameter flowsTo arguments[i]
-                    }
+                is ParamWithType ->
+                    // if `parameter` is a `ParamWithType` object we want to check the type and
+                    // if there is dataflow
+                    checkType(parameter.type, i) &&
+                        parameter.param flowsTo arguments[i]
                 // checks if the type of the argument is the same
                 is Type -> checkType(parameter, i)
                 // check if any of the Nodes from the Op flow to the argument
@@ -179,7 +175,7 @@ fun signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
 context(CallExpression)
 /** Checks the [type] against the type of the argument at [index] for the Call Expression */
 private fun checkType(type: Type, index: Int): Boolean {
-    return type.fqn == arguments[index].type.typeName
+    return arguments[index].type.typeName.endsWith(type.fqn)
 }
 
 context(CallExpression)

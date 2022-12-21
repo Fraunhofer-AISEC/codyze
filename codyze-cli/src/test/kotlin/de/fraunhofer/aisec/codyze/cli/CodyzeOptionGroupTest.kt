@@ -44,7 +44,7 @@ class CodyzeOptionGroupTest : KoinTest {
                 "--output-format",
                 "txt" // invalid choice
             )
-        val cli = CodyzeCli()
+        val cli = CodyzeCli(null)
 
         val exception: Exception =
             Assertions.assertThrows(BadParameterValue::class.java) { cli.parse(argv) }
@@ -64,7 +64,7 @@ class CodyzeOptionGroupTest : KoinTest {
                 "--output-format",
                 "sarif" // valid choice
             )
-        val cli = CodyzeCli()
+        val cli = CodyzeCli(null)
         cli.parse(argv)
 
         assertTrue(cli.codyzeOptions.outputBuilder is SarifBuilder)

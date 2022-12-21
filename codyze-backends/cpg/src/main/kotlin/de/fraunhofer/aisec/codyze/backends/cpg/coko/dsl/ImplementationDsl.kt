@@ -62,7 +62,7 @@ fun Op.getNodes(): Nodes =
                     this@CokoBackend.callFqn(def.fqn) {
                         def.signatures.any { sig ->
                             signature(*sig.parameters.toTypedArray()) &&
-                                sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                                    sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
                         }
                     }
                 }
@@ -72,7 +72,7 @@ fun Op.getNodes(): Nodes =
                 .map { sig ->
                     this@CokoBackend.constructor(this@Op.classFqn) {
                         signature(*sig.parameters.toTypedArray()) &&
-                            sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                                sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
                     }
                 }
                 .flatten()
@@ -120,13 +120,13 @@ fun CokoBackend.memberExpr(
 
 // this extension function should only be available in the context of a CallExpression
 context(CallExpression)
-/**
- * Checks if there's a data flow path from "this" to [that].
- * - If this is a String, we evaluate it as a regex.
- * - If this is a Collection, we check if at least one of the elements flows to [that]
- * - If this is a [Node], we use the DFG of the CPG.
- */
-infix fun Any.flowsTo(that: Node): Boolean =
+        /**
+         * Checks if there's a data flow path from "this" to [that].
+         * - If this is a String, we evaluate it as a regex.
+         * - If this is a Collection, we check if at least one of the elements flows to [that]
+         * - If this is a [Node], we use the DFG of the CPG.
+         */
+        infix fun Any.flowsTo(that: Node): Boolean =
     if (this is Wildcard) {
         true
     } else {
@@ -142,13 +142,13 @@ infix fun Any.flowsTo(that: Node): Boolean =
 
 // it should only be available in the context of a CallExpression
 context(CallExpression)
-/**
- * Checks if there's a data flow path from "this" to any of the elements in [that].
- * - If this is a String, we evaluate it as a regex.
- * - If this is a Collection, we check if at least one of the elements flows to [that]
- * - If this is a [Node], we use the DFG of the CPG.
- */
-infix fun Any.flowsTo(that: Collection<Node>): Boolean =
+        /**
+         * Checks if there's a data flow path from "this" to any of the elements in [that].
+         * - If this is a String, we evaluate it as a regex.
+         * - If this is a Collection, we check if at least one of the elements flows to [that]
+         * - If this is a [Node], we use the DFG of the CPG.
+         */
+        infix fun Any.flowsTo(that: Collection<Node>): Boolean =
     if (this is Wildcard) {
         true
     } else {
@@ -174,7 +174,7 @@ context(CokoBackend)
  *
  * If a parameter is a [Type] object, the function will check if the argument has the same type.
  *
- * If a parameter is a [Pair]< [Any], [Type]> object, the function will check if the argument has
+ * If a parameter is a [ParamWithType] object, the function will check if the argument has
  * the same type and if the [Any] object flows to the argument
  *
  * @param hasVarargs specifies if the function has a variable number of arguments at the end which
@@ -184,37 +184,33 @@ context(CokoBackend)
 fun CallExpression.signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
     return checkArgsSize(parameters, hasVarargs) &&
-        // checks if the CallExpression matches with the parameters
-        parameters.withIndex().all { (i: Int, parameter: Any?) ->
-            when (parameter) {
-                // if any parameter is null, signature returns false
-                null -> false
-                is Pair<*, *> ->
-                    if (parameter.second is Type) {
-                        // if `parameter` is a `Pair<Any,Type>` object we want to check the type and
+            // checks if the CallExpression matches with the parameters
+            parameters.withIndex().all { (i: Int, parameter: Any?) ->
+                when (parameter) {
+                    // if any parameter is null, signature returns false
+                    null -> false
+                    is ParamWithType ->
+                        // if `parameter` is a `ParamWithType` object we want to check the type and
                         // if there is dataflow
-                        checkType(parameter.second as Type, i) &&
-                            parameter.first != null &&
-                            parameter.first!! flowsTo arguments[i]
-                    } else {
-                        parameter flowsTo arguments[i]
-                    }
-                // checks if the type of the argument is the same
-                is Type -> checkType(parameter, i)
-                // check if any of the Nodes from the Op flow to the argument
-                is Op -> parameter.getNodes() flowsTo arguments[i]
-                // checks if there is dataflow from the parameter to the argument in the same position
-                else -> parameter flowsTo arguments[i]
+                        checkType(parameter.type, i) &&
+                                parameter.param flowsTo arguments[i]
+                    // checks if the type of the argument is the same
+                    is Type -> checkType(parameter, i)
+                    // check if any of the Nodes from the Op flow to the argument
+                    is Op -> parameter.getNodes() flowsTo arguments[i]
+                    // checks if there is dataflow from the parameter to the argument in the same position
+                    else -> parameter flowsTo arguments[i]
+                }
             }
-        }
 }
 
 /** Checks the [type] against the type of the argument at [index] for the Call Expression */
-private fun CallExpression.checkType(type: Type, index: Int): Boolean {
-    return type.fqn == arguments[index].type.typeName
-}
+private fun CallExpression.checkType(type: Type, index: Int) = arguments[index].type.typeName.endsWith(type.fqn)
 
 /** Checks if the number of parameters matches the number of arguments of [CallExpression] */
-private fun CallExpression.checkArgsSize(parameters: Array<*>, hasVarargs: Boolean): Boolean {
-    return if (hasVarargs) parameters.size <= arguments.size else parameters.size == arguments.size
-}
+private fun CallExpression.checkArgsSize(parameters: Array<*>, hasVarargs: Boolean) =
+    if (hasVarargs) {
+        parameters.size <= arguments.size
+    } else {
+        parameters.size == arguments.size
+    }

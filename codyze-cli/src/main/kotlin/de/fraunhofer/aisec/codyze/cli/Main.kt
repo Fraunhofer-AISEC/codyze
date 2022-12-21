@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.cli
 
+import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
@@ -22,6 +23,7 @@ import io.github.detekt.sarif4k.*
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
+import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}
 
@@ -34,18 +36,19 @@ fun main(args: Array<String>) {
         modules(executorCommands, backendCommands, outputBuilders)
     }
 
-    val configFileParser = ConfigFileParser() // use a pre-parser that only parses the config file option
-    configFileParser.parse(args)
-
-    // parse the arguments based on the codyze options and the executorOptions/backendOptions
-    val codyzeCli = if (configFileParser.configFile != null) {
-        @Suppress("UnsafeCallOnNullableType")
-        CodyzeCli(configFile = configFileParser.configFile!!)
-    } else {
-        CodyzeCli()
+    // parse the CMD arguments
+    var configFile: Path? = null
+    val codyzeCli: CodyzeCli
+    try {
+        val configFileParser = ConfigFileParser() // use a pre-parser that only parses the config file option
+        configFileParser.parse(args)
+        configFile = configFileParser.configFile
+    } finally {
+        // parse the arguments based on the codyze options and the executorOptions/backendOptions
+        codyzeCli = CodyzeCli(configFile = configFile)
+        codyzeCli.subcommands(getKoin().getAll<ExecutorCommand<*>>())
+        codyzeCli.main(args)
     }
-    codyzeCli.subcommands(getKoin().getAll<ExecutorCommand<*>>())
-    codyzeCli.main(args)
 
     // get the used subcommands
     val executorCommand = codyzeCli.currentContext.invokedSubcommand as? ExecutorCommand<*>

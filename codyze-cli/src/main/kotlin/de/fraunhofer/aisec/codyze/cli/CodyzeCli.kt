@@ -38,7 +38,7 @@ import kotlin.io.path.Path
  */
 @Suppress("Unused")
 class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
-    val configFile: Path? by configFileOption()
+    val configFile: Path by configFileOption()
 
     // necessary when using 'treatUnknownOptionsAsArgs'. Contains all given arguments except for configFile
     val arguments by argument().multiple()
@@ -55,7 +55,7 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
  * as an argument
  */
 @Suppress("Unused", "UnusedPrivateMember")
-class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "codyze.json")) :
+class CodyzeCli(val configFile: Path?) :
     NoOpCliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
 
     init {
@@ -65,7 +65,7 @@ class CodyzeCli(val configFile: Path = Path(System.getProperty("user.dir"), "cod
             message = { "Codyze version $it" }
         )
         context {
-            valueSource = JsonValueSource.from(configFile, requireValid = true)
+            valueSource = configFile?.let { JsonValueSource.from(it, requireValid = true) }
             helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")
         }
     }

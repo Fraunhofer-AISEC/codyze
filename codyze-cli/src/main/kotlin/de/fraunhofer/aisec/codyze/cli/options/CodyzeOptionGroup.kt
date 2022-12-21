@@ -38,7 +38,7 @@ class CodyzeOptionGroup : OptionGroup(name = null) {
         help = "Format in which the analysis results are returned."
     )
         .choice(getKoin().getAll<OutputBuilder>().associateBy { it.cliName }, ignoreCase = true)
-        .default(SarifBuilder())
+        .default(SarifBuilder(), defaultForHelp = "sarif")
 
     val goodFindings: Boolean by option(
         "--good-findings",

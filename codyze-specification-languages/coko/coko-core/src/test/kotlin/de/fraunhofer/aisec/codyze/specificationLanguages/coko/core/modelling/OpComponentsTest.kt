@@ -31,7 +31,7 @@ class OpComponentsTest {
     @ParameterizedTest(name = "[{index}] test with {0} parameters")
     @MethodSource("unaryPlusParamHelper")
     fun `test group`(expectedParams: ArrayList<Parameter>) {
-        with(mockk<Signature>()) {
+        with(mockk<Signature>(relaxed = true)) {
             val paramGroup = group { expectedParams.forEach { +it } }
 
             assertContentEquals(expectedParams, paramGroup.parameters)
@@ -54,7 +54,7 @@ class OpComponentsTest {
 
     @Test
     fun `test simple signature`() {
-        with(mockk<Definition>()) {
+        with(mockk<Definition>(relaxed = true)) {
             val sig = signature { +singleParam }
             val sigShortcut = signature(singleParam)
 
@@ -67,21 +67,22 @@ class OpComponentsTest {
 
     @Test
     fun `test signature with unordered`() {
-        with(mockk<Definition>()) {
-            // TODO: which version do we keep or all?
-            val unordered = signature().unordered(*multipleParams.toTypedArray())
+        with(mockk<Definition>(relaxed = true)) {
+            val unordered = signature(multipleParams.toTypedArray()) {}
+            val unorderedShortcut = signature().unordered(*multipleParams.toTypedArray())
 
             val expectedSig = Signature().apply { unorderedParameters.addAll(multipleParams) }
+            assertEquals(expectedSig, unorderedShortcut)
             assertEquals(expectedSig, unordered)
         }
     }
 
     @Test
     fun `test signature with group`() {
-        with(mockk<Definition>()) {
-            val sig = signature { +group { multipleParams.forEach { +it } } }
+        with(mockk<Definition>(relaxed = true)) {
+            val sig = signature { group { multipleParams.forEach { +it } } }
 
-            val groupShortcut = signature { +group(*multipleParams.toTypedArray()) }
+            val groupShortcut = signature { group(*multipleParams.toTypedArray()) }
 
             val expectedSig =
                 Signature().apply {
@@ -98,11 +99,11 @@ class OpComponentsTest {
         val (allOrdered, unordered) = multipleParams.partition { Random.nextBoolean() }
         val (ordered, grouped) = allOrdered.partition { Random.nextBoolean() }
 
-        with(mockk<Definition>()) {
+        with(mockk<Definition>(relaxed = true)) {
             val sig =
                 signature {
                     +singleParam
-                    +group { grouped.forEach { +it } }
+                    group { grouped.forEach { +it } }
                     ordered.forEach { +it }
                 }
                     .unordered(*unordered.toTypedArray())
@@ -121,37 +122,36 @@ class OpComponentsTest {
     }
 
     @Test
-    fun `test unaryPlus in Definition`() {
-        val expectedSignatures = arrayListOf<Signature>()
-        expectedSignatures.add(mockk<Signature>())
-        expectedSignatures.add(mockk<Signature>())
-        expectedSignatures.add(mockk<Signature>())
-        expectedSignatures.add(mockk<Signature>())
-        expectedSignatures.add(mockk<Signature>())
-
-        val def = Definition("test.fqn")
-        with(def) { expectedSignatures.forEach { +it } }
-        assertContentEquals(
-            expectedSignatures,
-            def.signatures,
-            "signatures in Definition were not as expected"
-        )
-    }
-
-    @Test
     fun `test definition`() {
         val sig1 = mockk<Signature>()
         val sig2 = mockk<Signature>()
 
-        with(mockk<FunctionOp>()) {
+        with(mockk<FunctionOp>(relaxed = true)) {
             val def = definition("fqn") {
-                +sig1
-                +sig2
+                add(sig1)
+                add(sig2)
             }
 
             val expected = Definition("fqn")
             expected.signatures.add(sig1)
             expected.signatures.add(sig2)
+
+            assertEquals(expected, def)
+        }
+    }
+
+    @Test
+    fun `test add component twice`() {
+        val sig = mockk<Signature>()
+
+        with(mockk<FunctionOp>(relaxed = true)) {
+            val def = definition("fqn") {
+                add(sig)
+                add(sig)
+            }
+
+            val expected = Definition("fqn")
+            expected.signatures.add(sig)
 
             assertEquals(expected, def)
         }

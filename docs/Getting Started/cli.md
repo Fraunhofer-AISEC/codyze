@@ -57,13 +57,10 @@ The repository contains examples which you can use to test Codyze.
 Below are the commands to call Codyze on these examples.
 
 ```shell
-./gradlew :codyze-cli:run --args="analyze -s ../examples/botan/blockciphers/Prudkovskiy.Qt_LockBox/crypto.cpp --spec ../examples/botan/MARK"
+./gradlew :codyze-cli:run --args="analyze -s ../codyze-specification-languages/coko/coko-dsl/src/test/resources/java/Main.java --spec ../codyze-specification-languages/coko/coko-dsl/src/test/resources/model.codyze.kts --spec ../codyze-specification-languages/coko/coko-dsl/src/test/resources/javaimpl.codyze.kts"
 ```
 
-You might notice that the Gradle task will fail.
-The reason is that Codyze returns `1` if there is any negative finding and will only return `0` if no rule was violated.
+You will see the result printed to the console.
+The spec files contain a single rule which checks that every change to a database is logged.
+The sample Java file adheres to the rule so there should be no issues in the result.
 
-The findings are located in the file `findings.sarif` in the respective project directories.
-Looking into the findings, there are two passes for the rule `WrongBlockCipher`, which means that the correct algorithm `AES` was used for the block ciphers in line 16 and 22.
-There are also two open findings for the rule `BadKeyLength` since the key length was not explicitly set.
-The last open finding is for the rule `WrongUseOfBotan_CipherMode`.

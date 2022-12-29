@@ -64,6 +64,6 @@ To report a bug, make sure to include the following information:
 
 * [Material for MkDocs user guide](https://squidfunk.github.io/mkdocs-material/): All about Material, the documentation template we use, including how it manages navigation, look and feel, and multi-language support.
 * [MkDocs user guide](https://www.mkdocs.org/): Comprehensive reference for MkDocs.
-* [Github Hello World!](https://guides.github.com/activities/hello-world/): A basic introduction to GitHub concepts and workflow.
+* [GitHub Hello World!](https://guides.github.com/activities/hello-world/): A basic introduction to GitHub concepts and workflow.
 
 

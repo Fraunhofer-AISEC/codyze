@@ -24,7 +24,7 @@ cpg-analysis = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-analysis", versio
 
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "3.0.4"}
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version = "2.18.0"}
-clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.0"}
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.1"}
 koin = { module = "io.insert-koin:koin-core", version.ref = "koin"}
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin"}
 koin-junit5 = { module = "io.insert-koin:koin-test-junit5", version.ref = "koin"}

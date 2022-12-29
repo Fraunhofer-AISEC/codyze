@@ -15,22 +15,12 @@ description: >
 ## Build from Source
 Clone the source code for Codyze from the [project's GitHub repository <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze).
 
-### Codyze v2
-##### Executable Version
-* To build an executable version, run `./gradlew :codyze-v2:installDist`
-* The executable Codyze installation is located under `codyze-v2/build/install/codyze-v2`
-##### Gradle Run Task
-You can also use the Gradle run task `./gradlew :codyze-v2:run` to directly run Codyze.
-This will print the help message and return an error.
-
-Arguments can be passed with the `--args` option. 
-
 ### Codyze v3
 ##### Executable Version
-* To build an executable version, run `./gradlew :codyze-v3:codyze:installDist`
-* The executable Codyze installation is located under `codyze-v3/codyze/build/install/codyze`
+* To build an executable version, run `./gradlew :codyze-cli:installDist`
+* The executable Codyze installation is located under `codyze-cli/build/install/codyze-cli`
 ##### Gradle Run Task
-You can also use the Gradle run task `./gradlew :codyze-v3:codyze:run` to directly run Codyze.
+You can also use the Gradle run task `./gradlew :codyze-cli:run` to directly run Codyze.
 This will print the help message and return an error.
 
 Arguments can be passed with the `--args` option.

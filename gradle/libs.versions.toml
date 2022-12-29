@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.7.22"
+kotlin = "1.8.0"
 cpg = "main-SNAPSHOT"   # revert to official releases when features become available
 koin = "3.3.0"
 detekt = "1.22.0"

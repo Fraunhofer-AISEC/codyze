@@ -33,15 +33,15 @@ jobs:
             echo "Building as ${VERSION}"
           fi
 
-          echo "##[set-output name=version;]$VERSION"
+          echo "version=$VERSION" >> $GITHUB_ENV
         id: determine_version
-      - name: Build ${{ steps.determine_version.outputs.version }}
+      - name: Build ${{ env.version }}
         uses: gradle/gradle-build-action@v2
         with:
           arguments: :codyze-cli:build -x check --parallel -Pversion=$VERSION
         id: build
         env:
-          VERSION: ${{ steps.determine_version.outputs.version }}
+          VERSION: ${{ env.version }}
       - name: Push Release Docker Image
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -51,7 +51,7 @@ jobs:
           docker push ghcr.io/fraunhofer-aisec/codyze:$VERSION
           docker push ghcr.io/fraunhofer-aisec/codyze:latest
         env:
-          VERSION: ${{ steps.determine_version.outputs.version }}
+          VERSION: ${{ env.version }}
       - name: "Create Release"
         if: startsWith(github.ref, 'refs/tags/v')
         id: create_release
@@ -60,7 +60,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: ${{ steps.determine_version.outputs.version }}
+          release_name: ${{ env.version }}
           draft: false
           prerelease: false
       - name: "Upload Release Asset"
@@ -71,6 +71,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: codyze-cli/build/distributions/codyze-cli-${{ steps.determine_version.outputs.version }}.zip
-          asset_name: codyze-cli-${{ steps.determine_version.outputs.version }}.zip
+          asset_path: codyze-cli/build/distributions/codyze-cli-${{ env.version }}.zip
+          asset_name: codyze-cli-${{ env.version }}.zip
           asset_content_type: application/zip

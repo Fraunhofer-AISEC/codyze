@@ -6,7 +6,7 @@ dependencies {
     api(projects.codyzeCore)
 
     implementation(libs.kotlin.reflect)
-    implementation(libs.sarif4k)
+    implementation(libs.bundles.sarif)
 
     testImplementation(libs.mockk)
 }

@@ -50,6 +50,7 @@ dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "dokka" 
 
 [bundles]
 cpg = ["cpg-core", "cpg-analysis"]  # without "cpg-language-go"
+sarif = ["sarif4k", "kotlinx-serialization-json"]
 
 [plugins]
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}

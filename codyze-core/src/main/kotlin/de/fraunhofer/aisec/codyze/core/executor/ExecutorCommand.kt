@@ -19,7 +19,7 @@ import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
-import org.koin.java.KoinJavaComponent
+import org.koin.java.KoinJavaComponent.getKoin
 
 /** Contains all options that are shared among all Codyze subcommands. */
 abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
@@ -33,6 +33,6 @@ abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
      * a backend of type [T] are registered.
      */
     inline fun <reified T> registerBackendOptions() {
-        subcommands(KoinJavaComponent.getKoin().getAll<BackendCommand<*>>().filter { it.backend == T::class })
+        subcommands(getKoin().getAll<BackendCommand<*>>().filter { it.backend == T::class })
     }
 }

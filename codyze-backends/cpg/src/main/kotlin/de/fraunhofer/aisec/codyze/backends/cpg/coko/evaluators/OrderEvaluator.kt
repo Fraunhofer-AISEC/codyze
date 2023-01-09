@@ -100,7 +100,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
                 .toMap()
         )
 
-        // this list will be filled by [CodyzeDfaOrderEvaluator] using the lambda given as the 'taskOnAction' argument
+        // this list will be filled by [CodyzeDfaOrderEvaluator] using the lambda given as the 'createFinding' argument
         val findings = mutableListOf<Finding>()
 
         // TODO: for a node to know its method execute following pass: EdgeCachePass

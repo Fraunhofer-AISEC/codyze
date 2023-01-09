@@ -26,5 +26,5 @@ interface OutputBuilder {
     val cliName: String
 
     /** Convert the SARIF Run to the format of this [OutputBuilder] and write it as file to the given [path]. */
-    fun toFile(run: Run, path: Path): Unit
+    fun toFile(run: Run, path: Path)
 }

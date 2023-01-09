@@ -16,7 +16,7 @@ class Sqlite3 : ObjectRelationalMapper {
     override fun insert(obj: Any) = op {
         definition("sqlite3.Cursor.execute") {
             signature {
-                +group {
+                group {
                     +"INSERT.*"
                     +obj
                 }

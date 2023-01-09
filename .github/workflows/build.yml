@@ -13,6 +13,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
@@ -54,23 +56,8 @@ jobs:
           VERSION: ${{ env.version }}
       - name: "Create Release"
         if: startsWith(github.ref, 'refs/tags/v')
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ env.version }}
-          draft: false
-          prerelease: false
-      - name: "Upload Release Asset"
-        if: startsWith(github.ref, 'refs/tags/v')
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: codyze-cli/build/distributions/codyze-cli-${{ env.version }}.zip
-          asset_name: codyze-cli-${{ env.version }}.zip
-          asset_content_type: application/zip
+          name: ${{ env.version }}
+          generate_release_notes: true
+          files: codyze-cli/build/distributions/codyze-cli-${{ env.version }}.zip

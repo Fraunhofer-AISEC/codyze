@@ -17,6 +17,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering
 
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFA
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFAOrderEvaluator
+import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.graph.Node
 import mu.KotlinLogging
 
@@ -29,23 +30,29 @@ val logger = KotlinLogging.logger {}
 class CodyzeDfaOrderEvaluator(
     val createFinding: (cpgNode: Node, message: String) -> Unit,
     consideredBases: Set<Node>,
-    nodeToRelevantMethod: Map<Node, String>,
+    nodeToRelevantMethod: Map<Node, Set<String>>,
     thisPositionOfNode: Map<Node, Int> = mapOf(),
     eliminateUnreachableCode: Boolean = true
 ) : DFAOrderEvaluator(consideredBases, nodeToRelevantMethod, thisPositionOfNode, eliminateUnreachableCode) {
+    private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { e ->
+        if (e.base != null) "${e.base!!.split("$").last()}.${e.op}" else e.op
+    }?.sorted()
 
     /**
      * Collects a finding if the [node] makes an operation which violates the desired order.
      */
     override fun actionMissingTransitionForNode(node: Node, fsm: DFA, interproceduralFlow: Boolean) {
-        val possibleNextEdges =
-            fsm.currentState?.outgoingEdges?.map { e -> if (e.base != null) "${e.base}.${e.op}" else e.op }?.sorted()
+        val possibleNextEdges = getPossibleNextEdges(fsm.currentState?.outgoingEdges)
 
-        val defaultMessage =
-            "Violation against Order: ${node.code} (${nodeToRelevantMethod[node]}) is not allowed. Expected one of: " +
-                possibleNextEdges?.joinToString(", ")
+        var message =
+            "Violation against Order: \"${node.code}\". Op \"${nodeToRelevantMethod[node]}\" is not allowed. " +
+                    "Expected one of: " + possibleNextEdges?.joinToString(", ")
 
-        createFinding(node, defaultMessage)
+        if (possibleNextEdges?.isEmpty() == true && fsm.currentState?.isAcceptingState == true) {
+            message = "Violation against Order: \"${node.code}\". Op \"${nodeToRelevantMethod[node]}\" is not allowed. " +
+                    "No other calls are allowed on this base."
+        }
+        createFinding(node, message)
     }
 
     /**
@@ -57,15 +64,14 @@ class CodyzeDfaOrderEvaluator(
             return // We have not really started yet, so no output here.
         }
 
-        val baseDeclName = base.split("|")[1].split(".")[0]
+        val baseDeclName = base.split("|")[1].split(".").first()
         val node = fsm.executionTrace.last().cpgNode
 
-        val possibleNextEdges =
-            fsm.currentState?.outgoingEdges?.map { e -> if (e.base != null) "${e.base}.${e.op}" else e.op }?.sorted()
+        val possibleNextEdges = getPossibleNextEdges(fsm.currentState?.outgoingEdges)
 
         val defaultMessage = "Violation against Order: Base $baseDeclName is not correctly terminated. " +
-            "Expected one of [${possibleNextEdges?.joinToString(", ")}] " +
-            "to follow the correct last call on this base."
+                "Expected one of [${possibleNextEdges?.joinToString(", ")}] " +
+                "to follow the correct last call on this base."
 
         createFinding(node, defaultMessage)
     }

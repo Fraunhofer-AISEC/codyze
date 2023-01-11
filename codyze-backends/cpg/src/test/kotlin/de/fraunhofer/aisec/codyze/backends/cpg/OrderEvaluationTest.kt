@@ -35,7 +35,7 @@ import kotlin.test.assertEquals
  */
 class OrderEvaluationTest {
     class CokoOrderImpl {
-        fun constructor() = constructor("Botan") {}
+        fun constructor(value: Int?) = constructor("Botan") { signature(value) }
         fun init() = op { definition("Botan.set_key") { signature(Wildcard) } }
         fun start() = op { definition("Botan.start") { signature(Wildcard) } }
         fun finish() = op { definition("Botan.finish") { signature(Wildcard) } }
@@ -43,7 +43,14 @@ class OrderEvaluationTest {
 
     context(CokoBackend)
     private fun createSimpleOrder(testObj: CokoOrderImpl) =
-        order(testObj::constructor) {
+        order(testObj::constructor.use { call(1) }) {
+            +testObj::start
+            +testObj::finish
+        }
+
+    context(CokoBackend)
+    private fun createSimpleOrderReducedStartNodes(testObj: CokoOrderImpl) =
+        order(testObj::constructor.use { call(1) }) {
             +testObj::start
             +testObj::finish
         }
@@ -99,7 +106,31 @@ class OrderEvaluationTest {
                         parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
                     )
                 )
-            assertEquals(9, evaluationResult.findings.size)
+            assertEquals(6, evaluationResult.findings.size)
+        }
+    }
+
+    @Test
+    fun `test simple order expression for java with reduced start nodes`() {
+        // mocking doesn't work here. We need an actual backend instance
+        val sourceFile = getPath("SimpleOrder.java")
+        val backend = CokoCpgBackend(config = createCpgConfiguration(sourceFile))
+
+        with(backend) {
+            val instance = CokoOrderImpl()
+            val orderEvaluator = createSimpleOrderReducedStartNodes(instance)
+            val evaluationResult = orderEvaluator
+                .evaluate(
+                    EvaluationContext(
+                        rule = ::dummyFunction,
+                        parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
+                    )
+                )
+            assertEquals(1, evaluationResult.findings.size)
+            assertEquals(
+                evaluationResult.findings.first().message,
+                "Violation against Order: \"p.set_key(key);\". Op \"[init]\" is not allowed. Expected one of: CokoOrderImpl.start"
+            )
         }
     }
 }

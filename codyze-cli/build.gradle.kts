@@ -11,6 +11,7 @@ dependencies {
     implementation(libs.clikt)
     implementation(libs.koin)
     implementation(libs.kotlin.reflect)
+    implementation(libs.bundles.sarif)
 
     // For deserialization of config files
     implementation(libs.kotlinx.serialization.json)

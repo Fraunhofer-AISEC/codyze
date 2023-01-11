@@ -28,12 +28,15 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.token
  */
 open class OrderBuilder : OrderFragment {
     // the nodes for the [Op]s in this map must be retrieved using [Op.getNodes]
-    val userDefinedOps = mutableMapOf<String, () -> Op>()
+    val userDefinedOps = mutableMapOf<String, Op>()
 
     protected val orderNodes = mutableListOf<OrderNode>() // this is emptied in [toNode]
 
     /** Add an [OrderToken] to the [orderNodes] */
     operator fun OrderToken.unaryPlus() = add(this)
+
+    /** Add an [OrderFragment] to the [orderNodes] */
+    operator fun OrderFragment.unaryPlus() = add(this)
 
     fun add(token: OrderToken) = orderNodes.add(token.token)
 

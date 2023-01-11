@@ -27,6 +27,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWi
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.toTerminalOrderNode
 import de.fraunhofer.aisec.cpg.graph.Node
 import io.github.detekt.sarif4k.Artifact
 import io.github.detekt.sarif4k.ArtifactLocation
@@ -59,12 +60,25 @@ class CokoCpgBackend(config: BackendConfiguration) :
     /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
     override infix fun Op.followedBy(that: Op) = FollowsEvaluator(ifOp = this, thenOp = that)
 
-    /* Ensures the order of nodes as specified in the user configured [Order] object */
+    /*
+     * Ensures the order of nodes as specified in the user configured [Order] object.
+     * The order evaluation starts at the given [baseNodes].
+     */
     override fun order(baseNodes: OrderToken?, block: Order.() -> Unit) =
         OrderEvaluator(
-            baseNodes = baseNodes?.call()?.getAllNodes(),
+            baseNodes = baseNodes?.toTerminalOrderNode()?.op?.getAllNodes(),
             order = Order().apply(block)
-        ) // TODO: use getNodes here instead?
+        )
+
+    /*
+     * Ensures the order of nodes as specified in the user configured [Order] object.
+     * The order evaluation starts at the given [baseNodes].
+     */
+    override fun order(baseNodes: Op?, block: Order.() -> Unit) =
+        OrderEvaluator(
+            baseNodes = baseNodes?.getNodes(),
+            order = Order().apply(block)
+        )
 
     /**
      * Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops]

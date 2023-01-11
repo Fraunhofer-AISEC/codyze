@@ -17,6 +17,7 @@
 
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 
 /** [OrderBuilder] subclass to hide some implementation details of [OrderBuilder] to coko users. */
@@ -30,11 +31,17 @@ context(OrderBuilder)
  * Convert a [OrderToken] into a TerminalOrderNode and specify the arguments passed to the
  * [OrderToken] when evaluating the order
  */
-fun OrderToken.use(block: () -> Op): OrderFragment {
-    val opName = this.name + "$" + block.hashCode()
-    this@OrderBuilder.userDefinedOps[opName] = block
-    return toTerminalOrderNode(opName = opName)
+fun OrderToken.use(block: OrderToken.() -> Op): TerminalOrderNode {
+    val terminalOrderNode = toTerminalOrderNode(opName = this.name + "$" + block.hashCode(), useGetNodes = true)
+    this@OrderBuilder.userDefinedOps[terminalOrderNode.opName] = terminalOrderNode.op
+    return terminalOrderNode
 }
+
+/**
+ * Helper function that allows the user to call [use] outside of an [OrderBuilder] context.
+ * This is needed in [CokoBackend.order] for the [baseNodes] argument.
+ */
+fun OrderToken.use(block: OrderToken.() -> Op) = block.invoke(this)
 
 context(OrderBuilder)
 /** Convert an [OrderToken] into a TerminalOrderNode */

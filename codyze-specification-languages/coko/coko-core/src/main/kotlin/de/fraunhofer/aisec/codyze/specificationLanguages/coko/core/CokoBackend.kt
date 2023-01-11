@@ -47,7 +47,13 @@ interface CokoBackend : Backend {
     fun order(
         baseNodes: OrderToken? = null,
         block: Order.() -> Unit
-    ): Evaluator // TODO: allow OrderFragment in baseNodes to allow the user to use '.use {}'
+    ): Evaluator
+
+    /* Ensures the order of nodes as specified in the user configured [Order] object */
+    fun order(
+        baseNodes: Op? = null,
+        block: Order.() -> Unit
+    ): Evaluator
 
     /**
      * Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops]

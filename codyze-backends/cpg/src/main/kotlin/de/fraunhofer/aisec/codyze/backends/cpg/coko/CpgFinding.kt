@@ -15,10 +15,11 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg.coko
 
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.cpg.graph.Node
 
-data class Finding(
-    val message: String,
+data class CpgFinding(
+    override val message: String,
     val node: Node? = null,
     val relatedNodes: Nodes? = null
-)
+): Finding

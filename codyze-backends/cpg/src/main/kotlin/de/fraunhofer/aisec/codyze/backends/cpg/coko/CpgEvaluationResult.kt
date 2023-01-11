@@ -50,7 +50,7 @@ val Node.sarifLocation: Region
         )
     }
 
-class CpgEvaluationResult(override val findings: List<Finding>) : EvaluationResult<Finding> {
+class CpgEvaluationResult(override val findings: List<CpgFinding>) : EvaluationResult<CpgFinding> {
     override fun toSarif(rule: CokoRule, rules: List<CokoRule>, artifacts: Map<Path, Artifact>?) =
         findings.map { finding ->
             Result(

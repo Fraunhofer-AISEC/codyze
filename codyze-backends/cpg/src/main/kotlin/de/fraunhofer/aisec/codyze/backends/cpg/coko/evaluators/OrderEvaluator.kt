@@ -30,8 +30,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 import de.fraunhofer.aisec.cpg.graph.AssignmentTarget
 import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.declarations.Declaration
-import de.fraunhofer.aisec.cpg.graph.followPrevEOG
 import de.fraunhofer.aisec.cpg.graph.followNextEOG
 import mu.KotlinLogging
 import kotlin.reflect.full.createType
@@ -57,6 +55,26 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
             }
         }
         return result
+    }
+
+    /**
+     * Perform DFS through all previous EOG edges until we find a root node with no previous EOG edges.
+     * This node is then a MethodDeclaration/FunctionDeclaration or similar.
+     */
+    private fun Node.followPrevEOGUntilEnd(): Node? {
+        val stack = ArrayDeque<Node>()
+        stack.addLast(this)
+        while (stack.isNotEmpty()) {
+            val node = stack.removeLast()
+            if (node.prevEOGEdges.isEmpty()) {
+                return node
+            } else {
+                for (prevNode in node.prevEOGEdges.map { it.start }) {
+                    stack.addLast(prevNode)
+                }
+            }
+        }
+        return null
     }
 
     @Suppress("UnsafeCallOnNullableType")
@@ -107,7 +125,8 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
 
         // the more specific nodes respecting the signature here
         //
-        // the nodes from +testObj::start.use { } <- use makes them userDefined
+        // the nodes from +testObj::start.use { testObj.start(123) } <- use makes them userDefined
+        // only allow the start nodes that take '123' as argument
         for ((opName, op) in order.userDefinedOps.entries){
             val nodes = op.getNodes()
             for (node in nodes) {
@@ -119,17 +138,26 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
         // this list will be filled by [CodyzeDfaOrderEvaluator] using the lambda given as the 'createFinding' argument
         val findings = mutableListOf<CpgFinding>()
 
+        // create the order evaluator for this order rule
+        val dfaEvaluator = CodyzeDfaOrderEvaluator(
+            dfa = dfa,
+            nodeToRelevantMethod = nodesToOp,
+            consideredBases = orderStartNodes.map { node -> node.followNextEOG { it.end is AssignmentTarget }!!.last().end }.toSet(),
+            consideredResetNodes = orderStartNodes.toSet(),  // TODO: implement consideredResetNodes
+            createFinding = { cpgNode: Node, message: String -> findings.add(CpgFinding(node = cpgNode, message = message)) },
+        )
+
+        // this should be a set of MethodDeclarations or a similar top level statements
+        val topLevelCompoundStatement = orderStartNodes.map {node ->
+            node.followPrevEOGUntilEnd()
+        }.filterNotNull().toSet()
+
         var isOrderValid = true
-        for (node in orderStartNodes) {
-            val dfaEvaluator = CodyzeDfaOrderEvaluator(
-                createFinding = { cpgNode, message -> findings.add(CpgFinding(node = cpgNode, message = message)) },
-                consideredBases = setOf(node.followNextEOG { it.end is AssignmentTarget }!!.last().end),
-                nodeToRelevantMethod = nodesToOp,
-                // consideredResetNodes = orderStartNodes, // TODO: implement consideredResetNodes
-            )
-            isOrderValid = dfaEvaluator.evaluateOrder(
-                dfa,
-                node.followPrevEOG { it.start is Declaration }!!.last().start
+        // evaluate the order for every MethodDeclaration/FunctionDeclaration/init block etc. which contains
+        // a node of the [orderStartNodes]
+        for (node in topLevelCompoundStatement) {
+            isOrderValid = dfaEvaluator.evaluateOrder( // evaluates the order for all bases in this one method
+                node
             ) && isOrderValid
         }
 

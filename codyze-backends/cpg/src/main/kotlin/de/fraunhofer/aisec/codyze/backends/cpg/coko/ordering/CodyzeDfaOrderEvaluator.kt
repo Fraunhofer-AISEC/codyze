@@ -35,7 +35,7 @@ class CodyzeDfaOrderEvaluator(
     thisPositionOfNode: Map<Node, Int> = mapOf(), // for non-object oriented languages
     consideredResetNodes: Set<Node>,
     eliminateUnreachableCode: Boolean = true
-) : DFAOrderEvaluator(dfa, consideredBases, nodeToRelevantMethod, thisPositionOfNode, consideredResetNodes, eliminateUnreachableCode) {
+) : DFAOrderEvaluator(dfa, consideredBases, nodeToRelevantMethod, consideredResetNodes, thisPositionOfNode, eliminateUnreachableCode) {
     private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { e ->
         if (e.base != null) "${e.base!!.split("$").last()}.${e.op}" else e.op
     }?.sorted()

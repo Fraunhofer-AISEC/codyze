@@ -38,10 +38,7 @@ import kotlin.reflect.full.declaredMemberFunctions
 private val logger = KotlinLogging.logger {}
 
 context(CokoCpgBackend)
-class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evaluator {
-    private fun findInstancesForEntities(rule: CokoRule): Collection<Node> =
-        TODO("Use Codyze-v2 algorithm to find VariableDeclarations for Entities automatically ($rule)")
-
+class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evaluator {
     /**
      * Filter the [OrderNode] by the given type. This also works for nested [OrderNodes]s using
      * depth first search (DFS)
@@ -60,6 +57,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
     /**
      * Perform DFS through all previous EOG edges until we find a root node with no previous EOG edges.
      * This node is then a MethodDeclaration/FunctionDeclaration or similar.
+     * DFS is necessary to not get stuck in loops or similar.
      */
     private fun Node.followPrevEOGUntilEnd(): Node? {
         val stack = ArrayDeque<Node>()
@@ -92,11 +90,6 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
         // get the [DFA] from the given order statement
         val dfa = syntaxTree.toNfa().toDfa()
 
-        // the places to start the order evaluation
-        // preferably use the [baseNodes] specified by the user
-        // alternatively fallback to searching possible start nodes codyze v2 style
-        val orderStartNodes = baseNodes ?: findInstancesForEntities(context.rule)
-
         // in order to get the nodes corresponding to the OPs defined in the order statement
         // we need the object they are contained in
         val implementation = context.parameterMap.values.single()
@@ -116,7 +109,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
         // this is the set of all nodes the [CodyzeDfaOrderEvaluator] considers during evaluation
         for (op in opsInConcept){
             val nodes = ((op.call(implementation, *(List(op.parameters.size - 1) {null}.toTypedArray()))) as Op)
-                .getAllNodes().filter { it !in orderStartNodes }
+                .getAllNodes()
             for (node in nodes) {
                 val setOfNames = nodesToOp.getOrPut(node) { mutableSetOf() }
                 setOfNames.add(op.name)
@@ -142,19 +135,19 @@ class OrderEvaluator(val baseNodes: Collection<Node>?, val order: Order) : Evalu
         val dfaEvaluator = CodyzeDfaOrderEvaluator(
             dfa = dfa,
             nodeToRelevantMethod = nodesToOp,
-            consideredBases = orderStartNodes.map { node -> node.followNextEOG { it.end is AssignmentTarget }!!.last().end }.toSet(),
-            consideredResetNodes = orderStartNodes.toSet(),  // TODO: implement consideredResetNodes
+            consideredBases = baseNodes.map { node -> node.followNextEOG { it.end is AssignmentTarget }!!.last().end }.toSet(),
+            consideredResetNodes = baseNodes.toSet(),
             createFinding = { cpgNode: Node, message: String -> findings.add(CpgFinding(node = cpgNode, message = message)) },
         )
 
         // this should be a set of MethodDeclarations or a similar top level statements
-        val topLevelCompoundStatement = orderStartNodes.map {node ->
+        val topLevelCompoundStatement = baseNodes.map {node ->
             node.followPrevEOGUntilEnd()
         }.filterNotNull().toSet()
 
         var isOrderValid = true
         // evaluate the order for every MethodDeclaration/FunctionDeclaration/init block etc. which contains
-        // a node of the [orderStartNodes]
+        // a node of the [baseNodes]
         for (node in topLevelCompoundStatement) {
             isOrderValid = dfaEvaluator.evaluateOrder( // evaluates the order for all bases in this one method
                 node

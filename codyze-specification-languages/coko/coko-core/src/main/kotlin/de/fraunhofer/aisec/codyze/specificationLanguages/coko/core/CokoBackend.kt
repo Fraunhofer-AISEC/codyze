@@ -45,13 +45,13 @@ interface CokoBackend : Backend {
 
     /* Ensures the order of nodes as specified in the user configured [Order] object */
     fun order(
-        baseNodes: OrderToken? = null,
+        baseNodes: OrderToken,
         block: Order.() -> Unit
     ): Evaluator
 
     /* Ensures the order of nodes as specified in the user configured [Order] object */
     fun order(
-        baseNodes: Op? = null,
+        baseNodes: Op,
         block: Order.() -> Unit
     ): Evaluator
 

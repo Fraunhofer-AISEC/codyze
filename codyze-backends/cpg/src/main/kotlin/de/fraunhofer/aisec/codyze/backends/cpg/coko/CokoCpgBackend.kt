@@ -64,9 +64,9 @@ class CokoCpgBackend(config: BackendConfiguration) :
      * Ensures the order of nodes as specified in the user configured [Order] object.
      * The order evaluation starts at the given [baseNodes].
      */
-    override fun order(baseNodes: OrderToken?, block: Order.() -> Unit) =
+    override fun order(baseNodes: OrderToken, block: Order.() -> Unit) =
         OrderEvaluator(
-            baseNodes = baseNodes?.toTerminalOrderNode()?.op?.getAllNodes(),
+            baseNodes = baseNodes.toTerminalOrderNode().op.getAllNodes(),
             order = Order().apply(block)
         )
 
@@ -74,9 +74,9 @@ class CokoCpgBackend(config: BackendConfiguration) :
      * Ensures the order of nodes as specified in the user configured [Order] object.
      * The order evaluation starts at the given [baseNodes].
      */
-    override fun order(baseNodes: Op?, block: Order.() -> Unit) =
+    override fun order(baseNodes: Op, block: Order.() -> Unit) =
         OrderEvaluator(
-            baseNodes = baseNodes?.getNodes(),
+            baseNodes = baseNodes.getNodes(),
             order = Order().apply(block)
         )
 

@@ -26,7 +26,7 @@ interface Finding {
 /**
  * The result of a rule evaluation.
  */
-interface EvaluationResult<T: Finding> {
+interface EvaluationResult<T : Finding> {
     val findings: Collection<T>
     fun toSarif(rule: CokoRule, rules: List<CokoRule>, artifacts: Map<Path, Artifact>?): List<Result>
 }

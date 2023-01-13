@@ -26,6 +26,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 
 context(CokoCpgBackend)
+@Suppress("UnusedPrivateMember") // TODO: remove once this returns actual findings
 class OnlyEvaluator(val ops: List<Op>) : Evaluator {
     override fun evaluate(context: EvaluationContext): EvaluationResult<CpgFinding> {
         val nodes =

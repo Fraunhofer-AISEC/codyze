@@ -27,6 +27,7 @@ val logger = KotlinLogging.logger {}
  * Codyze-specific implementation of the [DFAOrderEvaluator]. Its main purpose is to collect the
  * findings in case of violations to the order.
  */
+@Suppress("LongParameterList")
 class CodyzeDfaOrderEvaluator(
     val createFinding: (cpgNode: Node, message: String) -> Unit,
     dfa: DFA,
@@ -35,7 +36,15 @@ class CodyzeDfaOrderEvaluator(
     thisPositionOfNode: Map<Node, Int> = mapOf(), // for non-object oriented languages
     consideredResetNodes: Set<Node>,
     eliminateUnreachableCode: Boolean = true
-) : DFAOrderEvaluator(dfa, consideredBases, nodeToRelevantMethod, consideredResetNodes, thisPositionOfNode, eliminateUnreachableCode) {
+) : DFAOrderEvaluator(
+    dfa,
+    consideredBases,
+    nodeToRelevantMethod,
+    consideredResetNodes,
+    thisPositionOfNode,
+    eliminateUnreachableCode
+) {
+    @Suppress("UnsafeCallOnNullableType")
     private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { e ->
         if (e.base != null) "${e.base!!.split("$").last()}.${e.op}" else e.op
     }?.sorted()
@@ -48,11 +57,11 @@ class CodyzeDfaOrderEvaluator(
 
         var message =
             "Violation against Order: \"${node.code}\". Op \"${nodeToRelevantMethod[node]}\" is not allowed. " +
-                    "Expected one of: " + possibleNextEdges?.joinToString(", ")
+                "Expected one of: " + possibleNextEdges?.joinToString(", ")
 
         if (possibleNextEdges?.isEmpty() == true && fsm.currentState?.isAcceptingState == true) {
-            message = "Violation against Order: \"${node.code}\". Op \"${nodeToRelevantMethod[node]}\" is not allowed. " +
-                    "No other calls are allowed on this base."
+            message = "Violation against Order: \"${node.code}\". " +
+                "Op \"${nodeToRelevantMethod[node]}\" is not allowed. No other calls are allowed on this base."
         }
         createFinding(node, message)
     }
@@ -72,8 +81,8 @@ class CodyzeDfaOrderEvaluator(
         val possibleNextEdges = getPossibleNextEdges(fsm.currentState?.outgoingEdges)
 
         val defaultMessage = "Violation against Order: Base $baseDeclName is not correctly terminated. " +
-                "Expected one of [${possibleNextEdges?.joinToString(", ")}] " +
-                "to follow the correct last call on this base."
+            "Expected one of [${possibleNextEdges?.joinToString(", ")}] " +
+            "to follow the correct last call on this base."
 
         createFinding(node, defaultMessage)
     }

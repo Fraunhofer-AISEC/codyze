@@ -107,8 +107,8 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         // now call each of those functions to get the nodes corresponding to the OP
         // this will detect ALL calls to the specified methods/functions regardless of the defined signatures
         // this is the set of all nodes the [CodyzeDfaOrderEvaluator] considers during evaluation
-        for (op in opsInConcept){
-            val nodes = ((op.call(implementation, *(List(op.parameters.size - 1) {null}.toTypedArray()))) as Op)
+        for (op in opsInConcept) {
+            val nodes = ((op.call(implementation, *(List(op.parameters.size - 1) { null }.toTypedArray()))) as Op)
                 .getAllNodes()
             for (node in nodes) {
                 val setOfNames = nodesToOp.getOrPut(node) { mutableSetOf() }
@@ -120,7 +120,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         //
         // the nodes from +testObj::start.use { testObj.start(123) } <- use makes them userDefined
         // only allow the start nodes that take '123' as argument
-        for ((opName, op) in order.userDefinedOps.entries){
+        for ((opName, op) in order.userDefinedOps.entries) {
             val nodes = op.getNodes()
             for (node in nodes) {
                 val setOfNames = nodesToOp.getOrDefault(node, mutableSetOf())
@@ -135,13 +135,19 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         val dfaEvaluator = CodyzeDfaOrderEvaluator(
             dfa = dfa,
             nodeToRelevantMethod = nodesToOp,
-            consideredBases = baseNodes.map { node -> node.followNextEOG { it.end is AssignmentTarget }!!.last().end }.toSet(),
+            consideredBases = baseNodes.map { node ->
+                node.followNextEOG { it.end is AssignmentTarget }!!.last().end
+            }.toSet(),
             consideredResetNodes = baseNodes.toSet(),
-            createFinding = { cpgNode: Node, message: String -> findings.add(CpgFinding(node = cpgNode, message = message)) },
+            createFinding = { cpgNode: Node, message: String ->
+                findings.add(
+                    CpgFinding(node = cpgNode, message = message)
+                )
+            },
         )
 
         // this should be a set of MethodDeclarations or a similar top level statements
-        val topLevelCompoundStatement = baseNodes.map {node ->
+        val topLevelCompoundStatement = baseNodes.map { node ->
             node.followPrevEOGUntilEnd()
         }.filterNotNull().toSet()
 

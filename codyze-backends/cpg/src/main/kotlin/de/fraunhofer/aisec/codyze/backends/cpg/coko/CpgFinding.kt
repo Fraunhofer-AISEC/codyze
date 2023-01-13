@@ -22,4 +22,4 @@ data class CpgFinding(
     override val message: String,
     val node: Node? = null,
     val relatedNodes: Nodes? = null
-): Finding
+) : Finding

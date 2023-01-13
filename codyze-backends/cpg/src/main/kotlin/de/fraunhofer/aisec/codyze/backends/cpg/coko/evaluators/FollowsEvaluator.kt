@@ -26,6 +26,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.cpg.query.executionPath
 
 context(CokoCpgBackend)
+@Suppress("UnusedPrivateMember") // TODO: remove once this returns actual findings
 class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
     override fun evaluate(context: EvaluationContext): EvaluationResult<CpgFinding> {
         val evaluator = {

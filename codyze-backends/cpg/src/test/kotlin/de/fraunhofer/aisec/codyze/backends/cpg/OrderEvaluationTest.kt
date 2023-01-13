@@ -130,7 +130,8 @@ class OrderEvaluationTest {
             assertEquals(1, evaluationResult.findings.size)
             assertEquals(
                 evaluationResult.findings.first().message,
-                "Violation against Order: \"p.set_key(key);\". Op \"[init]\" is not allowed. Expected one of: CokoOrderImpl.start"
+                "Violation against Order: \"p.set_key(key);\". Op \"[init]\" is not allowed. " +
+                    "Expected one of: CokoOrderImpl.start"
             )
         }
     }

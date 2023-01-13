@@ -80,7 +80,12 @@ fun Op.getNodes(): Nodes =
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */
 fun CokoBackend.variable(name: String): List<ValueDeclaration> {
-    return cpg.allChildren { it.name == name }
+    return cpg.allChildren { it.name.lastPartsMatch(name) }
+}
+
+/** Returns a list of [ValueDeclaration]s with the matching name. */
+fun CokoBackend.variableFqn(fqn: String): List<ValueDeclaration> {
+    return cpg.allChildren { it.name.toString() == fqn }
 }
 
 fun CokoBackend.constructor(
@@ -97,7 +102,7 @@ fun CokoBackend.call(
     name: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
-    return cpg.calls { it.name == name && predicate(it) }
+    return cpg.calls { it.name.lastPartsMatch(name) && predicate(it) }
 }
 
 /**
@@ -108,7 +113,7 @@ fun CokoBackend.callFqn(
     fqn: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
-    return cpg.calls { it.fqn == fqn && predicate(it) }
+    return cpg.calls { it.name.toString() == fqn && predicate(it) }
 }
 
 /** Returns a list of [MemberExpression]s with the matching something. */

@@ -100,14 +100,14 @@ class OrderEvaluationTest {
         with(backend) {
             val instance = CokoOrderImpl()
             val orderEvaluator = createSimpleOrder(instance)
-            val evaluationResult = orderEvaluator
+            val findings = orderEvaluator
                 .evaluate(
                     EvaluationContext(
                         rule = ::dummyFunction,
                         parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
                     )
                 )
-            assertEquals(7, evaluationResult.findings.size)
+            assertEquals(7, findings.size)
         }
     }
 
@@ -120,16 +120,16 @@ class OrderEvaluationTest {
         with(backend) {
             val instance = CokoOrderImpl()
             val orderEvaluator = createSimpleOrderReducedStartNodes(instance)
-            val evaluationResult = orderEvaluator
+            val findings = orderEvaluator
                 .evaluate(
                     EvaluationContext(
                         rule = ::dummyFunction,
                         parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
                     )
                 )
-            assertEquals(1, evaluationResult.findings.size)
+            assertEquals(1, findings.size)
             assertEquals(
-                evaluationResult.findings.first().message,
+                findings.first().message,
                 "Violation against Order: \"p.set_key(key);\". Op \"[init]\" is not allowed. " +
                     "Expected one of: CokoOrderImpl.start"
             )

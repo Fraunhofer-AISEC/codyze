@@ -16,5 +16,5 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
 fun interface Evaluator {
-    fun evaluate(context: EvaluationContext): EvaluationResult<*>
+    fun evaluate(context: EvaluationContext): Collection<Finding>
 }

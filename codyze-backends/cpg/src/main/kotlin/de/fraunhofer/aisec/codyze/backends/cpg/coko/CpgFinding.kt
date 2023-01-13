@@ -15,11 +15,66 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg.coko
 
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.toResultLevel
 import de.fraunhofer.aisec.cpg.graph.Node
+import io.github.detekt.sarif4k.*
+import io.github.detekt.sarif4k.Result
+import java.nio.file.Path
+import kotlin.io.path.toPath
+import kotlin.reflect.full.findAnnotation
+
+/**
+ * Returns a `Region` object from a node's startLine, endLine, startColumn, endColumn property.
+ *
+ * Note that these are not the exact property values but start at 0 rather than by 1.
+ * If these properties do not exist, returns -1.
+ *
+ * @param n the node
+ *
+ * @return the region
+ */
+val Node.sarifLocation: Region
+    get() {
+        val startLine = location?.region?.startLine?.minus(1)?.toLong()
+        val endLine = location?.region?.endLine?.minus(1)?.toLong()
+        val startColumn = location?.region?.startColumn?.minus(1)?.toLong()
+        val endColumn = location?.region?.endColumn?.minus(1)?.toLong()
+        return Region(
+            startLine = startLine,
+            startColumn = startColumn,
+            endLine = endLine,
+            endColumn = endColumn,
+            sourceLanguage = language?.let { it::class.simpleName }
+        )
+    }
 
 data class CpgFinding(
     override val message: String,
     val node: Node? = null,
     val relatedNodes: Nodes? = null
-) : Finding
+) : Finding {
+    override fun toSarif(rule: CokoRule, rules: List<CokoRule>, artifacts: Map<Path, Artifact>?) =
+        Result(
+            message = Message(text = message),
+            level = rule.findAnnotation<Rule>()?.severity?.toResultLevel(),
+            ruleIndex = rules.indexOf(rule).toLong(),
+            locations = listOf(
+                Location(
+                    physicalLocation = PhysicalLocation(
+                        artifactLocation = ArtifactLocation(
+                            index = (
+                                artifacts?.keys?.indexOf(
+                                    node?.location?.artifactLocation?.uri?.toPath()
+                                )?.toLong()
+                                ),
+                            uri = node?.location?.artifactLocation?.uri.toString()
+                        ),
+                        region = node?.sarifLocation
+                    )
+                )
+            )
+        )
+}

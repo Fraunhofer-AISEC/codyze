@@ -18,7 +18,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 import de.fraunhofer.aisec.codyze.core.VersionProvider
 import de.fraunhofer.aisec.codyze.core.backend.BackendWithOutput
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoRule
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.toResultLevel
 import io.github.detekt.sarif4k.*
@@ -64,7 +64,7 @@ class CokoSarifBuilder(val rules: List<CokoRule>, val backend: BackendWithOutput
 //        ),
     )
 
-    fun buildRun(findings: Map<CokoRule, List<EvaluationResult<*>>>): Run {
+    fun buildRun(findings: Map<CokoRule, List<Finding>>): Run {
         // build the SARIF run based on the received results
         return Run(
             tool = Tool(
@@ -73,7 +73,7 @@ class CokoSarifBuilder(val rules: List<CokoRule>, val backend: BackendWithOutput
             ),
             artifacts = backend.artifacts.values.toList(),
             results = findings.entries.flatMap { entry ->
-                entry.value.flatMap { it.toSarif(entry.key, rules, backend.artifacts) }
+                entry.value.map { it.toSarif(entry.key, rules, backend.artifacts) }
             }
         )
     }

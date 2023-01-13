@@ -16,19 +16,17 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgEvaluationResult
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getAllNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 
 context(CokoCpgBackend)
 @Suppress("UnusedPrivateMember") // TODO: remove once this returns actual findings
 class OnlyEvaluator(val ops: List<Op>) : Evaluator {
-    override fun evaluate(context: EvaluationContext): EvaluationResult<CpgFinding> {
+    override fun evaluate(context: EvaluationContext): List<CpgFinding> {
         val nodes =
             with(this@CokoCpgBackend) { ops.map { it.getNodes() } }
                 .flatten()
@@ -40,6 +38,6 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
                 .flatten()
                 .toSet()
 
-        return CpgEvaluationResult(listOf(CpgFinding("TODO")))
+        return listOf(CpgFinding("TODO"))
     }
 }

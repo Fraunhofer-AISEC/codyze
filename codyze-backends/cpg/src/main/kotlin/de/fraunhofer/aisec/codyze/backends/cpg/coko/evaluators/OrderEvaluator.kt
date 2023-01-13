@@ -16,7 +16,6 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgEvaluationResult
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getAllNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
@@ -76,7 +75,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    override fun evaluate(context: EvaluationContext): EvaluationResult<CpgFinding> {
+    override fun evaluate(context: EvaluationContext): List<CpgFinding> {
         // first check whether it is an order rule that we can evaluate
         val syntaxTree = order.toNode()
         val usedBases =
@@ -161,6 +160,6 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         }
 
         // TODO: add related nodes
-        return CpgEvaluationResult(findings)
+        return findings
     }
 }

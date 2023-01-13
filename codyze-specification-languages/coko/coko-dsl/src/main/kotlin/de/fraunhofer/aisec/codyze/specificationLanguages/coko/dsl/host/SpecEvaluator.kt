@@ -17,7 +17,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import mu.KotlinLogging
 import kotlin.reflect.*
@@ -56,8 +56,8 @@ class SpecEvaluator {
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    fun evaluate(): Map<CokoRule, List<EvaluationResult<*>>> {
-        val results = mutableMapOf<CokoRule, MutableList<EvaluationResult<*>>>()
+    fun evaluate(): Map<CokoRule, List<Finding>> {
+        val results = mutableMapOf<CokoRule, MutableList<Finding>>()
         for ((index, value) in rulesAndInstances.withIndex()) {
             val (rule, ruleInstance) = value
             val parameterMap =
@@ -95,10 +95,10 @@ class SpecEvaluator {
             val ruleResult = ruleEvaluator.evaluate(EvaluationContext(rule = rule, parameterMap = valueParameterMap))
             logger.info {
                 " (${index + 1}/${rules.size}): ${rule.name} generated " +
-                    if (ruleResult.findings.size == 1) "1 finding" else "${ruleResult.findings.size} findings"
+                    if (ruleResult.size == 1) "1 finding" else "${ruleResult.size} findings"
             }
 
-            results.getOrPut(rule) { mutableListOf(ruleResult) } += ruleResult
+            results.getOrPut(rule) { mutableListOf() } += ruleResult
         }
         return results
     }

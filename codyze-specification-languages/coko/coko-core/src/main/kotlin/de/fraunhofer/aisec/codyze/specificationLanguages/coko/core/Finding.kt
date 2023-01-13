@@ -19,14 +19,11 @@ import io.github.detekt.sarif4k.Artifact
 import io.github.detekt.sarif4k.Result
 import java.nio.file.Path
 
-interface Finding {
-    val message: String
-}
-
 /**
  * The result of a rule evaluation.
  */
-interface EvaluationResult<T : Finding> {
-    val findings: Collection<T>
-    fun toSarif(rule: CokoRule, rules: List<CokoRule>, artifacts: Map<Path, Artifact>?): List<Result>
+interface Finding {
+    val message: String
+
+    fun toSarif(rule: CokoRule, rules: List<CokoRule>, artifacts: Map<Path, Artifact>?): Result
 }

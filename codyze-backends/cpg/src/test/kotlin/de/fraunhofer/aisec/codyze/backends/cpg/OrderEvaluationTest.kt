@@ -20,6 +20,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
+import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.reflect.full.valueParameters
@@ -43,14 +44,14 @@ class OrderEvaluationTest {
 
     context(CokoBackend)
     private fun createSimpleOrder(testObj: CokoOrderImpl) =
-        order(testObj::constructor.use { call(1) }) {
+        order(testObj::constructor) {
             +testObj::start
             +testObj::finish
         }
 
     context(CokoBackend)
     private fun createSimpleOrderReducedStartNodes(testObj: CokoOrderImpl) =
-        order(testObj::constructor.use { call(1) }) {
+        order(testObj::constructor.use { testObj.constructor(1) }) {
             +testObj::start
             +testObj::finish
         }
@@ -87,7 +88,7 @@ class OrderEvaluationTest {
             includePaths = listOf(),
             includeAllowlist = listOf(),
             loadIncludes = false,
-            passes = listOf(),
+            passes = listOf(EdgeCachePass()),
         )
 
     @Test
@@ -106,7 +107,7 @@ class OrderEvaluationTest {
                         parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
                     )
                 )
-            assertEquals(6, evaluationResult.findings.size)
+            assertEquals(7, evaluationResult.findings.size)
         }
     }
 

@@ -38,6 +38,16 @@ public class SimpleOrder {
         p4.finish(buf);
     }
 
+    void ok4() {
+        Botan p4 = new Botan(2);
+        p4.start(iv);
+        p4.finish(buf);
+
+        p4 = new Botan(3);
+        p4.start(iv);
+        p4.finish(buf);
+    }
+
     void nok1() {
         Botan p = new Botan(1);
         p.set_key(key); // not allowed as start
@@ -79,9 +89,18 @@ public class SimpleOrder {
             p5.start(iv);
         }
         {
-            Botan p5 = new Botan(2);
-            p5.finish(buf);
+            Botan p51 = new Botan(2);
+            p51.finish(buf);
         }
+    }
+
+    void nok7() {
+        Botan p7 = new Botan(2);
+        p7.start(iv);
+        p7.finish(buf);
+
+        p7 = new Botan(3);
+        p7.start(iv);
     }
 }
 

@@ -27,7 +27,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWi
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.toTerminalOrderNode
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.getOp
 import de.fraunhofer.aisec.cpg.graph.Node
 import io.github.detekt.sarif4k.Artifact
 import io.github.detekt.sarif4k.ArtifactLocation
@@ -66,7 +66,7 @@ class CokoCpgBackend(config: BackendConfiguration) :
      */
     override fun order(baseNodes: OrderToken, block: Order.() -> Unit) =
         OrderEvaluator(
-            baseNodes = baseNodes.toTerminalOrderNode().op.getAllNodes(),
+            baseNodes = baseNodes.getOp().getAllNodes(),
             order = Order().apply(block)
         )
 

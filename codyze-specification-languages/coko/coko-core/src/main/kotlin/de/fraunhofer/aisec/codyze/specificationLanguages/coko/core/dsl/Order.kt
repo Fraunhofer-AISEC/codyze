@@ -33,7 +33,7 @@ context(OrderBuilder)
  */
 fun OrderToken.use(block: OrderToken.() -> Op): TerminalOrderNode {
     val terminalOrderNode = toTerminalOrderNode(opName = this.name + "$" + block.hashCode(), useGetNodes = true)
-    this@OrderBuilder.userDefinedOps[terminalOrderNode.opName] = terminalOrderNode.op
+    this@OrderBuilder.userDefinedOps[terminalOrderNode.opName] = block()
     return terminalOrderNode
 }
 
@@ -41,7 +41,7 @@ fun OrderToken.use(block: OrderToken.() -> Op): TerminalOrderNode {
  * Helper function that allows the user to call [use] outside of an [OrderBuilder] context.
  * This is needed in [CokoBackend.order] for the [baseNodes] argument.
  */
-fun OrderToken.use(block: OrderToken.() -> Op) = block.invoke(this)
+fun OrderToken.use(block: OrderToken.() -> Op) = block()
 
 context(OrderBuilder)
 /** Convert an [OrderToken] into a TerminalOrderNode */

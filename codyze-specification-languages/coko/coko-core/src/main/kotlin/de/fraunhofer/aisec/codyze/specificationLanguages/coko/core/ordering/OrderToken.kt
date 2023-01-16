@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Fraunhofer AISEC. All rights reserved.
+ * Copyright (c) 2023, Fraunhofer AISEC. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("UNUSED")
-
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
-sealed interface OrderFragment {
-    /** Convert this [OrderFragment] to a binary syntax tree */
-    fun toNode(): OrderNode
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import kotlin.reflect.KFunction
 
-    val token: OrderFragment
-        get() = this
-}
+typealias OrderToken = KFunction<Op>
+
+fun OrderToken.getOp(vararg arguments: Any? = Array<Any?>(parameters.size) { null }) = call(*arguments)

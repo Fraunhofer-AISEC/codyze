@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import kotlin.jvm.internal.CallableReference
 
 sealed interface OrderNode : OrderFragment {
@@ -49,16 +48,13 @@ sealed interface OrderNode : OrderFragment {
 }
 
 /** Represents an [OrderToken]. */
-data class TerminalOrderNode(val baseName: String, val opName: String, val op: Op, val useGetNodes: Boolean) : OrderNode
+data class TerminalOrderNode(val baseName: String, val opName: String, val useGetNodes: Boolean) : OrderNode
 
 fun OrderToken.toTerminalOrderNode(
     baseName: String = (this as CallableReference).owner.toString(),
     opName: String = name,
     useGetNodes: Boolean = false,
-): TerminalOrderNode {
-    val arguments = List(this.parameters.size) { null }
-    return TerminalOrderNode(baseName, opName, this.call(*arguments.toTypedArray()), useGetNodes = useGetNodes)
-}
+) = TerminalOrderNode(baseName, opName, useGetNodes = useGetNodes)
 
 /** Represents a regex sequence, where one [OrderNode] must be followed by another [OrderNode] */
 data class SequenceOrderNode(val left: OrderNode, val right: OrderNode) : OrderNode

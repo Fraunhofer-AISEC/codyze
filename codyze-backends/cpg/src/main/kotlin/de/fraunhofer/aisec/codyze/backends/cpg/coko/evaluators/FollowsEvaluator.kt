@@ -20,18 +20,56 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import de.fraunhofer.aisec.cpg.query.executionPath
+import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
 @Suppress("UnusedPrivateMember") // TODO: remove once this returns actual findings
 class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
+
+    private val defaultFailMessage: String by lazy {
+        "It is not followed by any of these calls: $thenOp"
+    }
+
+    private val defaultPassMessage = ""
+
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
-        val evaluator = {
-            val thisNodes = with(this@CokoCpgBackend) { ifOp.getNodes() }
-            val thatNodes = with(this@CokoCpgBackend) { thenOp.getNodes() }
-            thisNodes.all { from -> thatNodes.any { to -> executionPath(from, to).value } }
+        val thisNodes = with(this@CokoCpgBackend) { ifOp.getNodes() }
+        val thatNodes = with(this@CokoCpgBackend) { thenOp.getNodes() }
+
+        val findings = mutableListOf<CpgFinding>()
+
+        val ruleAnnotation = context.rule.findAnnotation<Rule>()
+        val failMessage = ruleAnnotation?.failMessage ?: defaultFailMessage
+        val passMessage = ruleAnnotation?.passMessage ?: defaultPassMessage
+
+        for (from in thisNodes) {
+            val reachableThatNodes = thatNodes.filter { to -> executionPath(from, to).value }
+            val finding = if (reachableThatNodes.isEmpty()) {
+                CpgFinding(
+                    message = "Violation against rule: \"${from.code}\". $failMessage",
+                    kind = Finding.Kind.Fail,
+                    node = from
+                )
+            } else {
+                CpgFinding(
+                    message = "Complies with rule: \"${from.code}\" is followed by ${reachableThatNodes.joinToString(
+                        prefix = "\"",
+                        separator = "\", \"",
+                        postfix = "\""
+                    )}. $passMessage",
+                    kind = Finding.Kind.Pass,
+                    node = from,
+                    relatedNodes = reachableThatNodes
+                )
+            }
+
+            findings.add(finding)
         }
-        return listOf(CpgFinding("TODO"))
+
+        return findings
     }
 }

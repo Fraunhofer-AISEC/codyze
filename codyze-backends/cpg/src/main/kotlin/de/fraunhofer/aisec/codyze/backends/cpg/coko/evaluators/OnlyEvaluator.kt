@@ -21,6 +21,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getAllNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import kotlin.reflect.full.findAnnotation
@@ -61,7 +62,7 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
             findings.add(
                 CpgFinding(
                     message = "Violation against rule: \"${node.code}\". $failMessage",
-                    kind = CpgFinding.Kind.Fail,
+                    kind = Finding.Kind.Fail,
                     node = node
                 )
             )
@@ -72,7 +73,7 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
             findings.add(
                 CpgFinding(
                     message = "Complies with rule: \"${node.code}\". $passMessage",
-                    kind = CpgFinding.Kind.Pass,
+                    kind = Finding.Kind.Pass,
                     node = node
                 )
             )

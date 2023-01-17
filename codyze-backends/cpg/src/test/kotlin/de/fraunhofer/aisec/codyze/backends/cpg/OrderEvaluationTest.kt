@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import java.nio.file.Path
@@ -107,7 +108,7 @@ class OrderEvaluationTest {
                         parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
                     )
                 )
-            assertEquals(7, findings.size)
+            assertEquals(7, findings.filter { it.kind == Finding.Kind.Fail }.size)
         }
     }
 
@@ -129,9 +130,9 @@ class OrderEvaluationTest {
                 )
             assertEquals(1, findings.size)
             assertEquals(
-                findings.first().message,
                 "Violation against Order: \"p.set_key(key);\". Op \"[init]\" is not allowed. " +
-                    "Expected one of: CokoOrderImpl.start"
+                    "Expected one of: CokoOrderImpl.start",
+                findings.first().message,
             )
         }
     }

@@ -75,7 +75,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
     }
 
     @Suppress("UnsafeCallOnNullableType")
-    override fun evaluate(context: EvaluationContext): List<CpgFinding> {
+    override fun evaluate(context: EvaluationContext): Set<CpgFinding> {
         // first check whether it is an order rule that we can evaluate
         val syntaxTree = order.toNode()
         val usedBases =
@@ -127,9 +127,6 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             }
         }
 
-        // this list will be filled by [CodyzeDfaOrderEvaluator] using the lambda given as the 'createFinding' argument
-        val findings = mutableListOf<CpgFinding>()
-
         // create the order evaluator for this order rule
         val dfaEvaluator = CodyzeDfaOrderEvaluator(
             dfa = dfa,
@@ -138,11 +135,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
                 node.followNextEOG { it.end is AssignmentTarget }!!.last().end
             }.toSet(),
             consideredResetNodes = baseNodes.toSet(),
-            createFinding = { cpgNode: Node, message: String, relatedNodes: Collection<Node> ->
-                findings.add(
-                    CpgFinding(node = cpgNode, message = message, relatedNodes = relatedNodes)
-                )
-            },
+            context = context,
         )
 
         // this should be a set of MethodDeclarations or a similar top level statements
@@ -154,11 +147,13 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         // evaluate the order for every MethodDeclaration/FunctionDeclaration/init block etc. which contains
         // a node of the [baseNodes]
         for (node in topLevelCompoundStatement) {
-            isOrderValid = dfaEvaluator.evaluateOrder( // evaluates the order for all bases in this one method
+            // evaluates the order for all bases in this one method
+            // this also creates the findings and add them to the [CodyzeDfaOrderEvaluator.findings] collection
+            isOrderValid = dfaEvaluator.evaluateOrder(
                 node
             ) && isOrderValid
         }
 
-        return findings
+        return dfaEvaluator.findings
     }
 }

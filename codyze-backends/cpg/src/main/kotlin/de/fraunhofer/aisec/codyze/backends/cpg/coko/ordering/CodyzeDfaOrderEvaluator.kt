@@ -15,11 +15,16 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering
 
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFA
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFAOrderEvaluator
 import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.graph.Node
 import mu.KotlinLogging
+import kotlin.reflect.full.findAnnotation
 
 val logger = KotlinLogging.logger {}
 
@@ -29,7 +34,7 @@ val logger = KotlinLogging.logger {}
  */
 @Suppress("LongParameterList")
 class CodyzeDfaOrderEvaluator(
-    val createFinding: (cpgNode: Node, message: String, relatedNodes: Collection<Node>) -> Unit,
+    val context: EvaluationContext,
     dfa: DFA,
     consideredBases: Set<Node>,
     nodeToRelevantMethod: Map<Node, Set<String>>,
@@ -44,9 +49,16 @@ class CodyzeDfaOrderEvaluator(
     thisPositionOfNode,
     eliminateUnreachableCode
 ) {
+    val findings: MutableSet<CpgFinding> = mutableSetOf()
+    private val userDefinedFailMessage = context.rule.findAnnotation<Rule>()?.failMessage
+
     @Suppress("UnsafeCallOnNullableType")
     private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { e ->
-        if (e.base != null) "${e.base!!.split("$").last()}.${e.op}" else e.op
+        if (e.base != null) {
+            "${e.base!!.split("$").last()}.${e.op}"
+        } else {
+            e.op
+        }
     }?.sorted()
 
     /**
@@ -55,15 +67,24 @@ class CodyzeDfaOrderEvaluator(
     override fun actionMissingTransitionForNode(node: Node, fsm: DFA, interproceduralFlow: Boolean) {
         val possibleNextEdges = getPossibleNextEdges(fsm.currentState?.outgoingEdges)
 
-        var message =
-            "Violation against Order: \"${node.code}\". Op \"${nodeToRelevantMethod[node]}\" is not allowed. " +
+        var defaultMessage =
+            "\"${node.code}\". Op \"${nodeToRelevantMethod[node]}\" is not allowed. " +
                 "Expected one of: " + possibleNextEdges?.joinToString(", ")
 
         if (possibleNextEdges?.isEmpty() == true && fsm.currentState?.isAcceptingState == true) {
-            message = "Violation against Order: \"${node.code}\". " +
+            defaultMessage = "\"${node.code}\". " +
                 "Op \"${nodeToRelevantMethod[node]}\" is not allowed. No other calls are allowed on this base."
         }
-        createFinding(node, message, fsm.executionTrace.map { it.cpgNode }.filter { it != node })
+
+        val message = userDefinedFailMessage ?: defaultMessage
+        findings.add(
+            CpgFinding(
+                kind = Finding.Kind.Fail,
+                node = node,
+                message = "Violation against Order: $message",
+                relatedNodes = fsm.executionTrace.map { it.cpgNode }.filter { it != node }
+            )
+        )
     }
 
     /**
@@ -80,22 +101,42 @@ class CodyzeDfaOrderEvaluator(
 
         val possibleNextEdges = getPossibleNextEdges(fsm.currentState?.outgoingEdges)
 
-        val defaultMessage = "Violation against Order: Base $baseDeclName is not correctly terminated. " +
+        val defaultMessage = "Base $baseDeclName is not correctly terminated. " +
             "Expected one of [${possibleNextEdges?.joinToString(", ")}] " +
             "to follow the correct last call on this base."
 
-        createFinding(node, defaultMessage, fsm.executionTrace.map { it.cpgNode }.filter { it != node })
+        val message = userDefinedFailMessage ?: defaultMessage
+
+        findings.add(
+            CpgFinding(
+                kind = Finding.Kind.Fail,
+                node = node,
+                message = "Violation against Order: $message",
+                relatedNodes = fsm.executionTrace.map { it.cpgNode }.filter { it != node }
+            )
+        )
     }
 
+    // TODO: does not work correctly
 //    /**
 //     * Contains the functionality which is executed if the DFA terminated in an accepting state for
 //     * the given [base]. This means that all required statements have been executed for [base] so
 //     * far. The [fsm] holds the execution trace found by the analysis.
 //     */
 //    override fun actionAcceptingTermination(base: String, fsm: DFA, interproceduralFlow: Boolean) {
-//        logger.debug("Base $base terminated in an accepting state")
-//        logger.debug(
-//            fsm.executionTrace.fold("") { r, t -> "$r${t.state}${t.edge} (node: ${t.cpgNode})\n" }
+//        val baseDeclName = base.split("|")[1].split(".").first()
+//        val node = fsm.executionTrace.last().cpgNode
+//
+//        val defaultMessage = "$baseDeclName is used correctly."
+//        val message = userDefinedPassMessage ?: defaultMessage
+//
+//        findings.add(
+//            CpgFinding(
+//                kind = Finding.Kind.Pass,
+//                node = node,
+//                message = "Order validated: $message",
+//                relatedNodes = fsm.executionTrace.map { it.cpgNode }.filter { it != node }
+//            )
 //        )
 //    }
 }

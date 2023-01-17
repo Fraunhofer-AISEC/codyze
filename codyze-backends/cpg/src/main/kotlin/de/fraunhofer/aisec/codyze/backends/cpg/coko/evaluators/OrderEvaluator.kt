@@ -138,17 +138,17 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
                 node.followNextEOG { it.end is AssignmentTarget }!!.last().end
             }.toSet(),
             consideredResetNodes = baseNodes.toSet(),
-            createFinding = { cpgNode: Node, message: String ->
+            createFinding = { cpgNode: Node, message: String, relatedNodes: Collection<Node> ->
                 findings.add(
-                    CpgFinding(node = cpgNode, message = message)
+                    CpgFinding(node = cpgNode, message = message, relatedNodes = relatedNodes)
                 )
             },
         )
 
         // this should be a set of MethodDeclarations or a similar top level statements
-        val topLevelCompoundStatement = baseNodes.map { node ->
+        val topLevelCompoundStatement = baseNodes.mapNotNull { node ->
             node.followPrevEOGUntilEnd()
-        }.filterNotNull().toSet()
+        }.toSet()
 
         var isOrderValid = true
         // evaluate the order for every MethodDeclaration/FunctionDeclaration/init block etc. which contains
@@ -159,7 +159,6 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             ) && isOrderValid
         }
 
-        // TODO: add related nodes
         return findings
     }
 }

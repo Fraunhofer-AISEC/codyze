@@ -36,7 +36,7 @@ import kotlin.reflect.full.findAnnotation
  *
  * @return the region
  */
-val Node.sarifLocation: Region
+val Node.sarifRegion: Region
     get() {
         val startLine = location?.region?.startLine?.minus(1)?.toLong()
         val endLine = location?.region?.endLine?.minus(1)?.toLong()
@@ -51,6 +51,21 @@ val Node.sarifLocation: Region
         )
     }
 
+fun Node.getSarifLocation(artifacts: Map<Path, Artifact>?) =
+    Location(
+        physicalLocation = PhysicalLocation(
+            artifactLocation = ArtifactLocation(
+                index = (
+                    artifacts?.keys?.indexOf(
+                        location?.artifactLocation?.uri?.toPath()
+                    )?.toLong()
+                    ),
+                uri = location?.artifactLocation?.uri.toString()
+            ),
+            region = sarifRegion
+        )
+    )
+
 data class CpgFinding(
     override val message: String,
     val node: Node? = null,
@@ -61,20 +76,9 @@ data class CpgFinding(
             message = Message(text = message),
             level = rule.findAnnotation<Rule>()?.severity?.toResultLevel(),
             ruleIndex = rules.indexOf(rule).toLong(),
-            locations = listOf(
-                Location(
-                    physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(
-                            index = (
-                                artifacts?.keys?.indexOf(
-                                    node?.location?.artifactLocation?.uri?.toPath()
-                                )?.toLong()
-                                ),
-                            uri = node?.location?.artifactLocation?.uri.toString()
-                        ),
-                        region = node?.sarifLocation
-                    )
-                )
-            )
+            locations = node?.let { listOf(node.getSarifLocation(artifacts)) },
+            relatedLocations = relatedNodes?.map { node ->
+                node.getSarifLocation(artifacts)
+            }
         )
 }

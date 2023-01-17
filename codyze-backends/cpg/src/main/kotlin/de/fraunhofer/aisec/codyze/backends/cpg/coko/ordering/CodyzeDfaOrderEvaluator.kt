@@ -29,7 +29,7 @@ val logger = KotlinLogging.logger {}
  */
 @Suppress("LongParameterList")
 class CodyzeDfaOrderEvaluator(
-    val createFinding: (cpgNode: Node, message: String) -> Unit,
+    val createFinding: (cpgNode: Node, message: String, relatedNodes: Collection<Node>) -> Unit,
     dfa: DFA,
     consideredBases: Set<Node>,
     nodeToRelevantMethod: Map<Node, Set<String>>,
@@ -63,7 +63,7 @@ class CodyzeDfaOrderEvaluator(
             message = "Violation against Order: \"${node.code}\". " +
                 "Op \"${nodeToRelevantMethod[node]}\" is not allowed. No other calls are allowed on this base."
         }
-        createFinding(node, message)
+        createFinding(node, message, fsm.executionTrace.map { it.cpgNode }.filter { it != node })
     }
 
     /**
@@ -84,7 +84,7 @@ class CodyzeDfaOrderEvaluator(
             "Expected one of [${possibleNextEdges?.joinToString(", ")}] " +
             "to follow the correct last call on this base."
 
-        createFinding(node, defaultMessage)
+        createFinding(node, defaultMessage, fsm.executionTrace.map { it.cpgNode }.filter { it != node })
     }
 
 //    /**

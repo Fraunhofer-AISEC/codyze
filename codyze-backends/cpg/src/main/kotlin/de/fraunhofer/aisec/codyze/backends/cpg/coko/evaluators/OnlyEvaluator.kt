@@ -22,12 +22,24 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
+import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
 @Suppress("UnusedPrivateMember") // TODO: remove once this returns actual findings
 class OnlyEvaluator(val ops: List<Op>) : Evaluator {
+
+    /** Default message if a violation is found */
+    private val defaultFailMessage: String by lazy {
+        // Try to model what the allowed calls look like with `toString` call of `Op`
+        "Only calls to ${ops.joinToString()} allowed."
+    }
+
+    /** Default message if node complies with rule */
+    private val defaultPassMessage = "Call is in compliance with rule"
+
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
-        val nodes =
+        val correctNodes =
             with(this@CokoCpgBackend) { ops.map { it.getNodes() } }
                 .flatten()
                 .toSet()
@@ -38,6 +50,34 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
                 .flatten()
                 .toSet()
 
-        return listOf(CpgFinding("TODO"))
+        // `correctNodes` is a subset of `allNodes`
+        // we want to find nodes in `allNodes` that are not contained in `correctNodes` since they are violations
+        val violatingNodes = allNodes.minus(correctNodes)
+
+        val ruleAnnotation = context.rule.findAnnotation<Rule>()
+        val failMessage = ruleAnnotation?.failMessage ?: defaultFailMessage
+        val findings = mutableListOf<CpgFinding>()
+        for (node in violatingNodes) {
+            findings.add(
+                CpgFinding(
+                    message = "Violation against rule: \"${node.code}\". $failMessage",
+                    kind = CpgFinding.Kind.Fail,
+                    node = node
+                )
+            )
+        }
+
+        val passMessage = ruleAnnotation?.passMessage ?: defaultPassMessage
+        for (node in correctNodes) {
+            findings.add(
+                CpgFinding(
+                    message = "Complies with rule: \"${node.code}\". $passMessage",
+                    kind = CpgFinding.Kind.Pass,
+                    node = node
+                )
+            )
+        }
+
+        return findings
     }
 }

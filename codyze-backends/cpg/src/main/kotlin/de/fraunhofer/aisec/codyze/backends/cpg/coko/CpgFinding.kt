@@ -68,15 +68,15 @@ fun Node.getSarifLocation(artifacts: Map<Path, Artifact>?) =
 
 data class CpgFinding(
     override val message: String,
+    override val kind: Finding.Kind = Finding.Kind.Fail,
     val node: Node? = null,
     val relatedNodes: Nodes? = null,
-    val kind: Kind = Kind.Fail
 ) : Finding {
     override fun toSarif(rule: CokoRule, rules: List<CokoRule>, artifacts: Map<Path, Artifact>?) =
         Result(
             message = Message(text = message),
             kind = kind.resultKind,
-            level = if (kind == Kind.Fail) {
+            level = if (kind == Finding.Kind.Fail) {
                 rule.findAnnotation<Rule>()?.severity?.toResultLevel()
             } else {
                 Level.None
@@ -87,13 +87,4 @@ data class CpgFinding(
                 node.getSarifLocation(artifacts)
             }
         )
-
-    enum class Kind(val resultKind: ResultKind) {
-        Fail(ResultKind.Fail),
-        Informational(ResultKind.Informational),
-        NotApplicable(ResultKind.NotApplicable),
-        Open(ResultKind.Open),
-        Pass(ResultKind.Pass),
-        Review(ResultKind.Review);
-    }
 }

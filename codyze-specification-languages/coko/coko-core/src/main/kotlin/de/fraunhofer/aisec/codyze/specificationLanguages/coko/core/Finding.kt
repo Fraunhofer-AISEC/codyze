@@ -17,6 +17,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
 import io.github.detekt.sarif4k.Artifact
 import io.github.detekt.sarif4k.Result
+import io.github.detekt.sarif4k.ResultKind
 import java.nio.file.Path
 
 /**
@@ -24,6 +25,16 @@ import java.nio.file.Path
  */
 interface Finding {
     val message: String
+    val kind: Kind
 
     fun toSarif(rule: CokoRule, rules: List<CokoRule>, artifacts: Map<Path, Artifact>?): Result
+
+    enum class Kind(val resultKind: ResultKind) {
+        Fail(ResultKind.Fail),
+        Informational(ResultKind.Informational),
+        NotApplicable(ResultKind.NotApplicable),
+        Open(ResultKind.Open),
+        Pass(ResultKind.Pass),
+        Review(ResultKind.Review);
+    }
 }

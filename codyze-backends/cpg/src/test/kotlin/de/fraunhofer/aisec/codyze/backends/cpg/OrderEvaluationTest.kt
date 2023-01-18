@@ -69,28 +69,6 @@ class OrderEvaluationTest {
 
     private fun getPath(sourceFileName: String) = basePath.resolve(sourceFileName).toAbsolutePath()
 
-//    private fun createCpgConfiguration(vararg sourceFile: Path) =
-//        CPGConfiguration(
-//            source = listOf(*sourceFile),
-//            useUnityBuild = false,
-//            typeSystemActiveInFrontend = true,
-//            debugParser = false,
-//            disableCleanup = false,
-//            codeInNodes = true,
-//            matchCommentsToNodes = false,
-//            processAnnotations = false,
-//            failOnError = false,
-//            useParallelFrontends = false,
-//            defaultPasses = true,
-//            additionalLanguages = setOf(),
-//            symbols = mapOf(),
-//            includeBlocklist = listOf(),
-//            includePaths = listOf(),
-//            includeAllowlist = listOf(),
-//            loadIncludes = false,
-//            passes = listOf(EdgeCachePass()),
-//        )
-
     @Test
     fun `test simple order expression for java`() {
         // mocking doesn't work here. We need an actual backend instance

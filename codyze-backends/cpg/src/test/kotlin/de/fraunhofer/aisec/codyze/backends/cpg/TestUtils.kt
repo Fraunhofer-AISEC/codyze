@@ -2,6 +2,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import java.nio.file.Path
 
 fun createCpgConfiguration(vararg sourceFile: Path) =
@@ -23,7 +24,7 @@ fun createCpgConfiguration(vararg sourceFile: Path) =
         includePaths = listOf(),
         includeAllowlist = listOf(),
         loadIncludes = false,
-        passes = listOf(EdgeCachePass()),
+        passes = listOf(EdgeCachePass(), UnreachableEOGPass()),
     )
 
 fun dummyRule(): Evaluator = TODO()

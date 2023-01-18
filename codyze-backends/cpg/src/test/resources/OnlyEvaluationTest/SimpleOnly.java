@@ -15,12 +15,6 @@ public class SimpleOnly {
 }
 
 
-
-
-
-
-
-
 public class Foo {
 	public int fun(int i) {}
 }

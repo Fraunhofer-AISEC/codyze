@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.codyze.core.executor.Executor
 import de.fraunhofer.aisec.codyze.core.timed
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWithOutput
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoSarifBuilder
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoScript
@@ -61,6 +62,13 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
         // evaluate the spec scripts
         val findings = timed({ logger.info { "Evaluation of specification scripts took $it." } }) {
             specEvaluator.evaluate()
+        }.toMutableMap()
+
+        // filter the positive findings if the user disabled goodFindings
+        if (!configuration.goodFindings) {
+            for ((rule, ruleFindings) in findings) {
+                findings[rule] = ruleFindings.filter { it.kind != Finding.Kind.Pass }
+            }
         }
 
         val cokoSarifBuilder = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)

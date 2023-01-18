@@ -21,9 +21,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationCon
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
-import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
-import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.reflect.full.valueParameters
 import kotlin.test.Test
@@ -70,28 +67,6 @@ class OrderEvaluationTest {
     private val basePath = Path("src", "test", "resources", "OrderEvaluationTest")
 
     private fun getPath(sourceFileName: String) = basePath.resolve(sourceFileName).toAbsolutePath()
-
-    private fun createCpgConfiguration(vararg sourceFile: Path) =
-        CPGConfiguration(
-            source = listOf(*sourceFile),
-            useUnityBuild = false,
-            typeSystemActiveInFrontend = true,
-            debugParser = false,
-            disableCleanup = false,
-            codeInNodes = true,
-            matchCommentsToNodes = false,
-            processAnnotations = false,
-            failOnError = false,
-            useParallelFrontends = false,
-            defaultPasses = true,
-            additionalLanguages = setOf(),
-            symbols = mapOf(),
-            includeBlocklist = listOf(),
-            includePaths = listOf(),
-            includeAllowlist = listOf(),
-            loadIncludes = false,
-            passes = listOf(EdgeCachePass(), UnreachableEOGPass()),
-        )
 
     @Test
     fun `test simple order expression for java`() {

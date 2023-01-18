@@ -51,6 +51,7 @@ class CodyzeDfaOrderEvaluator(
 ) {
     val findings: MutableSet<CpgFinding> = mutableSetOf()
     private val userDefinedFailMessage = context.rule.findAnnotation<Rule>()?.failMessage
+    private val userDefinedPassMessage = context.rule.findAnnotation<Rule>()?.passMessage
 
     @Suppress("UnsafeCallOnNullableType")
     private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { e ->
@@ -117,26 +118,25 @@ class CodyzeDfaOrderEvaluator(
         )
     }
 
-    // TODO: does not work correctly
-//    /**
-//     * Contains the functionality which is executed if the DFA terminated in an accepting state for
-//     * the given [base]. This means that all required statements have been executed for [base] so
-//     * far. The [fsm] holds the execution trace found by the analysis.
-//     */
-//    override fun actionAcceptingTermination(base: String, fsm: DFA, interproceduralFlow: Boolean) {
-//        val baseDeclName = base.split("|")[1].split(".").first()
-//        val node = fsm.executionTrace.last().cpgNode
-//
-//        val defaultMessage = "$baseDeclName is used correctly."
-//        val message = userDefinedPassMessage ?: defaultMessage
-//
-//        findings.add(
-//            CpgFinding(
-//                kind = Finding.Kind.Pass,
-//                node = node,
-//                message = "Order validated: $message",
-//                relatedNodes = fsm.executionTrace.map { it.cpgNode }.filter { it != node }
-//            )
-//        )
-//    }
+    /**
+     * Contains the functionality which is executed if the DFA terminated in an accepting state for
+     * the given [base]. This means that all required statements have been executed for [base] so
+     * far. The [fsm] holds the execution trace found by the analysis.
+     */
+    override fun actionAcceptingTermination(base: String, fsm: DFA, interproceduralFlow: Boolean) {
+        val baseDeclName = base.split("|")[1].split(".").first()
+        val node = fsm.executionTrace.last().cpgNode
+
+        val defaultMessage = "$baseDeclName is used correctly."
+        val message = userDefinedPassMessage ?: defaultMessage
+
+        findings.add(
+            CpgFinding(
+                kind = Finding.Kind.Pass,
+                node = node,
+                message = "Order validated: $message",
+                relatedNodes = fsm.executionTrace.map { it.cpgNode }.filter { it != node }
+            )
+        )
+    }
 }

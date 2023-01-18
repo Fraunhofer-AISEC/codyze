@@ -154,6 +154,13 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             ) && isOrderValid
         }
 
+        // filter positive findings that also appear as negative findings
+        // this happens e.g., if there are multiple possible execution order flows (if-statement etc.)
+        // and the order is correct in one branch, but incorrect in another
+        val passFindings = dfaEvaluator.findings.filter { it.kind == Finding.Kind.Pass }.map { it.node to it }.toSet()
+        val failFindings = dfaEvaluator.findings.filter { it.kind == Finding.Kind.Fail }.map { it.node }.toSet()
+        val positiveFindingsToRemove = passFindings.filter { passPair -> passPair.first in failFindings }
+        dfaEvaluator.findings.removeAll(positiveFindingsToRemove.map { it.second }.toSet())
         return dfaEvaluator.findings
     }
 }

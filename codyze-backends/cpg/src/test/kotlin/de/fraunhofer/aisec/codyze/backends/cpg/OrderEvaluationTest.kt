@@ -22,6 +22,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.reflect.full.valueParameters
@@ -89,7 +90,7 @@ class OrderEvaluationTest {
             includePaths = listOf(),
             includeAllowlist = listOf(),
             loadIncludes = false,
-            passes = listOf(EdgeCachePass()),
+            passes = listOf(EdgeCachePass(), UnreachableEOGPass()),
         )
 
     @Test
@@ -109,6 +110,7 @@ class OrderEvaluationTest {
                     )
                 )
             assertEquals(7, findings.filter { it.kind == Finding.Kind.Fail }.size)
+            assertEquals(8, findings.filter { it.kind == Finding.Kind.Pass }.size)
         }
     }
 

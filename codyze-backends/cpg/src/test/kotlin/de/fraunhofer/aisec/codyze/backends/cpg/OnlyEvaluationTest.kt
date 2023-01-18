@@ -30,7 +30,7 @@ class OnlyEvaluationTest {
     }
 
     @Test
-    fun `test simple follows`() {
+    fun `test simple only`() {
         val fooInstance = FooModel()
 
         val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))

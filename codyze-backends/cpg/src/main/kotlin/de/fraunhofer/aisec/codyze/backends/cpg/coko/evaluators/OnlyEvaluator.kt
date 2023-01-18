@@ -27,7 +27,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
-@Suppress("UnusedPrivateMember") // TODO: remove once this returns actual findings
 class OnlyEvaluator(val ops: List<Op>) : Evaluator {
 
     /** Default message if a violation is found */

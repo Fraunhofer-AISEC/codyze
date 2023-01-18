@@ -27,7 +27,6 @@ import de.fraunhofer.aisec.cpg.query.executionPath
 import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
-@Suppress("UnusedPrivateMember") // TODO: remove once this returns actual findings
 class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
 
     private val defaultFailMessage: String by lazy {

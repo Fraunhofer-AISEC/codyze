@@ -86,10 +86,11 @@ class Definition(val fqn: String) {
     }
 
     override fun toString(): String {
-        return signatures.filterNot { it.parameters.contains(null) || it.unorderedParameters.contains(null) }.joinToString(
-            prefix = fqn,
-            separator = ", $fqn"
-        )
+        return signatures.filterNot { it.parameters.contains(null) || it.unorderedParameters.contains(null) }
+            .joinToString(
+                prefix = fqn,
+                separator = ", $fqn"
+            )
     }
 }
 
@@ -147,7 +148,11 @@ class Signature {
     }
 
     override fun toString(): String {
-        val unorderedString = if (unorderedParameters.isNotEmpty()) " unordered: ${unorderedParameters.joinToString()}" else ""
+        val unorderedString = if (unorderedParameters.isNotEmpty()) {
+            " unordered: ${unorderedParameters.joinToString()}"
+        } else {
+            ""
+        }
         return parameters.joinToString(prefix = "(", postfix = ")") + unorderedString
     }
 }

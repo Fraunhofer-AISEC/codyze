@@ -19,7 +19,7 @@ import com.github.ajalt.clikt.core.NoOpCliktCommand
 import kotlin.reflect.KClass
 
 /**
- * This abstract class must be implemented by all Executors that want to be selectable in the codyze-cli.
+ * This abstract class must be implemented by all [Backend]s that want to be selectable in the codyze-cli.
  * Remember to add the newly created [BackendCommand] to the dependency injection.
  */
 abstract class BackendCommand<T : Backend>(cliName: String? = null) : NoOpCliktCommand(hidden = true, name = cliName) {

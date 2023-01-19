@@ -22,13 +22,25 @@ import com.github.ajalt.clikt.output.CliktHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
-import de.fraunhofer.aisec.codyze.cli.options.CodyzeOptionGroup
-import de.fraunhofer.aisec.codyze.cli.options.configFileOption
-import de.fraunhofer.aisec.codyze.cli.source.JsonValueSource
+import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze.core.VersionProvider
 import java.nio.file.Path
 import kotlin.io.path.Path
+
+/**
+ * The Clikt [option] for the config file. Defined as extension function because it is used in multiple [CliktCommand]s.
+ */
+fun CliktCommand.configFileOption() =
+    option(
+        "--config",
+        help = "Parse configuration settings from this file. " +
+            "If no file path is specified, Codyze will try to load the configuration file from the default path"
+    )
+        .path(mustExist = true, canBeDir = false, mustBeReadable = true)
+        .default(Path(System.getProperty("user.dir"), "codyze.json"))
 
 /**
  * A [CliktCommand] to parse the --config option.

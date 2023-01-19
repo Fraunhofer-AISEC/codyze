@@ -19,9 +19,13 @@ import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
+import de.fraunhofer.aisec.codyze.core.backend.BackendOptions
 import org.koin.java.KoinJavaComponent.getKoin
 
-/** Contains all options that are shared among all Codyze subcommands. */
+/**
+ * This abstract class must be implemented by all [Executor]s that want to be selectable in the codyze-cli.
+ * Remember to add the newly created [ExecutorCommand] to the dependency injection.
+ */
 abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
     NoOpCliktCommand(hidden = true, name = cliName) {
 

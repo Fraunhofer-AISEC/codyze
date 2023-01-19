@@ -15,11 +15,13 @@
  */
 package de.fraunhofer.aisec.codyze.core.executor
 
+import de.fraunhofer.aisec.codyze.core.backend.Backend
+
 /**
  * This interface should be implemented as a data class to contain all the configuration options of an [Executor].
  * An [ExecutorConfiguration] should also contain the shared codyze options passed to [ExecutorCommand.getExecutor].
  *
- * When using Codyze as a CMD program, the [ExecutorCommand] is responsible to instantiate the
+ * When using Codyze as a CLI program, the [ExecutorCommand] is responsible to instantiate the
  * respective [Executor]. However, to facilitate the usage of Codyze as a library, an [Executor] should have a
  * configuration object and a [Backend] as its two constructor arguments.
  */

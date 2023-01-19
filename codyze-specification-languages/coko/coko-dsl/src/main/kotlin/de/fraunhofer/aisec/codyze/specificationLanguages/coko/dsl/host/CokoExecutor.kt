@@ -18,7 +18,6 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 import de.fraunhofer.aisec.codyze.core.executor.Executor
 import de.fraunhofer.aisec.codyze.core.timed
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackendWithOutput
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoSarifBuilder
@@ -42,7 +41,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * The [Executor] to evaluate Coko (codyze.kts) specification files.
  */
-class CokoExecutor(private val configuration: CokoConfiguration, private val backend: CokoBackendWithOutput) :
+class CokoExecutor(private val configuration: CokoConfiguration, private val backend: CokoBackend) :
     Executor {
 
     /**

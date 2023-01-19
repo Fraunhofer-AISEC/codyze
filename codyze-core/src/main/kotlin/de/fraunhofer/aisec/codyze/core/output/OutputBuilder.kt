@@ -19,7 +19,7 @@ import io.github.detekt.sarif4k.*
 import java.nio.file.Path
 
 /**
- * The interface to all [OutputBuilder]s. They convert the internally used SARIF Run into the chosen output format.
+ * The interface to all [OutputBuilder]s. They convert the internally used SARIF [Run] into the chosen output format.
  */
 interface OutputBuilder {
     /** the name this output format has in the codyze-cli. */

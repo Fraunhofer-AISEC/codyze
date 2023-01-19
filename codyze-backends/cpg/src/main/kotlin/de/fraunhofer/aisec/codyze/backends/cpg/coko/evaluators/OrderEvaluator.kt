@@ -37,9 +37,12 @@ import kotlin.reflect.full.declaredMemberFunctions
 private val logger = KotlinLogging.logger {}
 
 context(CokoCpgBackend)
+/**
+ * CPG [Evaluator] to evaluate Coko order expressions.
+ */
 class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evaluator {
     /**
-     * Filter the [OrderNode] by the given type. This also works for nested [OrderNodes]s using
+     * Filter the [OrderNode] by the given type. This also works for nested [OrderNode]s using
      * depth first search (DFS)
      */
     private inline fun <reified T> OrderNode.filterIsInstanceToList(): List<T> {
@@ -74,7 +77,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         return null
     }
 
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "ReturnCount")
     override fun evaluate(context: EvaluationContext): Set<CpgFinding> {
         // first check whether it is an order rule that we can evaluate
         val syntaxTree = order.toNode()
@@ -82,10 +85,13 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             syntaxTree.filterIsInstanceToList<TerminalOrderNode>().map { it.baseName }.toSet()
         if (usedBases.size > 1) {
             logger.warn("Order statement contains more than one base. Not supported.")
+            return emptySet()
         }
         if (usedBases.isEmpty()) {
             logger.warn("Order statement does not contain any OPs. Invalid order.")
+            return emptySet()
         }
+
         // get the [DFA] from the given order statement
         val dfa = syntaxTree.toNfa().toDfa()
 

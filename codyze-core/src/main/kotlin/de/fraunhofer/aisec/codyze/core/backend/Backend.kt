@@ -19,11 +19,13 @@ import io.github.detekt.sarif4k.Artifact
 import io.github.detekt.sarif4k.ToolComponent
 import java.nio.file.Path
 
+/**
+ * Interface for all Codyze [Backend]s.
+ */
 interface Backend {
     val backendData: Any // implement using 'by lazy {}'
-}
 
-interface BackendWithOutput : Backend {
+    // these properties are necessary for the SARIF construction
     val toolInfo: ToolComponent
     val artifacts: Map<Path, Artifact>
 }

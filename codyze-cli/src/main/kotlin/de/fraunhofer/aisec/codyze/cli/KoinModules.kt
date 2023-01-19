@@ -17,7 +17,9 @@ package de.fraunhofer.aisec.codyze.cli
 
 import de.fraunhofer.aisec.codyze.backends.cpg.cli.BaseCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.cli.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
+import de.fraunhofer.aisec.codyze.core.executor.Executor
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
 import de.fraunhofer.aisec.codyze.core.output.SarifBuilder

@@ -16,7 +16,6 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
 import de.fraunhofer.aisec.codyze.core.backend.Backend
-import de.fraunhofer.aisec.codyze.core.backend.BackendWithOutput
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken
@@ -60,5 +59,3 @@ interface CokoBackend : Backend {
      */
     fun only(vararg ops: Op): Evaluator
 }
-
-interface CokoBackendWithOutput : CokoBackend, BackendWithOutput

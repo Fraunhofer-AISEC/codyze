@@ -18,7 +18,7 @@ package de.fraunhofer.aisec.codyze.core.backend
 /**
  * This interface should be implemented as a data class to contain all the configuration options of a [Backend].
  *
- * When using Codyze as a CMD program, the [BackendCommand] is responsible to instantiate the
+ * When using Codyze as a CLI program, the [BackendCommand] is responsible to instantiate the
  * respective [Backend]. However, to facilitate the usage of Codyze as a library, a [Backend] should have a
  * configuration object as its only constructor argument.
  */

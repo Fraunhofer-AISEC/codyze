@@ -15,11 +15,15 @@
  */
 package de.fraunhofer.aisec.codyze.core.executor
 
+import de.fraunhofer.aisec.codyze.core.backend.Backend
 import io.github.detekt.sarif4k.Run
 
 /**
- * An executor that drives the validation of a specification language against source code and
- * provides evaluation results.
+ * An executor performs the evaluation of a specification language against source code and
+ * provides evaluation results in the form of a SARIF [Run].
+ *
+ * To facilitate the usage of Codyze as a library, an [Executor] should have a
+ * [ExecutorConfiguration] object and a [Backend] as its only two constructor arguments
  */
 fun interface Executor {
     fun evaluate(): Run

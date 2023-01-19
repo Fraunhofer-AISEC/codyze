@@ -62,6 +62,6 @@ fun main(args: Array<String>) {
 
     val run = executor.evaluate()
 
-    // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the correct format
+    // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the chosen format
     codyzeConfiguration.outputBuilder.toFile(run, codyzeConfiguration.output)
 }

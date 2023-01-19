@@ -17,4 +17,9 @@ package de.fraunhofer.aisec.codyze.core.executor
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 
+/**
+ * The base class for all [OptionGroup]s in Codyze backends.
+ *
+ * If your [ExecutorCommand] does not need any [OptionGroup]s, there is no need to implement this interface.
+ */
 open class ExecutorOptions(helpName: String?) : OptionGroup(name = helpName)

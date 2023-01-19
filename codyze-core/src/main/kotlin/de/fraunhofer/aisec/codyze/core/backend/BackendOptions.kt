@@ -17,4 +17,9 @@ package de.fraunhofer.aisec.codyze.core.backend
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 
+/**
+ * The base class for all [OptionGroup]s in Codyze backends.
+ *
+ * If your [BackendCommand] does not need any [OptionGroup]s, there is no need to implement this interface.
+ */
 open class BackendOptions(helpName: String?) : OptionGroup(name = helpName)

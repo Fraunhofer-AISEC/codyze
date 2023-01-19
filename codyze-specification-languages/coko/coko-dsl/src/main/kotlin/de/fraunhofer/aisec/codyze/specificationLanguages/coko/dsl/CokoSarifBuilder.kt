@@ -16,7 +16,7 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.core.VersionProvider
-import de.fraunhofer.aisec.codyze.core.backend.BackendWithOutput
+import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
@@ -45,7 +45,7 @@ private fun CokoRule.toReportingDescriptor() = ReportingDescriptor(
     // TODO: add precision, severity
 )
 
-class CokoSarifBuilder(val rules: List<CokoRule>, val backend: BackendWithOutput) {
+class CokoSarifBuilder(val rules: List<CokoRule>, val backend: Backend) {
     val reportingDescriptors = rules.map { it.toReportingDescriptor() }
     val toolComponent = ToolComponent(
         name = "CokoExecutor",

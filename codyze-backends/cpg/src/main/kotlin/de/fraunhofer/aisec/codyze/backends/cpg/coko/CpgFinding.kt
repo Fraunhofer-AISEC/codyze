@@ -27,14 +27,10 @@ import kotlin.io.path.toPath
 import kotlin.reflect.full.findAnnotation
 
 /**
- * Returns a `Region` object from a node's startLine, endLine, startColumn, endColumn property.
+ * Returns a [Region] object from a [Node]'s startLine, endLine, startColumn, endColumn property.
+ * If these properties do not exist, returns an empty `Region`.
  *
- * Note that these are not the exact property values but start at 0 rather than by 1.
- * If these properties do not exist, returns -1.
- *
- * @param n the node
- *
- * @return the region
+ * @return the [Region]
  */
 val Node.sarifRegion: Region
     get() {
@@ -51,6 +47,9 @@ val Node.sarifRegion: Region
         )
     }
 
+/**
+ * Returns a [Location] object from a [Node] using the given [artifacts] as well as its [sarifRegion].
+ */
 fun Node.getSarifLocation(artifacts: Map<Path, Artifact>?) =
     Location(
         physicalLocation = PhysicalLocation(
@@ -66,6 +65,9 @@ fun Node.getSarifLocation(artifacts: Map<Path, Artifact>?) =
         )
     )
 
+/**
+ * A CPG specific implementation of a [Finding].
+ */
 data class CpgFinding(
     override val message: String,
     override val kind: Finding.Kind = Finding.Kind.Fail,

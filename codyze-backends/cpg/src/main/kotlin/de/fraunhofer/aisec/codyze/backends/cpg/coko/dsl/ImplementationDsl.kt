@@ -83,11 +83,12 @@ fun CokoBackend.variable(name: String): List<ValueDeclaration> {
     return cpg.allChildren { it.name.lastPartsMatch(name) }
 }
 
-/** Returns a list of [ValueDeclaration]s with the matching name. */
+/** Returns a list of [ValueDeclaration]s with the matching [fqn]. */
 fun CokoBackend.variableFqn(fqn: String): List<ValueDeclaration> {
     return cpg.allChildren { it.name.toString() == fqn }
 }
 
+/** Returns a list of [ConstructExpression]s with the matching [classFqn] and fulfilling [predicate]. */
 fun CokoBackend.constructor(
     classFqn: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }

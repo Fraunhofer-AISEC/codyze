@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.8.0"
-cpg = "main-SNAPSHOT"   # revert to official releases when features become available
+cpg = "6.0.0"   # revert to official releases when features become available
 koin = "3.3.2"
 detekt = "1.22.0"
 spotless = "6.12.1"
@@ -18,8 +18,8 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 #cpg-language-go = { module = "de.fraunhofer.aisec:cpg-language-go", version.ref = "cpg"}
 
 # CPG GitHub builds using JitPack
-cpg-core = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-core", version.ref = "cpg"}
-cpg-analysis = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-analysis", version.ref = "cpg"}
+cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
+cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
 #cpg-language-go = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-language-go", version.ref = "cpg"}
 
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "3.0.4"}

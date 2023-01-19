@@ -87,10 +87,6 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             logger.warn("Order statement contains more than one base. Not supported.")
             return emptySet()
         }
-        if (usedBases.isEmpty()) {
-            logger.warn("Order statement does not contain any OPs. Invalid order.")
-            return emptySet()
-        }
 
         // get the [DFA] from the given order statement
         val dfa = syntaxTree.toNfa().toDfa()

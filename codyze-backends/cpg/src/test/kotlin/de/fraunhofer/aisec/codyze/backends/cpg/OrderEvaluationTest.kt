@@ -21,6 +21,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationCon
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
+import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.Path
 import kotlin.reflect.full.valueParameters
 import kotlin.test.Test
@@ -41,19 +42,9 @@ class OrderEvaluationTest {
         fun finish() = op { definition("Botan.finish") { signature(Wildcard) } }
     }
 
-    context(CokoBackend)
-    private fun createSimpleOrder(testObj: CokoOrderImpl) =
-        order(testObj::constructor) {
-            +testObj::start
-            +testObj::finish
-        }
-
-    context(CokoBackend)
-    private fun createSimpleOrderReducedStartNodes(testObj: CokoOrderImpl) =
-        order(testObj::constructor.use { testObj.constructor(1) }) {
-            +testObj::start
-            +testObj::finish
-        }
+    class OtherImpl {
+        fun foo() = op { definition("Botan.foo") { signature(Wildcard) } }
+    }
 
     // function with the same signature as the 'rule' [createSimpleDfa] because the kotlin compiler
     // crashes
@@ -67,6 +58,13 @@ class OrderEvaluationTest {
     private val basePath = Path("src", "test", "resources", "OrderEvaluationTest")
 
     private fun getPath(sourceFileName: String) = basePath.resolve(sourceFileName).toAbsolutePath()
+
+    context(CokoBackend)
+    private fun createSimpleOrder(testObj: CokoOrderImpl) =
+        order(testObj::constructor) {
+            +testObj::start
+            +testObj::finish
+        }
 
     @Test
     fun `test simple order expression for java`() {
@@ -88,6 +86,13 @@ class OrderEvaluationTest {
             assertEquals(8, findings.filter { it.kind == Finding.Kind.Pass }.size)
         }
     }
+
+    context(CokoBackend)
+    private fun createSimpleOrderReducedStartNodes(testObj: CokoOrderImpl) =
+        order(testObj::constructor.use { testObj.constructor(1) }) {
+            +testObj::start
+            +testObj::finish
+        }
 
     @Test
     fun `test simple order expression for java with reduced start nodes`() {
@@ -111,6 +116,60 @@ class OrderEvaluationTest {
                     "Expected one of: CokoOrderImpl.start",
                 findings.first().message,
             )
+        }
+    }
+
+    context(CokoBackend)
+    private fun createInvalidOrder(testObj: CokoOrderImpl, testObj2: OtherImpl) =
+        order(testObj::constructor.use { testObj.constructor(1) }) {
+            +testObj::start
+            +testObj2::foo
+        }
+
+    @Test
+    fun `test order expression with too many bases`() {
+        // mocking doesn't work here. We need an actual backend instance
+        val sourceFile = getPath("SimpleOrder.java")
+        val backend = CokoCpgBackend(config = createCpgConfiguration(sourceFile))
+
+        with(backend) {
+            val instance = CokoOrderImpl()
+            val instance2 = OtherImpl()
+            val orderEvaluator = createInvalidOrder(instance, instance2)
+            val findings = orderEvaluator
+                .evaluate(
+                    EvaluationContext(
+                        rule = ::dummyFunction,
+                        parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
+                    )
+                )
+            assertEquals(0, findings.size)
+        }
+    }
+
+    context(CokoBackend)
+    private fun createEmptyOrder(testObj: CokoOrderImpl) =
+        order(testObj::constructor) { }
+
+    @Test
+    fun `test empty order expression`() {
+        // mocking doesn't work here. We need an actual backend instance
+        val sourceFile = getPath("SimpleOrder.java")
+        val backend = CokoCpgBackend(config = createCpgConfiguration(sourceFile))
+
+        with(backend) {
+            val instance = CokoOrderImpl()
+            val orderEvaluator = createEmptyOrder(instance)
+
+            assertThrows<IllegalArgumentException> {
+                orderEvaluator
+                    .evaluate(
+                        EvaluationContext(
+                            rule = ::dummyFunction,
+                            parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
+                        )
+                    )
+            }
         }
     }
 }

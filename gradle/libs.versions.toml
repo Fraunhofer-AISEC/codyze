@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.8.0"
-cpg = "6.0.0"   # revert to official releases when features become available
+cpg = "6.0.0"
 koin = "3.3.2"
 detekt = "1.22.0"
 spotless = "6.12.1"

@@ -43,4 +43,5 @@ fun createCpgConfiguration(vararg sourceFile: Path) =
         passes = listOf(EdgeCachePass(), UnreachableEOGPass()),
     )
 
+@Rule
 fun dummyRule(): Evaluator = TODO()

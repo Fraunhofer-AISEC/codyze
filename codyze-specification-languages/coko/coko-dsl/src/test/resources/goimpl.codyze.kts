@@ -4,13 +4,13 @@ plugins { id("cpg") }
 
 class GolangLogging : Logging {
     // TODO(oxisto): arguments flow into
-    override fun log(message: String, vararg args: Any) = op {
+    override fun log(message: String?, vararg args: Any?) = op {
         definition("log.Printf") { signature().unordered(*args) }
     }
 }
 
 class Gorm : ObjectRelationalMapper {
-    override fun insert(obj: Any) = op { definition("db.Create") { signature(obj) } }
+    override fun insert(obj: Any?) = op { definition("db.Create") { signature(obj) } }
 }
 
 class GoJWTUserContext : UserContext {

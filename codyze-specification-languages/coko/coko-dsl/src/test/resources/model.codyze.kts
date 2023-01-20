@@ -1,9 +1,9 @@
 interface Logging {
-    fun log(message: String, vararg args: Any): Op
+    fun log(message: String?, vararg args: Any?): Op
 }
 
 interface ObjectRelationalMapper {
-    fun insert(obj: Any): Op
+    fun insert(obj: Any?): Op
 }
 
 interface UserContext {

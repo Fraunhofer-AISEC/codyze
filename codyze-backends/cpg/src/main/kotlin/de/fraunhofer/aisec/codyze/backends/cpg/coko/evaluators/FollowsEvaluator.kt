@@ -42,8 +42,8 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
         val findings = mutableListOf<CpgFinding>()
 
         val ruleAnnotation = context.rule.findAnnotation<Rule>()
-        val failMessage = ruleAnnotation?.failMessage ?: defaultFailMessage
-        val passMessage = ruleAnnotation?.passMessage ?: defaultPassMessage
+        val failMessage = ruleAnnotation?.failMessage?.takeIf { it.isNotEmpty() } ?: defaultFailMessage
+        val passMessage = ruleAnnotation?.passMessage?.takeIf { it.isNotEmpty() } ?: defaultPassMessage
 
         for (from in thisNodes) {
             val paths = from.followNextEOGEdgesUntilHit { thatNodes.contains(it) }

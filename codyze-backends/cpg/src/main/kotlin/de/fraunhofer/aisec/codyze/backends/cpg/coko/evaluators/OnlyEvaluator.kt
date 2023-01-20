@@ -55,7 +55,9 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
         val violatingNodes = allNodes.minus(correctNodes)
 
         val ruleAnnotation = context.rule.findAnnotation<Rule>()
-        val failMessage = ruleAnnotation?.failMessage ?: defaultFailMessage
+        val failMessage = ruleAnnotation?.failMessage?.takeIf { it.isNotEmpty() } ?: defaultFailMessage
+        val passMessage = ruleAnnotation?.passMessage?.takeIf { it.isNotEmpty() } ?: defaultPassMessage
+
         val findings = mutableListOf<CpgFinding>()
         for (node in violatingNodes) {
             findings.add(
@@ -67,7 +69,6 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
             )
         }
 
-        val passMessage = ruleAnnotation?.passMessage ?: defaultPassMessage
         for (node in correctNodes) {
             findings.add(
                 CpgFinding(

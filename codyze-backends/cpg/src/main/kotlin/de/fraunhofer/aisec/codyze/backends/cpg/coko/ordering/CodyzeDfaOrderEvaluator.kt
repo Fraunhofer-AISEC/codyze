@@ -50,8 +50,10 @@ class CodyzeDfaOrderEvaluator(
     eliminateUnreachableCode
 ) {
     val findings: MutableSet<CpgFinding> = mutableSetOf()
-    private val userDefinedFailMessage = context.rule.findAnnotation<Rule>()?.failMessage.takeIf { it?.isEmpty() == false}
-    private val userDefinedPassMessage = context.rule.findAnnotation<Rule>()?.passMessage.takeIf { it?.isEmpty() == false}
+    private val userDefinedFailMessage = context.rule.findAnnotation<Rule>()?.failMessage
+        .takeIf { it?.isEmpty() == false }
+    private val userDefinedPassMessage = context.rule.findAnnotation<Rule>()?.passMessage
+        .takeIf { it?.isEmpty() == false }
 
     @Suppress("UnsafeCallOnNullableType")
     private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { e ->

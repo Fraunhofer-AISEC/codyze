@@ -54,7 +54,8 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
                     // All paths starting from `from` end in one of the `that` nodes
                     listOf(
                         CpgFinding(
-                            message = "Complies with rule: \"${from.code}\" is followed by ${reachableThatNodes.joinToString(
+                            message = "Complies with rule: \"${from.code}\" is followed by ${
+                            reachableThatNodes.joinToString(
                                 prefix = "\"",
                                 separator = "\", \"",
                                 postfix = "\"",
@@ -70,7 +71,8 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
                     paths.failed.map { failedPath ->
                         // make a finding for each failed path
                         CpgFinding(
-                            message = "Violation against rule in one execution path from \"${from.code}\". $failMessage",
+                            message =
+                            "Violation against rule in one execution path from \"${from.code}\". $failMessage",
                             kind = Finding.Kind.Fail,
                             node = from,
                             relatedNodes = failedPath

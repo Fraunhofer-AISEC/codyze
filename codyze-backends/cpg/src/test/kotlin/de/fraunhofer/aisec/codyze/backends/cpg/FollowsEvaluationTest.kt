@@ -63,14 +63,13 @@ class FollowsEvaluationTest {
                 finding.node?.getFunction()?.contains(Regex(".*ok.*", RegexOption.IGNORE_CASE)) == true
             }
         }
-
     }
 
     @Test
     fun `test simple follows fail`() {
         val failFindings = findings.filter { it.kind == Finding.Kind.Fail }
 
-        for(finding in failFindings) {
+        for (finding in failFindings) {
             // fail finding should not be in function that has "ok" in its name
             assertFalse("Found FAIL finding that was from function ${finding.node?.getFunction()} -> false positive") {
                 finding.node?.getFunction()?.contains(Regex(".*ok.*", RegexOption.IGNORE_CASE)) == true

@@ -42,11 +42,11 @@ val CokoBackend.cpg: TranslationResult
 
 /** Get all [Nodes] that are associated with this [Op]. */
 context(CokoBackend)
-fun Op.getAllNodes(): Nodes =
+fun Op.cpgGetAllNodes(): Nodes =
     when (this@Op) {
         is FunctionOp ->
-            this@Op.definitions.map { def -> this@CokoBackend.callFqn(def.fqn) }.flatten()
-        is ConstructorOp -> this@CokoBackend.constructor(this.classFqn)
+            this@Op.definitions.map { def -> this@CokoBackend.cpgCallFqn(def.fqn) }.flatten()
+        is ConstructorOp -> this@CokoBackend.cpgConstructor(this.classFqn)
     }
 
 /**
@@ -54,15 +54,15 @@ fun Op.getAllNodes(): Nodes =
  * [Definition]s.
  */
 context(CokoBackend)
-fun Op.getNodes(): Nodes =
+fun Op.cpgGetNodes(): Nodes =
     when (this@Op) {
         is FunctionOp ->
             this@Op.definitions
                 .map { def ->
-                    this@CokoBackend.callFqn(def.fqn) {
+                    this@CokoBackend.cpgCallFqn(def.fqn) {
                         def.signatures.any { sig ->
-                            signature(*sig.parameters.toTypedArray()) &&
-                                sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                            cpgSignature(*sig.parameters.toTypedArray()) &&
+                                sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                         }
                     }
                 }
@@ -70,26 +70,26 @@ fun Op.getNodes(): Nodes =
         is ConstructorOp ->
             this@Op.signatures
                 .map { sig ->
-                    this@CokoBackend.constructor(this@Op.classFqn) {
-                        signature(*sig.parameters.toTypedArray()) &&
-                            sig.unorderedParameters.all { it?.flowsTo(arguments) ?: false }
+                    this@CokoBackend.cpgConstructor(this@Op.classFqn) {
+                        cpgSignature(*sig.parameters.toTypedArray()) &&
+                            sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                     }
                 }
                 .flatten()
     }
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */
-fun CokoBackend.variable(name: String): List<ValueDeclaration> {
+fun CokoBackend.cpgVariable(name: String): List<ValueDeclaration> {
     return cpg.allChildren { it.name.lastPartsMatch(name) }
 }
 
 /** Returns a list of [ValueDeclaration]s with the matching [fqn]. */
-fun CokoBackend.variableFqn(fqn: String): List<ValueDeclaration> {
+fun CokoBackend.cpgVariableFqn(fqn: String): List<ValueDeclaration> {
     return cpg.allChildren { it.name.toString() == fqn }
 }
 
 /** Returns a list of [ConstructExpression]s with the matching [classFqn] and fulfilling [predicate]. */
-fun CokoBackend.constructor(
+fun CokoBackend.cpgConstructor(
     classFqn: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<ConstructExpression> {
@@ -99,7 +99,7 @@ fun CokoBackend.constructor(
 }
 
 /** Returns a list of [CallExpression]s with the matching [name] and fulfilling [predicate]. */
-fun CokoBackend.call(
+fun CokoBackend.cpgCall(
     name: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
@@ -110,7 +110,7 @@ fun CokoBackend.call(
  * Returns a list of [CallExpression]s with the matching [fqn] (fully-qualified name) and fulfilling
  * [predicate].
  */
-fun CokoBackend.callFqn(
+fun CokoBackend.cpgCallFqn(
     fqn: String,
     predicate: (@CokoMarker CallExpression).() -> Boolean = { true }
 ): List<CallExpression> {
@@ -118,7 +118,7 @@ fun CokoBackend.callFqn(
 }
 
 /** Returns a list of [MemberExpression]s with the matching something. */
-fun CokoBackend.memberExpr(
+fun CokoBackend.cpgMemberExpr(
     predicate: (@CokoMarker MemberExpression).() -> Boolean
 ): List<MemberExpression> {
     return cpg.allChildren(predicate)
@@ -132,16 +132,16 @@ context(CallExpression)
  * - If this is a Collection, we check if at least one of the elements flows to [that]
  * - If this is a [Node], we use the DFG of the CPG.
  */
-infix fun Any.flowsTo(that: Node): Boolean =
+infix fun Any.cpgFlowsTo(that: Node): Boolean =
     if (this is Wildcard) {
         true
     } else {
         when (this) {
             is String -> Regex(this).matches((that as? Expression)?.evaluate()?.toString().orEmpty())
-            is Iterable<*> -> this.any { it?.flowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.flowsTo(that) ?: false }
+            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Node -> dataFlow(this, that).value
-            is ParameterGroup -> this.parameters.all { it?.flowsTo(that) ?: false }
+            is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
             else -> this == (that as? Expression)?.evaluate()
         }
     }
@@ -154,16 +154,16 @@ context(CallExpression)
  * - If this is a Collection, we check if at least one of the elements flows to [that]
  * - If this is a [Node], we use the DFG of the CPG.
  */
-infix fun Any.flowsTo(that: Collection<Node>): Boolean =
+infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
     if (this is Wildcard) {
         true
     } else {
         when (this) {
             is String -> that.any { Regex(this).matches((it as? Expression)?.evaluate()?.toString().orEmpty()) }
-            is Iterable<*> -> this.any { it?.flowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.flowsTo(that) ?: false }
+            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
-            is ParameterGroup -> this.parameters.all { it?.flowsTo(that) ?: false }
+            is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
             else -> this in that.map { (it as Expression).evaluate() }
         }
     }
@@ -187,9 +187,9 @@ context(CokoBackend)
  * are not important to the analysis
  */
 @Suppress("UnsafeCallOnNullableType")
-fun CallExpression.signature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
+fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
-    return checkArgsSize(parameters, hasVarargs) &&
+    return cpgCheckArgsSize(parameters, hasVarargs) &&
         // checks if the CallExpression matches with the parameters
         parameters.withIndex().all { (i: Int, parameter: Any?) ->
             when (parameter) {
@@ -198,23 +198,23 @@ fun CallExpression.signature(vararg parameters: Any?, hasVarargs: Boolean = fals
                 is ParamWithType ->
                     // if `parameter` is a `ParamWithType` object we want to check the type and
                     // if there is dataflow
-                    checkType(parameter.type, i) &&
-                        parameter.param flowsTo arguments[i]
+                    cpgCheckType(parameter.type, i) &&
+                        parameter.param cpgFlowsTo arguments[i]
                 // checks if the type of the argument is the same
-                is Type -> checkType(parameter, i)
+                is Type -> cpgCheckType(parameter, i)
                 // check if any of the Nodes from the Op flow to the argument
-                is Op -> parameter.getNodes() flowsTo arguments[i]
+                is Op -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
                 // checks if there is dataflow from the parameter to the argument in the same position
-                else -> parameter flowsTo arguments[i]
+                else -> parameter cpgFlowsTo arguments[i]
             }
         }
 }
 
 /** Checks the [type] against the type of the argument at [index] for the Call Expression */
-private fun CallExpression.checkType(type: Type, index: Int) = arguments[index].type.typeName.endsWith(type.fqn)
+private fun CallExpression.cpgCheckType(type: Type, index: Int) = arguments[index].type.typeName.endsWith(type.fqn)
 
 /** Checks if the number of parameters matches the number of arguments of [CallExpression] */
-private fun CallExpression.checkArgsSize(parameters: Array<*>, hasVarargs: Boolean) =
+private fun CallExpression.cpgCheckArgsSize(parameters: Array<*>, hasVarargs: Boolean) =
     if (hasVarargs) {
         parameters.size <= arguments.size
     } else {

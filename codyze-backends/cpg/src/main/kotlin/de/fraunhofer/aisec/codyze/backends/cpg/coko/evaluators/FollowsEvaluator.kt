@@ -17,7 +17,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
@@ -36,8 +36,8 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
     private val defaultPassMessage = ""
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
-        val thisNodes = with(this@CokoCpgBackend) { ifOp.getNodes() }
-        val thatNodes = with(this@CokoCpgBackend) { thenOp.getNodes().toSet() }
+        val thisNodes = with(this@CokoCpgBackend) { ifOp.cpgGetNodes() }
+        val thatNodes = with(this@CokoCpgBackend) { thenOp.cpgGetNodes().toSet() }
 
         val findings = mutableListOf<CpgFinding>()
 

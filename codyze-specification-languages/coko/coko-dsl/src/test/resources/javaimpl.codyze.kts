@@ -29,5 +29,5 @@ class JDBC : ObjectRelationalMapper {
 }
 
 class JavalinJWT : UserContext {
-    override val user = callFqn("javalinjwt.JavalinJWT.getTokenFromHeader")
+    override val user = cpgCallFqn("javalinjwt.JavalinJWT.getTokenFromHeader")
 }

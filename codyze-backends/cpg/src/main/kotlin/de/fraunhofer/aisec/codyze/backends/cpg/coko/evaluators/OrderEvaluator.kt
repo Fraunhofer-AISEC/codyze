@@ -17,8 +17,8 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getAllNodes
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.getNodes
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetAllNodes
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering.CodyzeDfaOrderEvaluator
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering.toNfa
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.*
@@ -110,7 +110,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         // this is the set of all nodes the [CodyzeDfaOrderEvaluator] considers during evaluation
         for (op in opsInConcept) {
             val nodes = ((op.call(implementation, *(List(op.parameters.size - 1) { null }.toTypedArray()))) as Op)
-                .getAllNodes()
+                .cpgGetAllNodes()
             for (node in nodes) {
                 val setOfNames = nodesToOp.getOrPut(node) { mutableSetOf() }
                 setOfNames.add(op.name)
@@ -122,7 +122,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         // the nodes from +testObj::start.use { testObj.start(123) } <- use makes them userDefined
         // only allow the start nodes that take '123' as argument
         for ((opName, op) in order.userDefinedOps.entries) {
-            val nodes = op.getNodes()
+            val nodes = op.cpgGetNodes()
             for (node in nodes) {
                 val setOfNames = nodesToOp.getOrDefault(node, mutableSetOf())
                 setOfNames.add(opName)

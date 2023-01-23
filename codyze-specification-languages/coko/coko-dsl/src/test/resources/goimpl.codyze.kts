@@ -20,10 +20,10 @@ class GoJWTUserContext : UserContext {
     //  interested in the user context of the current function
     override val user: List<Node>
         get() {
-            val subjects = memberExpr { base.name == "RegisteredClaims" && name == "Subject" }
+            val subjects = cpgMemberExpr { base.name == "RegisteredClaims" && name == "Subject" }
             val claims =
-                callFqn("Context.Value") { arguments[0].name == "jwtmiddleware.ContextKey" }
+                cpgCallFqn("Context.Value") { arguments[0].name == "jwtmiddleware.ContextKey" }
 
-            return subjects.filter { claims flowsTo (it.base as MemberExpression).base }
+            return subjects.filter { claims cpgFlowsTo (it.base as MemberExpression).base }
         }
 }

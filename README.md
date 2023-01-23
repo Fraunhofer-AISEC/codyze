@@ -2,6 +2,7 @@
 
 [![build](https://github.com/Fraunhofer-AISEC/codyze/actions/workflows/build.yml/badge.svg)](https://github.com/Fraunhofer-AISEC/codyze/actions/workflows/build.yml)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Fraunhofer-AISEC/codyze)
+[![codecov](https://codecov.io/gh/Fraunhofer-AISEC/codyze/branch/main/graph/badge.svg)](https://codecov.io/gh/Fraunhofer-AISEC/codyze)
 ![GitHub](https://img.shields.io/github/license/Fraunhofer-AISEC/codyze)
 [![](https://jitpack.io/v/Fraunhofer-AISEC/codyze.svg)](https://jitpack.io/#Fraunhofer-AISEC/codyze)
 

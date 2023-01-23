@@ -16,6 +16,7 @@
 package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
@@ -82,8 +83,24 @@ class OrderEvaluationTest {
                         parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
                     )
                 )
-            assertEquals(7, findings.filter { it.kind == Finding.Kind.Fail }.size)
+
+            val failFindings = findings.filter { it.kind == Finding.Kind.Fail }
+            assertEquals(7, failFindings.size)
+
+            val expectedFailLines = setOf(53, 62, 71, 81, 89, 93, 103)
+            val failFindingLines = (failFindings as List<CpgFinding>)
+                .mapNotNull { it.node?.location?.region?.startLine }
+                .toSet()
+            assertEquals(expectedFailLines, failFindingLines)
+
+            val passFindings = findings.filter { it.kind == Finding.Kind.Pass }
             assertEquals(8, findings.filter { it.kind == Finding.Kind.Pass }.size)
+
+            val expectedPassLines = setOf(17, 25, 38, 44, 48, 79, 100)
+            val passFindingLines = (passFindings as List<CpgFinding>)
+                .mapNotNull { it.node?.location?.region?.startLine }
+                .toSet()
+            assertEquals(expectedPassLines, passFindingLines)
         }
     }
 

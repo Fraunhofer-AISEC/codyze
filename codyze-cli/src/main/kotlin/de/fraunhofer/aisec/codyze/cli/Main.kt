@@ -50,6 +50,8 @@ fun main(args: Array<String>) {
 
     // get the used subcommands
     val executorCommand = codyzeCli.currentContext.invokedSubcommand as? ExecutorCommand<*>
+
+    // allow backendCommand to be null in order to allow executors that do not use backends
     val backendCommand = executorCommand?.currentContext?.invokedSubcommand as? BackendCommand<*>
 
     // this should already be checked by clikt in [codyzeCli.main(args)]

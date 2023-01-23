@@ -27,4 +27,5 @@ dependencies {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-test-junit")
     }
     testImplementation(libs.mockk)
+    testImplementation(libs.bundles.cpg)
 }

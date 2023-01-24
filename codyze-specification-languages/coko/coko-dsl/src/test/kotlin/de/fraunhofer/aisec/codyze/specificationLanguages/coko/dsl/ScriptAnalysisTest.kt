@@ -43,7 +43,7 @@ class ScriptAnalysisTest {
         val specEvaluator =
             CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
         assertTrue(specEvaluator.types.size == 1)
-        assertTrue(specEvaluator.types[0].first.simpleName == "TestInterface")
+        assertTrue(specEvaluator.types[0].simpleName == "TestInterface")
     }
 
     @Test
@@ -61,7 +61,7 @@ class ScriptAnalysisTest {
             CokoExecutor.compileScriptsIntoSpecEvaluator(mockk(), listOf(modelDefinitionFile))
         assertTrue(specEvaluator.types.size == 1)
         assertEquals(
-            specEvaluator.types[0].first.members.first().returnType,
+            specEvaluator.types[0].members.first().returnType,
             Wildcard::class.createType()
         )
     }
@@ -159,7 +159,7 @@ class ScriptAnalysisTest {
 
         assertTrue(specEvaluator.rules.size == 1)
         assertEquals(
-            specEvaluator.rules.single().first.findAnnotation<Rule>()!!.description,
+            specEvaluator.rules.single().findAnnotation<Rule>()!!.description,
             "Some description"
         )
     }
@@ -189,7 +189,7 @@ class ScriptAnalysisTest {
                 }
                 
                 @Rule("Some description")
-                fun `some rule`(impl: TestConcept) = impl.log("first") follows impl.log("second")
+                fun `some rule`(impl: TestConcept) = impl.log("first") followedBy impl.log("second")
             """.trimIndent(),
         )
 
@@ -201,7 +201,7 @@ class ScriptAnalysisTest {
 
         assertTrue(specEvaluator.rules.size == 1)
         assertEquals(
-            specEvaluator.rules.single().first.findAnnotation<Rule>()!!.description,
+            specEvaluator.rules.single().findAnnotation<Rule>()!!.description,
             "Some description"
         )
         assertTrue(specEvaluator.types.size == 1)

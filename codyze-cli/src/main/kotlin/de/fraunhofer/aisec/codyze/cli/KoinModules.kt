@@ -13,49 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("MagicNumber")
-
 package de.fraunhofer.aisec.codyze.cli
 
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
-import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
-import de.fraunhofer.aisec.codyze.backends.cpg.CPGOptionGroup
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.core.Executor
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
+import de.fraunhofer.aisec.codyze.backends.cpg.cli.BaseCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.cli.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.core.backend.Backend
+import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
+import de.fraunhofer.aisec.codyze.core.executor.Executor
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
+import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
+import de.fraunhofer.aisec.codyze.core.output.SarifBuilder
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli.CokoSubcommand
+import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-val codyzeModule = module {
-    factory { params -> CPGOptionGroup(params.get()) } bind OptionGroup::class
-    factory { params ->
-        CPGConfiguration(
-            source = params[0],
-            useUnityBuild = params[1],
-            typeSystemActiveInFrontend = params[2],
-            debugParser = params[3],
-            disableCleanup = params[4],
-            codeInNodes = params[5],
-            matchCommentsToNodes = params[6],
-            processAnnotations = params[7],
-            failOnError = params[8],
-            useParallelFrontends = params[9],
-            defaultPasses = params[10],
-            additionalLanguages = params[11],
-            symbols = params[12],
-            passes = params[13],
-            loadIncludes = params[14],
-            includePaths = params[15],
-            includeWhitelist = params[16],
-            includeBlocklist = params[17],
-            typestate = params[18]
-        )
-    } bind BackendConfiguration::class
-    factory { params -> CokoCpgBackend(params.get()) } bind CokoBackend::class
+/**
+ * Every [Backend] must provide [BackendCommand] to be selectable in the CLI.
+ */
+val backendCommands = module {
+    factoryOf(::BaseCpgBackend) bind(BackendCommand::class)
+    factoryOf(::CokoCpgBackend) bind(BackendCommand::class)
 }
 
-val executorModule = module {
-    factory { CokoExecutor() } bind Executor::class
+/**
+ * Each [Executor] must provide a [ExecutorCommand] to be selectable in the CLI.
+ */
+val executorCommands = module {
+    factoryOf(::CokoSubcommand) bind(ExecutorCommand::class)
+}
+
+/**
+ * List all available [OutputBuilder]s. They convert the internally used SARIF format into the final output.
+ */
+val outputBuilders = module {
+    factoryOf(::SarifBuilder) bind(OutputBuilder::class)
 }

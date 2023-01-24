@@ -37,7 +37,7 @@ repositories {
 
     // Eclipse CDT repo --> needed for CPG
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/11.0/cdt-11.0.0/plugins")
         metadataSources {
             artifact()
         }
@@ -49,7 +49,8 @@ repositories {
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        // Make sure to set the coko-dsl/CokoScript jvm-target of the script compiler to the same jvm-version
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 

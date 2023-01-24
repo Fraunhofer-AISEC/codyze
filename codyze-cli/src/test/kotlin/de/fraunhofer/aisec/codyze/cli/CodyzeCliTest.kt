@@ -15,17 +15,18 @@
  */
 package de.fraunhofer.aisec.codyze.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
-import de.fraunhofer.aisec.codyze.core.Executor
-import io.mockk.clearAllMocks
+import com.github.ajalt.clikt.parameters.options.multiple
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.path
+import de.fraunhofer.aisec.codyze.core.backend.Backend
+import de.fraunhofer.aisec.codyze.core.config.combineSources
+import de.fraunhofer.aisec.codyze.core.executor.Executor
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import io.mockk.mockk
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import org.koin.dsl.bind
-import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
 import java.nio.file.Path
@@ -34,9 +35,6 @@ import kotlin.test.*
 
 class CodyzeCliTest : KoinTest {
 
-    val mockkExecutor = mockk<Executor>(relaxed = true)
-    val mockkOptionGroup = mockk<OptionGroup>(relaxed = true)
-
     // starting koin is necessary because some options (e.g., --executor)
     // dynamically look up available choices for the by options(...).choice() command
     @JvmField
@@ -44,36 +42,31 @@ class CodyzeCliTest : KoinTest {
     val koinTestExtension =
         KoinTestExtension.create { // Initialize the koin dependency injection
             // declare modules necessary for testing
-            modules(
-                module {
-                    factory { mockkOptionGroup } bind OptionGroup::class
-                    factory { mockkExecutor } bind Executor::class
-                }
-            )
+            modules(outputBuilders)
         }
 
-    @AfterEach
-    fun clearMockks() {
-        clearAllMocks()
-    }
+    class TestExecutorSubcommand : ExecutorCommand<Executor>() {
+        private val rawSpec: List<Path> by option("--spec")
+            .path(mustExist = true, mustBeReadable = true, canBeDir = true)
+            .multiple(required = true)
 
-    class TestSubcommand : CodyzeSubcommand() {
-        override fun run() {}
-    }
+        val spec by lazy { combineSources(rawSpec) }
 
-    fun initCli(configFile: Path, subcommands: Array<CliktCommand>, argv: Array<String>) {
-        val command = CodyzeCli(configFile).subcommands(*subcommands)
-        command.parse(argv)
+        override fun getExecutor(
+            goodFindings: Boolean,
+            pedantic: Boolean,
+            backend: Backend?
+        ) = mockk<Executor>(relaxed = true)
     }
 
     // Test that relative paths are resolved relative to the config file
     @Test
     fun configRelativePathResolutionTest() {
-        val testSubcommand = TestSubcommand()
-        initCli(pathConfigFile, arrayOf(testSubcommand), arrayOf(testSubcommand.commandName))
+        val testSubcommand = TestExecutorSubcommand()
+        CodyzeCli(pathConfigFile).subcommands(testSubcommand).parse(arrayOf(testSubcommand.commandName))
 
         val expectedSpecs = listOf(specMark)
-        assertContentEquals(expectedSpecs, testSubcommand.codyzeOptions.spec)
+        assertContentEquals(expectedSpecs, testSubcommand.spec)
     }
 
     // Test the behavior of command if both config file and command line options are present
@@ -81,49 +74,37 @@ class CodyzeCliTest : KoinTest {
     fun configFileWithArgsTest() {
         val tempDir = createTempDirectory()
 
-        val testSubcommand = TestSubcommand()
-        initCli(
-            correctConfigFile,
-            arrayOf(testSubcommand),
+        val testSubcommand = TestExecutorSubcommand()
+        val codyzeCli = CodyzeCli(correctConfigFile).subcommands(testSubcommand)
+        codyzeCli.parse(
             arrayOf(
-                testSubcommand.commandName,
                 "--output",
                 tempDir.absolutePathString(),
-                "--spec-additions",
+                "--pedantic",
+                testSubcommand.commandName,
+                "--spec",
                 spec2Mark.absolutePathString(),
-                "--timeout",
-                "10"
             )
         )
 
         // should be overwritten by args
         val overwrittenMessage = "CLI options should take precedence over config file"
-        assertEquals(tempDir.absolute(), testSubcommand.codyzeOptions.output.absolute(), overwrittenMessage)
-        assertEquals(10, testSubcommand.codyzeOptions.timeout, overwrittenMessage)
-
-        // args values should be appended to config values
-        val appendMessage = "Values from CLI option should be appended to config values"
-        val expectedSpecs = listOf(specMark, spec2Mark)
-        assertContentEquals(
-            expectedSpecs.map { it.absolute() },
-            testSubcommand.codyzeOptions.spec.map { it.absolute() },
-            appendMessage
-        )
+        assertEquals(tempDir.absolute(), codyzeCli.codyzeOptions.output.absolute(), overwrittenMessage)
+        assertEquals(true, codyzeCli.codyzeOptions.pedantic, overwrittenMessage)
+        assertContentEquals(listOf(spec2Mark), testSubcommand.spec.map { it.absolute() }, overwrittenMessage)
 
         // should be config values
         val staySameMessage =
             "Config file options should stay the same if it was not matched on CLI"
-        assertFalse(testSubcommand.codyzeOptions.goodFindings, staySameMessage)
+        assertFalse(codyzeCli.codyzeOptions.goodFindings, staySameMessage)
     }
 
     companion object {
         lateinit var pathConfigFile: Path
         lateinit var correctConfigFile: Path
 
-        lateinit var fileYml: Path
         lateinit var specMark: Path
         lateinit var spec2Mark: Path
-        lateinit var srcMainJava: Path
 
         @BeforeAll
         @JvmStatic
@@ -143,12 +124,6 @@ class CodyzeCliTest : KoinTest {
             correctConfigFile = Path(correctConfigFileResource.path)
             assertTrue(correctConfigFile.exists())
 
-            val fileYmlResource =
-                CodyzeCliTest::class.java.classLoader.getResource("config-files/file.yml")
-            assertNotNull(fileYmlResource)
-            fileYml = Path(fileYmlResource.path)
-            assertTrue(fileYml.exists())
-
             val specMarkResource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/spec/spec.mark")
             assertNotNull(specMarkResource)
@@ -160,12 +135,6 @@ class CodyzeCliTest : KoinTest {
             assertNotNull(specMark2Resource)
             spec2Mark = Path(specMark2Resource.path)
             assertTrue(spec2Mark.exists())
-
-            val srcMainJavaResource =
-                CodyzeCliTest::class.java.classLoader.getResource("config-files/src/main/java")
-            assertNotNull(srcMainJavaResource)
-            srcMainJava = Path(srcMainJavaResource.path)
-            assertTrue(srcMainJava.exists())
         }
     }
 }

@@ -47,6 +47,10 @@ class ParameterGroup {
     override fun hashCode(): Int {
         return parameters.hashCode()
     }
+
+    override fun toString(): String {
+        return parameters.joinToString(prefix = "{", postfix = "}")
+    }
 }
 
 /**
@@ -79,6 +83,14 @@ class Definition(val fqn: String) {
         var result = fqn.hashCode()
         result = 31 * result + signatures.hashCode()
         return result
+    }
+
+    override fun toString(): String {
+        return signatures.filterNot { it.parameters.contains(null) || it.unorderedParameters.contains(null) }
+            .joinToString(
+                prefix = fqn,
+                separator = ", $fqn"
+            )
     }
 }
 
@@ -133,5 +145,14 @@ class Signature {
         var result = parameters.size.hashCode()
         result = 31 * result + unorderedParameters.size.hashCode()
         return result
+    }
+
+    override fun toString(): String {
+        val unorderedString = if (unorderedParameters.isNotEmpty()) {
+            " unordered: ${unorderedParameters.joinToString()}"
+        } else {
+            ""
+        }
+        return parameters.joinToString(prefix = "(", postfix = ")") + unorderedString
     }
 }

@@ -58,6 +58,10 @@ class FunctionOp internal constructor() : Op {
     override fun hashCode(): Int {
         return definitions.hashCode()
     }
+
+    override fun toString(): String {
+        return definitions.joinToString()
+    }
 }
 
 /**
@@ -84,6 +88,10 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
 
     override fun hashCode(): Int {
         return signatures.hashCode()
+    }
+
+    override fun toString(): String {
+        return signatures.joinToString(prefix = classFqn, separator = ", $classFqn")
     }
 }
 

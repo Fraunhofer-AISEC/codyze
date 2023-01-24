@@ -80,7 +80,7 @@ internal object ProjectScriptCompilationConfiguration :
          * - Make sure to set the jvm-target of the script compiler to the same jvm-target the rest
          * of Codyze is using
          */
-        compilerOptions("-Xcontext-receivers", "-jvm-target=11", "-Xskip-prerelease-check")
+        compilerOptions("-Xcontext-receivers", "-jvm-target=17", "-Xskip-prerelease-check")
 
         // adds implicit import statements (in this case `import
         // de.fraunhofer.aisec.codyze.specification_languages.coko.coko_core.dsl.*`, etc.)

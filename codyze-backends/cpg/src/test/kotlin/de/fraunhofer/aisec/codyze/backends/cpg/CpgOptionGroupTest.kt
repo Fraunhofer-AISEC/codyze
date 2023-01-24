@@ -16,9 +16,8 @@
 package de.fraunhofer.aisec.codyze.backends.cpg
 
 import com.github.ajalt.clikt.core.BadParameterValue
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.core.config.ConfigurationRegister
 import de.fraunhofer.aisec.codyze.core.config.combineSources
 import de.fraunhofer.aisec.cpg.passes.CallResolver
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
@@ -44,11 +43,8 @@ private val logger = KotlinLogging.logger { }
 
 class CpgOptionGroupTest {
 
-    class CPGOptionsCommand : CliktCommand() {
-        private val configurationRegister = ConfigurationRegister()
-
-        val cpgOptions by CPGOptionGroup(configurationRegister)
-        override fun run() { }
+    class CPGOptionsCommand : NoOpCliktCommand() {
+        val cpgOptions by CPGOptionGroup()
     }
 
     @ParameterizedTest

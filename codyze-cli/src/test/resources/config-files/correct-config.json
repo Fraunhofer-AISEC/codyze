@@ -1,8 +1,7 @@
 {
-  "test-subcommand": {
-    "good-findings": false,
-    "timeout": 5,
-    "spec": "spec",
-    "output": "out"
+  "good-findings": false,
+  "output": "out",
+  "test-executor-subcommand": {
+    "spec": "spec"
   }
 }

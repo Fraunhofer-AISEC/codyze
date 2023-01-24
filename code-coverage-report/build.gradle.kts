@@ -10,7 +10,7 @@ repositories {
 
     // Eclipse CDT repo --> needed when adding the CPG as an included build
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/11.0/cdt-11.0.0/plugins")
         metadataSources {
             artifact()
         }

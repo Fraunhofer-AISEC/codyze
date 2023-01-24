@@ -30,4 +30,28 @@ annotation class Import(vararg val paths: String)
 /* Marks a function that should be evaluated as a rule by Codyze */
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
-annotation class Rule(val description: String = "")
+@Suppress("LongParameterList")
+annotation class Rule(
+    val description: String = "",
+    val shortDescription: String = "",
+    val severity: Severity = Severity.WARNING, // converted to either problem.severity or security-severity
+    val passMessage: String = "", // if empty string, use the default message of the evaluator
+    val failMessage: String = "", // if empty string, use the default message of the evaluator
+    val help: String = "",
+    val tags: Array<String> = [], // tags to filter rules e.g., security, language-features etc.
+    val precision: Precision = Precision.UNKNOWN,
+)
+
+enum class Severity {
+    INFO,
+    WARNING,
+    ERROR
+}
+
+enum class Precision {
+    VERY_HIGH,
+    HIGH,
+    MEDIUM,
+    LOW,
+    UNKNOWN
+}

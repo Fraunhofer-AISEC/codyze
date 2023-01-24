@@ -17,13 +17,44 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
 import kotlin.jvm.internal.CallableReference
 
+sealed interface OrderNode : OrderFragment {
+    /** Convert this [OrderNode] to a binary syntax tree */
+    override fun toNode() = this
+
+    /**
+     * Apply the given [block] to each [OrderNode] in this [OrderNode]. Uses Depth First Search
+     * (DFS).
+     */
+    fun applyToAll(block: OrderNode.() -> Unit) {
+        val stack = ArrayDeque<OrderNode>()
+        stack.addLast(this)
+        while (stack.isNotEmpty()) {
+            val node = stack.removeLast()
+            when (node) {
+                is TerminalOrderNode -> {}
+                is SequenceOrderNode -> {
+                    stack.addLast(node.left)
+                    stack.addLast(node.right)
+                }
+                is AlternativeOrderNode -> {
+                    stack.addLast(node.left)
+                    stack.addLast(node.right)
+                }
+                is QuantifierOrderNode -> stack.addLast(node.child)
+            }
+            node.apply(block)
+        }
+    }
+}
+
 /** Represents an [OrderToken]. */
-data class TerminalOrderNode(val baseName: String, val opName: String) : OrderNode
+data class TerminalOrderNode(val baseName: String, val opName: String, val useGetNodes: Boolean) : OrderNode
 
 fun OrderToken.toTerminalOrderNode(
     baseName: String = (this as CallableReference).owner.toString(),
-    opName: String = name
-) = TerminalOrderNode(baseName, opName)
+    opName: String = name,
+    useGetNodes: Boolean = false,
+) = TerminalOrderNode(baseName, opName, useGetNodes = useGetNodes)
 
 /** Represents a regex sequence, where one [OrderNode] must be followed by another [OrderNode] */
 data class SequenceOrderNode(val left: OrderNode, val right: OrderNode) : OrderNode

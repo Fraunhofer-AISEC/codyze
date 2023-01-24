@@ -15,9 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.backends.cpg
 
-import de.fraunhofer.aisec.codyze.core.config.Configuration
-import de.fraunhofer.aisec.codyze.core.config.ConfigurationRegister
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.backend.BackendConfiguration
 import de.fraunhofer.aisec.cpg.passes.Pass
 import mu.KotlinLogging
 import java.nio.file.Path
@@ -25,24 +23,16 @@ import java.nio.file.Path
 private val logger = KotlinLogging.logger {}
 
 /**
- * Holds the CPG configuration to run Codyze with
+ * Holds the CPG configuration to run the CPG backend with
  *
- * To add a new CPG configuration option do the following:
+ * To add a new configuration option do the following:
  * 1. add a property to [CPGConfiguration]
- * 3. add a new CLI option to the [CPGOptionGroup]
- * 4. make sure that the CLI option is NOT nullable. Null options might cause problems with the used
- * dependency injection
- * 5. after adding the new CLI option, register it at the [ConfigurationRegister]. Only then will it
- * be part of the map returned by [ConfigurationRegister.options] which is used to initialize the
- * [CPGConfiguration] object
- * 6. Make sure that the place of the new option in the argument list (e.g., source is argument 1 to
- * [CPGConfiguration]) corresponds to the place to which it is registered in the [CPGOptionGroup]
- * (e.g., source is registered first in the [CPGOptionGroup])
+ * 2. add a new CLI option to the [CPGOptionGroup]
+ * 3. update the [BackendCommand.getBackend] methods for all implementations of that interface e.g., [BaseCpgBackend]
  */
 data class CPGConfiguration(
-    val source: List<Path>, // this is the first argument and thus must be registered first in the [CPGOptions]
+    val source: List<Path>,
     val useUnityBuild: Boolean,
-    // this is the third argument and thus must be the third CLI option to be registered in [CPGOptions]
     val typeSystemActiveInFrontend: Boolean,
     val debugParser: Boolean,
     val disableCleanup: Boolean,
@@ -57,16 +47,15 @@ data class CPGConfiguration(
     val passes: List<Pass>,
     val loadIncludes: Boolean,
     val includePaths: List<Path>,
-    val includeWhitelist: List<Path>,
+    val includeAllowlist: List<Path>,
     val includeBlocklist: List<Path>,
-    val typestate: TypestateMode,
 ) : BackendConfiguration {
     init {
         logger.info { "Analyzing following sources $source" }
         logger.info { "Analyzing following includes $includePaths" }
     }
 
-    override fun normalize(configuration: Configuration): BackendConfiguration {
+    fun normalize(): BackendConfiguration {
         var loadIncludes = loadIncludes
         if (useUnityBuild and !loadIncludes) {
             loadIncludes =

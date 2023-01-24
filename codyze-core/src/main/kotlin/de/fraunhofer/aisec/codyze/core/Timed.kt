@@ -20,11 +20,10 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
 /**
- * Simply helper function to log how long a given task took.
- * @param message The message to log. The resulting log has the format: '{message} {time the task
- * took in milliseconds} ms.'
+ * Simple helper function to log how long a given task took.
+ * @param message The lambda invoked with the measured duration ([Duration]) of the given [block].
  * @param block The code block to time.
- * @return The result of the given task
+ * @return The result of the given [block]
  */
 @OptIn(ExperimentalTime::class)
 fun <T> timed(message: (Duration) -> Unit, block: () -> T): T {

@@ -15,10 +15,9 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
-import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 
 /**
  * The context used during rule evaluation.
  */
-data class EvaluationContext(val rule: KFunction<*>, val parameterMap: Map<KParameter, Any>)
+data class EvaluationContext(val rule: CokoRule, val parameterMap: Map<KParameter, Any>)

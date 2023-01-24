@@ -66,9 +66,10 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple sequence order`() {
         with(mockk<CokoCpgBackend>()) {
+            val testObj = TestClass()
             val nfa = orderExpressionToNfa {
-                +TestClass::create
-                +TestClass::init
+                +testObj::create
+                +testObj::init
             }
 
             val expectedNfa = NFA()
@@ -92,7 +93,8 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple order with branch`() {
         with(mockk<CokoCpgBackend>()) {
-            val nfa = orderExpressionToNfa { TestClass::create or TestClass::init }
+            val testObj = TestClass()
+            val nfa = orderExpressionToNfa { testObj::create or testObj::init }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true)
@@ -117,7 +119,8 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple order with maybe qualifier`() {
         with(mockk<CokoCpgBackend>()) {
-            val nfa = orderExpressionToNfa { maybe(TestClass::create) }
+            val testObj = TestClass()
+            val nfa = orderExpressionToNfa { maybe(testObj::create) }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true, isAcceptingState = true)
@@ -139,7 +142,8 @@ class NfaDfaConstructionTest {
     @Test
     fun `test simple order with option qualifier`() {
         with(mockk<CokoCpgBackend>()) {
-            val nfa = orderExpressionToNfa { option(TestClass::create) }
+            val testObj = TestClass()
+            val nfa = orderExpressionToNfa { option(testObj::create) }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true, isAcceptingState = true)
@@ -162,15 +166,16 @@ class NfaDfaConstructionTest {
         with(mockk<CokoCpgBackend>()) {
             // equivalent MARK:
             // order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
+            val testObj = TestClass()
             val dfa = orderExpressionToDfa {
-                +TestClass::create
-                +TestClass::init
+                +testObj::create
+                +testObj::init
                 some {
-                    +TestClass::start
-                    maybe(TestClass::process)
-                    +TestClass::finish
+                    +testObj::start
+                    maybe(testObj::process)
+                    +testObj::finish
                 }
-                option(TestClass::reset)
+                option(testObj::reset)
             }
 
             val expected = DFA()
@@ -206,17 +211,18 @@ class NfaDfaConstructionTest {
             // equivalent MARK:
             // order cm.init(), (cm.bigStep() | (cm.start(), cm.process()*, cm.finish()))+,
             // cm.reset()?
+            val testObj = TestClass()
             val dfa = orderExpressionToDfa {
-                +TestClass::init
+                +testObj::init
                 some {
-                    TestClass::create or
+                    testObj::create or
                         group {
-                            +TestClass::start
-                            maybe(TestClass::process)
-                            +TestClass::finish
+                            +testObj::start
+                            maybe(testObj::process)
+                            +testObj::finish
                         }
                 }
-                option(TestClass::reset)
+                option(testObj::reset)
             }
 
             val expected = DFA()
@@ -257,18 +263,19 @@ class NfaDfaConstructionTest {
             // order cm.init(), (cm.create() | (cm.start()*, cm.process()*, cm.start()*,
             // cm.finish()))+,
             // cm.reset()?
+            val testObj = TestClass()
             val dfa = orderExpressionToNfa {
-                +TestClass::init
+                +testObj::init
                 some {
-                    TestClass::create or
+                    testObj::create or
                         group {
-                            maybe(TestClass::start)
-                            maybe(TestClass::process)
-                            maybe(TestClass::start)
-                            +TestClass::finish
+                            maybe(testObj::start)
+                            maybe(testObj::process)
+                            maybe(testObj::start)
+                            +testObj::finish
                         }
                 }
-                option(TestClass::reset)
+                option(testObj::reset)
             }
 
             // the equivalent min-DFA was obtained from:

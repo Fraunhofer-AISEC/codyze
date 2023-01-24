@@ -20,8 +20,7 @@ import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.analysis.fsm.NFA
 
 /**
- * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE)
- * )
+ * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE))
  */
 fun OrderNode.toNfa(): NFA =
     when (this) {
@@ -32,8 +31,8 @@ fun OrderNode.toNfa(): NFA =
     }
 
 /**
- * Construct a NFA for a single node using Thompson's construction algorithm (
- * [YouTube](https://youtu.be/HLOAwCCYVxE?t=237))
+ * Construct a NFA for a single node using Thompson's construction algorithm
+ * ([YouTube](https://youtu.be/HLOAwCCYVxE?t=237))
  */
 internal fun nfaForTerminalOrderNode(node: TerminalOrderNode): NFA {
     val nfa = NFA()
@@ -54,40 +53,26 @@ internal fun nfaForTerminalOrderNode(node: TerminalOrderNode): NFA {
     return nfa
 }
 
-// context(OrderBuilder, EvaluationContext)
-//        /**
-//         * Convert a [OrderToken] into a TerminalOrderNode and specify the arguments passed to the
-//         * [OrderToken] when evaluating the order
-//         */
-// fun OrderToken.use(block: () -> Op): OrderFragment = TerminalOrderNode(this) { block().getNodes()
-// }
-//
-// context(OrderBuilder, Project)
-//        /** Convert an [OrderToken] into a TerminalOrderNode */
-//        internal val OrderToken.token: TerminalOrderNode
-//    get() = TerminalOrderNode(this) { (this.call() as Op).getAllNodes() }
-
 /**
- * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE)
- * )
+ * Constructs a NFA using Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE))
  */
 internal fun nfaForQuantifierOrderNode(node: QuantifierOrderNode): NFA =
     when (node.type) {
         OrderQuantifier.MAYBE -> addMaybeQuantifierToNFA(node.child.toNfa()) // '*'
         OrderQuantifier.OPTION -> addOptionQuantifierToNFA(node.child.toNfa()) // '?'
         OrderQuantifier.COUNT ->
-            concatenateMultipleNfa(*Array(node.value as Int) { node.child.toNfa() })
+            concatenateMultipleNfa(List(node.value as Int) { node.child.toNfa() })
         OrderQuantifier.ATLEAST ->
             concatenateMultipleNfa(
-                concatenateMultipleNfa(*Array(node.value as Int) { node.child.toNfa() }),
+                concatenateMultipleNfa(List(node.value as Int) { node.child.toNfa() }),
                 addMaybeQuantifierToNFA(node.child.toNfa())
             ) // '{..,}'
         OrderQuantifier.BETWEEN ->
             concatenateMultipleNfa(
-                *Array((node.value as IntRange).first) { node.child.toNfa() },
-                *Array((node.value as IntRange).last - (node.value as IntRange).first) {
-                    addMaybeQuantifierToNFA(node.child.toNfa())
-                }
+                List((node.value as IntRange).first) { node.child.toNfa() } +
+                    List((node.value as IntRange).last - (node.value as IntRange).first) {
+                        addMaybeQuantifierToNFA(node.child.toNfa())
+                    }
             )
     }
 
@@ -155,7 +140,7 @@ internal fun addOptionQuantifierToNFA(nfa: NFA): NFA {
  * and the second NFA must be followed by the third NFA,... Constructs the combined NFA using
  * Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE?t=380))
  */
-internal fun concatenateMultipleNfa(vararg multipleNFA: NFA): NFA {
+internal fun concatenateMultipleNfa(multipleNFA: List<NFA>): NFA {
     fun concatenateTwoNfa(firstNfa: NFA, secondNfa: NFA): NFA {
         // first, it's important to make sure that all states have unique names because
         // states are only differentiated by their name
@@ -189,6 +174,13 @@ internal fun concatenateMultipleNfa(vararg multipleNFA: NFA): NFA {
     }
     return currentNfa
 }
+
+/**
+ * Combine multiple NFAs into one big NFA, where the first NFA must be followed by the second NFA,
+ * and the second NFA must be followed by the third NFA,... Constructs the combined NFA using
+ * Thompson's construction algorithm ([YouTube](https://youtu.be/HLOAwCCYVxE?t=380))
+ */
+internal fun concatenateMultipleNfa(vararg multipleNFA: NFA) = concatenateMultipleNfa(multipleNFA.toList())
 
 /**
  * Combine two NFAs into one big NFA, where either the first or second NFA is OK Constructs the

@@ -49,7 +49,8 @@ repositories {
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        // Make sure to set the coko-dsl/CokoScript jvm-target of the script compiler to the same jvm-version
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 

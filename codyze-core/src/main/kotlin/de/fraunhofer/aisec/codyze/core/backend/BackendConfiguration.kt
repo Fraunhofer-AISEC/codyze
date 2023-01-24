@@ -22,6 +22,4 @@ package de.fraunhofer.aisec.codyze.core.backend
  * respective [Backend]. However, to facilitate the usage of Codyze as a library, a [Backend] should have a
  * configuration object as its only constructor argument.
  */
-interface BackendConfiguration {
-    fun normalize(): BackendConfiguration
-}
+interface BackendConfiguration

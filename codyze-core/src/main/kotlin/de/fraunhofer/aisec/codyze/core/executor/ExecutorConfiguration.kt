@@ -25,6 +25,4 @@ import de.fraunhofer.aisec.codyze.core.backend.Backend
  * respective [Executor]. However, to facilitate the usage of Codyze as a library, an [Executor] should have a
  * configuration object and a [Backend] as its two constructor arguments.
  */
-interface ExecutorConfiguration {
-    fun normalize(): ExecutorConfiguration
-}
+interface ExecutorConfiguration

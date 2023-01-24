@@ -55,7 +55,7 @@ data class CPGConfiguration(
         logger.info { "Analyzing following includes $includePaths" }
     }
 
-    override fun normalize(): BackendConfiguration {
+    fun normalize(): BackendConfiguration {
         var loadIncludes = loadIncludes
         if (useUnityBuild and !loadIncludes) {
             loadIncludes =

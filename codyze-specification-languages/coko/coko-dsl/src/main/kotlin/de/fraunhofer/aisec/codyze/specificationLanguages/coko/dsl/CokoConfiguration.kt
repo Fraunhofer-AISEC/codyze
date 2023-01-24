@@ -34,9 +34,4 @@ data class CokoConfiguration(
         validateSpec(spec)
         logger.info { "Using following specs: $spec" }
     }
-
-    /**
-     * Nothing to normalize here yet.
-     */
-    override fun normalize() = this
 }

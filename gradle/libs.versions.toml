@@ -3,7 +3,7 @@ kotlin = "1.8.0"
 cpg = "6.0.0"
 koin = "3.3.2"
 detekt = "1.22.0"
-spotless = "6.12.1"
+spotless = "6.13.0"
 dokka = "1.7.20"
 
 
@@ -35,7 +35,7 @@ kotlin-scripting-dependencies = { module = "org.jetbrains.kotlin:kotlin-scriptin
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt"}
 
 # test
-junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.9.1"}
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.9.2"}
 mockk = { module = "io.mockk:mockk", version = "1.13.3"}
 
 # this is necessary for the plugins to be used in the buildSrc folder

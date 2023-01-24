@@ -15,19 +15,19 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 
-import de.fraunhofer.aisec.codyze.core.Executor
-import de.fraunhofer.aisec.codyze.core.config.ExecutorConfiguration
+import de.fraunhofer.aisec.codyze.core.executor.Executor
 import de.fraunhofer.aisec.codyze.core.timed
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfiguration
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoSarifBuilder
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoScript
-import io.github.detekt.sarif4k.Result
+import io.github.detekt.sarif4k.Run
 import mu.KotlinLogging
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
 import java.nio.file.Path
 import kotlin.script.experimental.api.*
+import kotlin.script.experimental.api.SourceCode
+import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
 import kotlin.script.experimental.jvm.jvm
@@ -35,39 +35,24 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 import kotlin.script.experimental.util.PropertiesCollection
-import kotlin.time.*
 
 private val logger = KotlinLogging.logger {}
 
-class CokoExecutor : Executor, KoinComponent {
-    override val name: String
-        get() = CokoExecutor::class.simpleName ?: "CokoExecutor"
-    override val supportedFileExtension: String
-        get() = "codyze.kts"
-
-    lateinit var backendConfiguration: BackendConfiguration
-    lateinit var config: ExecutorConfiguration
-    lateinit var backend: CokoBackend
-
-    override fun initialize(
-        backendConfiguration: BackendConfiguration,
-        configuration: ExecutorConfiguration
-    ) {
-        this.backendConfiguration = backendConfiguration
-        this.config = configuration
-
-        backend = get { parametersOf(backendConfiguration) }
-    }
+/**
+ * The [Executor] to evaluate Coko (codyze.kts) specification files.
+ */
+class CokoExecutor(private val configuration: CokoConfiguration, private val backend: CokoBackend) :
+    Executor {
 
     /**
      * Compiles all the specification files, translates the CPG and finally triggers the evaluation
-     * of the specs.
+     * of the rules defined in the specs.
      */
     @Suppress("UnusedPrivateMember")
-    override fun evaluate(): List<Result> {
+    override fun evaluate(): Run {
         val specEvaluator =
             timed({ logger.info { "Compiled specification scripts in $it." } }) {
-                compileScriptsIntoSpecEvaluator(backend = backend, specFiles = config.spec)
+                compileScriptsIntoSpecEvaluator(backend = backend, specFiles = configuration.spec)
             }
 
         logger.info {
@@ -76,8 +61,17 @@ class CokoExecutor : Executor, KoinComponent {
         // evaluate the spec scripts
         val findings = timed({ logger.info { "Evaluation of specification scripts took $it." } }) {
             specEvaluator.evaluate()
+        }.toMutableMap()
+
+        // filter the positive findings if the user disabled goodFindings
+        if (!configuration.goodFindings) {
+            for ((rule, ruleFindings) in findings) {
+                findings[rule] = ruleFindings.filter { it.kind != Finding.Kind.Pass }
+            }
         }
-        return listOf() // TODO: return findings
+
+        val cokoSarifBuilder = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+        return cokoSarifBuilder.buildRun(findings = findings)
     }
 
     companion object {
@@ -128,7 +122,7 @@ class CokoExecutor : Executor, KoinComponent {
                 // compile the script
                 val result =
                     eval(
-                        specFile.toScriptSource(),
+                        FileScriptSource(specFile.toFile()),
                         backend = backend,
                         sharedClassLoader = sharedClassLoader
                     )

@@ -1,9 +1,9 @@
 interface Logging {
-    fun log(message: String, vararg args: Any): Op
+    fun log(message: String?, vararg args: Any?): Op
 }
 
 interface ObjectRelationalMapper {
-    fun insert(obj: Any): Op
+    fun insert(obj: Any?): Op
 }
 
 interface UserContext {
@@ -13,4 +13,4 @@ interface UserContext {
 // TODO: can we "assert" that the ctx.user is not null here?
 @Rule("This is a dummy description.")
 fun DBActionsAreAlwaysLogged(db: ObjectRelationalMapper, log: Logging, ctx: UserContext) =
-    db.insert(Wildcard) follows log.log(".*", ctx.user)
+    db.insert(Wildcard) followedBy log.log(".*", ctx.user)

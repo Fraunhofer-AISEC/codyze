@@ -4,13 +4,13 @@ plugins { id("cpg") }
 
 class GolangLogging : Logging {
     // TODO(oxisto): arguments flow into
-    override fun log(message: String, vararg args: Any) = op {
+    override fun log(message: String?, vararg args: Any?) = op {
         definition("log.Printf") { signature().unordered(*args) }
     }
 }
 
 class Gorm : ObjectRelationalMapper {
-    override fun insert(obj: Any) = op { definition("db.Create") { signature(obj) } }
+    override fun insert(obj: Any?) = op { definition("db.Create") { signature(obj) } }
 }
 
 class GoJWTUserContext : UserContext {
@@ -20,10 +20,10 @@ class GoJWTUserContext : UserContext {
     //  interested in the user context of the current function
     override val user: List<Node>
         get() {
-            val subjects = memberExpr { base.name == "RegisteredClaims" && name == "Subject" }
+            val subjects = cpgMemberExpr { base.name == "RegisteredClaims" && name == "Subject" }
             val claims =
-                callFqn("Context.Value") { arguments[0].name == "jwtmiddleware.ContextKey" }
+                cpgCallFqn("Context.Value") { arguments[0].name == "jwtmiddleware.ContextKey" }
 
-            return subjects.filter { claims flowsTo (it.base as MemberExpression).base }
+            return subjects.filter { claims cpgFlowsTo (it.base as MemberExpression).base }
         }
 }

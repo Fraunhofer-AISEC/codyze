@@ -48,8 +48,8 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
         for (from in thisNodes) {
             val paths = from.followNextEOGEdgesUntilHit { thatNodes.contains(it) }
 
-            val newFindings = if (paths.fulfilled.isNotEmpty()) {
-                if (paths.failed.isEmpty()) {
+            val newFindings =
+                if (paths.fulfilled.isNotEmpty() && paths.failed.isEmpty()) {
                     val reachableThatNodes = paths.fulfilled.mapNotNull { it.lastOrNull() }
                     // All paths starting from `from` end in one of the `that` nodes
                     listOf(
@@ -67,28 +67,20 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
                         )
                     )
                 } else {
-                    // Some paths starting from `from` do not end in any of the `that` nodes
+                    // Some (or all) paths starting from `from` do not end in any of the `that` nodes
                     paths.failed.map { failedPath ->
                         // make a finding for each failed path
                         CpgFinding(
                             message =
-                            "Violation against rule in one execution path from \"${from.code}\". $failMessage",
+                            "Violation against rule in execution path from \"${from.code}\". $failMessage",
                             kind = Finding.Kind.Fail,
                             node = from,
+                            // improve: specify paths more precisely
+                            // for example one branch passes and one fails skip part in path after branches are combined
                             relatedNodes = failedPath
                         )
                     }
                 }
-            } else {
-                // No path starting from `from` ends in any `that` node
-                listOf(
-                    CpgFinding(
-                        message = "Violation against rule in all execution paths from \"${from.code}\". $failMessage",
-                        kind = Finding.Kind.Fail,
-                        node = from
-                    )
-                )
-            }
 
             findings.addAll(newFindings)
         }

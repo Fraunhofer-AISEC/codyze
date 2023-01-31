@@ -10,6 +10,7 @@ dependencies {
     implementation(libs.bundles.cpg)
     implementation(libs.clikt)
     implementation(libs.koin)
+    implementation(libs.bundles.sarif)
 
     testImplementation(libs.mockk)
 }

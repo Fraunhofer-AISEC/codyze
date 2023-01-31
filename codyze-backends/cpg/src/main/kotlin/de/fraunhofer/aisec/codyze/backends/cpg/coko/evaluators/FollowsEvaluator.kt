@@ -16,22 +16,83 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationResult
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
-import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.query.executionPath
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
+import de.fraunhofer.aisec.cpg.graph.followNextEOGEdgesUntilHit
+import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
-
 class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
-    override fun evaluate(context: EvaluationContext): EvaluationResult {
-        val evaluator = {
-            val thisNodes = with(this@CokoCpgBackend) { ifOp.getNodes() }.filterIsInstance<Node>()
-            val thatNodes = with(this@CokoCpgBackend) { thenOp.getNodes() }.filterIsInstance<Node>()
-            thisNodes.all { from -> thatNodes.any { to -> executionPath(from, to).value } }
+
+    private val defaultFailMessage: String by lazy {
+        "It is not followed by any of these calls: $thenOp."
+    }
+
+    private val defaultPassMessage = ""
+
+    override fun evaluate(context: EvaluationContext): List<CpgFinding> {
+        val thisNodes = with(this@CokoCpgBackend) { ifOp.cpgGetNodes() }
+        val thatNodes = with(this@CokoCpgBackend) { thenOp.cpgGetNodes().toSet() }
+
+        val findings = mutableListOf<CpgFinding>()
+
+        val ruleAnnotation = context.rule.findAnnotation<Rule>()
+        val failMessage = ruleAnnotation?.failMessage?.takeIf { it.isNotEmpty() } ?: defaultFailMessage
+        val passMessage = ruleAnnotation?.passMessage?.takeIf { it.isNotEmpty() } ?: defaultPassMessage
+
+        for (from in thisNodes) {
+            val paths = from.followNextEOGEdgesUntilHit { thatNodes.contains(it) }
+
+            val newFindings = if (paths.fulfilled.isNotEmpty()) {
+                if (paths.failed.isEmpty()) {
+                    val reachableThatNodes = paths.fulfilled.mapNotNull { it.lastOrNull() }
+                    // All paths starting from `from` end in one of the `that` nodes
+                    listOf(
+                        CpgFinding(
+                            message = "Complies with rule: \"${from.code}\" is followed by ${
+                            reachableThatNodes.joinToString(
+                                prefix = "\"",
+                                separator = "\", \"",
+                                postfix = "\"",
+                                transform = { node -> node.code ?: node.toString() }
+                            )}. $passMessage",
+                            kind = Finding.Kind.Pass,
+                            node = from,
+                            relatedNodes = reachableThatNodes
+                        )
+                    )
+                } else {
+                    // Some paths starting from `from` do not end in any of the `that` nodes
+                    paths.failed.map { failedPath ->
+                        // make a finding for each failed path
+                        CpgFinding(
+                            message =
+                            "Violation against rule in one execution path from \"${from.code}\". $failMessage",
+                            kind = Finding.Kind.Fail,
+                            node = from,
+                            relatedNodes = failedPath
+                        )
+                    }
+                }
+            } else {
+                // No path starting from `from` ends in any `that` node
+                listOf(
+                    CpgFinding(
+                        message = "Violation against rule in all execution paths from \"${from.code}\". $failMessage",
+                        kind = Finding.Kind.Fail,
+                        node = from
+                    )
+                )
+            }
+
+            findings.addAll(newFindings)
         }
-        return EvaluationResult(evaluator())
+
+        return findings
     }
 }

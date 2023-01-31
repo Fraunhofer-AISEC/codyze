@@ -17,18 +17,44 @@
 
 package de.fraunhofer.aisec.codyze.backends.cpg
 
-import de.fraunhofer.aisec.codyze.core.wrapper.Backend
-import de.fraunhofer.aisec.codyze.core.wrapper.BackendConfiguration
+import de.fraunhofer.aisec.codyze.core.VersionProvider
+import de.fraunhofer.aisec.codyze.core.backend.Backend
+import de.fraunhofer.aisec.codyze.core.backend.BackendConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
+import de.fraunhofer.aisec.cpg.TranslationResult
+import io.github.detekt.sarif4k.Artifact
+import io.github.detekt.sarif4k.ArtifactLocation
+import io.github.detekt.sarif4k.ToolComponent
+import kotlin.io.path.absolutePathString
 
+/**
+ * A plain CPG backend providing only the [TranslationResult] in the [cpg] property.
+ */
 open class CPGBackend(config: BackendConfiguration) : Backend {
-    override val graph: Any by lazy {
+    private val cpgConfiguration = config as CPGConfiguration
+    override val backendData: TranslationResult by lazy {
         TranslationManager.builder()
-            .config(config = (config as CPGConfiguration).toTranslationConfiguration())
+            .config(config = cpgConfiguration.toTranslationConfiguration())
             .build() // Initialize the CPG, based on the given Configuration
             .analyze()
             .get()
+    }
+    val cpg: TranslationResult
+        get() = backendData
+
+    override val toolInfo = ToolComponent(
+        name = "CPG Backend",
+        product = "Codyze",
+        organization = "Fraunhofer AISEC",
+        semanticVersion = VersionProvider.getVersion("cpg"),
+        downloadURI = "https://github.com/Fraunhofer-AISEC/codyze/releases",
+        informationURI = "https://www.codyze.io",
+        language = "en-US",
+        isComprehensive = false
+    )
+    override val artifacts = cpgConfiguration.source.associateWith {
+        Artifact(location = ArtifactLocation(uri = it.absolutePathString()))
     }
 
     /** Return a [TranslationConfiguration] object to pass to the CPG */
@@ -52,7 +78,7 @@ open class CPGBackend(config: BackendConfiguration) : Backend {
         source.firstOrNull()?.parent?.toFile().let { translationConfiguration.topLevel(it) }
 
         includePaths.forEach { translationConfiguration.includePath(it.toString()) }
-        includeWhitelist.forEach { translationConfiguration.includeWhitelist(it.toString()) }
+        includeAllowlist.forEach { translationConfiguration.includeWhitelist(it.toString()) }
         includeBlocklist.forEach { translationConfiguration.includeBlocklist(it.toString()) }
 
         if (disableCleanup) translationConfiguration.disableCleanup()

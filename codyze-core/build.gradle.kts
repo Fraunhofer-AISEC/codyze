@@ -1,6 +1,7 @@
 plugins {
     id("documented-module")
     `maven-publish`
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 dependencies {
@@ -10,11 +11,7 @@ dependencies {
 
     implementation(libs.koin)
 
-    // SARIF models
-    // The code can be found here: https://github.com/detekt/sarif4k
-    // The code in it was generated using https://app.quicktype.io/ with minor manual additions
-    implementation(libs.sarif4k)
-    implementation(libs.kotlinx.serialization.json) // dependency for sarif4k
+    implementation(libs.bundles.sarif)
 }
 
 java {

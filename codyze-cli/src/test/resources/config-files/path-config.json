@@ -1,5 +1,5 @@
 {
-  "test-subcommand": {
+  "test-executor-subcommand": {
     "spec": "spec"
   }
 }

@@ -158,6 +158,10 @@ nav:
         - 'Installing Codyze': Getting Started/installation.md
         - 'Analyzing with Codyze': Getting Started/cli.md
         - 'Configuring Codyze': Getting Started/configuration.md
+    - 'Write Coko Policies':
+        - 'What is Coko?': Coko/index.md
+        - 'Modelling APIs with Coko': Coko/modelling.md
+        - 'Coko Rules': Coko/coko-rules.md
     - 'Contributing':
         - 'Contributing to Codyze': contributors/index.md
         - 'Building the project': contributors/code.md

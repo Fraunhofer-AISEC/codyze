@@ -1,6 +1,6 @@
 plugins {
     id("documented-module")
-    `maven-publish`
+    id("publish")
 }
 
 dependencies {

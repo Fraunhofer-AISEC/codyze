@@ -1,6 +1,6 @@
 plugins {
     id("documented-module")
-    `maven-publish`
+    id("publish")
 }
 
 dependencies {
@@ -10,15 +10,6 @@ dependencies {
     implementation(libs.bundles.sarif)
 
     testImplementation(libs.mockk)
-}
-
-// Configuration of JavaDoc task using Dokka taken from: https://stackoverflow.com/a/66714990
-val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
-
-val dokkaHtmlJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(dokkaHtml.outputDirectory)
 }
 
 publishing {

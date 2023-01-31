@@ -15,20 +15,11 @@ dependencies {
     testImplementation(libs.mockk)
 }
 
-// Configuration of JavaDoc task using Dokka taken from: https://stackoverflow.com/a/66714990
-val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
-
-val dokkaHtmlJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(dokkaHtml.outputDirectory)
-}
-
 publishing {
     publications {
         create<MavenPublication>("CodyzeBackendsCpg") {
             from(components["java"])
-            artifact(dokkaHtmlJar) // docs generated with Dokka
+            artifact(tasks.named("dokkaHtmlJar")) // docs generated with Dokka
             pom {
                 name.set("Codyze Backends CPG")
                 description.set("CPG backend for Codyze")

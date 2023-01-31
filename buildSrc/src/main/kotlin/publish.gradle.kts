@@ -1,13 +1,16 @@
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Jar
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
+    `java-library`
     `maven-publish`
+
+    id("org.jetbrains.dokka")
 }
 
 java {
-    //withJavadocJar() // don't use default task because we redefine it relying on Dokka; FIXME maybe there is a better way?
+    //withJavadocJar() // using custom JavaDoc from Dokka; FIXME maybe there is a better way?
     withSourcesJar()
 }
 

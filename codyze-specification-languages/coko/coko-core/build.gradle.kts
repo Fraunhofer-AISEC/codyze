@@ -16,7 +16,7 @@ publishing {
     publications {
         create<MavenPublication>("CodyzeSpecLangCokoCore") {
             from(components["java"])
-            artifact(dokkaHtmlJar) // docs generated with Dokka
+            artifact(tasks.named("dokkaHtmlJar")) // docs generated with Dokka
             pom {
                 name.set("Codyze Specification Language CoKo Core Library")
                 description.set("Core library of CoKo specification language for Codyze")

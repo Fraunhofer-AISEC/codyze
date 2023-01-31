@@ -18,7 +18,7 @@ publishing {
     publications {
         create<MavenPublication>("CodyzeCore") {
             from(components["java"])
-            artifact(dokkaHtmlJar) // docs generated with Dokka
+            artifact(tasks.named("dokkaHtmlJar")) // docs generated with Dokka
             pom {
                 name.set("Codyze Core")
                 description.set("Core library for Codyze")

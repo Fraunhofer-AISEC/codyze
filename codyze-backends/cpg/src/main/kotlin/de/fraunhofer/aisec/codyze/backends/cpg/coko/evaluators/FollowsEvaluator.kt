@@ -23,7 +23,8 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
-import de.fraunhofer.aisec.cpg.graph.followNextEOGEdgesUntilHit
+import de.fraunhofer.aisec.cpg.graph.*
+import de.fraunhofer.aisec.cpg.graph.edge.Properties
 import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
@@ -36,10 +37,24 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
     private val defaultPassMessage = ""
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
-        val thisNodes = with(this@CokoCpgBackend) { ifOp.cpgGetNodes() }
+        val (unreachableThisNodes, thisNodes) =
+            with(this@CokoCpgBackend) { ifOp.cpgGetNodes().toSet() }
+                .partition { it.isUnreachable() }
+
         val thatNodes = with(this@CokoCpgBackend) { thenOp.cpgGetNodes().toSet() }
 
         val findings = mutableListOf<CpgFinding>()
+
+        // add all unreachable `this` nodes as NotApplicable findings
+        findings.addAll(
+            unreachableThisNodes.map {
+                CpgFinding(
+                    message = "Rule is not applicable for \"${it.code}\" because it is unreachable",
+                    kind = Finding.Kind.NotApplicable,
+                    node = it
+                )
+            }
+        )
 
         val ruleAnnotation = context.rule.findAnnotation<Rule>()
         val failMessage = ruleAnnotation?.failMessage?.takeIf { it.isNotEmpty() } ?: defaultFailMessage
@@ -86,5 +101,16 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
         }
 
         return findings
+    }
+
+    /** Checks if this node is unreachable */
+    private fun Node.isUnreachable(): Boolean {
+        val prevPaths = this.followPrevEOGEdgesUntilHit {
+            it.prevEOGEdges.isNotEmpty() && it.prevEOGEdges.all {
+                    edge ->
+                edge.getProperty(Properties.UNREACHABLE) == true
+            }
+        }
+        return prevPaths.fulfilled.isNotEmpty()
     }
 }

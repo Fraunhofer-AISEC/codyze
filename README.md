@@ -13,7 +13,7 @@
 Codyze is a static code analyzer that focuses on verifying security compliance in source code, i.e. by inferring the correct use of cryptographic libraries. It operates on code property graphs and is thus able to handle non-compiling or even incomplete code fragments.
 
 ## Build & Run Codyze
-A Java SE 11 JDK is a prerequisite. We build and test using Eclipse Temurin but any distribution should work.
+A Java SE 17 JDK is a prerequisite. We build and test using Eclipse Temurin but any distribution should work.
 
 To build an executable version of Codyze, use the `installDist` task in the project's root:
 

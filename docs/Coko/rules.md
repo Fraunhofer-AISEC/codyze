@@ -52,14 +52,15 @@ fun `only calls to first with 1 allowed`(foo: Foo) =
 
 
 ## Order Evaluator
-The `order` evaluator takes an order of functions that 
+The `order` evaluator checks if functions related to an object are called in the correct order.
+The order of the function is specified similar to regex using the functions as the alphabet.
 
 ```kotlin title="Rule example using order"
 @Rule
 fun `order of Foo`(foo: Foo) = 
     order(foo.constructor()) {
         +Foo::first
-        +Foo::second
+        maybe(Foo::second)
     }
 
 ```

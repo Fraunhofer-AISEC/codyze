@@ -15,6 +15,16 @@ Rules can therefore be written on a more conceptual level.
 
 ## Classes
 
+Classes in Coko model the actual components of an API.
+They can implement interfaces or just be normal classes.
+With classes, API functions can be grouped
+
+For APIs written in object-oriented languages it might be sensible to create a Coko class for each class in the API.
 
 
-## Ops
+## Methods and Ops
+
+Methods of classes in Coko are used to group functions that serve the same functionality in an API.
+This grouping is achieved through [`Ops`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/-op).
+
+

@@ -161,7 +161,7 @@ nav:
     - 'Write Coko Policies':
         - 'What is Coko?': Coko/index.md
         - 'Modelling APIs with Coko': Coko/modelling.md
-        - 'Coko Rules': Coko/coko-rules.md
+        - 'Coko Rules': Coko/rules.md
     - 'Contributing':
         - 'Contributing to Codyze': contributors/index.md
         - 'Building the project': contributors/code.md

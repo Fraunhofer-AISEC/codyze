@@ -23,8 +23,17 @@ However, as a Kotlin scripting language, it is also possible to execute arbitrar
 It is currently not possible to prevent this, but all Coko scripts that are available on our website and GitHub repository are validated by us to prevent any misuse.
 For more information about custom Kotlin scripting languages, please refer to the [Kotlin documentation](https://kotlinlang.org/docs/custom-script-deps-tutorial.html) and the [Kotlin KEEP](https://github.com/Kotlin/KEEP/blob/master/proposals/scripting-support.md)
 
+Syntax highlighting and code completion are available for Coko in any IDE that provides these for Kotlin.
+
 The syntax of Coko is the same as the syntax of Kotlin.
 For writing Coko policies you will need to know how to create classes, interfaces and functions in Kotlin.
-Please refer to the [Kotlin Documentation](https://kotlinlang.org/docs/getting-started.html) for an overview.
+Please refer to the [Kotlin Documentation](https://kotlinlang.org/docs/basic-syntax.html) for an overview.
 
-Syntax highlighting and code completion are available for Coko in any IDE that provides these for Kotlin.
+### Type-safe builders
+
+Coko also uses the concept of [type-safe builders](https://kotlinlang.org/docs/type-safe-builders.html).
+Type-safe builders allow you to build objects in a semi-declarative way similar to markup languages.
+They can be seen as a special syntax for nesting the construction of objects.
+They will be explained in detail in the parts of Coko that use them.
+
+

@@ -41,7 +41,7 @@ class Bar {
 
 ## Only Evaluator
 The `only` evaluator checks if all calls to an Op are only called with the specified arguments.
-
+Therefore, it takes one `Op` as argument.
 
 ```kotlin title="Rule example using only"
 @Rule
@@ -53,7 +53,14 @@ fun `only calls to first with 1 allowed`(foo: Foo) =
 
 ## Order Evaluator
 The `order` evaluator checks if functions related to an object are called in the correct order.
-The order of the function is specified similar to regex using the functions as the alphabet.
+It takes two arguments, the `baseNodes` and the order.
+The `baseNodes` are the function calls which are the start of the order.
+Normally, this is either the constructor of a class or some kind of initialization function.
+
+To construct the order, Coko provides a [type-safe builder](index.md#type-safe-builders).
+The builder provides a set of functions that allow you to specify the order as a regex.
+The "alphabet" of the order are functions that return an `Op`.
+
 
 ```kotlin title="Rule example using order"
 @Rule

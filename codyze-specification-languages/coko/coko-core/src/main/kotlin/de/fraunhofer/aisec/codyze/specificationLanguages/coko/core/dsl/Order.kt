@@ -200,10 +200,12 @@ inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block).apply 
 //
 context(OrderBuilder)
 /**
- * Appends an alternation token (`|`) to the current [OrderFragment].
+ * Adds an alternation token (`|`) between the current [OrderFragment] and [other].
+ * All [OrderToken] are converted into [OrderFragment]s.
  *
- * > Acts like a boolean OR. Matches the expression before or after the |. > It can operate within a
- * group, or on a whole expression. The patterns will be tested in order.
+ * Acts like a boolean OR. Matches the expression before or after the |.
+ *
+ * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderFragment): OrderFragment =
     this@OrderBuilder.add(AlternativeOrderNode(left = toNode(), right = other.toNode())).also {
@@ -213,11 +215,12 @@ infix fun OrderFragment.or(other: OrderFragment): OrderFragment =
 
 context(OrderBuilder)
 /**
- * Converts the [OrderToken] to an [OrderFragment] and appends an alternation token (`|`) to the
- * current [OrderFragment].
+ * Adds an alternation token (`|`) between the current [OrderToken] and [other].
+ * All [OrderToken] are converted into [OrderFragment]s.
  *
- * > Acts like a boolean OR. Matches the expression before or after the |. > It can operate within a
- * group, or on a whole expression. The patterns will be tested in order.
+ * Acts like a boolean OR. Matches the expression before or after the |.
+ *
+ * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderToken.or(other: OrderFragment): OrderFragment =
     this@OrderBuilder.add(AlternativeOrderNode(left = token.toNode(), right = other.toNode())).also {
@@ -226,22 +229,24 @@ infix fun OrderToken.or(other: OrderFragment): OrderFragment =
 
 context(OrderBuilder)
 /**
- * Converts the [OrderToken] to an [OrderFragment] and appends an alternation token (`|`) to the
- * current [OrderFragment].
+ * Adds an alternation token (`|`) between the current [OrderToken] and [other].
+ * All [OrderToken] are converted into [OrderFragment]s.
  *
- * > Acts like a boolean OR. Matches the expression before or after the |. > It can operate within a
- * group, or on a whole expression. The patterns will be tested in order.
+ * Acts like a boolean OR. Matches the expression before or after the |.
+ *
+ * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderToken.or(other: OrderToken): OrderFragment =
     this@OrderBuilder.add(AlternativeOrderNode(left = token.toNode(), right = other.token.toNode()))
 
 context(OrderBuilder)
 /**
- * Converts the [OrderToken] to an [OrderFragment] and appends an alternation token (`|`) to the
- * current [OrderFragment].
+ * Adds an alternation token (`|`) between the current [OrderFragment] and [other].
+ * All [OrderToken] are converted into [OrderFragment]s.
  *
- * > Acts like a boolean OR. Matches the expression before or after the |. > It can operate within a
- * group, or on a whole expression. The patterns will be tested in order.
+ * Acts like a boolean OR. Matches the expression before or after the |.
+ *
+ * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderToken): OrderFragment =
     this@OrderBuilder.add(AlternativeOrderNode(left = toNode(), right = other.token.toNode())).also {

@@ -76,13 +76,15 @@ context(OrderBuilder)
 /** Adds a group with the [maybe] ('*') qualifier. See [group] */
 inline fun maybe(
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.MAYBE))
+): OrderNode = this@OrderBuilder.add(
+    QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.MAYBE)
+)
 
 context(OrderBuilder)
 /** Adds a group with the [option] ('?') qualifier. See [group] */
 inline fun option(
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(
+): OrderNode = this@OrderBuilder.add(
     QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.OPTION)
 )
 
@@ -90,7 +92,7 @@ context(OrderBuilder)
 /** Adds a group with the [some] ('+') qualifier. See [group] */
 inline fun some(
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(
+): OrderNode = this@OrderBuilder.add(
     QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = 1)
 )
 
@@ -99,7 +101,7 @@ context(OrderBuilder)
 inline fun count(
     count: Int,
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(
+): OrderNode = this@OrderBuilder.add(
     QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.COUNT, value = count)
 )
 
@@ -108,7 +110,7 @@ context(OrderBuilder)
 inline fun between(
     range: IntRange,
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(
+): OrderNode = this@OrderBuilder.add(
     QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.BETWEEN, value = range)
 )
 
@@ -117,7 +119,7 @@ context(OrderBuilder)
 inline fun atLeast(
     count: Int,
     block: OrderGroup.() -> Unit,
-) = this@OrderBuilder.add(
+): OrderNode = this@OrderBuilder.add(
     QuantifierOrderNode(child = OrderGroup().apply(block).toNode(), type = OrderQuantifier.ATLEAST, value = count)
 )
 
@@ -130,31 +132,31 @@ inline fun atLeast(
  * }
  * ```
  */
-fun OrderBuilder.group(vararg tokens: OrderToken) = group { tokens.forEach { +it } }
+fun OrderBuilder.group(vararg tokens: OrderToken): OrderNode = group { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [maybe] ('*') qualifier. See [group]. */
-fun maybe(vararg tokens: OrderToken) = maybe { tokens.forEach { +it } }
+fun maybe(vararg tokens: OrderToken): OrderNode = maybe { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [some] ('+') qualifier. See [group]. */
-fun some(vararg tokens: OrderToken) = some { tokens.forEach { +it } }
+fun some(vararg tokens: OrderToken): OrderNode = some { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [option] ('?') qualifier. See [group]. */
-fun option(vararg tokens: OrderToken) = option { tokens.forEach { +it } }
+fun option(vararg tokens: OrderToken): OrderNode = option { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [count] qualifier. See [group]. */
-fun count(count: Int, vararg tokens: OrderToken) = count(count) { tokens.forEach { +it } }
+fun count(count: Int, vararg tokens: OrderToken): OrderNode = count(count) { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [between] qualifier. See [group]. */
-fun between(range: IntRange, vararg tokens: OrderToken) = between(range) { tokens.forEach { +it } }
+fun between(range: IntRange, vararg tokens: OrderToken): OrderNode = between(range) { tokens.forEach { +it } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [atLeast] qualifier. See [group]. */
-fun atLeast(min: Int, vararg tokens: OrderToken) = atLeast(min) { tokens.forEach { +it } }
+fun atLeast(min: Int, vararg tokens: OrderToken): OrderNode = atLeast(min) { tokens.forEach { +it } }
 
 //
 // sets

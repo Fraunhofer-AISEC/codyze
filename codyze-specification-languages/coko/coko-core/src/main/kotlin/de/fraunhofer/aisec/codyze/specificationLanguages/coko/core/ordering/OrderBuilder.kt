@@ -38,11 +38,65 @@ open class OrderBuilder : OrderFragment {
     /** Add an [OrderFragment] to the [orderNodes] */
     operator fun OrderFragment.unaryPlus() = add(this)
 
+    /** Add an [OrderToken] to the [orderNodes] */
     fun add(token: OrderToken) = orderNodes.add(token.token)
 
     /**
      * Add an [OrderFragment] to the [orderNodes].
      * All instances of the [fragment] object are removed from the list before the OrderNode from [fragment] is added.
+     *
+     * The reason why all instances of [fragment] are removed is to ensure consistent behavior of
+     * [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or].
+     * [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or] might receive [OrderFragment]s as arguments.
+     * If these [OrderFragment]s are built directly with the order dsl functions,
+     * [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or] must remove them from the [orderNodes] list.
+     * An example would be:
+     * ```kt
+     *  order {
+     *      maybe(TestClass::a)
+     *      maybe(TestClass::a) or some(TestClass::b)
+     *  }
+     * ```
+     * The regex would be (a* (a* | b+)).
+     * If the [OrderFragment]s from `maybe(TestClass::fun1)` and `atLeast(TestClass::fun2)` were not removed from
+     * the [orderNodes], the regex would be (a* a* b+ (a* | b+)) which is incorrect.
+     *
+     * However, problems arise if we consider a second example:
+     * ```kt
+     *  order {
+     *      val maybeA = maybe(TestClass::a)
+     *      maybeA or some(TestClass::b)
+     *  }
+     * ```
+     * The desired regex would still be (a* (a* | b+)).
+     * However, this poses a problem for [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or].
+     * It cannot differentiate if a [OrderFragment] was stored in a variable or not.
+     * Therefore, the [OrderFragment] is always removed.
+     * This means that the resulting regex is actually (a* | b+).
+     *
+     * To resolve this inconsistency, we decided to disallow the same [OrderFragment] object (object reference equality,
+     * not functional equality) appearing multiple times in the [orderNodes] list.
+     * Instead, the last appearance is used as position for the [OrderFragment] object.
+     * This means, that for the example:
+     * ```kt
+     *  order {
+     *      val maybeA = maybe(TestClass::a)
+     *      add(maybeA)
+     *      some(TestClass::b)
+     *      add(maybeA)
+     *  }
+     * ```
+     * the regex is (b+ a*).
+     *
+     * If the desired regex is `(a* a* b+ a*)`, please declare the `a*` with separate function calls like:
+     * ```kt
+     *  order {
+     *      maybe(TestClass::a)
+     *      maybe(TestClass::a)
+     *      some(TestClass::b)
+     *      maybe(TestClass::a)
+     *  }
+     * ```
      */
     fun add(fragment: OrderFragment): OrderNode =
         fragment.toNode().also {
@@ -51,6 +105,7 @@ open class OrderBuilder : OrderFragment {
             orderNodes.add(it)
         }
 
+    /** Remove all instance of [fragment] from the [orderNodes] */
     fun remove(fragment: OrderFragment) {
         orderNodes.removeIf {
             it === fragment

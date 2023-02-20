@@ -25,8 +25,12 @@ val javadocJar by tasks.registering(Jar::class) {
 publishing {
     publications {
         create<MavenPublication>(name) {
+            // Unique artifact id based on project structure reconciled with allowed character set
+            artifactId = rootProject.relativeProjectPath(project.path).replace(":", "-")
+
             from(components["java"])
             artifact(javadocJar)
+
             pom {
                 url.set("https://www.codyze.io/")
                 licenses {

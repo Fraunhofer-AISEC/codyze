@@ -1,5 +1,6 @@
 plugins {
     id("documented-module")
+    id("publish")
 }
 
 dependencies {
@@ -28,4 +29,15 @@ dependencies {
     }
     testImplementation(libs.mockk)
     testImplementation(libs.bundles.cpg)
+}
+
+publishing {
+    publications {
+        named<MavenPublication>(name) {
+            pom {
+                name.set("Codyze Specification Language CoKo DSL")
+                description.set("DSL of CoKo specification language for Codyze")
+            }
+        }
+    }
 }

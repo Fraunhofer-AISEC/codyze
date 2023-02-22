@@ -103,14 +103,14 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
  * op {
  *   definition("my.fully.qualified.name") {
  *      signature {
- *          +arg1
- *          +arg2
- *          +arg3
+ *          - arg1
+ *          - arg2
+ *          - arg3
  *      }
  *      signature(arg1, arg2)
  *      signature {
- *          +arg2
- *          +arg3
+ *          - arg2
+ *          - arg3
  *      }
  *   }
  *   definition("my.other.function") {
@@ -141,7 +141,7 @@ fun constructor(classFqn: String, block: ConstructorOp.() -> Unit) =
  * A minimal example
  * ```kt
  * function {
- *   +definition("my.fully.qualified.name") {}
+ *   definition("my.fully.qualified.name") {}
  * }
  * ```
  *
@@ -166,13 +166,13 @@ inline fun Definition.signature(
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are passed through
  * the vararg.
  */
-fun Definition.signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
+fun Definition.signature(vararg parameters: Parameter) = signature { parameters.forEach { - it } }
 
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
 inline fun Signature.group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block).also { this.add(it) }
 
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
-fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { +it } }
+fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { - it } }
 
 context(Definition)
 /** Add unordered [Parameter]s to the [Signature]. */
@@ -189,4 +189,4 @@ inline fun ConstructorOp.signature(block: Signature.() -> Unit) = Signature().ap
  * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are passed
  * through the vararg.
  */
-fun ConstructorOp.signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
+fun ConstructorOp.signature(vararg parameters: Parameter) = signature { parameters.forEach { - it } }

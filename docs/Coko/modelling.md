@@ -54,7 +54,7 @@ op {
 7. In the type-safe builder of `signature` the arguments are listed using `-`.
 8. The space after the `-` is optional.
 9. Filters for calls to `my.fully.qualified.name` where no arguments were passed.
-10. The unordered arguments are given as an array to `signature`.
+10. The unordered arguments are given as an array to `signature`. In this example, the unordered argument is 4.
 
 ### ConstructorOps
 
@@ -145,7 +145,8 @@ fun add(
 2. `index` is nullable, so it is also possible to filter for calls where no index is given. The type is `Any?` to be able to pass `Wildcard` as well. 
 3. The arguments can be further specified like the additional filter for the type of `index`.  
 
-If the function is used for [`order` rules](rules.md#order-evaluator), all parameters must have a nullable type.
+If the reference to a Coko function is used for [`order` rules](rules.md#order-evaluator), all parameters must have a nullable type.
+Coko invokes them with dummy arguments and uses internal functions to query for all calls to the modelled function. 
 
 
 ## Interfaces
@@ -190,7 +191,7 @@ class PythonLogging: Logging {
 }
 ```
 
-1. We
+1. We don't care about the order of the arguments for `args`, just that they appear somewhere as arguments for the call.
 
 ## Classes
 

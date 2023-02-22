@@ -23,9 +23,9 @@ class Foo {
         }
     }
     
-    fun second() = op {
+    fun second(s: Any?) = op {
         definition("Foo.second") {
-            signature()
+            signature(s)
         }
     }
 }
@@ -58,24 +58,48 @@ The `baseNodes` are the function calls which are the start of the order.
 Normally, this is either the constructor of a class or some kind of initialization function.
 
 To construct the order, Coko provides a [type-safe builder](index.md#type-safe-builders).
-The builder provides a set of functions that allow you to specify the order as a regex.
-The "alphabet" of the order are functions that return an `Op`.
+Within the builder, the order is specified as a regular expression.
+
+The "alphabet" of the order regex are:
+
+- references to [functions that return an `Op`](modelling.md#functions) written as `<ClassName>::<FunctionName>` or `::<FunctionName>`
+- `Ops` themselves.
+
+If all calls to a modelled function should be considered for the order, please use the first option.
+
+The builder provides a set of functions that allow you to add quantifiers to the regex or group them.
+
+| Function            | Regex          | Description                                                                      |
+|---------------------|----------------|----------------------------------------------------------------------------------|
+| `or`                | &#124;         | Represents a choice, either the first or the second expression has to be matched |
+| `set`               | []             | Represents multiple choices, one expression in the has to be matched             | 
+| `maybe`             | *              | Matches an expression zero or more times                                         |
+| `some`              | +              | Matches an expression one or more times                                          |
+| `option`            | ?              | Matches an expression zero or one time                                           |
+| `count(n)`          | {`n`}          | Matches an expression exactly `n` times                                          |
+| `atLeast(min)`      | {`min`,}       | Matches an expression at least `min` times                                       |
+| `between(min, max)` | {`min`, `max`} | Matches an expression at least `min` and at most `max` times                     |
 
 
 ```kotlin title="Rule example using order"
 @Rule
 fun `order of Foo`(foo: Foo) = 
-    order(foo.constructor()) {
-        +Foo::first
-        maybe(Foo::second)
+    order(foo.constructor()/* (4)! */) { // (3)!
+        - foo.first(...) // (2)!
+        maybe(Foo::second) // (1)!
     }
 
 ```
 
+1. This will consider all calls to the function modelled by `Foo.second()` for the order. No filter will be applied. 
+2. This will use the filtered `Op` returned by `foo.first(...)` for the order.
+3. This starts the type-safe builder for the order.
+4. The `Op` returned from `foo.constructor` will be used as query for the function calls that are the starting point for evaluating the order.
+
 
 ## FollowedBy Evaluator
 The `followedBy` evaluator works similarly like the implication in logic.
-It takes two Ops and specifies that if the first Op is called then the second Op must be called as well.
+It takes two `Ops` and specifies that if the first `Op` is called then the second `Op` must be called as well.
 Compared to the `order` evaluator, `followedBy` is more flexible because Ops from different models can be connected.
 
 ```kotlin title="Rule example using followedBy"

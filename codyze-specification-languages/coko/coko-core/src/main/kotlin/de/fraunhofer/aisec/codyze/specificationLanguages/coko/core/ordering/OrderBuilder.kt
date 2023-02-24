@@ -48,8 +48,10 @@ open class OrderBuilder : OrderFragment {
      * The reason why all instances of [fragment] are removed is to ensure consistent behavior of
      * [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or].
      * [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or] might receive [OrderFragment]s as arguments.
-     * [OrderFragment]s can only be built with Order DSL functions which will add their resulting [OrderFragment] directly to the [orderNodes] list.
-     * This means that [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or] must remove the [OrderFragment]s from the [orderNodes] list to prevent them from appearing multiple times.
+     * [OrderFragment]s can only be built with Order DSL functions which will add their resulting [OrderFragment]
+     * directly to the [orderNodes] list.
+     * This means that [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or] must remove the
+     * [OrderFragment]s from the [orderNodes] list to prevent them from appearing multiple times.
      * An example would be:
      * ```kt
      *  order {

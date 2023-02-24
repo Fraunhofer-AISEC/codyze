@@ -48,8 +48,8 @@ open class OrderBuilder : OrderFragment {
      * The reason why all instances of [fragment] are removed is to ensure consistent behavior of
      * [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or].
      * [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or] might receive [OrderFragment]s as arguments.
-     * If these [OrderFragment]s are built directly with the order dsl functions,
-     * [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or] must remove them from the [orderNodes] list.
+     * [OrderFragment]s can only be built with Order DSL functions which will add their resulting [OrderFragment] directly to the [orderNodes] list.
+     * This means that [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or] must remove the [OrderFragment]s from the [orderNodes] list to prevent them from appearing multiple times.
      * An example would be:
      * ```kt
      *  order {
@@ -58,7 +58,7 @@ open class OrderBuilder : OrderFragment {
      *  }
      * ```
      * The regex would be (a* (a* | b+)).
-     * If the [OrderFragment]s from `maybe(TestClass::fun1)` and `atLeast(TestClass::fun2)` were not removed from
+     * If the [OrderFragment]s from `maybe(TestClass::a)` and `some(TestClass::b)` were not removed from
      * the [orderNodes], the regex would be (a* a* b+ (a* | b+)) which is incorrect.
      *
      * However, problems arise if we consider a second example:
@@ -69,7 +69,7 @@ open class OrderBuilder : OrderFragment {
      *  }
      * ```
      * The desired regex would still be (a* (a* | b+)).
-     * However, this poses a problem for [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or].
+     * However, this is a problem for [de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.or].
      * It cannot differentiate if a [OrderFragment] was stored in a variable or not.
      * Therefore, the [OrderFragment] is always removed.
      * This means that the resulting regex is actually (a* | b+).

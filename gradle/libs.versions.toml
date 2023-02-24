@@ -1,9 +1,9 @@
 [versions]
-kotlin = "1.8.0"
+kotlin = "1.8.10"
 cpg = "6.0.0"
-koin = "3.3.2"
+koin = "3.3.3"
 detekt = "1.22.0"
-spotless = "6.13.0"
+spotless = "6.15.0"
 dokka = "1.7.20"
 
 
@@ -22,7 +22,7 @@ cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
 cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
 #cpg-language-go = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-language-go", version.ref = "cpg"}
 
-kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "3.0.4"}
+kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "3.0.5"}
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version = "2.18.0"}
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.1"}
 koin = { module = "io.insert-koin:koin-core", version.ref = "koin"}
@@ -36,7 +36,7 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 
 # test
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.9.2"}
-mockk = { module = "io.mockk:mockk", version = "1.13.3"}
+mockk = { module = "io.mockk:mockk", version = "1.13.4"}
 
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

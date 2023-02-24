@@ -1,9 +1,9 @@
 [versions]
-kotlin = "1.8.0"
+kotlin = "1.8.10"
 cpg = "6.0.0"
-koin = "3.3.2"
+koin = "3.3.3"
 detekt = "1.22.0"
-spotless = "6.14.0"
+spotless = "6.15.0"
 dokka = "1.7.20"
 
 

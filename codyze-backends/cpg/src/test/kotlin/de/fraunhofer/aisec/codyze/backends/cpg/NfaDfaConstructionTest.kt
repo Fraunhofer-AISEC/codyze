@@ -68,8 +68,8 @@ class NfaDfaConstructionTest {
         with(mockk<CokoCpgBackend>()) {
             val testObj = TestClass()
             val nfa = orderExpressionToNfa {
-                +testObj::create
-                +testObj::init
+                - testObj::create
+                - testObj::init
             }
 
             val expectedNfa = NFA()
@@ -168,14 +168,14 @@ class NfaDfaConstructionTest {
             // order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
             val testObj = TestClass()
             val dfa = orderExpressionToDfa {
-                +testObj::create
-                +testObj::init
-                some {
-                    +testObj::start
-                    maybe(testObj::process)
-                    +testObj::finish
+                - testObj::create
+                - testObj::init
+                - some {
+                    - testObj::start
+                    - maybe(testObj::process)
+                    - testObj::finish
                 }
-                option(testObj::reset)
+                - option(testObj::reset)
             }
 
             val expected = DFA()
@@ -213,13 +213,13 @@ class NfaDfaConstructionTest {
             // cm.reset()?
             val testObj = TestClass()
             val dfa = orderExpressionToDfa {
-                +testObj::init
+                - testObj::init
                 some {
                     testObj::create or
                         group {
-                            +testObj::start
+                            - testObj::start
                             maybe(testObj::process)
-                            +testObj::finish
+                            - testObj::finish
                         }
                 }
                 option(testObj::reset)
@@ -265,14 +265,14 @@ class NfaDfaConstructionTest {
             // cm.reset()?
             val testObj = TestClass()
             val dfa = orderExpressionToNfa {
-                +testObj::init
-                some {
+                - testObj::init
+                - some {
                     testObj::create or
                         group {
                             maybe(testObj::start)
                             maybe(testObj::process)
                             maybe(testObj::start)
-                            +testObj::finish
+                            - testObj::finish
                         }
                 }
                 option(testObj::reset)

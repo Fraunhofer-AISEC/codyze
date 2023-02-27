@@ -16,22 +16,34 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Parameter
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
+import java.util.stream.Stream
 
-@CokoMarker sealed interface Op
+@CokoMarker sealed interface Op {
+    val ownerClassFqn: String
+    val ownerClassMethodFqn: String
+    val contentHashCode: Int?
+}
 
 /**
  * Represents a group of functions that serve the same purpose in the API.
  *
- * Two [Op]s will be considered equal if they have the same [definitions]. This means that structure
- * of the [Op]s have to be equal as well as the [Definition.fqn]s but not the actual [Parameter]s
+ * Two [FunctionOp]s will be considered equal if they have the same [definitions]. This means that structure
+ * of the [FunctionOp]s have to be equal as well as the [Definition.fqn]s but not the actual [Parameter]s
  * that are stored in the [Signature]s.
  *
  * @property definitions stores all definitions for the different functions
  */
-// `Op` is defined here with an internal constructor because we only want the user to use the `op`
-// function to make an `Op` object
-class FunctionOp internal constructor() : Op {
+// `FunctionOp` is defined here with an internal constructor because we only want the user to use the `op`
+// function to make an `FunctionOp` object
+class FunctionOp internal constructor(
+    override val ownerClassFqn: String = "",
+    override val ownerClassMethodFqn: String = "",
+    override val contentHashCode: Int? = null
+) : Op {
     val definitions = arrayListOf<Definition>()
 
     fun add(definition: Definition) {
@@ -39,9 +51,11 @@ class FunctionOp internal constructor() : Op {
         this.definitions.add(definition)
     }
 
+    operator fun String.invoke(block: Definition.() -> Unit) = definition(this, block)
+
     /**
-     * Two [Op]s will be considered equal if they have the same [definitions]. This means that
-     * structure of the [Op]s have to be equal as well as the [Definition.fqn]s but not the actual
+     * Two [FunctionOp]s will be considered equal if they have the same [definitions]. This means that
+     * structure of the [FunctionOp]s have to be equal as well as the [Definition.fqn]s but not the actual
      * [Parameter]s that are stored in the [Signature]s.
      */
     override fun equals(other: Any?): Boolean {
@@ -69,7 +83,12 @@ class FunctionOp internal constructor() : Op {
  *
  * @property signatures stores all different signatures of the constructor.
  */
-class ConstructorOp internal constructor(val classFqn: String) : Op {
+class ConstructorOp internal constructor(
+    val classFqn: String,
+    override val ownerClassFqn: String = "",
+    override val ownerClassMethodFqn: String = "",
+    override val contentHashCode: Int? = null
+) : Op {
     val signatures = arrayListOf<Signature>()
 
     fun add(signature: Signature) {
@@ -95,6 +114,7 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
     }
 }
 
+context(Any)
 /**
  * Create a [FunctionOp].
  *
@@ -127,16 +147,46 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
  * my.other.function(arg2, arg1)
  * ```
  *
- * @param block defines the [Definition]s of this [Op]
+ * @param block defines the [Definition]s of this [FunctionOp]
  */
-fun op(block: FunctionOp.() -> Unit) = FunctionOp().apply(block)
+fun op(block: FunctionOp.() -> Unit): FunctionOp {
+    val ownerClassFqn = getOwnerClassFqnFromContext(this@Any)
+    val (refinedOwnerClassFqn, ownerClassMethodFqn) = getCallerClassFqnAndFunctionFqn(ownerClassFqn)
+    return FunctionOp(refinedOwnerClassFqn, ownerClassMethodFqn, block.hashCode()).apply(block)
+}
 
+// TODO: this breaks for nested functions..
+// TODO: does anyone want to use nested functions in an 'Implementation' in Coko??
+fun getCallerClassFqnAndFunctionFqn(ownerClassFqn: String): Pair<String, String> {
+    // TODO: filter stack trace using the given ownerClassFqn
+    val stack = StackWalker.getInstance()
+        .walk { s: Stream<StackWalker.StackFrame> ->
+            s.skip(
+                2
+            ).findFirst()
+        }
+        .get()
+    return stack.className to stack.methodName
+}
+
+fun getOwnerClassFqnFromContext(context: Any): String {
+    val ownerClassFqn = context::class.qualifiedName // --> worst case this is the 'CokoScript' class
+    checkNotNull(ownerClassFqn) {
+        "All OPs must be defined in a class. In a Coko script, this is 'CokoScript' at worst."
+    }
+    return ownerClassFqn
+}
+
+context(Any)
 /** Create a [ConstructorOp]. */
-fun constructor(classFqn: String, block: ConstructorOp.() -> Unit) =
-    ConstructorOp(classFqn).apply(block)
+fun constructor(classFqn: String, block: ConstructorOp.() -> Unit): ConstructorOp {
+    val ownerClassFqn = getOwnerClassFqnFromContext(this@Any)
+    val (refinedOwnerClassFqn, ownerClassMethodFqn) = getCallerClassFqnAndFunctionFqn(ownerClassFqn)
+    return ConstructorOp(classFqn, refinedOwnerClassFqn, ownerClassMethodFqn, block.hashCode()).apply(block)
+}
 
 /**
- * Create a [Definition] which can be added to the [Op].
+ * Create a [Definition] which can be added to the [FunctionOp].
  *
  * A minimal example
  * ```kt

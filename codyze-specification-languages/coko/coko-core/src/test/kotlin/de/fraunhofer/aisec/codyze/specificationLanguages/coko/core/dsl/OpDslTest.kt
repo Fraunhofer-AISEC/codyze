@@ -59,7 +59,7 @@ class OpDslTest {
         val collectionParam = mockk<Collection<Any>>()
 
         val actualOp = op {
-            definition("fqn1") {
+            "fqn1" {
                 signature { +stringParam }
                 signature(stringParam, callTestParam)
                 signature {

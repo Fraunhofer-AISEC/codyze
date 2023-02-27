@@ -56,5 +56,5 @@ class OrderSet(private var negate: Boolean) : OrderBuilder() {
 /** Allows the syntactic sugar to create a set with the 'get' operator. */
 class OrderSetGetOperator {
     context(OrderBuilder)
-    operator fun get(vararg tokens: OrderToken) = set { tokens.forEach { +it } }
+    operator fun get(vararg tokens: OrderToken) = set { tokens.forEach { add(it) } }
 }

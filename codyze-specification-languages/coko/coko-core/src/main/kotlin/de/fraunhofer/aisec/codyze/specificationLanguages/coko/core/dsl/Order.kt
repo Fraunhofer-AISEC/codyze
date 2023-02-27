@@ -17,31 +17,10 @@
 
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 
 /** [OrderBuilder] subclass to hide some implementation details of [OrderBuilder] to coko users. */
 class Order : OrderBuilder()
-
-//
-// token conversion
-//
-context(OrderBuilder)
-/**
- * Convert a [OrderToken] into a TerminalOrderNode and specify the arguments passed to the
- * [OrderToken] when evaluating the order
- */
-fun OrderToken.use(block: OrderToken.() -> Op): TerminalOrderNode {
-    val terminalOrderNode = toTerminalOrderNode(opName = this.name + "$" + block.hashCode(), useGetNodes = true)
-    this@OrderBuilder.userDefinedOps[terminalOrderNode.opName] = block()
-    return terminalOrderNode
-}
-
-/**
- * Helper function that allows the user to call [use] outside of an [OrderBuilder] context.
- * This is needed in [CokoBackend.order] for the [baseNodes] argument.
- */
-fun OrderToken.use(block: OrderToken.() -> Op) = block()
 
 context(OrderBuilder)
 /** Convert an [OrderToken] into a TerminalOrderNode */
@@ -130,31 +109,31 @@ inline fun atLeast(
  * }
  * ```
  */
-fun OrderBuilder.group(vararg tokens: OrderToken) = group { tokens.forEach { +it } }
+fun OrderBuilder.group(vararg tokens: OrderToken) = group { tokens.forEach { add(it) } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [maybe] ('*') qualifier. See [group]. */
-fun maybe(vararg tokens: OrderToken) = maybe { tokens.forEach { +it } }
+fun maybe(vararg tokens: OrderToken) = maybe { tokens.forEach { add(it) } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [some] ('+') qualifier. See [group]. */
-fun some(vararg tokens: OrderToken) = some { tokens.forEach { +it } }
+fun some(vararg tokens: OrderToken) = some { tokens.forEach { add(it) } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [option] ('?') qualifier. See [group]. */
-fun option(vararg tokens: OrderToken) = option { tokens.forEach { +it } }
+fun option(vararg tokens: OrderToken) = option { tokens.forEach { add(it) } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [count] qualifier. See [group]. */
-fun count(count: Int, vararg tokens: OrderToken) = count(count) { tokens.forEach { +it } }
+fun count(count: Int, vararg tokens: OrderToken) = count(count) { tokens.forEach { add(it) } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [between] qualifier. See [group]. */
-fun between(range: IntRange, vararg tokens: OrderToken) = between(range) { tokens.forEach { +it } }
+fun between(range: IntRange, vararg tokens: OrderToken) = between(range) { tokens.forEach { add(it) } }
 
 context(OrderBuilder)
 /** Minimalist way to create a group with the [atLeast] qualifier. See [group]. */
-fun atLeast(min: Int, vararg tokens: OrderToken) = atLeast(min) { tokens.forEach { +it } }
+fun atLeast(min: Int, vararg tokens: OrderToken) = atLeast(min) { tokens.forEach { add(it) } }
 
 //
 // sets

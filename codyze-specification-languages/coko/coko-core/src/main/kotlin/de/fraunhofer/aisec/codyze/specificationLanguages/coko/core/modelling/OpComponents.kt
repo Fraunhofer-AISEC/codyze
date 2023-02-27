@@ -25,7 +25,7 @@ typealias Parameter = Any?
 class ParameterGroup {
     val parameters = arrayListOf<Parameter>()
 
-    operator fun Parameter.unaryPlus() {
+    operator fun Parameter.unaryMinus() {
         add(this)
     }
 
@@ -111,7 +111,7 @@ class Signature {
 
     val unorderedParameters = arrayListOf<Parameter>()
 
-    operator fun Parameter.unaryPlus() {
+    operator fun Parameter.unaryMinus() {
         add(this)
     }
 

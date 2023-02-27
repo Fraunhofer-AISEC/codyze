@@ -23,8 +23,8 @@ class JavaLogging : Logging {
         "java.util.logging.Logger.info" {
             signature {
                 group {
-                    +message
-                    args.forEach { +it }
+                    - message
+                    args.forEach { - it }
                 }
             }
         }
@@ -36,8 +36,8 @@ class JDBC : ObjectRelationalMapper {
         "java.sql.Statement.executeUpdate" {
             signature {
                 group {
-                    +"INSERT.*"
-                    +obj
+                    - "INSERT.*"
+                    - obj
                 }
             }
         }

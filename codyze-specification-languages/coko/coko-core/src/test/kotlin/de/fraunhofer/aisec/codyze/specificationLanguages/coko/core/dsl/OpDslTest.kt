@@ -59,21 +59,21 @@ class OpDslTest {
         val collectionParam = mockk<Collection<Any>>()
 
         val actualOp = op {
-            "fqn1" {
-                signature { +stringParam }
+            definition("fqn1") {
+                signature { - stringParam }
                 signature(stringParam, callTestParam)
                 signature {
-                    +stringParam
-                    +callTestParam
+                    - stringParam
+                    - callTestParam
                 }.unordered(numberParam)
                 signature(numberParam, collectionParam, stringParam)
             }
             definition("fqn2") {
                 signature {
-                    +typeParam
+                    - typeParam
                     group {
-                        +stringParam
-                        +arrayParam
+                        - stringParam
+                        - arrayParam
                     }
                 }
             }

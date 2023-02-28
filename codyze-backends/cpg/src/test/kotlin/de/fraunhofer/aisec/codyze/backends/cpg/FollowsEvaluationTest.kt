@@ -82,6 +82,19 @@ class FollowsEvaluationTest {
         }
     }
 
+    @Test
+    fun `test simple follows not applicable`() {
+        val notApplicableFindings = findings.filter { it.kind == Finding.Kind.NotApplicable }
+        for (finding in notApplicableFindings) {
+            // notApplicable finding has to be in function that has "notApplicable" in its name
+            assertTrue(
+                "Found NotApplicable finding that was from function ${finding.node?.getFunction()} -> false negative"
+            ) {
+                finding.node?.getFunction()?.contains(Regex(".*notApplicable.*", RegexOption.IGNORE_CASE)) == true
+            }
+        }
+    }
+
     private fun Node.getFunction(): String? {
         var scope = this.scope
         while (scope != null) {

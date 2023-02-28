@@ -55,5 +55,5 @@ sarif = ["sarif4k", "kotlinx-serialization-json"]
 [plugins]
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-sonarqube = { id = "org.sonarqube", version = "3.5.0.2730" }
+sonarqube = { id = "org.sonarqube", version = "4.0.0.2929" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

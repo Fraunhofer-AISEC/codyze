@@ -19,8 +19,16 @@ public class SimpleFollows {
 			b.second();
 	}
 
-	// Should be ok because the "f.f2()" branch is unreachable
-//	public void shouldBeOk() {
+	public void unreachableFirstNotApplicable() {
+		Foo f = new Foo();
+		if(false) {
+			f.first(); // unreachable -> never executed so no `second()` is needed
+		}
+	}
+
+	// Waiting for release of cpg commit bb5ef7392220efcaafa715c468e5729e518c524d
+	// Should be ok because the `f.f2()` branch is unreachable
+//	public void unreachableOk() {
 //		Foo f = new Foo();
 //		f.first();
 //		Bar b = new Bar();
@@ -39,7 +47,7 @@ public class SimpleFollows {
 //		b.second();
 //	}
 
-	// should fail because b.second is only called in one branch
+	// should fail because `b.second()` is only called in one branch
 	public void branchFail() {
 		Foo f = new Foo();
 		f.first();
@@ -56,6 +64,7 @@ public class SimpleFollows {
 		f.first();
 	}
 
+	// There is no `Foo.first()` so there should be no finding
 	public void noFinding() {
 		Bar b = new Bar();
 		b.second();

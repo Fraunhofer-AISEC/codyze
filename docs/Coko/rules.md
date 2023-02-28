@@ -7,7 +7,7 @@ The metadata will be used for describing the findings in the SARIF output.
 
 If the rule requires some instance of a model, they can be specified as parameters to the rule function. 
 
-Each Coko rule must return an implementation of the [`Evaluator`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core/-evaluator) interface which Codyze can use to evaluate the rule.
+Each Coko rule must return an implementation of the [`Evaluator`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core/-evaluator) interface, which Codyze can use to evaluate the rule.
 Coko provides some common evaluators which will be explained in the following sections.
 The example model will be used for explaining the evaluators.  
 
@@ -54,18 +54,19 @@ fun `only calls to first with 1 allowed`(foo: Foo) =
 ## Order Evaluator
 The `order` evaluator checks if functions related to an object are called in the correct order.
 It takes two arguments, the `baseNodes` and the order.
-The `baseNodes` are the function calls which are the start of the order.
-Normally, this is either the constructor of a class or some kind of initialization function.
+The `baseNodes` are the function calls that are the start of the order.
+Usually, this is either the constructor of a class or some kind of initialization function.
 
 To construct the order, Coko provides a [type-safe builder](index.md#type-safe-builders).
 Within the builder, the order is specified as a regular expression.
 
-The "alphabet" of the order regex are:
+The "alphabet" of the order regex is:
 
 - references to [functions that return an `Op`](modelling.md#functions) written as `<ClassName>::<FunctionName>` or `::<FunctionName>`
 - `Ops` themselves.
 
-If all calls to a modelled function should be considered for the order, please use the first option.
+If all calls to a modelled function should be considered for the order regardless of the specified signatures, please use the first option.
+When passing `Ops`, only functions that match the used signature and argument are considered valid.
 
 The builder provides a set of functions that allow you to add quantifiers to the regex or group them.
 

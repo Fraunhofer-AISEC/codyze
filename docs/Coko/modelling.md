@@ -50,7 +50,7 @@ op {
 3. Filters for calls to `my.fully.qualified.name` that have a string as only argument that contains "one", for example `my.fully.qualified.name("tone")`.
 4. Filters for calls to `my.fully.qualified.name` that have a number between 0 and 5 as first argument and as second argument either the string "one" or "two".
 5. The fully qualified name of the other function we want to find.
-6. The `signature` function is can also invoke a type-safe builder.
+6. The `signature` function can also invoke a type-safe builder.
 7. In the type-safe builder of `signature` the arguments are listed using `-`.
 8. The space after the `-` is optional.
 9. Filters for calls to `my.fully.qualified.name` where no arguments were passed.
@@ -146,19 +146,19 @@ fun add(
 3. The arguments can be further specified like the additional filter for the type of `index`.  
 
 If the reference to a Coko function is used for [`order` rules](rules.md#order-evaluator), all parameters must have a nullable type.
-Coko invokes them with dummy arguments and uses internal functions to query for all calls to the modelled function. 
+Coko invokes them with dummy arguments and uses internal functions to query for all calls to the modelled function regardless of the specified signatures. 
 
 
 ## Interfaces
 
-A goal of Coko is to make its rules more reusable.
+A goal of Coko is to make rules more reusable.
 Aside from specific rules of an API, there might be some general policies that should be followed for all API that provide similar functionality.
 An example would be that all actions executed on a database should be logged.
 Instead of writing the corresponding rule for all combinations of database and logging APIs, one might want to combine this into one reusable rule.
 
 This reusability is achieved through interfaces.
 In Coko interfaces and their functions describe the functionalities that a group of APIs has in common.
-Rules can therefore be written on a more conceptual level.
+Rules can thus be written on a more conceptual level.
 
 ```kotlin title="Example of a interface and its implementations in Coko"
 interface Logging {
@@ -200,4 +200,3 @@ They can implement interfaces or just be normal classes.
 With classes, API functions can be grouped
 
 For APIs written in object-oriented languages it might be sensible to create a Coko class for each class in the API.
-

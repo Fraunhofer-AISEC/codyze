@@ -24,7 +24,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.definitio
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.signature
 import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.passes.scopes.FunctionScope
+import de.fraunhofer.aisec.cpg.graph.scopes.FunctionScope
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.nio.file.Path

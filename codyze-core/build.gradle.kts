@@ -1,5 +1,6 @@
 plugins {
     id("documented-module")
+    id("publish")
     alias(libs.plugins.kotlinxSerialization)
 }
 
@@ -11,6 +12,17 @@ dependencies {
     implementation(libs.koin)
 
     implementation(libs.bundles.sarif)
+}
+
+publishing {
+    publications {
+        named<MavenPublication>(name) {
+            pom {
+                name.set("Codyze Core")
+                description.set("Core library for Codyze")
+            }
+        }
+    }
 }
 
 // run the 'projectProps' task when the processResources task is run

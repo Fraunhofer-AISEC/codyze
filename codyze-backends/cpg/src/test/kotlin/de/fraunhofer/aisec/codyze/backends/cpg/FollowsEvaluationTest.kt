@@ -24,7 +24,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.definitio
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.signature
 import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.passes.scopes.FunctionScope
+import de.fraunhofer.aisec.cpg.graph.scopes.FunctionScope
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
@@ -78,6 +78,19 @@ class FollowsEvaluationTest {
             // fail finding should not be in function that has "noFinding" in its name
             assertFalse("Found FAIL finding that was from function ${finding.node?.getFunction()} -> false positive") {
                 finding.node?.getFunction()?.contains(Regex(".*noFinding.*", RegexOption.IGNORE_CASE)) == true
+            }
+        }
+    }
+
+    @Test
+    fun `test simple follows not applicable`() {
+        val notApplicableFindings = findings.filter { it.kind == Finding.Kind.NotApplicable }
+        for (finding in notApplicableFindings) {
+            // notApplicable finding has to be in function that has "notApplicable" in its name
+            assertTrue(
+                "Found NotApplicable finding that was from function ${finding.node?.getFunction()} -> false negative"
+            ) {
+                finding.node?.getFunction()?.contains(Regex(".*notApplicable.*", RegexOption.IGNORE_CASE)) == true
             }
         }
     }

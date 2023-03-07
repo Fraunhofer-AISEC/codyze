@@ -37,11 +37,11 @@ context(OrderBuilder)
  * ```kt
  * order {
  *   group {
- *      +arg1::func1
+ *      - arg1::func1
  *      many(arg1::func2)
  *      option {
- *          +arg1::func2
- *          +arg1::func3
+ *          - arg1::func2
+ *          - arg1::func3
 *       }
  *   }
  * }
@@ -148,7 +148,7 @@ context(OrderBuilder)
  *
  * ```kt
  * order {
- *   +set[arg1::func1, arg1::func2, arg1::func4]
+ *   set[arg1::func1, arg1::func2, arg1::func4]
  * }
  * ```
  */
@@ -158,7 +158,7 @@ context(OrderBuilder)
 /**
  * Add a set to the [Order] containing any valid OrderDsl provided by a lambda (see [group]).
  *
- * > Match any [OrderToken] in the set.
+ * Match any [OrderToken] in the set.
  */
 inline fun set(block: OrderSet.() -> Unit) = OrderSet(false).apply(block).apply { this@OrderBuilder.add(this.toNode()) }
 

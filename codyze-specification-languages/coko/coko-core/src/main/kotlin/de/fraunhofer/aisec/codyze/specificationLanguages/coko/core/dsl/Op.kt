@@ -216,13 +216,13 @@ inline fun Definition.signature(
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are passed through
  * the vararg.
  */
-fun Definition.signature(vararg parameters: Parameter) = signature { parameters.forEach { - it } }
+fun Definition.signature(vararg parameters: Parameter) = signature { parameters.forEach { this.add(it) } }
 
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
 inline fun Signature.group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block).also { this.add(it) }
 
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
-fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { - it } }
+fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { this.add(it) } }
 
 context(Definition)
 /** Add unordered [Parameter]s to the [Signature]. */
@@ -239,4 +239,4 @@ inline fun ConstructorOp.signature(block: Signature.() -> Unit) = Signature().ap
  * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are passed
  * through the vararg.
  */
-fun ConstructorOp.signature(vararg parameters: Parameter) = signature { parameters.forEach { - it } }
+fun ConstructorOp.signature(vararg parameters: Parameter) = signature { parameters.forEach { this.add(it) } }

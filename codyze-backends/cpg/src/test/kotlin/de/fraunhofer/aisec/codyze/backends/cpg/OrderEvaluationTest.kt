@@ -132,7 +132,7 @@ class OrderEvaluationTest {
             assertEquals(1, findings.size)
             assertEquals(
                 "Violation against Order: \"p.set_key(key);\". Op \"[init]\" is not allowed. " +
-                    "Expected one of: CokoOrderImpl.start",
+                    "Expected one of: de.fraunhofer.aisec.codyze.backends.cpg.OrderEvaluationTest.CokoOrderImpl.start",
                 findings.first().message,
             )
         }

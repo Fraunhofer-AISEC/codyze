@@ -60,7 +60,7 @@ class OrderSyntaxTreeConstructionTest {
                 message = "Groups and sets must have at least one element.",
                 block = {
                     orderExpressionToSyntaxTree {
-                        +TestClass::fun1
+                        - TestClass::fun1
                         group {}
                     }
                 }
@@ -73,8 +73,8 @@ class OrderSyntaxTreeConstructionTest {
     fun `test simple sequence order`() {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
-                +TestClass::fun1
-                +TestClass::fun2
+                - TestClass::fun1
+                - TestClass::fun2
             }
 
             val expectedSyntaxTree =
@@ -170,8 +170,8 @@ class OrderSyntaxTreeConstructionTest {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
                 maybe {
-                    +TestClass::fun1
-                    +TestClass::fun2
+                    - TestClass::fun1
+                    - TestClass::fun2
                 }
             }
 
@@ -194,8 +194,8 @@ class OrderSyntaxTreeConstructionTest {
         with(mockk<CokoBackend>()) {
             val syntaxTree = orderExpressionToSyntaxTree {
                 set {
-                    +TestClass::fun1
-                    +TestClass::fun2
+                    - TestClass::fun1
+                    - TestClass::fun2
                 }
             }
 
@@ -227,13 +227,13 @@ class OrderSyntaxTreeConstructionTest {
             val syntaxTree = orderExpressionToSyntaxTree {
                 // `maybe` is added to list
                 val maybe = maybe {
-                    +TestClass::fun1
-                    +TestClass::fun2
+                    - TestClass::fun1
+                    - TestClass::fun2
                 }
-                +TestClass::fun1
+                - TestClass::fun1
                 // `maybe` is removed from list and added again
                 add(maybe)
-                +TestClass::fun2
+                - TestClass::fun2
             }
 
             val expectedSyntaxTree =
@@ -267,16 +267,16 @@ class OrderSyntaxTreeConstructionTest {
             val syntaxTree = orderExpressionToSyntaxTree {
                 // `maybe` is added to list
                 maybe {
-                    +TestClass::fun1
-                    +TestClass::fun2
+                    - TestClass::fun1
+                    - TestClass::fun2
                 }
-                +TestClass::fun1
+                - TestClass::fun1
                 // `maybe` is removed from list and added within the Node from `or`
                 maybe {
-                    +TestClass::fun1
-                    +TestClass::fun2
+                    - TestClass::fun1
+                    - TestClass::fun2
                 } or TestClass::fun2
-                +TestClass::fun2
+                - TestClass::fun2
             }
 
             val expectedSyntaxTree =
@@ -322,16 +322,16 @@ class OrderSyntaxTreeConstructionTest {
             val syntaxTree = orderExpressionToSyntaxTree {
                 // `maybe` is added to list
                 val maybe = maybe {
-                    +TestClass::fun1
-                    +TestClass::fun2
+                    - TestClass::fun1
+                    - TestClass::fun2
                 }
-                +TestClass::fun1
+                - TestClass::fun1
                 // `maybe` is removed from list and added again
                 add(maybe)
-                +TestClass::fun1
+                - TestClass::fun1
                 // `maybe` is removed from list and added within the Node from `or`
                 maybe or TestClass::fun2
-                +TestClass::fun2
+                - TestClass::fun2
             }
 
             val expectedSyntaxTree =
@@ -367,7 +367,7 @@ class OrderSyntaxTreeConstructionTest {
                 between(1..4, TestClass::fun1)
                 maybe(TestClass::fun1, TestClass::fun2)
                 set[TestClass::fun2, TestClass::fun1]
-                +TestClass::fun1
+                - TestClass::fun1
             }
 
             val nodeFun1 = TestClass::fun1.toTerminalOrderNode()

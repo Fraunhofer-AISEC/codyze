@@ -892,6 +892,7 @@ formatting:
     autoCorrect: true
   SpacingAroundUnaryOperator:
     active: true
+    excludes: ['**/coko/**/test/**', '**/codyze-backends/cpg/**/test/**']
     autoCorrect: true
   SpacingBetweenDeclarationsWithAnnotations:
     active: true

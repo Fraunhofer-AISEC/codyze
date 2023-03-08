@@ -25,7 +25,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.Orde
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.TerminalOrderNode
 import java.util.stream.Stream
 
-@CokoMarker sealed interface Op: OrderFragment {
+@CokoMarker sealed interface Op : OrderFragment {
     val ownerClassFqn: String
     val ownerClassMethodFqn: String
     val contentHashCode: Int?

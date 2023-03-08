@@ -22,6 +22,9 @@ sealed interface OrderNode : OrderFragment {
     /** Convert this [OrderNode] to a binary syntax tree */
     override fun toNode() = this
 
+    override val token: OrderFragment
+        get() = this
+
     /**
      * Apply the given [block] to each [OrderNode] in this [OrderNode]. Uses Depth First Search
      * (DFS).

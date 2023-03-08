@@ -20,12 +20,31 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Def
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Parameter
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderFragment
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderNode
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.TerminalOrderNode
 import java.util.stream.Stream
 
-@CokoMarker sealed interface Op {
+@CokoMarker sealed interface Op: OrderFragment {
     val ownerClassFqn: String
     val ownerClassMethodFqn: String
     val contentHashCode: Int?
+
+    override fun toNode(): OrderNode = toTerminalOrderNode()
+    fun toTerminalOrderNode(): TerminalOrderNode {
+        val terminalOrderNode = TerminalOrderNode(
+            baseName = ownerClassFqn,
+            opName = if (contentHashCode != null) {
+                "$ownerClassMethodFqn$$contentHashCode"
+            } else {
+                ownerClassMethodFqn
+            }
+        )
+        return terminalOrderNode
+    }
+
+    override val token: OrderFragment
+        get() = toNode()
 }
 
 /**

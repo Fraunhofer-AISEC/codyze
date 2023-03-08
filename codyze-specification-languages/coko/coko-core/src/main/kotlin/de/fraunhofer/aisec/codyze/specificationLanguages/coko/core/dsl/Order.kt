@@ -22,11 +22,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 /** [OrderBuilder] subclass to hide some implementation details of [OrderBuilder] to coko users. */
 class Order : OrderBuilder()
 
-context(OrderBuilder)
-/** Convert an [OrderToken] into a TerminalOrderNode */
-internal val OrderToken.token: TerminalOrderNode
-    get() = toTerminalOrderNode()
-
 //
 // groups
 //
@@ -203,7 +198,7 @@ context(OrderBuilder)
  *
  * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
-infix fun OrderToken.or(other: OrderFragment): OrderFragment = this@OrderToken.token or other
+infix fun OrderToken.or(other: OrderFragment): OrderFragment = this@OrderToken.toNode() or other
 
 context(OrderBuilder)
 /**
@@ -214,7 +209,7 @@ context(OrderBuilder)
  *
  * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
-infix fun OrderToken.or(other: OrderToken): OrderFragment = this@OrderToken.token or other.token
+infix fun OrderToken.or(other: OrderToken): OrderFragment = this@OrderToken.toNode() or other.toNode()
 
 context(OrderBuilder)
 /**
@@ -225,4 +220,4 @@ context(OrderBuilder)
  *
  * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
-infix fun OrderFragment.or(other: OrderToken): OrderFragment = this@OrderFragment or other.token
+infix fun OrderFragment.or(other: OrderToken): OrderFragment = this@OrderFragment or other.toNode()

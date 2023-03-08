@@ -15,15 +15,9 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
-import kotlin.jvm.internal.CallableReference
-import kotlin.reflect.KClass
-
 sealed interface OrderNode : OrderFragment {
     /** Convert this [OrderNode] to a binary syntax tree */
     override fun toNode() = this
-
-    override val token: OrderFragment
-        get() = this
 
     /**
      * Apply the given [block] to each [OrderNode] in this [OrderNode]. Uses Depth First Search
@@ -53,13 +47,6 @@ sealed interface OrderNode : OrderFragment {
 
 /** Represents an [OrderToken]. */
 data class TerminalOrderNode(val baseName: String, val opName: String) : OrderNode
-
-fun OrderToken.toTerminalOrderNode(
-    baseName: String = ((this as CallableReference).owner as KClass<*>).qualifiedName ?: error(
-        "Local classes or classes of anonymous objects are not supported in Coko!"
-    ),
-    opName: String = name,
-) = TerminalOrderNode(baseName, opName)
 
 /** Represents a regex sequence, where one [OrderNode] must be followed by another [OrderNode] */
 data class SequenceOrderNode(val left: OrderNode, val right: OrderNode) : OrderNode

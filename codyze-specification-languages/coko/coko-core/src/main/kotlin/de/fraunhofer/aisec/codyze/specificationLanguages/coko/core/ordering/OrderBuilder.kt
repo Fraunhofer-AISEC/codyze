@@ -20,7 +20,6 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.token
 
 @CokoMarker
 /**
@@ -28,10 +27,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.token
  * given regex with its [toNode] method.
  */
 open class OrderBuilder : OrderFragment {
-
-    override val token: OrderFragment
-        get() = this
-
     // the nodes for the [Op]s in this map must be retrieved using [Op.getNodes]
     val userDefinedOps = mutableMapOf<String, Op>()
 
@@ -47,7 +42,7 @@ open class OrderBuilder : OrderFragment {
     operator fun OrderFragment.unaryMinus(): OrderNode = add(this)
 
     /** Add an [OrderToken] to the [orderNodes] */
-    fun add(token: OrderToken): OrderNode = add(token.token)
+    fun add(token: OrderToken): OrderNode = add(token.toNode())
 
     /**
      * Add an [OrderFragment] to the [orderNodes].
@@ -119,7 +114,7 @@ open class OrderBuilder : OrderFragment {
      * Add an [Op] to the [userDefinedOps].
      */
     fun add(op: Op): OrderNode {
-        val terminalOrderNode = op.toTerminalOrderNode()
+        val terminalOrderNode = op.toNode()
         this@OrderBuilder.userDefinedOps[terminalOrderNode.opName] = op
         return add(terminalOrderNode)
     }

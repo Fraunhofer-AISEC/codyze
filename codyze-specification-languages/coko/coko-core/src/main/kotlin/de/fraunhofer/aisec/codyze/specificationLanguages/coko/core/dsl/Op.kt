@@ -30,9 +30,7 @@ import java.util.stream.Stream
     val ownerClassMethodFqn: String
     val contentHashCode: Int?
 
-    override fun toNode(): OrderNode = toTerminalOrderNode()
-    fun toTerminalOrderNode(): TerminalOrderNode {
-        val terminalOrderNode = TerminalOrderNode(
+    override fun toNode(): TerminalOrderNode = TerminalOrderNode(
             baseName = ownerClassFqn,
             opName = if (contentHashCode != null) {
                 "$ownerClassMethodFqn$$contentHashCode"
@@ -40,11 +38,6 @@ import java.util.stream.Stream
                 ownerClassMethodFqn
             }
         )
-        return terminalOrderNode
-    }
-
-    override val token: OrderFragment
-        get() = toNode()
 }
 
 /**

@@ -21,7 +21,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Par
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderFragment
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderNode
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.TerminalOrderNode
 import java.util.stream.Stream
 
@@ -31,13 +30,13 @@ import java.util.stream.Stream
     val contentHashCode: Int?
 
     override fun toNode(): TerminalOrderNode = TerminalOrderNode(
-            baseName = ownerClassFqn,
-            opName = if (contentHashCode != null) {
-                "$ownerClassMethodFqn$$contentHashCode"
-            } else {
-                ownerClassMethodFqn
-            }
-        )
+        baseName = ownerClassFqn,
+        opName = if (contentHashCode != null) {
+            "$ownerClassMethodFqn$$contentHashCode"
+        } else {
+            ownerClassMethodFqn
+        }
+    )
 }
 
 /**

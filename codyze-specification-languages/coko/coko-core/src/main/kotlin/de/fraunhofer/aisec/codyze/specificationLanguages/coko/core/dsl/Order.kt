@@ -189,7 +189,7 @@ context(OrderBuilder)
  * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
 infix fun OrderFragment.or(other: OrderFragment): OrderFragment =
-    this@OrderBuilder.add(AlternativeOrderNode(left = toNode(), right = other.toNode())).also {
+    this@OrderBuilder.add(AlternativeOrderNode(left = this@OrderFragment.toNode(), right = other.toNode())).also {
         this@OrderBuilder.remove(this@OrderFragment)
         this@OrderBuilder.remove(other)
     }
@@ -203,10 +203,7 @@ context(OrderBuilder)
  *
  * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
-infix fun OrderToken.or(other: OrderFragment): OrderFragment =
-    this@OrderBuilder.add(AlternativeOrderNode(left = token.toNode(), right = other.toNode())).also {
-        this@OrderBuilder.remove(other)
-    }
+infix fun OrderToken.or(other: OrderFragment): OrderFragment = this@OrderToken.token or other
 
 context(OrderBuilder)
 /**
@@ -217,8 +214,7 @@ context(OrderBuilder)
  *
  * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
-infix fun OrderToken.or(other: OrderToken): OrderFragment =
-    this@OrderBuilder.add(AlternativeOrderNode(left = token.toNode(), right = other.token.toNode()))
+infix fun OrderToken.or(other: OrderToken): OrderFragment = this@OrderToken.token or other.token
 
 context(OrderBuilder)
 /**
@@ -229,7 +225,4 @@ context(OrderBuilder)
  *
  * It can operate within a group, or on a whole expression. The patterns will be tested in order.
  */
-infix fun OrderFragment.or(other: OrderToken): OrderFragment =
-    this@OrderBuilder.add(AlternativeOrderNode(left = toNode(), right = other.token.toNode())).also {
-        this@OrderBuilder.remove(this@OrderFragment)
-    }
+infix fun OrderFragment.or(other: OrderToken): OrderFragment = this@OrderFragment or other.token

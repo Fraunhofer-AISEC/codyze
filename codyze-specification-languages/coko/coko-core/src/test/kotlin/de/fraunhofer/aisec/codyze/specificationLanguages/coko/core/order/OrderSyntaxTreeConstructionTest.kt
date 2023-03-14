@@ -79,8 +79,8 @@ class OrderSyntaxTreeConstructionTest {
 
             val expectedSyntaxTree =
                 SequenceOrderNode(
-                    left = TestClass::fun1.toTerminalOrderNode(),
-                    right = TestClass::fun2.toTerminalOrderNode()
+                    left = TestClass::fun1.toNode(),
+                    right = TestClass::fun2.toNode()
                 )
 
             assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
@@ -95,8 +95,8 @@ class OrderSyntaxTreeConstructionTest {
 
             val expectedSyntaxTree =
                 AlternativeOrderNode(
-                    left = TestClass::fun1.toTerminalOrderNode(),
-                    right = TestClass::fun2.toTerminalOrderNode()
+                    left = TestClass::fun1.toNode(),
+                    right = TestClass::fun2.toNode()
                 )
 
             assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
@@ -114,10 +114,10 @@ class OrderSyntaxTreeConstructionTest {
             val expectedSyntaxTree =
                 AlternativeOrderNode(
                     left = SequenceOrderNode(
-                        left = TestClass::fun1.toTerminalOrderNode(),
-                        right = TestClass::fun2.toTerminalOrderNode()
+                        left = TestClass::fun1.toNode(),
+                        right = TestClass::fun2.toNode()
                     ),
-                    right = TestClass::fun2.toTerminalOrderNode()
+                    right = TestClass::fun2.toNode()
                 )
 
             assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
@@ -136,12 +136,12 @@ class OrderSyntaxTreeConstructionTest {
                 AlternativeOrderNode(
                     left = QuantifierOrderNode(
                         SequenceOrderNode(
-                            left = TestClass::fun1.toTerminalOrderNode(),
-                            right = TestClass::fun2.toTerminalOrderNode()
+                            left = TestClass::fun1.toNode(),
+                            right = TestClass::fun2.toNode()
                         ),
                         OrderQuantifier.MAYBE
                     ),
-                    right = TestClass::fun2.toTerminalOrderNode()
+                    right = TestClass::fun2.toNode()
                 )
 
             assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
@@ -155,7 +155,7 @@ class OrderSyntaxTreeConstructionTest {
             val syntaxTree = orderExpressionToSyntaxTree { between(1..4, TestClass::fun1) }
             val expectedSyntaxTree =
                 QuantifierOrderNode(
-                    child = TestClass::fun1.toTerminalOrderNode(),
+                    child = TestClass::fun1.toNode(),
                     type = OrderQuantifier.BETWEEN,
                     value = 1..4
                 )
@@ -178,8 +178,8 @@ class OrderSyntaxTreeConstructionTest {
             val expectedSyntaxTree =
                 QuantifierOrderNode(
                     SequenceOrderNode(
-                        left = TestClass::fun1.toTerminalOrderNode(),
-                        right = TestClass::fun2.toTerminalOrderNode()
+                        left = TestClass::fun1.toNode(),
+                        right = TestClass::fun2.toNode()
                     ),
                     OrderQuantifier.MAYBE
                 )
@@ -207,8 +207,8 @@ class OrderSyntaxTreeConstructionTest {
 
             val expectedSyntaxTree =
                 AlternativeOrderNode(
-                    TestClass::fun1.toTerminalOrderNode(),
-                    TestClass::fun2.toTerminalOrderNode()
+                    TestClass::fun1.toNode(),
+                    TestClass::fun2.toNode()
                 )
 
             assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
@@ -219,8 +219,8 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     fun `test order with multiple usages of same object`() {
         with(mockk<CokoBackend>()) {
-            val nodeFun1 = TestClass::fun1.toTerminalOrderNode()
-            val nodeFun2 = TestClass::fun2.toTerminalOrderNode()
+            val nodeFun1 = TestClass::fun1.toNode()
+            val nodeFun2 = TestClass::fun2.toNode()
 
             // regex:  fun1 (fun1 fun2)* fun2
 
@@ -259,8 +259,8 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     fun `test order with usages of same groups`() {
         with(mockk<CokoBackend>()) {
-            val nodeFun1 = TestClass::fun1.toTerminalOrderNode()
-            val nodeFun2 = TestClass::fun2.toTerminalOrderNode()
+            val nodeFun1 = TestClass::fun1.toNode()
+            val nodeFun2 = TestClass::fun2.toNode()
 
             // regex: (fun1 fun2)* fun1 ((fun1 fun2)* | fun2) fun2
 
@@ -314,8 +314,8 @@ class OrderSyntaxTreeConstructionTest {
     @Test
     fun `test order with multiple usages of same object in or`() {
         with(mockk<CokoBackend>()) {
-            val nodeFun1 = TestClass::fun1.toTerminalOrderNode()
-            val nodeFun2 = TestClass::fun2.toTerminalOrderNode()
+            val nodeFun1 = TestClass::fun1.toNode()
+            val nodeFun2 = TestClass::fun2.toNode()
 
             // regex: fun1 fun1 ((fun1 fun2)* | fun2) fun2
 
@@ -370,8 +370,8 @@ class OrderSyntaxTreeConstructionTest {
                 - TestClass::fun1
             }
 
-            val nodeFun1 = TestClass::fun1.toTerminalOrderNode()
-            val nodeFun2 = TestClass::fun2.toTerminalOrderNode()
+            val nodeFun1 = TestClass::fun1.toNode()
+            val nodeFun2 = TestClass::fun2.toNode()
 
             val expectedSyntaxTree =
                 SequenceOrderNode(

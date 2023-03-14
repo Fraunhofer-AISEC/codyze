@@ -3,7 +3,7 @@ kotlin = "1.8.10"
 cpg = "6.2.1"
 koin = "3.3.3"
 detekt = "1.22.0"
-spotless = "6.16.0"
+spotless = "6.17.0"
 dokka = "1.8.10"
 
 

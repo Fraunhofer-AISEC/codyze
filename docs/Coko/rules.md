@@ -46,7 +46,7 @@ Therefore, it takes one `Op` as argument.
 ```kotlin title="Rule example using only"
 @Rule
 fun `only calls to first with 1 allowed`(foo: Foo) = 
-    only(foo.f(1))
+    only(foo.first(1))
 
 ```
 
@@ -73,7 +73,7 @@ The builder provides a set of functions that allow you to add quantifiers to the
 | Function            | Regex          | Description                                                                      |
 |---------------------|----------------|----------------------------------------------------------------------------------|
 | `or`                | &#124;         | Represents a choice, either the first or the second expression has to be matched |
-| `set`               | []             | Represents multiple choices, one expression in the has to be matched             | 
+| `set`               | []             | Represents multiple choices, one expression in it has to be matched              |
 | `maybe`             | *              | Matches an expression zero or more times                                         |
 | `some`              | +              | Matches an expression one or more times                                          |
 | `option`            | ?              | Matches an expression zero or one time                                           |

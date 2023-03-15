@@ -129,7 +129,7 @@ Since each `Op` is interpreted by Codyze as one query for function calls to the 
 This can be achieved with functions in Coko.
 The parameters of these functions in Coko can be used to pass the specific values to the filter.
 
-```kotlin title="An example for an Op template for the function java.util.List.add
+```kotlin title="An example for an Op template for the function java.util.List.add"
 fun add(
     element: Any, // (1)!
     index: Any? // (2)!
@@ -159,6 +159,9 @@ Instead of writing the corresponding rule for all combinations of database and l
 This reusability is achieved through interfaces.
 In Coko interfaces and their functions describe the functionalities that a group of APIs has in common.
 Rules can thus be written on a more conceptual level.
+
+When Coko encounters rules using a Coko interface as a parameter, it will use one of the available classes implementing the interface as argument to evaluate the rule.
+Currently, it uses the first class it finds, however, we will implement an algorithm in the future which will try to find the implementation that fits the best for the analyzed code.
 
 ```kotlin title="Example of a interface and its implementations in Coko"
 interface Logging {

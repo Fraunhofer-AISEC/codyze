@@ -4,7 +4,7 @@ In Coko these components are modelled through interfaces, classes and a class ca
 
 ## Ops
 
-[`Ops`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/-op) are the basic building blocks for writing policies in Coko.
+[:fontawesome-solid-arrow-up-right-from-square: `Ops`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/-op) are the basic building blocks for writing policies in Coko.
 With `Ops` you can model and group functions of the API that serve a similar functionality.
 They are also a way to define queries to the Codyze backend for finding calls to these functions.
 Each `Op` object is one query to the backend.
@@ -15,7 +15,7 @@ The following sections will explain the builders for each `Op` type.
 
 ### FunctionOps
 
-The function [`op()`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/op.html) is the start for building `FunctionOps`.
+The function [:fontawesome-solid-arrow-up-right-from-square: `op()`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/op.html) is the start for building `FunctionOps`.
 Within the block of `op()` the fully qualified name of the functions you want to model can be specified as a string.
 In the block of the fully qualified name the arguments to function can be defined.
 They serve as a filter for the query.
@@ -58,7 +58,7 @@ op {
 
 ### ConstructorOps
 
-The function of the builder for `ConstructorOps` is [`constructor()`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/constructor.html).
+The function of the builder for `ConstructorOps` is [:fontawesome-solid-arrow-up-right-from-square: `constructor()`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/constructor.html).
 The fully qualified name of the class is the first argument.
 In the block of `constructor()` you can specify the arguments to the constructor like for the `FunctionOp`.
 They serve the same purpose as for [`FunctionOps`](modelling.md#functionops).

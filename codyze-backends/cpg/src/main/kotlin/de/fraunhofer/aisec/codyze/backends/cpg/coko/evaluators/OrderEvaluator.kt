@@ -110,7 +110,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         // this is the set of all nodes the [CodyzeDfaOrderEvaluator] considers during evaluation
         for (orderToken in opsInConcept) {
             val op = (
-                    orderToken.call(implementation, *(List(orderToken.parameters.size - 1) { null }.toTypedArray()))
+                orderToken.call(implementation, *(List(orderToken.parameters.size - 1) { null }.toTypedArray()))
                 ) as Op
             val nodes = op.cpgGetAllNodes()
             for (node in nodes) {

@@ -18,7 +18,9 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
 /** Matches any value. */
-object Wildcard
+object Wildcard {
+    override fun toString() = "Wildcard"
+}
 
 typealias wildcard = Wildcard
 

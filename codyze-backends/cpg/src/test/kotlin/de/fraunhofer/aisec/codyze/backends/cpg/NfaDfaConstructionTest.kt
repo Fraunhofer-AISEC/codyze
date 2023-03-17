@@ -39,16 +39,16 @@ import kotlin.test.assertEquals
  */
 class NfaDfaConstructionTest {
     class TestClass {
-        fun create() = op {}
-        fun init() = op {}
-        fun start() = op {}
-        fun process() = op {}
-        fun finish() = op {}
-        fun reset() = op {}
+        fun create() = op { "create" {} }
+        fun init() = op { "init" {} }
+        fun start() = op { "start" {} }
+        fun process() = op { "process" {} }
+        fun finish() = op { "finish" {} }
+        fun reset() = op { "reset" {} }
     }
 
     private val baseName =
-        "de.fraunhofer.aisec.codyze.backends.cpg.NfaDfaConstructionTest.TestClass"
+        "de.fraunhofer.aisec.codyze.backends.cpg.NfaDfaConstructionTest\$TestClass"
 
     private fun orderExpressionToNfa(block: Order.() -> Unit): NFA {
         val order = Order().apply(block)

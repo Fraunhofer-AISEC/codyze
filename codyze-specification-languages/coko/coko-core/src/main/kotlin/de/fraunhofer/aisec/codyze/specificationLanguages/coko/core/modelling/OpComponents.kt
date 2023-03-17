@@ -23,7 +23,7 @@ typealias Parameter = Any?
 /** Represents a group of parameters that all belong to the same index */
 @CokoMarker
 class ParameterGroup {
-    val parameters = arrayListOf<Parameter>()
+    val parameters = mutableListOf<Parameter>()
 
     operator fun Parameter.unaryMinus() {
         add(this)
@@ -49,7 +49,7 @@ class ParameterGroup {
     }
 
     override fun toString(): String {
-        return parameters.joinToString(prefix = "{", postfix = "}")
+        return parameters.sortedBy { it.toString() }.joinToString(prefix = "{", postfix = "}")
     }
 }
 
@@ -60,7 +60,7 @@ class ParameterGroup {
  */
 @CokoMarker
 class Definition(val fqn: String) {
-    val signatures = arrayListOf<Signature>()
+    val signatures = mutableListOf<Signature>()
 
     fun add(signature: Signature) {
         this.signatures.removeIf { it === signature }
@@ -86,11 +86,17 @@ class Definition(val fqn: String) {
     }
 
     override fun toString(): String {
-        return signatures.filterNot { it.parameters.contains(null) || it.unorderedParameters.contains(null) }
-            .joinToString(
-                prefix = fqn,
-                separator = ", $fqn"
+        val (nullParams, notNullParams) = signatures.partition {
+            it.parameters.contains(null) || it.unorderedParameters.contains(
+                null
             )
+        }
+        return notNullParams.sortedBy { it.toString() }.joinToString(prefix = fqn, separator = ", $fqn") +
+            if (nullParams.isNotEmpty()) {
+                "(" + nullParams.sortedBy { it.toString() }.joinToString(prefix = fqn, separator = ", $fqn") + ")"
+            } else {
+                ""
+            }
     }
 }
 
@@ -109,7 +115,7 @@ class Definition(val fqn: String) {
 class Signature {
     val parameters = arrayListOf<Parameter>()
 
-    val unorderedParameters = arrayListOf<Parameter>()
+    val unorderedParameters = mutableListOf<Parameter>()
 
     operator fun Parameter.unaryMinus() {
         add(this)
@@ -135,21 +141,21 @@ class Signature {
 
         other as Signature
 
-        if (parameters.size != other.parameters.size) return false
-        if (unorderedParameters.size != other.unorderedParameters.size) return false
+        if (parameters != other.parameters) return false
+        if (unorderedParameters != other.unorderedParameters) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = parameters.size.hashCode()
-        result = 31 * result + unorderedParameters.size.hashCode()
+        var result = parameters.hashCode()
+        result = 31 * result + unorderedParameters.hashCode()
         return result
     }
 
     override fun toString(): String {
         val unorderedString = if (unorderedParameters.isNotEmpty()) {
-            " unordered: ${unorderedParameters.joinToString()}"
+            " unordered: ${unorderedParameters.sortedBy { it.toString() }.joinToString()}"
         } else {
             ""
         }

@@ -22,20 +22,13 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Par
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderFragment
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.TerminalOrderNode
-import java.util.stream.Stream
 
 @CokoMarker sealed interface Op : OrderFragment {
     val ownerClassFqn: String
-    val ownerClassMethodFqn: String
-    val contentHashCode: Int?
 
     override fun toNode(): TerminalOrderNode = TerminalOrderNode(
         baseName = ownerClassFqn,
-        opName = if (contentHashCode != null) {
-            "$ownerClassMethodFqn$$contentHashCode"
-        } else {
-            ownerClassMethodFqn
-        }
+        opName = toString()
     )
 }
 
@@ -52,10 +45,8 @@ import java.util.stream.Stream
 // function to make an `FunctionOp` object
 class FunctionOp internal constructor(
     override val ownerClassFqn: String = "",
-    override val ownerClassMethodFqn: String = "",
-    override val contentHashCode: Int? = null
 ) : Op {
-    val definitions = arrayListOf<Definition>()
+    val definitions = mutableListOf<Definition>()
 
     fun add(definition: Definition) {
         this.definitions.removeIf { it === definition }
@@ -85,7 +76,7 @@ class FunctionOp internal constructor(
     }
 
     override fun toString(): String {
-        return definitions.joinToString()
+        return definitions.sortedBy { it.toString() }.joinToString()
     }
 }
 
@@ -97,10 +88,8 @@ class FunctionOp internal constructor(
 class ConstructorOp internal constructor(
     val classFqn: String,
     override val ownerClassFqn: String = "",
-    override val ownerClassMethodFqn: String = "",
-    override val contentHashCode: Int? = null
 ) : Op {
-    val signatures = arrayListOf<Signature>()
+    val signatures = mutableListOf<Signature>()
 
     fun add(signature: Signature) {
         this.signatures.removeIf { it === signature }
@@ -121,11 +110,12 @@ class ConstructorOp internal constructor(
     }
 
     override fun toString(): String {
-        return signatures.joinToString(prefix = classFqn, separator = ", $classFqn")
+        return signatures.sortedBy { it.toString() }.joinToString(prefix = classFqn, separator = ", $classFqn")
     }
 }
 
-context(Any)
+context(Any) // This is needed to have access to the owner of this function
+// -> in which class is the function defined that created this [OP]
 /**
  * Create a [FunctionOp].
  *
@@ -144,7 +134,7 @@ context(Any)
  *          - arg3
  *      }
  *   }
- *   definition("my.other.function") {
+ *   "my.other.function" { // the call to 'definition' can be omitted
  *      signature(arg2, arg1)
  *   }
  * }
@@ -161,39 +151,16 @@ context(Any)
  * @param block defines the [Definition]s of this [FunctionOp]
  */
 fun op(block: FunctionOp.() -> Unit): FunctionOp {
-    val ownerClassFqn = getOwnerClassFqnFromContext(this@Any)
-    val (refinedOwnerClassFqn, ownerClassMethodFqn) = getCallerClassFqnAndFunctionFqn(ownerClassFqn)
-    return FunctionOp(refinedOwnerClassFqn, ownerClassMethodFqn, block.hashCode()).apply(block)
+    val functionOp = FunctionOp(this@Any::class.java.name).apply(block)
+    check(functionOp.definitions.isNotEmpty()) { "Coko does not support empty OPs" }
+    return functionOp
 }
 
-// TODO: this breaks for nested functions..
-// TODO: does anyone want to use nested functions in an 'Implementation' in Coko??
-fun getCallerClassFqnAndFunctionFqn(ownerClassFqn: String): Pair<String, String> {
-    // TODO: filter stack trace using the given ownerClassFqn
-    val stack = StackWalker.getInstance()
-        .walk { s: Stream<StackWalker.StackFrame> ->
-            s.skip(
-                2
-            ).findFirst()
-        }
-        .get()
-    return stack.className to stack.methodName
-}
-
-fun getOwnerClassFqnFromContext(context: Any): String {
-    val ownerClassFqn = context::class.qualifiedName // --> worst case this is the 'CokoScript' class
-    checkNotNull(ownerClassFqn) {
-        "All OPs must be defined in a class. In a Coko script, this is 'CokoScript' at worst."
-    }
-    return ownerClassFqn
-}
-
-context(Any)
+context(Any) // This is needed to have access to the owner of this function
+// -> in which class is the function defined that created this [OP]
 /** Create a [ConstructorOp]. */
 fun constructor(classFqn: String, block: ConstructorOp.() -> Unit): ConstructorOp {
-    val ownerClassFqn = getOwnerClassFqnFromContext(this@Any)
-    val (refinedOwnerClassFqn, ownerClassMethodFqn) = getCallerClassFqnAndFunctionFqn(ownerClassFqn)
-    return ConstructorOp(classFqn, refinedOwnerClassFqn, ownerClassMethodFqn, block.hashCode()).apply(block)
+    return ConstructorOp(classFqn, this@Any::class.java.name).apply(block)
 }
 
 /**

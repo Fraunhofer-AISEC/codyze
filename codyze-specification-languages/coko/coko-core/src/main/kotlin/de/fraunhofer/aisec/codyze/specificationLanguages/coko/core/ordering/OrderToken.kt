@@ -16,8 +16,6 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
-import kotlin.jvm.internal.CallableReference
-import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 typealias OrderToken = KFunction<Op>
@@ -25,9 +23,4 @@ typealias OrderToken = KFunction<Op>
 fun OrderToken.getOp(vararg arguments: Any? = Array<Any?>(parameters.size) { null }) = call(*arguments)
 
 /** Convert an [OrderToken] into a TerminalOrderNode */
-internal fun OrderToken.toNode(): TerminalOrderNode = TerminalOrderNode(
-    baseName = ((this as CallableReference).owner as KClass<*>).qualifiedName ?: error(
-        "Local classes or classes of anonymous objects are not supported in Coko!"
-    ),
-    opName = name,
-)
+internal fun OrderToken.toNode(): TerminalOrderNode = getOp().toNode()

@@ -108,12 +108,14 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         // now call each of those functions to get the nodes corresponding to the OP
         // this will detect ALL calls to the specified methods/functions regardless of the defined signatures
         // this is the set of all nodes the [CodyzeDfaOrderEvaluator] considers during evaluation
-        for (op in opsInConcept) {
-            val nodes = ((op.call(implementation, *(List(op.parameters.size - 1) { null }.toTypedArray()))) as Op)
-                .cpgGetAllNodes()
+        for (OrderToken in opsInConcept) {
+            val op = (
+                OrderToken.call(implementation, *(List(OrderToken.parameters.size - 1) { null }.toTypedArray()))
+                ) as Op
+            val nodes = op.cpgGetAllNodes()
             for (node in nodes) {
                 val setOfNames = nodesToOp.getOrPut(node) { mutableSetOf() }
-                setOfNames.add(op.name)
+                setOfNames.add(op.toString())
             }
         }
 

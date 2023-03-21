@@ -6,6 +6,9 @@ no_list: true
 description: >
   Differences between Codyze v3 and Codyze v2
 ---
+
+# Redesign of Codyze
+
 The goal of the redesign is to make Codyze more maintainable and easier extendable.
 This introduced a lot of changes compared to the legacy version.
 

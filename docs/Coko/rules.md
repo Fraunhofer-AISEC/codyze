@@ -1,13 +1,13 @@
 
 Rules in Coko describe how an API should be used.
-They are functions that are annotated with the [:fontawesome-solid-arrow-up-right-from-square: `@Rule`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/-rule){target=_blank} annotation.
+They are functions that are annotated with the [`@Rule` <i class="fas fa-external-link-alt"></i>](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl/-rule){target=_blank} annotation.
 
 In the `@Rule` annotation you can specify metadata about the rule such as the description of the rule.
 The metadata will be used for describing the findings in the SARIF output.
 
 If the rule requires some instance of a model, they can be specified as parameters to the rule function. 
 
-Each Coko rule must return an implementation of the [:fontawesome-solid-arrow-up-right-from-square: `Evaluator`](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core/-evaluator){target=_blank} interface, which Codyze can use to evaluate the rule.
+Each Coko rule must return an implementation of the [`Evaluator` <i class="fas fa-external-link-alt"></i>](../../api/codyze/codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specificationLanguages.coko.core/-evaluator){target=_blank} interface, which Codyze can use to evaluate the rule.
 Coko provides some common evaluators which will be explained in the following sections.
 The example model will be used for explaining the evaluators.  
 
@@ -62,7 +62,7 @@ Within the builder, the order is specified as a regular expression.
 
 The "alphabet" of the order regex is:
 
-- references to [functions that return an `Op`](modelling.md#functions) written as `<ClassName>::<FunctionName>` or `::<FunctionName>`
+- references to [functions that return an `Op`](modelling.md#functions) written as `<object>::<FunctionName>` or `::<FunctionName>`
 - `Ops` themselves.
 
 If all calls to a modelled function should be considered for the order regardless of the specified signatures, please use the first option.
@@ -87,12 +87,12 @@ The builder provides a set of functions that allow you to add quantifiers to the
 fun `order of Foo`(foo: Foo) = 
     order(foo.constructor()/* (4)! */) { // (3)!
         - foo.first(...) // (2)!
-        maybe(Foo::second) // (1)!
+        maybe(foo::second) // (1)!
     }
 
 ```
 
-1. This will consider all calls to the function modelled by `Foo.second()` for the order. No filter will be applied. 
+1. This will consider all calls to the function modelled by `foo.second()` for the order. No filter will be applied. 
 2. This will use the filtered `Op` returned by `foo.first(...)` for the order.
 3. This starts the type-safe builder for the order.
 4. The `Op` returned from `foo.constructor` will be used as query for the function calls that are the starting point for evaluating the order.

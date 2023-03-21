@@ -166,4 +166,4 @@ nav:
         - 'Contributing to Codyze': contributors/index.md
         - 'Building the project': contributors/code.md
         - 'How to Contribute?': contributors/CONTRIBUTING.md
-    - 'API': api/codyze
+    - "<p>API &nbsp;<i class='fa-solid fa-arrow-up-right-from-square'></i></p>": api/codyze" target="_blank

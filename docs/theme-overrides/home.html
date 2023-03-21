@@ -1,11 +1,5 @@
 {% extends "main-styles.html" %}
 
-{% block extrahead %}
-    {{ super() }}
-    <link href="/assets/fontawesome/css/fontawesome.css" rel="stylesheet">
-    <link href="/assets/fontawesome/css/solid.css" rel="stylesheet">
-{% endblock %}
-
 {% block tabs %}
 {{ super() }}
 
@@ -24,7 +18,7 @@
                     <a href="{{ page.next_page.url | url }}" title="{{ page.next_page.title | striptags }}" class="md-button md-button--primary">
                         Get started
                     </a>
-                    <a href="{{ config.repo_url }}" title="{{ lang.t('source.link.title') }}" class="md-button">
+                    <a href="{{ config.repo_url }}" title="{{ lang.t('source.link.title') }}" class="md-button" target="_blank">
                         Contribute on GitHub
                     </a>
                 </div>
@@ -74,11 +68,10 @@
                         <p>
                             Codyze is a static analysis tool to support developers in verifying compliance to security requirements.
                         </p>
-                        <p>Head to the <a href="https://github.com/Fraunhofer-AISEC/codyze/releases"><span class="fas fa-external-link-alt"></span>release page</a> and download Codyze.<br>
-                            We offer IDE plugins for <a href="https://github.com/Fraunhofer-AISEC/codyze-eclipse-plugin/releases"><span class="fas fa-external-link-alt"></span>Eclipse</a>,
-                            <a href="https://github.com/Fraunhofer-AISEC/codyze-vs-plugin/releases"><span class="fas fa-external-link-alt"></span>Visual Studio</a> and
-                            <a href="https://github.com/Fraunhofer-AISEC/codyze/releases"><span class="fas fa-external-link-alt"></span>Visual Studio Code</a>.
-                            Moreover, we <a href="Getting Started/lsp/#integration-through-lsp-mode"><span class="fas fa-external-link-alt"></span>support LSP</a> for integration into your favorite IDE or text editor.
+                        <p>Head to the <a href="https://github.com/Fraunhofer-AISEC/codyze/releases" target="_blank">release page <span class="fas fa-external-link-alt"></span></a> and download Codyze.<br>
+                            We offer IDE plugins for <a href="https://github.com/Fraunhofer-AISEC/codyze-eclipse-plugin/releases" target="_blank">Eclipse <span class="fas fa-external-link-alt"></span></a>,
+                            <a href="https://github.com/Fraunhofer-AISEC/codyze-vs-plugin/releases" target="_blank">Visual Studio <span class="fas fa-external-link-alt"></span></a> and
+                            <a href="https://github.com/Fraunhofer-AISEC/codyze/releases" target="_blank">Visual Studio Code <span class="fas fa-external-link-alt"></span></a>.
                         </p>
                     </div>
                 </div>
@@ -113,7 +106,7 @@
                     <div class="community-item">
                         <h2>Develop and Contribute</h2>
                         <p>We are happy to accept pull requests for bugfixes and improvements on GitHub!</p>
-                        <p>If you are interested to write a bachelor/master/PhD thesis in static analysis, we encourage you to get in contact with us. Besides the open research topics offered by the <a href="https://www.sec.in.tum.de/i20/student-work"><span class="fas fa-external-link-alt"></span>Chair of IT Security at the Technical University of Munich</a>, we are open to discuss further topics which might be of interest for you and us.</p>
+                        <p>If you are interested to write a bachelor/master/PhD thesis in static analysis, we encourage you to get in contact with us. Besides the open research topics offered by the <a href="https://www.sec.in.tum.de/i20/student-work" target="_blank">Chair of IT Security at the Technical University of Munich <span class="fas fa-external-link-alt"></span></a>, we are open to discuss further topics which might be of interest for you and us.</p>
                     </div>
 
                     <div class="community-item">

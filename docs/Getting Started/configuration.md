@@ -35,7 +35,7 @@ The configuration structure separates the options by subcommand as seen below.
 ```
 In this example the `good-findings` argument belongs to Codyze, the `spec` argument belongs to the `runCoko` subcommand and the `source` argument belongs to the `cokoCpg` subcommand.
 The value of the option is taken from the object which corresponds to the subcommand used for the execution.
-An exemplary configuration file can also be found in the [GitHub repository](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-cli/config.json).
+An exemplary configuration file can also be found in the [GitHub repository <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-cli/config.json){target=_blank}.
 
 ## List of Configurations
 This is a list of all available configurations, their descriptions and their respective name.

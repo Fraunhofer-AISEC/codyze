@@ -56,13 +56,7 @@ class CodyzeDfaOrderEvaluator(
         .takeIf { it?.isEmpty() == false }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { e ->
-        if (e.base != null) {
-            "${e.base!!.split("$").last()}.${e.op}"
-        } else {
-            e.op
-        }
-    }?.sorted()
+    private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { it.op }?.sorted()
 
     /**
      * Collects a finding if the [node] makes an operation which violates the desired order.

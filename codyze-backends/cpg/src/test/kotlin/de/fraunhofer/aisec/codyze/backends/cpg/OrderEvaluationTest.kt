@@ -132,7 +132,7 @@ class OrderEvaluationTest {
             assertEquals(1, findings.size)
             assertEquals(
                 "Violation against Order: \"p.set_key(key);\". Op \"[Botan.set_key(Wildcard)]\" is not allowed. " +
-                    "Expected one of: CokoOrderImpl.Botan.start(Wildcard)",
+                    "Expected one of: Botan.start(Wildcard)",
                 findings.first().message,
             )
         }

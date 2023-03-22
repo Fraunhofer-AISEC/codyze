@@ -148,7 +148,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             context = context,
         )
 
-        // this should be a set of MethodDeclarations or a similar top level statements
+        // this should be a set of MethodDeclarations or similar top level statements
         val topLevelCompoundStatement = baseNodes.mapNotNull { node ->
             node.followPrevEOGUntilEnd()
         }.toSet()

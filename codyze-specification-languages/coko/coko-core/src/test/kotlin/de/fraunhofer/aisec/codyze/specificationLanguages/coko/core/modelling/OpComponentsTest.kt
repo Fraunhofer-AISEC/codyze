@@ -69,7 +69,7 @@ class OpComponentsTest {
     fun `test signature with unordered`() {
         with(mockk<Definition>(relaxed = true)) {
             val unordered = signature(multipleParams.toTypedArray()) {}
-            val unorderedShortcut = signature{
+            val unorderedShortcut = signature {
                 unordered(*multipleParams.toTypedArray())
             }
 

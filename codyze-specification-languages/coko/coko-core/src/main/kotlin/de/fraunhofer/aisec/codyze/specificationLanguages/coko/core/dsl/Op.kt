@@ -46,7 +46,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.Term
 class FunctionOp internal constructor(
     override val ownerClassFqn: String = "",
 ) : Op {
-    val definitions = sortedSetOf<Definition>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
+    val definitions = sortedSetOf<Definition>(comparator = { x, y -> x.hashCode().compareTo(y.hashCode()) })
 
     fun add(definition: Definition) {
         this.definitions.removeIf { it === definition }
@@ -89,7 +89,7 @@ class ConstructorOp internal constructor(
     val classFqn: String,
     override val ownerClassFqn: String = "",
 ) : Op {
-    val signatures = sortedSetOf<Signature>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
+    val signatures = sortedSetOf<Signature>(comparator = { x, y -> x.hashCode().compareTo(y.hashCode()) })
 
     fun add(signature: Signature) {
         this.signatures.removeIf { it === signature }

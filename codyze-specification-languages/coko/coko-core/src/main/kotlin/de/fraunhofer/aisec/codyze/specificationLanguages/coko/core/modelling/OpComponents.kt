@@ -23,7 +23,7 @@ typealias Parameter = Any?
 /** Represents a group of parameters that all belong to the same index */
 @CokoMarker
 class ParameterGroup {
-    val parameters = sortedSetOf<Parameter>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
+    val parameters = sortedSetOf<Parameter>(comparator = { x, y -> x.hashCode().compareTo(y.hashCode()) })
 
     operator fun Parameter.unaryMinus() {
         add(this)
@@ -60,7 +60,7 @@ class ParameterGroup {
  */
 @CokoMarker
 class Definition(val fqn: String) {
-    val signatures = sortedSetOf<Signature>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
+    val signatures = sortedSetOf<Signature>(comparator = { x, y -> x.hashCode().compareTo(y.hashCode()) })
 
     fun add(signature: Signature) {
         this.signatures.removeIf { it === signature }
@@ -115,7 +115,7 @@ class Definition(val fqn: String) {
 class Signature {
     val parameters = mutableListOf<Parameter>()
 
-    val unorderedParameters = sortedSetOf<Parameter>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
+    val unorderedParameters = sortedSetOf<Parameter>(comparator = { x, y -> x.hashCode().compareTo(y.hashCode()) })
 
     operator fun Parameter.unaryMinus() {
         add(this)

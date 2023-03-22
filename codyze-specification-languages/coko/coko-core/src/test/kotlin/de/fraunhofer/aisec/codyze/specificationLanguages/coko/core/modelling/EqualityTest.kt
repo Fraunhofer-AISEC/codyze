@@ -98,11 +98,11 @@ class EqualityTest {
             val group1 = group {
                 - "h"
                 - "string"
-                - 1..4
+                - (1..4)
             }
 
             val group2 = group {
-                - 1..4
+                - (1..4)
                 - "h"
                 - "string"
             }

@@ -153,7 +153,11 @@ class CokoCpgIntegrationTest {
      * Performs an end-to-end integration test of Codyze with the [CokoExecutor] and the [CokoCpgBackend] backend.
      * Uses three spec files. Where the second one imports the third one and the first one is standalone.
      */
-    @Disabled("Produces an argument type mismatch error. Probably a bug in the SpecEvaluator...")
+    @Disabled(
+        "Produces an argument type mismatch error. Probably a bug in the SpecEvaluator, " +
+            "how the coko import statements work (CokoScript), " +
+            "or how we compile and call the coko scripts (CokoExecutor)..."
+    )
     @Test
     fun `test coko with cpg backend and multiple and multiple dependend spec files two`() {
         val specFiles = listOfNotNull(

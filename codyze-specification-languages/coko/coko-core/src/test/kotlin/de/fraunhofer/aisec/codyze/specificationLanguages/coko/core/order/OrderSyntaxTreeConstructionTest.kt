@@ -91,16 +91,17 @@ class OrderSyntaxTreeConstructionTest {
                 - testObj::fun2
             }
 
+            val fun1 = testObj.fun1(1).toNode()
             val expectedSyntaxTree =
                 SequenceOrderNode(
                     left = SequenceOrderNode(
                         left = TerminalOrderNode(
-                            testObj::fun1.toNode().baseName,
-                            "testOp({1})"
+                            fun1.baseName,
+                            fun1.opName
                         ),
                         right = TerminalOrderNode(
-                            testObj::fun1.toNode().baseName,
-                            "testOp({1})"
+                            fun1.baseName,
+                            fun1.opName
                         )
                     ),
                     right = testObj::fun2.toNode()

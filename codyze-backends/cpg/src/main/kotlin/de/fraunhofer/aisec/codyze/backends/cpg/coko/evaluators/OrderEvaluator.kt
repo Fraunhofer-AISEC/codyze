@@ -104,6 +104,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
 
         // TODO: add nodesToOp to context (the cache) for other evaluations on the same implementation?
         val nodesToOp = mutableMapOf<Node, MutableSet<String>>()
+        val hashToMethod = mutableMapOf<String, String>()
 
         // now call each of those functions to get the nodes corresponding to the OP
         // this will detect ALL calls to the specified methods/functions regardless of the defined signatures
@@ -113,9 +114,11 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
                 orderToken.call(implementation, *(List(orderToken.parameters.size - 1) { null }.toTypedArray()))
                 ) as Op
             val nodes = op.cpgGetAllNodes()
+            val hash = op.hashCode().toString()
+            hashToMethod.putIfAbsent(hash, op.toString())
             for (node in nodes) {
                 val setOfNames = nodesToOp.getOrPut(node) { mutableSetOf() }
-                setOfNames.add(op.toString())
+                setOfNames.add(hash)
             }
         }
 
@@ -125,15 +128,18 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         // only allow the start nodes that take '123' as argument
         for ((opName, op) in order.userDefinedOps.entries) {
             val nodes = op.cpgGetNodes()
+            val hash = op.hashCode().toString()
+            hashToMethod.putIfAbsent(hash, op.toString())
             for (node in nodes) {
                 val setOfNames = nodesToOp.getOrDefault(node, mutableSetOf())
-                setOfNames.add(opName)
+                setOfNames.add(hash)
             }
         }
 
         // create the order evaluator for this order rule
         val dfaEvaluator = CodyzeDfaOrderEvaluator(
             dfa = dfa,
+            hashToMethod = hashToMethod,
             nodeToRelevantMethod = nodesToOp,
             consideredBases = baseNodes.map { node ->
                 node.followNextEOG { it.end is AssignmentTarget }!!.last().end

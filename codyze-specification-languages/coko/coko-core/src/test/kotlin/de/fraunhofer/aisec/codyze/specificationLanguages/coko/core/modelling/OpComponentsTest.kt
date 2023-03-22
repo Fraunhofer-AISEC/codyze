@@ -34,7 +34,7 @@ class OpComponentsTest {
         with(mockk<Signature>(relaxed = true)) {
             val paramGroup = group { expectedParams.forEach { - it } }
 
-            assertContentEquals(expectedParams.sortedBy { it.hashCode() }, paramGroup.parameters)
+            assertEquals(expectedParams.toSet(), paramGroup.parameters)
         }
     }
 

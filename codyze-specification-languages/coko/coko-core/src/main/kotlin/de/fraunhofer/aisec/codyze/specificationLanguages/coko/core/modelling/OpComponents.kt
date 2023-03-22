@@ -23,7 +23,7 @@ typealias Parameter = Any?
 /** Represents a group of parameters that all belong to the same index */
 @CokoMarker
 class ParameterGroup {
-    val parameters = mutableListOf<Parameter>()
+    val parameters = sortedSetOf<Parameter>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
 
     operator fun Parameter.unaryMinus() {
         add(this)
@@ -49,7 +49,7 @@ class ParameterGroup {
     }
 
     override fun toString(): String {
-        return parameters.sortedBy { it.toString() }.joinToString(prefix = "{", postfix = "}")
+        return parameters.joinToString(prefix = "{", postfix = "}")
     }
 }
 
@@ -60,7 +60,7 @@ class ParameterGroup {
  */
 @CokoMarker
 class Definition(val fqn: String) {
-    val signatures = mutableListOf<Signature>()
+    val signatures = sortedSetOf<Signature>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
 
     fun add(signature: Signature) {
         this.signatures.removeIf { it === signature }
@@ -91,9 +91,9 @@ class Definition(val fqn: String) {
                 null
             )
         }
-        return notNullParams.sortedBy { it.toString() }.joinToString(prefix = fqn, separator = ", $fqn") +
+        return notNullParams.joinToString(prefix = fqn, separator = ", $fqn") +
             if (nullParams.isNotEmpty()) {
-                "(" + nullParams.sortedBy { it.toString() }.joinToString(prefix = fqn, separator = ", $fqn") + ")"
+                "(" + nullParams.joinToString(prefix = fqn, separator = ", $fqn") + ")"
             } else {
                 ""
             }
@@ -113,9 +113,9 @@ class Definition(val fqn: String) {
  */
 @CokoMarker
 class Signature {
-    val parameters = arrayListOf<Parameter>()
+    val parameters = mutableListOf<Parameter>()
 
-    val unorderedParameters = mutableListOf<Parameter>()
+    val unorderedParameters = sortedSetOf<Parameter>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
 
     operator fun Parameter.unaryMinus() {
         add(this)
@@ -155,7 +155,7 @@ class Signature {
 
     override fun toString(): String {
         val unorderedString = if (unorderedParameters.isNotEmpty()) {
-            " unordered: ${unorderedParameters.sortedBy { it.toString() }.joinToString()}"
+            " unordered: ${unorderedParameters.joinToString()}"
         } else {
             ""
         }

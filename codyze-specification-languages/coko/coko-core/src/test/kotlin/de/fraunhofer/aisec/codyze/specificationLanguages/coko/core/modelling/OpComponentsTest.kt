@@ -34,7 +34,7 @@ class OpComponentsTest {
         with(mockk<Signature>(relaxed = true)) {
             val paramGroup = group { expectedParams.forEach { - it } }
 
-            assertContentEquals(expectedParams, paramGroup.parameters)
+            assertContentEquals(expectedParams.sortedBy { it.hashCode() }, paramGroup.parameters)
         }
     }
 
@@ -69,7 +69,9 @@ class OpComponentsTest {
     fun `test signature with unordered`() {
         with(mockk<Definition>(relaxed = true)) {
             val unordered = signature(multipleParams.toTypedArray()) {}
-            val unorderedShortcut = signature().unordered(*multipleParams.toTypedArray())
+            val unorderedShortcut = signature{
+                unordered(*multipleParams.toTypedArray())
+            }
 
             val expectedSig = Signature().apply { unorderedParameters.addAll(multipleParams) }
             assertEquals(expectedSig, unorderedShortcut)
@@ -105,8 +107,8 @@ class OpComponentsTest {
                     - singleParam
                     group { grouped.forEach { - it } }
                     ordered.forEach { - it }
+                    unordered(*unordered.toTypedArray())
                 }
-                    .unordered(*unordered.toTypedArray())
 
             val expectedSig =
                 Signature().apply {

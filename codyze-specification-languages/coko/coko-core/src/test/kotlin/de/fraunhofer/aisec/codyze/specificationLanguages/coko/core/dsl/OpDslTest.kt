@@ -65,7 +65,8 @@ class OpDslTest {
                 signature {
                     - stringParam
                     - callTestParam
-                }.unordered(numberParam)
+                    unordered(numberParam)
+                }
                 signature(numberParam, collectionParam, stringParam)
             }
             definition("fqn2") {

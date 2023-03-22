@@ -46,7 +46,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.Term
 class FunctionOp internal constructor(
     override val ownerClassFqn: String = "",
 ) : Op {
-    val definitions = mutableListOf<Definition>()
+    val definitions = sortedSetOf<Definition>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
 
     fun add(definition: Definition) {
         this.definitions.removeIf { it === definition }
@@ -76,7 +76,7 @@ class FunctionOp internal constructor(
     }
 
     override fun toString(): String {
-        return definitions.sortedBy { it.toString() }.joinToString()
+        return definitions.joinToString()
     }
 }
 
@@ -89,7 +89,7 @@ class ConstructorOp internal constructor(
     val classFqn: String,
     override val ownerClassFqn: String = "",
 ) : Op {
-    val signatures = mutableListOf<Signature>()
+    val signatures = sortedSetOf<Signature>(comparator = { x,y -> x.hashCode().compareTo(y.hashCode()) })
 
     fun add(signature: Signature) {
         this.signatures.removeIf { it === signature }
@@ -110,7 +110,7 @@ class ConstructorOp internal constructor(
     }
 
     override fun toString(): String {
-        return signatures.sortedBy { it.toString() }.joinToString(prefix = classFqn, separator = ", $classFqn")
+        return signatures.joinToString(prefix = classFqn, separator = ", $classFqn")
     }
 }
 
@@ -202,10 +202,10 @@ inline fun Signature.group(block: ParameterGroup.() -> Unit) = ParameterGroup().
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
 fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { this.add(it) } }
 
-context(Definition)
+context(Signature)
 /** Add unordered [Parameter]s to the [Signature]. */
-fun Signature.unordered(vararg unordered: Parameter) =
-    this.apply { unorderedParameters.addAll(unordered) }
+fun unordered(vararg unordered: Parameter) =
+    this@Signature.apply { unorderedParameters.addAll(unordered) }
 
 /**
  * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are defined in

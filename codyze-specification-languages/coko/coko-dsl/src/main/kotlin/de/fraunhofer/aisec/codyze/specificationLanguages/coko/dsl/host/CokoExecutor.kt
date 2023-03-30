@@ -161,13 +161,16 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
                 // The ScriptingHost makes a class loader for each script.
                 // We need to connect these class loaders of the scripts to be able to find all classes.
                 // This is done by creating a chaining them through the `parent` property of the ClassLoader.
-                // The BasicJVMScriptingHost will assign the given `baseClassLoader` as an ancestor for the new class loader for the compiled script.
+                // The BasicJVMScriptingHost will assign the given `baseClassLoader` as an ancestor for
+                // the new class loader for the compiled script.
 
-                // Since a script might import other scripts, some classes are already included in a class loader when they are first compiled.
-                // Since their assigned class loader will be the class loader that includes them, the chain might be broken.
-                // All previous class loaders are therefore stored in the `classLoaders` set.
-                // If `newClassLoader` is not yet in `classLoaders` it is used as the `baseClassLoader` for the next script to continue the chain.
-                // Otherwise, the previous `baseClassLoader` is used again, since it is still the last class loader of the chain.
+                // Since a script might import other scripts, some classes are already included in a class
+                // loader when they are first compiled.
+                // Since their assigned class loader will be the class loader that includes them, the chain
+                // might be broken. All previous class loaders are therefore stored in the `classLoaders` set.
+                // If `newClassLoader` is not yet in `classLoaders` it is used as the `baseClassLoader` for the
+                // next script to continue the chain. Otherwise, the previous `baseClassLoader` is used again,
+                // since it is still the last class loader of the chain.
                 if (newClassLoader != null && classLoaders.add(newClassLoader)) {
                     baseClassLoader = newClassLoader
                 }

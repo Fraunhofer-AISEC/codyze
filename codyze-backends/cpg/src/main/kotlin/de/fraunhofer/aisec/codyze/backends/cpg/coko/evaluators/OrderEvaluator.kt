@@ -92,7 +92,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         val hash = op.hashCode().toString()
         hashToMethod.putIfAbsent(hash, op.toString())
         for (node in nodes) {
-            val setOfNames = nodesToOp.getOrDefault(node, mutableSetOf())
+            val setOfNames = nodesToOp.getOrPut(node) { mutableSetOf() }
             setOfNames.add(hash)
         }
     }

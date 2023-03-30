@@ -59,7 +59,8 @@ class CodyzeDfaOrderEvaluator(
     @Suppress("UnsafeCallOnNullableType")
     private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.mapNotNull { hashToMethod[it.op] }?.sorted()
 
-    private fun getMethods(node: Node): Set<String> = nodeToRelevantMethod.getOrDefault(node, emptySet()).mapNotNull { hashToMethod[it] }.toSet()
+    private fun getMethods(node: Node): Set<String> =
+        nodeToRelevantMethod.getOrDefault(node, emptySet()).mapNotNull { hashToMethod[it] }.toSet()
 
     /**
      * Collects a finding if the [node] makes an operation which violates the desired order.

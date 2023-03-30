@@ -17,6 +17,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetAllNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.ordering.CodyzeDfaOrderEvaluator
@@ -77,6 +78,37 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         return null
     }
 
+    /**
+     * Registers [op] and its [nodes] in the two maps.
+     * [nodesToOp] maps each Node in [nodes] to the `hashCode` of [op] which is used for the order evaluation.
+     * [hashToMethod] maps the `hashCode` of [op] to the String of [op] which is used for the findings.
+     */
+    private fun registerOpAndNodes(
+        op: Op,
+        nodes: Nodes,
+        hashToMethod: MutableMap<String, String>,
+        nodesToOp: MutableMap<Node, MutableSet<String>>
+    ) {
+        val hash = op.hashCode().toString()
+        hashToMethod.putIfAbsent(hash, op.toString())
+        for (node in nodes) {
+            val setOfNames = nodesToOp.getOrDefault(node, mutableSetOf())
+            setOfNames.add(hash)
+        }
+    }
+
+    /**
+     * Filter positive findings that also appear as negative findings.
+     * This happens e.g., if there are multiple possible execution order flows (if-statement etc.) and
+     * the order is correct in one branch, but incorrect in another
+     */
+    private fun filteredFindings(findings: Set<CpgFinding>): Set<CpgFinding> {
+        val passFindings = findings.filter { it.kind == Finding.Kind.Pass }.map { it.node to it }.toSet()
+        val failFindings = findings.filter { it.kind == Finding.Kind.Fail }.map { it.node }.toSet()
+        val positiveFindingsToRemove = passFindings.filter { passPair -> passPair.first in failFindings }
+        return findings.minus(positiveFindingsToRemove.map { it.second }.toSet())
+    }
+
     @Suppress("UnsafeCallOnNullableType", "ReturnCount")
     override fun evaluate(context: EvaluationContext): Set<CpgFinding> {
         // first check whether it is an order rule that we can evaluate
@@ -114,26 +146,15 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
                 orderToken.call(implementation, *(List(orderToken.parameters.size - 1) { null }.toTypedArray()))
                 ) as Op
             val nodes = op.cpgGetAllNodes()
-            val hash = op.hashCode().toString()
-            hashToMethod.putIfAbsent(hash, op.toString())
-            for (node in nodes) {
-                val setOfNames = nodesToOp.getOrPut(node) { mutableSetOf() }
-                setOfNames.add(hash)
-            }
+            registerOpAndNodes(op, nodes, hashToMethod, nodesToOp)
         }
 
         // the more specific nodes respecting the signature here
-        //
-        // the nodes from +testObj::start.use { testObj.start(123) } <- use makes them userDefined
+        // the nodes from +testObj.start(123) <- userDefined Ops are used
         // only allow the start nodes that take '123' as argument
-        for ((opName, op) in order.userDefinedOps.entries) {
+        for ((_, op) in order.userDefinedOps.entries) {
             val nodes = op.cpgGetNodes()
-            val hash = op.hashCode().toString()
-            hashToMethod.putIfAbsent(hash, op.toString())
-            for (node in nodes) {
-                val setOfNames = nodesToOp.getOrDefault(node, mutableSetOf())
-                setOfNames.add(hash)
-            }
+            registerOpAndNodes(op, nodes, hashToMethod, nodesToOp)
         }
 
         // create the order evaluator for this order rule
@@ -165,12 +186,6 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         }
 
         // filter positive findings that also appear as negative findings
-        // this happens e.g., if there are multiple possible execution order flows (if-statement etc.)
-        // and the order is correct in one branch, but incorrect in another
-        val passFindings = dfaEvaluator.findings.filter { it.kind == Finding.Kind.Pass }.map { it.node to it }.toSet()
-        val failFindings = dfaEvaluator.findings.filter { it.kind == Finding.Kind.Fail }.map { it.node }.toSet()
-        val positiveFindingsToRemove = passFindings.filter { passPair -> passPair.first in failFindings }
-        dfaEvaluator.findings.removeAll(positiveFindingsToRemove.map { it.second }.toSet())
-        return dfaEvaluator.findings
+        return filteredFindings(dfaEvaluator.findings)
     }
 }

@@ -13,6 +13,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         version: [ "17", "19" ]
         os: [ ubuntu-latest, macos-latest ]

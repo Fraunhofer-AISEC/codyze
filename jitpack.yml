@@ -1,6 +1,6 @@
 before_install:
   - sdk update
-  - sdk install java 11.0.15-tem
-  - sdk use java 11.0.15-tem
+  - sdk install java 17.0.6-tem
+  - sdk use java 17.0.6-tem
 install:
-  - ./gradlew :codyze-v2:build :codyze-v2:publishToMavenLocal #:codyze-v3:codyze:build :codyze-v3:codyze:publishToMavenLocal
+  - ./gradlew :codyze-core:publishToMavenLocal

@@ -10,7 +10,7 @@ description: >
 
 ## Prerequisites
 
-* Java (OpenJDK) 11 or later
+* Java SE 17 or later
 
 ## Check out, build, and extend Codyze
 

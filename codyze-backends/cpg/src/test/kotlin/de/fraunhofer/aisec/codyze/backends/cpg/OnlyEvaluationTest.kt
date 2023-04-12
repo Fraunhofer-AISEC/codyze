@@ -16,7 +16,6 @@
 package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OnlyEvaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.definition

@@ -1,17 +1,17 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
-class NeverEvaluator(val forbiddenOps: List<Op>): Evaluator {
+class NeverEvaluator(val forbiddenOps: List<Op>) : Evaluator {
 
     /** Default message if a violation is found */
     private val defaultFailMessage: String by lazy {
@@ -28,12 +28,12 @@ class NeverEvaluator(val forbiddenOps: List<Op>): Evaluator {
 
         val findings = mutableListOf<CpgFinding>()
 
-        for(op in forbiddenOps) {
+        for (op in forbiddenOps) {
             val nodes = op.cpgGetNodes()
 
-            if(nodes.isNotEmpty()) {
+            if (nodes.isNotEmpty()) {
                 // This means there are calls to the forbidden op, so Fail findings are added
-                for(node in nodes) {
+                for (node in nodes) {
                     findings.add(
                         CpgFinding(
                             message = "Violation against rule: \"${node.code}\". $failMessage",
@@ -46,13 +46,14 @@ class NeverEvaluator(val forbiddenOps: List<Op>): Evaluator {
         }
 
         // If there are no findings, there were no violations, so a Pass finding is added
-        if(findings.isEmpty())
+        if (findings.isEmpty()) {
             findings.add(
                 CpgFinding(
                     message = passMessage,
                     kind = Finding.Kind.Pass,
                 )
             )
+        }
         return findings
     }
 }

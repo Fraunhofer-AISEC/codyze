@@ -25,7 +25,6 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OrderEvaluator
 import de.fraunhofer.aisec.codyze.core.VersionProvider
 import de.fraunhofer.aisec.codyze.core.backend.BackendConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken

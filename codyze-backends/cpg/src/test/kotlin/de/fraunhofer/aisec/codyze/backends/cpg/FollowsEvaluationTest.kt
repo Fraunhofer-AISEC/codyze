@@ -126,7 +126,7 @@ class FollowsEvaluationTest {
             val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
 
             with(backend) {
-                val evaluator = FollowsEvaluator(fooInstance.first(), barInstance.second())
+                val evaluator = fooInstance.first() followedBy barInstance.second()
                 findings = evaluator.evaluate(
                     EvaluationContext(
                         rule = ::dummyRule,

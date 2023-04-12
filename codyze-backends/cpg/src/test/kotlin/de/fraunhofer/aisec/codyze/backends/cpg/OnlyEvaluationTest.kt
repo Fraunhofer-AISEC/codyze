@@ -48,7 +48,7 @@ class OnlyEvaluationTest {
         val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
 
         with(backend) {
-            val evaluator = OnlyEvaluator(listOf(fooInstance.first(0..10)))
+            val evaluator = only(fooInstance.first(0..10))
             val findings = evaluator.evaluate(
                 EvaluationContext(
                     rule = ::dummyRule,

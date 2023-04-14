@@ -30,4 +30,4 @@ jobs:
         # step-level 'continue-on-error' needed to mask a negative workflow result
         continue-on-error: true
         with:
-          arguments: :codyze-cli:build -x check --parallel -Pversion="0.0.0"
+          arguments: :codyze-cli:build -x check --parallel -Pversion=0.0.0

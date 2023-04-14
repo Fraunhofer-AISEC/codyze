@@ -87,7 +87,9 @@ class NeverEvaluationTest {
 
             assertTrue("There were no findings which is unexpected") { findings.isNotEmpty() }
 
-            assertTrue("Not all findings are passes which is unexpected: ${findings.joinToString()}") { findings.all { it.kind == Finding.Kind.Pass } }
+            assertTrue("Not all findings are passes which is unexpected: ${findings.joinToString()}") {
+                findings.all { it.kind == Finding.Kind.Pass }
+            }
 
             assertEquals(1, findings.size, "Found ${findings.size} finding(s) instead of one pass finding")
         }

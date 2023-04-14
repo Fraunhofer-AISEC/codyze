@@ -1,6 +1,7 @@
 name: upgrade
 
 on:
+  push:
   schedule:
     # runs at 00:01 on the first every month
     - cron: '1 0 1 * ?'

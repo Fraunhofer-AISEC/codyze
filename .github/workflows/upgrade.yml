@@ -1,4 +1,4 @@
-name: upgrade
+name: java-upgrade
 
 on:
   schedule:

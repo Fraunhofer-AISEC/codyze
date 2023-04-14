@@ -1,7 +1,6 @@
 name: upgrade
 
 on:
-  push:
   schedule:
     # runs at 00:01 on the first every month
     - cron: '1 0 1 * ?'
@@ -28,6 +27,7 @@ jobs:
           java-version: ${{ matrix.version }}
       - name: Build
         uses: gradle/gradle-build-action@v2
+        # step-level 'continue-on-error' needed to mask a negative workflow result
         continue-on-error: true
         with:
           arguments: :codyze-cli:build -x check --parallel -Pversion="0.0.0"

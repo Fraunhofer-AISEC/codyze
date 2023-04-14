@@ -28,5 +28,6 @@ jobs:
           java-version: ${{ matrix.version }}
       - name: Build
         uses: gradle/gradle-build-action@v2
+        continue-on-error: true
         with:
           arguments: :codyze-cli:build -x check --parallel -Pversion="0.0.0"

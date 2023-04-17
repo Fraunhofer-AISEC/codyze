@@ -9,7 +9,7 @@ plugins {
 }
 
 java {
-    //withJavadocJar() // using custom JavaDoc from Dokka; FIXME maybe there is a better way?
+    // withJavadocJar() // using custom JavaDoc from Dokka; FIXME maybe there is a better way?
     withSourcesJar()
 }
 

@@ -22,11 +22,11 @@ We welcome everybody to contribute to this project, be it fixing a typo in the d
 This documentation lives in the same repository as the code and the idea is that both are always consistent. 
 If you make changes in the code that affect the documentation, please update the documentation in the same pull request.
 
-We use [MkDocs](https://github.com/mkdocs/mkdocs/) for generating our documentation site and [Material for MkDocs](https://github.com/squidfunk/mkdocs-material) as our theme.  
+We use [MkDocs <i class="fas fa-external-link-alt"></i>](https://github.com/mkdocs/mkdocs/){target=_blank} for generating our documentation site and [Material for MkDocs <i class="fas fa-external-link-alt"></i>](https://github.com/squidfunk/mkdocs-material){target=_blank} as our theme.  
 
 To extend or fix errors in this documentation, proceed as follows:
 
-1. Fork the [Codyze repo](https://github.com/Fraunhofer-AISEC/codyze) on GitHub.
+1. Fork the [Codyze repo <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze){target=_blank} on GitHub.
 1. Make your changes and send a pull request (PR).
 1. If you're not yet ready for a review, add "WIP" to the PR name to indicate 
   it's a work in progress.
@@ -39,13 +39,13 @@ To extend or fix errors in this documentation, proceed as follows:
 
 If you want to run your own local server to preview your changes as you work, you can either install MkDocs or use a docker.
 
-For installing MkDocs, please refer to the [Material for MkDocs documentation](https://squidfunk.github.io/mkdocs-material/getting-started/).
+For installing MkDocs, please refer to the [Material for MkDocs documentation <i class="fas fa-external-link-alt"></i>](https://squidfunk.github.io/mkdocs-material/getting-started/){target=_blank}.
 
-For the docker, please refer to the [README](https://github.com/Fraunhofer-AISEC/codyze/tree/main/docs/README.md).
+For the docker, please refer to the [README <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/tree/main/docs/README.md){target=_blank}.
 
 ### Creating an issue
 
-If you've found a problem in the docs, but you're not sure how to fix it yourself, please create an issue in the [Codyze repo](https://github.com/Fraunhofer-AISEC/codyze/issues) and add the label `documentation` to it. You can also create an issue about a specific page by clicking the **Create Issue** button in the top right hand corner of the page.
+If you've found a problem in the docs, but you're not sure how to fix it yourself, please create an issue in the [Codyze repo <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/issues){target=_blank} and add the label `documentation` to it. You can also create an issue about a specific page by clicking the **Create Issue** button in the top right hand corner of the page.
 
 ## Contributing to Codyze
 
@@ -62,8 +62,8 @@ To report a bug, make sure to include the following information:
 
 ### Useful resources
 
-* [Material for MkDocs user guide](https://squidfunk.github.io/mkdocs-material/): All about Material, the documentation template we use, including how it manages navigation, look and feel, and multi-language support.
-* [MkDocs user guide](https://www.mkdocs.org/): Comprehensive reference for MkDocs.
-* [GitHub Hello World!](https://guides.github.com/activities/hello-world/): A basic introduction to GitHub concepts and workflow.
+* [Material for MkDocs user guide <i class="fas fa-external-link-alt"></i>](https://squidfunk.github.io/mkdocs-material/){target=_blank}: All about Material, the documentation template we use, including how it manages navigation, look and feel, and multi-language support.
+* [MkDocs user guide <i class="fas fa-external-link-alt"></i>](https://www.mkdocs.org/){target=_blank}: Comprehensive reference for MkDocs.
+* [GitHub Hello World! <i class="fas fa-external-link-alt"></i>](https://guides.github.com/activities/hello-world/){target=_blank}: A basic introduction to GitHub concepts and workflow.
 
 

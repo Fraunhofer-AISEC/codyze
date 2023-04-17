@@ -85,17 +85,17 @@ The builder provides a set of functions that allow you to add quantifiers to the
 ```kotlin title="Rule example using order"
 @Rule
 fun `order of Foo`(foo: Foo) = 
-    order(foo.constructor()/* (4)! */) { // (3)!
-        - foo.first(...) // (2)!
-        maybe(foo::second) // (1)!
+    order(foo.constructor()/* (2)! */) { // (1)!
+        - foo.first(...) // (3)!
+        maybe(foo::second) // (4)!
     }
 
 ```
 
-1. This will consider all calls to the function modelled by `foo.second()` for the order. No filter will be applied. 
-2. This will use the filtered `Op` returned by `foo.first(...)` for the order.
-3. This starts the type-safe builder for the order.
-4. The `Op` returned from `foo.constructor` will be used as query for the function calls that are the starting point for evaluating the order.
+1. This starts the type-safe builder for the order.
+2. The `Op` returned from `foo.constructor` will be used as query for the function calls that are the starting point for evaluating the order.
+3. This will use the filtered `Op` returned by `foo.first(...)` for the order.
+4. This will consider all calls to the function modelled by `foo.second()` for the order. No filter will be applied. 
 
 
 ## FollowedBy Evaluator

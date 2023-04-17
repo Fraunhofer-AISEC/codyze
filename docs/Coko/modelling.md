@@ -30,13 +30,13 @@ op {
         signature(5..10) // (2)!
         signature(".*one.*") // (3)!
         signature(0..5, listOf("one", "two")) // (4)!
-        signature() // (9)!
+        signature() // (5)!
     }
     
-    "my.other.fully.qualified.name" { // (5)!
-        signature { // (6)!
-            - ".*" // (7)!
-            -7 // (8)!
+    "my.other.fully.qualified.name" { // (6)!
+        signature { // (7)!
+            - ".*" // (8)!
+            -7 // (9)!
         }
         signature(arrayOf(4)) { // (10)!
             - 123
@@ -49,11 +49,11 @@ op {
 2. Filters for calls to `my.fully.qualified.name` that have as only argument a number between 5 and 10.
 3. Filters for calls to `my.fully.qualified.name` that have a string as only argument that contains "one", for example `my.fully.qualified.name("tone")`.
 4. Filters for calls to `my.fully.qualified.name` that have a number between 0 and 5 as first argument and as second argument either the string "one" or "two".
-5. The fully qualified name of the other function we want to find.
-6. The `signature` function can also invoke a type-safe builder.
-7. In the type-safe builder of `signature` the arguments are listed using `-`.
-8. The space after the `-` is optional.
-9. Filters for calls to `my.fully.qualified.name` where no arguments were passed.
+5. Filters for calls to `my.fully.qualified.name` where no arguments were passed.
+6. The fully qualified name of the other function we want to find.
+7. The `signature` function can also invoke a type-safe builder.
+8. In the type-safe builder of `signature` the arguments are listed using `-`.
+9. The space after the `-` is optional.
 10. The unordered arguments are given as an array to `signature`. In this example, the unordered argument is 4.
 
 ### ConstructorOps
@@ -100,26 +100,26 @@ The fully qualified name of the type must be given
 op {
     "my.fully.qualified.name" {
         signature(Wildcard) // (1)!
-        signature(null, 1) // (2)!
-        signature(Wildcard, 2) // (3)!
+        signature(Wildcard, 2) // (2)!
+        signature(null, 1) // (3)!
         signature( 
             group {
                 - "Start string .*"
                 - 12
-            } // (6)!
+            } // (4)!
         )
-        signature(Type("java.util.List")) // (4)!
-        signature(1.0 withType "java.lang.Float") // (5)!
+        signature(Type("java.util.List")) // (5)!
+        signature(1.0 withType "java.lang.Float") // (6)!
     }
 }
 ```
 
 1. Queries for all calls to `my.fully.qualified.name` that have one argument.
-2. Filters out all calls to `my.fully.qualified.name` with two arguments and where the second argument is 1.
-3. Queries for all calls to `my.fully.qualified.name` with two arguments and where the second argument is 2.
-4. Queries for all calls to `my.fully.qualified.name` with one argument which must be of type `java.util.List`[^1].
-5. Queries for all class to `my.fully.qualified.name` with one argument which has the value 1.0 and has the type `java.lang.Float`[^1].
-6. Filters for all calls to `my.fully.qualified.name` with one argument. The argument must contain both `"Start string"` and the number 12. An example would be `my.fully.qualified.name("Start string with the number " + 12)`.
+2. Queries for all calls to `my.fully.qualified.name` with two arguments and where the second argument is 2.
+3. Filters out all calls to `my.fully.qualified.name` with two arguments and where the second argument is 1.
+4. Filters for all calls to `my.fully.qualified.name` with one argument. The argument must contain both `"Start string"` and the number 12. An example would be `my.fully.qualified.name("Start string with the number " + 12)`.
+5. Queries for all calls to `my.fully.qualified.name` with one argument which must be of type `java.util.List`[^1].
+6. Queries for all calls to `my.fully.qualified.name` with one argument which has the value 1.0 and has the type `java.lang.Float`[^1].
 
 [^1]: In a real example this would be redundant because this case is already covered by the first filter with `Wildcard`.
 

@@ -13,7 +13,7 @@ description: >
 
 
 ## Build from Source
-Clone the source code for Codyze from the [project's GitHub repository <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze).
+Clone the source code for Codyze from the [project's GitHub repository <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze){target=_blank}.
 
 ### Codyze v3
 ##### Executable Version
@@ -32,10 +32,10 @@ Arguments can be passed with the `--args` option.
     All following example calls in this documentation will assume that the source code was cloned and use the exact file structure.
     If you want to test Codyze with these calls, please clone the repository.
 
-* Download a zipped release of Codyze from our [GitHub release page <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/releases)
+* Download a zipped release of Codyze from our [GitHub release page <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/releases){target=_blank}
 * Unzip the file
 * Execute Codyze using `bin\codyze.bat` (Windows) or `bin/codyze` (Mac, Linux)
 
 
 ## Docker
-We're also offering Codyze as a container image. You can find an image with the latest release in the [project's container registry <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/pkgs/container/codyze).
+We're also offering Codyze as a container image. You can find an image with the latest release in the [project's container registry <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/pkgs/container/codyze){target=_blank}.

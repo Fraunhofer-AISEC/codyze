@@ -21,3 +21,6 @@ import kotlin.reflect.KFunction
 typealias OrderToken = KFunction<Op>
 
 fun OrderToken.getOp(vararg arguments: Any? = Array<Any?>(parameters.size) { null }) = call(*arguments)
+
+/** Convert an [OrderToken] into a TerminalOrderNode */
+internal fun OrderToken.toNode(): TerminalOrderNode = getOp().toNode()

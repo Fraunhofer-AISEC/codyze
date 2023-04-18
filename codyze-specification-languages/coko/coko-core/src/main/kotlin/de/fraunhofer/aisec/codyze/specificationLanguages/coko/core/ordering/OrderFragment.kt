@@ -17,10 +17,7 @@
 
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
-sealed interface OrderFragment {
+interface OrderFragment {
     /** Convert this [OrderFragment] to a binary syntax tree */
     fun toNode(): OrderNode
-
-    val token: OrderFragment
-        get() = this
 }

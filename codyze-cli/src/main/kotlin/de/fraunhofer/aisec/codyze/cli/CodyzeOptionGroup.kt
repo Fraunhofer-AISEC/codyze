@@ -33,6 +33,7 @@ class CodyzeOptionGroup : OptionGroup(name = null) {
     val output: Path by option("-o", "--output", help = "Write results to file. Use - for stdout.")
         .path(mustBeWritable = true)
         .default(Path(System.getProperty("user.dir"), "findings.sarif"))
+
     val outputBuilder: OutputBuilder by option(
         "--output-format",
         help = "Format in which the analysis results are returned."

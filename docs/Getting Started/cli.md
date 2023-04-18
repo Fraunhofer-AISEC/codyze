@@ -11,14 +11,44 @@ description: >
 
 ## Command line mode
 
-When running in command line interface (CLI) mode, Codyze can be used to automatically check a code base against a set of MARK rules.
+When running in command line interface (CLI) mode, Codyze can be used to automatically check a code base against a set of rules given in a supported specification language like Coko.
 Below are short exemplary calls to start codyze in command line interface mode.
-`./` refers to the top-level directory of the repository. However, for the Gradle arguments `./` refers to the directory of the project which is `codyze-cli`.
+`./` refers to the top-level directory of the repository. However, for the Gradle arguments `./` refers to the directory of the project, which is `codyze-cli`.
 
 ```shell
-./gradlew :codyze-cli:run --args="analyze -s <sourcepath> --spec <specpath> -o <outputpath>"
+./gradlew :codyze-cli:run --args="<executor> --spec <specpath> <backend> -s <sourcepath>"
 ```
-`analyze` enters command line mode. It will parse all files given by the `-s` argument. With `--spec` you can specify the files which contain the policies you want Codyze to verify. The findings are written in SARIF format to the file given by `-o`.
+Because Codyze is built to be modular and support many specification languages as well as code analysis backends, there are subcommands to select the `executor`/`backend`.
+To find what arguments each `executor`/`backend` accept, use the `--help` argument:
+
+To show the available `executors` use:
+```shell
+./gradlew :codyze-cli:run --args="--help"
+```
+
+To show the arguments accepted by an executor and the available `backend`s use:
+```shell
+./gradlew :codyze-cli:run --args="<executor> --help"
+```
+
+To show the arguments accepted by a `backend` use:
+```shell
+./gradlew :codyze-cli:run --args="<executor> <backend> --help"
+```
+
+## Analysis Example
+
+The repository contains examples which you can use to test Codyze.
+Below are the commands to call Codyze on these examples.
+
+```shell
+./gradlew :codyze-cli:run --args="runCoko --spec ../codyze-specification-languages/coko/coko-dsl/src/test/resources/model.codyze.kts --spec ../codyze-specification-languages/coko/coko-dsl/src/test/resources/javaimpl.codyze.kts cokoCpg -s ../codyze-specification-languages/coko/coko-dsl/src/test/resources/java/Main.java" 
+```
+
+This configures `Codyze` to use the 'coko' executor and the 'cokoCpg' backend.
+You will see the result printed to the console and a `findings.sarif` files is generated in the `codyze-cli` folder.
+The spec files contain a single rule, which checks that every change to a database is logged.
+The sample Java file adheres to the rule, so there should be no issues in the result.
 
 
 ## CI/CD Integration
@@ -48,19 +78,5 @@ jobs:
           wget "https://github.com/Fraunhofer-AISEC/codyze/releases/download/v${CODYZE_VERSION}/codyze-${CODYZE_VERSION}.zip" && unzip codyze-${CODYZE_VERSION}.zip
       - name: Check compliance
         run: |
-          codyze-${CODYZE_VERSION}/bin/codyze -c -o - -m codyze-${CODYZE_VERSION}/mark -s src/main/java
+          codyze-${CODYZE_VERSION}/bin/codyze <arguments>
 ```
-
-## Analysis Example
-
-The repository contains examples which you can use to test Codyze. 
-Below are the commands to call Codyze on these examples.
-
-```shell
-./gradlew :codyze-cli:run --args="analyze -s ../codyze-specification-languages/coko/coko-dsl/src/test/resources/java/Main.java --spec ../codyze-specification-languages/coko/coko-dsl/src/test/resources/model.codyze.kts --spec ../codyze-specification-languages/coko/coko-dsl/src/test/resources/javaimpl.codyze.kts"
-```
-
-You will see the result printed to the console.
-The spec files contain a single rule which checks that every change to a database is logged.
-The sample Java file adheres to the rule so there should be no issues in the result.
-

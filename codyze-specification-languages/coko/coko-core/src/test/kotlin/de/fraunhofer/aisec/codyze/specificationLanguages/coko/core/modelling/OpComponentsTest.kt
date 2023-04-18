@@ -32,9 +32,9 @@ class OpComponentsTest {
     @MethodSource("unaryPlusParamHelper")
     fun `test group`(expectedParams: ArrayList<Parameter>) {
         with(mockk<Signature>(relaxed = true)) {
-            val paramGroup = group { expectedParams.forEach { +it } }
+            val paramGroup = group { expectedParams.forEach { - it } }
 
-            assertContentEquals(expectedParams, paramGroup.parameters)
+            assertEquals(expectedParams.toSet(), paramGroup.parameters)
         }
     }
 
@@ -44,7 +44,7 @@ class OpComponentsTest {
         expectedParams: ArrayList<Parameter>
     ) {
         val sig = Signature()
-        with(sig) { expectedParams.forEach { +it } }
+        with(sig) { expectedParams.forEach { - it } }
         assertContentEquals(
             expectedParams,
             sig.parameters,
@@ -55,7 +55,7 @@ class OpComponentsTest {
     @Test
     fun `test simple signature`() {
         with(mockk<Definition>(relaxed = true)) {
-            val sig = signature { +singleParam }
+            val sig = signature { - singleParam }
             val sigShortcut = signature(singleParam)
 
             val expectedSig = Signature().apply { parameters.add(singleParam) }
@@ -69,7 +69,9 @@ class OpComponentsTest {
     fun `test signature with unordered`() {
         with(mockk<Definition>(relaxed = true)) {
             val unordered = signature(multipleParams.toTypedArray()) {}
-            val unorderedShortcut = signature().unordered(*multipleParams.toTypedArray())
+            val unorderedShortcut = signature {
+                unordered(*multipleParams.toTypedArray())
+            }
 
             val expectedSig = Signature().apply { unorderedParameters.addAll(multipleParams) }
             assertEquals(expectedSig, unorderedShortcut)
@@ -80,7 +82,7 @@ class OpComponentsTest {
     @Test
     fun `test signature with group`() {
         with(mockk<Definition>(relaxed = true)) {
-            val sig = signature { group { multipleParams.forEach { +it } } }
+            val sig = signature { group { multipleParams.forEach { - it } } }
 
             val groupShortcut = signature { group(*multipleParams.toTypedArray()) }
 
@@ -102,11 +104,11 @@ class OpComponentsTest {
         with(mockk<Definition>(relaxed = true)) {
             val sig =
                 signature {
-                    +singleParam
-                    group { grouped.forEach { +it } }
-                    ordered.forEach { +it }
+                    - singleParam
+                    group { grouped.forEach { - it } }
+                    ordered.forEach { - it }
+                    unordered(*unordered.toTypedArray())
                 }
-                    .unordered(*unordered.toTypedArray())
 
             val expectedSig =
                 Signature().apply {

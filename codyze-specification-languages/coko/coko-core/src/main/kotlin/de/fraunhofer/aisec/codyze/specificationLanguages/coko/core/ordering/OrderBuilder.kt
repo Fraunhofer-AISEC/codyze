@@ -19,7 +19,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.token
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 
 @CokoMarker
 /**
@@ -32,14 +32,17 @@ open class OrderBuilder : OrderFragment {
 
     protected val orderNodes = mutableListOf<OrderNode>() // this is emptied in [toNode]
 
+    /** Add an [Op] to the [userDefinedOps] */
+    operator fun Op.unaryMinus(): OrderNode = this@OrderBuilder.add(this)
+
     /** Add an [OrderToken] to the [orderNodes] */
-    operator fun OrderToken.unaryPlus() = add(this)
+    operator fun OrderToken.unaryMinus(): OrderNode = add(this)
 
     /** Add an [OrderFragment] to the [orderNodes] */
-    operator fun OrderFragment.unaryPlus() = add(this)
+    operator fun OrderFragment.unaryMinus(): OrderNode = add(this)
 
     /** Add an [OrderToken] to the [orderNodes] */
-    fun add(token: OrderToken) = orderNodes.add(token.token)
+    fun add(token: OrderToken): OrderNode = add(token.toNode())
 
     /**
      * Add an [OrderFragment] to the [orderNodes].
@@ -106,6 +109,15 @@ open class OrderBuilder : OrderFragment {
             remove(it)
             orderNodes.add(it)
         }
+
+    /**
+     * Add an [Op] to the [userDefinedOps].
+     */
+    fun add(op: Op): OrderNode {
+        val terminalOrderNode = op.toNode()
+        this@OrderBuilder.userDefinedOps[terminalOrderNode.opName] = op
+        return add(terminalOrderNode)
+    }
 
     /** Remove all instance of [fragment] from the [orderNodes] */
     fun remove(fragment: OrderFragment) {

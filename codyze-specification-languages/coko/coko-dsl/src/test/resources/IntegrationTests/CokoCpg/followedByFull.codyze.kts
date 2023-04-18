@@ -20,11 +20,11 @@ fun DBActionsAreAlwaysLogged(db: ObjectRelationalMapper, log: Logging, ctx: User
 
 class JavaLogging : Logging {
     override fun log(message: String?, vararg args: Any?) = op {
-        definition("java.util.logging.Logger.info") {
+        "java.util.logging.Logger.info" {
             signature {
                 group {
-                    +message
-                    args.forEach { +it }
+                    - message
+                    args.forEach { - it }
                 }
             }
         }
@@ -33,11 +33,11 @@ class JavaLogging : Logging {
 
 class JDBC : ObjectRelationalMapper {
     override fun insert(obj: Any?) = op {
-        definition("java.sql.Statement.executeUpdate") {
+        "java.sql.Statement.executeUpdate" {
             signature {
                 group {
-                    +"INSERT.*"
-                    +obj
+                    - "INSERT.*"
+                    - obj
                 }
             }
         }

@@ -164,7 +164,7 @@ class CokoCpgIntegrationTest {
         fileNames: List<String>
     ) {
         assertEquals(4, specFiles.size)
-        
+
         val cokoConfiguration =
             CokoConfiguration(
                 goodFindings = true,

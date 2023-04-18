@@ -33,9 +33,10 @@ class NeverEvaluator(val forbiddenOps: List<Op>) : Evaluator {
         "Calls to ${forbiddenOps.joinToString()} are not allowed."
     }
 
-    /** Default message if node complies with rule */
-    private val defaultPassMessage =
+    /** Default message if the analyzed code complies with rule */
+    private val defaultPassMessage by lazy {
         "No calls to ${forbiddenOps.joinToString()} found which is in compliance with rule."
+    }
 
     override fun evaluate(context: EvaluationContext): Collection<Finding> {
         val ruleAnnotation = context.rule.findAnnotation<Rule>()

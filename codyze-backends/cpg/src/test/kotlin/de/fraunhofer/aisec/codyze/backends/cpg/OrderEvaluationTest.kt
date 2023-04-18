@@ -38,9 +38,11 @@ import kotlin.test.assertEquals
 class OrderEvaluationTest {
     class CokoOrderImpl {
         fun constructor(value: Int?) = constructor("Botan") { signature(value) }
-        fun init() = op { definition("Botan.set_key") { signature(Wildcard) } }
+        fun init() = op { "Botan.set_key" { signature(Wildcard) } }
+
+        // calling definition explicitly is optional
         fun start() = op { definition("Botan.start") { signature(Wildcard) } }
-        fun finish() = op { definition("Botan.finish") { signature(Wildcard) } }
+        fun finish() = op { "Botan.finish" { signature(Wildcard) } }
     }
 
     class OtherImpl {
@@ -63,8 +65,8 @@ class OrderEvaluationTest {
     context(CokoBackend)
     private fun createSimpleOrder(testObj: CokoOrderImpl) =
         order(testObj::constructor) {
-            +testObj::start
-            +testObj::finish
+            - testObj::start
+            - testObj::finish
         }
 
     @Test
@@ -106,9 +108,9 @@ class OrderEvaluationTest {
 
     context(CokoBackend)
     private fun createSimpleOrderReducedStartNodes(testObj: CokoOrderImpl) =
-        order(testObj::constructor.use { testObj.constructor(1) }) {
-            +testObj::start
-            +testObj::finish
+        order(testObj.constructor(1)) {
+            - testObj::start
+            - testObj::finish
         }
 
     @Test
@@ -129,8 +131,8 @@ class OrderEvaluationTest {
                 )
             assertEquals(1, findings.size)
             assertEquals(
-                "Violation against Order: \"p.set_key(key);\". Op \"[init]\" is not allowed. " +
-                    "Expected one of: CokoOrderImpl.start",
+                "Violation against Order: \"p.set_key(key);\". Op \"[Botan.set_key(Wildcard)]\" is not allowed. " +
+                    "Expected one of: Botan.start(Wildcard)",
                 findings.first().message,
             )
         }
@@ -138,9 +140,9 @@ class OrderEvaluationTest {
 
     context(CokoBackend)
     private fun createInvalidOrder(testObj: CokoOrderImpl, testObj2: OtherImpl) =
-        order(testObj::constructor.use { testObj.constructor(1) }) {
-            +testObj::start
-            +testObj2::foo
+        order(testObj.constructor(1)) {
+            - testObj::start
+            - testObj2::foo
         }
 
     @Test

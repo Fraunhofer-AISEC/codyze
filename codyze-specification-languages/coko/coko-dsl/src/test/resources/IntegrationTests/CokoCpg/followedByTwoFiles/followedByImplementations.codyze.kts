@@ -1,8 +1,8 @@
-@file:Import("model.codyze.kts")
+@file:Import("followedByModels.codyze.kts")
 
 plugins { id("cpg") }
 
-class JavaLogging : Logging {
+class JavaLoggingTest : LoggingForTest {
     override fun log(message: String?, vararg args: Any?) = op {
         definition("java.util.logging.Logger.info") {
             signature {
@@ -15,7 +15,7 @@ class JavaLogging : Logging {
     }
 }
 
-class JDBC : ObjectRelationalMapper {
+class JDBCTest : ObjectRelationalMapperForTest {
     override fun insert(obj: Any?) = op {
         definition("java.sql.Statement.executeUpdate") {
             signature {
@@ -28,6 +28,6 @@ class JDBC : ObjectRelationalMapper {
     }
 }
 
-class JavalinJWT : UserContext {
+class JavalinJWTTest : UserContextForTest {
     override val user = cpgCallFqn("javalinjwt.JavalinJWT.getTokenFromHeader")
 }

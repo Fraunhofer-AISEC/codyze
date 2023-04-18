@@ -60,6 +60,7 @@ class SpecEvaluator {
         val results = mutableMapOf<CokoRule, MutableList<Finding>>()
         for ((index, value) in rulesAndInstances.withIndex()) {
             val (rule, ruleInstance) = value
+            logger.info { "Start evaluating rule `${rule.name}`" }
             val parameterMap =
                 mutableMapOf(
                     rule.instanceParameter!! to ruleInstance
@@ -90,8 +91,11 @@ class SpecEvaluator {
                 }
 
             parameterMap.putAll(valueParameterMap)
+            logger.debug { "Obtained parameters for calling rule `${rule.name}`: $parameterMap" }
+            logger.debug { "${ruleInstance::class.java.classLoader}" }
 
             val ruleEvaluator = rule.callBy(parameterMap)
+            logger.debug { "Obtained evaluator for rule `${rule.name}`" }
             val ruleResult = ruleEvaluator.evaluate(EvaluationContext(rule = rule, parameterMap = valueParameterMap))
             logger.info {
                 " (${index + 1}/${rules.size}): ${rule.name} generated " +

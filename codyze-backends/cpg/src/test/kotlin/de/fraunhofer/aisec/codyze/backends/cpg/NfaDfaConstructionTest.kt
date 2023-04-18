@@ -39,16 +39,16 @@ import kotlin.test.assertEquals
  */
 class NfaDfaConstructionTest {
     class TestClass {
-        fun create() = op {}
-        fun init() = op {}
-        fun start() = op {}
-        fun process() = op {}
-        fun finish() = op {}
-        fun reset() = op {}
+        fun create() = op { "create" {} }
+        fun init() = op { "init" {} }
+        fun start() = op { "start" {} }
+        fun process() = op { "process" {} }
+        fun finish() = op { "finish" {} }
+        fun reset() = op { "reset" {} }
     }
 
     private val baseName =
-        "class de.fraunhofer.aisec.codyze.backends.cpg.NfaDfaConstructionTest\$TestClass"
+        "de.fraunhofer.aisec.codyze.backends.cpg.NfaDfaConstructionTest\$TestClass"
 
     private fun orderExpressionToNfa(block: Order.() -> Unit): NFA {
         val order = Order().apply(block)
@@ -68,8 +68,8 @@ class NfaDfaConstructionTest {
         with(mockk<CokoCpgBackend>()) {
             val testObj = TestClass()
             val nfa = orderExpressionToNfa {
-                +testObj::create
-                +testObj::init
+                - testObj::create
+                - testObj::init
             }
 
             val expectedNfa = NFA()
@@ -77,9 +77,9 @@ class NfaDfaConstructionTest {
             val q1 = expectedNfa.addState()
             val q2 = expectedNfa.addState()
             val q3 = expectedNfa.addState(isAcceptingState = true)
-            expectedNfa.addEdge(q0, Edge(op = "create", base = baseName, nextState = q1))
+            expectedNfa.addEdge(q0, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q1))
             expectedNfa.addEdge(q1, Edge(op = NFA.EPSILON, nextState = q2))
-            expectedNfa.addEdge(q2, Edge(op = "init", base = baseName, nextState = q3))
+            expectedNfa.addEdge(q2, Edge(op = testObj.init().hashCode().toString(), base = baseName, nextState = q3))
 
             assertEquals(expected = expectedNfa, actual = nfa)
         }
@@ -104,8 +104,8 @@ class NfaDfaConstructionTest {
             val q4 = expectedNfa.addState(isAcceptingState = true)
             expectedNfa.addEdge(q0, Edge(op = NFA.EPSILON, nextState = q1))
             expectedNfa.addEdge(q0, Edge(op = NFA.EPSILON, nextState = q2))
-            expectedNfa.addEdge(q1, Edge(op = "create", base = baseName, nextState = q3))
-            expectedNfa.addEdge(q2, Edge(op = "init", base = baseName, nextState = q4))
+            expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q3))
+            expectedNfa.addEdge(q2, Edge(op = testObj.init().hashCode().toString(), base = baseName, nextState = q4))
 
             assertEquals(expected = expectedNfa, actual = nfa)
         }
@@ -127,7 +127,7 @@ class NfaDfaConstructionTest {
             val q1 = expectedNfa.addState()
             val q2 = expectedNfa.addState(isAcceptingState = true)
             expectedNfa.addEdge(q0, Edge(op = NFA.EPSILON, nextState = q1))
-            expectedNfa.addEdge(q1, Edge(op = "create", base = baseName, nextState = q2))
+            expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q2))
             expectedNfa.addEdge(q2, Edge(op = NFA.EPSILON, nextState = q0))
 
             assertEquals(expected = expectedNfa, actual = nfa)
@@ -150,7 +150,7 @@ class NfaDfaConstructionTest {
             val q1 = expectedNfa.addState()
             val q2 = expectedNfa.addState(isAcceptingState = true)
             expectedNfa.addEdge(q0, Edge(op = NFA.EPSILON, nextState = q1))
-            expectedNfa.addEdge(q1, Edge(op = "create", base = baseName, nextState = q2))
+            expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q2))
 
             assertEquals(expected = expectedNfa, actual = nfa)
         }
@@ -168,14 +168,14 @@ class NfaDfaConstructionTest {
             // order cm.create(), cm.init(), (cm.start(), cm.process()*, cm.finish())+, cm.reset()?
             val testObj = TestClass()
             val dfa = orderExpressionToDfa {
-                +testObj::create
-                +testObj::init
-                some {
-                    +testObj::start
-                    maybe(testObj::process)
-                    +testObj::finish
+                - testObj::create
+                - testObj::init
+                - some {
+                    - testObj::start
+                    - maybe(testObj::process)
+                    - testObj::finish
                 }
-                option(testObj::reset)
+                - option(testObj::reset)
             }
 
             val expected = DFA()
@@ -186,15 +186,15 @@ class NfaDfaConstructionTest {
             val q5 = expected.addState()
             val q6 = expected.addState(isAcceptingState = true)
             val q7 = expected.addState(isAcceptingState = true)
-            expected.addEdge(q1, Edge("create", baseName, q2))
-            expected.addEdge(q2, Edge("init", baseName, q3))
-            expected.addEdge(q3, Edge("start", baseName, q4))
-            expected.addEdge(q4, Edge("process", baseName, q5))
-            expected.addEdge(q4, Edge("finish", baseName, q6))
-            expected.addEdge(q5, Edge("process", baseName, q5))
-            expected.addEdge(q5, Edge("finish", baseName, q6))
-            expected.addEdge(q6, Edge("start", baseName, q4))
-            expected.addEdge(q6, Edge("reset", baseName, q7))
+            expected.addEdge(q1, Edge(testObj.create().hashCode().toString(), baseName, q2))
+            expected.addEdge(q2, Edge(testObj.init().hashCode().toString(), baseName, q3))
+            expected.addEdge(q3, Edge(testObj.start().hashCode().toString(), baseName, q4))
+            expected.addEdge(q4, Edge(testObj.process().hashCode().toString(), baseName, q5))
+            expected.addEdge(q4, Edge(testObj.finish().hashCode().toString(), baseName, q6))
+            expected.addEdge(q5, Edge(testObj.process().hashCode().toString(), baseName, q5))
+            expected.addEdge(q5, Edge(testObj.finish().hashCode().toString(), baseName, q6))
+            expected.addEdge(q6, Edge(testObj.start().hashCode().toString(), baseName, q4))
+            expected.addEdge(q6, Edge(testObj.reset().hashCode().toString(), baseName, q7))
 
             assertEquals(expected, dfa)
         }
@@ -213,13 +213,13 @@ class NfaDfaConstructionTest {
             // cm.reset()?
             val testObj = TestClass()
             val dfa = orderExpressionToDfa {
-                +testObj::init
+                - testObj::init
                 some {
                     testObj::create or
                         group {
-                            +testObj::start
+                            - testObj::start
                             maybe(testObj::process)
-                            +testObj::finish
+                            - testObj::finish
                         }
                 }
                 option(testObj::reset)
@@ -233,19 +233,19 @@ class NfaDfaConstructionTest {
             val q5 = expected.addState()
             val q6 = expected.addState(isAcceptingState = true)
             val q7 = expected.addState(isAcceptingState = true)
-            expected.addEdge(q1, Edge("init", baseName, q2))
-            expected.addEdge(q2, Edge("create", baseName, q3))
-            expected.addEdge(q2, Edge("start", baseName, q4))
-            expected.addEdge(q3, Edge("create", baseName, q3))
-            expected.addEdge(q3, Edge("start", baseName, q4))
-            expected.addEdge(q3, Edge("reset", baseName, q7))
-            expected.addEdge(q4, Edge("process", baseName, q5))
-            expected.addEdge(q4, Edge("finish", baseName, q6))
-            expected.addEdge(q5, Edge("process", baseName, q5))
-            expected.addEdge(q5, Edge("finish", baseName, q6))
-            expected.addEdge(q6, Edge("create", baseName, q3))
-            expected.addEdge(q6, Edge("start", baseName, q4))
-            expected.addEdge(q6, Edge("reset", baseName, q7))
+            expected.addEdge(q1, Edge(testObj.init().hashCode().toString(), baseName, q2))
+            expected.addEdge(q2, Edge(testObj.create().hashCode().toString(), baseName, q3))
+            expected.addEdge(q2, Edge(testObj.start().hashCode().toString(), baseName, q4))
+            expected.addEdge(q3, Edge(testObj.create().hashCode().toString(), baseName, q3))
+            expected.addEdge(q3, Edge(testObj.start().hashCode().toString(), baseName, q4))
+            expected.addEdge(q3, Edge(testObj.reset().hashCode().toString(), baseName, q7))
+            expected.addEdge(q4, Edge(testObj.process().hashCode().toString(), baseName, q5))
+            expected.addEdge(q4, Edge(testObj.finish().hashCode().toString(), baseName, q6))
+            expected.addEdge(q5, Edge(testObj.process().hashCode().toString(), baseName, q5))
+            expected.addEdge(q5, Edge(testObj.finish().hashCode().toString(), baseName, q6))
+            expected.addEdge(q6, Edge(testObj.create().hashCode().toString(), baseName, q3))
+            expected.addEdge(q6, Edge(testObj.start().hashCode().toString(), baseName, q4))
+            expected.addEdge(q6, Edge(testObj.reset().hashCode().toString(), baseName, q7))
 
             assertEquals(expected, dfa)
         }
@@ -265,14 +265,14 @@ class NfaDfaConstructionTest {
             // cm.reset()?
             val testObj = TestClass()
             val dfa = orderExpressionToNfa {
-                +testObj::init
-                some {
+                - testObj::init
+                - some {
                     testObj::create or
                         group {
                             maybe(testObj::start)
                             maybe(testObj::process)
                             maybe(testObj::start)
-                            +testObj::finish
+                            - testObj::finish
                         }
                 }
                 option(testObj::reset)
@@ -288,24 +288,24 @@ class NfaDfaConstructionTest {
             val q5 = expected.addState()
             val q6 = expected.addState(isAcceptingState = true)
             val q7 = expected.addState()
-            expected.addEdge(q1, Edge("init", baseName, q2))
-            expected.addEdge(q2, Edge("create", baseName, q3))
-            expected.addEdge(q2, Edge("finish", baseName, q3))
-            expected.addEdge(q2, Edge("start", baseName, q4))
-            expected.addEdge(q2, Edge("process", baseName, q5))
-            expected.addEdge(q3, Edge("create", baseName, q3))
-            expected.addEdge(q3, Edge("finish", baseName, q3))
-            expected.addEdge(q3, Edge("start", baseName, q4))
-            expected.addEdge(q3, Edge("process", baseName, q5))
-            expected.addEdge(q3, Edge("reset", baseName, q6))
-            expected.addEdge(q4, Edge("start", baseName, q4))
-            expected.addEdge(q4, Edge("finish", baseName, q3))
-            expected.addEdge(q4, Edge("process", baseName, q5))
-            expected.addEdge(q5, Edge("process", baseName, q5))
-            expected.addEdge(q5, Edge("finish", baseName, q3))
-            expected.addEdge(q5, Edge("start", baseName, q7))
-            expected.addEdge(q7, Edge("start", baseName, q7))
-            expected.addEdge(q7, Edge("finish", baseName, q3))
+            expected.addEdge(q1, Edge(testObj.init().hashCode().toString(), baseName, q2))
+            expected.addEdge(q2, Edge(testObj.create().hashCode().toString(), baseName, q3))
+            expected.addEdge(q2, Edge(testObj.finish().hashCode().toString(), baseName, q3))
+            expected.addEdge(q2, Edge(testObj.start().hashCode().toString(), baseName, q4))
+            expected.addEdge(q2, Edge(testObj.process().hashCode().toString(), baseName, q5))
+            expected.addEdge(q3, Edge(testObj.create().hashCode().toString(), baseName, q3))
+            expected.addEdge(q3, Edge(testObj.finish().hashCode().toString(), baseName, q3))
+            expected.addEdge(q3, Edge(testObj.start().hashCode().toString(), baseName, q4))
+            expected.addEdge(q3, Edge(testObj.process().hashCode().toString(), baseName, q5))
+            expected.addEdge(q3, Edge(testObj.reset().hashCode().toString(), baseName, q6))
+            expected.addEdge(q4, Edge(testObj.start().hashCode().toString(), baseName, q4))
+            expected.addEdge(q4, Edge(testObj.finish().hashCode().toString(), baseName, q3))
+            expected.addEdge(q4, Edge(testObj.process().hashCode().toString(), baseName, q5))
+            expected.addEdge(q5, Edge(testObj.process().hashCode().toString(), baseName, q5))
+            expected.addEdge(q5, Edge(testObj.finish().hashCode().toString(), baseName, q3))
+            expected.addEdge(q5, Edge(testObj.start().hashCode().toString(), baseName, q7))
+            expected.addEdge(q7, Edge(testObj.start().hashCode().toString(), baseName, q7))
+            expected.addEdge(q7, Edge(testObj.finish().hashCode().toString(), baseName, q3))
 
             assertEquals(expected, dfa)
         }

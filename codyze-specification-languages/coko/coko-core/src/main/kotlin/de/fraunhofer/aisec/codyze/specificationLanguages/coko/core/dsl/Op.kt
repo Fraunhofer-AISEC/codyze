@@ -16,32 +16,48 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Parameter
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderFragment
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.TerminalOrderNode
 
-@CokoMarker sealed interface Op
+@CokoMarker sealed interface Op : OrderFragment {
+    val ownerClassFqn: String
+
+    override fun toNode(): TerminalOrderNode = TerminalOrderNode(
+        baseName = ownerClassFqn,
+        opName = hashCode().toString()
+    )
+}
 
 /**
  * Represents a group of functions that serve the same purpose in the API.
  *
- * Two [Op]s will be considered equal if they have the same [definitions]. This means that structure
- * of the [Op]s have to be equal as well as the [Definition.fqn]s but not the actual [Parameter]s
+ * Two [FunctionOp]s will be considered equal if they have the same [definitions]. This means that structure
+ * of the [FunctionOp]s have to be equal as well as the [Definition.fqn]s but not the actual [Parameter]s
  * that are stored in the [Signature]s.
  *
  * @property definitions stores all definitions for the different functions
  */
-// `Op` is defined here with an internal constructor because we only want the user to use the `op`
-// function to make an `Op` object
-class FunctionOp internal constructor() : Op {
-    val definitions = arrayListOf<Definition>()
+// `FunctionOp` is defined here with an internal constructor because we only want the user to use the `op`
+// function to make an `FunctionOp` object
+class FunctionOp internal constructor(
+    override val ownerClassFqn: String = "",
+) : Op {
+    val definitions = mutableSetOf<Definition>()
 
     fun add(definition: Definition) {
         this.definitions.removeIf { it === definition }
         this.definitions.add(definition)
     }
 
+    operator fun String.invoke(block: Definition.() -> Unit) = definition(this, block)
+
     /**
-     * Two [Op]s will be considered equal if they have the same [definitions]. This means that
-     * structure of the [Op]s have to be equal as well as the [Definition.fqn]s but not the actual
+     * Two [FunctionOp]s will be considered equal if they have the same [definitions]. This means that
+     * structure of the [FunctionOp]s have to be equal as well as the [Definition.fqn]s but not the actual
      * [Parameter]s that are stored in the [Signature]s.
      */
     override fun equals(other: Any?): Boolean {
@@ -69,8 +85,11 @@ class FunctionOp internal constructor() : Op {
  *
  * @property signatures stores all different signatures of the constructor.
  */
-class ConstructorOp internal constructor(val classFqn: String) : Op {
-    val signatures = arrayListOf<Signature>()
+class ConstructorOp internal constructor(
+    val classFqn: String,
+    override val ownerClassFqn: String = "",
+) : Op {
+    val signatures = mutableSetOf<Signature>()
 
     fun add(signature: Signature) {
         this.signatures.removeIf { it === signature }
@@ -95,6 +114,8 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
     }
 }
 
+context(Any) // This is needed to have access to the owner of this function
+// -> in which class is the function defined that created this [OP]
 /**
  * Create a [FunctionOp].
  *
@@ -103,17 +124,17 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
  * op {
  *   definition("my.fully.qualified.name") {
  *      signature {
- *          +arg1
- *          +arg2
- *          +arg3
+ *          - arg1
+ *          - arg2
+ *          - arg3
  *      }
  *      signature(arg1, arg2)
  *      signature {
- *          +arg2
- *          +arg3
+ *          - arg2
+ *          - arg3
  *      }
  *   }
- *   definition("my.other.function") {
+ *   "my.other.function" { // the call to 'definition' can be omitted
  *      signature(arg2, arg1)
  *   }
  * }
@@ -127,21 +148,28 @@ class ConstructorOp internal constructor(val classFqn: String) : Op {
  * my.other.function(arg2, arg1)
  * ```
  *
- * @param block defines the [Definition]s of this [Op]
+ * @param block defines the [Definition]s of this [FunctionOp]
  */
-fun op(block: FunctionOp.() -> Unit) = FunctionOp().apply(block)
+fun op(block: FunctionOp.() -> Unit): FunctionOp {
+    val functionOp = FunctionOp(this@Any::class.java.name).apply(block)
+    check(functionOp.definitions.isNotEmpty()) { "Coko does not support empty OPs" }
+    return functionOp
+}
 
+context(Any) // This is needed to have access to the owner of this function
+// -> in which class is the function defined that created this [OP]
 /** Create a [ConstructorOp]. */
-fun constructor(classFqn: String, block: ConstructorOp.() -> Unit) =
-    ConstructorOp(classFqn).apply(block)
+fun constructor(classFqn: String, block: ConstructorOp.() -> Unit): ConstructorOp {
+    return ConstructorOp(classFqn, this@Any::class.java.name).apply(block)
+}
 
 /**
- * Create a [Definition] which can be added to the [Op].
+ * Create a [Definition] which can be added to the [FunctionOp].
  *
  * A minimal example
  * ```kt
  * function {
- *   +definition("my.fully.qualified.name") {}
+ *   definition("my.fully.qualified.name") {}
  * }
  * ```
  *
@@ -166,18 +194,18 @@ inline fun Definition.signature(
  * Create a [Signature] which can be added to the [Definition]. The [Parameter]s are passed through
  * the vararg.
  */
-fun Definition.signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
+fun Definition.signature(vararg parameters: Parameter) = signature { parameters.forEach { this.add(it) } }
 
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
 inline fun Signature.group(block: ParameterGroup.() -> Unit) = ParameterGroup().apply(block).also { this.add(it) }
 
 /** Create a [ParameterGroup] which can be added to the [Signature]. */
-fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { +it } }
+fun Signature.group(vararg parameters: Parameter) = group { parameters.forEach { this.add(it) } }
 
-context(Definition)
+context(Signature)
 /** Add unordered [Parameter]s to the [Signature]. */
-fun Signature.unordered(vararg unordered: Parameter) =
-    this.apply { unorderedParameters.addAll(unordered) }
+fun unordered(vararg unordered: Parameter) =
+    this@Signature.apply { unorderedParameters.addAll(unordered) }
 
 /**
  * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are defined in
@@ -189,4 +217,4 @@ inline fun ConstructorOp.signature(block: Signature.() -> Unit) = Signature().ap
  * Create a [Signature] which can be added to the [ConstructorOp]. The [Parameter]s are passed
  * through the vararg.
  */
-fun ConstructorOp.signature(vararg parameters: Parameter) = signature { parameters.forEach { +it } }
+fun ConstructorOp.signature(vararg parameters: Parameter) = signature { parameters.forEach { this.add(it) } }

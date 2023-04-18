@@ -23,6 +23,11 @@ import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import java.nio.file.Path
+import java.util.stream.Stream
 import kotlin.io.path.*
 import kotlin.test.*
 
@@ -65,7 +70,7 @@ class CokoCpgIntegrationTest {
     fun `test coko with cpg backend and multiple spec files`() {
         val specFiles = listOfNotNull(
             CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/orderRule.codyze.kts"),
+                .getResource("IntegrationTests/CokoCpg/orderFull.codyze.kts"),
             CokoCpgIntegrationTest::class.java.classLoader
                 .getResource("IntegrationTests/CokoCpg/followedByFull.codyze.kts")
         ).map { Path(it.path) }.also { assertEquals(2, it.size) }
@@ -92,12 +97,12 @@ class CokoCpgIntegrationTest {
      * And uses two spec files where one imports the other.
      */
     @Test
-    fun `test coko with cpg backend and dependend spec files`() {
+    fun `test coko with cpg backend and dependent spec files`() {
         val specFiles = listOfNotNull(
             CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/followedBy.codyze.kts"),
+                .getResource("IntegrationTests/CokoCpg/followedByTwoFiles/followedByImplementations.codyze.kts"),
             CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/followedByModels.codyze.kts")
+                .getResource("IntegrationTests/CokoCpg/followedByTwoFiles/followedByModels.codyze.kts")
         ).map { Path(it.path) }.also { assertEquals(2, it.size) }
 
         val cokoConfiguration =
@@ -119,18 +124,17 @@ class CokoCpgIntegrationTest {
 
     /**
      * Performs an end-to-end integration test of Codyze with the [CokoExecutor] and the [CokoCpgBackend] backend.
-     * Uses three spec files. Where the first one imports the second one and the last one is standalone.
+     * Uses three spec files which are given through `specFiles`. One of the three files imports another script file.
+     * The order of the files in `specFiles` is permuted to verify that the order in which the spec files are evaluated
+     * does not have an impact on the results.
      */
-    @Test
-    fun `test coko with cpg backend and multiple and multiple dependend spec files`() {
-        val specFiles = listOfNotNull(
-            CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/followedBy.codyze.kts"),
-            CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/followedByModels.codyze.kts"),
-            CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/orderRule.codyze.kts"),
-        ).map { Path(it.path) }.also { assertEquals(3, it.size) }
+    @ParameterizedTest(name = "{index} {1}")
+    @MethodSource("threeFiles")
+    fun `test coko with cpg backend and permutation of three dependent spec files`(
+        specFiles: List<Path>,
+        fileNames: List<String>
+    ) {
+        assertEquals(3, specFiles.size)
 
         val cokoConfiguration =
             CokoConfiguration(
@@ -144,30 +148,53 @@ class CokoCpgIntegrationTest {
         val executor = CokoExecutor(cokoConfiguration, backend)
 
         val run = executor.evaluate()
-
-        // assertions for the order rule
         assertEquals(run.results?.size, 16)
     }
 
     /**
      * Performs an end-to-end integration test of Codyze with the [CokoExecutor] and the [CokoCpgBackend] backend.
-     * Uses three spec files. Where the second one imports the third one and the first one is standalone.
+     * Uses four spec files which are given through `specFiles`. There are two files which each import another file.
+     * The order of the files in `specFiles` is permuted to verify that the order in which the spec files are evaluated
+     * does not have an impact on the results.
      */
-    @Disabled(
-        "Produces an argument type mismatch error. Probably a bug in the SpecEvaluator, " +
-            "how the coko import statements work (CokoScript), " +
-            "or how we compile and call the coko scripts (CokoExecutor)..."
-    )
-    @Test
-    fun `test coko with cpg backend and multiple and multiple dependend spec files two`() {
-        val specFiles = listOfNotNull(
-            CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/orderRule.codyze.kts"),
-            CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/followedBy.codyze.kts"),
-            CokoCpgIntegrationTest::class.java.classLoader
-                .getResource("IntegrationTests/CokoCpg/followedByModels.codyze.kts"),
-        ).map { Path(it.path) }.also { assertEquals(3, it.size) }
+    @ParameterizedTest(name = "{index} {1}")
+    @MethodSource("fourFiles")
+    fun `test coko with cpg backend and permutation of four dependent spec files`(
+        specFiles: List<Path>,
+        fileNames: List<String>
+    ) {
+        assertEquals(4, specFiles.size)
+        
+        val cokoConfiguration =
+            CokoConfiguration(
+                goodFindings = true,
+                pedantic = false,
+                spec = specFiles,
+                disabledSpecRules = emptyList(),
+            )
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val executor = CokoExecutor(cokoConfiguration, backend)
+
+        val run = executor.evaluate()
+        assertEquals(run.results?.size, 16)
+    }
+
+    /**
+     * Performs an end-to-end integration test of Codyze with the [CokoExecutor] and the [CokoCpgBackend] backend.
+     * Uses four spec fileswhich are given through `specFiles`. There are three files which each import another file.
+     * Two of these three files import the same file.
+     * The order of the files in `specFiles` is permuted to verify that the order in which the spec files are evaluated
+     * does not have an impact on the results.
+     */
+    @Disabled("Too many permutations (120) of the specFiles order")
+    @ParameterizedTest(name = "{index} {1}")
+    @MethodSource("fiveFiles")
+    fun `test coko with cpg backend and permutation of five dependent spec files`(
+        specFiles: List<Path>,
+        fileNames: List<String>
+    ) {
+        assertEquals(5, specFiles.size)
 
         val cokoConfiguration =
             CokoConfiguration(
@@ -181,8 +208,6 @@ class CokoCpgIntegrationTest {
         val executor = CokoExecutor(cokoConfiguration, backend)
 
         val run = executor.evaluate()
-
-        // assertions for the order rule
         assertEquals(run.results?.size, 16)
     }
 
@@ -193,7 +218,7 @@ class CokoCpgIntegrationTest {
     @Test
     fun `test coko with cpg backend without good findings`() {
         val specFiles = listOfNotNull(
-            CokoCpgIntegrationTest::class.java.classLoader.getResource("IntegrationTests/CokoCpg/orderRule.codyze.kts"),
+            CokoCpgIntegrationTest::class.java.classLoader.getResource("IntegrationTests/CokoCpg/orderFull.codyze.kts"),
         ).map { Path(it.path) }.also { assertEquals(1, it.size) }
 
         val cokoConfiguration =
@@ -209,5 +234,101 @@ class CokoCpgIntegrationTest {
 
         val run = executor.evaluate()
         assertEquals(7, run.results?.size)
+    }
+
+    companion object {
+        @JvmStatic
+        fun threeFiles(): Stream<Arguments> {
+            val stream = Stream.builder<Arguments>()
+            val fileMap = mapOf(
+                '1' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/orderFull.codyze.kts"),
+                '2' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/followedByTwoFiles/followedByImplementations.codyze.kts"),
+                '3' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/followedByTwoFiles/followedByModels.codyze.kts"),
+            )
+            val permutations = fileMap.permutate()
+            for (p in permutations) {
+                val (specFiles, fileNames) = p.map { Path(it.path) }.map { it to it.fileName }.unzip()
+                stream.add(
+                    Arguments.of(
+                        specFiles,
+                        fileNames
+                    )
+                )
+            }
+            return stream.build()
+        }
+
+        @JvmStatic
+        fun fourFiles(): Stream<Arguments> {
+            val stream = Stream.builder<Arguments>()
+            val fileMap = mapOf(
+                '1' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/orderTwoFiles/orderRule.codyze.kts"),
+                '2' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/followedByTwoFiles/followedByImplementations.codyze.kts"),
+                '3' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/followedByTwoFiles/followedByModels.codyze.kts"),
+                '4' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/orderTwoFiles/orderImplementations.codyze.kts"),
+            )
+            val permutations = fileMap.permutate()
+            for (p in permutations) {
+                val (specFiles, fileNames) = p.map { Path(it.path) }.map { it to it.fileName }.unzip()
+                stream.add(
+                    Arguments.of(
+                        specFiles,
+                        fileNames
+                    )
+                )
+            }
+            return stream.build()
+        }
+
+        @JvmStatic
+        fun fiveFiles(): Stream<Arguments> {
+            val stream = Stream.builder<Arguments>()
+            val fileMap = mapOf(
+                '1' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/orderTwoFiles/orderRule.codyze.kts"),
+                '2' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/followedByThreeFiles/followedByImplementations.codyze.kts"),
+                '3' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/followedByThreeFiles/followedByRule.codyze.kts"),
+                '4' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/followedByThreeFiles/followedByInterfaces.codyze.kts"),
+                '5' to CokoCpgIntegrationTest::class.java.classLoader
+                    .getResource("IntegrationTests/CokoCpg/orderTwoFiles/orderImplementations.codyze.kts"),
+            )
+            val permutations = fileMap.permutate()
+            for (p in permutations) {
+                val (specFiles, fileNames) = p.map { Path(it.path) }.map { it to it.fileName }.unzip()
+                stream.add(
+                    Arguments.of(
+                        specFiles,
+                        fileNames
+                    )
+                )
+            }
+            return stream.build()
+        }
+
+        private fun <E> Map<Char, E?>.permutate(): List<List<E>> {
+            val key = String(this.keys.toCharArray())
+            val keyPermutations = key.permute()
+
+            val permutations = mutableListOf<List<E>>()
+
+            for (p in keyPermutations) {
+                permutations.add(p.mapNotNull { this[it] })
+            }
+
+            return permutations
+        }
+
+        private fun String.permute(result: String = ""): List<String> =
+            if (isEmpty()) listOf(result) else flatMapIndexed { i, c -> removeRange(i, i + 1).permute(result + c) }
     }
 }

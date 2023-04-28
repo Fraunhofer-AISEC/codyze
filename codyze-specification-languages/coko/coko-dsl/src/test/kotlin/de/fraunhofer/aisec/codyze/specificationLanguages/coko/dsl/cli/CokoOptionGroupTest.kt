@@ -86,9 +86,9 @@ class CokoOptionGroupTest : KoinTest {
             Assertions.assertThrows(IllegalArgumentException::class.java) { cli.executorOptions.spec }
 
         val expectedMessage = "All given specification files must be coko specification files (*.codyze.kts)."
-        val actualMessage = exception.message
+        val actualMessage = exception.message.orEmpty()
 
-        assertTrue(actualMessage!!.contains(expectedMessage))
+        assertContains(actualMessage, expectedMessage)
     }
 
     companion object {

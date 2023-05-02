@@ -28,7 +28,6 @@ import kotlin.reflect.full.valueParameters
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Tests the order evaluation starting from a coko order expression.
@@ -134,7 +133,7 @@ class OrderEvaluationTest {
             assertEquals(1, findings.size)
             assertEquals(
                 "Violation against Order: \"p.set_key(key);\". Op \"[Botan.set_key(Wildcard)]\" is not allowed. " +
-                    "Expected one of: Botan.start(Wildcard)",
+                    "Expected one of: Botan.start(null)",
                 findings.first().message,
             )
         }

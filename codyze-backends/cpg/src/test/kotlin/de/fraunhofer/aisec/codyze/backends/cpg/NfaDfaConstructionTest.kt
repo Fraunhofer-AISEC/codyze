@@ -121,6 +121,11 @@ class NfaDfaConstructionTest {
         with(mockk<CokoCpgBackend>()) {
             val testObj = TestClass()
             val nfa = orderExpressionToNfa { maybe(testObj::create) }
+            val nfa2 = orderExpressionToNfa {
+                maybe {
+                    - testObj::create
+                }
+            }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true, isAcceptingState = true)
@@ -131,6 +136,7 @@ class NfaDfaConstructionTest {
             expectedNfa.addEdge(q2, Edge(op = NFA.EPSILON, nextState = q0))
 
             assertEquals(expected = expectedNfa, actual = nfa)
+            assertEquals(expected = expectedNfa, actual = nfa2)
         }
     }
 
@@ -144,6 +150,11 @@ class NfaDfaConstructionTest {
         with(mockk<CokoCpgBackend>()) {
             val testObj = TestClass()
             val nfa = orderExpressionToNfa { option(testObj::create) }
+            val nfa2 = orderExpressionToNfa {
+                option {
+                    - testObj::create
+                }
+            }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true, isAcceptingState = true)
@@ -153,6 +164,7 @@ class NfaDfaConstructionTest {
             expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q2))
 
             assertEquals(expected = expectedNfa, actual = nfa)
+            assertEquals(expected = expectedNfa, actual = nfa2)
         }
     }
 
@@ -166,6 +178,11 @@ class NfaDfaConstructionTest {
         with(mockk<CokoCpgBackend>()) {
             val testObj = TestClass()
             val nfa = orderExpressionToNfa { count(2, testObj::create) }
+            val nfa2 = orderExpressionToNfa {
+                count(2) {
+                    - testObj::create
+                }
+            }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true)
@@ -175,6 +192,7 @@ class NfaDfaConstructionTest {
             expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q2))
 
             assertEquals(expected = expectedNfa, actual = nfa)
+            assertEquals(expected = expectedNfa, actual = nfa2)
         }
     }
 
@@ -188,6 +206,11 @@ class NfaDfaConstructionTest {
         with(mockk<CokoCpgBackend>()) {
             val testObj = TestClass()
             val nfa = orderExpressionToNfa { some(testObj::create) }
+            val nfa2 = orderExpressionToNfa {
+                some {
+                    - testObj::create
+                }
+            }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true)
@@ -196,6 +219,7 @@ class NfaDfaConstructionTest {
             expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q1))
 
             assertEquals(expected = expectedNfa, actual = nfa)
+            assertEquals(expected = expectedNfa, actual = nfa2)
         }
     }
 
@@ -209,6 +233,11 @@ class NfaDfaConstructionTest {
         with(mockk<CokoCpgBackend>()) {
             val testObj = TestClass()
             val nfa = orderExpressionToNfa { atLeast(2, testObj::create) }
+            val nfa2 = orderExpressionToNfa {
+                atLeast(2) {
+                    - testObj::create
+                }
+            }
 
             val expectedNfa = NFA()
             val q0 = expectedNfa.addState(isStart = true)
@@ -219,6 +248,7 @@ class NfaDfaConstructionTest {
             expectedNfa.addEdge(q2, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q2))
 
             assertEquals(expected = expectedNfa, actual = nfa)
+            assertEquals(expected = expectedNfa, actual = nfa2)
         }
     }
 

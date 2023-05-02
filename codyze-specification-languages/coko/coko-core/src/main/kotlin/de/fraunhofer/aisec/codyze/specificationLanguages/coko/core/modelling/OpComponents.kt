@@ -91,10 +91,11 @@ class Definition(val fqn: String) {
                 null
             )
         }
-        val notNullParamsString =  if (notNullParams.isNotEmpty())
-                notNullParams.joinToString(prefix = fqn, separator = ", $fqn")
-                else
-                    ""
+        val notNullParamsString = if (notNullParams.isNotEmpty()) {
+            notNullParams.joinToString(prefix = fqn, separator = ", $fqn")
+        } else {
+            ""
+        }
         return notNullParamsString +
             if (nullParams.isNotEmpty()) {
                 "(" + nullParams.joinToString(prefix = fqn, separator = ", $fqn") + ")"

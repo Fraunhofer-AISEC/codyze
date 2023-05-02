@@ -157,6 +157,96 @@ class NfaDfaConstructionTest {
     }
 
     /**
+     * Tests a simple order with a count qualifier.
+     *
+     * The NFA can be converted to .dot format using: [NFA.toDotString].
+     */
+    @Test
+    fun `test simple order with count qualifier`() {
+        with(mockk<CokoCpgBackend>()) {
+            val testObj = TestClass()
+            val nfa = orderExpressionToNfa { count(2, testObj::create) }
+
+            val expectedNfa = NFA()
+            val q0 = expectedNfa.addState(isStart = true)
+            val q1 = expectedNfa.addState()
+            val q2 = expectedNfa.addState(isAcceptingState = true)
+            expectedNfa.addEdge(q0, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q1))
+            expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q2))
+
+            assertEquals(expected = expectedNfa, actual = nfa)
+        }
+    }
+
+    /**
+     * Tests a simple order with a some qualifier.
+     *
+     * The NFA can be converted to .dot format using: [NFA.toDotString].
+     */
+    @Test
+    fun `test simple order with some qualifier`() {
+        with(mockk<CokoCpgBackend>()) {
+            val testObj = TestClass()
+            val nfa = orderExpressionToNfa { some(testObj::create) }
+
+            val expectedNfa = NFA()
+            val q0 = expectedNfa.addState(isStart = true)
+            val q1 = expectedNfa.addState(isAcceptingState = true)
+            expectedNfa.addEdge(q0, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q1))
+            expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q1))
+
+            assertEquals(expected = expectedNfa, actual = nfa)
+        }
+    }
+
+    /**
+     * Tests a simple order with a atLeast qualifier.
+     *
+     * The NFA can be converted to .dot format using: [NFA.toDotString].
+     */
+    @Test
+    fun `test simple order with atLeast qualifier`() {
+        with(mockk<CokoCpgBackend>()) {
+            val testObj = TestClass()
+            val nfa = orderExpressionToNfa { atLeast(2, testObj::create) }
+
+            val expectedNfa = NFA()
+            val q0 = expectedNfa.addState(isStart = true)
+            val q1 = expectedNfa.addState()
+            val q2 = expectedNfa.addState(isAcceptingState = true)
+            expectedNfa.addEdge(q0, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q1))
+            expectedNfa.addEdge(q1, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q2))
+            expectedNfa.addEdge(q2, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q2))
+
+            assertEquals(expected = expectedNfa, actual = nfa)
+        }
+    }
+
+    /**
+     * Tests a simple order with a set.
+     *
+     * The NFA can be converted to .dot format using: [NFA.toDotString].
+     */
+    @Test
+    fun `test simple order with set`() {
+        with(mockk<CokoCpgBackend>()) {
+            val testObj = TestClass()
+            val nfa = orderExpressionToNfa {
+                set [testObj::create, testObj::init, testObj::start]
+            }
+
+            val expectedNfa = NFA()
+            val q0 = expectedNfa.addState(isStart = true)
+            val q1 = expectedNfa.addState(isAcceptingState = true)
+            expectedNfa.addEdge(q0, Edge(op = testObj.create().hashCode().toString(), base = baseName, nextState = q1))
+            expectedNfa.addEdge(q0, Edge(op = testObj.start().hashCode().toString(), base = baseName, nextState = q1))
+            expectedNfa.addEdge(q0, Edge(op = testObj.init().hashCode().toString(), base = baseName, nextState = q1))
+
+            assertEquals(expected = expectedNfa, actual = nfa)
+        }
+    }
+
+    /**
      * Tests a more complex order with a loop.
      *
      * The NFA can be converted to .dot format using: [NFA.toDotString].

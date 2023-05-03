@@ -20,7 +20,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 # CPG GitHub builds using JitPack
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
 cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
-#cpg-language-go = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-language-go", version.ref = "cpg"}
+cpg-language-go = { module = "de.fraunhofer.aisec:cpg-language-go", version.ref = "cpg"}
 
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "3.0.5"}
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j18-impl", version = "2.18.0"}
@@ -49,7 +49,7 @@ dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "dokka" 
 
 
 [bundles]
-cpg = ["cpg-core", "cpg-analysis"]  # without "cpg-language-go"
+cpg = ["cpg-core", "cpg-analysis", "cpg-language-go"]
 sarif = ["sarif4k", "kotlinx-serialization-json"]
 
 [plugins]

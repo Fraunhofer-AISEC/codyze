@@ -1,11 +1,15 @@
 @file:Import("model.codyze.kts")
 
+import de.fraunhofer.aisec.cpg.graph.Node
+import de.fraunhofer.aisec.cpg.graph.*
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
+
 plugins { id("cpg") }
 
-class GolangLogging : Logging {
+class GolangLogging : Model_codyze.Logging {
     // TODO(oxisto): arguments flow into
     override fun log(message: String?, vararg args: Any?) = op {
-        definition("log.Printf") { signature().unordered(*args) }
+        definition("log.Printf") { signature { unordered(*args) } }
     }
 }
 
@@ -20,10 +24,16 @@ class GoJWTUserContext : UserContext {
     //  interested in the user context of the current function
     override val user: List<Node>
         get() {
-            val subjects = cpgMemberExpr { base.name == "RegisteredClaims" && name == "Subject" }
-            val claims =
-                cpgCallFqn("Context.Value") { arguments[0].name == "jwtmiddleware.ContextKey" }
+            val subjects = cpgMemberExpr {
+                this.base.name.localName == "RegisteredClaims" && name.localName == "Subject"
+            }
+            val claims = cpg.calls("Value").filter {
+                it.arguments[0].type.name.localName == "ContextKey"
+            }
 
-            return subjects.filter { claims cpgFlowsTo (it.base as MemberExpression).base }
+            val user = subjects.filter {
+                claims.cpgFlowsTo((it.base as MemberExpression).base)
+            }
+            return user
         }
 }

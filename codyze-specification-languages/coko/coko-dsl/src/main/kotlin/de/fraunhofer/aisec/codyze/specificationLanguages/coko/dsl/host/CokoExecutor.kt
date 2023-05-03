@@ -30,6 +30,7 @@ import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
+import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
@@ -93,7 +94,11 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
             baseClassLoader: ClassLoader? = null
         ): ResultWithDiagnostics<EvaluationResult> {
             val compilationConfiguration =
-                createJvmCompilationConfigurationFromTemplate<CokoScript>()
+                createJvmCompilationConfigurationFromTemplate<CokoScript> {
+                    jvm {
+                        dependenciesFromCurrentContext(wholeClasspath = true)
+                    }
+                }
             val evaluationConfiguration =
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
                     implicitReceivers(backend)

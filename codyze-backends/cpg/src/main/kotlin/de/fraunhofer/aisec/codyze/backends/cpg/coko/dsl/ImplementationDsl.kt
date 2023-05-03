@@ -125,7 +125,7 @@ fun CokoBackend.cpgMemberExpr(
 }
 
 // this extension function should only be available in the context of a CallExpression
-context(CallExpression)
+//context(CallExpression)
 /**
  * Checks if there's a data flow path from "this" to [that].
  * - If this is a String, we evaluate it as a regex.

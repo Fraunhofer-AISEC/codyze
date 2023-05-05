@@ -68,4 +68,32 @@ class CPGConfigurationTest {
 
         assertEquals(expectedCpgConfiguration, actualCPGConfiguration)
     }
+
+    @Test
+    fun `test normalize with nothing to normalize`() {
+        val expectedCpgConfiguration = CPGConfiguration(
+            source = listOf(),
+            useUnityBuild = false,
+            typeSystemActiveInFrontend = false,
+            debugParser = false,
+            disableCleanup = false,
+            codeInNodes = true,
+            matchCommentsToNodes = true,
+            processAnnotations = false,
+            failOnError = false,
+            useParallelFrontends = false,
+            defaultPasses = true,
+            additionalLanguages = setOf(),
+            symbols = mapOf(),
+            passes = listOf(),
+            loadIncludes = true,
+            includePaths = listOf(),
+            includeAllowlist = listOf(),
+            includeBlocklist = listOf()
+        )
+
+        val actualCPGConfiguration = expectedCpgConfiguration.normalize()
+
+        assertEquals(expectedCpgConfiguration, actualCPGConfiguration)
+    }
 }

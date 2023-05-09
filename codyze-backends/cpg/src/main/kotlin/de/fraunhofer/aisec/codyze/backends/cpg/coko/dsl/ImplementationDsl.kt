@@ -133,18 +133,7 @@ context(CallExpression)
  * - If this is a [Node], we use the DFG of the CPG.
  */
 infix fun Any.cpgFlowsTo(that: Node): Boolean =
-    if (this is Wildcard) {
-        true
-    } else {
-        when (this) {
-            is String -> Regex(this).matches((that as? Expression)?.evaluate()?.toString().orEmpty())
-            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Node -> dataFlow(this, that).value
-            is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
-            else -> this == (that as? Expression)?.evaluate()
-        }
-    }
+    this.cpgFlowsTo(listOf(that))
 
 // it should only be available in the context of a CallExpression
 context(CallExpression)

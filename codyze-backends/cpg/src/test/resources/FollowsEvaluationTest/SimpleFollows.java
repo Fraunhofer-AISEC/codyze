@@ -26,17 +26,16 @@ public class SimpleFollows {
 		}
 	}
 
-	// Waiting for release of cpg commit bb5ef7392220efcaafa715c468e5729e518c524d
 	// Should be ok because the `f.f2()` branch is unreachable
-//	public void unreachableOk() {
-//		Foo f = new Foo();
-//		f.first();
-//		Bar b = new Bar();
-//		if(false)
-//			f.f2();
-//		else
-//			b.second();
-//	}
+	public void unreachableOk() {
+		Foo f = new Foo();
+		f.first();
+		Bar b = new Bar();
+		if(false)
+			f.f2();
+		else
+			b.second();
+	}
 
 	// what behavior should follows have here?
 //	public void notSure() {

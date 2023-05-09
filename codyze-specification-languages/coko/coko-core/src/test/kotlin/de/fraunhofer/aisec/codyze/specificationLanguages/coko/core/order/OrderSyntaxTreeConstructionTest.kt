@@ -80,6 +80,23 @@ class OrderSyntaxTreeConstructionTest {
         }
     }
 
+    /** Tests an order with an empty set -> this should error */
+    @Test
+    fun `test order with empty set`() {
+        with(mockk<CokoBackend>()) {
+            val testObj = TestClass()
+            assertFailsWith<IllegalArgumentException>(
+                message = "Groups and sets must have at least one element.",
+                block = {
+                    orderExpressionToSyntaxTree {
+                        -testObj::fun1
+                        set {}
+                    }
+                }
+            )
+        }
+    }
+
     /** Tests an order with a user defined OP */
     @Test
     fun `test order with user defined op`() {
@@ -239,7 +256,30 @@ class OrderSyntaxTreeConstructionTest {
 
     /** Tests an order with a set */
     @Test
-    fun `test order with set`() {
+    fun `test order with set with one element`() {
+        with(mockk<CokoBackend>()) {
+            val testObj = TestClass()
+            val syntaxTree = orderExpressionToSyntaxTree {
+                set {
+                    - testObj::fun1
+                }
+            }
+
+            val syntaxTreeShortcut = orderExpressionToSyntaxTree {
+                set[testObj::fun1]
+            }
+
+            assertEquals(syntaxTree, syntaxTreeShortcut)
+
+            val expectedSyntaxTree = testObj::fun1.toNode()
+
+            assertEquals(expected = expectedSyntaxTree, actual = syntaxTree)
+        }
+    }
+
+    /** Tests an order with a set */
+    @Test
+    fun `test order with set with multiple elements`() {
         with(mockk<CokoBackend>()) {
             val testObj = TestClass()
             val syntaxTree = orderExpressionToSyntaxTree {

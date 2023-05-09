@@ -26,6 +26,7 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.Path
 import kotlin.reflect.full.valueParameters
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 /**
@@ -41,7 +42,7 @@ class OrderEvaluationTest {
         fun init() = op { "Botan.set_key" { signature(Wildcard) } }
 
         // calling definition explicitly is optional
-        fun start() = op { definition("Botan.start") { signature(Wildcard) } }
+        fun start(i: Int?) = op { definition("Botan.start") { signature(i) } }
         fun finish() = op { "Botan.finish" { signature(Wildcard) } }
     }
 
@@ -132,7 +133,7 @@ class OrderEvaluationTest {
             assertEquals(1, findings.size)
             assertEquals(
                 "Violation against Order: \"p.set_key(key);\". Op \"[Botan.set_key(Wildcard)]\" is not allowed. " +
-                    "Expected one of: Botan.start(Wildcard)",
+                    "Expected one of: (Botan.start(null))",
                 findings.first().message,
             )
         }
@@ -189,6 +190,57 @@ class OrderEvaluationTest {
                         )
                     )
             }
+        }
+    }
+
+    context(CokoBackend)
+    private fun createOrderWithUserDefinedOps(testObj: CokoOrderImpl) =
+        order(testObj::constructor) {
+            - testObj.start(1)
+            - testObj.finish()
+        }
+
+    @Test
+    fun `test order with used defined ops`() {
+        val sourceFile = getPath("OtherSimpleOrder.java")
+        val backend = CokoCpgBackend(config = createCpgConfiguration(sourceFile))
+
+        with(backend) {
+            val instance = CokoOrderImpl()
+            val orderEvaluator = createOrderWithUserDefinedOps(instance)
+
+            val findings = orderEvaluator
+                .evaluate(
+                    EvaluationContext(
+                        rule = ::dummyFunction,
+                        parameterMap = ::dummyFunction.valueParameters.associateWith { instance }
+                    )
+                )
+            assertEquals(5, findings.size, "There were ${findings.size} finding(s) instead of 5 findings.")
+
+            val passFindings = findings.filter { it.kind == Finding.Kind.Pass }
+            val failFindings = findings.filter { it.kind == Finding.Kind.Fail }
+            assertEquals(
+                2,
+                passFindings.size,
+                "There were ${passFindings.size} Pass findings instead of 2."
+            )
+
+            assertEquals(3, failFindings.size, "There were ${failFindings.size} Fail findings instead of 3.")
+
+            val passCpgFinding = passFindings.filterIsInstance<CpgFinding>()
+            val failCpgFinding = failFindings.filterIsInstance<CpgFinding>()
+
+            assertContentEquals(passFindings, passCpgFinding, "Not all Pass findings were CpgFindings.")
+            assertContentEquals(failFindings, failCpgFinding, "Not all Fail findings were CpgFindings.")
+
+            val expectedPassLines = listOf(15, 23)
+            val actualPassLines = passCpgFinding.mapNotNull { it.node?.location?.region?.startLine }
+            assertContentEquals(expectedPassLines, actualPassLines)
+
+            val expectedFailLines = listOf(28, 37, 44)
+            val actualFailLines = failCpgFinding.mapNotNull { it.node?.location?.region?.startLine }
+            assertContentEquals(expectedFailLines, actualFailLines)
         }
     }
 }

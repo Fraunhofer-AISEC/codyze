@@ -122,6 +122,79 @@ class CpgOptionGroupTest {
         assertThrows<BadParameterValue> { cli.parse(argv) }
     }
 
+    @Test
+    fun `test resolveSymbols`() {
+        val expectedSymbols = mapOf(
+            "#" to "hash",
+            "+" to "plus",
+            "*" to "star"
+        )
+        val cli = CPGOptionsCommand()
+        val argv = expectedSymbols
+            .flatMap { (key, value) -> listOf("--symbols", "$key=$value") } +
+            listOf(
+                "--source",
+                testDir1.toString()
+            )
+        cli.parse(argv)
+        val symbols = cli.cpgOptions.symbols
+        assertEquals(expectedSymbols.entries, symbols.entries)
+    }
+
+    @ParameterizedTest(name = "test {0} without includes")
+    @MethodSource("includesHelper")
+    fun `test enabled or disabled includes options without includes`(includeOption: String) {
+        val argv = listOf(
+            "--source",
+            testDir1.toString(),
+            includeOption,
+            testFile1.toString()
+        )
+        val cli = CPGOptionsCommand()
+
+        assertThrows<BadParameterValue> { cli.parse(argv) }
+    }
+
+    @Test
+    fun `test includeAllowlist`() {
+        val argv = listOf(
+            "--source",
+            testDir2.toString(),
+            "--includes",
+            topTestDir.toString(),
+            "--enabled-includes",
+            testFile1.toString(),
+            "--enabled-includes-additions",
+            testDir1.toString()
+        )
+
+        val cli = CPGOptionsCommand()
+        cli.parse(argv)
+
+        val allowList = cli.cpgOptions.includeAllowlist
+        assertContentEquals(listOf(testFile1, testDir1.div("dir1file1.java")), allowList)
+    }
+
+    @Test
+    fun `test includeBlocklist`() {
+        val argv = listOf(
+            "--source",
+            testDir2.toString(),
+            "--includes",
+            topTestDir.toString(),
+            "--disabled-includes",
+            testFile1.toString(),
+            "--disabled-includes-additions",
+            testDir1.toString()
+        )
+
+        val cli = CPGOptionsCommand()
+        cli.parse(argv)
+
+        val blockList = cli.cpgOptions.includeBlocklist
+        assertContentEquals(listOf(testFile1, testDir1.div("dir1file1.java")), blockList)
+    }
+
     companion object {
         lateinit var topTestDir: Path
         private lateinit var testDir1: Path
@@ -260,6 +333,16 @@ class CpgOptionGroupTest {
                 Arguments.of(arrayOf("--passes", passName)),
                 Arguments.of(arrayOf("--passes", "my.passes.MyPass")),
                 Arguments.of(arrayOf("--passes", translationOptionName))
+            )
+        }
+
+        @JvmStatic
+        fun includesHelper(): Stream<Arguments> {
+            return Stream.of(
+                Arguments.of("--enabled-includes"),
+                Arguments.of("--enabled-includes-additions"),
+                Arguments.of("--disabled-includes"),
+                Arguments.of("--disabled-includes-additions"),
             )
         }
     }

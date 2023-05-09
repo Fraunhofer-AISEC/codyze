@@ -71,7 +71,7 @@ internal fun nfaForQuantifierOrderNode(node: QuantifierOrderNode): NFA =
             concatenateMultipleNfa(
                 List((node.value as IntRange).first) { node.child.toNfa() } +
                     List((node.value as IntRange).last - (node.value as IntRange).first) {
-                        addMaybeQuantifierToNFA(node.child.toNfa())
+                        addOptionQuantifierToNFA(node.child.toNfa())
                     }
             )
     }

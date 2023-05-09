@@ -16,7 +16,6 @@
 package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OnlyEvaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.definition
@@ -48,7 +47,7 @@ class OnlyEvaluationTest {
         val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
 
         with(backend) {
-            val evaluator = OnlyEvaluator(listOf(fooInstance.first(0..10)))
+            val evaluator = only(fooInstance.first(0..10))
             val findings = evaluator.evaluate(
                 EvaluationContext(
                     rule = ::dummyRule,

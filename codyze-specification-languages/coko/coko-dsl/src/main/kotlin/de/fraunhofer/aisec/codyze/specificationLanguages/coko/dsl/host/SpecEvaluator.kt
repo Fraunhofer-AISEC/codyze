@@ -77,8 +77,17 @@ class SpecEvaluator {
                             val primaryConstructor =
                                 checkNotNull(it.primaryConstructor) {
                                     "Could not create an instance of ${it.qualifiedName} to pass to rule " +
-                                        "${rule.name} because it does not have a primary constructor. Aborting."
+                                        "\"${rule.name}\" because it does not have a primary constructor. Aborting."
                                 }
+                            require(primaryConstructor.visibility == KVisibility.PUBLIC) {
+                                "Could not create an instance of ${it.qualifiedName} to pass to rule " +
+                                    "\"${rule.name}\" because it's primary constructor is not public. Aborting."
+                            }
+
+                            require(primaryConstructor.parameters.isEmpty()) {
+                                "Could not create an instance of ${it.qualifiedName} to pass to rule " +
+                                    "\"${rule.name}\" because it's primary constructor expects arguments. Aborting."
+                            }
                             // TODO: how do we access primaryConstructor.arity ? -> then we would
                             // not need the try..catch
                             try {

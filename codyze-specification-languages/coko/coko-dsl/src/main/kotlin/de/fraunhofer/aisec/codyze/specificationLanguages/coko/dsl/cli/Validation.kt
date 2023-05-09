@@ -18,12 +18,12 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli
 import java.nio.file.Path
 import kotlin.io.path.isRegularFile
 
-val Path.extensions: String
-    get() = fileName?.toString()?.substringAfter('.', "").orEmpty()
+val Path.fileNameString: String
+    get() = fileName?.toString().orEmpty()
 
 fun validateSpec(spec: List<Path>): List<Path> {
     require(spec.all { it.isRegularFile() }) { "All given spec paths must be files." }
-    require(spec.all { it.extensions == "codyze.kts" }) {
+    require(spec.all { it.fileNameString.endsWith(".codyze.kts") }) {
         "All given specification files must be coko specification files (*.codyze.kts)."
     }
     return spec

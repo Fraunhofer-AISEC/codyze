@@ -1,0 +1,33 @@
+name: java-upgrade
+
+on:
+  schedule:
+    # runs at 00:01 on the first every month
+    - cron: '1 0 1 * ?'
+  # can be triggered manually
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO: include JAVA SE 21 (LTS) on release
+        version: [ "19", "20" ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Java ${{ matrix.version }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.version }}
+      - name: Build
+        uses: gradle/gradle-build-action@v2
+        # step-level 'continue-on-error' needed to mask a negative workflow result
+        continue-on-error: true
+        with:
+          arguments: :codyze-cli:build -x check --parallel -Pversion=0.0.0

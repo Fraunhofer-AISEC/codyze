@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.CPGBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.*
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.FollowsEvaluator
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.NeverEvaluator
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OnlyEvaluator
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OrderEvaluator
 import de.fraunhofer.aisec.codyze.core.VersionProvider
@@ -58,13 +59,13 @@ class CokoCpgBackend(config: BackendConfiguration) :
     }
 
     /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
-    override infix fun Op.followedBy(that: Op) = FollowsEvaluator(ifOp = this, thenOp = that)
+    override infix fun Op.followedBy(that: Op): FollowsEvaluator = FollowsEvaluator(ifOp = this, thenOp = that)
 
     /*
      * Ensures the order of nodes as specified in the user configured [Order] object.
      * The order evaluation starts at the given [baseNodes].
      */
-    override fun order(baseNodes: OrderToken, block: Order.() -> Unit) =
+    override fun order(baseNodes: OrderToken, block: Order.() -> Unit): OrderEvaluator =
         OrderEvaluator(
             baseNodes = baseNodes.getOp().cpgGetAllNodes(),
             order = Order().apply(block)
@@ -74,7 +75,7 @@ class CokoCpgBackend(config: BackendConfiguration) :
      * Ensures the order of nodes as specified in the user configured [Order] object.
      * The order evaluation starts at the given [baseNodes].
      */
-    override fun order(baseNodes: Op, block: Order.() -> Unit) =
+    override fun order(baseNodes: Op, block: Order.() -> Unit): OrderEvaluator =
         OrderEvaluator(
             baseNodes = baseNodes.cpgGetNodes(),
             order = Order().apply(block)
@@ -83,5 +84,6 @@ class CokoCpgBackend(config: BackendConfiguration) :
     /**
      * Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops]
      */
-    override fun only(vararg ops: Op) = OnlyEvaluator(ops.toList())
+    override fun only(vararg ops: Op): OnlyEvaluator = OnlyEvaluator(ops.toList())
+    override fun never(vararg ops: Op): NeverEvaluator = NeverEvaluator(ops.toList())
 }

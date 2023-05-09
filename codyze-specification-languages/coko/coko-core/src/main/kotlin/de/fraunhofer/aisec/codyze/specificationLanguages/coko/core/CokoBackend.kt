@@ -58,4 +58,7 @@ interface CokoBackend : Backend {
      * Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops]
      */
     fun only(vararg ops: Op): Evaluator
+
+    /** Ensures that there are no calls to the [ops] which have arguments that fit the parameters specified in [ops] */
+    fun never(vararg ops: Op): Evaluator
 }

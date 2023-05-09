@@ -40,7 +40,7 @@ class Bar {
 ```
 
 ## Only Evaluator
-The `only` evaluator checks if all calls to an Op are only called with the specified arguments.
+The `only` evaluator checks if all calls to an `Op` are only called with the specified arguments.
 Therefore, it takes one `Op` as argument.
 
 ```kotlin title="Rule example using only"
@@ -101,11 +101,22 @@ fun `order of Foo`(foo: Foo) =
 ## FollowedBy Evaluator
 The `followedBy` evaluator works similarly like the implication in logic.
 It takes two `Ops` and specifies that if the first `Op` is called then the second `Op` must be called as well.
-Compared to the `order` evaluator, `followedBy` is more flexible because Ops from different models can be connected.
+Compared to the `order` evaluator, `followedBy` is more flexible because `Ops` from different models can be connected.
 
 ```kotlin title="Rule example using followedBy"
 @Rule
 fun `if first then second`(foo: Foo, bar: Bar) = 
     foo.first(Wildcard) followedBy bar.second()
+
+```
+
+## Never Evaluator
+The `never` evaluator is used to specify that calls to an `Op` with the specified arguments are forbidden.
+It takes one `Op` as argument.
+
+```kotlin title="Rule example using never"
+@Rule
+fun `never call second with 1`(foo: Foo) =
+    never(foo.second(1))
 
 ```

@@ -30,24 +30,28 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class OnlyEvaluationTest {
+class NeverEvaluationTest {
 
     class FooModel {
         fun first(i: Any) = op {
-            definition("Foo.fun") {
+            definition("Foo.first") {
                 signature(i)
             }
         }
     }
 
     @Test
-    fun `test simple only`() {
+    fun `test never with violation`() {
         val fooInstance = FooModel()
 
-        val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
+        val backend = CokoCpgBackend(config = createCpgConfiguration(violationFile))
 
         with(backend) {
-            val evaluator = only(fooInstance.first(0..10))
+            // Evaluator does not allow calls to `first` with -1 or a number between 1230 and 1240
+            val evaluator = never(
+                fooInstance.first(-1),
+                fooInstance.first(1230..1240)
+            )
             val findings = evaluator.evaluate(
                 EvaluationContext(
                     rule = ::dummyRule,
@@ -62,18 +66,52 @@ class OnlyEvaluationTest {
         }
     }
 
+    @Test
+    fun `test never with no violations`() {
+        val fooInstance = FooModel()
+
+        val backend = CokoCpgBackend(config = createCpgConfiguration(passFile))
+
+        with(backend) {
+            // Evaluator does not allow calls to `first` with -1 or a number between 1230 and 1240
+            val evaluator = never(
+                fooInstance.first(-1),
+                fooInstance.first(1230..1240)
+            )
+            val findings = evaluator.evaluate(
+                EvaluationContext(
+                    rule = ::dummyRule,
+                    parameterMap = ::dummyRule.valueParameters.associateWith { fooInstance }
+                )
+            )
+
+            assertTrue("There were no findings which is unexpected") { findings.isNotEmpty() }
+
+            assertTrue("Not all findings are passes which is unexpected: ${findings.joinToString()}") {
+                findings.all { it.kind == Finding.Kind.Pass }
+            }
+
+            assertEquals(1, findings.size, "Found ${findings.size} finding(s) instead of one pass finding")
+        }
+    }
+
     companion object {
 
-        lateinit var testFile: Path
+        lateinit var violationFile: Path
+        lateinit var passFile: Path
 
         @BeforeAll
         @JvmStatic
         fun startup() {
             val classLoader = OnlyEvaluationTest::class.java.classLoader
 
-            val testFileResource = classLoader.getResource("OnlyEvaluationTest/SimpleOnly.java")
-            assertNotNull(testFileResource)
-            testFile = Path(testFileResource.path)
+            val violationFileResource = classLoader.getResource("NeverEvaluationTest/NeverViolation.java")
+            assertNotNull(violationFileResource)
+            violationFile = Path(violationFileResource.path)
+
+            val passFileResource = classLoader.getResource("NeverEvaluationTest/NeverPass.java")
+            assertNotNull(passFileResource)
+            passFile = Path(passFileResource.path)
         }
     }
 }

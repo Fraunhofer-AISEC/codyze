@@ -70,12 +70,12 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
                     listOf(
                         CpgFinding(
                             message = "Complies with rule: \"${from.code}\" is followed by ${
-                            reachableThatNodes.joinToString(
-                                prefix = "\"",
-                                separator = "\", \"",
-                                postfix = "\"",
-                                transform = { node -> node.code ?: node.toString() }
-                            )}. $passMessage",
+                                reachableThatNodes.joinToString(
+                                    prefix = "\"",
+                                    separator = "\", \"",
+                                    postfix = "\"",
+                                    transform = { node -> node.code ?: node.toString() }
+                                )}. $passMessage",
                             kind = Finding.Kind.Pass,
                             node = from,
                             relatedNodes = reachableThatNodes

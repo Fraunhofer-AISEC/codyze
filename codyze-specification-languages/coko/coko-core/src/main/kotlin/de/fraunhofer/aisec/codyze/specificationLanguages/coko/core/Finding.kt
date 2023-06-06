@@ -35,6 +35,6 @@ interface Finding {
         NotApplicable(ResultKind.NotApplicable),
         Open(ResultKind.Open),
         Pass(ResultKind.Pass),
-        Review(ResultKind.Review);
+        Review(ResultKind.Review)
     }
 }

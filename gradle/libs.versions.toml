@@ -4,7 +4,7 @@ cpg = "6.2.2"
 koin = "3.4.1"
 detekt = "1.23.0"
 spotless = "6.19.0"
-dokka = "1.8.10"
+dokka = "1.8.20"
 
 
 [libraries]

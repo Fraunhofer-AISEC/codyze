@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
+import de.fraunhofer.aisec.cpg.passes.Pass
 import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -60,7 +61,7 @@ class CokoCpgIntegrationTest {
             includePaths = listOf(),
             includeAllowlist = listOf(),
             loadIncludes = false,
-            passes = listOf(UnreachableEOGPass(), EdgeCachePass()),
+            passes = listOf(UnreachableEOGPass::class, EdgeCachePass::class),
         )
 
     /**
@@ -89,7 +90,7 @@ class CokoCpgIntegrationTest {
         val run = executor.evaluate()
 
         // assertions for the order rule
-        assertEquals(run.results?.size, 16)
+        assertEquals(16, run.results?.size)
     }
 
     /**
@@ -119,7 +120,7 @@ class CokoCpgIntegrationTest {
         val run = executor.evaluate()
 
         // assertions for the order rule
-        assertEquals(run.results?.size, 1)
+        assertEquals(1, run.results?.size)
     }
 
     /**
@@ -148,7 +149,7 @@ class CokoCpgIntegrationTest {
         val executor = CokoExecutor(cokoConfiguration, backend)
 
         val run = executor.evaluate()
-        assertEquals(run.results?.size, 16)
+        assertEquals(16, run.results?.size)
     }
 
     /**
@@ -177,7 +178,7 @@ class CokoCpgIntegrationTest {
         val executor = CokoExecutor(cokoConfiguration, backend)
 
         val run = executor.evaluate()
-        assertEquals(run.results?.size, 16)
+        assertEquals(16, run.results?.size)
     }
 
     /**
@@ -187,7 +188,7 @@ class CokoCpgIntegrationTest {
      * The order of the files in `specFiles` is permuted to verify that the order in which the spec files are evaluated
      * does not have an impact on the results.
      */
-    @Disabled("Too many permutations (120) of the specFiles order")
+//    @Disabled("Too many permutations (120) of the specFiles order")
     @ParameterizedTest(name = "{index} {1}")
     @MethodSource("fiveFiles")
     fun `test coko with cpg backend and permutation of five dependent spec files`(
@@ -208,7 +209,7 @@ class CokoCpgIntegrationTest {
         val executor = CokoExecutor(cokoConfiguration, backend)
 
         val run = executor.evaluate()
-        assertEquals(run.results?.size, 16)
+        assertEquals(16, run.results?.size)
     }
 
     /**

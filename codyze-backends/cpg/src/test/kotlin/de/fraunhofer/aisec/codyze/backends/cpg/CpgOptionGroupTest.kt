@@ -105,10 +105,10 @@ class CpgOptionGroupTest {
         )
 
         val expectedPassesNames =
-            listOf(EdgeCachePass(), FilenameMapper(), CallResolver()).map { p ->
-                p::class.qualifiedName
+            listOf(EdgeCachePass::class, FilenameMapper::class, CallResolver::class).map { p ->
+                p.qualifiedName
             }
-        val actualPassesNames = cli.cpgOptions.passes.map { p -> p::class.qualifiedName }
+        val actualPassesNames = cli.cpgOptions.passes.map { p -> p.qualifiedName }
 
         logger.info { actualPassesNames.joinToString(",") }
 
@@ -330,7 +330,7 @@ class CpgOptionGroupTest {
             assertNotNull(translationOptionName)
 
             return Stream.of(
-                Arguments.of(arrayOf("--passes", passName)),
+                Arguments.of(arrayOf("--source", testDir1.toString(), "--passes", passName)),
                 Arguments.of(arrayOf("--passes", "my.passes.MyPass")),
                 Arguments.of(arrayOf("--passes", translationOptionName))
             )

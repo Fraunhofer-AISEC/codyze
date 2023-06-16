@@ -68,7 +68,6 @@ open class CPGBackend(config: BackendConfiguration) : Backend {
                 .failOnError(failOnError)
                 .useParallelFrontends(useParallelFrontends)
                 .typeSystemActiveInFrontend(typeSystemActiveInFrontend)
-                .defaultLanguages()
                 .sourceLocations(source.map { (it.toFile()) })
                 .symbols(symbols)
                 .useUnityBuild(useUnityBuild)
@@ -86,6 +85,15 @@ open class CPGBackend(config: BackendConfiguration) : Backend {
         if (defaultPasses) translationConfiguration.defaultPasses()
         passes.forEach { translationConfiguration.registerPass(it) }
 
+        translationConfiguration.optionalLanguage(
+            "de.fraunhofer.aisec.cpg.frontends.cxx.CLanguage"
+        )
+        translationConfiguration.optionalLanguage(
+            "de.fraunhofer.aisec.cpg.frontends.cxx.CPPLanguage"
+        )
+        translationConfiguration.optionalLanguage(
+            "de.fraunhofer.aisec.cpg.frontends.java.JavaLanguage"
+        )
         translationConfiguration.optionalLanguage(
             "de.fraunhofer.aisec.cpg.frontends.python.PythonLanguage"
         )

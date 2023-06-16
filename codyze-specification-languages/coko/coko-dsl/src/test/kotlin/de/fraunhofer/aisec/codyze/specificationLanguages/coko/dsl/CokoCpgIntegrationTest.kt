@@ -60,7 +60,7 @@ class CokoCpgIntegrationTest {
             includePaths = listOf(),
             includeAllowlist = listOf(),
             loadIncludes = false,
-            passes = listOf(UnreachableEOGPass(), EdgeCachePass()),
+            passes = listOf(UnreachableEOGPass::class, EdgeCachePass::class),
         )
 
     /**
@@ -89,7 +89,7 @@ class CokoCpgIntegrationTest {
         val run = executor.evaluate()
 
         // assertions for the order rule
-        assertEquals(run.results?.size, 16)
+        assertEquals(16, run.results?.size)
     }
 
     /**
@@ -119,7 +119,7 @@ class CokoCpgIntegrationTest {
         val run = executor.evaluate()
 
         // assertions for the order rule
-        assertEquals(run.results?.size, 1)
+        assertEquals(1, run.results?.size)
     }
 
     /**
@@ -148,7 +148,7 @@ class CokoCpgIntegrationTest {
         val executor = CokoExecutor(cokoConfiguration, backend)
 
         val run = executor.evaluate()
-        assertEquals(run.results?.size, 16)
+        assertEquals(16, run.results?.size)
     }
 
     /**
@@ -177,7 +177,7 @@ class CokoCpgIntegrationTest {
         val executor = CokoExecutor(cokoConfiguration, backend)
 
         val run = executor.evaluate()
-        assertEquals(run.results?.size, 16)
+        assertEquals(16, run.results?.size)
     }
 
     /**
@@ -208,7 +208,7 @@ class CokoCpgIntegrationTest {
         val executor = CokoExecutor(cokoConfiguration, backend)
 
         val run = executor.evaluate()
-        assertEquals(run.results?.size, 16)
+        assertEquals(16, run.results?.size)
     }
 
     /**

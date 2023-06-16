@@ -24,6 +24,9 @@ import de.fraunhofer.aisec.codyze.core.config.combineSources
 import de.fraunhofer.aisec.codyze.core.config.resolvePaths
 import de.fraunhofer.aisec.cpg.passes.Pass
 import java.nio.file.Path
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSuperclassOf
 
 /**
  * Holds the common CLI options for all CPG based Codyze backends.
@@ -173,10 +176,10 @@ class CPGOptionGroup : BackendOptions(helpName = "CPG Backend Options") {
         )
     }
 
-    private val rawPasses: List<Pass> by option("--passes", help = "Definition of additional symbols.")
+    private val rawPasses: List<KClass<out Pass<*>>> by option("--passes", help = "Definition of additional symbols.")
         .convert { convertPass(it) }
         .multiple()
-    private val rawPassesAdditions: List<Pass> by option(
+    private val rawPassesAdditions: List<KClass<out Pass<*>>> by option(
         "--passes-additions",
         help =
         "See --passes, but appends the values to the ones specified in configuration file."
@@ -185,7 +188,9 @@ class CPGOptionGroup : BackendOptions(helpName = "CPG Backend Options") {
         .multiple()
 
     /** Lazy property that combines all symbols from the different options into a single map. */
-    val passes: List<Pass> by lazy { resolvePasses(passes = rawPasses, additionalPasses = rawPassesAdditions) }
+    val passes: List<KClass<out Pass<*>>> by lazy {
+        resolvePasses(passes = rawPasses, additionalPasses = rawPassesAdditions)
+    }
 
     val loadIncludes: Boolean by option(
         "--analyze-includes",
@@ -285,17 +290,20 @@ class CPGOptionGroup : BackendOptions(helpName = "CPG Backend Options") {
         return symbols + additionalSymbols
     }
 
-    private fun resolvePasses(passes: List<Pass>, additionalPasses: List<Pass>): List<Pass> {
+    private fun resolvePasses(
+        passes: List<KClass<out Pass<*>>>,
+        additionalPasses: List<KClass<out Pass<*>>>
+    ): List<KClass<out Pass<*>>> {
         return passes + additionalPasses
     }
 
-    @Suppress("SwallowedException", "ThrowsCount")
-    private fun convertPass(className: String) =
+    @Suppress("SwallowedException", "ThrowsCount", "UNCHECKED_CAST")
+    private fun convertPass(className: String): KClass<out Pass<*>> =
         try {
-            val clazz = Class.forName(className)
-            if (Pass::class.java.isAssignableFrom(clazz)) {
-                // TODO: use 'isSubtypeOf' ?
-                clazz.getDeclaredConstructor().newInstance() as Pass
+            val clazz = Class.forName(className).kotlin
+            if (clazz.isSubclassOf(Pass::class)) {
+                if (clazz.isSuperclassOf(Pass::class)) throw ReflectiveOperationException("Cannot register $className")
+                (clazz as? KClass<out Pass<*>>) ?: throw ReflectiveOperationException("$className is not a CPG Pass")
             } else {
                 throw ReflectiveOperationException("$className is not a CPG Pass")
             }

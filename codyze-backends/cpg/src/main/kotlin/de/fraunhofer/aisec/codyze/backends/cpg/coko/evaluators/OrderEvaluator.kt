@@ -28,9 +28,9 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.FunctionO
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
-import de.fraunhofer.aisec.cpg.graph.AssignmentTarget
-import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.followNextEOG
+import de.fraunhofer.aisec.cpg.graph.*
+import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
 import mu.KotlinLogging
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberFunctions
@@ -162,8 +162,12 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             dfa = dfa,
             hashToMethod = hashToMethod,
             nodeToRelevantMethod = nodesToOp,
-            consideredBases = baseNodes.map { node ->
-                node.followNextEOG { it.end is AssignmentTarget }!!.last().end
+            consideredBases = baseNodes.flatMap { node ->
+                node.followNextDFGEdgesUntilHit { next ->
+                    next is VariableDeclaration || next is DeclaredReferenceExpression
+                }.fulfilled.mapNotNull { path ->
+                    path.lastOrNull()
+                }
             }.toSet(),
             consideredResetNodes = baseNodes.toSet(),
             context = context,

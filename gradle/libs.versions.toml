@@ -13,13 +13,18 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 
 # CPG official releases
-#cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
-#cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
-#cpg-language-go = { module = "de.fraunhofer.aisec:cpg-language-go", version.ref = "cpg"}
-
-# CPG GitHub builds using JitPack
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg"}
 cpg-analysis = { module = "de.fraunhofer.aisec:cpg-analysis", version.ref = "cpg"}
+cpg-language-cxx = { module = "de.fraunhofer.aisec:cpg-language-cxx", version.ref = "cpg"}
+cpg-language-java = { module = "de.fraunhofer.aisec:cpg-language-java", version.ref = "cpg"}
+#cpg-language-go = { module = "de.fraunhofer.aisec:cpg-language-go", version.ref = "cpg"}
+#cpg-language-python = { module = "de.fraunhofer.aisec:cpg-language-python", version.ref = "cpg"}
+#cpg-language-llvm = { module = "de.fraunhofer.aisec:cpg-language-llvm", version.ref = "cpg"}
+#cpg-language-typescript = { module = "de.fraunhofer.aisec:cpg-language-typescript", version.ref = "cpg"}
+
+# CPG GitHub builds using JitPack
+#cpg-core = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-core", version.ref = "cpg"}
+#cpg-analysis = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-analysis", version.ref = "cpg"}
 #cpg-language-go = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-language-go", version.ref = "cpg"}
 
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version = "3.0.5"}
@@ -49,7 +54,7 @@ dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "dokka" 
 
 
 [bundles]
-cpg = ["cpg-core", "cpg-analysis"]  # without "cpg-language-go"
+cpg = ["cpg-core", "cpg-analysis", "cpg-language-cxx", "cpg-language-java"]  # without "cpg-language-go"
 sarif = ["sarif4k", "kotlinx-serialization-json"]
 
 [plugins]

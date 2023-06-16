@@ -49,13 +49,13 @@ tasks.withType<DokkaTask>().configureEach {
     dokkaAssetsBaseDirectory
         .resolve("JetBrainsMono")
         .copyRecursively(
-            target = outputDirectory.get().resolve("styles").resolve("JetBrainsMono"),
+            target = file(outputDirectory).resolve("styles").resolve("JetBrainsMono"),
             overwrite = true,
         )
     dokkaAssetsBaseDirectory
         .resolve("inter")
         .copyRecursively(
-            target = outputDirectory.get().resolve("styles").resolve("inter"),
+            target = file(outputDirectory).resolve("styles").resolve("inter"),
             overwrite = true,
         )
 }

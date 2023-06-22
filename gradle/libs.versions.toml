@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.8.22"
 cpg = "7.0.0"
-koin = "3.4.1"
+koin = "3.4.2"
 detekt = "1.23.0"
 spotless = "6.19.0"
 dokka = "1.8.20"

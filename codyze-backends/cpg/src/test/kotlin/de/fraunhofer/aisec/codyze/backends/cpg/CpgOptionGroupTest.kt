@@ -16,6 +16,7 @@
 package de.fraunhofer.aisec.codyze.backends.cpg
 
 import com.github.ajalt.clikt.core.BadParameterValue
+import com.github.ajalt.clikt.core.MultiUsageError
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.core.config.combineSources
@@ -119,7 +120,22 @@ class CpgOptionGroupTest {
     @MethodSource("incorrectPassesHelper")
     fun incorrectPassesTest(argv: Array<String>) {
         val cli = CPGOptionsCommand()
-        assertThrows<BadParameterValue> { cli.parse(argv) }
+
+        val incorrectPassIndex = argv.indexOf("--passes") + 1
+        try {
+            // expected to fail
+            cli.parse(argv)
+        } catch (e: BadParameterValue) {
+            assertEquals("--passes", e.paramName)
+
+            val expectedMessage = "Cannot register ${argv[incorrectPassIndex]}"
+            assertEquals(expectedMessage, e.message.orEmpty())
+        } catch (e: MultiUsageError) {
+            // mutiple errors where one is caused by the '--passes' parameter
+            e.errors.filterIsInstance<BadParameterValue>().forEach {
+                assertEquals("--passes", it.paramName)
+            }
+        }
     }
 
     @Test

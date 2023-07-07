@@ -46,11 +46,14 @@ class CodyzeOptionGroupTest : KoinTest {
             )
         val cli = CodyzeCli(null)
 
-        val exception: Exception =
+        val exception: BadParameterValue =
             Assertions.assertThrows(BadParameterValue::class.java) { cli.parse(argv) }
 
+        val expectedParameterName = "--output-format"
+        assertEquals(exception.paramName, expectedParameterName)
+
         val expectedMessage =
-            "Invalid value for \"--output-format\": invalid choice: txt. (choose from "
+            "invalid choice: txt. (choose from "
         val actualMessage = exception.message.orEmpty()
 
         assertContains(actualMessage, expectedMessage)

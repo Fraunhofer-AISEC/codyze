@@ -18,7 +18,7 @@ package de.fraunhofer.aisec.codyze.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.context
-import com.github.ajalt.clikt.output.CliktHelpFormatter
+import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
@@ -78,7 +78,7 @@ class CodyzeCli(val configFile: Path?) :
         )
         context {
             valueSource = configFile?.let { JsonValueSource.from(it, requireValid = true) }
-            helpFormatter = CliktHelpFormatter(showDefaultValues = true, requiredOptionMarker = "*")
+            helpFormatter = { MordantHelpFormatter(it, requiredOptionMarker = "*", showDefaultValues = true) }
         }
     }
 

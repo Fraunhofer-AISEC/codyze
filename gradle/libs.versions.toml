@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.9.0"
 cpg = "7.1.2"
-koin = "3.4.2"
+koin = "3.4.3"
 koin-test = "3.4.1"
 detekt = "1.23.1"
 spotless = "6.20.0"

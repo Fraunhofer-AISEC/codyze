@@ -25,9 +25,11 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoScript
 import io.github.detekt.sarif4k.Run
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
+import kotlin.io.path.extension
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.host.FileScriptSource
+import kotlin.script.experimental.host.StringScriptSource
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
 import kotlin.script.experimental.jvm.jvm
@@ -128,10 +130,16 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
             var baseClassLoader: ClassLoader? = null
             val specEvaluator = SpecEvaluator()
             for (specFile in specFiles) {
+                val scriptSource = if (specFile.extension == "concepts") {
+                    transformConceptFile(specFile)
+                } else
+                    FileScriptSource(specFile.toFile())
+
+
                 // compile the script
                 val result =
                     eval(
-                        FileScriptSource(specFile.toFile()),
+                        scriptSource,
                         backend = backend,
                         baseClassLoader = baseClassLoader
                     )
@@ -185,5 +193,122 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
             }
             return specEvaluator
         }
+
+        fun transformConceptFile(specFile: Path): StringScriptSource {
+            val fileScriptSource = FileScriptSource(specFile.toFile())
+
+            val fileText = fileScriptSource.text
+            val preliminaryScriptText = fileText
+                // Remove all comments
+                // TODO: is there a better way?
+                .replace(Regex("//.*\\n"), "\n")
+                // Handle all `op` keywords that represent an operationPointer (`'op' <name> '=' <name> ('|' <name>)*`)
+                .replace(Regex("\\s+op\\s+.+=.+\\s")) { opPointerMatchResult ->
+                    val preliminaryResult = opPointerMatchResult.value
+                        // remove the whitespace character at the end of the matchResult
+                        .dropLast(1)
+                        // Replace all `op` keywords with `fun`
+                        .replace("op", "fun")
+
+                    // The index of the '{' character that starts the body of the concept that the "op" resides in
+                    val conceptBodyStart = fileText.lastIndexOf('{', opPointerMatchResult.range.first)
+                    // The index of the '}' character that ends the body of the concept that the "op" resides in
+                    val conceptBodyEnd = fileText.indexOf('}', opPointerMatchResult.range.last)
+
+                    val conceptBody = fileText.subSequence(conceptBodyStart, conceptBodyEnd)
+
+                    val (firstHalf, secondHalf) = preliminaryResult.split(Regex("\\s*=\\s*"), limit = 2)
+                    val opNames = secondHalf.split(Regex("\\s*\\|\\s*"))
+
+                    // Find the definitions of the ops that are used for this opPointer
+                    val opDefinitions = opNames.map { (Regex("\\s+op\\s+$it\\(.*\\)").find(conceptBody)?.value ?: "")  }
+
+                    /* From this line on to the end of this block the code is written to replace all opNames with calls to their actual functions */
+                    val sb = StringBuilder(firstHalf)
+
+                    // Find out all needed parameters
+                    val functionParameters = opDefinitions.flatMap { opDefinition ->
+                        // find the parameters that are used for the op
+                        val opParameters = Regex("\\(.*\\)").find(opDefinition)?.value ?: ""
+                        // remove the `(` and `)` and then split the parameters
+                        removeFirstAndLastChar(opParameters).split(Regex("\\s*,\\s*"))
+                    }
+                        .filter { it.isNotEmpty() }
+                        .toSet()
+                        // add types to the parameters
+                        .map {
+                            if(it.endsWith("..."))
+                            // translate vararg parameters to the correct Kotlin syntax
+                                "vararg ${it.substring(0, it.length - 3)}: Any?"
+                            else "$it: Any?"
+                        }
+
+                    sb.append("(")
+                    sb.append(functionParameters.joinToString())
+                    sb.append("): Op = opGroup(")
+
+                    // Append calls to ops
+                    val functionCalls = opDefinitions.map { opDefinition ->
+                        // remove the `op` keyword and all `...`
+                        opDefinition.replace(Regex("(\\s+op\\s+)|(\\.\\.\\.)"), "")
+                    }
+
+                    sb.append(functionCalls.joinToString())
+
+                    sb.append(")\n")
+                    sb.toString()
+                }
+
+            val scriptText = preliminaryScriptText
+                // Replace all `concept` keywords with `interface` and ensure that the name is capitalized
+                .replace(Regex("concept\\s+.")) {
+                    makeLastCharUpperCase(
+                        it.value.replace("concept", "interface")
+                    )
+                }
+                // Replace all `enum` keywords with `enum class` and ensure that the name is capitalized
+                .replace(Regex("enum\\s+.")){
+                    makeLastCharUpperCase(
+                        it.value.replace("enum", "enum class")
+                    )
+                }
+                // Ensure that all type names are capitalized
+                .replace(Regex(":\\s*[a-zA-Z]")) {
+                    it.value.uppercase()
+                }
+                // Replace all `op` keywords that represent an operation with `fun` and add types for the parameters
+                .replace(Regex("\\s+op\\s.+\\)\\s?")) { opMatchResult ->
+                    opMatchResult.value
+                        .replace("op", "fun")
+                        .replace(Regex(",( )?.*\\.\\.\\.")) {
+                            it.value.dropLast(3).replace(Regex(",( )?",), ", vararg ")
+                        }
+                        .replace(",", ": Any?,")
+                        .replace(Regex("[^(]\\)")) {
+                            "${it.value.dropLast(1)}: Any?): Op"
+                        }
+                        .plus("\n")
+                }
+                .replace(Regex("\\s+var\\s+.+\\s")) { varMatchResult ->
+                    val property = varMatchResult.value.replace("var", "val").dropLast(1)
+                    if(property.contains(':'))
+                        "$property\n"
+                    else
+                        "${property}: Any?\n"
+                }
+
+            return StringScriptSource(scriptText, fileScriptSource.name)
+        }
+
+        fun makeLastCharUpperCase(string: String): String {
+            val lastCharAsUpper = string.last().uppercaseChar()
+            return string.dropLast(1) + lastCharAsUpper
+        }
+
+        fun removeFirstAndLastChar(string: String): String =
+            if(string.isEmpty())
+                string
+            else
+                string.substring(1, string.length - 1)
     }
 }

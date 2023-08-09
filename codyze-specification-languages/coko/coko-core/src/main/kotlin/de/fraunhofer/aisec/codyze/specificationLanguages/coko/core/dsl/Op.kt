@@ -110,6 +110,8 @@ class ConstructorOp internal constructor(
     }
 }
 
+data class GroupingOp(val ops: Set<Op>, override val ownerClassFqn: String = ""): Op
+
 context(Any) // This is needed to have access to the owner of this function
 // -> in which class is the function defined that created this [OP]
 /**
@@ -158,6 +160,9 @@ context(Any) // This is needed to have access to the owner of this function
 fun constructor(classFqn: String, block: ConstructorOp.() -> Unit): ConstructorOp {
     return ConstructorOp(classFqn, this@Any::class.java.name).apply(block)
 }
+
+context(Any)
+fun opGroup(vararg ops: Op): GroupingOp = GroupingOp(ops.toSet(), this@Any::class.java.name)
 
 /**
  * Create a [Definition] which can be added to the [FunctionOp].

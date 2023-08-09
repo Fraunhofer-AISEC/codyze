@@ -47,6 +47,7 @@ fun Op.cpgGetAllNodes(): Nodes =
         is FunctionOp ->
             this@Op.definitions.flatMap { def -> this@CokoBackend.cpgCallFqn(def.fqn) }
         is ConstructorOp -> this@CokoBackend.cpgConstructor(this.classFqn)
+        is GroupingOp -> this@Op.ops.flatMap { it.cpgGetAllNodes() }
     }
 
 /**
@@ -74,6 +75,7 @@ fun Op.cpgGetNodes(): Nodes =
                             sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                     }
                 }
+        is GroupingOp -> this@Op.ops.flatMap { it.cpgGetNodes() }
     }
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */

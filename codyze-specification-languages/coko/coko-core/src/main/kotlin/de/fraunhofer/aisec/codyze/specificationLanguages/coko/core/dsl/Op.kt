@@ -110,7 +110,8 @@ class ConstructorOp internal constructor(
     }
 }
 
-data class GroupingOp(val ops: Set<Op>, override val ownerClassFqn: String = ""): Op
+/** An [Op] that contains other [Op]s */
+data class GroupingOp(val ops: Set<Op>, override val ownerClassFqn: String = "") : Op
 
 context(Any) // This is needed to have access to the owner of this function
 // -> in which class is the function defined that created this [OP]

@@ -1,0 +1,11 @@
+concept LoggingForTest {
+  op log(msg, args...)
+}
+
+concept ObjectRelationalMapperForTest {
+  op insert(obj)
+}
+
+concept UserContextForTest {
+  var user
+}

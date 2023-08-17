@@ -21,8 +21,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
-import kotlin.script.experimental.host.FileBasedScriptSource
-import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.jvm.*
 import kotlin.script.experimental.jvm.util.scriptCompilationClasspathFromContext
 
@@ -61,6 +59,7 @@ interface PluginDependenciesSpec {
 
 internal object ProjectScriptCompilationConfiguration :
     ScriptCompilationConfiguration({
+
         baseClass(CokoScript::class)
         jvm {
             dependenciesFromClassContext( // extract dependencies from the host environment
@@ -109,12 +108,6 @@ internal object ProjectScriptCompilationConfiguration :
                     context.compilationConfiguration.asSuccess()
                 }
             }
-
-            // the callback called than any of the listed file-level annotations are encountered in
-            // the compiled script
-            // the processing is defined by the `handler`, that may return refined configuration
-            // depending on the annotations
-            onAnnotations(Import::class, handler = ::configureImportDepsOnAnnotations)
         }
 
         ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
@@ -146,29 +139,7 @@ private fun resolveClasspathAndGenerateExtensionsFor(pluginsBlock: String?): Lis
     )
 }
 
-// The handler that is called during script compilation in order to reconfigure compilation on the
-// fly
-fun configureImportDepsOnAnnotations(
-    context: ScriptConfigurationRefinementContext
-): ResultWithDiagnostics<ScriptCompilationConfiguration> {
-    val annotations =
-        // If no action is performed, the original configuration should be returned
-        context.collectedData?.get(ScriptCollectedData.foundAnnotations)?.takeIf { it.isNotEmpty() }
-            ?: return context.compilationConfiguration.asSuccess()
 
-    val scriptBaseDir = (context.script as? FileBasedScriptSource)?.file?.parentFile
-    val importedSources =
-        annotations.flatMap {
-            (it as? Import)?.paths?.map { sourceName ->
-                FileScriptSource(scriptBaseDir?.resolve(sourceName) ?: File(sourceName))
-            }.orEmpty()
-        }
-
-    return ScriptCompilationConfiguration(context.compilationConfiguration) {
-        if (importedSources.isNotEmpty()) importScripts.append(importedSources)
-    }
-        .asSuccess()
-}
 
 object ProjectScriptEvaluationConfiguration :
     ScriptEvaluationConfiguration({

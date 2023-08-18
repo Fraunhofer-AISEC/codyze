@@ -61,4 +61,6 @@ interface CokoBackend : Backend {
 
     /** Ensures that there are no calls to the [ops] which have arguments that fit the parameters specified in [ops] */
     fun never(vararg ops: Op): Evaluator
+
+    fun whenever(op: Op, assertionBlock: WheneverEvaluator.() -> Unit): Evaluator
 }

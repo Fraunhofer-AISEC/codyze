@@ -42,6 +42,8 @@ annotation class Rule(
     val precision: Precision = Precision.UNKNOWN,
 )
 
+annotation class RuleSet()
+
 enum class Severity {
     INFO,
     WARNING,

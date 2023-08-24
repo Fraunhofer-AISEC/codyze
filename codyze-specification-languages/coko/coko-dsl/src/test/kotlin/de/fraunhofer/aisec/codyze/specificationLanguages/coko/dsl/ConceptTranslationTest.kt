@@ -8,8 +8,6 @@ import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import kotlin.io.path.Path
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -71,9 +69,13 @@ class ConceptTranslationTest {
 
         assertEquals(expectedInterfaceToExpectedMembers.size, specEvaluator.types.size)
 
-        for((expectedInterface, members) in expectedInterfaceToExpectedMembers) {
-            val actualInterfaces =  specEvaluator.types.filter {it.simpleName?.contains(expectedInterface) ?: false}
-            assertEquals(1, actualInterfaces.size, "Found none or more than one actual interface representing the concept \"$expectedInterface\"")
+        for ((expectedInterface, members) in expectedInterfaceToExpectedMembers) {
+            val actualInterfaces = specEvaluator.types.filter { it.simpleName?.contains(expectedInterface) ?: false }
+            assertEquals(
+                1,
+                actualInterfaces.size,
+                "Found none or more than one actual interface representing the concept \"$expectedInterface\""
+            )
             val actualInterface = actualInterfaces.first()
 
             assertTrue(actualInterface.members.map { it.name }.containsAll(members))
@@ -105,13 +107,17 @@ class ConceptTranslationTest {
         )
 
         assertEquals(3, specEvaluator.types.size)
-        for((expectedInterface, members) in expectedInterfaceToExpectedMembers) {
-            val actualInterfaces =  specEvaluator.types.filter {it.simpleName?.contains(expectedInterface) ?: false}
-            assertEquals(1, actualInterfaces.size, "Found none or more than one actual interface representing the concept \"$expectedInterface\"")
+        for ((expectedInterface, members) in expectedInterfaceToExpectedMembers) {
+            val actualInterfaces = specEvaluator.types.filter { it.simpleName?.contains(expectedInterface) ?: false }
+            assertEquals(
+                1,
+                actualInterfaces.size,
+                "Found none or more than one actual interface representing the concept \"$expectedInterface\""
+            )
             val actualInterface = actualInterfaces.first()
             assertTrue(actualInterface.members.map { it.name }.containsAll(members))
 
-            if(expectedInterface == "Logging") {
+            if (expectedInterface == "Logging") {
                 val log = actualInterface.members.firstOrNull { it.name == "log" }
                 assertNotNull(log)
                 assertFalse(log.isAbstract)

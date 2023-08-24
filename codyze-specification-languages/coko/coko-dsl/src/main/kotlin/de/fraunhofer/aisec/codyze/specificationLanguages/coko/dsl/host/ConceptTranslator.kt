@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2022, Fraunhofer AISEC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.GroupingOp
@@ -7,14 +23,16 @@ import kotlin.io.path.name
 import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.StringScriptSource
 
-class ConceptTranslator() {
+class ConceptTranslator {
     private val conceptTranslations: MutableMap<Path, String> = mutableMapOf()
 
+    @Suppress("MagicNumber")
     fun transformConceptFile(specFile: Path): StringScriptSource {
         val absolutePath = specFile.normalize().absolute()
         val cachedTranslation = conceptTranslations[absolutePath]
-        if(cachedTranslation != null)
+        if (cachedTranslation != null) {
             return StringScriptSource(cachedTranslation, absolutePath.fileName.name)
+        }
 
         val fileScriptSource = FileScriptSource(specFile.toFile())
 
@@ -72,9 +90,9 @@ class ConceptTranslator() {
         return StringScriptSource(scriptText, fileScriptSource.name)
     }
 
-
     /**
-     * This translates a match of a `op` keyword that represent an operationPointer (`'op' <name> '=' <name> ('|' <name>)*`)
+     * This translates a match of a `op` keyword that represent an
+     * operationPointer (`'op' <name> '=' <name> ('|' <name>)*`)
      * into a Kotlin function that returns a [GroupingOp].
      *
      * Example:
@@ -133,6 +151,7 @@ class ConceptTranslator() {
      * This combines all parameters of the ops in [opDefinitions] into a set of parameters
      * that are needed to call all functions representing the ops and combines them into a string.
      */
+    @Suppress("MagicNumber")
     private fun buildFunctionParameters(opDefinitions: List<String>): String {
         // Find out all needed parameters
         val functionParameters = opDefinitions.flatMap { opDefinition ->
@@ -167,6 +186,4 @@ class ConceptTranslator() {
         } else {
             string.substring(1, string.length - 1)
         }
-
 }
-

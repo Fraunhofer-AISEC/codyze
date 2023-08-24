@@ -32,7 +32,6 @@ import kotlin.script.experimental.api.*
 import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.FileScriptSource
-import kotlin.script.experimental.host.StringScriptSource
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
 import kotlin.script.experimental.jvm.jvm
@@ -100,7 +99,7 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
             baseClassLoader: ClassLoader? = null
         ): ResultWithDiagnostics<EvaluationResult> {
             val compilationConfiguration =
-                createJvmCompilationConfigurationFromTemplate<CokoScript>() {
+                createJvmCompilationConfigurationFromTemplate<CokoScript> {
                     refineConfiguration {
                         // the callback called if any of the listed file-level annotations are encountered in
                         // the compiled script
@@ -108,7 +107,6 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
                         // depending on the annotations
                         onAnnotations(Import::class, handler = ::configureImportDepsOnAnnotations)
                     }
-
                 }
             val evaluationConfiguration =
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
@@ -227,12 +225,13 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
 
                     (it as? Import)?.paths?.mapNotNull { sourceName ->
                         val file = scriptBaseDir?.resolve(sourceName) ?: File(sourceName).normalize()
-                        val absoluteFile = file.absolutePath
-                        if(sourceName.endsWith(".codyze.kts"))
+                        if (sourceName.endsWith(".codyze.kts")) {
                             FileScriptSource(file)
-                        else if (sourceName.endsWith(".concepts"))
+                        } else if (sourceName.endsWith(".concepts")) {
                             conceptTranslator.transformConceptFile(file.toPath())
-                        else null
+                        } else {
+                            null
+                        }
                     }.orEmpty()
                 }
 
@@ -241,8 +240,5 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
             }
                 .asSuccess()
         }
-
     }
-
-
 }

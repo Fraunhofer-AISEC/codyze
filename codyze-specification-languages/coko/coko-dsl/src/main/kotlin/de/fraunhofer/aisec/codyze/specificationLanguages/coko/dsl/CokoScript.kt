@@ -139,8 +139,6 @@ private fun resolveClasspathAndGenerateExtensionsFor(pluginsBlock: String?): Lis
     )
 }
 
-
-
 object ProjectScriptEvaluationConfiguration :
     ScriptEvaluationConfiguration({
         // if a script is imported multiple times in the import hierarchy, use a single copy

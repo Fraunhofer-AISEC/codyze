@@ -21,16 +21,11 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.query.dataFlow
 
 //
@@ -191,8 +186,10 @@ fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = f
                         parameter.param cpgFlowsTo arguments[i]
                 // checks if the type of the argument is the same
                 is Type -> cpgCheckType(parameter, i)
-                // check if any of the Nodes from the Op flow to the argument
+                // check if any of the Nodes of the Op flow to the argument
                 is Op -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
+                // check if any of the Nodes of the DataItem flow to the argument
+                is DataItem -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
                 // checks if there is dataflow from the parameter to the argument in the same position
                 else -> parameter cpgFlowsTo arguments[i]
             }

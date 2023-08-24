@@ -16,20 +16,27 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Parameter
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderFragment
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.TerminalOrderNode
 
-@CokoMarker sealed interface Op : OrderFragment {
+@CokoMarker sealed interface Op : OrderFragment, ConditionComponent {
     val ownerClassFqn: String
+
+    val returnValue: ReturnValueItem<Any>
+        get() = ReturnValueItem(this)
+
+    val arguments: Arguments
+        get() = Arguments(this)
 
     override fun toNode(): TerminalOrderNode = TerminalOrderNode(
         baseName = ownerClassFqn,
         opName = hashCode().toString()
     )
+}
+
+class Arguments(val op: Op) {
+    operator fun get(index: Int): ArgumentItem<Any> = ArgumentItem(op, index)
 }
 
 /**
@@ -111,7 +118,11 @@ class ConstructorOp internal constructor(
 }
 
 /** An [Op] that contains other [Op]s */
-data class GroupingOp(val ops: Set<Op>, override val ownerClassFqn: String = "") : Op
+data class GroupingOp(val ops: Set<Op>, override val ownerClassFqn: String = "") : Op {
+    override fun toString(): String {
+        return ops.joinToString()
+    }
+}
 
 context(Any) // This is needed to have access to the owner of this function
 // -> in which class is the function defined that created this [OP]

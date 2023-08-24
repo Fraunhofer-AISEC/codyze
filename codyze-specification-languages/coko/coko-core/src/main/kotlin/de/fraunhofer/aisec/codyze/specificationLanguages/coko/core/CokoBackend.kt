@@ -16,8 +16,10 @@
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
 import de.fraunhofer.aisec.codyze.core.backend.Backend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Condition
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ConditionComponent
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken
 import kotlin.reflect.KFunction
 
@@ -62,5 +64,10 @@ interface CokoBackend : Backend {
     /** Ensures that there are no calls to the [ops] which have arguments that fit the parameters specified in [ops] */
     fun never(vararg ops: Op): Evaluator
 
-    fun whenever(op: Op, assertionBlock: WheneverEvaluator.() -> Unit): Evaluator
+    fun whenever(
+        premise: Condition.() -> ConditionComponent,
+        assertionBlock: WheneverEvaluator.() -> Unit
+    ): WheneverEvaluator
+
+    fun whenever(premise: ConditionComponent, assertionBlock: WheneverEvaluator.() -> Unit): WheneverEvaluator
 }

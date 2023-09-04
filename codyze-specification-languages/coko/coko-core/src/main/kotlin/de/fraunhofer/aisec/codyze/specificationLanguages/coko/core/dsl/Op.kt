@@ -124,6 +124,15 @@ data class GroupingOp(val ops: Set<Op>, override val ownerClassFqn: String = "")
     }
 }
 
+/**
+ * An [Op] that describes that the function calls found with [resultOp] depend on the function calls found with the [conditionOp]
+ */
+data class ConditionalOp(val resultOp: Op, val conditionOp: Op, override val ownerClassFqn: String = "") : Op {
+    override fun toString(): String {
+        return "$resultOp with $conditionOp"
+    }
+}
+
 context(Any) // This is needed to have access to the owner of this function
 // -> in which class is the function defined that created this [OP]
 /**
@@ -173,8 +182,15 @@ fun constructor(classFqn: String, block: ConstructorOp.() -> Unit): ConstructorO
     return ConstructorOp(classFqn, this@Any::class.java.name).apply(block)
 }
 
+/** Create a [GroupingOp] containing the given [ops]. */
 context(Any)
 fun opGroup(vararg ops: Op): GroupingOp = GroupingOp(ops.toSet(), this@Any::class.java.name)
+
+/**
+ * Create a [ConditionalOp] with [this] as the [ConditionalOp.resultOp] and [conditionOp] as the [ConditionalOp.conditionOp]
+ */
+context(Any)
+infix fun Op.with(conditionOp: Op): ConditionalOp = ConditionalOp(this, conditionOp, this@Any::class.java.name)
 
 /**
  * Create a [Definition] which can be added to the [FunctionOp].

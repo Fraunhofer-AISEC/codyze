@@ -43,6 +43,15 @@ fun Op.cpgGetAllNodes(): Nodes =
             this@Op.definitions.flatMap { def -> this@CokoBackend.cpgCallFqn(def.fqn) }
         is ConstructorOp -> this@CokoBackend.cpgConstructor(this.classFqn)
         is GroupingOp -> this@Op.ops.flatMap { it.cpgGetAllNodes() }
+        is ConditionalOp -> {
+            val resultNodes = resultOp.cpgGetAllNodes()
+            val conditionNodes = conditionOp.cpgGetAllNodes()
+            resultNodes.filter { resultNode ->
+                conditionNodes.any { conditionNode ->
+                    dataFlow(conditionNode, resultNode).value
+                }
+            }
+        }
     }
 
 /**
@@ -71,6 +80,16 @@ fun Op.cpgGetNodes(): Nodes =
                     }
                 }
         is GroupingOp -> this@Op.ops.flatMap { it.cpgGetNodes() }
+        is ConditionalOp -> {
+            val resultNodes = resultOp.cpgGetNodes()
+            val conditionNodes = conditionOp.cpgGetNodes()
+            resultNodes.filter { resultNode ->
+                conditionNodes.any { conditionNode ->
+                    val result = dataFlow(conditionNode, resultNode) // TODO
+                    result.value
+                }
+            }
+        }
     }
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */
@@ -143,7 +162,10 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
         true
     } else {
         when (this) {
-            is String -> that.any { Regex(this).matches((it as? Expression)?.evaluate()?.toString().orEmpty()) }
+            is String -> that.any {
+                val regex = Regex(this)
+                regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
+            }
             is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }

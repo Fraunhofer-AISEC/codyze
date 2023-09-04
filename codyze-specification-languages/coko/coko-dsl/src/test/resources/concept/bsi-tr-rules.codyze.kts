@@ -1,12 +1,13 @@
-@file:Import("bsi-tr.concepts")
+//@file:Import("bsi-tr.concepts")
 
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.HasTransformation
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.DataItem
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.value
 
 enum class Algorithm {
     AES, DES, TripleDES
 }
 
-enum class Mode{
+enum class Mode {
     // Cipher Block Chaining Message Authentication
     CCM,
     // Galois/Counter Mode
@@ -18,10 +19,10 @@ enum class Mode{
 }
 
 interface Cypher {
-    val algo: HasTransformation<Algorithm>
-    val mode: HasTransformation<Mode>
-    val keySize: HasTransformation<Int> // in bits
-    val tagSize: HasTransformation<Int> // in bits; only applicable for mode == CCM
+    val algo: DataItem<Algorithm>
+    val mode: DataItem<Mode>
+    val keySize: DataItem<Int> // in bits
+    val tagSize: DataItem<Int> // in bits; only applicable for mode == CCM
 }
 
 interface InitializationVector {
@@ -37,11 +38,11 @@ interface Encryption {
 }
 
 
-@RuleSet
-class GoodCrypto {
+//@RuleSet
+//class GoodCrypto {
     @Rule
     fun `must be AES`(enc: Encryption) =
-        whenever(enc.encrypt(Wildcard)) {
+        whenever({ call(enc.encrypt(Wildcard)) }) {
             ensure { enc.cypher.algo eq Algorithm.AES }
             ensure { enc.cypher.mode within list[Mode.CCM, Mode.GCM, Mode.CTR] }
             ensure { enc.cypher.keySize within list[128, 192, 256]}
@@ -49,8 +50,8 @@ class GoodCrypto {
 
     @Rule
     fun `modes of operation`(enc: Encryption) =
-        whenever({ enc.encrypt(Wildcard) and (enc.cypher.mode eq Mode.CCM) }) {
+        whenever({ call(enc.encrypt(Wildcard)) and (enc.cypher.mode eq Mode.CCM) }) {
             ensure { enc.cypher.tagSize geq 96 }
         }
-}
+//}
 

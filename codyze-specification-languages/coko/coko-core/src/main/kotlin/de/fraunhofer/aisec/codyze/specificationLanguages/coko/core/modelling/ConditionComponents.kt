@@ -18,39 +18,54 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 
-interface ConditionComponent
+sealed interface ConditionNode
+sealed interface ConditionComponent : ConditionNode
+sealed interface ConditionLeaf : ConditionNode
 
-class BinaryConditionComponent(
-    val left: ConditionComponent,
-    val right: ConditionComponent,
+sealed interface BinaryConditionComponent : ConditionComponent {
+    val left: ConditionNode
+    val right: ConditionNode
     val operator: BinaryOperatorName
-) : ConditionComponent
+}
+
+class ComparisonConditionComponent(
+    override val left: DataItem<*>,
+    override val right: DataItem<*>,
+    override val operator: ComparisonOperatorName
+) : BinaryConditionComponent
+
+class BinaryLogicalConditionComponent(
+    override val left: ConditionComponent,
+    override val right: ConditionComponent,
+    override val operator: BinaryLogicalOperatorName
+) : BinaryConditionComponent
 
 class UnaryConditionComponent(
-    val conditionComponent: ConditionComponent,
+    val conditionNode: ConditionNode,
     val operator: UnaryOperatorName
 ) : ConditionComponent
 
 class CallConditionComponent(val op: Op) : ConditionComponent
 
-class ContainsConditionComponent<E>(val item: DataItem, val collection: Collection<E>) : ConditionComponent
+class ContainsConditionComponent<E, T>(val item: DataItem<E>, val collection: Collection<T>) : ConditionComponent
 
-enum class BinaryOperatorName(val operatorCodes: List<String>) {
+sealed interface BinaryOperatorName {
+    val operatorCodes: List<String>
+}
+
+enum class BinaryLogicalOperatorName(override val operatorCodes: List<String>) : BinaryOperatorName {
+    AND(listOf("&&", "and")),
+    OR(listOf("||", "or"))
+}
+enum class ComparisonOperatorName(override val operatorCodes: List<String>) : BinaryOperatorName {
     GEQ(listOf(">=")),
     GT(listOf(">")),
     LEQ(listOf("<=")),
     LT(listOf("<")),
     EQ(listOf("==")), // TODO: python `==` vs `is`
     NEQ(listOf("!=")),
-    AND(listOf("&&", "and")),
-    OR(listOf("||", "or"))
 }
 
 enum class UnaryOperatorName(val operatorCodes: List<String>) {
     NOT(listOf("!", "not"))
 }
-
-// idea:
-// isChecked(doStuff(Wildcard).returnValue) {
-//      (it lessThan 0) or (it greaterThan 1)
-// }

@@ -25,45 +25,51 @@ class Condition {
     val list by lazy { ListBuilder() }
 
     infix fun Any.within(collection: Collection<*>) =
-        ContainsConditionComponent(value(this), collection)
+        ContainsConditionComponent(toValue(this), collection)
 
-    infix fun DataItem.gt(other: DataItem) =
-        BinaryConditionComponent(this, other, BinaryOperatorName.GT)
+    infix fun DataItem<*>.gt(other: DataItem<*>) =
+        ComparisonConditionComponent(this, other, ComparisonOperatorName.GT)
 
-    infix fun Any.gt(other: Any) = value(this) gt value(other)
+    infix fun Any.gt(other: Any) = toValue(this) gt toValue(other)
 
-    infix fun DataItem.geq(other: DataItem) =
-        BinaryConditionComponent(this, other, BinaryOperatorName.GEQ)
+    infix fun DataItem<*>.geq(other: DataItem<*>) =
+        ComparisonConditionComponent(this, other, ComparisonOperatorName.GEQ)
 
-    infix fun Any.geq(other: Any) = value(this) geq value(other)
+    infix fun Any.geq(other: Any) = toValue(this) geq toValue(other)
 
-    infix fun DataItem.lt(other: DataItem) =
-        BinaryConditionComponent(this, other, BinaryOperatorName.LT)
+    infix fun DataItem<*>.lt(other: DataItem<*>) =
+        ComparisonConditionComponent(this, other, ComparisonOperatorName.LT)
 
-    infix fun Any.lt(other: Any) = value(this) lt value(other)
+    infix fun Any.lt(other: Any) = toValue(this) lt toValue(other)
 
-    infix fun DataItem.leq(other: DataItem) =
-        BinaryConditionComponent(this, other, BinaryOperatorName.LEQ)
+    infix fun DataItem<*>.leq(other: DataItem<*>) =
+        ComparisonConditionComponent(this, other, ComparisonOperatorName.LEQ)
 
-    infix fun Any.leq(other: Any) = value(this) leq value(other)
+    infix fun Any.leq(other: Any) = toValue(this) leq toValue(other)
 
-    infix fun DataItem.eq(other: DataItem) =
-        BinaryConditionComponent(this, other, BinaryOperatorName.EQ)
+    infix fun DataItem<*>.eq(other: DataItem<*>) =
+        ComparisonConditionComponent(this, other, ComparisonOperatorName.EQ)
 
-    infix fun Any.eq(other: Any) = value(this) eq value(other)
+    infix fun Any.eq(other: Any) = toValue(this) eq toValue(other)
 
-    infix fun DataItem.neq(other: DataItem) =
-        BinaryConditionComponent(this, other, BinaryOperatorName.NEQ)
+    infix fun DataItem<*>.neq(other: DataItem<*>) =
+        ComparisonConditionComponent(this, other, ComparisonOperatorName.NEQ)
 
-    infix fun Any.neq(other: Any) = value(this) neq value(other)
+    infix fun Any.neq(other: Any) = toValue(this) neq toValue(other)
 
     fun call(op: Op) = CallConditionComponent(op)
 
     infix fun ConditionComponent.and(other: ConditionComponent) =
-        BinaryConditionComponent(this, other, BinaryOperatorName.AND)
+        BinaryLogicalConditionComponent(this, other, BinaryLogicalOperatorName.AND)
 
     infix fun ConditionComponent.or(other: ConditionComponent) =
-        BinaryConditionComponent(this, other, BinaryOperatorName.OR)
+        BinaryLogicalConditionComponent(this, other, BinaryLogicalOperatorName.OR)
 
     fun not(conditionComponent: ConditionComponent) = UnaryConditionComponent(conditionComponent, UnaryOperatorName.NOT)
+
+    private fun toValue(value: Any): DataItem<*> =
+        when(value) {
+            is DataItem<*> -> value
+            else -> Value(value)
+        }
 }

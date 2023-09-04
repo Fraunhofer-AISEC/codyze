@@ -189,7 +189,7 @@ fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = f
                 // check if any of the Nodes of the Op flow to the argument
                 is Op -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
                 // check if any of the Nodes of the DataItem flow to the argument
-                is DataItem -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
+                is DataItem<*> -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
                 // checks if there is dataflow from the parameter to the argument in the same position
                 else -> parameter cpgFlowsTo arguments[i]
             }

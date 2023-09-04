@@ -19,25 +19,26 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.TransformationResult
 
-sealed interface DataItem : ConditionComponent
+sealed interface DataItem<E> : ConditionLeaf {
+    val transformation: (BackendDataItem) -> TransformationResult<E, String>
+}
 
-sealed interface HasTransformation<E> : DataItem {
-    val transformation: (BackendDataItem) -> TransformationResult<E>
+sealed interface CanChangeTransformation<E> : DataItem<E> {
     infix fun <T> withTransformation(
-        newTransformation: (BackendDataItem) -> TransformationResult<T>
-    ): HasTransformation<T>
+        newTransformation: (BackendDataItem) -> TransformationResult<T, String>
+    ): DataItem<T>
 }
 
 data class ReturnValueItem<E>(
     val op: Op,
-    override val transformation: (BackendDataItem) -> TransformationResult<E> = {
+    override val transformation: (BackendDataItem) -> TransformationResult<E, String> = {
         TransformationResult.failure("No transformation given from user")
     }
-) : HasTransformation<E> {
+) : CanChangeTransformation<E> {
     override fun toString(): String = "Return value of $op"
 
     override infix fun <T> withTransformation(
-        newTransformation: (BackendDataItem) -> TransformationResult<T>
+        newTransformation: (BackendDataItem) -> TransformationResult<T, String>
     ): ReturnValueItem<T> =
         ReturnValueItem(op = op, transformation = newTransformation)
 }
@@ -45,16 +46,16 @@ data class ReturnValueItem<E>(
 data class ArgumentItem<E>(
     val op: Op,
     val number: Int,
-    override val transformation: (BackendDataItem) -> TransformationResult<E> = {
+    override val transformation: (BackendDataItem) -> TransformationResult<E, String> = {
         TransformationResult.failure("No transformation given from user")
     }
-) : HasTransformation<E> {
+) : CanChangeTransformation<E> {
     init {
         require(number >= 0) { "The number of the argument cannot be negative" }
     }
 
     override fun <T> withTransformation(
-        newTransformation: (BackendDataItem) -> TransformationResult<T>
+        newTransformation: (BackendDataItem) -> TransformationResult<T, String>
     ): ArgumentItem<T> =
         ArgumentItem(op = op, number = number, transformation = newTransformation)
 
@@ -72,10 +73,10 @@ data class ArgumentItem<E>(
     }
 }
 
-data class Value internal constructor(val value: Any) : DataItem
+data class Value<E> internal constructor(val value: E) : DataItem<E> {
+    override val transformation: (BackendDataItem) -> TransformationResult<E, String>
+        get() = { TransformationResult.success(value) }
+}
 
-fun value(value: Any): DataItem =
-    when (value) {
-        is DataItem -> value
-        else -> Value(value)
-    }
+fun <E>value(value: DataItem<E>): DataItem<E> = value
+fun <E>value(value: E): DataItem<E> = Value(value)

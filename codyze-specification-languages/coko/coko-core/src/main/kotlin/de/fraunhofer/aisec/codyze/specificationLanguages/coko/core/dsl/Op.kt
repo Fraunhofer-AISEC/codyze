@@ -20,7 +20,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderFragment
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.TerminalOrderNode
 
-@CokoMarker sealed interface Op : OrderFragment, ConditionComponent {
+@CokoMarker sealed interface Op : OrderFragment {
     val ownerClassFqn: String
 
     val returnValue: ReturnValueItem<Any>

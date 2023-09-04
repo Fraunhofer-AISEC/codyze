@@ -18,46 +18,50 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ArgumentItem
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.DataItem
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ReturnValueItem
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Value
-import de.fraunhofer.aisec.cpg.graph.Node
+import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
-import de.fraunhofer.aisec.cpg.graph.evaluate
-import de.fraunhofer.aisec.cpg.graph.literals
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
-import de.fraunhofer.aisec.cpg.graph.variables
 
 /**
  * Get all [Nodes] that are associated with this [DataItem].
  */
 context(CokoBackend)
-fun DataItem.cpgGetAllNodes(): Nodes =
+fun DataItem<*>.cpgGetAllNodes(): Nodes =
     when (this@DataItem) {
         is ReturnValueItem -> op.cpgGetAllNodes().flatMap { it.getVariableInNextDFGOrThis() }
         is Value -> this@DataItem.getNodes()
+        is ArgumentItem -> TODO()
     }
 
 /**
  * Get all [Nodes] that are associated with this [DataItem].
  */
 context(CokoBackend)
-fun DataItem.cpgGetNodes(): Nodes {
+fun DataItem<*>.cpgGetNodes(): Nodes {
     return when (this@DataItem) {
         is ReturnValueItem -> op.cpgGetNodes().flatMap { it.getVariableInNextDFGOrThis() }
         is Value -> this@DataItem.getNodes()
+        is ArgumentItem -> TODO()
     }
 }
 
 context(CokoBackend)
-private fun Value.getNodes(): Nodes =
-    cpg.literals.filter {
-            node ->
-        node.value == this.value
-    } + cpg.variables.filter {
-            node ->
-        node.evaluate() == this.value
+private fun Value<*>.getNodes(): Nodes {
+    val value = this.value
+    return if (value is Node) {
+        listOf(value)
+    } else {
+        cpg.literals.filter { node ->
+            node.value == value
+        } + cpg.variables.filter { node ->
+            node.evaluate() == value
+        }
     }
+}
 
 /**
  * Returns all [VariableDeclaration]s and [DeclaredReferenceExpression]s that have a DFG edge from [this].

@@ -16,22 +16,32 @@
 
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
-sealed interface TransformationResult<E> {
+/**
+ * This class works similar to the [Result] class in the Kotlin standard library.
+ * The difference is that the [TransformationFailure] can store information other than [Throwable]s to be able to
+ * describe the reasons for failure in more detail.
+ */
+sealed interface TransformationResult<E, T> {
     val isFailure: Boolean
     val isSuccess: Boolean
 
     fun getValueOrNull(): E?
-    fun getMessageOrNull(): String?
+    fun getFailureReasonOrNull(): T?
     override fun toString(): String
 
     companion object {
-        fun <E> failure(message: String): TransformationResult<E> = TransformationFailure(message)
+        /** Creates a [TransformationFailure] object with the given [reason]. */
+        fun <E,T> failure(reason: T): TransformationResult<E, T> = TransformationFailure(reason)
 
-        fun <E> success(value: E): TransformationResult<E> = TransformationSuccess(value)
+        /** Creates a [TransformationSuccess] object with the given [value]. */
+        fun <E,T> success(value: E): TransformationResult<E,T> = TransformationSuccess(value)
     }
 }
 
-private data class TransformationSuccess<E>(val value: E) : TransformationResult<E> {
+/**
+ * This class indicates that the operation was a success and the result is stored in [value].
+ */
+private data class TransformationSuccess<E,T>(val value: E) : TransformationResult<E,T> {
     override val isFailure: Boolean
         get() = false
     override val isSuccess: Boolean
@@ -39,10 +49,13 @@ private data class TransformationSuccess<E>(val value: E) : TransformationResult
 
     override fun getValueOrNull(): E? = value
 
-    override fun getMessageOrNull(): String? = null
+    override fun getFailureReasonOrNull(): T? = null
 }
 
-private data class TransformationFailure<E>(val message: String) : TransformationResult<E> {
+/**
+ * This class indicates that the operation was not successful and the reasons are stored in [reason].
+ */
+private data class TransformationFailure<E, T>(val reason: T) : TransformationResult<E,T> {
     override val isFailure: Boolean
         get() = true
     override val isSuccess: Boolean
@@ -50,5 +63,5 @@ private data class TransformationFailure<E>(val message: String) : Transformatio
 
     override fun getValueOrNull(): E? = null
 
-    override fun getMessageOrNull(): String = message
+    override fun getFailureReasonOrNull(): T = reason
 }

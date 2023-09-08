@@ -1,7 +1,6 @@
 //@file:Import("bsi-tr.concepts")
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.DataItem
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.value
 
 enum class Algorithm {
     AES, DES, TripleDES
@@ -45,13 +44,13 @@ interface Encryption {
         whenever({ call(enc.encrypt(Wildcard)) }) {
             ensure { enc.cypher.algo eq Algorithm.AES }
             ensure { enc.cypher.mode within list[Mode.CCM, Mode.GCM, Mode.CTR] }
-            ensure { enc.cypher.keySize within list[128, 192, 256]}
+//            ensure { enc.cypher.keySize within list[128, 192, 256]}
         }
 
-    @Rule
-    fun `modes of operation`(enc: Encryption) =
-        whenever({ call(enc.encrypt(Wildcard)) and (enc.cypher.mode eq Mode.CCM) }) {
-            ensure { enc.cypher.tagSize geq 96 }
-        }
+//    @Rule
+//    fun `modes of operation`(enc: Encryption) =
+//        whenever({ call(enc.encrypt(Wildcard)) and (enc.cypher.mode eq Mode.CCM) }) {
+//            ensure { enc.cypher.tagSize geq 96 }
+//        }
 //}
 

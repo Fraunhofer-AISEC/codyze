@@ -17,8 +17,8 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
-import de.fraunhofer.aisec.codyze.backends.cpg.cli.BaseCpgBackend
-import de.fraunhofer.aisec.codyze.backends.cpg.cli.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.cli.BaseCpgBackendCommand
+import de.fraunhofer.aisec.codyze.backends.cpg.cli.CokoCpgBackendCommand
 import de.fraunhofer.aisec.codyze.core.backend.BackendOptions
 import de.fraunhofer.aisec.codyze.core.config.combineSources
 import de.fraunhofer.aisec.codyze.core.config.resolvePaths
@@ -30,7 +30,7 @@ import kotlin.reflect.full.isSuperclassOf
 
 /**
  * Holds the common CLI options for all CPG based Codyze backends.
- * Used in e.g., [BaseCpgBackend] and [CokoCpgBackend].
+ * Used in e.g., [BaseCpgBackendCommand] and [CokoCpgBackendCommand].
  */
 @Suppress("UNUSED")
 class CPGOptionGroup : BackendOptions(helpName = "CPG Backend Options") {

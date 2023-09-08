@@ -45,21 +45,22 @@ data class ReturnValueItem<E>(
 
 data class ArgumentItem<E>(
     val op: Op,
-    val number: Int,
+    val index: Int,
     override val transformation: (BackendDataItem) -> TransformationResult<E, String> = {
         TransformationResult.failure("No transformation given from user")
     }
 ) : CanChangeTransformation<E> {
     init {
-        require(number >= 0) { "The number of the argument cannot be negative" }
+        // TODO: Do we count starting at 0 or 1?
+        require(index >= 0) { "The number of the argument cannot be negative" }
     }
 
     override fun <T> withTransformation(
         newTransformation: (BackendDataItem) -> TransformationResult<T, String>
     ): ArgumentItem<T> =
-        ArgumentItem(op = op, number = number, transformation = newTransformation)
+        ArgumentItem(op = op, index = index, transformation = newTransformation)
 
-    override fun toString(): String = "${number.ordinal()} argument of $op"
+    override fun toString(): String = "${(index + 1).ordinal()} argument of $op"
 
     @Suppress("MagicNumber")
     fun Int.ordinal(): String {

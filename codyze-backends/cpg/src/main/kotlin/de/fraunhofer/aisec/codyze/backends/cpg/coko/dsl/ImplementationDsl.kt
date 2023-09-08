@@ -27,6 +27,7 @@ import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.query.dataFlow
+import de.fraunhofer.aisec.cpg.query.executionPath
 
 //
 // all functions/properties defined here must use CokoBackend
@@ -37,7 +38,7 @@ val CokoBackend.cpg: TranslationResult
 
 /** Get all [Nodes] that are associated with this [Op]. */
 context(CokoBackend)
-fun Op.cpgGetAllNodes(): Nodes =
+fun Op.cpgGetAllNodes(): Collection<CallExpression> =
     when (this@Op) {
         is FunctionOp ->
             this@Op.definitions.flatMap { def -> this@CokoBackend.cpgCallFqn(def.fqn) }
@@ -59,7 +60,7 @@ fun Op.cpgGetAllNodes(): Nodes =
  * [Definition]s.
  */
 context(CokoBackend)
-fun Op.cpgGetNodes(): Nodes =
+fun Op.cpgGetNodes(): Collection<CallExpression> =
     when (this@Op) {
         is FunctionOp ->
             this@Op.definitions
@@ -85,7 +86,8 @@ fun Op.cpgGetNodes(): Nodes =
             val conditionNodes = conditionOp.cpgGetNodes()
             resultNodes.filter { resultNode ->
                 conditionNodes.any { conditionNode ->
-                    val result = dataFlow(conditionNode, resultNode) // TODO
+                    // TODO: Is it correct to use the EOG relationship here?
+                    val result = executionPath(conditionNode, resultNode)
                     result.value
                 }
             }

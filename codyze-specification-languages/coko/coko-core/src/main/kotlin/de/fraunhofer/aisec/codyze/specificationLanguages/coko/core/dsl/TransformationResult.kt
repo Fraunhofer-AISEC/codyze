@@ -31,17 +31,17 @@ sealed interface TransformationResult<E, T> {
 
     companion object {
         /** Creates a [TransformationFailure] object with the given [reason]. */
-        fun <E,T> failure(reason: T): TransformationResult<E, T> = TransformationFailure(reason)
+        fun <E, T> failure(reason: T): TransformationResult<E, T> = TransformationFailure(reason)
 
         /** Creates a [TransformationSuccess] object with the given [value]. */
-        fun <E,T> success(value: E): TransformationResult<E,T> = TransformationSuccess(value)
+        fun <E, T> success(value: E): TransformationResult<E, T> = TransformationSuccess(value)
     }
 }
 
 /**
  * This class indicates that the operation was a success and the result is stored in [value].
  */
-private data class TransformationSuccess<E,T>(val value: E) : TransformationResult<E,T> {
+private data class TransformationSuccess<E, T>(val value: E) : TransformationResult<E, T> {
     override val isFailure: Boolean
         get() = false
     override val isSuccess: Boolean
@@ -55,7 +55,7 @@ private data class TransformationSuccess<E,T>(val value: E) : TransformationResu
 /**
  * This class indicates that the operation was not successful and the reasons are stored in [reason].
  */
-private data class TransformationFailure<E, T>(val reason: T) : TransformationResult<E,T> {
+private data class TransformationFailure<E, T>(val reason: T) : TransformationResult<E, T> {
     override val isFailure: Boolean
         get() = true
     override val isSuccess: Boolean

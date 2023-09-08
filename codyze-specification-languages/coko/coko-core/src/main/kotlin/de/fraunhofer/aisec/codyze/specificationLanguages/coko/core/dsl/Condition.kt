@@ -68,7 +68,7 @@ class Condition {
     fun not(conditionComponent: ConditionComponent) = UnaryConditionComponent(conditionComponent, UnaryOperatorName.NOT)
 
     private fun toValue(value: Any): DataItem<*> =
-        when(value) {
+        when (value) {
             is DataItem<*> -> value
             else -> Value(value)
         }

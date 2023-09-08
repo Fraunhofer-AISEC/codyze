@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Condition
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.CallConditionComponent
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ConditionComponent
 
 abstract class WheneverEvaluator(protected val premise: ConditionComponent) : Evaluator {
@@ -46,7 +47,13 @@ class CallLocationBuilder {
 }
 data class CallLocation(val direction: Direction, val scope: Scope)
 
-data class CallAssertion(val op: Op, val location: CallLocation? = null)
+class CallAssertion(op: Op, val location: CallLocation? = null): CallConditionComponent(op) {
+    override fun toString(): String =
+        "Call $op ${
+            if(location != null) "${location.direction} in ${location.scope}."
+            else ""
+        }"
+}
 
 class ListBuilder {
     operator fun <E>get(vararg things: E): List<E> = things.toList()

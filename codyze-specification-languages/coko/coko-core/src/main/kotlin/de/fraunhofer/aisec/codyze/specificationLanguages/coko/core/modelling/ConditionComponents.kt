@@ -18,7 +18,9 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 
-sealed interface ConditionNode
+sealed interface ConditionNode {
+    override fun toString(): String
+}
 sealed interface ConditionComponent : ConditionNode
 sealed interface ConditionLeaf : ConditionNode
 
@@ -32,22 +34,32 @@ class ComparisonConditionComponent(
     override val left: DataItem<*>,
     override val right: DataItem<*>,
     override val operator: ComparisonOperatorName
-) : BinaryConditionComponent
+) : BinaryConditionComponent {
+    override fun toString(): String = "$left ${operator.name} $right"
+}
 
 class BinaryLogicalConditionComponent(
     override val left: ConditionComponent,
     override val right: ConditionComponent,
     override val operator: BinaryLogicalOperatorName
-) : BinaryConditionComponent
+) : BinaryConditionComponent {
+    override fun toString(): String = "$left ${operator.name} $right"
+}
 
 class UnaryConditionComponent(
     val conditionNode: ConditionNode,
     val operator: UnaryOperatorName
-) : ConditionComponent
+) : ConditionComponent {
+    override fun toString(): String = "${operator.name} $conditionNode"
+}
 
-class CallConditionComponent(val op: Op) : ConditionComponent
+open class CallConditionComponent(val op: Op) : ConditionComponent {
+    override fun toString(): String = op.toString()
+}
 
-class ContainsConditionComponent<E, T>(val item: DataItem<E>, val collection: Collection<T>) : ConditionComponent
+class ContainsConditionComponent<E, T>(val item: DataItem<E>, val collection: Collection<T>) : ConditionComponent {
+    override fun toString(): String = "$item within $collection"
+}
 
 sealed interface BinaryOperatorName {
     val operatorCodes: List<String>

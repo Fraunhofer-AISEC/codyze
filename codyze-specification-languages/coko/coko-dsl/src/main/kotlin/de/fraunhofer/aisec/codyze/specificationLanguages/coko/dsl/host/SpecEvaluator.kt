@@ -73,7 +73,7 @@ class SpecEvaluator {
                     // TODO: check for all implementations!
                     implementationsAndInstances
                         .filter { (it, _) -> it.createType().isSubtypeOf(param.type) }
-                        .map { (it, paramInstance) ->
+                        .mapNotNull { (it, _) ->
                             val primaryConstructor =
                                 checkNotNull(it.primaryConstructor) {
                                     "Could not create an instance of ${it.qualifiedName} to pass to rule " +
@@ -88,13 +88,13 @@ class SpecEvaluator {
                                 "Could not create an instance of ${it.qualifiedName} to pass to rule " +
                                     "\"${rule.name}\" because it's primary constructor expects arguments. Aborting."
                             }
-                            // TODO: how do we access primaryConstructor.arity ? -> then we would
-                            // not need the try..catch
                             try {
-                                primaryConstructor.call(paramInstance)
-                            } catch (e: IllegalArgumentException) {
-                                logger.debug { "Called constructor '$primaryConstructor' without paramInstance ($e)" }
                                 primaryConstructor.call()
+                            } catch (e: IllegalArgumentException) {
+                                logger.debug {
+                                    "Calling constructor '$primaryConstructor' without arguments failed ($e)"
+                                }
+                                null
                             }
                         }[0]
                 }

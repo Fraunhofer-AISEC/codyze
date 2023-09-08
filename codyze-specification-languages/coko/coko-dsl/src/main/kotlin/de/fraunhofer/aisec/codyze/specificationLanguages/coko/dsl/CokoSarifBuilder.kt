@@ -40,9 +40,9 @@ private fun CokoRule.toReportingDescriptor() = ReportingDescriptor(
     defaultConfiguration = ReportingConfiguration(level = findAnnotation<Rule>()?.severity?.toResultLevel()),
     help = findAnnotation<Rule>()?.help?.let { desc -> MultiformatMessageString(text = desc) },
     properties = PropertyBag(
-        tags = findAnnotation<Rule>()?.tags?.toList()
+        tags = findAnnotation<Rule>()?.tags?.toList(),
+
     )
-    // TODO: add precision, severity
 )
 
 class CokoSarifBuilder(val rules: List<CokoRule>, val backend: Backend) {

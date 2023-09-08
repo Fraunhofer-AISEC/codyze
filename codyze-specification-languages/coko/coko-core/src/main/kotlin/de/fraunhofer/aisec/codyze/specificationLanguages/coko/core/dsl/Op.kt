@@ -35,6 +35,9 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.Term
     )
 }
 
+/**
+ * A helper class that makes it possible to construct an [ArgumentItem] with an indexed access (e.g. op.argument[1])
+ */
 class Arguments(val op: Op) {
     operator fun get(index: Int): ArgumentItem<Any> = ArgumentItem(op, index)
 }
@@ -127,6 +130,7 @@ data class GroupingOp(val ops: Set<Op>, override val ownerClassFqn: String = "")
 /**
  * An [Op] that describes that the function calls found with [resultOp] depend on the function calls found with the [conditionOp]
  */
+// TODO: Clearly define the dependency we are describing here -> is it data flow, control flow, or something else?
 data class ConditionalOp(val resultOp: Op, val conditionOp: Op, override val ownerClassFqn: String = "") : Op {
     override fun toString(): String {
         return "$resultOp with $conditionOp"

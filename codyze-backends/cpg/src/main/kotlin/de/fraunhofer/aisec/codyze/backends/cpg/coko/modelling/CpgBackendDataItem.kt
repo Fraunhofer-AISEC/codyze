@@ -23,12 +23,14 @@ import de.fraunhofer.aisec.cpg.graph.declarations.Declaration
 import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
 
+/** Implementation of the [BackendDataItem] interface for the CPG */
 class CpgBackendDataItem(
     override val name: String?,
     override val value: Any?,
     override val type: String?
 ) : BackendDataItem
 
+/** Returns the [CpgBackendDataItem] of the given [Node] */
 fun Node.toBackendDataItem(): CpgBackendDataItem {
     val value = (this as? Expression)?.evaluate() ?: (this as? Declaration)?.evaluate()
     val type = (this as? HasType)?.type?.typeName

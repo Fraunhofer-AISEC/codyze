@@ -34,7 +34,7 @@ fun DataItem<*>.cpgGetAllNodes(): Nodes =
     when (this@DataItem) {
         is ReturnValueItem -> op.cpgGetAllNodes().flatMap { it.getVariableInNextDFGOrThis() }
         is Value -> this@DataItem.getNodes()
-        is ArgumentItem -> TODO()
+        is ArgumentItem -> op.cpgGetAllNodes().map { it.arguments[index] } // TODO: Do we count starting at 0 or 1?
     }
 
 /**
@@ -45,7 +45,7 @@ fun DataItem<*>.cpgGetNodes(): Nodes {
     return when (this@DataItem) {
         is ReturnValueItem -> op.cpgGetNodes().flatMap { it.getVariableInNextDFGOrThis() }
         is Value -> this@DataItem.getNodes()
-        is ArgumentItem -> TODO()
+        is ArgumentItem -> op.cpgGetNodes().map { it.arguments[index] } // TODO: Do we count starting at 0 or 1?
     }
 }
 

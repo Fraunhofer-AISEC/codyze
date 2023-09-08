@@ -25,8 +25,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.TransformationResult
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.followNextEOG
-import de.fraunhofer.aisec.cpg.graph.followPrevEOG
 import de.fraunhofer.aisec.cpg.query.executionPath
 import kotlin.reflect.full.findAnnotation
 
@@ -43,33 +41,39 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
 
         val findings = mutableListOf<Finding>()
 
-        val (premiseNodes, premiseProblems) = evaluateConditionNodeToCpgNodes(premise)
+        // First find the nodes corresponding to the premise
+        val (premiseNodes, _, premiseProblems) = evaluateConditionComponentToCpgNodes(premise)
 
+        // If there are no premiseNodes, we cannot evaluate further
         if (premiseNodes.isEmpty()) {
-            if (premiseProblems.isEmpty()) {
+            if (premiseProblems.isNotEmpty()) {
+                // If there were problems resolving the premise, we cannot be sure that the rule was followed
+                findings.add(
+                    CpgFinding(
+                        message = "$premise could not be resolved correctly. $premiseProblems",
+                        kind = Finding.Kind.Open,
+                    )
+                )
+            } else {
+                // Since there were no problems in resolving the premise, the rule must not be applicable
                 findings.add(
                     CpgFinding(
                         message = "$premise was not found in code.",
                         kind = Finding.Kind.NotApplicable,
                     )
                 )
-            } else {
-                findings.add(
-                    CpgFinding(
-                        message = "$premise could not be resolved correctly. $premiseProblems",
-                        kind = Finding.Kind.Open,
-
-                    )
-                )
             }
         } else {
+            // check for each premiseNode if the ensures and callAssertions are fulfilled
             for (premiseNode in premiseNodes) {
+                // find nodes that fulfill the ensures conditions
                 val ensuresToNodes = ensures.associateWith { ensure ->
                     evaluateConditionComponentToCpgNodes(
                         ensure,
                         premiseNode
                     ).removeDummyNodes()
                 }
+                // find nodes that fulfill the call conditions
                 val callAssertionsToNodes = callAssertions.associateWith { callAssertion ->
                     val nodes = callAssertion.op.cpgGetNodes()
                     val location = callAssertion.location
@@ -97,6 +101,7 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         return findings
     }
 
+    /** Generates the findings based on what nodes were found for each condition in [conditionToNodes]. */
     private fun generateFindings(
         premiseNode: Node,
         conditionToNodes: Map<ConditionComponent, EvaluationResult>,
@@ -107,10 +112,12 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
 
         val unfulfilledConditions = conditionToNodes.filterValues { (fulfilled, _, _) -> fulfilled.isEmpty() }
 
+        // If there is a condition that was not fulfilled, the rule was not followed
         if (unfulfilledConditions.isNotEmpty()) {
             for ((condition, nodesToProblems) in unfulfilledConditions) {
                 val (_, unfulfilled, problems) = nodesToProblems
                 if (problems.isNotEmpty()) {
+                    // If there were problems resolving the condition, we cannot be sure that the rule was broken or not
                     findings.add(
                         CpgFinding(
                             message = "There were problems in resolving $condition. $problems",
@@ -120,9 +127,11 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
                         )
                     )
                 } else {
-                    // TODO: Better message
+                    // Since there were no problems, this means that the condition was definitely not fulfilled and
+                    // the rule was broken
                     findings.add(
                         CpgFinding(
+                            // TODO: Better message
                             message = "No $condition found around $premise. $failMessage",
                             kind = Finding.Kind.Fail,
                             node = premiseNode,
@@ -132,6 +141,7 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
                 }
             }
         } else {
+            // Since there are no unfulfilled conditions, the rule was followed for this premiseNode
             findings.add(
                 CpgFinding(
                     message = passMessage,
@@ -141,6 +151,7 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
                 )
             )
 
+            // document any problems that occurred when resolving the condition
             val conditionToProblems = conditionToNodes.mapValues { (_, result) -> result.problems }
             for ((condition, problems) in conditionToProblems) {
                 if (problems.isNotEmpty()) {
@@ -157,6 +168,10 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         return findings
     }
 
+    /**
+     * Finds the nodes that are represented by the [conditionNode].
+     * If [premiseNode] is given, only nodes that are in its vicinity are considered.
+     */
     private fun evaluateConditionNodeToCpgNodes(
         conditionNode: ConditionNode,
         premiseNode: Node? = null
@@ -169,10 +184,19 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         }
     }
 
+    /**
+     * Finds the nodes that are represented by [value].
+     */
     private fun evaluateValueToCpgNodes(value: Value<*>, premiseNode: Node? = null): EvaluationResult {
+        // We return a [DummyNode] here because Value objects don't use the information from the backend
+        // for their transformation.
         return EvaluationResult(listOf(DummyNode()), emptyList(), Problems())
     }
 
+    /**
+     * Finds the nodes that are represented by [argumentItem].
+     * If [premiseNode] is given, only nodes that are in its vicinity are considered.
+     */
     private fun evaluateArgumentItemToCpgNodes(
         argumentItem: ArgumentItem<*>,
         premiseNode: Node? = null
@@ -181,6 +205,10 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         return EvaluationResult(nodes, emptyList(), Problems())
     }
 
+    /**
+     * Finds the nodes that are represented by [returnValueItem].
+     * If [premiseNode] is given, only nodes that are in its vicinity are considered.
+     */
     private fun evaluateReturnValueItemToCpgNodes(
         returnValueItem: ReturnValueItem<*>,
         premiseNode: Node? = null
@@ -189,6 +217,10 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         return EvaluationResult(nodes, emptyList(), Problems())
     }
 
+    /**
+     * Finds the nodes that fulfill and don't fulfill the [conditionComponent].
+     * If [premiseNode] is given, only nodes that are in its vicinity are considered.
+     */
     private fun evaluateConditionComponentToCpgNodes(
         conditionComponent: ConditionComponent,
         premiseNode: Node? = null
@@ -203,6 +235,10 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         }
     }
 
+    /**
+     * Combines the nodes of the right and left side of the [binaryLogicalConditionComponent].
+     * If [premiseNode] is given, only nodes that are in its vicinity are considered.
+     */
     private fun evaluateBinaryLogicalConditionComponent(
         binaryLogicalConditionComponent: BinaryLogicalConditionComponent,
         premiseNode: Node? = null
@@ -215,6 +251,7 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
             BinaryLogicalOperatorName.AND ->
                 EvaluationResult(
                     leftFulfillingNodes intersect rightFulfillingNodes.toSet(),
+                    // we return the union of the unfulfilled nodes since we want to collect them all
                     leftUnfulfillingNodes union rightUnfulfillingNodes,
                     leftProblems + rightProblems
                 )
@@ -227,6 +264,10 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         }
     }
 
+    /**
+     * Finds the nodes that fulfill and don't fulfill the [comparisonConditionComponent].
+     * If [premiseNode] is given, only nodes that are in its vicinity are considered.
+     */
     private fun evaluateComparisonConditionComponent(
         comparisonConditionComponent: ComparisonConditionComponent,
         premiseNode: Node? = null
@@ -240,32 +281,37 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         val newFulfillingNodes = mutableSetOf<Node>()
         val newUnfulfillingNodes = mutableSetOf<Node>()
 
+        // These are the nodes where the transformation produced a value which can hopefully compared to one another
         val leftNodesToValues =
             leftFulfillingNodes.toNodesToValues(newProblems, comparisonConditionComponent.left.transformation)
         val rightNodesToValues =
             rightFulfillingNodes.toNodesToValues(newProblems, comparisonConditionComponent.right.transformation)
 
         for ((leftNode, leftValue) in leftNodesToValues) {
-//            for ((rightNode, rightValue) in rightNodesToValues)
-            when (comparisonConditionComponent.operator) {
+            // we partition the rightNodes into ones that fulfill and
+            // the ones that do not fulfill this condition when compared to the leftNode
+            val (fulfilling, unfulfilling) = when (comparisonConditionComponent.operator) {
                 ComparisonOperatorName.GEQ -> TODO()
                 ComparisonOperatorName.GT -> TODO()
                 ComparisonOperatorName.LEQ -> TODO()
-                ComparisonOperatorName.LT -> TODO()
-                ComparisonOperatorName.EQ -> {
-                    val (fulfilling, unfulfilling) =
-                        rightNodesToValues.toList().partition { (_, rightValue) -> leftValue == rightValue }
-                    newFulfillingNodes.addAll(fulfilling.map { it.first })
-                    newUnfulfillingNodes.addAll(unfulfilling.map { it.first })
-                    if (fulfilling.isEmpty()) {
-                        newUnfulfillingNodes.add(
-                            leftNode
-                        )
-                    } else {
-                        newFulfillingNodes.add(leftNode)
-                    }
-                }
-                ComparisonOperatorName.NEQ -> TODO()
+                ComparisonOperatorName.LT -> TODO("How do we ensure that both values have an order?")
+                ComparisonOperatorName.EQ ->
+                    rightNodesToValues.toList().partition { (_, rightValue) -> leftValue == rightValue }
+                ComparisonOperatorName.NEQ ->
+                    rightNodesToValues.toList().partition { (_, rightValue) -> leftValue != rightValue }
+            }
+            newFulfillingNodes.addAll(fulfilling.map { it.first })
+            newUnfulfillingNodes.addAll(unfulfilling.map { it.first })
+            if (fulfilling.isEmpty()) {
+                // there was no rightNode where the comparison to this leftNode returned true,
+                // so it does not fulfill this condition
+                newUnfulfillingNodes.add(
+                    leftNode
+                )
+            } else {
+                // there was a rightNode where the comparison to this leftNode returned true,
+                // so it fulfills this condition
+                newFulfillingNodes.add(leftNode)
             }
         }
 
@@ -276,6 +322,10 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         )
     }
 
+    /**
+     * Finds the nodes of the [Op] of [callConditionComponent].
+     * If [premiseNode] is given, only nodes that are in its vicinity are considered.
+     */
     private fun evaluateCallConditionComponent(
         callConditionComponent: CallConditionComponent,
         premiseNode: Node? = null
@@ -284,6 +334,11 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         return EvaluationResult(callNodes, emptyList(), Problems())
     }
 
+    /**
+     * Finds the nodes of the [DataItem] of [containsConditionComponent] for which
+     * its transformed value is contained in [ContainsConditionComponent.collection].
+     * If [premiseNode] is given, only nodes that are in its vicinity are considered.
+     */
     private fun evaluateContainsConditionComponent(
         containsConditionComponent: ContainsConditionComponent<*, *>,
         premiseNode: Node?
@@ -308,6 +363,10 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         return EvaluationResult(fulfilling, unfulfilling, problems)
     }
 
+    /**
+     * Maps the nodes in [Nodes] to their transformed values based on [transformation].
+     * If the transformation was unsuccessful, the failure reason is added to [problems].
+     */
     private fun Nodes.toNodesToValues(
         problems: Problems,
         transformation: (BackendDataItem) -> TransformationResult<out Any?, String>
@@ -328,6 +387,10 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         return result
     }
 
+    /**
+     * Filters out all nodes that are not in the vicinity of [premiseNode].
+     */
+    // TODO: Is this filter ok? Do we have to limit how far the nodes can be apart?
     private fun Nodes.filterWithDistanceToPremise(premiseNode: Node?): Nodes {
         return if (premiseNode != null) {
             this.filter { executionPath(it, premiseNode).value }
@@ -336,22 +399,9 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         }
     }
 
-    private fun Node.eogDistance(other: Node): Int {
-        var to = 0
-        this.followNextEOG {
-            to++
-            it.end == other
-        }
-
-        var from = 0
-        this.followPrevEOG {
-            from++
-            it.end == other
-        }
-
-        return if (to < from) to else from
-    }
-
+    /**
+     * A class to collect the problems that are encountered in an evaluation.
+     */
     class Problems {
         private val map: MutableMap<Node, String> = mutableMapOf()
 
@@ -375,6 +425,12 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         }
     }
 
+    /**
+     * A class to collect the results of the evaluation of a [ConditionNode].
+     * [fulfillingNodes] contains all nodes that fulfill the [ConditionNode],
+     * [unfulfillingNodes] contains all nodes that do not fulfill the [ConditionNode],
+     * [problems] are the problems encountered in the evaluation.
+     */
     data class EvaluationResult(
         val fulfillingNodes: MutableList<Node> = mutableListOf(),
         val unfulfillingNodes: MutableList<Node> = mutableListOf(),

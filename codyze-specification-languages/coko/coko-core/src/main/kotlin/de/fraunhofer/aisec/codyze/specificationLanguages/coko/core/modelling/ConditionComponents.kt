@@ -21,15 +21,21 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 sealed interface ConditionNode {
     override fun toString(): String
 }
+
+/** [ConditionNode] that can have children */
 sealed interface ConditionComponent : ConditionNode
+
+/** [ConditionNode] that does not have children */
 sealed interface ConditionLeaf : ConditionNode
 
+/** A [ConditionComponent] that has two children and a [operator] */
 sealed interface BinaryConditionComponent : ConditionComponent {
     val left: ConditionNode
     val right: ConditionNode
     val operator: BinaryOperatorName
 }
 
+/** A [BinaryConditionComponent] that compares [left] and [right] based on [operator] (e.g. equality or less than) */
 class ComparisonConditionComponent(
     override val left: DataItem<*>,
     override val right: DataItem<*>,
@@ -38,6 +44,7 @@ class ComparisonConditionComponent(
     override fun toString(): String = "$left ${operator.name} $right"
 }
 
+/** A [BinaryConditionComponent] that logically combines [left] and [right] based on [operator] (e.g. logical and) */
 class BinaryLogicalConditionComponent(
     override val left: ConditionComponent,
     override val right: ConditionComponent,
@@ -46,6 +53,7 @@ class BinaryLogicalConditionComponent(
     override fun toString(): String = "$left ${operator.name} $right"
 }
 
+/** A [ConditionComponent] that has one child, [conditionNode], and a [operator] (e.g. negation) */
 class UnaryConditionComponent(
     val conditionNode: ConditionNode,
     val operator: UnaryOperatorName
@@ -53,10 +61,13 @@ class UnaryConditionComponent(
     override fun toString(): String = "${operator.name} $conditionNode"
 }
 
+/** A [ConditionComponent] that represents a function call */
+// TODO: Is this necessary? And should it be a ConditionLeaf?
 open class CallConditionComponent(val op: Op) : ConditionComponent {
     override fun toString(): String = op.toString()
 }
 
+/** A [ConditionComponent] that represents the condition that the value of [item] should be in [collection] */
 class ContainsConditionComponent<E, T>(val item: DataItem<E>, val collection: Collection<T>) : ConditionComponent {
     override fun toString(): String = "$item within $collection"
 }

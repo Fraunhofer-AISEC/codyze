@@ -64,6 +64,7 @@ interface CokoBackend : Backend {
     /** Ensures that there are no calls to the [ops] which have arguments that fit the parameters specified in [ops] */
     fun never(vararg ops: Op): Evaluator
 
+    /** Verifies that the [assertionBlock] is ensured when [premise] is found */
     fun whenever(
         premise: Condition.() -> ConditionComponent,
         assertionBlock: WheneverEvaluator.() -> Unit

@@ -21,18 +21,32 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.CallConditionComponent
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ConditionComponent
 
+/**
+ * An evaluator that describes what should happen around the code that the [premise] represents.
+ */
 abstract class WheneverEvaluator(protected val premise: ConditionComponent) : Evaluator {
     protected val ensures: MutableList<ConditionComponent> = mutableListOf()
     protected val callAssertions: MutableList<CallAssertion> = mutableListOf()
 
+    /**
+     * Specifies a condition that has to be ensured around the [premise].
+     */
     fun ensure(block: Condition.() -> ConditionComponent) {
         ensures.add(Condition().run(block))
     }
 
+    /**
+     * Specifies that [op] has to be called in the given [location] in regard to the [premise].
+     */
     fun call(op: Op, location: CallLocationBuilder.() -> CallLocation? = { null }) {
         callAssertions.add(CallAssertion(op, CallLocationBuilder().run(location)))
     }
 }
+
+class CallLocationBuilder {
+    infix fun Direction.within(scope: Scope) = CallLocation(this@Direction, scope)
+}
+data class CallLocation(val direction: Direction, val scope: Scope)
 
 enum class Direction {
     afterwards, before, somewhere
@@ -42,16 +56,14 @@ enum class Scope {
     Function, Block
 }
 
-class CallLocationBuilder {
-    infix fun Direction.within(scope: Scope) = CallLocation(this@Direction, scope)
-}
-data class CallLocation(val direction: Direction, val scope: Scope)
-
-class CallAssertion(op: Op, val location: CallLocation? = null): CallConditionComponent(op) {
+class CallAssertion(op: Op, val location: CallLocation? = null) : CallConditionComponent(op) {
     override fun toString(): String =
         "Call $op ${
-            if(location != null) "${location.direction} in ${location.scope}."
-            else ""
+            if (location != null) {
+                "${location.direction} in ${location.scope}."
+            } else {
+                ""
+            }
         }"
 }
 

@@ -49,6 +49,9 @@ fun DataItem<*>.cpgGetNodes(): Nodes {
     }
 }
 
+/**
+ * Get all [Nodes] that evaluate to the same value as [Value.value].
+ */
 context(CokoBackend)
 private fun Value<*>.getNodes(): Nodes {
     val value = this.value

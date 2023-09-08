@@ -19,16 +19,30 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.TransformationResult
 
+/**
+ * Represents a data item such as a variable or literal.
+ *
+ * [transformation] is a function that transforms data from the [CokoBackend] into an object with type [E]
+ */
 sealed interface DataItem<E> : ConditionLeaf {
     val transformation: (BackendDataItem) -> TransformationResult<E, String>
 }
 
+/**
+ * Adds an infix function [withTransformation] to a [DataItem].
+ */
 sealed interface CanChangeTransformation<E> : DataItem<E> {
+    /**
+     * Changes the [transformation] of this [DataItem] into the given [newTransformation].
+     */
     infix fun <T> withTransformation(
         newTransformation: (BackendDataItem) -> TransformationResult<T, String>
     ): DataItem<T>
 }
 
+/**
+ * Represents the data item that a function call represented by [op] returns.
+ */
 data class ReturnValueItem<E>(
     val op: Op,
     override val transformation: (BackendDataItem) -> TransformationResult<E, String> = {
@@ -43,6 +57,11 @@ data class ReturnValueItem<E>(
         ReturnValueItem(op = op, transformation = newTransformation)
 }
 
+/**
+ * Represents the argument at [index] given to the function call represented by [op].
+ *
+ * The [index] starts counting from 0.
+ */
 data class ArgumentItem<E>(
     val op: Op,
     val index: Int,
@@ -74,6 +93,9 @@ data class ArgumentItem<E>(
     }
 }
 
+/**
+ * A wrapper class for [value] to make it a [DataItem].
+ */
 data class Value<E> internal constructor(val value: E) : DataItem<E> {
     override val transformation: (BackendDataItem) -> TransformationResult<E, String>
         get() = { TransformationResult.success(value) }

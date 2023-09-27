@@ -31,7 +31,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberFunctions
 

@@ -19,7 +19,7 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze.core.config.resolvePaths
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorOptions
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
 
 private val logger = KotlinLogging.logger {}

@@ -9,7 +9,7 @@ dokka = "1.9.0"
 
 
 [libraries]
-sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.4.0"}  # The code can be found here: https://github.com/detekt/sarif4k. It was generated using https://app.quicktype.io/
+sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.5.0"}  # The code can be found here: https://github.com/detekt/sarif4k. It was generated using https://app.quicktype.io/
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.6.0"}
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 
@@ -42,7 +42,7 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 
 # test
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.10.0"}
-mockk = { module = "io.mockk:mockk", version = "1.13.7"}
+mockk = { module = "io.mockk:mockk", version = "1.13.8"}
 
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

@@ -11,6 +11,7 @@ include("code-coverage-report")
 include("codyze-cli")
 include("codyze-core")
 include(":codyze-backends:cpg")
+include("codyze-aggregator")
 
 // Codyze Kotlin specification language
 include(":codyze-specification-languages:coko:coko-core")
@@ -19,3 +20,4 @@ include(":codyze-specification-languages:coko:coko-dsl")
 // TODO re-enable modules once adapted to codyze v3
 // include("codyze-lsp")
 // include("codyze-console")
+include("codyze-aggregator")

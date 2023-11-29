@@ -20,4 +20,4 @@ include(":codyze-specification-languages:coko:coko-dsl")
 // TODO re-enable modules once adapted to codyze v3
 // include("codyze-lsp")
 // include("codyze-console")
-include("codyze-aggregator")
+include("codyze-plugins")

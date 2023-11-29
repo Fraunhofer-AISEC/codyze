@@ -15,9 +15,6 @@
  */
 package de.fraunhofer.aisec.codyze.aggregator
 
-import io.github.detekt.sarif4k.SarifSchema210
-import io.github.detekt.sarif4k.SarifSerializer
-import io.github.detekt.sarif4k.Version
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -26,7 +23,6 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isRegularFile
-
 
 class ParserTest {
 
@@ -38,7 +34,7 @@ class ParserTest {
         val parser = Parser()
         val file = exampleResults.first { it.name == "pmd-report.sarif" }
 
-        val run = parser.extractLatestRun(file)
+        val run = parser.extractLastRun(file)
 
         assertNotNull(run)
         run!!
@@ -60,7 +56,7 @@ class ParserTest {
         val parser = Parser()
         val file = File("fake-results.sarif")
 
-        val run = parser.extractLatestRun(file)
+        val run = parser.extractLastRun(file)
         assertNull(run)
     }
 
@@ -72,7 +68,7 @@ class ParserTest {
         val parser = Parser()
         val file = exampleResults.first { it.name == "pmd-report.txt" }
 
-        val run = parser.extractLatestRun(file)
+        val run = parser.extractLastRun(file)
         assertNull(run)
     }
 

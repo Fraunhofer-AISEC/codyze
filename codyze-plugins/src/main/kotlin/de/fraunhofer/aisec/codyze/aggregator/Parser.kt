@@ -17,7 +17,6 @@ package de.fraunhofer.aisec.codyze.aggregator
 
 import io.github.detekt.sarif4k.Run
 import io.github.detekt.sarif4k.SarifSchema210
-import io.github.detekt.sarif4k.SarifSerializer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -27,7 +26,12 @@ import java.io.File
 private val logger = KotlinLogging.logger { }
 
 class Parser {
-    fun extractLatestRun(resultFile: File): Run? {
+    /**
+     * Extracts the last run from a valid SARIF result file
+     * @param resultFile The file containing the SARIF report
+     * @return Its last run or null on error
+     */
+    fun extractLastRun(resultFile: File): Run? {
         if (!resultFile.exists()) {
             logger.error { "The SARIF file at \"${resultFile.canonicalPath}\" does not exist" }
             return null

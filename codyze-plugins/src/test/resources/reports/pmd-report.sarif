@@ -1,0 +1,152 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "PMD",
+          "version": "7.0.0-rc4",
+          "informationUri": "https://docs.pmd-code.org/latest/",
+          "rules": [
+            {
+              "id": "CloseResource",
+              "shortDescription": {
+                "text": "Ensure that resources like this BufferedReader object are closed after use"
+              },
+              "fullDescription": {
+                "text": "\nEnsure that resources (like `java.sql.Connection`, `java.sql.Statement`, and `java.sql.ResultSet` objects\nand any subtype of `java.lang.AutoCloseable`) are always closed after use.\nFailing to do so might result in resource leaks.\n\nNote: It suffices to configure the super type, e.g. `java.lang.AutoCloseable`, so that this rule automatically triggers\non any subtype (e.g. `java.io.FileInputStream`). Additionally specifying `java.sql.Connection` helps in detecting\nthe types, if the type resolution / auxclasspath is not correctly setup.\n\nNote: Since PMD 6.16.0 the default value for the property `types` contains `java.lang.AutoCloseable` and detects\nnow cases where the standard `java.io.*Stream` classes are involved. In order to restore the old behaviour,\njust remove \"AutoCloseable\" from the types.\n        "
+              },
+              "helpUri": "https://docs.pmd-code.org/pmd-doc-7.0.0-rc4/pmd_rules_java_errorprone.html#closeresource",
+              "help": {
+                "text": "\nEnsure that resources (like `java.sql.Connection`, `java.sql.Statement`, and `java.sql.ResultSet` objects\nand any subtype of `java.lang.AutoCloseable`) are always closed after use.\nFailing to do so might result in resource leaks.\n\nNote: It suffices to configure the super type, e.g. `java.lang.AutoCloseable`, so that this rule automatically triggers\non any subtype (e.g. `java.io.FileInputStream`). Additionally specifying `java.sql.Connection` helps in detecting\nthe types, if the type resolution / auxclasspath is not correctly setup.\n\nNote: Since PMD 6.16.0 the default value for the property `types` contains `java.lang.AutoCloseable` and detects\nnow cases where the standard `java.io.*Stream` classes are involved. In order to restore the old behaviour,\njust remove \"AutoCloseable\" from the types.\n        "
+              },
+              "properties": {
+                "ruleset": "Error Prone",
+                "priority": 3,
+                "tags": [
+                  "Error Prone"
+                ]
+              }
+            },
+            {
+              "id": "CloseResource",
+              "shortDescription": {
+                "text": "Ensure that resources like this BufferedWriter object are closed after use"
+              },
+              "fullDescription": {
+                "text": "\nEnsure that resources (like `java.sql.Connection`, `java.sql.Statement`, and `java.sql.ResultSet` objects\nand any subtype of `java.lang.AutoCloseable`) are always closed after use.\nFailing to do so might result in resource leaks.\n\nNote: It suffices to configure the super type, e.g. `java.lang.AutoCloseable`, so that this rule automatically triggers\non any subtype (e.g. `java.io.FileInputStream`). Additionally specifying `java.sql.Connection` helps in detecting\nthe types, if the type resolution / auxclasspath is not correctly setup.\n\nNote: Since PMD 6.16.0 the default value for the property `types` contains `java.lang.AutoCloseable` and detects\nnow cases where the standard `java.io.*Stream` classes are involved. In order to restore the old behaviour,\njust remove \"AutoCloseable\" from the types.\n        "
+              },
+              "helpUri": "https://docs.pmd-code.org/pmd-doc-7.0.0-rc4/pmd_rules_java_errorprone.html#closeresource",
+              "help": {
+                "text": "\nEnsure that resources (like `java.sql.Connection`, `java.sql.Statement`, and `java.sql.ResultSet` objects\nand any subtype of `java.lang.AutoCloseable`) are always closed after use.\nFailing to do so might result in resource leaks.\n\nNote: It suffices to configure the super type, e.g. `java.lang.AutoCloseable`, so that this rule automatically triggers\non any subtype (e.g. `java.io.FileInputStream`). Additionally specifying `java.sql.Connection` helps in detecting\nthe types, if the type resolution / auxclasspath is not correctly setup.\n\nNote: Since PMD 6.16.0 the default value for the property `types` contains `java.lang.AutoCloseable` and detects\nnow cases where the standard `java.io.*Stream` classes are involved. In order to restore the old behaviour,\njust remove \"AutoCloseable\" from the types.\n        "
+              },
+              "properties": {
+                "ruleset": "Error Prone",
+                "priority": 3,
+                "tags": [
+                  "Error Prone"
+                ]
+              }
+            },
+            {
+              "id": "ControlStatementBraces",
+              "shortDescription": {
+                "text": "This statement should have braces"
+              },
+              "fullDescription": {
+                "text": "\n            Enforce a policy for braces on control statements. It is recommended to use braces on 'if ... else'\n            statements and loop statements, even if they are optional. This usually makes the code clearer, and\n            helps prepare the future when you need to add another statement. That said, this rule lets you control\n            which statements are required to have braces via properties.\n\n            From 6.2.0 on, this rule supersedes WhileLoopMustUseBraces, ForLoopMustUseBraces, IfStmtMustUseBraces,\n            and IfElseStmtMustUseBraces.\n        "
+              },
+              "helpUri": "https://docs.pmd-code.org/pmd-doc-7.0.0-rc4/pmd_rules_java_codestyle.html#controlstatementbraces",
+              "help": {
+                "text": "\n            Enforce a policy for braces on control statements. It is recommended to use braces on 'if ... else'\n            statements and loop statements, even if they are optional. This usually makes the code clearer, and\n            helps prepare the future when you need to add another statement. That said, this rule lets you control\n            which statements are required to have braces via properties.\n\n            From 6.2.0 on, this rule supersedes WhileLoopMustUseBraces, ForLoopMustUseBraces, IfStmtMustUseBraces,\n            and IfElseStmtMustUseBraces.\n        "
+              },
+              "properties": {
+                "ruleset": "Code Style",
+                "priority": 3,
+                "tags": [
+                  "Code Style"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CloseResource",
+          "ruleIndex": 0,
+          "message": {
+            "text": "Ensure that resources like this BufferedReader object are closed after use"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///home/robert/AISEC/tools/TlsServer.java"
+                },
+                "region": {
+                  "startLine": 102,
+                  "startColumn": 32,
+                  "endLine": 102,
+                  "endColumn": 34
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CloseResource",
+          "ruleIndex": 1,
+          "message": {
+            "text": "Ensure that resources like this BufferedWriter object are closed after use"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///home/robert/AISEC/tools/TlsServer.java"
+                },
+                "region": {
+                  "startLine": 103,
+                  "startColumn": 32,
+                  "endLine": 103,
+                  "endColumn": 35
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "ControlStatementBraces",
+          "ruleIndex": 2,
+          "message": {
+            "text": "This statement should have braces"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///home/robert/AISEC/tools/TlsServer.java"
+                },
+                "region": {
+                  "startLine": 139,
+                  "startColumn": 17,
+                  "endLine": 139,
+                  "endColumn": 37
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolConfigurationNotifications": [],
+          "toolExecutionNotifications": []
+        }
+      ]
+    }
+  ]
+}

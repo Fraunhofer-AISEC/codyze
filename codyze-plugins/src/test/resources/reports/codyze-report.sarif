@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "inlineExternalProperties": [
+  ],
+  "runs": [
+    {
+      "columnKind": "utf16CodeUnits",
+      "language": "en-US",
+      "newlineSequences": [
+        "\r\n",
+        "\n"
+      ],
+      "redactionTokens": [
+        "[REDACTED]"
+      ],
+      "results": [
+        {
+          "kind": "fail",
+          "level": "error",
+          "locations": [
+            {
+              "id": 0,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/robert/AISEC/demo-cloud-service/src/main/java/de/fraunhofer/aisec/codyze/medina/demo/jsse/TlsServer.java"
+                },
+                "region": {
+                  "endColumn": 10,
+                  "endLine": 84,
+                  "startColumn": 39,
+                  "startLine": 76
+                }
+              }
+            }
+          ],
+          "message": {
+            "arguments": [
+            ],
+            "id": "TlsCipherSuitesMessage0",
+            "text": "TLS cipher suites aren't sufficiently restricted and may allow the use of less secure or deprecated cipher suites. Ensure the use of: \"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256\", \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384\", \"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256\", \"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_ECDSA_WITH_AES_128_CCM\", \"TLS_ECDHE_ECDSA_WITH_AES_256_CCM\", \"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384\", \"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\", \"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256\", \"TLS_DHE_DSS_WITH_AES_128_CBC_SHA256\", \"TLS_DHE_DSS_WITH_AES_256_CBC_SHA256\", \"TLS_DHE_DSS_WITH_AES_128_GCM_SHA256\", \"TLS_DHE_DSS_WITH_AES_256_GCM_SHA384\", \"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256\", \"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256\", \"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256\", \"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_DHE_RSA_WITH_AES_128_CCM\", \"TLS_DHE_RSA_WITH_AES_256_CCM\", \"TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256\", \"TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384\", \"TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256\", \"TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256\", \"TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384\", \"TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256\", \"TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_DH_DSS_WITH_AES_128_CBC_SHA256\", \"TLS_DH_DSS_WITH_AES_256_CBC_SHA256\", \"TLS_DH_DSS_WITH_AES_128_GCM_SHA256\", \"TLS_DH_DSS_WITH_AES_256_GCM_SHA384\", \"TLS_DH_RSA_WITH_AES_128_CBC_SHA256\", \"TLS_DH_RSA_WITH_AES_256_CBC_SHA256\", \"TLS_DH_RSA_WITH_AES_128_GCM_SHA256\", \"TLS_DH_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256\", \"TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384\", \"TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256\", \"TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256\", \"TLS_DHE_PSK_WITH_AES_128_CBC_SHA256\", \"TLS_DHE_PSK_WITH_AES_256_CBC_SHA384\", \"TLS_DHE_PSK_WITH_AES_128_GCM_SHA256\", \"TLS_DHE_PSK_WITH_AES_256_GCM_SHA38\", \"TLS_DHE_PSK_WITH_AES_128_CCM\", \"TLS_DHE_PSK_WITH_AES_256_CCM\", \"TLS_RSA_PSK_WITH_AES_128_CBC_SHA256\", \"TLS_RSA_PSK_WITH_AES_256_CBC_SHA384\", \"TLS_RSA_PSK_WITH_AES_128_GCM_SHA256\", or \"TLS_RSA_PSK_WITH_AES_256_GCM_SHA384\"."
+          },
+          "rank": -1.0,
+          "ruleId": "TlsCipherSuites",
+          "ruleIndex": 1
+        },
+        {
+          "kind": "fail",
+          "level": "error",
+          "locations": [
+            {
+              "id": 0,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/robert/AISEC/demo-cloud-service/src/main/java/de/fraunhofer/aisec/codyze/medina/demo/jsse/TlsServer.java"
+                },
+                "region": {
+                  "endColumn": 10,
+                  "endLine": 75,
+                  "startColumn": 36,
+                  "startLine": 72
+                }
+              }
+            }
+          ],
+          "message": {
+            "arguments": [
+            ],
+            "id": "TlsVersionMessage1",
+            "text": "TLS version isn't sufficiently restricted and may allow the use of deprecated version. Ensure the use of TLS versions 1.2 or 1.3."
+          },
+          "rank": -1.0,
+          "ruleId": "TlsVersion",
+          "ruleIndex": 0
+        },
+        {
+          "kind": "fail",
+          "message": {
+            "text": "Whether the analyzed commit was signed off by a pre-specified subject"
+          },
+          "ruleId": "MD001"
+        },
+        {
+          "kind": "fail",
+          "message": {
+            "text": "Whether the analyzed commit contains a valid signature from a pre-specified subject"
+          },
+          "ruleId": "MD002"
+        },
+        {
+          "kind": "fail",
+          "message": {
+            "text": "Whether the analyzed commit contains both a signoff and a valid signature from a pre-specified subject"
+          },
+          "ruleId": "MD003"
+        },
+        {
+          "kind": "pass",
+          "message": {
+            "text": "Whether the analyzed commit comes from a permitted author"
+          },
+          "ruleId": "MD004"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "fullName": "CodyzeMedina 1.5.0",
+          "name": "CodyzeMedina",
+          "organization": "Fraunhofer AISEC",
+          "rules": [
+            {
+              "fullDescription": {
+                "text": "Whether the analyzed commit was signed off by a pre-specified subject"
+              },
+              "id": "MD001",
+              "name": "CodeSignoff"
+            },
+            {
+              "fullDescription": {
+                "text": "Whether the analyzed commit contains a valid signature from a pre-specified subject"
+              },
+              "id": "MD002",
+              "name": "SignedCommits"
+            },
+            {
+              "fullDescription": {
+                "text": "Whether the analyzed commit contains both a signoff and a valid signature from a pre-specified subject"
+              },
+              "id": "MD003",
+              "name": "SignedSignoff"
+            },
+            {
+              "fullDescription": {
+                "text": "Whether the analyzed commit comes from a permitted author"
+              },
+              "id": "MD004",
+              "name": "ApprovedCommitAuthor"
+            }
+          ],
+          "version": "1.5.0"
+        },
+        "extensions": [
+          {
+            "contents": [
+              "localizedData",
+              "nonLocalizedData"
+            ],
+            "downloadUri": "https://github.com/Fraunhofer-AISEC/codyze/releases",
+            "informationUri": "https://www.codyze.io/docs/",
+            "isComprehensive": false,
+            "language": "en-US",
+            "name": "codyze",
+            "organization": "Fraunhofer AISEC",
+            "rules": [
+              {
+                "deprecatedIds": [
+                ],
+                "fullDescription": {
+                  "text": "TLS version isn't sufficiently restricted and may allow the use of deprecated version. Ensure the use of TLS versions 1.2 or 1.3."
+                },
+                "id": "TlsVersion",
+                "relationships": [
+                ],
+                "shortDescription": {
+                  "text": "Insufficient restriction of TLS to version 1.2 or 1.3."
+                }
+              },
+              {
+                "deprecatedIds": [
+                ],
+                "fullDescription": {
+                  "text": "TLS cipher suites aren't sufficiently restricted and may allow the use of less secure or deprecated cipher suites. Ensure the use of: \"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256\", \"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384\", \"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256\", \"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_ECDSA_WITH_AES_128_CCM\", \"TLS_ECDHE_ECDSA_WITH_AES_256_CCM\", \"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384\", \"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\", \"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256\", \"TLS_DHE_DSS_WITH_AES_128_CBC_SHA256\", \"TLS_DHE_DSS_WITH_AES_256_CBC_SHA256\", \"TLS_DHE_DSS_WITH_AES_128_GCM_SHA256\", \"TLS_DHE_DSS_WITH_AES_256_GCM_SHA384\", \"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256\", \"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256\", \"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256\", \"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_DHE_RSA_WITH_AES_128_CCM\", \"TLS_DHE_RSA_WITH_AES_256_CCM\", \"TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256\", \"TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384\", \"TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256\", \"TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256\", \"TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384\", \"TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256\", \"TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_DH_DSS_WITH_AES_128_CBC_SHA256\", \"TLS_DH_DSS_WITH_AES_256_CBC_SHA256\", \"TLS_DH_DSS_WITH_AES_128_GCM_SHA256\", \"TLS_DH_DSS_WITH_AES_256_GCM_SHA384\", \"TLS_DH_RSA_WITH_AES_128_CBC_SHA256\", \"TLS_DH_RSA_WITH_AES_256_CBC_SHA256\", \"TLS_DH_RSA_WITH_AES_128_GCM_SHA256\", \"TLS_DH_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256\", \"TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384\", \"TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256\", \"TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256\", \"TLS_DHE_PSK_WITH_AES_128_CBC_SHA256\", \"TLS_DHE_PSK_WITH_AES_256_CBC_SHA384\", \"TLS_DHE_PSK_WITH_AES_128_GCM_SHA256\", \"TLS_DHE_PSK_WITH_AES_256_GCM_SHA38\", \"TLS_DHE_PSK_WITH_AES_128_CCM\", \"TLS_DHE_PSK_WITH_AES_256_CCM\", \"TLS_RSA_PSK_WITH_AES_128_CBC_SHA256\", \"TLS_RSA_PSK_WITH_AES_256_CBC_SHA384\", \"TLS_RSA_PSK_WITH_AES_128_GCM_SHA256\", or \"TLS_RSA_PSK_WITH_AES_256_GCM_SHA384\"."
+                },
+                "id": "TlsCipherSuites",
+                "relationships": [
+                ],
+                "shortDescription": {
+                  "text": "Insufficient restriction of TLS cipher suites."
+                }
+              }
+            ],
+            "supportedTaxonomies": [
+            ],
+            "version": "0.0.0-dev"
+          }
+        ]
+      }
+    }
+  ]
+}

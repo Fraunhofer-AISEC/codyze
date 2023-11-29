@@ -3,6 +3,7 @@ plugins {
     id("publish")
 
     // Analysis plugins
+    // TODO: can we even use such plugins to analyze external code?
     id("com.github.spotbugs") version "6.0.0-rc.3"
 }
 
@@ -23,7 +24,6 @@ publishing {
 
 spotbugs {
     reportsDir.set(file("$projectDir/codyze-plugins/src/main/resources/reports"))
-    // TODO: can we even use such plugins to analyze external code?
     onlyAnalyze.set(listOf("com.external.*"))
     ignoreFailures.set(true)
 }

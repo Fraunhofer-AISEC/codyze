@@ -36,7 +36,7 @@ class AggregateTest {
         val completeRun = aggregate.createRun()
 
         assertEquals("PMD", completeRun!!.tool.driver.name)
-        assertEquals(0, completeRun.tool.extensions?.size ?: 0) // TODO: null or empty?
+        assertEquals(0, completeRun.tool.extensions?.size ?: 0)
         assertEquals(3, completeRun.results?.size ?: 0)
     }
 

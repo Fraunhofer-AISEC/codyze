@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.aggregator
 
+import de.fraunhofer.aisec.codyze.plugins.aggregator.Parser
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -79,7 +80,7 @@ class ParserTest {
         @BeforeAll
         @JvmStatic
         fun loadResources() {
-            val resultsDirectory: URL? = ParserTest::class.java.classLoader.getResource("reports")
+            val resultsDirectory: URL? = ParserTest::class.java.classLoader.getResource("externalReports")
 
             assertNotNull(resultsDirectory)
 

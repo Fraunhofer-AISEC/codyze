@@ -1,14 +1,13 @@
 plugins {
     id("documented-module")
     id("publish")
-
-    // Analysis plugins
-    // TODO: can we even use such plugins to analyze external code?
-    id("com.github.spotbugs") version "6.0.0-rc.3"
 }
 
 dependencies {
     implementation(libs.sarif4k)
+
+    // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
+    implementation("com.github.spotbugs:spotbugs:4.8.2")
 }
 
 publishing {
@@ -20,10 +19,4 @@ publishing {
             }
         }
     }
-}
-
-spotbugs {
-    reportsDir.set(file("$projectDir/codyze-plugins/src/main/resources/reports"))
-    onlyAnalyze.set(listOf("com.external.*"))
-    ignoreFailures.set(true)
 }

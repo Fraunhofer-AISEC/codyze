@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.aggregator
 
+import de.fraunhofer.aisec.codyze.plugins.aggregator.Aggregate
+import de.fraunhofer.aisec.codyze.plugins.aggregator.Parser
 import io.github.detekt.sarif4k.Run
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll

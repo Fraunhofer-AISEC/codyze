@@ -94,26 +94,31 @@ class Aggregate {
     }
 
     /**
-     * Modifies the results object in a way that allows unique reference to the corresponding rule object
-     * For this we need to populate the rule property in each result with a correct toolComponentReference
+     * This modifies the results object in a way that allows unique reference to the corresponding rule object within the aggregate.
+     * For this we need to populate the rule property in each result with the correct toolComponentReference or create the property from scratch.
+     * The properties result.ruleID and result.ruleIndex will be moved into the rule object if they exist.
      * @param run The run which should have its results modified
      * @return The run after applying the modifications
      */
     private fun modifyResults(run: Run): Run {
         var newResults = run.results?.map {
             result ->
+            var newResult = result.copy(ruleIndex = null, ruleID = null)
             if (result.rule != null) {
                 // rule property exists: keep id and index unchanged. ToolComponent must be set, otherwise it defaults to driver
                 val component = result.rule!!.toolComponent
+                // here we move result.ruleID and result.ruleIndex into the rule object if necessary
+                var newRule = result.rule!!.copy(
+                    id = result.rule!!.id ?: result.ruleID,
+                    index = result.rule!!.index ?: result.ruleIndex
+                )
                 if (component != null) {
                     // reference to component exists: fix index if necessary
                     if (component.index != null) {
                         val newComponent = component.copy(index = component.index!! + 1 + extensions.size)
-                        val newRule = result.rule!!.copy(toolComponent = newComponent)
-                        result.copy(rule = newRule)
-                    } else {
-                        result
+                        newRule = newRule.copy(toolComponent = newComponent)
                     }
+                    newResult = newResult.copy(rule = newRule)
                 } else {
                     // no reference to component: create new reference to the old driver (may now be an extension)
                     val newComponent = ToolComponentReference(
@@ -121,14 +126,15 @@ class Aggregate {
                         index = if (containedRuns.isEmpty()) null else 1 + extensions.size.toLong(),
                         name = run.tool.driver.name
                     )
-                    val newRule = result.rule!!.copy(toolComponent = newComponent)
-                    result.copy(rule = newRule)
+                    newRule = newRule.copy(toolComponent = newComponent)
+                    newResult = newResult.copy(rule = newRule)
                 }
             } else {
                 // rule property does not exist: create property that references the driver (no toolComponent-index)
                 val driverRules = run.tool.driver.rules
                 val rule = if (result.ruleIndex != null) driverRules?.get(result.ruleIndex!!.toInt()) else driverRules?.firstOrNull { it.id == result.ruleID }
 
+                // if no rule information is available at all, we can keep the result object unchanged
                 if (rule != null) {
                     val componentReference = ToolComponentReference(
                         guid = run.tool.driver.guid,
@@ -141,16 +147,12 @@ class Aggregate {
                         index = result.ruleIndex,
                         toolComponent = componentReference
                     )
-                    result.copy(rule = ruleReference)
-                } else {
-                    // no rule information available: keep result unchanged
-                    result
+                    newResult = newResult.copy(rule = ruleReference)
                 }
             }
+            newResult
         }
-        // I considered removing the now unnecessary result.ruleId and result.ruleIndex but decided against it as this
-        // may break the result for some unholy SARIF file with information scattered between result.ruleId and rule.index
-        // so unless we handle this explicit case we should accept possible duplicate information
+
         return run.copy(results = newResults)
     }
 }

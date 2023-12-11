@@ -1,6 +1,7 @@
 package de.fraunhofer.aisec.codyze.executor
 
 import de.fraunhofer.aisec.codyze.plugins.aggregator.Parser
+import de.fraunhofer.aisec.codyze.plugins.executor.FindSecBugsExecutor
 import de.fraunhofer.aisec.codyze.plugins.executor.SpotbugsExecutor
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -9,8 +10,8 @@ import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class SpotbugsExecutorTest {
-    private val resultFileName = "spotbugs.sarif"
+class FindSecBugsExecutorTest {
+    private val resultFileName = "findsecbugs.sarif"
 
     @Test
     fun testExample() {
@@ -24,6 +25,7 @@ class SpotbugsExecutorTest {
         val run = Parser().extractLastRun(File("src/test/resources/generatedReports/$resultFileName"))
         assertNotNull(run)
 
+        // FIXME: Use more "flawed" example file to generate more unique results
         val results = run.results
         assertNotNull(results)
         assertEquals(2, results.size)

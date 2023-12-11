@@ -30,7 +30,8 @@ class FindSecBugsExecutor: Executor {
         reporter.setPriorityThreshold(BugReporter.NORMAL)
 
         // TODO: automatically download new Plugin versions and change version number here!
-        val findSecBugsPlugin = Plugin.loadCustomPlugin(File("src/main/resources/plugins/findsecbugs-plugin-1.12.0.jar"), project)
+        // https://find-sec-bugs.github.io/download.htm
+        Plugin.loadCustomPlugin(File("src/main/resources/spotbugs-plugins/findsecbugs-plugin-1.12.0.jar"), project)
 
         val findbugs = FindBugs2()
         findbugs.bugReporter = reporter

@@ -15,10 +15,10 @@ class FindSecBugsExecutorTest {
 
     @Test
     fun testExample() {
-        val spotbugs = SpotbugsExecutor()
-        spotbugs.execute(
+        val findSecBugs = SpotbugsExecutor()
+        findSecBugs.execute(
             listOf(Path.of("src/test/resources/targets/libs/demo-cloud-service-1.0.0.jar")),
-            File("src/test/resources/generatedReports/spotbugs.sarif")
+            File("src/test/resources/generatedReports/$resultFileName")
         )
 
         // FIXME: Parsing fails because SpotBugs violates the SARIF specification

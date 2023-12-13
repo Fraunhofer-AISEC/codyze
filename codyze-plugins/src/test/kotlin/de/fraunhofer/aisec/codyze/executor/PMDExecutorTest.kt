@@ -31,7 +31,7 @@ class PMDExecutorTest {
         // we expect 1 "AvoidPrintStackTrace" and 24 "SystemPrintln" results
         var results = run.results
         assertNotNull(results)
-        assertEquals(109, results.first { it.ruleID == "AvoidPrintStackTrace" }.locations?.first()?.physicalLocation?.region?.startLine)
+        assertEquals(127, results.first { it.ruleID == "AvoidPrintStackTrace" }.locations?.first()?.physicalLocation?.region?.startLine)
         assertEquals(25, results.size)
         results = results.filterNot { it.ruleID == "AvoidPrintStackTrace" }.toList()
         assertEquals(24, results.size)

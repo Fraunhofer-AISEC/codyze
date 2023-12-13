@@ -2,7 +2,6 @@ package de.fraunhofer.aisec.codyze.executor
 
 import de.fraunhofer.aisec.codyze.plugins.aggregator.Parser
 import de.fraunhofer.aisec.codyze.plugins.executor.FindSecBugsExecutor
-import de.fraunhofer.aisec.codyze.plugins.executor.SpotbugsExecutor
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -16,7 +15,7 @@ class FindSecBugsExecutorTest {
 
     @Test
     fun testExample() {
-        val findSecBugs = SpotbugsExecutor()
+        val findSecBugs = FindSecBugsExecutor()
         findSecBugs.execute(
             listOf(Path.of("src/test/resources/targets/libs/demo-cloud-service-1.0.0.jar")),
             File("src/test/resources/generatedReports/$resultFileName")
@@ -30,7 +29,7 @@ class FindSecBugsExecutorTest {
             run.invocations!!.forEach { assertTrue { it.executionSuccessful } }
         }
 
-        // FIXME: Use more "flawed" example file to generate more unique results
+        // FIXME: Results that should be found are not reported
         val results = run.results
         assertNotNull(results)
         assertEquals(2, results.size)

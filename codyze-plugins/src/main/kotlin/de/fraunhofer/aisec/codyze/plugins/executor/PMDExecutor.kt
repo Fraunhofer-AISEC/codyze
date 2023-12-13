@@ -16,12 +16,9 @@ class PMDExecutor: Executor {
         config.isIgnoreIncrementalAnalysis = true
 
         // from https://github.com/pmd/pmd/tree/master/pmd-core/src/main/resources/
-        config.addRuleSet("src/main/resources/pmd-rulesets/all-java.xml");
+        config.addRuleSet("src/main/resources/pmd-rulesets/all-java.xml")
 
         val analysis = PmdAnalysis.create(config)
-        // TODO: fix error while parsing TlsServer.java
-        //  class "net.sf.saxon.om.ValueRepresentation"'s signer information does not match signer information of other classes in the same package
-        //  class "net.sf.saxon.value.UntypedAtomicValue"'s signer information does not match signer information of other classes in the same package
         analysis.performAnalysis()
     }
 }

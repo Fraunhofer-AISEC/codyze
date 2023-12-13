@@ -3,12 +3,17 @@ plugins {
     id("publish")
 }
 
+repositories {
+    maven("https://dl.bintray.com/palantir/releases")
+}
+
 dependencies {
-    // FIXME conflicts in dependencies!!
-    //  e.g. both Spotbugs and PMD depend on Saxon-HE, so package signature does not match when PMD tries to call it
     implementation(libs.sarif4k)
     // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
-    implementation("com.github.spotbugs:spotbugs:4.8.2")
+    // it is necessary to exclude saxon because of conflicts with same transitive dependency in PMD
+    implementation("com.github.spotbugs:spotbugs:4.8.2") {
+        exclude(group = "net.sf.saxon", module = "Saxon-HE")
+    }
     // https://mvnrepository.com/artifact/net.sourceforge.pmd/
     implementation("net.sourceforge.pmd:pmd-core:7.0.0-rc4")
     implementation("net.sourceforge.pmd:pmd-java:7.0.0-rc4")

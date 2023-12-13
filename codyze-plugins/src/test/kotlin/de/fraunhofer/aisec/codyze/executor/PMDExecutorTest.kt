@@ -28,7 +28,6 @@ class PMDExecutorTest {
             run.invocations!!.forEach { assertTrue { it.executionSuccessful } }
         }
 
-        // TODO - Find Fix for clashing dependencies
         // we expect 1 "AvoidPrintStackTrace" and 24 "SystemPrintln" results
         var results = run.results
         assertNotNull(results)

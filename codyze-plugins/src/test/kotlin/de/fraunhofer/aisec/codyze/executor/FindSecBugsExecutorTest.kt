@@ -29,7 +29,7 @@ class FindSecBugsExecutorTest {
             run.invocations!!.forEach { assertTrue { it.executionSuccessful } }
         }
 
-        // FIXME: Results that should be found are not reported
+        // FIXME: Results that should be found are not reported, see https://find-sec-bugs.github.io/bugs.htm
         val results = run.results
         assertNotNull(results)
         assertEquals(2, results.size)

@@ -15,6 +15,8 @@ import kotlin.io.path.absolute
 
 // FIXME: copy-paste from SpotBugs-Executor with added FindSecBugs-Plugin
 class FindSecBugsExecutor: Executor {
+    val pluginFile = File("src/main/resources/spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
+
     override fun execute(target: List<Path>, output: File) {
         val project = Project()
         // TODO: for now we assume all necessary libraries are close to the target
@@ -31,14 +33,17 @@ class FindSecBugsExecutor: Executor {
 
         // TODO: automatically download new Plugin versions and change version number here!
         // https://find-sec-bugs.github.io/download.htm
-        Plugin.loadCustomPlugin(File("src/main/resources/spotbugs-plugins/findsecbugs-plugin-1.12.0.jar"), project)
+        Plugin.loadCustomPlugin(pluginFile, project)
 
         val findbugs = FindBugs2()
         findbugs.bugReporter = reporter
         findbugs.project = project
+        // trying to pass DetectorFactoryCollection(plugin) crashes the analysis
         findbugs.setDetectorFactoryCollection(DetectorFactoryCollection())
         findbugs.userPreferences = UserPreferences.createDefaultUserPreferences()
         findbugs.userPreferences.enableAllDetectors(true)
+        // this is doubled... should not be necessary
+        findbugs.userPreferences.customPlugins = mapOf(pluginFile.absolutePath to true)
         findbugs.execute()
     }
 }

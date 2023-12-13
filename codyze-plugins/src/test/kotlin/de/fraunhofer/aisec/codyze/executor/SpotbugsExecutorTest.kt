@@ -8,6 +8,7 @@ import java.io.File
 import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class SpotbugsExecutorTest {
     private val resultFileName = "spotbugs.sarif"
@@ -23,6 +24,10 @@ class SpotbugsExecutorTest {
         // FIXME: Parsing fails because SpotBugs violates the SARIF specification
         val run = Parser().extractLastRun(File("src/test/resources/generatedReports/$resultFileName"))
         assertNotNull(run)
+
+        if (!run.invocations.isNullOrEmpty()) {
+            run.invocations!!.forEach { assertTrue { it.executionSuccessful } }
+        }
 
         val results = run.results
         assertNotNull(results)

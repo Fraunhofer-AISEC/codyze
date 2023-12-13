@@ -2,13 +2,13 @@ package de.fraunhofer.aisec.codyze.executor
 
 import de.fraunhofer.aisec.codyze.plugins.aggregator.Parser
 import de.fraunhofer.aisec.codyze.plugins.executor.PMDExecutor
-import de.fraunhofer.aisec.codyze.plugins.executor.SpotbugsExecutor
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class PMDExecutorTest {
     private val resultFileName = "pmd.sarif"
@@ -24,14 +24,21 @@ class PMDExecutorTest {
         val run = Parser().extractLastRun(File("src/test/resources/generatedReports/$resultFileName"))
         assertNotNull(run)
 
-        // TODO
-        val results = run.results
+        if (!run.invocations.isNullOrEmpty()) {
+            run.invocations!!.forEach { assertTrue { it.executionSuccessful } }
+        }
+
+        // TODO - Find Fix for clashing dependencies
+        // we expect 1 "AvoidPrintStackTrace" and 24 "SystemPrintln" results
+        var results = run.results
         assertNotNull(results)
-        assertEquals(2, results.size)
-        assertEquals("DM_DEFAULT_ENCODING", results[0].ruleID)
-        assertEquals(102, results[0].locations?.first()?.physicalLocation?.region?.startLine)
-        assertEquals("DM_DEFAULT_ENCODING", results[1].ruleID)
-        assertEquals(103, results[1].locations?.first()?.physicalLocation?.region?.startLine)
+        assertEquals(109, results.first { it.ruleID == "AvoidPrintStackTrace" }.locations?.first()?.physicalLocation?.region?.startLine)
+        assertEquals(25, results.size)
+        results = results.filterNot { it.ruleID == "AvoidPrintStackTrace" }.toList()
+        assertEquals(24, results.size)
+        results = results.filterNot { it.ruleID == "SystemPrintln" }
+        assertEquals( 0, results.size)
+
     }
 
     @AfterEach

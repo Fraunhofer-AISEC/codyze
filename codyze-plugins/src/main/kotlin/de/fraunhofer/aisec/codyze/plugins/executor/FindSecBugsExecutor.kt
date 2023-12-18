@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2023, Fraunhofer AISEC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.aisec.codyze.plugins.executor
 
 import edu.umd.cs.findbugs.BugReporter
@@ -17,6 +32,9 @@ import kotlin.io.path.absolute
 class FindSecBugsExecutor: Executor {
     val pluginFile = File("src/main/resources/spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
 
+    // NOTE: this Executor will very likely mark the invocation as failed
+    // because of an (erroneous) missing class warning
+    // see: https://github.com/find-sec-bugs/find-sec-bugs/issues/692
     override fun execute(target: List<Path>, output: File) {
         val project = Project()
         // TODO: for now we assume all necessary libraries are close to the target
@@ -38,12 +56,9 @@ class FindSecBugsExecutor: Executor {
         val findbugs = FindBugs2()
         findbugs.bugReporter = reporter
         findbugs.project = project
-        // trying to pass DetectorFactoryCollection(plugin) crashes the analysis
-        findbugs.setDetectorFactoryCollection(DetectorFactoryCollection())
+        findbugs.setDetectorFactoryCollection(DetectorFactoryCollection.instance())
         findbugs.userPreferences = UserPreferences.createDefaultUserPreferences()
         findbugs.userPreferences.enableAllDetectors(true)
-        // this is doubled... should not be necessary
-        findbugs.userPreferences.customPlugins = mapOf(pluginFile.absolutePath to true)
         findbugs.execute()
     }
 }

@@ -18,7 +18,7 @@ package de.fraunhofer.aisec.codyze.executor.source
 import de.fraunhofer.aisec.codyze.plugins.executor.PMDExecutor
 import io.github.detekt.sarif4k.*
 
-class PMDSourceExecutorTest: SourceExecutorTest() {
+class PMDExecutorTest: SourceExecutorTest() {
     override val executor = PMDExecutor()
     override val resultFileName = "pmd.sarif"
     override val expectedResults = listOf(

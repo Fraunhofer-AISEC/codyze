@@ -45,6 +45,7 @@ jobs:
       security-events: write
     strategy:
       # We need to run it multiple times to manually fix the file paths and exclude gradle results
+      # Add/Remove module paths here to include/exclude them from the scan
       matrix:
         module: [ 'codyze-cli/', 'codyze-core/', 'codyze-backends/cpg/' ]
     steps:
@@ -58,4 +59,4 @@ jobs:
           spotbugs_target: ${{ matrix.module }}
           java_distribution: 'temurin'
           java_version: '17'
-          path_prefix: '${{ matrix.os }}src/main/kotlin/'
+          path_prefix: '${{ matrix.module }}src/main/kotlin/'

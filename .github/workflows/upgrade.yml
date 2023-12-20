@@ -12,8 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO: include JAVA SE 21 (LTS) on release
-        version: [ "19", "20" ]
+        version: [ "19", "20", "21" ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
@@ -30,4 +29,4 @@ jobs:
         # step-level 'continue-on-error' needed to mask a negative workflow result
         continue-on-error: true
         with:
-          arguments: :codyze-cli:build -x check --parallel -Pversion=0.0.0
+          arguments: -x check --parallel -Pversion=0.0.0

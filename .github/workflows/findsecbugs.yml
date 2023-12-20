@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - rh/action-test
   # run on new pushes only for non-draft PRs
   pull_request:
     branches:

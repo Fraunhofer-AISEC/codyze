@@ -40,6 +40,6 @@ jobs:
         uses: advanced-security/spotbugs-findsecbugs-action@v1
         with:
           spotbugs_target: 'build/'
-          spotbugs_filename_glob: '*.jar'
-          java_distribution: "temurin"
-          java_version: "17"
+          #spotbugs_filename_glob: '*.jar'
+          #java_distribution: 'temurin'
+          #java_version: '17'

@@ -28,7 +28,7 @@ jobs:
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: :codyze-cli:build -x check --parallel -Pversion=0.0.0
+          arguments: -x check --parallel -Pversion=0.0.0
       - name: ls
         run: |
           cd build/

@@ -14,7 +14,9 @@ jobs:
   build-and-scan:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      actions: read
+      contents: read
+      security-events: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +31,6 @@ jobs:
           arguments: :codyze-cli:build -x check --parallel -Pversion=0.0.0
       - name: ls
         run: |
-          ls -la
           cd build/
           ls -la
       - name: Run FindSecBugs

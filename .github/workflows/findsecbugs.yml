@@ -36,6 +36,7 @@ jobs:
         with:
           name: jar-bundle
           path: '**/*.jar'
+          retention-days: 1
 
   scan:
     needs: build
@@ -51,7 +52,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar-bundle
-          path: '${{ matrix.module }}/'
       - name: Run FindSecBugs for Codyze CLI
         uses: advanced-security/spotbugs-findsecbugs-action@v1
         with:

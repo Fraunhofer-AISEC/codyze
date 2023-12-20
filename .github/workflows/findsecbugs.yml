@@ -1,0 +1,35 @@
+name: "FindSecBugs"
+
+on:
+  push:
+    branches:
+      - rh/action-test
+      #- main
+  #pull_request:
+    #branches:
+      #- '**'
+  workflow_dispatch:
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
+      - name: Build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: :codyze-cli:build -x check --parallel -Pversion=0.0.0
+      - name: Run FindSecBugs
+        uses: advanced-security/spotbugs-findsecbugs-action@v1
+        with:
+          spotbugs_target: "build/"
+          java_distribution: "temurin"
+          java_version: "17"

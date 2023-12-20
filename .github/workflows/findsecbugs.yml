@@ -35,17 +35,25 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build -x check --parallel -Pversion=0.0.0
-      - name: Run FindSecBugs
+      # We need to run it multiple times to manually fix the file paths and exclude gradle results
+      - name: Run FindSecBugs for Codyze CLI
         uses: advanced-security/spotbugs-findsecbugs-action@v1
         with:
           spotbugs_target: 'codyze-cli/'
           java_distribution: 'temurin'
           java_version: '17'
-          path_prefix: 'codyze-cli/src/main/kotlin'
-      # optional: also upload scan results as an artifact
-      - name: Results as Artifact
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
+          path_prefix: 'codyze-cli/src/main/kotlin/'
+      - name: Run FindSecBugs for Codyze Core
+        uses: advanced-security/spotbugs-findsecbugs-action@v1
         with:
-          name: spotbugs.sarif
-          path: '/home/runner/work/spotbugs_working+/spotbugs.sarif'
+          spotbugs_target: 'codyze-core/'
+          java_distribution: 'temurin'
+          java_version: '17'
+          path_prefix: 'codyze-core/src/main/kotlin/'
+      - name: Run FindSecBugs for Codyze CPG Backend
+        uses: advanced-security/spotbugs-findsecbugs-action@v1
+        with:
+          spotbugs_target: 'codyze-backends/cpg/'
+          java_distribution: 'temurin'
+          java_version: '17'
+          path_prefix: 'codyze-backends/cpg/src/main/kotlin/'

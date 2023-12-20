@@ -23,23 +23,15 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build -x check --parallel -Pversion=0.0.0
-      - name: ls
-        run: |
-          ls -la
-          cd build/
-          ls -la
-          cd libs/
-          ls -la
       - name: Run FindSecBugs
         uses: advanced-security/spotbugs-findsecbugs-action@v1
         with:
           spotbugs_target: '.'
-          #spotbugs_filename_glob: '*.jar'
-          #java_distribution: 'temurin'
-          #java_version: '17'
+          java_distribution: 'temurin'
+          java_version: '17'

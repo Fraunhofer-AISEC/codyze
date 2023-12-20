@@ -35,3 +35,9 @@ jobs:
           spotbugs_target: '.'
           java_distribution: 'temurin'
           java_version: '17'
+      - name: Results as Artifact
+        uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: spotbugs.sarif
+          path: '/home/runner/work/spotbugs_working+/spotbugs.sarif'

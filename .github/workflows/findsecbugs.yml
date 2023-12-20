@@ -35,6 +35,7 @@ jobs:
           spotbugs_target: '.'
           java_distribution: 'temurin'
           java_version: '17'
+      # optional: also upload scan results as an artifact
       - name: Results as Artifact
         uses: actions/upload-artifact@v3
         if: success() || failure()

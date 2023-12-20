@@ -37,9 +37,10 @@ jobs:
       - name: Run FindSecBugs
         uses: advanced-security/spotbugs-findsecbugs-action@v1
         with:
-          spotbugs_target: '.'
+          spotbugs_target: 'codyze-cli/'
           java_distribution: 'temurin'
           java_version: '17'
+          path_prefix: 'codyze-cli/src/main/kotlin'
       # optional: also upload scan results as an artifact
       - name: Results as Artifact
         uses: actions/upload-artifact@v3

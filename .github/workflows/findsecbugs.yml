@@ -28,9 +28,10 @@ jobs:
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -x check --parallel -Pversion=0.0.0
+          arguments: build -x check --parallel -Pversion=0.0.0
       - name: ls
         run: |
+          ls -la
           cd build/
           ls -la
       - name: Run FindSecBugs

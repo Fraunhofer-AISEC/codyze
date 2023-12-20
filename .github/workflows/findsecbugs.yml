@@ -38,6 +38,7 @@ jobs:
           path: '**/*.jar'
 
   scan:
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       security-events: write

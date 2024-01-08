@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.executor.source
+package de.fraunhofer.aisec.codyze.plugin.plugins
 
-import de.fraunhofer.aisec.codyze.executor.ExecutorTest
 import java.io.File
 import java.nio.file.Path
 
-abstract class SourceExecutorTest: ExecutorTest() {
-    override fun scanFiles() {
-        executor.execute(
-            listOf(Path.of("src/test/resources/targets/TlsServer.java")),
-            File("src/test/resources/generatedReports/$resultFileName")
-        )
-    }
+interface Plugin {
+    /** the name this output format has in the codyze-cli. */
+    val cliName: String
+
+    /**
+     * Executes the respective analysis tool.
+     * @param target The files to be analyzed
+     * @param output The location of the results
+     */
+    fun execute(target: List<Path>, output: File = File("$cliName.sarif"))
 }

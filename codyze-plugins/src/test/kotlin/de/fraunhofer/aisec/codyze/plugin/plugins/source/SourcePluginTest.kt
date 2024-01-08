@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.executor.compiled
+package de.fraunhofer.aisec.codyze.plugin.plugins.source
 
-import de.fraunhofer.aisec.codyze.executor.ExecutorTest
+import de.fraunhofer.aisec.codyze.plugin.plugins.PluginTest
 import java.io.File
 import java.nio.file.Path
 
-abstract class CompiledExecutorTest: ExecutorTest() {
+abstract class SourcePluginTest: PluginTest() {
     override fun scanFiles() {
-        executor.execute(
-            listOf(Path.of("src/test/resources/targets/libs/demo-cloud-service-1.0.0.jar")),
+        plugin.execute(
+            listOf(Path.of("src/test/resources/targets/TlsServer.java")),
             File("src/test/resources/generatedReports/$resultFileName")
         )
     }

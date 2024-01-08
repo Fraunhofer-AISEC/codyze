@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugins.executor
+package de.fraunhofer.aisec.codyze.plugin.plugins.compiled
 
+import de.fraunhofer.aisec.codyze.plugin.plugins.PluginTest
 import java.io.File
 import java.nio.file.Path
 
-interface Executor {
-    /**
-     * Executes the respective analysis tool.
-     * @param target The files to be analyzed
-     * @param output The location of the results
-     */
-    fun execute(target: List<Path>, output: File)
+abstract class CompiledPluginTest: PluginTest() {
+    override fun scanFiles() {
+        plugin.execute(
+            listOf(Path.of("src/test/resources/targets/libs/demo-cloud-service-1.0.0.jar")),
+            File("src/test/resources/generatedReports/$resultFileName")
+        )
+    }
 }

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.executor.source
+package de.fraunhofer.aisec.codyze.plugin.plugins.source
 
-import de.fraunhofer.aisec.codyze.plugins.executor.PMDExecutor
+import de.fraunhofer.aisec.codyze.plugin.plugins.PMDPlugin
 import io.github.detekt.sarif4k.*
 
-class PMDExecutorTest: SourceExecutorTest() {
-    override val executor = PMDExecutor()
+class PMDPluginTest: SourcePluginTest() {
+    override val plugin = PMDPlugin()
     override val resultFileName = "pmd.sarif"
     override val expectedResults = listOf(
         Result(

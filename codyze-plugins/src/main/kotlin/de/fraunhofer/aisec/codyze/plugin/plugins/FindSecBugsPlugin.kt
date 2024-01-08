@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugins.executor
+package de.fraunhofer.aisec.codyze.plugin.plugins
 
 import edu.umd.cs.findbugs.BugReporter
 import edu.umd.cs.findbugs.DetectorFactoryCollection
@@ -29,7 +29,8 @@ import java.nio.file.Path
 import kotlin.io.path.absolute
 
 // FIXME: copy-paste from SpotBugs-Executor with added FindSecBugs-Plugin
-class FindSecBugsExecutor: Executor {
+class FindSecBugsPlugin: de.fraunhofer.aisec.codyze.plugin.plugins.Plugin {
+    override val cliName = "findsecbugs"
     val pluginFile = File("src/main/resources/spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
 
     // NOTE: this Executor will very likely mark the invocation as failed

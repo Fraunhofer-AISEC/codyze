@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.executor
+package de.fraunhofer.aisec.codyze.plugin.plugins
 
-import de.fraunhofer.aisec.codyze.plugins.aggregator.Parser
-import de.fraunhofer.aisec.codyze.plugins.executor.Executor
+import de.fraunhofer.aisec.codyze.plugin.aggregator.Parser
 import io.github.detekt.sarif4k.Result
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -26,8 +25,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-abstract class ExecutorTest {
-    abstract val executor: Executor
+abstract class PluginTest {
+    abstract val plugin: Plugin
     abstract val resultFileName: String
     abstract val expectedResults: List<Result>
 

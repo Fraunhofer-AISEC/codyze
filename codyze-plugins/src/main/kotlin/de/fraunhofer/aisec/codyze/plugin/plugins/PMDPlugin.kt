@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugins.executor
+package de.fraunhofer.aisec.codyze.plugin.plugins
 
+import de.fraunhofer.aisec.codyze.plugin.plugins.Plugin
 import java.io.File
 import java.nio.file.Path
 import net.sourceforge.pmd.PMDConfiguration
 import net.sourceforge.pmd.PmdAnalysis
 
-class PMDExecutor: Executor {
+class PMDPlugin: Plugin {
+    override val cliName = "pmd"
     override fun execute(target: List<Path>, output: File) {
         val config = PMDConfiguration()
         for (path in target) {

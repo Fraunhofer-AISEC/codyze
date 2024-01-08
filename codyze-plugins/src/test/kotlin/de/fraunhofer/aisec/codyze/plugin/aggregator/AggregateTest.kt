@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.aggregator
+package de.fraunhofer.aisec.codyze.plugin.aggregator
 
-import de.fraunhofer.aisec.codyze.plugins.aggregator.Aggregate
-import de.fraunhofer.aisec.codyze.plugins.aggregator.Parser
 import io.github.detekt.sarif4k.Run
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll

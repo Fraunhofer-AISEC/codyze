@@ -21,7 +21,7 @@ import java.nio.file.Path
 import net.sourceforge.pmd.PMDConfiguration
 import net.sourceforge.pmd.PmdAnalysis
 
-class PMDPlugin: Plugin {
+class PMDPlugin: Plugin() {
     override val cliName = "pmd"
     override fun execute(target: List<Path>, output: File) {
         val config = PMDConfiguration()

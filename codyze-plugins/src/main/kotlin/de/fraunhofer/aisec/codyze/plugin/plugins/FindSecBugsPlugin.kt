@@ -28,8 +28,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolute
 
-// FIXME: copy-paste from SpotBugs-Executor with added FindSecBugs-Plugin
-class FindSecBugsPlugin: de.fraunhofer.aisec.codyze.plugin.plugins.Plugin {
+class FindSecBugsPlugin: de.fraunhofer.aisec.codyze.plugin.plugins.Plugin() {
     override val cliName = "findsecbugs"
     val pluginFile = File("src/main/resources/spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
 

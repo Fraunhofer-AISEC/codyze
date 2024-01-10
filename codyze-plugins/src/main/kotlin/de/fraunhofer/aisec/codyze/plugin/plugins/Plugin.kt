@@ -18,14 +18,34 @@ package de.fraunhofer.aisec.codyze.plugin.plugins
 import java.io.File
 import java.nio.file.Path
 
-interface Plugin {
+/**
+ * Plugins perform a standalone analysis independent of the Codyze Executors.
+ * They usually use already developed libraries from open-source analysis tools.
+ * When developing a new Plugin, do not forget to add it to the respective [KoinModules],
+ * otherwise it will not be selectable in the configuration.
+ */
+abstract class Plugin {
     /** the name this output format has in the codyze-cli. */
-    val cliName: String
+    abstract val cliName: String
 
     /**
      * Executes the respective analysis tool.
      * @param target The files to be analyzed
      * @param output The location of the results
      */
-    fun execute(target: List<Path>, output: File = File("$cliName.sarif"))
+    abstract fun execute(target: List<Path>, output: File = File("$cliName.sarif"))
+
+    /**
+     * Define two plugins as equal if they are of the same type and therefore have the same CLI name.
+     * This is necessary to filter out duplicate Plugins when parsing the cli arguments
+     */
+    override fun equals(other: Any?): Boolean {
+        if (other is Plugin)
+            return this.cliName == other.cliName
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return cliName.hashCode()
+    }
 }

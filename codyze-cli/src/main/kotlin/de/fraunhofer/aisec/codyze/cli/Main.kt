@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
         // use Koin logger
         printLogger()
         // declare modules
-        modules(executorCommands, backendCommands, outputBuilders)
+        modules(executorCommands, backendCommands, outputBuilders, plugins)
     }
 
     // parse the CMD arguments
@@ -66,4 +66,14 @@ fun main(args: Array<String>) {
 
     // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the chosen format
     codyzeConfiguration.outputBuilder.toFile(run, codyzeConfiguration.output)
+
+    // run each plugin
+    for (plugin in codyzeConfiguration.plugins) {
+        logger.info { "Executing Plugin \"${plugin.cliName}\"" }
+        TODO("run all plugins - both source and compiled")
+        //plugin.execute()
+    }
+
+    // aggregate into one SARIF
+    TODO("take the separate sarif files and aggregate them")
 }

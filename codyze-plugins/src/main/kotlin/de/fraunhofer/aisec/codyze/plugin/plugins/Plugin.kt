@@ -17,6 +17,9 @@ package de.fraunhofer.aisec.codyze.plugin.plugins
 
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
+import de.fraunhofer.aisec.codyze.plugin.aggregator.Aggregate
+import de.fraunhofer.aisec.codyze.plugin.aggregator.extractLastRun
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.nio.file.Path
 
@@ -26,7 +29,7 @@ import java.nio.file.Path
  * When developing a new Plugin, do not forget to add it to the respective [KoinModules],
  * otherwise it will not be selectable in the configuration.
  */
-abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = true, name = cliName) {
+abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = true, name = cliName.lowercase()) {
     private val options by PluginOptionGroup(cliName)
 
     /**
@@ -55,5 +58,10 @@ abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = t
             options.target,
             options.output
         )
+        if (!options.separate) {
+            val run = extractLastRun(options.output)
+            if (run != null)
+                Aggregate.addRun(run)
+        }
     }
 }

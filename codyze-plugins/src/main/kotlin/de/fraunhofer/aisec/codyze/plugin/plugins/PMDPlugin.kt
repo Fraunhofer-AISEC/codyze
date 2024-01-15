@@ -31,7 +31,9 @@ class PMDPlugin: Plugin("PMD") {
         config.isIgnoreIncrementalAnalysis = true
 
         // from https://github.com/pmd/pmd/tree/master/pmd-core/src/main/resources/
-        config.addRuleSet("src/main/resources/pmd-rulesets/all-java.xml")
+        val ruleset = PMDPlugin::class.java.classLoader.getResource("pmd-rulesets/all-java.xml")
+        if (ruleset != null)
+            config.addRuleSet(ruleset.path)
 
         val analysis = PmdAnalysis.create(config)
         analysis.performAnalysis()

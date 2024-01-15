@@ -19,38 +19,37 @@ import io.github.detekt.sarif4k.Run
 import io.github.detekt.sarif4k.SarifSchema210
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.io.File
 
 private val logger = KotlinLogging.logger { }
 
-class Parser {
-    /**
-     * Extracts the last run from a valid SARIF result file
-     * @param resultFile The file containing the SARIF report
-     * @return Its last run or null on error
-     */
-    fun extractLastRun(resultFile: File): Run? {
-        if (!resultFile.exists()) {
-            logger.error { "The SARIF file at \"${resultFile.canonicalPath}\" does not exist" }
-            return null
-        }
 
-        val serializer = Json {
-            ignoreUnknownKeys = true
-        }
+/**
+ * Extracts the last run from a valid SARIF result file
+ * @param resultFile The file containing the SARIF report
+ * @return Its last run or null on error
+ */
+fun extractLastRun(resultFile: File): Run? {
+    if (!resultFile.exists()) {
+        logger.error { "The SARIF file at \"${resultFile.canonicalPath}\" does not exist" }
+        return null
+    }
 
-        return try {
-            // We do not use sarif4k.SarifSerializer as it does not allow us to ignore unknown fields such as arbitrary content of rule.properties
-            val sarif = serializer.decodeFromString<SarifSchema210>(resultFile.readText())
-            sarif.runs.last()
-        } catch (e: SerializationException) {
-            logger.error { "Failed to serialize SARIF file at \"${resultFile.canonicalPath}\": ${e.localizedMessage}" }
-            null
-        } catch (e: Exception) {
-            logger.error { "Unexpected error while trying to parse SARIF at \"${resultFile.canonicalPath}\": ${e.localizedMessage}" }
-            null
-        }
+    val serializer = Json {
+        ignoreUnknownKeys = true
+    }
+
+    return try {
+        // We do not use sarif4k.SarifSerializer as it does not allow us to ignore unknown fields such as arbitrary content of rule.properties
+        val sarif = serializer.decodeFromString<SarifSchema210>(resultFile.readText())
+        sarif.runs.last()
+    } catch (e: SerializationException) {
+        logger.error { "Failed to serialize SARIF file at \"${resultFile.canonicalPath}\": ${e.localizedMessage}" }
+        null
+    } catch (e: Exception) {
+        logger.error { "Unexpected error while trying to parse SARIF at \"${resultFile.canonicalPath}\": ${e.localizedMessage}" }
+        null
     }
 }

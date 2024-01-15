@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.cli
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
+import de.fraunhofer.aisec.codyze.plugin.aggregator.Aggregate
 import de.fraunhofer.aisec.codyze.plugin.plugins.Plugin
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.context.startKoin
@@ -49,6 +50,9 @@ fun main(args: Array<String>) {
         codyzeCli.main(args)
     }
 
+    // TODO: following code still expects first argument to be the executor...
+    //  is this preprocessing and the distinction between Executor and ExecutorCommand really necessary?
+
     // get the used subcommands
     val executorCommand = codyzeCli.currentContext.invokedSubcommand as? ExecutorCommand<*>
 
@@ -63,11 +67,12 @@ fun main(args: Array<String>) {
     val backend = backendCommand?.getBackend() // [null] if the chosen executor does not support modular backends
     val executor = executorCommand.getExecutor(codyzeConfiguration.goodFindings, codyzeConfiguration.pedantic, backend)
 
+    // TODO: how do we get a correct order of operation?
+    //  executor -> plugins -> output
+    //  ideally independent of cli order
     val run = executor.evaluate()
+    Aggregate.addRun(run)
 
     // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the chosen format
-    codyzeConfiguration.outputBuilder.toFile(run, codyzeConfiguration.output)
-
-    // aggregate into one SARIF
-    TODO("take the separate sarif files and aggregate them")
+    codyzeConfiguration.outputBuilder.toFile(Aggregate.createRun() ?: run, codyzeConfiguration.output)
 }

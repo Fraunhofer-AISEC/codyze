@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.cli
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
+import de.fraunhofer.aisec.codyze.plugin.plugins.Plugin
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
@@ -44,7 +45,7 @@ fun main(args: Array<String>) {
     } finally {
         // parse the arguments based on the codyze options and the executorOptions/backendOptions
         codyzeCli = CodyzeCli(configFile = configFile)
-        codyzeCli.subcommands(getKoin().getAll<ExecutorCommand<*>>())
+        codyzeCli.subcommands(getKoin().getAll<ExecutorCommand<*>>() + getKoin().getAll<Plugin>())
         codyzeCli.main(args)
     }
 
@@ -66,13 +67,6 @@ fun main(args: Array<String>) {
 
     // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the chosen format
     codyzeConfiguration.outputBuilder.toFile(run, codyzeConfiguration.output)
-
-    // run each plugin
-    for (plugin in codyzeConfiguration.plugins) {
-        logger.info { "Executing Plugin \"${plugin.cliName}\"" }
-        TODO("run all plugins - both source and compiled")
-        //plugin.execute()
-    }
 
     // aggregate into one SARIF
     TODO("take the separate sarif files and aggregate them")

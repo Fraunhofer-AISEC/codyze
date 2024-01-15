@@ -16,11 +16,7 @@
 package de.fraunhofer.aisec.codyze.core.config
 
 import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
-import de.fraunhofer.aisec.codyze.plugin.plugins.Plugin
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * Holds the main configuration to run Codyze with
@@ -34,7 +30,6 @@ private val logger = KotlinLogging.logger {}
 data class Configuration(
     val output: Path,
     val outputBuilder: OutputBuilder,
-    val plugins: Set<Plugin>,
     val goodFindings: Boolean,
     val pedantic: Boolean,
 )

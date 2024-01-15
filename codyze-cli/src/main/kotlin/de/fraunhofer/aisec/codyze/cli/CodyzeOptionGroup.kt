@@ -19,22 +19,14 @@ import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.multiple
-import com.github.ajalt.clikt.parameters.options.unique
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze.core.config.Configuration
 import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
 import de.fraunhofer.aisec.codyze.core.output.SarifBuilder
-import de.fraunhofer.aisec.codyze.plugin.plugins.EmptyPlugin
-import de.fraunhofer.aisec.codyze.plugin.plugins.Plugin
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.java.KoinJavaComponent.getKoin
 import java.nio.file.Path
 import kotlin.io.path.Path
-
-private val logger = KotlinLogging.logger {}
 
 @Suppress("UNUSED")
 class CodyzeOptionGroup : OptionGroup(name = null) {
@@ -48,20 +40,6 @@ class CodyzeOptionGroup : OptionGroup(name = null) {
     )
         .choice(getKoin().getAll<OutputBuilder>().associateBy { it.cliName }, ignoreCase = true)
         .default(SarifBuilder(), defaultForHelp = "sarif")
-
-    val plugins: Set<Plugin> by option(
-        "--plugin",
-        help = "Plugin to be used for the analysis."
-    )
-        .convert { name ->
-            val pluginMap = getKoin().getAll<Plugin>().associateBy { it.cliName.lowercase() }
-            pluginMap[name.lowercase()] ?: run {
-                logger.warn { "Plugin \"$name\" could not be resolved." }
-                EmptyPlugin()
-            }
-        }
-        .multiple(default = listOf(), required = false)
-        .unique()
 
     val goodFindings: Boolean by option(
         "--good-findings",
@@ -87,7 +65,6 @@ class CodyzeOptionGroup : OptionGroup(name = null) {
     fun asConfiguration() = Configuration(
         output = output,
         outputBuilder = outputBuilder,
-        plugins = plugins,
         goodFindings = goodFindings,
         pedantic = pedantic
     )

@@ -15,14 +15,12 @@
  */
 package de.fraunhofer.aisec.codyze.plugin.plugins
 
-import de.fraunhofer.aisec.codyze.plugin.plugins.Plugin
 import java.io.File
 import java.nio.file.Path
 import net.sourceforge.pmd.PMDConfiguration
 import net.sourceforge.pmd.PmdAnalysis
 
-class PMDPlugin: Plugin() {
-    override val cliName = "pmd"
+class PMDPlugin: Plugin("PMD") {
     override fun execute(target: List<Path>, output: File) {
         val config = PMDConfiguration()
         for (path in target) {

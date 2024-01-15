@@ -18,7 +18,6 @@ package de.fraunhofer.aisec.codyze.plugin.plugins
 import edu.umd.cs.findbugs.BugReporter
 import edu.umd.cs.findbugs.DetectorFactoryCollection
 import edu.umd.cs.findbugs.FindBugs2
-import edu.umd.cs.findbugs.Plugin
 import edu.umd.cs.findbugs.Project
 import edu.umd.cs.findbugs.config.UserPreferences
 import edu.umd.cs.findbugs.sarif.SarifBugReporter
@@ -28,8 +27,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolute
 
-class FindSecBugsPlugin: de.fraunhofer.aisec.codyze.plugin.plugins.Plugin() {
-    override val cliName = "findsecbugs"
+class FindSecBugsPlugin: Plugin("FindSecBugs") {
     val pluginFile = File("src/main/resources/spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
 
     // NOTE: this Executor will very likely mark the invocation as failed
@@ -51,7 +49,8 @@ class FindSecBugsPlugin: de.fraunhofer.aisec.codyze.plugin.plugins.Plugin() {
 
         // TODO: automatically download new Plugin versions and change version number here!
         // https://find-sec-bugs.github.io/download.htm
-        Plugin.loadCustomPlugin(pluginFile, project)
+
+        edu.umd.cs.findbugs.Plugin.loadCustomPlugin(pluginFile, project)
 
         val findbugs = FindBugs2()
         findbugs.bugReporter = reporter

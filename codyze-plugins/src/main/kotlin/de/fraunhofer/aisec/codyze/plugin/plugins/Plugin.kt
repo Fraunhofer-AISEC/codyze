@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.plugin.plugins
 
+import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import java.io.File
 import java.nio.file.Path
 
@@ -24,16 +26,15 @@ import java.nio.file.Path
  * When developing a new Plugin, do not forget to add it to the respective [KoinModules],
  * otherwise it will not be selectable in the configuration.
  */
-abstract class Plugin {
-    /** the name this output format has in the codyze-cli. */
-    abstract val cliName: String
+abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = true, name = cliName) {
+    private val options by PluginOptionGroup(cliName)
 
     /**
      * Executes the respective analysis tool.
      * @param target The files to be analyzed
      * @param output The location of the results
      */
-    abstract fun execute(target: List<Path>, output: File = File("$cliName.sarif"))
+    abstract fun execute(target: List<Path>, output: File)
 
     /**
      * Define two plugins as equal if they are of the same type and therefore have the same CLI name.
@@ -47,5 +48,12 @@ abstract class Plugin {
 
     override fun hashCode(): Int {
         return cliName.hashCode()
+    }
+
+    override fun run() {
+        execute(
+            options.target,
+            options.output
+        )
     }
 }

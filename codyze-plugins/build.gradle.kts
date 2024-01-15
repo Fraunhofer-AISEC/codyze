@@ -8,6 +8,7 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.clikt)
     implementation(libs.sarif4k)
     // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
     // it is necessary to exclude saxon because of conflicts with same transitive dependency in PMD

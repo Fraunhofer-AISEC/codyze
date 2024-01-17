@@ -26,11 +26,10 @@ private val logger = KotlinLogging.logger { }
  */
 class Aggregate {
     companion object {
-
-        private lateinit var driver: ToolComponent
+        // The driver is null iff containedRuns is empty
+        private var driver: ToolComponent? = null
         private var extensions: List<ToolComponent> = listOf()
         private var results: List<Result> = listOf()
-
         private var containedRuns: Set<Run> = setOf()
 
         /**
@@ -45,7 +44,7 @@ class Aggregate {
 
             logger.info { "Creating single run from aggregate consisting of ${containedRuns.size} runs" }
             return Run(
-                tool = Tool(driver, extensions),
+                tool = Tool(driver!!, extensions),
                 results = results
             )
         }
@@ -75,7 +74,17 @@ class Aggregate {
             results += modifiedRun.results ?: listOf()
             containedRuns += modifiedRun
 
-            logger.info { "Added run from ${driver.name} to the aggregate" }
+            logger.info { "Added run from ${driver!!.name} to the aggregate" }
+        }
+
+        /**
+         * Resets the information stored within the aggregate
+         */
+        fun reset() {
+            driver = null
+            extensions = listOf()
+            results = listOf()
+            containedRuns = setOf()
         }
 
         /**

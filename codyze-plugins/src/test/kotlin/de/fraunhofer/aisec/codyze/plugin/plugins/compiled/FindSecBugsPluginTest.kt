@@ -79,7 +79,7 @@ class FindSecBugsPluginTest : CompiledPluginTest() {
             message = Message(
                 id = "default",
                 text = "Potential Path Traversal (file read)",
-                arguments = listOf("java/io/File.\\\\u003cinit\\\\u003e(Ljava/lang/String;)V")
+                arguments = listOf("java/io/File.<init>(Ljava/lang/String;)V")
             ),
             level = Level.Warning,
             locations = listOf(

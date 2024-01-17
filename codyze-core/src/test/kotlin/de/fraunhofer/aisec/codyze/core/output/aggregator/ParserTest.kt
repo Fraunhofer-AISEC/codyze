@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugin.aggregator
+package de.fraunhofer.aisec.codyze.core.output.aggregator
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
@@ -31,10 +31,9 @@ class ParserTest {
      */
     @Test
     fun parseValid() {
-        val parser = Parser()
         val file = exampleResults.first { it.name == "pmd-report.sarif" }
 
-        val run = parser.extractLastRun(file)
+        val run = extractLastRun(file)
 
         assertNotNull(run)
         run!!
@@ -53,10 +52,9 @@ class ParserTest {
      */
     @Test
     fun parseNotExisting() {
-        val parser = Parser()
         val file = File("fake-results.sarif")
 
-        val run = parser.extractLastRun(file)
+        val run = extractLastRun(file)
         assertNull(run)
     }
 
@@ -65,10 +63,9 @@ class ParserTest {
      */
     @Test
     fun parseInvalidType() {
-        val parser = Parser()
         val file = exampleResults.first { it.name == "pmd-report.txt" }
 
-        val run = parser.extractLastRun(file)
+        val run = extractLastRun(file)
         assertNull(run)
     }
 

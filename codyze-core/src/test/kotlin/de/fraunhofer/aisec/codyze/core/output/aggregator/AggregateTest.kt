@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugin.aggregator
+package de.fraunhofer.aisec.codyze.core.output.aggregator
 
-import de.fraunhofer.aisec.codyze.core.output.aggregator.Aggregate
 import io.github.detekt.sarif4k.Run
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
@@ -29,12 +29,11 @@ class AggregateTest {
      */
     @Test
     fun aggregateSimpleRun() {
-        val aggregate = Aggregate()
         val run = runs.first { it.first == "pmd-report.sarif" }.second
 
-        aggregate.addRun(run)
+        Aggregate.addRun(run)
 
-        val completeRun = aggregate.createRun()
+        val completeRun = Aggregate.createRun()
 
         assertEquals("PMD", completeRun!!.tool.driver.name)
         assertEquals(0, completeRun.tool.extensions?.size ?: 0)
@@ -46,12 +45,11 @@ class AggregateTest {
      */
     @Test
     fun aggregateExtensionsRun() {
-        val aggregate = Aggregate()
         val run = runs.first { it.first == "codyze-report.sarif" }.second
 
-        aggregate.addRun(run)
+        Aggregate.addRun(run)
 
-        val completeRun = aggregate.createRun()
+        val completeRun = Aggregate.createRun()
 
         assertEquals("CodyzeMedina", completeRun!!.tool.driver.name)
         assertEquals(1, completeRun.tool.extensions?.size ?: 0)
@@ -65,14 +63,13 @@ class AggregateTest {
      */
     @Test
     fun aggregateMultipleRuns() {
-        val aggregate = Aggregate()
         val run1 = runs.first { it.first == "codyze-report.sarif" }.second
         val run2 = runs.first { it.first == "pmd-report.sarif" }.second
 
-        aggregate.addRun(run1)
-        aggregate.addRun(run2)
+        Aggregate.addRun(run1)
+        Aggregate.addRun(run2)
 
-        val completeRun = aggregate.createRun()
+        val completeRun = Aggregate.createRun()
 
         assertEquals("CodyzeMedina", completeRun!!.tool.driver.name)
         assertEquals(2, completeRun.tool.extensions?.size ?: 0)
@@ -82,16 +79,20 @@ class AggregateTest {
         assertEquals(9, completeRun.results?.size ?: 0)
     }
 
+    @AfterEach
+    fun resetAggregate() {
+        Aggregate.reset()
+    }
+
     companion object {
         private lateinit var runs: Set<Pair<String, Run>>
 
         @BeforeAll
         @JvmStatic
         fun createRuns() {
-            val parser = Parser()
             ParserTest.loadResources()
             runs = ParserTest.exampleResults.mapNotNull {
-                val run = parser.extractLastRun(it)
+                val run = extractLastRun(it)
                 if (run == null) null else it.name to run
             }.toSet()
         }

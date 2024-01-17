@@ -24,8 +24,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecu
 
 @Suppress("UNUSED")
 class CokoSubcommand : ExecutorCommand<CokoExecutor>("runCoko") {
-    val executorOptions by CokoOptionGroup()
-
     init {
         // allow only the backends that implement the [CokoBackend] interface as subcommands
         registerBackendOptions<CokoBackend>()

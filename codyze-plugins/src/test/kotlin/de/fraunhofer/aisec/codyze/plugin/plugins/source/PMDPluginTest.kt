@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.plugin.plugins.source
 
-import de.fraunhofer.aisec.codyze.plugin.plugins.PMDPlugin
+import de.fraunhofer.aisec.codyze.plugins.PMDPlugin
 import io.github.detekt.sarif4k.*
 
 class PMDPluginTest: SourcePluginTest() {

@@ -10,6 +10,8 @@ repositories {
 dependencies {
     implementation(libs.clikt)
     implementation(libs.sarif4k)
+    implementation(projects.codyzeCore)
+
     // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
     // it is necessary to exclude saxon because of conflicts with same transitive dependency in PMD
     implementation("com.github.spotbugs:spotbugs:4.8.2") {

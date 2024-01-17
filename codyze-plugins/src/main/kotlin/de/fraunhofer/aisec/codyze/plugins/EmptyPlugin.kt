@@ -1,4 +1,4 @@
-package de.fraunhofer.aisec.codyze.plugin.plugins
+package de.fraunhofer.aisec.codyze.plugins
 
 import java.io.File
 import java.nio.file.Path

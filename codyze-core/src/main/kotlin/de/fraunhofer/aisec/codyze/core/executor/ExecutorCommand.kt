@@ -15,8 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.core.executor
 
-import com.github.ajalt.clikt.core.NoOpCliktCommand
-import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.core.*
 import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.backend.BackendOptions
@@ -29,6 +28,9 @@ import org.koin.java.KoinJavaComponent.getKoin
 abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
     NoOpCliktCommand(hidden = true, name = cliName) {
 
+    /** Use the global context set in [CodyzeCli] */
+    private val usedExecutors by requireObject<MutableList<ExecutorCommand<*>>>()
+
     abstract fun getExecutor(goodFindings: Boolean, pedantic: Boolean, backend: Backend?): T
 
     /**
@@ -38,5 +40,9 @@ abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
      */
     inline fun <reified T> registerBackendOptions() {
         subcommands(getKoin().getAll<BackendCommand<*>>().filter { it.backend == T::class })
+    }
+
+    override fun run() {
+        usedExecutors += this
     }
 }

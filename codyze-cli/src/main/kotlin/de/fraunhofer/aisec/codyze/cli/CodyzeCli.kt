@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.context
+import com.github.ajalt.clikt.core.findOrSetObject
 import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -86,4 +87,11 @@ class CodyzeCli(val configFile: Path?) :
     private val unusedConfigFile: Path? by configFileOption()
 
     val codyzeOptions by CodyzeOptionGroup()
+
+    val usedExecutors by findOrSetObject { mutableListOf<CliktCommand>() }
+
+    // This run method is only necessary to correctly set the "usedExecutors" variable
+    override fun run() {
+        usedExecutors
+    }
 }

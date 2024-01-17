@@ -12,8 +12,6 @@ dependencies {
     implementation(libs.koin)
 
     implementation(libs.bundles.sarif)
-
-    implementation(projects.codyzePlugins)
 }
 
 publishing {

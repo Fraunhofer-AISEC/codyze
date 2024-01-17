@@ -23,9 +23,9 @@ import de.fraunhofer.aisec.codyze.core.executor.Executor
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
 import de.fraunhofer.aisec.codyze.core.output.SarifBuilder
-import de.fraunhofer.aisec.codyze.plugin.plugins.FindSecBugsPlugin
-import de.fraunhofer.aisec.codyze.plugin.plugins.PMDPlugin
-import de.fraunhofer.aisec.codyze.plugin.plugins.Plugin
+import de.fraunhofer.aisec.codyze.plugins.FindSecBugsPlugin
+import de.fraunhofer.aisec.codyze.plugins.PMDPlugin
+import de.fraunhofer.aisec.codyze.plugins.Plugin
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli.CokoSubcommand
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind

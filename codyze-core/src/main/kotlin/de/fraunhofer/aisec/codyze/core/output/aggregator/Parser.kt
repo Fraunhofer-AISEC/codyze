@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugin.aggregator
+package de.fraunhofer.aisec.codyze.core.output.aggregator
 
 import io.github.detekt.sarif4k.Run
 import io.github.detekt.sarif4k.SarifSchema210

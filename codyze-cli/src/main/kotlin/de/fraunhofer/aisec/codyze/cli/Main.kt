@@ -18,8 +18,8 @@ package de.fraunhofer.aisec.codyze.cli
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
-import de.fraunhofer.aisec.codyze.plugin.aggregator.Aggregate
-import de.fraunhofer.aisec.codyze.plugin.plugins.Plugin
+import de.fraunhofer.aisec.codyze.core.output.aggregator.Aggregate
+import de.fraunhofer.aisec.codyze.plugins.Plugin
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
@@ -50,29 +50,24 @@ fun main(args: Array<String>) {
         codyzeCli.main(args)
     }
 
-    // TODO: following code still expects first argument to be the executor...
-    //  is this preprocessing and the distinction between Executor and ExecutorCommand really necessary?
-
-    // get the used subcommands
-    val executorCommand = codyzeCli.currentContext.invokedSubcommand as? ExecutorCommand<*>
-
-    // allow backendCommand to be null in order to allow executors that do not use backends
-    val backendCommand = executorCommand?.currentContext?.invokedSubcommand as? BackendCommand<*>
-
     // this should already be checked by clikt in [codyzeCli.main(args)]
-    requireNotNull(executorCommand) { "UsageError! Please select one of the available executors." }
+    require(codyzeCli.usedExecutors.isNotEmpty()) { "UsageError! Please select one of the available executors." }
+    for (executorCommand in codyzeCli.usedExecutors.map { it as ExecutorCommand<*> }) {
+        // allow backendCommand to be null in order to allow executors that do not use backends
+        val backendCommand = executorCommand.currentContext.invokedSubcommand as? BackendCommand<*>
 
-    val codyzeConfiguration = codyzeCli.codyzeOptions.asConfiguration()
-    // the subcommands know how to instantiate their respective backend/executor
-    val backend = backendCommand?.getBackend() // [null] if the chosen executor does not support modular backends
-    val executor = executorCommand.getExecutor(codyzeConfiguration.goodFindings, codyzeConfiguration.pedantic, backend)
+        val codyzeConfiguration = codyzeCli.codyzeOptions.asConfiguration()
 
-    // TODO: how do we get a correct order of operation?
-    //  executor -> plugins -> output
-    //  ideally independent of cli order
-    val run = executor.evaluate()
-    Aggregate.addRun(run)
+        // TODO: this looks like goodFindings/pedantic should be a Backend configuration instead of a codyze one
+        // the subcommands know how to instantiate their respective backend/executor
+        val backend = backendCommand?.getBackend() // [null] if the chosen executor does not support modular backends
+        val executor = executorCommand.getExecutor(codyzeConfiguration.goodFindings, codyzeConfiguration.pedantic, backend)
 
-    // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the chosen format
-    codyzeConfiguration.outputBuilder.toFile(Aggregate.createRun() ?: run, codyzeConfiguration.output)
+        val run = executor.evaluate()
+        Aggregate.addRun(run)
+
+        // TODO: We need to enforce that the (Only) Codyze run is always the driver!
+        // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the chosen format
+        codyzeConfiguration.outputBuilder.toFile(Aggregate.createRun() ?: run, codyzeConfiguration.output)
+    }
 }

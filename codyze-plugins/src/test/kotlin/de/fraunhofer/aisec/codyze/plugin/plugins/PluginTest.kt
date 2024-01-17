@@ -15,7 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.plugin.plugins
 
-import de.fraunhofer.aisec.codyze.plugin.aggregator.Parser
+import de.fraunhofer.aisec.codyze.core.output.aggregator.extractLastRun
+import de.fraunhofer.aisec.codyze.plugins.Plugin
 import io.github.detekt.sarif4k.Result
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -34,7 +35,7 @@ abstract class PluginTest {
     fun testExample() {
         scanFiles()
 
-        val run = Parser().extractLastRun(File("src/test/resources/generatedReports/$resultFileName"))
+        val run = extractLastRun(File("src/test/resources/generatedReports/$resultFileName"))
         assertNotNull(run)
 
         if (!run.invocations.isNullOrEmpty()) {

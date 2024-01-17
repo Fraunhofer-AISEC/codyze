@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugin.plugins
+package de.fraunhofer.aisec.codyze.plugins
 
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.plugin.aggregator.Aggregate
-import de.fraunhofer.aisec.codyze.plugin.aggregator.extractLastRun
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.fraunhofer.aisec.codyze.core.output.aggregator.Aggregate
+import de.fraunhofer.aisec.codyze.core.output.aggregator.extractLastRun
 import java.io.File
 import java.nio.file.Path
 
@@ -54,10 +53,13 @@ abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = t
     }
 
     override fun run() {
+        // Execute the Plugin and print to the specified location
         execute(
             options.target,
             options.output
         )
+
+        // Combine with previous runs and print if desired (overwrites previous reports)
         if (!options.separate) {
             val run = extractLastRun(options.output)
             if (run != null)

@@ -16,7 +16,7 @@
 package de.fraunhofer.aisec.codyze.plugin.plugins.compiled
 
 
-import de.fraunhofer.aisec.codyze.plugin.plugins.FindSecBugsPlugin
+import de.fraunhofer.aisec.codyze.plugins.FindSecBugsPlugin
 import io.github.detekt.sarif4k.*
 
 class FindSecBugsPluginTest : CompiledPluginTest() {

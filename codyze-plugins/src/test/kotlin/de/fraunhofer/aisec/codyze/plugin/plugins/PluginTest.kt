@@ -45,9 +45,15 @@ abstract class PluginTest {
             // run.invocations!!.forEach { assertTrue { it.executionSuccessful } }
         }
 
-        val results = run.results
+        var results = run.results
         assertNotNull(results)
         assertEquals(expectedResults.size, results.size)
+        // do not test the physical artifact location as it differs per system
+        results = results.map {
+            it.copy(locations = it.locations?.map {
+                location -> location.copy(physicalLocation = location.physicalLocation?.copy(artifactLocation = null))}
+            )
+        }
         assertContentEquals(expectedResults, results)
     }
 
@@ -64,3 +70,6 @@ abstract class PluginTest {
      */
     abstract fun scanFiles()
 }
+
+// <Result(analysisTarget=null, attachments=null, baselineState=null, codeFlows=null, correlationGUID=null, fingerprints=null, fixes=null, graphs=null, graphTraversals=null, guid=null, hostedViewerURI=null, kind=null, level=null, locations=[Location(annotations=null, id=null, logicalLocations=null, message=null, physicalLocation=PhysicalLocation(address=null, artifactLocation=ArtifactLocation(description=null, index=null, properties=null, uri=file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java, uriBaseID=null), contextRegion=null, properties=null, region=Region(byteLength=null, byteOffset=null, charLength=null, charOffset=null, endColumn=19, endLine=24, message=null, properties=null, snippet=null, sourceLanguage=null, startColumn=13, startLine=24)), properties=null, relationships=null)], message=Message(arguments=null, id=null, markdown=null, properties=null, text=Usage of System.out/err), occurrenceCount=null, partialFingerprints=null, properties=null, provenance=null, rank=null, relatedLocations=null, rule=null, ruleID=SystemPrintln, ruleIndex=0, stacks=null, suppressions=null, taxa=null, webRequest=null, webResponse=null, workItemUris=null)>
+//

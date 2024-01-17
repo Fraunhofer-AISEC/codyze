@@ -31,7 +31,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 24,
                             startColumn = 13,
@@ -51,7 +50,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 27,
                             startColumn = 17,
@@ -71,7 +69,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 29,
                             startColumn = 13,
@@ -91,7 +88,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 44,
                             startColumn = 13,
@@ -111,7 +107,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 45,
                             startColumn = 13,
@@ -131,7 +126,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 46,
                             startColumn = 13,
@@ -151,7 +145,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 48,
                             startColumn = 13,
@@ -171,7 +164,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 49,
                             startColumn = 13,
@@ -191,7 +183,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 50,
                             startColumn = 13,
@@ -211,7 +202,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 54,
                             startColumn = 13,
@@ -231,7 +221,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 56,
                             startColumn = 13,
@@ -251,7 +240,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 58,
                             startColumn = 13,
@@ -271,7 +259,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 59,
                             startColumn = 13,
@@ -291,7 +278,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 60,
                             startColumn = 13,
@@ -311,7 +297,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 62,
                             startColumn = 13,
@@ -331,7 +316,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 64,
                             startColumn = 13,
@@ -351,7 +335,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 87,
                             startColumn = 13,
@@ -371,7 +354,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 89,
                             startColumn = 13,
@@ -391,7 +373,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 91,
                             startColumn = 13,
@@ -411,7 +392,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 93,
                             startColumn = 13,
@@ -431,7 +411,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 95,
                             startColumn = 13,
@@ -451,7 +430,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 109,
                             startColumn = 17,
@@ -471,7 +449,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 120,
                             startColumn = 13,
@@ -491,7 +468,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 124,
                             startColumn = 17,
@@ -511,7 +487,6 @@ class PMDPluginTest: SourcePluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "file:///home/robert/AISEC/codyze/codyze-plugins/src/test/resources/targets/TlsServer.java"),
                         region = Region(
                             startLine = 126,
                             startColumn = 13,

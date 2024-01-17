@@ -35,7 +35,6 @@ class FindSecBugsPluginTest : CompiledPluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "de/fraunhofer/aisec/codyze/medina/demo/jsse/TlsServer.java"),
                         region = Region(startLine = 102)
                     ),
                     logicalLocations = listOf(
@@ -60,7 +59,6 @@ class FindSecBugsPluginTest : CompiledPluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "de/fraunhofer/aisec/codyze/medina/demo/jsse/TlsServer.java"),
                         region = Region(startLine = 103)
                     ),
                     logicalLocations = listOf(
@@ -85,7 +83,6 @@ class FindSecBugsPluginTest : CompiledPluginTest() {
             locations = listOf(
                 Location(
                     physicalLocation = PhysicalLocation(
-                        artifactLocation = ArtifactLocation(uri = "de/fraunhofer/aisec/codyze/medina/demo/jsse/TlsServer.java"),
                         region = Region(startLine = 133)
                     ),
                     logicalLocations = listOf(

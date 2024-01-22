@@ -22,9 +22,9 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.IOException
 
 private val logger = KotlinLogging.logger { }
-
 
 /**
  * Extracts the last run from a valid SARIF result file
@@ -42,14 +42,20 @@ fun extractLastRun(resultFile: File): Run? {
     }
 
     return try {
-        // We do not use sarif4k.SarifSerializer as it does not allow us to ignore unknown fields such as arbitrary content of rule.properties
+        // We do not use sarif4k.SarifSerializer as it does not allow us to ignore unknown fields
+        // such as arbitrary content of rule.properties
         val sarif = serializer.decodeFromString<SarifSchema210>(resultFile.readText())
         sarif.runs.last()
     } catch (e: SerializationException) {
         logger.error { "Failed to serialize SARIF file at \"${resultFile.canonicalPath}\": ${e.localizedMessage}" }
         null
-    } catch (e: Exception) {
-        logger.error { "Unexpected error while trying to parse SARIF at \"${resultFile.canonicalPath}\": ${e.localizedMessage}" }
+    } catch (e: IllegalArgumentException) {
+        logger.error { "File at \"${resultFile.canonicalPath}\" is not valid SARIF: ${e.localizedMessage}" }
+        null
+    } catch (e: IOException) {
+        logger.error {
+            "Unexpected error while trying to read file at \"${resultFile.canonicalPath}\": ${e.localizedMessage}"
+        }
         null
     }
 }

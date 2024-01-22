@@ -28,7 +28,7 @@ abstract class SourcePluginTest: PluginTest() {
         plugin.execute(
             listOf(Path.of(sourcePath)),
             listOf(),
-            File("src/test/resources/generatedReports/$resultFileName")
+            Path.of(sourcePath).parent.parent.resolve("generatedReports").resolve(resultFileName).toFile()
         )
     }
 }

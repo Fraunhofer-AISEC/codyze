@@ -30,6 +30,7 @@ val logger = KotlinLogging.logger { }
  * They usually use already developed libraries from open-source analysis tools.
  * When developing a new Plugin, do not forget to add it to the respective [KoinModules],
  * otherwise it will not be selectable in the configuration.
+ * Also, remember to add a page to docs/plugins.
  */
 abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = true, name = cliName.lowercase()) {
     private val options by PluginOptionGroup(cliName)

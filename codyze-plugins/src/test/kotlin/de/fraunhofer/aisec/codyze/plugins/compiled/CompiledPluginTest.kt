@@ -34,7 +34,7 @@ abstract class CompiledPluginTest: PluginTest() {
         plugin.execute(
             listOf(Path.of(libPath)),
             contextPaths.map { Path.of(it!!) },
-            File("src/test/resources/generatedReports/$resultFileName")
+            Path.of(libPath).parent.parent.parent.resolve("generatedReports").resolve(resultFileName).toFile()
         )
     }
 }

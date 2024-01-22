@@ -69,7 +69,6 @@ class ParserTest {
         assertNull(run)
     }
 
-
     companion object {
         lateinit var exampleResults: Set<File>
 

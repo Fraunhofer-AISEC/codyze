@@ -21,8 +21,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 private val logger = KotlinLogging.logger { }
 
 /**
- * A static class containing information about the aggregated SARIF run.
+ * A static class containing information about an aggregated SARIF run consisting of multiple separate runs.
  * Each external Tool will be listed as an extension while Codyze functions as the driver.
+ * However, each SARIF report will be reduced to fields that are present and handled in this class.
  */
 class Aggregate {
     companion object {
@@ -30,6 +31,7 @@ class Aggregate {
         private var driver: ToolComponent? = null
         private var extensions: List<ToolComponent> = listOf()
         private var results: List<Result> = listOf()
+        private var invocations: List<Invocation> = listOf()
         private var containedRuns: Set<Run> = setOf()
 
         /**
@@ -37,15 +39,16 @@ class Aggregate {
          */
         fun createRun(): Run? {
             // Prevent Exception from uninitialized driver
-            if (containedRuns.isEmpty()) {
-                logger.error { "Failed to create run from aggregate: No runs added yet" }
+            if (driver == null) {
+                logger.error { "Failed to create run from aggregate: No driver added yet" }
                 return null
             }
 
             logger.info { "Creating single run from aggregate consisting of ${containedRuns.size} runs" }
             return Run(
                 tool = Tool(driver!!, extensions),
-                results = results
+                results = results,
+                invocations = listOf(createInvocation())
             )
         }
 
@@ -57,24 +60,21 @@ class Aggregate {
         fun addRun(run: Run) {
             val modifiedRun: Run = modifyResults(run)
 
-            // TODO: we cannot directly use the "invocation" properties of the components as they cannot be assigned to toolComponents
-            //  but we could build our own invocation from the invocations we got (e.g. successful only if all invocations were successful)
+            val originalDriver = modifiedRun.tool.driver
 
-            // TODO: search the SARIF specs for "result management system", e.g. fingerprints
-
-            // TODO: check each possible property in a run for whether/how they can be used in the aggregate
-            // TODO: when we modify information (e.g. invocation) we need to check for references (invocationIndex in resultProvenance)!
-
-            if (containedRuns.isEmpty()) {
-                driver = modifiedRun.tool.driver
+            // Here we hardcode Codyze as the only possible driver for the aggregate
+            // otherwise the driver of the aggregate would depend on the order of subcommands
+            if (driver == null && originalDriver.product == "Codyze") {
+                driver = originalDriver
             } else {
-                extensions += modifiedRun.tool.driver
+                extensions += originalDriver
             }
             extensions += modifiedRun.tool.extensions ?: listOf()
             results += modifiedRun.results ?: listOf()
+            invocations += modifiedRun.invocations ?: listOf()
             containedRuns += modifiedRun
 
-            logger.info { "Added run from ${driver!!.name} to the aggregate" }
+            logger.info { "Added run from ${originalDriver.name} to the aggregate" }
         }
 
         /**
@@ -88,7 +88,7 @@ class Aggregate {
         }
 
         /**
-         * This modifies the results object in a way that allows unique reference to the corresponding rule object within the aggregate.
+         * Modifies the results object in a way that allows unique reference to the corresponding rule object within the aggregate.
          * For this we need to populate the rule property in each result with the correct toolComponentReference or create the property from scratch.
          * The properties result.ruleID and result.ruleIndex will be moved into the rule object if they exist.
          * @param run The run which should have its results modified
@@ -148,6 +148,44 @@ class Aggregate {
             }
 
             return run.copy(results = newResults)
+        }
+
+        /**
+         * Creates a new Invocation object from all invocations contained in the aggregate.
+         * The resulting invocation only indicates a successful execution if all contained invocations do so.
+         * On failed execution, the resulting invocation indicates which tool failed.
+         * @return An invocation created from the information in the aggregate
+         */
+        private fun createInvocation(): Invocation {
+            var executionSuccessful = true
+            val notifications: MutableList<Notification> = mutableListOf()
+
+            for (run in containedRuns) {
+                // First build the toolName with extensions
+                var toolName = run.tool.driver.name
+                val extensions = run.tool.extensions
+                if (extensions != null) {
+                    toolName += " (+"
+                    for (extension in extensions) {
+                        toolName += extension.name
+                        if (extension != extensions.last()) {
+                            toolName += ", "
+                        }
+                    }
+                    toolName += ")"
+                }
+                // Then create a error message for each failed tool invocation
+                val unsuccessfulInvocations = run.invocations?.filter { !it.executionSuccessful } ?: listOf()
+                for (inv in unsuccessfulInvocations) {
+                    executionSuccessful = false
+                    val reason = if (inv.exitCodeDescription != null) " (${inv.exitCodeDescription})" else ""
+                    val message = "Tool $toolName failed execution$reason"
+                    notifications += Notification(level = Level.Error, message = Message(text = message))
+                }
+            }
+
+            // We do not define exitCodeDescription or executionSuccessful based on Codyze as it doesn't produce an invocation object
+            return Invocation(executionSuccessful = executionSuccessful, toolExecutionNotifications = notifications)
         }
     }
 }

@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.core.output.aggregator
 
+import io.github.detekt.sarif4k.Notification
 import io.github.detekt.sarif4k.Run
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -23,22 +24,6 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 
 class AggregateTest {
-
-    /**
-     * Tests the aggregation of a simple SARIF run
-     */
-    @Test
-    fun aggregateSimpleRun() {
-        val run = runs.first { it.first == "pmd-report.sarif" }.second
-
-        Aggregate.addRun(run)
-
-        val completeRun = Aggregate.createRun()
-
-        assertEquals("PMD", completeRun!!.tool.driver.name)
-        assertEquals(0, completeRun.tool.extensions?.size ?: 0)
-        assertEquals(3, completeRun.results?.size ?: 0)
-    }
 
     /**
      * Tests the aggregation of a SARIF run containing extension tools
@@ -51,32 +36,33 @@ class AggregateTest {
 
         val completeRun = Aggregate.createRun()
 
-        assertEquals("CodyzeMedina", completeRun!!.tool.driver.name)
+        assertEquals("CokoExecutor", completeRun!!.tool.driver.name)
         assertEquals(1, completeRun.tool.extensions?.size ?: 0)
-        assertEquals("codyze", completeRun.tool.extensions!![0].name)
-
-        assertEquals(6, completeRun.results?.size ?: 0)
+        assertEquals(1, completeRun.results?.size ?: 0)
+        assertNotNull(completeRun.invocations)
+        assertTrue(completeRun.invocations!!.first().executionSuccessful)
+        assertEquals(listOf<Notification>(), completeRun.invocations!!.first().toolExecutionNotifications)
     }
 
     /**
-     * Tests the aggregation of a SARIF run containing optional objects
+     * Tests the aggregation of a SARIF run containing an optional plugin
      */
     @Test
     fun aggregateMultipleRuns() {
+        val run3 = runs.first { it.first == "pmd-report.sarif" }.second
         val run1 = runs.first { it.first == "codyze-report.sarif" }.second
-        val run2 = runs.first { it.first == "pmd-report.sarif" }.second
 
         Aggregate.addRun(run1)
-        Aggregate.addRun(run2)
+        Aggregate.addRun(run3)
 
         val completeRun = Aggregate.createRun()
 
-        assertEquals("CodyzeMedina", completeRun!!.tool.driver.name)
+        assertEquals("CokoExecutor", completeRun!!.tool.driver.name)
         assertEquals(2, completeRun.tool.extensions?.size ?: 0)
-        assertContains(completeRun.tool.extensions!!.map { it.name }, "codyze")
+        assertContains(completeRun.tool.extensions!!.map { it.name }, "CPG Coko Backend")
         assertContains(completeRun.tool.extensions!!.map { it.name }, "PMD")
 
-        assertEquals(9, completeRun.results?.size ?: 0)
+        assertEquals(4, completeRun.results?.size ?: 0)
     }
 
     @AfterEach

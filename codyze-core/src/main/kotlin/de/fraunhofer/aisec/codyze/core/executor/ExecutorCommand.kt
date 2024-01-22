@@ -29,7 +29,7 @@ abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
     NoOpCliktCommand(hidden = true, name = cliName) {
 
     /** Use the global context set in [CodyzeCli] */
-    private val usedExecutors by requireObject<MutableList<ExecutorCommand<*>>>()
+    private val usedExecutors by findOrSetObject { mutableListOf<ExecutorCommand<*>>() }
 
     abstract fun getExecutor(goodFindings: Boolean, pedantic: Boolean, backend: Backend?): T
 

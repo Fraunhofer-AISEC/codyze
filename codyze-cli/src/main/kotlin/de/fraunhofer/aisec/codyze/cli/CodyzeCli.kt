@@ -28,6 +28,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze.core.VersionProvider
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import java.nio.file.Path
 import kotlin.io.path.Path
 
@@ -88,7 +89,7 @@ class CodyzeCli(val configFile: Path?) :
 
     val codyzeOptions by CodyzeOptionGroup()
 
-    val usedExecutors by findOrSetObject { mutableListOf<CliktCommand>() }
+    val usedExecutors by findOrSetObject { mutableListOf<ExecutorCommand<*>>() }
 
     // This run method is only necessary to correctly set the "usedExecutors" variable
     override fun run() {

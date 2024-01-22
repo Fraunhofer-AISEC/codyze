@@ -8,7 +8,7 @@ import java.nio.file.Path
  * It should not do anything and just exist so the mapping can succeed
  */
 class EmptyPlugin : Plugin("None") {
-    override fun execute(target: List<Path>, output: File) {
+    override fun execute(target: List<Path>, context: List<Path>, output: File) {
         return
     }
 }

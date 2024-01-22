@@ -19,8 +19,11 @@ import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.core.output.aggregator.Aggregate
 import de.fraunhofer.aisec.codyze.core.output.aggregator.extractLastRun
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.nio.file.Path
+
+val logger = KotlinLogging.logger { }
 
 /**
  * Plugins perform a standalone analysis independent of the Codyze Executors.
@@ -34,9 +37,10 @@ abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = t
     /**
      * Executes the respective analysis tool.
      * @param target The files to be analyzed
+     * @param context Additional context, plugin-specific
      * @param output The location of the results
      */
-    abstract fun execute(target: List<Path>, output: File)
+    abstract fun execute(target: List<Path>, context: List<Path>, output: File)
 
     /**
      * Define two plugins as equal if they are of the same type and therefore have the same CLI name.
@@ -56,6 +60,7 @@ abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = t
         // Execute the Plugin and print to the specified location
         execute(
             options.target,
+            options.context,
             options.output
         )
 

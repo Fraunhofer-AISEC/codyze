@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugin.plugins.compiled
+package de.fraunhofer.aisec.codyze.plugins.compiled
 
-import de.fraunhofer.aisec.codyze.plugin.plugins.PluginTest
+import de.fraunhofer.aisec.codyze.plugins.PluginTest
 import java.io.File
 import java.nio.file.Path
 import kotlin.test.assertNotNull
@@ -23,10 +23,17 @@ import kotlin.test.assertNotNull
 abstract class CompiledPluginTest: PluginTest() {
     override fun scanFiles() {
         val libPath = PluginTest::class.java.classLoader.getResource("targets/libs/demo-cloud-service-1.0.0.jar")?.path
+        val contextPaths = listOf(
+            PluginTest::class.java.classLoader.getResource("targets/libs/bcpkix-jdk18on-1.75.jar")?.path,
+            PluginTest::class.java.classLoader.getResource("targets/libs/bcprov-jdk18on-1.75.jar")?.path,
+            PluginTest::class.java.classLoader.getResource("targets/libs/bctls-jdk18on-1.75.jar")?.path,
+            PluginTest::class.java.classLoader.getResource("targets/libs/bcutil-jdk18on-1.75.jar")?.path
+        )
         assertNotNull(libPath)
 
         plugin.execute(
             listOf(Path.of(libPath)),
+            contextPaths.map { Path.of(it!!) },
             File("src/test/resources/generatedReports/$resultFileName")
         )
     }

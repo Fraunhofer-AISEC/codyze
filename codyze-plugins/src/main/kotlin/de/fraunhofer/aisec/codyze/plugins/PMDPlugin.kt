@@ -21,7 +21,7 @@ import net.sourceforge.pmd.PMDConfiguration
 import net.sourceforge.pmd.PmdAnalysis
 
 class PMDPlugin: Plugin("PMD") {
-    override fun execute(target: List<Path>, output: File) {
+    override fun execute(target: List<Path>, context: List<Path>, output: File) {
         val config = PMDConfiguration()
         for (path in target) {
             config.addInputPath(path)

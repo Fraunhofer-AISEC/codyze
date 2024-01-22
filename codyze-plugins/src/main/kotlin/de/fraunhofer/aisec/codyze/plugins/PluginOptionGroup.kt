@@ -29,7 +29,6 @@ class PluginOptionGroup(pluginName: String) : OptionGroup(name = "Options for th
         help = "Whether the plugin report should stay separate from the codyze report."
     )
         .flag(
-            "-c",
             "--combined",
             default = false,
             defaultForHelp = "combined"
@@ -42,4 +41,12 @@ class PluginOptionGroup(pluginName: String) : OptionGroup(name = "Options for th
     )
         .file(mustBeWritable = true)
         .default(File("$pluginName.sarif"))
+
+    val context: List<Path> by option(
+        "-c",
+        "--context",
+        help = "Additional context required for some plugins (e.g. auxiliary classpaths for FindSecBugs)."
+    )
+        .path(mustExist = true, mustBeReadable = true)
+        .multiple(required = false)
 }

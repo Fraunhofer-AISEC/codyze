@@ -58,7 +58,6 @@ fun main(args: Array<String>) {
 
         val codyzeConfiguration = codyzeCli.codyzeOptions.asConfiguration()
 
-        // TODO: this looks like goodFindings/pedantic should be a Backend configuration instead of a codyze one
         // the subcommands know how to instantiate their respective backend/executor
         val backend = backendCommand?.getBackend() // [null] if the chosen executor does not support modular backends
         val executor = executorCommand.getExecutor(codyzeConfiguration.goodFindings, codyzeConfiguration.pedantic, backend)
@@ -66,7 +65,6 @@ fun main(args: Array<String>) {
         val run = executor.evaluate()
         Aggregate.addRun(run)
 
-        // TODO: We need to enforce that the (Only) Codyze run is always the driver!
         // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the chosen format
         codyzeConfiguration.outputBuilder.toFile(Aggregate.createRun() ?: run, codyzeConfiguration.output)
     }

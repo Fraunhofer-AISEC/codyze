@@ -18,39 +18,49 @@ package de.fraunhofer.aisec.codyze.plugins
 import edu.umd.cs.findbugs.BugReporter
 import edu.umd.cs.findbugs.DetectorFactoryCollection
 import edu.umd.cs.findbugs.FindBugs2
+import edu.umd.cs.findbugs.Plugin.loadCustomPlugin
 import edu.umd.cs.findbugs.Project
 import edu.umd.cs.findbugs.config.UserPreferences
 import edu.umd.cs.findbugs.sarif.SarifBugReporter
 import java.io.File
 import java.io.PrintWriter
-import java.nio.file.Files
+import java.net.URL
 import java.nio.file.Path
-import kotlin.io.path.absolute
 
 class FindSecBugsPlugin: Plugin("FindSecBugs") {
-    val pluginFile = File("src/main/resources/spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
+    // To update, download new Plugin versions and change jar name here
+    // https://find-sec-bugs.github.io/download.htm
+    private val pluginFileURL: URL? = FindSecBugsPlugin::class.java.classLoader.getResource("spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
 
     // NOTE: this Executor will very likely mark the invocation as failed
     // because of an (erroneous) missing class warning
     // see: https://github.com/find-sec-bugs/find-sec-bugs/issues/692
-    override fun execute(target: List<Path>, output: File) {
+    override fun execute(target: List<Path>, context: List<Path>, output: File) {
         val project = Project()
-        // TODO: for now we assume all necessary libraries are close to the target
+
         for (t in target) {
+            /**
             for (p in Files.walk(t.parent).map { it.absolute().toString() }.toList()) {
                 project.addAuxClasspathEntry(p)
             }
+            */
             project.addFile(t.toString())
+        }
+
+        for (aux in context) {
+            project.addAuxClasspathEntry(aux.toString())
         }
 
         val reporter = SarifBugReporter(project)
         reporter.setWriter(PrintWriter(output.writer()))
         reporter.setPriorityThreshold(BugReporter.NORMAL)
 
-        // TODO: automatically download new Plugin versions and change version number here!
-        // https://find-sec-bugs.github.io/download.htm
-
-        edu.umd.cs.findbugs.Plugin.loadCustomPlugin(pluginFile, project)
+        pluginFileURL ?.run {
+            val pluginFile = File(pluginFileURL.toURI())
+            loadCustomPlugin(pluginFile, project)
+        } ?: {
+            logger.error { "Could not load FindSecBugs plugin from $pluginFileURL. Proceeding with default SpotBugs." }
+        }
 
         val findbugs = FindBugs2()
         findbugs.bugReporter = reporter

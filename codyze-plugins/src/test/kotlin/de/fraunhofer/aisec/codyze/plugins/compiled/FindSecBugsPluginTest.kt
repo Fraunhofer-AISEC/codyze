@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.plugin.plugins.compiled
+package de.fraunhofer.aisec.codyze.plugins.compiled
 
 
 import de.fraunhofer.aisec.codyze.plugins.FindSecBugsPlugin
@@ -22,6 +22,7 @@ import io.github.detekt.sarif4k.*
 class FindSecBugsPluginTest : CompiledPluginTest() {
     override val plugin = FindSecBugsPlugin()
     override val resultFileName = "findsecbugs.sarif"
+    override val expectedSuccess = false
     override val expectedResults = listOf(
         Result(
             ruleID = "DM_DEFAULT_ENCODING",

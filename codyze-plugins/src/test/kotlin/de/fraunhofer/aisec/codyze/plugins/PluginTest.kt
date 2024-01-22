@@ -16,7 +16,6 @@
 package de.fraunhofer.aisec.codyze.plugins
 
 import de.fraunhofer.aisec.codyze.core.output.aggregator.extractLastRun
-import de.fraunhofer.aisec.codyze.plugins.Plugin
 import io.github.detekt.sarif4k.Result
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -24,7 +23,6 @@ import java.io.File
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 abstract class PluginTest {
     abstract val plugin: Plugin

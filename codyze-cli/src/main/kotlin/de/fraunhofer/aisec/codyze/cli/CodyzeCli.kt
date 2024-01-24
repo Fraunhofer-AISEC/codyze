@@ -70,7 +70,11 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
  */
 @Suppress("Unused", "UnusedPrivateMember")
 class CodyzeCli(val configFile: Path?) :
-    NoOpCliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true, allowMultipleSubcommands = true) {
+    NoOpCliktCommand(
+        help = "Codyze finds security flaws in source code",
+        printHelpOnEmptyArgs = true,
+        allowMultipleSubcommands = true
+    ) {
 
     init {
         versionOption(

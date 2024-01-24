@@ -20,12 +20,9 @@ import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.core.output.aggregator.Aggregate
 import de.fraunhofer.aisec.codyze.plugins.Plugin
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
 import java.nio.file.Path
-
-private val logger = KotlinLogging.logger {}
 
 /** Entry point for Codyze. */
 fun main(args: Array<String>) {
@@ -50,9 +47,12 @@ fun main(args: Array<String>) {
         codyzeCli.main(args)
     }
 
+    // Following code will be executed after all commands' "run" functions complete
+    // TODO("update DOCUMENTATION to reflect changes!")
+
     // this should already be checked by clikt in [codyzeCli.main(args)]
     require(codyzeCli.usedExecutors.isNotEmpty()) { "UsageError! Please select one of the available executors." }
-    for (executorCommand in codyzeCli.usedExecutors.map { it as ExecutorCommand<*> }) {
+    for (executorCommand in codyzeCli.usedExecutors) {
         // allow backendCommand to be null in order to allow executors that do not use backends
         val backendCommand = executorCommand.currentContext.invokedSubcommand as? BackendCommand<*>
 
@@ -60,12 +60,16 @@ fun main(args: Array<String>) {
 
         // the subcommands know how to instantiate their respective backend/executor
         val backend = backendCommand?.getBackend() // [null] if the chosen executor does not support modular backends
-        val executor = executorCommand.getExecutor(codyzeConfiguration.goodFindings, codyzeConfiguration.pedantic, backend)
+        val executor = executorCommand.getExecutor(
+            codyzeConfiguration.goodFindings,
+            codyzeConfiguration.pedantic,
+            backend
+        )
 
         val run = executor.evaluate()
         Aggregate.addRun(run)
 
-        // use the chosen [OutputBuilder] to convert the SARIF format (a SARIF RUN) from the executor to the chosen format
+        // use the chosen OutputBuilder to convert the SARIF format (a SARIF Run) from the executor to the chosen format
         codyzeConfiguration.outputBuilder.toFile(Aggregate.createRun() ?: run, codyzeConfiguration.output)
     }
 }

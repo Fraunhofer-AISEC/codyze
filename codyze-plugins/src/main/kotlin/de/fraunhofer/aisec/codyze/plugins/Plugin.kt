@@ -48,8 +48,9 @@ abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = t
      * This is necessary to filter out duplicate Plugins when parsing the cli arguments
      */
     override fun equals(other: Any?): Boolean {
-        if (other is Plugin)
+        if (other is Plugin) {
             return this.cliName == other.cliName
+        }
         return false
     }
 
@@ -68,8 +69,9 @@ abstract class Plugin(private val cliName: String) : NoOpCliktCommand(hidden = t
         // Combine with previous runs and print if desired (overwrites previous reports)
         if (!options.separate) {
             val run = extractLastRun(options.output)
-            if (run != null)
+            if (run != null) {
                 Aggregate.addRun(run)
+            }
         }
     }
 }

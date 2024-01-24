@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.aisec.codyze.plugins.compiled
 
-
 import de.fraunhofer.aisec.codyze.plugins.FindSecBugsPlugin
 import io.github.detekt.sarif4k.*
 
@@ -30,7 +29,10 @@ class FindSecBugsPluginTest : CompiledPluginTest() {
             message = Message(
                 id = "default",
                 text = "Reliance on default encoding",
-                arguments = listOf("de.fraunhofer.aisec.codyze.medina.demo.jsse.TlsServer.start()", "new java.io.InputStreamReader(InputStream)")
+                arguments = listOf(
+                    "de.fraunhofer.aisec.codyze.medina.demo.jsse.TlsServer.start()",
+                    "new java.io.InputStreamReader(InputStream)"
+                )
             ),
             level = Level.Note,
             locations = listOf(
@@ -54,7 +56,10 @@ class FindSecBugsPluginTest : CompiledPluginTest() {
             message = Message(
                 id = "default",
                 text = "Reliance on default encoding",
-                arguments = listOf("de.fraunhofer.aisec.codyze.medina.demo.jsse.TlsServer.start()", "new java.io.OutputStreamWriter(OutputStream)")
+                arguments = listOf(
+                    "de.fraunhofer.aisec.codyze.medina.demo.jsse.TlsServer.start()",
+                    "new java.io.OutputStreamWriter(OutputStream)"
+                )
             ),
             level = Level.Note,
             locations = listOf(

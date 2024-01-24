@@ -15,12 +15,12 @@
  */
 package de.fraunhofer.aisec.codyze.plugins
 
-import java.io.File
-import java.nio.file.Path
 import net.sourceforge.pmd.PMDConfiguration
 import net.sourceforge.pmd.PmdAnalysis
+import java.io.File
+import java.nio.file.Path
 
-class PMDPlugin: Plugin("PMD") {
+class PMDPlugin : Plugin("PMD") {
     override fun execute(target: List<Path>, context: List<Path>, output: File) {
         val config = PMDConfiguration()
         for (path in target) {
@@ -32,8 +32,9 @@ class PMDPlugin: Plugin("PMD") {
 
         // from https://github.com/pmd/pmd/tree/master/pmd-core/src/main/resources/
         val ruleset = PMDPlugin::class.java.classLoader.getResource("pmd-rulesets/all-java.xml")
-        if (ruleset != null)
+        if (ruleset != null) {
             config.addRuleSet(ruleset.path)
+        }
 
         val analysis = PmdAnalysis.create(config)
         analysis.performAnalysis()

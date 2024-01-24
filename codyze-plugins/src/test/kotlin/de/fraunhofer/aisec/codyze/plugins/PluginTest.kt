@@ -43,8 +43,12 @@ abstract class PluginTest {
         assertEquals(expectedResults.size, results.size)
         // do not test the physical artifact location as it differs per system
         results = results.map {
-            it.copy(locations = it.locations?.map {
-                location -> location.copy(physicalLocation = location.physicalLocation?.copy(artifactLocation = null))}
+            it.copy(
+                locations = it.locations?.map
+                    {
+                            location ->
+                        location.copy(physicalLocation = location.physicalLocation?.copy(artifactLocation = null))
+                    }
             )
         }
         assertContentEquals(expectedResults, results)

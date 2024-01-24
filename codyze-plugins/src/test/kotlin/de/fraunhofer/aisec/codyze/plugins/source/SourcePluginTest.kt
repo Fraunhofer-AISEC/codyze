@@ -16,11 +16,10 @@
 package de.fraunhofer.aisec.codyze.plugins.source
 
 import de.fraunhofer.aisec.codyze.plugins.PluginTest
-import java.io.File
 import java.nio.file.Path
 import kotlin.test.assertNotNull
 
-abstract class SourcePluginTest: PluginTest() {
+abstract class SourcePluginTest : PluginTest() {
     override fun scanFiles() {
         val sourcePath = PluginTest::class.java.classLoader.getResource("targets/TlsServer.java")?.path
         assertNotNull(sourcePath)

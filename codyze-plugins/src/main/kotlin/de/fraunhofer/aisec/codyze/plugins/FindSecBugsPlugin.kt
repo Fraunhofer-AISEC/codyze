@@ -27,10 +27,11 @@ import java.io.PrintWriter
 import java.net.URL
 import java.nio.file.Path
 
-class FindSecBugsPlugin: Plugin("FindSecBugs") {
+class FindSecBugsPlugin : Plugin("FindSecBugs") {
     // To update, download new Plugin versions and change jar name here
     // https://find-sec-bugs.github.io/download.htm
-    private val pluginFileURL: URL? = FindSecBugsPlugin::class.java.classLoader.getResource("spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
+    private val pluginFileURL: URL? =
+        FindSecBugsPlugin::class.java.classLoader.getResource("spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
 
     // NOTE: this Executor will very likely mark the invocation as failed
     // because of an (erroneous) missing class warning
@@ -39,11 +40,6 @@ class FindSecBugsPlugin: Plugin("FindSecBugs") {
         val project = Project()
 
         for (t in target) {
-            /**
-            for (p in Files.walk(t.parent).map { it.absolute().toString() }.toList()) {
-                project.addAuxClasspathEntry(p)
-            }
-            */
             project.addFile(t.toString())
         }
 

@@ -18,7 +18,7 @@ package de.fraunhofer.aisec.codyze.plugins.source
 import de.fraunhofer.aisec.codyze.plugins.PMDPlugin
 import io.github.detekt.sarif4k.*
 
-class PMDPluginTest: SourcePluginTest() {
+class PMDPluginTest : SourcePluginTest() {
     override val plugin = PMDPlugin()
     override val resultFileName = "pmd.sarif"
     override val expectedResults = listOf(

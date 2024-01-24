@@ -28,8 +28,11 @@ import java.net.URL
 import java.nio.file.Path
 
 class FindSecBugsPlugin : Plugin("FindSecBugs") {
-    // To update, download new Plugin versions and change jar name here
-    // https://find-sec-bugs.github.io/download.htm
+    /**
+     * https://find-sec-bugs.github.io/download.htm
+     * To update, download new Plugin versions and change jar name here.
+     * When updating Plugins, make sure to update the documentation as well.
+     */
     private val pluginFileURL: URL? =
         FindSecBugsPlugin::class.java.classLoader.getResource("spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
 

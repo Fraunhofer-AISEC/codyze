@@ -30,7 +30,10 @@ class PMDPlugin : Plugin("PMD") {
         config.setReportFile(output.toPath())
         config.isIgnoreIncrementalAnalysis = true
 
-        // from https://github.com/pmd/pmd/tree/master/pmd-core/src/main/resources/
+        /**
+         * From https://github.com/pmd/pmd/tree/master/pmd-core/src/main/resources/
+         * When adding more rule sets, remember to update the documentation.
+         */
         val ruleset = PMDPlugin::class.java.classLoader.getResource("pmd-rulesets/all-java.xml")
         if (ruleset != null) {
             config.addRuleSet(ruleset.path)

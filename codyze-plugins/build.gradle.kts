@@ -12,6 +12,10 @@ dependencies {
     implementation(libs.sarif4k)
     implementation(projects.codyzeCore)
 
+    /**
+     * When updating Plugins, make sure to update the documentation as well.
+     */
+
     // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
     // it is necessary to exclude saxon because of conflicts with same transitive dependency in PMD
     implementation("com.github.spotbugs:spotbugs:4.8.2") {

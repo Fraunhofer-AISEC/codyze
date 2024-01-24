@@ -48,7 +48,7 @@ The names are the same for the configuration file and the CLI options.
 |:--------------|:--------|:-----------------------------------------------------------------------------------------------------------------------|:--------------|
 | output        | Path    | The path to write the results file to.                                                                                 | `[./]`        |
 | output-format | String  | Format in which the analysis results are returned.                                                                     | `sarif`       |
-| good-findings | Boolean | Enable/Disable output of "positive" findings which indicate correct implementations.                                 | `true`        |
+| good-findings | Boolean | Enable/Disable output of "positive" findings which indicate correct implementations.                                   | `true`        |
 | pedantic      | Boolean | Activates pedantic analysis mode. In this mode, Codyze analyzes all given specification files and report all findings. | `false`       |
 
 ### Executors

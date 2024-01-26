@@ -23,7 +23,7 @@ jobs:
           python -m pip install mkdocs-material
           python -m pip install -r ./docs/mkdocs-material-plugins.txt
       - name: 'Build API pages'
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: |
             dokkaHtmlMultiModule

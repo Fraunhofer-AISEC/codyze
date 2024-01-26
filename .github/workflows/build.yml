@@ -37,7 +37,7 @@ jobs:
           # store version in GitHub environment file
           echo "version=$VERSION" >> $GITHUB_ENV
       - name: Build ${{ env.version }}
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: :codyze-cli:build -x check --parallel -Pversion=${{ env.version }}
       - name: Push Release Docker Image

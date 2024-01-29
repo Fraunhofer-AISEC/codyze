@@ -62,6 +62,35 @@ val projectProps by tasks.registering(WriteProperties::class) {
     }
 }
 
+task("updateEclipseCDT") {
+    doLast {
+        val cpgVersion = "8.0.0" //libs.versions.cpg
+        val url = "https://github.com/Fraunhofer-AISEC/cpg/blob/v${cpgVersion}/buildSrc/src/main/kotlin/cpg.common-conventions.gradle.kts"
+        val downloadedFile = layout.buildDirectory.file("cpg-conventions").get().asFile
+        ant.invokeMethod("get", mapOf("src" to url, "dest" to downloadedFile))
+
+        val newRegex = "setUrl\\(\\\\\"https:\\/\\/download\\.eclipse\\.org\\/tools\\/cdt\\/releases\\/.*\\/plugins\\\\\"\\)".toRegex()
+        val matchResult = newRegex.find(downloadedFile.readText())
+
+        val files = setOf(
+            File("$rootDir/code-coverage-report/build.gradle.kts"),
+            File("$rootDir/buildSrc/src/main/kotlin/module.gradle.kts")
+        )
+
+        if (matchResult != null) {
+            val newRepo = matchResult.groups.first()!!.value.replace("\\", "")
+            println("Setting Eclipse CDT version to '$newRepo'")
+            val oldRegex = "setUrl\\(\\\"https:\\/\\/download\\.eclipse\\.org\\/tools\\/cdt\\/releases\\/.*\\/plugins\\\"\\)".toRegex()
+            for (file in files) {
+                val oldRepo = oldRegex.find(file.readText())?.groups?.first()?.value ?: continue
+                file.writeText(file.readText().replace(oldRepo, newRepo))
+            }
+        } else {
+            println("Eclipse CDT version info not found at '$url'")
+        }
+    }
+}
+
 // configure detekt to combine the results of all submodules into a single sarif file -> for github code scanning
 val detektReportMergeSarif by tasks.registering(ReportMergeTask::class) {
     output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.sarif"))

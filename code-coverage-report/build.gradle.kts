@@ -39,6 +39,7 @@ dependencies {
     jacocoAggregation(projects.codyzeCore)
     jacocoAggregation(projects.codyzeSpecificationLanguages.coko.cokoCore)
     jacocoAggregation(projects.codyzeSpecificationLanguages.coko.cokoDsl)
+    jacocoAggregation(projects.codyzePlugins)
 }
 
 tasks.check {

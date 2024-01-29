@@ -64,8 +64,8 @@ val projectProps by tasks.registering(WriteProperties::class) {
 
 task("updateEclipseCDT") {
     doLast {
-        val cpgVersion = "8.0.0" //libs.versions.cpg
-        val url = "https://github.com/Fraunhofer-AISEC/cpg/blob/v${cpgVersion}/buildSrc/src/main/kotlin/cpg.common-conventions.gradle.kts"
+        val cpgVersion = libs.versions.cpg
+        val url = "https://github.com/Fraunhofer-AISEC/cpg/blob/v${cpgVersion.get()}/buildSrc/src/main/kotlin/cpg.common-conventions.gradle.kts"
         val downloadedFile = layout.buildDirectory.file("cpg-conventions").get().asFile
         ant.invokeMethod("get", mapOf("src" to url, "dest" to downloadedFile))
 

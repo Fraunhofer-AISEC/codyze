@@ -62,9 +62,11 @@ val projectProps by tasks.registering(WriteProperties::class) {
     }
 }
 
+// parse the Eclipse CDT version used in the CPG and applies it to Codyze
 task("updateEclipseCDT") {
     doLast {
         val cpgVersion = libs.versions.cpg
+        // If the location of the repository definition changes, change this url
         val url = "https://github.com/Fraunhofer-AISEC/cpg/blob/v${cpgVersion.get()}/buildSrc/src/main/kotlin/cpg.common-conventions.gradle.kts"
         val downloadedFile = layout.buildDirectory.file("cpg-conventions").get().asFile
         ant.invokeMethod("get", mapOf("src" to url, "dest" to downloadedFile))
@@ -72,6 +74,7 @@ task("updateEclipseCDT") {
         val newRegex = "setUrl\\(\\\\\"https:\\/\\/download\\.eclipse\\.org\\/tools\\/cdt\\/releases\\/.*\\/plugins\\\\\"\\)".toRegex()
         val matchResult = newRegex.find(downloadedFile.readText())
 
+        // Include ALL files in codyze that define the CDT repository location
         val files = setOf(
             File("$rootDir/code-coverage-report/build.gradle.kts"),
             File("$rootDir/buildSrc/src/main/kotlin/module.gradle.kts")

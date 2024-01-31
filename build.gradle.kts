@@ -94,11 +94,6 @@ task("updateEclipseCDT") {
     }
 }
 
-// always run "updateEclipseCDT" before build
-tasks.named("build") {
-    dependsOn(tasks.named("updateEclipseCDT"))
-}
-
 // configure detekt to combine the results of all submodules into a single sarif file -> for github code scanning
 val detektReportMergeSarif by tasks.registering(ReportMergeTask::class) {
     output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.sarif"))

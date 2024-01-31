@@ -11,6 +11,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  update-cdt-with-cpg:
+    if: ${{ github.event.label.name == 'dependencies' }
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
+      - name: Update Eclipse CDT
+        run: |
+          ./gradlew updateEclipseCDT
+          git config --global user.name 'Robert Haimerl'
+          git config --global user.email 'robert.haimerl@aisec.fraunhofer.de'
+          git commit -am "Update Eclipe CDT"
+          git push
   build:
     runs-on: ubuntu-latest
     permissions:

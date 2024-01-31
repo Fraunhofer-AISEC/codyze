@@ -12,7 +12,7 @@ on:
 
 jobs:
   update-cdt-with-cpg:
-    if: ${{ github.event.label.name == 'dependencies' }
+    if: ${{ github.event.label.name == 'dependencies' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

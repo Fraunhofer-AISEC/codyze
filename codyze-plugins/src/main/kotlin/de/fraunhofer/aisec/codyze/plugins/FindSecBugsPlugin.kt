@@ -51,7 +51,9 @@ class FindSecBugsPlugin : Plugin("FindSecBugs") {
         }
 
         val reporter = SarifBugReporter(project)
-        output.createNewFile()
+        if (output.parentFile != null) {
+            output.parentFile.mkdirs()
+        }
         reporter.setWriter(PrintWriter(output.writer()))
         reporter.setPriorityThreshold(BugReporter.NORMAL)
 

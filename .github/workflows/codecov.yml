@@ -39,5 +39,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: plugin-test-report
-          path: ./codyze-plugins/build/reports/tests/test/index.html
+          name: plugin-test-reports
+          path: ./codyze-plugins/build/reports/tests/

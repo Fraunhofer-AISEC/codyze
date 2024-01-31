@@ -71,7 +71,7 @@ abstract class PluginTest {
 
     @AfterEach
     fun cleanup() {
-        val resultURI = PluginTest::class.java.classLoader.getResource(resultFileName)?.toURI()
+        val resultURI = PluginTest::class.java.classLoader.getResource("generatedReports/$resultFileName")?.toURI()
         if (resultURI != null) {
             File(resultURI).delete()
         }

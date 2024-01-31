@@ -35,3 +35,9 @@ jobs:
           files: ./code-coverage-report/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
           fail_ci_if_error: true
           flags: unittests
+      - name: Upload plugin test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-test-report
+          path: ./codyze-plugins/build/reports/tests/test/index.html

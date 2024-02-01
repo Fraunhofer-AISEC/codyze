@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17.0.9_9-jre
+FROM eclipse-temurin:17.0.10_7-jre
 
 LABEL org.opencontainers.image.authors="Fraunhofer AISEC <codyze@aisec.fraunhofer.de>"
 

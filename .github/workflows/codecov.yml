@@ -19,10 +19,10 @@ jobs:
         with:
           distribution: "temurin"
           java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: Generate coverage report
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: testCodeCoverageReport --continue
+        run: ./gradlew testCodeCoverageReport --continue
       - name: Archive test reports
         uses: actions/upload-artifact@v4
         with:

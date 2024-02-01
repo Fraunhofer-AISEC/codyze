@@ -19,17 +19,17 @@ jobs:
         with:
           distribution: "temurin"
           java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: Generate coverage report
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: testCodeCoverageReport --continue
+        run: ./gradlew testCodeCoverageReport --continue
       - name: Archive test reports
         uses: actions/upload-artifact@v4
         with:
           name: test
           path: ./code-coverage-report/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./code-coverage-report/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml

@@ -22,10 +22,11 @@ jobs:
         run: |
           python -m pip install mkdocs-material
           python -m pip install -r ./docs/mkdocs-material-plugins.txt
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: 'Build API pages'
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: |
+        run: |
+            ./gradlew
             dokkaHtmlMultiModule
             -Dorg.gradle.internal.repository.max.tentatives=5
             -Dorg.gradle.internal.repository.initial.backoff=10000

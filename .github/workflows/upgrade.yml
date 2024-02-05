@@ -25,9 +25,9 @@ jobs:
         with:
           distribution: "temurin"
           java-version: ${{ matrix.version }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: Build
-        uses: gradle/gradle-build-action@v2
+        run:  ./gradlew :codyze-cli:build -x check --parallel -Pversion=0.0.0
         # step-level 'continue-on-error' needed to mask a negative workflow result
         continue-on-error: true
-        with:
-          arguments: :codyze-cli:build -x check --parallel -Pversion=0.0.0

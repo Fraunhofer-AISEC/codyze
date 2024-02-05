@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
 import kotlin.test.assertContains
-import kotlin.test.assertContentEquals
 
 class AggregateTest {
 

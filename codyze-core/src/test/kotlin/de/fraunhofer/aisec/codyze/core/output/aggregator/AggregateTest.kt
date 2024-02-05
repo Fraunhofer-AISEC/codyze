@@ -67,8 +67,10 @@ class AggregateTest {
         completeRun.results!!
             .filterNot { it.rule!!.toolComponent!!.name == "CokoExecutor" }
             .forEach {
-                assertTrue(it.rule!!.toolComponent!!.name == "PMD"
-                        || completeRun.tool.extensions!![it.rule!!.toolComponent!!.index?.toInt()!!].name == "PMD")
+                assertTrue(
+                    it.rule!!.toolComponent!!.name == "PMD" ||
+                        completeRun.tool.extensions!![it.rule!!.toolComponent!!.index?.toInt()!!].name == "PMD"
+                )
             }
     }
 
@@ -111,8 +113,10 @@ class AggregateTest {
         completeRun.results!!
             .filterNot { it.rule!!.toolComponent!!.name == "CokoExecutor" }
             .forEach {
-                assertTrue(it.rule!!.toolComponent!!.name == "SpotBugs"
-                    || completeRun.tool.extensions!![it.rule!!.toolComponent!!.index?.toInt()!!].name == "SpotBugs")
+                assertTrue(
+                    it.rule!!.toolComponent!!.name == "SpotBugs" ||
+                        completeRun.tool.extensions!![it.rule!!.toolComponent!!.index?.toInt()!!].name == "SpotBugs"
+                )
             }
     }
 

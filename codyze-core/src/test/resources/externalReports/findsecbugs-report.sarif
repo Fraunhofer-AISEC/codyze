@@ -147,10 +147,7 @@
         {
           "rule": {
             "id": "DM_DEFAULT_ENCODING",
-            "index": 0,
-            "toolComponent": {
-              "name": "SpotBugs"
-            }
+            "index": 0
           },
           "message": {
             "id": "default",
@@ -186,7 +183,7 @@
             "id": "PATH_TRAVERSAL_IN",
             "index": 1,
             "toolComponent": {
-              "name": "SpotBugs"
+              "index": -1
             }
           },
           "message": {

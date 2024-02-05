@@ -64,6 +64,12 @@ class AggregateTest {
 
         assertEquals(4, completeRun.results?.size ?: 0)
         assertEquals(4, completeRun.results?.mapNotNull { it.rule }?.size)
+        completeRun.results!!
+            .filterNot { it.rule!!.toolComponent!!.name == "CokoExecutor" }
+            .forEach {
+                assertTrue(it.rule!!.toolComponent!!.name == "PMD"
+                        || completeRun.tool.extensions!![it.rule!!.toolComponent!!.index?.toInt()!!].name == "PMD")
+            }
     }
 
     /**
@@ -80,7 +86,7 @@ class AggregateTest {
     }
 
     /**
-     * Tests the aggregation of a run that already uses rule objects
+     * Tests the aggregation of a run that already uses rule objects in different formats
      */
     @Test
     fun aggregateRuleObjects() {
@@ -102,6 +108,12 @@ class AggregateTest {
 
         assertEquals(4, completeRun.results?.size ?: 0)
         assertEquals(4, completeRun.results?.mapNotNull { it.rule }?.size)
+        completeRun.results!!
+            .filterNot { it.rule!!.toolComponent!!.name == "CokoExecutor" }
+            .forEach {
+                assertTrue(it.rule!!.toolComponent!!.name == "SpotBugs"
+                    || completeRun.tool.extensions!![it.rule!!.toolComponent!!.index?.toInt()!!].name == "SpotBugs")
+            }
     }
 
     @AfterEach

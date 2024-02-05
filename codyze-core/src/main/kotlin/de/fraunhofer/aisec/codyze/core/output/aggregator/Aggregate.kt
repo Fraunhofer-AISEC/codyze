@@ -123,7 +123,7 @@ object Aggregate {
                     // no reference to component: create new reference to the old driver (may now be an extension)
                     val newComponent = ToolComponentReference(
                         guid = run.tool.driver.guid,
-                        index = if (containedRuns.isEmpty()) null else 1 + extensions.size.toLong(),
+                        index = if (containedRuns.isEmpty()) null else extensions.size.toLong(),
                         name = run.tool.driver.name
                     )
                     newRule = newRule.copy(toolComponent = newComponent)

@@ -46,9 +46,7 @@ fun main(args: Array<String>) {
         codyzeCli.subcommands(getKoin().getAll<ExecutorCommand<*>>() + getKoin().getAll<Plugin>())
         codyzeCli.main(args)
     }
-
     // Following code will be executed after all commands' "run" functions complete
-    // TODO("update DOCUMENTATION to reflect changes!")
 
     // this should already be checked by clikt in [codyzeCli.main(args)]
     require(codyzeCli.usedExecutors.isNotEmpty()) { "UsageError! Please select one of the available executors." }

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertContentEquals
 
 class AggregateTest {
 
@@ -49,11 +50,11 @@ class AggregateTest {
      */
     @Test
     fun aggregateMultipleRuns() {
-        val run3 = runs.first { it.first == "pmd-report.sarif" }.second
         val run1 = runs.first { it.first == "codyze-report.sarif" }.second
+        val run2 = runs.first { it.first == "pmd-report.sarif" }.second
 
         Aggregate.addRun(run1)
-        Aggregate.addRun(run3)
+        Aggregate.addRun(run2)
 
         val completeRun = Aggregate.createRun()
 
@@ -63,6 +64,45 @@ class AggregateTest {
         assertContains(completeRun.tool.extensions!!.map { it.name }, "PMD")
 
         assertEquals(4, completeRun.results?.size ?: 0)
+        assertEquals(4, completeRun.results?.mapNotNull { it.rule }?.size)
+    }
+
+    /**
+     * Tests the aggregation without a valid Codyze run
+     */
+    @Test
+    fun aggregateNoDriver() {
+        val run = runs.first { it.first == "pmd-report.sarif" }.second
+
+        Aggregate.addRun(run)
+
+        val completeRun = Aggregate.createRun()
+        assertNull(completeRun)
+    }
+
+    /**
+     * Tests the aggregation of a run that already uses rule objects
+     */
+    @Test
+    fun aggregateRuleObjects() {
+        val run1 = runs.first { it.first == "codyze-report.sarif" }.second
+        val run2 = runs.first { it.first == "findsecbugs-report.sarif" }.second
+
+        Aggregate.addRun(run1)
+        Aggregate.addRun(run2)
+
+        val completeRun = Aggregate.createRun()
+
+        assertEquals("CokoExecutor", completeRun!!.tool.driver.name)
+        assertFalse(completeRun.invocations?.get(0)?.executionSuccessful ?: true)
+        assertEquals(4, completeRun.tool.extensions?.size ?: 0)
+        assertEquals(
+            setOf("CPG Coko Backend", "SpotBugs", "edu.umd.cs.findbugs.plugins.core", "com.h3xstream.findsecbugs"),
+            completeRun.tool.extensions!!.map { it.name }.toSet()
+        )
+
+        assertEquals(4, completeRun.results?.size ?: 0)
+        assertEquals(4, completeRun.results?.mapNotNull { it.rule }?.size)
     }
 
     @AfterEach

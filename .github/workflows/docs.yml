@@ -26,9 +26,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
       - name: 'Build API pages'
         run: |
-            ./gradlew
-            dokkaHtmlMultiModule
-            -Dorg.gradle.internal.repository.max.tentatives=5
-            -Dorg.gradle.internal.repository.initial.backoff=10000
+            ./gradlew dokkaHtmlMultiModule \
+              -Dorg.gradle.internal.repository.max.tentatives=5 \
+              -Dorg.gradle.internal.repository.initial.backoff=10000
       - name: 'Build & deploy docs'
         run: mkdocs gh-deploy --force

@@ -10,7 +10,7 @@ dokka = "1.9.10"
 
 [libraries]
 sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.5.0"}  # The code can be found here: https://github.com/detekt/sarif4k. It was generated using https://app.quicktype.io/
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.6.2"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.6.3"}
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 
 # CPG official releases
@@ -29,7 +29,7 @@ cpg-language-java = { module = "de.fraunhofer.aisec:cpg-language-java", version.
 #cpg-language-go = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-language-go", version.ref = "cpg"}
 
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version = "6.0.3" }
-log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version = "2.22.1"}
+log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version = "2.23.0"}
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.2.2"}
 koin = { module = "io.insert-koin:koin-core", version.ref = "koin"}
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin-test"}
@@ -42,7 +42,7 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 
 # test
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "5.10.2"}
-mockk = { module = "io.mockk:mockk", version = "1.13.9"}
+mockk = { module = "io.mockk:mockk", version = "1.13.10"}
 
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

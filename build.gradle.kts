@@ -47,7 +47,7 @@ val projectProps by tasks.registering(WriteProperties::class) {
     description = "Write project properties in a file."
 
     // Set output file to build/project.properties
-    outputFile = file("$buildDir/codyze.properties")
+    destinationFile = file("${layout.buildDirectory.get()}/codyze.properties")
     // Default encoding is ISO-8559-1, here we change it.
     encoding = "UTF-8"
     // Optionally we can specify the header comment.
@@ -62,7 +62,7 @@ val projectProps by tasks.registering(WriteProperties::class) {
     }
 }
 
-// configure detekt to combine the results of all submodules into a single sarif file -> for github code scanning
+// configure detekt to combine the results of all submodules into a single sarif file -> for GitHub code scanning
 val detektReportMergeSarif by tasks.registering(ReportMergeTask::class) {
     output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.sarif"))
 }

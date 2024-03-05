@@ -17,6 +17,7 @@ dependencies {
     // Unit tests
     testImplementation(kotlin("test"))
     testImplementation(libs.junit.params)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 repositories {

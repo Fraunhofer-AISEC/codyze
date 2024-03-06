@@ -11,24 +11,26 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      # Ensure Java installation to run Gradle
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
+      - name: 'Setup Gradle'
+        uses: gradle/actions/setup-gradle@v3
+      - name: 'Build API pages'
+        run: |
+            ./gradlew dokkaHtmlMultiModule \
+              -Dorg.gradle.internal.repository.max.tentatives=5 \
+              -Dorg.gradle.internal.repository.initial.backoff=10000
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - uses: actions/cache@v4
-        with:
-          key: ${{ github.ref }}
-          path: .cache
+          cache: 'pip'
+          cache-dependency-path: './docs/mkdocs-material-plugins.txt'
       - name: 'Install mkdocs-material and plugins'
         run: |
           python -m pip install mkdocs-material
           python -m pip install -r ./docs/mkdocs-material-plugins.txt
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-      - name: 'Build API pages'
-        run: |
-            ./gradlew
-            dokkaHtmlMultiModule
-            -Dorg.gradle.internal.repository.max.tentatives=5
-            -Dorg.gradle.internal.repository.initial.backoff=10000
       - name: 'Build & deploy docs'
         run: mkdocs gh-deploy --force

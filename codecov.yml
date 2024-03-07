@@ -1,5 +1,5 @@
 ignore:
-  - "**/cli//Main.kt"
+  - "**/cli/Main.kt"
   - "**/plugins/Plugin.kt"
 coverage:
   status:

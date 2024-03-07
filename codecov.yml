@@ -1,3 +1,6 @@
+ignore:
+  - "**/cli//Main.kt"
+  - "**/plugins/Plugin.kt"
 coverage:
   status:
     project:

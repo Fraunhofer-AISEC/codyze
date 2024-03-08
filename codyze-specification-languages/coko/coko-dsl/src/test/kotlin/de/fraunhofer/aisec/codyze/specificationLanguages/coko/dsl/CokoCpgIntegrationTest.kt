@@ -132,6 +132,7 @@ class CokoCpgIntegrationTest {
     @MethodSource("threeFiles")
     fun `test coko with cpg backend and permutation of three dependent spec files`(
         specFiles: List<Path>,
+        @Suppress("detekt:style:UnusedParameter") // used for parameterized test names
         fileNames: List<String>
     ) {
         assertEquals(3, specFiles.size)
@@ -161,6 +162,7 @@ class CokoCpgIntegrationTest {
     @MethodSource("fourFiles")
     fun `test coko with cpg backend and permutation of four dependent spec files`(
         specFiles: List<Path>,
+        @Suppress("detekt:style:UnusedParameter") // used for parameterized test names
         fileNames: List<String>
     ) {
         assertEquals(4, specFiles.size)
@@ -192,6 +194,7 @@ class CokoCpgIntegrationTest {
     @MethodSource("fiveFiles")
     fun `test coko with cpg backend and permutation of five dependent spec files`(
         specFiles: List<Path>,
+        @Suppress("detekt:style:UnusedParameter") // used for parameterized test names
         fileNames: List<String>
     ) {
         assertEquals(5, specFiles.size)

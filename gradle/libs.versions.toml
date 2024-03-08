@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.9.22"
+kotlin = "1.9.23"
 cpg = "8.0.0"
 koin = "3.5.3"
 koin-test = "3.5.3"

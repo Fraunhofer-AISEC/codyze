@@ -50,7 +50,7 @@ jobs:
           docker push ghcr.io/fraunhofer-aisec/codyze:latest
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: ${{ env.version }}
           generate_release_notes: true

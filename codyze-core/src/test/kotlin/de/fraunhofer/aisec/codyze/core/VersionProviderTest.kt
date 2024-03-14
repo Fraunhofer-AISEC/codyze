@@ -26,8 +26,8 @@ class VersionProviderTest {
     fun `test initialisation from properties file with incorrect project name`() {
         val properties = Properties()
 
-        /* get the property file and load it */
-        val propFile = VersionProvider::class.java.classLoader.getResource("codyze.properties")
+        /* get the property file and load it; we want to fail if we can't find the property file to begin with */
+        val propFile = VersionProvider::class.java.classLoader.getResource("codyze.properties")!!
         propFile.openStream().use {
             properties.load(it)
         }

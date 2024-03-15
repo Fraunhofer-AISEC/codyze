@@ -11,6 +11,7 @@ comments:
     licenseTemplateIsRegex: true
   KDocReferencesNonPublicProperty:
     active: true
+    excludes: ['**/test/**']
 
 naming:
   InvalidPackageDeclaration:
@@ -35,29 +36,22 @@ style:
         value: 'kotlin.io.println'
   WildcardImport:
     active: false
-    excludeImports:
-      - 'java.util.*'
 
 formatting:
   FunctionStartOfBodySpacing:
     active: false
-    autoCorrect: true
   FunctionTypeReferenceSpacing:
     active: false
-    autoCorrect: true
   MaximumLineLength:
     active: true
     maxLineLength: 120
     ignoreBackTickedIdentifier: true
   ModifierListSpacing:
     active: false
-    autoCorrect: true
   NoWildcardImports:
     active: false
-    packagesToUseImportOnDemandProperty: 'java.util.*,kotlinx.android.synthetic.**'
   NullableTypeSpacing:
     active: false
-    autoCorrect: true
   SpacingAroundUnaryOperator:
     active: true
     excludes: ['**/coko/**/test/**', '**/codyze-backends/cpg/**/test/**']

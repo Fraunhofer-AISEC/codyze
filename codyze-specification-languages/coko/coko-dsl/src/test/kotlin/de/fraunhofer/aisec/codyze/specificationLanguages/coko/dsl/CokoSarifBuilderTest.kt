@@ -17,6 +17,8 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Severity
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.toResultLevel
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecutor
 import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
@@ -57,10 +59,144 @@ class CokoSarifBuilderTest {
     }
 
     @Test
-    fun `test rules with empty tags`() {
+    fun `test rule with default shortDescription`() {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
-                .getResource("sarif/ruletagsempty.codyze.kts")
+                .getResource("sarif/ruledefaults.codyze.kts")
+        ).map { Path(it.path) }
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
+        val csb = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+
+        val shortDescription = csb.reportingDescriptors.first().shortDescription
+        assertNotNull(shortDescription)
+        assertTrue(shortDescription?.text!!.isEmpty())
+    }
+
+    @Test
+    fun `test rule with some shortDescription`() {
+        val specFiles = listOfNotNull(
+            CokoSarifBuilderTest::class.java.classLoader
+                .getResource("sarif/ruleshortdescription.codyze.kts")
+        ).map { Path(it.path) }
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
+        val csb = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+
+        val shortDescription = csb.reportingDescriptors.first().shortDescription
+        assertNotNull(shortDescription)
+        assertEquals(shortDescription?.text, "test")
+    }
+
+    @Test
+    fun `test rule with default description`() {
+        val specFiles = listOfNotNull(
+            CokoSarifBuilderTest::class.java.classLoader
+                .getResource("sarif/ruledefaults.codyze.kts")
+        ).map { Path(it.path) }
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
+        val csb = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+
+        val fullDescription = csb.reportingDescriptors.first().fullDescription
+        assertNotNull(fullDescription)
+        assertTrue(fullDescription?.text!!.isEmpty())
+    }
+
+    @Test
+    fun `test rule with some description`() {
+        val specFiles = listOfNotNull(
+            CokoSarifBuilderTest::class.java.classLoader
+                .getResource("sarif/rulefulldescription.codyze.kts")
+        ).map { Path(it.path) }
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
+        val csb = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+
+        val fullDescription = csb.reportingDescriptors.first().fullDescription
+        assertNotNull(fullDescription)
+        assertEquals(fullDescription?.text, "some description")
+    }
+
+    @Test
+    fun `test rule with default severity`() {
+        val specFiles = listOfNotNull(
+            CokoSarifBuilderTest::class.java.classLoader
+                .getResource("sarif/ruledefaults.codyze.kts")
+        ).map { Path(it.path) }
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
+        val csb = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+
+        val defaultConfiguration = csb.reportingDescriptors.first().defaultConfiguration
+        assertNotNull(defaultConfiguration)
+
+        val level = defaultConfiguration?.level
+        assertNotNull(level)
+        assertTrue(level == Severity.WARNING.toResultLevel())
+    }
+
+    @Test
+    fun `test rule with some severity`() {
+        val specFiles = listOfNotNull(
+            CokoSarifBuilderTest::class.java.classLoader
+                .getResource("sarif/ruleseverity.codyze.kts")
+        ).map { Path(it.path) }
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
+        val csb = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+
+        val defaultConfiguration = csb.reportingDescriptors.first().defaultConfiguration
+        assertNotNull(defaultConfiguration)
+
+        val level = defaultConfiguration?.level
+        assertNotNull(level)
+        assertTrue(level != Severity.WARNING.toResultLevel())
+    }
+
+    @Test
+    fun `test rule with default help`() {
+        val specFiles = listOfNotNull(
+            CokoSarifBuilderTest::class.java.classLoader
+                .getResource("sarif/ruledefaults.codyze.kts")
+        ).map { Path(it.path) }
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
+        val csb = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+
+        val help = csb.reportingDescriptors.first().help
+        assertNotNull(help)
+        assertTrue(help?.text!!.isEmpty())
+    }
+
+    @Test
+    fun `test rule with some help`() {
+        val specFiles = listOfNotNull(
+            CokoSarifBuilderTest::class.java.classLoader
+                .getResource("sarif/rulehelp.codyze.kts")
+        ).map { Path(it.path) }
+
+        val backend = CokoCpgBackend(cpgConfiguration)
+        val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
+        val csb = CokoSarifBuilder(rules = specEvaluator.rules, backend = backend)
+
+        val help = csb.reportingDescriptors.first().help
+        assertNotNull(help)
+        assertEquals(help?.text, "some help")
+    }
+
+    @Test
+    fun `test rule with default empty tags`() {
+        val specFiles = listOfNotNull(
+            CokoSarifBuilderTest::class.java.classLoader
+                .getResource("sarif/ruledefaults.codyze.kts")
         ).map { Path(it.path) }
 
         val backend = CokoCpgBackend(cpgConfiguration)
@@ -75,7 +211,7 @@ class CokoSarifBuilderTest {
     fun `test rules with some tags`() {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
-                .getResource("sarif/ruletagsnonempty.codyze.kts")
+                .getResource("sarif/ruletags.codyze.kts")
         ).map { Path(it.path) }
 
         val backend = CokoCpgBackend(cpgConfiguration)

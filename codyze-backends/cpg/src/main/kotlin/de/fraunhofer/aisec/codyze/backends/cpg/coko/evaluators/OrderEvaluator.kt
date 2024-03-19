@@ -116,7 +116,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         val usedBases =
             syntaxTree.filterIsInstanceToList<TerminalOrderNode>().map { it.baseName }.toSet()
         if (usedBases.size > 1) {
-            logger.warn("Order statement contains more than one base. Not supported.")
+            logger.warn { "Order statement contains more than one base. Not supported." }
             return emptySet()
         }
 

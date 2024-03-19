@@ -112,9 +112,9 @@ class CokoSarifBuilderTest {
         assertNotNull(reportingDescriptor)
         assertNull(reportingDescriptor.shortDescription)
         assertNull(reportingDescriptor.fullDescription)
-        assertNull(reportingDescriptor.defaultConfiguration?.level)
+        assertNull(reportingDescriptor.defaultConfiguration)
         assertNull(reportingDescriptor.help)
-        assertNotNull(reportingDescriptor.properties?.tags?.takeIf { it.isEmpty() })
+        assertNull(reportingDescriptor.properties)
     }
 
     @Test

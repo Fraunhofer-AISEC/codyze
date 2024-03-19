@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.cli
 
-import de.fraunhofer.aisec.codyze.backends.cpg.cli.BaseCpgBackend
-import de.fraunhofer.aisec.codyze.backends.cpg.cli.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.cli.BaseCpgBackendCommand
+import de.fraunhofer.aisec.codyze.backends.cpg.cli.CokoCpgBackendCommand
 import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.Executor
@@ -32,8 +32,8 @@ import org.koin.dsl.module
  * Every [Backend] must provide [BackendCommand] to be selectable in the CLI.
  */
 val backendCommands = module {
-    factoryOf(::BaseCpgBackend) bind(BackendCommand::class)
-    factoryOf(::CokoCpgBackend) bind(BackendCommand::class)
+    factoryOf(::BaseCpgBackendCommand) bind(BackendCommand::class)
+    factoryOf(::CokoCpgBackendCommand) bind(BackendCommand::class)
 }
 
 /**

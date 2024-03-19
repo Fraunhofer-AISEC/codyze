@@ -66,9 +66,7 @@ class FunctionOp internal constructor(
 
         other as FunctionOp
 
-        if (definitions != other.definitions) return false
-
-        return true
+        return definitions == other.definitions
     }
 
     override fun hashCode(): Int {
@@ -100,9 +98,7 @@ class ConstructorOp internal constructor(
         if (this === other) return true
         if (other !is ConstructorOp) return false
 
-        if (signatures != other.signatures) return false
-
-        return true
+        return signatures == other.signatures
     }
 
     override fun hashCode(): Int {

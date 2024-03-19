@@ -45,7 +45,7 @@ context(CokoBackend)
 fun Op.cpgGetAllNodes(): Nodes =
     when (this@Op) {
         is FunctionOp ->
-            this@Op.definitions.map { def -> this@CokoBackend.cpgCallFqn(def.fqn) }.flatten()
+            this@Op.definitions.flatMap { def -> this@CokoBackend.cpgCallFqn(def.fqn) }
         is ConstructorOp -> this@CokoBackend.cpgConstructor(this.classFqn)
     }
 
@@ -58,7 +58,7 @@ fun Op.cpgGetNodes(): Nodes =
     when (this@Op) {
         is FunctionOp ->
             this@Op.definitions
-                .map { def ->
+                .flatMap { def ->
                     this@CokoBackend.cpgCallFqn(def.fqn) {
                         def.signatures.any { sig ->
                             cpgSignature(*sig.parameters.toTypedArray()) &&
@@ -66,16 +66,14 @@ fun Op.cpgGetNodes(): Nodes =
                         }
                     }
                 }
-                .flatten()
         is ConstructorOp ->
             this@Op.signatures
-                .map { sig ->
+                .flatMap { sig ->
                     this@CokoBackend.cpgConstructor(this@Op.classFqn) {
                         cpgSignature(*sig.parameters.toTypedArray()) &&
                             sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                     }
                 }
-                .flatten()
     }
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */

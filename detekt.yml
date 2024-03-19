@@ -500,6 +500,8 @@ style:
     active: false
     singleLine: 'never'
     multiLine: 'always'
+  BracesOnWhenStatements:
+    active: false
   CanBeNonNullable:
     active: false
   CascadingCallWrapping:
@@ -617,8 +619,6 @@ style:
   OptionalAbstractKeyword:
     active: true
   OptionalUnit:
-    active: false
-  OptionalWhenBraces:
     active: false
   PreferToOverPairSyntax:
     active: false

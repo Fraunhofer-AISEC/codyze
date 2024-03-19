@@ -39,9 +39,7 @@ class ParameterGroup {
 
         other as ParameterGroup
 
-        if (parameters != other.parameters) return false
-
-        return true
+        return parameters == other.parameters
     }
 
     override fun hashCode(): Int {
@@ -74,9 +72,7 @@ class Definition(val fqn: String) {
         other as Definition
 
         if (fqn != other.fqn) return false
-        if (signatures != other.signatures) return false
-
-        return true
+        return signatures == other.signatures
     }
 
     override fun hashCode(): Int {
@@ -147,9 +143,7 @@ class Signature {
         other as Signature
 
         if (parameters != other.parameters) return false
-        if (unorderedParameters != other.unorderedParameters) return false
-
-        return true
+        return unorderedParameters == other.unorderedParameters
     }
 
     override fun hashCode(): Int {

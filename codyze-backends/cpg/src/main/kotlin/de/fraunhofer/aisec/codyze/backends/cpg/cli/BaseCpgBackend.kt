@@ -33,7 +33,6 @@ class BaseCpgBackend : BackendCommand<CPGBackend>("cpg") {
             CPGConfiguration(
                 source = source,
                 useUnityBuild = useUnityBuild,
-                typeSystemActiveInFrontend = typeSystemActiveInFrontend,
                 debugParser = debugParser,
                 disableCleanup = disableCleanup,
                 codeInNodes = codeInNodes,

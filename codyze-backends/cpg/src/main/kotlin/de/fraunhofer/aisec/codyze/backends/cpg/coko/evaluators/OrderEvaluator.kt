@@ -30,7 +30,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.*
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberFunctions
@@ -116,7 +116,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         val usedBases =
             syntaxTree.filterIsInstanceToList<TerminalOrderNode>().map { it.baseName }.toSet()
         if (usedBases.size > 1) {
-            logger.warn("Order statement contains more than one base. Not supported.")
+            logger.warn { "Order statement contains more than one base. Not supported." }
             return emptySet()
         }
 
@@ -164,7 +164,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             nodeToRelevantMethod = nodesToOp,
             consideredBases = baseNodes.flatMap { node ->
                 node.followNextDFGEdgesUntilHit { next ->
-                    next is VariableDeclaration || next is DeclaredReferenceExpression
+                    next is VariableDeclaration || next is Reference
                 }.fulfilled.mapNotNull { path ->
                     path.lastOrNull()
                 }

@@ -20,10 +20,7 @@ import com.github.ajalt.clikt.core.MultiUsageError
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.core.config.combineSources
-import de.fraunhofer.aisec.cpg.passes.CallResolver
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
-import de.fraunhofer.aisec.cpg.passes.FilenameMapper
-import de.fraunhofer.aisec.cpg.passes.Pass
+import de.fraunhofer.aisec.cpg.passes.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
@@ -86,7 +83,7 @@ class CpgOptionGroupTest {
     fun passesTest() {
         val edgeCachePassName = EdgeCachePass::class.qualifiedName
         val filenameMapperName = FilenameMapper::class.qualifiedName
-        val callResolverName = CallResolver::class.qualifiedName
+        val callResolverName = SymbolResolver::class.qualifiedName
         assertNotNull(edgeCachePassName)
         assertNotNull(filenameMapperName)
         assertNotNull(callResolverName)
@@ -106,7 +103,7 @@ class CpgOptionGroupTest {
         )
 
         val expectedPassesNames =
-            listOf(EdgeCachePass::class, FilenameMapper::class, CallResolver::class).map { p ->
+            listOf(EdgeCachePass::class, FilenameMapper::class, SymbolResolver::class).map { p ->
                 p.qualifiedName
             }
         val actualPassesNames = cli.cpgOptions.passes.map { p -> p.qualifiedName }

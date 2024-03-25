@@ -67,7 +67,6 @@ open class CPGBackend(config: BackendConfiguration) : Backend {
                 .processAnnotations(processAnnotations)
                 .failOnError(failOnError)
                 .useParallelFrontends(useParallelFrontends)
-                .typeSystemActiveInFrontend(typeSystemActiveInFrontend)
                 .sourceLocations(source.map { (it.toFile()) })
                 .symbols(symbols)
                 .useUnityBuild(useUnityBuild)

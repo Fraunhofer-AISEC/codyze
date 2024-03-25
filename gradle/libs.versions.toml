@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.9.23"
-cpg = "7.1.2"
+cpg = "8.1.2"
 koin = "3.5.3"
 koin-test = "3.5.3"
 detekt = "1.23.5"

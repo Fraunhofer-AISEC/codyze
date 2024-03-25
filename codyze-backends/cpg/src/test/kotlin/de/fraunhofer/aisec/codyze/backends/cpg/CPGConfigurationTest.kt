@@ -25,7 +25,6 @@ class CPGConfigurationTest {
         val expectedCpgConfiguration = CPGConfiguration(
             source = listOf(),
             useUnityBuild = true,
-            typeSystemActiveInFrontend = false,
             debugParser = false,
             disableCleanup = false,
             codeInNodes = true,
@@ -46,7 +45,6 @@ class CPGConfigurationTest {
         val cpgConfiguration = CPGConfiguration(
             source = listOf(),
             useUnityBuild = true,
-            typeSystemActiveInFrontend = false,
             debugParser = false,
             disableCleanup = false,
             codeInNodes = true,
@@ -74,7 +72,6 @@ class CPGConfigurationTest {
         val expectedCpgConfiguration = CPGConfiguration(
             source = listOf(),
             useUnityBuild = false,
-            typeSystemActiveInFrontend = false,
             debugParser = false,
             disableCleanup = false,
             codeInNodes = true,

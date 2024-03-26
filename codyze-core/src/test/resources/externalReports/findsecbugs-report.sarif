@@ -1,0 +1,253 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "extensions": [
+          {
+            "version": "4.8.2",
+            "name": "edu.umd.cs.findbugs.plugins.core",
+            "shortDescription": {
+              "text": "Core SpotBugs plugin"
+            },
+            "informationUri": "https://github.com/spotbugs",
+            "organization": "SpotBugs project"
+          },
+          {
+            "version": "",
+            "name": "com.h3xstream.findsecbugs",
+            "shortDescription": {
+              "text": "Find Security Bugs"
+            },
+            "informationUri": "https://find-sec-bugs.github.io",
+            "organization": "Find Security Bugs"
+          }
+        ],
+        "driver": {
+          "name": "SpotBugs",
+          "version": "4.8.2",
+          "language": "en",
+          "informationUri": "https://spotbugs.github.io/",
+          "rules": [
+            {
+              "id": "DM_DEFAULT_ENCODING",
+              "shortDescription": {
+                "text": "Reliance on default encoding."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Found reliance on default encoding in {0}: {1}."
+                }
+              },
+              "helpUri": "https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING",
+              "properties": {
+                "tags": [
+                  "I18N"
+                ]
+              }
+            },
+            {
+              "id": "PATH_TRAVERSAL_IN",
+              "shortDescription": {
+                "text": "Potential Path Traversal (file read)."
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "This API ({0}) reads a file whose location might be specified by user input."
+                }
+              },
+              "helpUri": "https://find-sec-bugs.github.io/bugs.htm#PATH_TRAVERSAL_IN",
+              "properties": {
+                "tags": [
+                  "SECURITY"
+                ]
+              },
+              "relationships": [
+                {
+                  "target": {
+                    "id": "22",
+                    "guid": "19cf96fc-1234-5a3d-8e5d-21b225b7d3e8",
+                    "toolComponent": {
+                      "name": "CWE",
+                      "guid": "b8c54a32-de19-51d2-9a08-f0abfbaa7310"
+                    }
+                  },
+                  "kinds": [
+                    "superset"
+                  ]
+                }
+              ]
+            }
+          ],
+          "supportedTaxonomies": [
+            {
+              "name": "CWE",
+              "guid": "b8c54a32-de19-51d2-9a08-f0abfbaa7310"
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "exitCode": 3,
+          "exitSignalName": "ERROR,MISSING CLASS,BUGS FOUND",
+          "executionSuccessful": false,
+          "toolConfigurationNotifications": [
+            {
+              "descriptor": {
+                "id": "spotbugs-missing-classes"
+              },
+              "message": {
+                "text": "Classes needed for analysis were missing: [makeConcatWithConstants, accept]"
+              },
+              "level": "error"
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "rule": {
+            "id": "DM_DEFAULT_ENCODING",
+            "index": 0,
+            "toolComponent": {
+              "name": "SpotBugs"
+            }
+          },
+          "message": {
+            "id": "default",
+            "text": "Reliance on default encoding",
+            "arguments": [
+              "de.fraunhofer.aisec.codyze.medina.demo.jsse.TlsServer.start()",
+              "new java.io.InputStreamReader(InputStream)"
+            ]
+          },
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "de/fraunhofer/aisec/codyze/medina/demo/jsse/TlsServer.java"
+                },
+                "region": {
+                  "startLine": 102
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "new java.io.InputStreamReader(InputStream)",
+                  "kind": "function",
+                  "fullyQualifiedName": "new java.io.InputStreamReader(InputStream)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "rule": {
+            "id": "DM_DEFAULT_ENCODING",
+            "index": 0
+          },
+          "message": {
+            "id": "default",
+            "text": "Reliance on default encoding",
+            "arguments": [
+              "de.fraunhofer.aisec.codyze.medina.demo.jsse.TlsServer.start()",
+              "new java.io.OutputStreamWriter(OutputStream)"
+            ]
+          },
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "de/fraunhofer/aisec/codyze/medina/demo/jsse/TlsServer.java"
+                },
+                "region": {
+                  "startLine": 103
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "new java.io.OutputStreamWriter(OutputStream)",
+                  "kind": "function",
+                  "fullyQualifiedName": "new java.io.OutputStreamWriter(OutputStream)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "rule": {
+            "id": "PATH_TRAVERSAL_IN",
+            "index": 1,
+            "toolComponent": {
+              "index": -1
+            }
+          },
+          "message": {
+            "id": "default",
+            "text": "Potential Path Traversal (file read)",
+            "arguments": [
+              "java/io/File.\\u003cinit\\u003e(Ljava/lang/String;)V"
+            ]
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "de/fraunhofer/aisec/codyze/medina/demo/jsse/TlsServer.java"
+                },
+                "region": {
+                  "startLine": 133
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "main(String[])",
+                  "kind": "function",
+                  "fullyQualifiedName": "de.fraunhofer.aisec.codyze.medina.demo.jsse.TlsServer.main(String[])"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "originalUriBaseIds": {},
+      "taxonomies": [
+        {
+          "name": "CWE",
+          "version": "4.10",
+          "minimumRequiredLocalizedDataSemanticVersion": "4.10",
+          "releaseDateUtc": "2023-01-31",
+          "guid": "b8c54a32-de19-51d2-9a08-f0abfbaa7310",
+          "informationUri": "https://cwe.mitre.org/data/published/cwe_v4.10.pdf/",
+          "downloadUri": "https://cwe.mitre.org/data/xml/cwec_v4.10.xml.zip",
+          "isComprehensive": true,
+          "organization": "MITRE",
+          "language": "en",
+          "shortDescription": {
+            "text": "The MITRE Common Weakness Enumeration"
+          },
+          "taxa": [
+            {
+              "id": "22",
+              "guid": "19cf96fc-1234-5a3d-8e5d-21b225b7d3e8",
+              "shortDescription": {
+                "text": "Improper Limitation of a Pathname to a Restricted Directory (\\u0027Path Traversal\\u0027)"
+              },
+              "fullDescription": {
+                "text": "The product uses external input to construct a pathname that is intended to identify a file or directory that is located underneath a restricted parent directory, but the product does not properly neutralize special elements within the pathname that can cause the pathname to resolve to a location that is outside of the restricted directory."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

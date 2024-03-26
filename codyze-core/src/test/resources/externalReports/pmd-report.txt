@@ -1,0 +1,3 @@
+TlsServer.java:102:	CloseResource:	Ensure that resources like this BufferedReader object are closed after use
+TlsServer.java:103:	CloseResource:	Ensure that resources like this BufferedWriter object are closed after use
+TlsServer.java:139:	ControlStatementBraces:	This statement should have braces

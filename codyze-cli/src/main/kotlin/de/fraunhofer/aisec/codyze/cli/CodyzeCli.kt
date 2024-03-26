@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.context
+import com.github.ajalt.clikt.core.findOrSetObject
 import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -27,6 +28,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.path
 import de.fraunhofer.aisec.codyze.core.VersionProvider
+import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import java.nio.file.Path
 import kotlin.io.path.Path
 
@@ -68,7 +70,11 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
  */
 @Suppress("Unused", "UnusedPrivateMember")
 class CodyzeCli(val configFile: Path?) :
-    NoOpCliktCommand(help = "Codyze finds security flaws in source code", printHelpOnEmptyArgs = true) {
+    NoOpCliktCommand(
+        help = "Codyze finds security flaws in source code",
+        printHelpOnEmptyArgs = true,
+        allowMultipleSubcommands = true
+    ) {
 
     init {
         versionOption(
@@ -86,4 +92,11 @@ class CodyzeCli(val configFile: Path?) :
     private val unusedConfigFile: Path? by configFileOption()
 
     val codyzeOptions by CodyzeOptionGroup()
+
+    val usedExecutors by findOrSetObject { mutableListOf<ExecutorCommand<*>>() }
+
+    // This run method is only necessary to correctly set the "usedExecutors" variable
+    override fun run() {
+        usedExecutors
+    }
 }

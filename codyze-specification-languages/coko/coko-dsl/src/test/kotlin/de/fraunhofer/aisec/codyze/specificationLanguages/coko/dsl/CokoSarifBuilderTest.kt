@@ -38,7 +38,6 @@ class CokoSarifBuilderTest {
         CPGConfiguration(
             source = emptyList(),
             useUnityBuild = false,
-            typeSystemActiveInFrontend = true,
             debugParser = false,
             disableCleanup = false,
             codeInNodes = true,

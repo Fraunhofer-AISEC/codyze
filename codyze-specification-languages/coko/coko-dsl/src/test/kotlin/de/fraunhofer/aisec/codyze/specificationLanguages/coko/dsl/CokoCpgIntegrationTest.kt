@@ -306,7 +306,7 @@ class CokoCpgIntegrationTest {
             )
             val permutations = fileMap.permutate()
             for (p in permutations) {
-                val (specFiles, fileNames) = p.map { Path(it.path) }.map { it to it.fileName }.unzip()
+                val (specFiles, fileNames) = p.map { it.toURI().toPath() }.map { it to it.fileName }.unzip()
                 stream.add(
                     Arguments.of(
                         specFiles,

@@ -28,7 +28,8 @@ tasks.jacocoTestReport {
 // a merged report
 tasks.withType<Detekt>().configureEach {
     basePath = "${rootProject.projectDir.absolutePath}"
-    config.setFrom(files("$rootDir/detekt.yml"))
+    buildUponDefaultConfig = true
+    config.setFrom(rootDir.resolve("detekt.yml"))
 }
 
 // custom task for fixing formatting issues

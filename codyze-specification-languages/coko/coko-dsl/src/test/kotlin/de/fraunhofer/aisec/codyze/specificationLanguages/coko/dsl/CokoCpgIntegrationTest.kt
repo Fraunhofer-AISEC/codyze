@@ -34,12 +34,21 @@ import kotlin.test.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CokoCpgIntegrationTest {
 
+    /**
     private val sourceFiles = listOfNotNull(
         CokoCpgIntegrationTest::class.java.classLoader
             .getResource("IntegrationTests/CokoCpg/Main.java"),
         CokoCpgIntegrationTest::class.java.classLoader
             .getResource("IntegrationTests/CokoCpg/SimpleOrder.java")
     ).map { Path(it.path) }.also { assertEquals(2, it.size) }
+    */
+
+    private val sourceFiles = listOfNotNull(
+        CokoCpgIntegrationTest::class.java.classLoader
+            .getResource("IntegrationTests/CokoCpg/Main.java"),
+        CokoCpgIntegrationTest::class.java.classLoader
+            .getResource("IntegrationTests/CokoCpg/SimpleOrder.java")
+    ).map { it.toURI().toPath() }.also { assertEquals(2, it.size) }
 
     val cpgConfiguration =
         CPGConfiguration(
@@ -72,7 +81,7 @@ class CokoCpgIntegrationTest {
                 .getResource("IntegrationTests/CokoCpg/orderFull.codyze.kts"),
             CokoCpgIntegrationTest::class.java.classLoader
                 .getResource("IntegrationTests/CokoCpg/followedByFull.codyze.kts")
-        ).map { Path(it.path) }.also { assertEquals(2, it.size) }
+        ).map { it.toURI().toPath() }.also { assertEquals(2, it.size) }
 
         val cokoConfiguration =
             CokoConfiguration(
@@ -102,7 +111,7 @@ class CokoCpgIntegrationTest {
                 .getResource("IntegrationTests/CokoCpg/followedByTwoFiles/followedByImplementations.codyze.kts"),
             CokoCpgIntegrationTest::class.java.classLoader
                 .getResource("IntegrationTests/CokoCpg/followedByTwoFiles/followedByModels.codyze.kts")
-        ).map { Path(it.path) }.also { assertEquals(2, it.size) }
+        ).map { it.toURI().toPath() }.also { assertEquals(2, it.size) }
 
         val cokoConfiguration =
             CokoConfiguration(
@@ -218,7 +227,7 @@ class CokoCpgIntegrationTest {
     fun `test coko with cpg backend without good findings`() {
         val specFiles = listOfNotNull(
             CokoCpgIntegrationTest::class.java.classLoader.getResource("IntegrationTests/CokoCpg/orderFull.codyze.kts"),
-        ).map { Path(it.path) }.also { assertEquals(1, it.size) }
+        ).map { it.toURI().toPath() }.also { assertEquals(1, it.size) }
 
         val cokoConfiguration =
             CokoConfiguration(
@@ -249,7 +258,7 @@ class CokoCpgIntegrationTest {
             )
             val permutations = fileMap.permutate()
             for (p in permutations) {
-                val (specFiles, fileNames) = p.map { Path(it.path) }.map { it to it.fileName }.unzip()
+                val (specFiles, fileNames) = p.map { it.toURI().toPath() }.map { it to it.fileName }.unzip()
                 stream.add(
                     Arguments.of(
                         specFiles,
@@ -275,7 +284,7 @@ class CokoCpgIntegrationTest {
             )
             val permutations = fileMap.permutate()
             for (p in permutations) {
-                val (specFiles, fileNames) = p.map { Path(it.path) }.map { it to it.fileName }.unzip()
+                val (specFiles, fileNames) = p.map { it.toURI().toPath() }.map { it to it.fileName }.unzip()
                 stream.add(
                     Arguments.of(
                         specFiles,

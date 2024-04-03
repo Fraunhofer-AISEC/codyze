@@ -3,7 +3,7 @@ name: java-upgrade
 on:
   schedule:
     # runs at 00:01 on the first every month
-    - cron: '1 0 1 * ?'
+    - cron: '1 0 1 * *'
   # can be triggered manually
   workflow_dispatch:
 

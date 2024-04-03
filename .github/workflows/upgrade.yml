@@ -1,9 +1,19 @@
-name: java-upgrade
+# Portability testing across OSes and newer Java versions
+# ---
+# Regularly check if we remain compatible with other OSes than Linux and if we
+# could upgrade to newer versions of Java.
+#
+# This acts more like an indicator if something is going to break. Our main
+# target platform is Linux and we build against it during our regular workflow
+# runs. Likewise, we're just testing if we could support newer version of
+# Java. We're still taking very deliberate decisions to move to newer (LTS)
+# versions of Java.
+name: 'Portability testing OSes and Java versions'
 
 on:
   schedule:
-    # runs at 00:01 on the first every month
-    - cron: '1 0 1 * *'
+    # runs every Monday at 5:00
+    - cron: '0 5 * * 1'
   # can be triggered manually
   workflow_dispatch:
 
@@ -12,10 +22,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [ "19", "20", "21" ]
+        version: [ "18", "19", "20", "21", "22" ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
+    name: 'Building with Java ${{ matrix.version }} on ${{ matrix.os }}'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

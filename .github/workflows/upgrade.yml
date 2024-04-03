@@ -26,7 +26,7 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
-    name: 'Building with Java ${{ matrix.version }} on ${{ matrix.os }}'
+    name: 'Building with Java ${{ matrix.java-lts }} on ${{ matrix.os }}'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -12,8 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO: include JAVA SE 21 (LTS) on release
-        version: [ "19", "20" ]
+        version: [ "19", "20", "21" ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true

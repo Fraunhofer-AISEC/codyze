@@ -26,9 +26,5 @@ jobs:
           java-version: ${{ matrix.version }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-#      - name: Build Windows
-#        if: ${{ startsWith(matrix.os, 'windows') }}
-#        run: gradlew.bat :codyze-cli:build -x check --parallel -Pversion=0.0.0
-      - name: Build Default
-#        if: ${{ !startsWith(matrix.os, 'windows') }}
-        run:  ./gradlew build -x check --parallel
+      - name: Build and Test
+        run:  ./gradlew build --parallel

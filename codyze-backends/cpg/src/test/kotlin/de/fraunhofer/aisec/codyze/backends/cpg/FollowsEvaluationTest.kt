@@ -117,7 +117,7 @@ class FollowsEvaluationTest {
 
             val testFileResource = classLoader.getResource("FollowsEvaluationTest/SimpleFollows.java")
             assertNotNull(testFileResource)
-            testFile = Path(testFileResource.path)
+            testFile = testFileResource.toURI().toPath()
 
             val fooInstance = FooModel()
             val barInstance = BarModel()

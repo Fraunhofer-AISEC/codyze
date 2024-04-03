@@ -30,10 +30,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Stream
-import kotlin.io.path.Path
-import kotlin.io.path.absolute
-import kotlin.io.path.div
-import kotlin.io.path.isRegularFile
+import kotlin.io.path.*
 import kotlin.streams.asSequence
 import kotlin.test.*
 
@@ -223,19 +220,19 @@ class CpgOptionGroupTest {
             val topTestDirResource =
                 CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory")
             assertNotNull(topTestDirResource)
-            topTestDir = Path(topTestDirResource.path)
+            topTestDir = topTestDirResource.toURI().toPath()
             assertNotNull(topTestDir) // TODO: why is this necessary
 
             val testDir1Resource =
                 CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir1")
             assertNotNull(testDir1Resource)
-            testDir1 = Path(testDir1Resource.path)
+            testDir1 = testDir1Resource.toURI().toPath()
             assertNotNull(testDir1)
 
             val testDir2Resource =
                 CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir2")
             assertNotNull(testDir2Resource)
-            testDir2 = Path(testDir2Resource.path)
+            testDir2 = testDir2Resource.toURI().toPath()
             assertNotNull(testDir2)
 
             val testFile1Resource =
@@ -244,7 +241,7 @@ class CpgOptionGroupTest {
                     .classLoader
                     .getResource("cli-test-directory/file1.java")
             assertNotNull(testFile1Resource)
-            testFile1 = Path(testFile1Resource.path)
+            testFile1 = testFile1Resource.toURI().toPath()
             assertNotNull(testFile1)
 
             allFiles = Files.walk(topTestDir).asSequence().filter { it.isRegularFile() }.toList()

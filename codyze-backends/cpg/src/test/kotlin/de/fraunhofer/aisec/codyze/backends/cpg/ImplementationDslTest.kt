@@ -23,7 +23,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.signature
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import kotlin.io.path.Path
+import kotlin.io.path.toPath
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -94,7 +94,7 @@ class ImplementationDslTest {
 
             val testFileResource = classLoader.getResource("ImplementationDslTest/SimpleJavaFile.java")
             assertNotNull(testFileResource)
-            val testFile = Path(testFileResource.path)
+            val testFile = testFileResource.toURI().toPath()
             backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
         }
     }

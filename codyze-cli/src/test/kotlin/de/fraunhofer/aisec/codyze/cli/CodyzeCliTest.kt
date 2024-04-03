@@ -112,7 +112,7 @@ class CodyzeCliTest : KoinTest {
             val pathConfigFileResource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/path-config.json")
             assertNotNull(pathConfigFileResource)
-            pathConfigFile = Path(pathConfigFileResource.path)
+            pathConfigFile = pathConfigFileResource.toURI().toPath()
             assertTrue(pathConfigFile.exists())
 
             val correctConfigFileResource =
@@ -121,19 +121,19 @@ class CodyzeCliTest : KoinTest {
                     .classLoader
                     .getResource("config-files/correct-config.json")
             assertNotNull(correctConfigFileResource)
-            correctConfigFile = Path(correctConfigFileResource.path)
+            correctConfigFile = correctConfigFileResource.toURI().toPath()
             assertTrue(correctConfigFile.exists())
 
             val specMarkResource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/spec/spec.mark")
             assertNotNull(specMarkResource)
-            specMark = Path(specMarkResource.path)
+            specMark = specMarkResource.toURI().toPath()
             assertTrue(specMark.exists())
 
             val specMark2Resource =
                 CodyzeCliTest::class.java.classLoader.getResource("config-files/spec2.mark")
             assertNotNull(specMark2Resource)
-            spec2Mark = Path(specMark2Resource.path)
+            spec2Mark = specMark2Resource.toURI().toPath()
             assertTrue(spec2Mark.exists())
         }
     }

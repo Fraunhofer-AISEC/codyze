@@ -107,11 +107,11 @@ class NeverEvaluationTest {
 
             val violationFileResource = classLoader.getResource("NeverEvaluationTest/NeverViolation.java")
             assertNotNull(violationFileResource)
-            violationFile = Path(violationFileResource.path)
+            violationFile = violationFileResource.toURI().toPath()
 
             val passFileResource = classLoader.getResource("NeverEvaluationTest/NeverPass.java")
             assertNotNull(passFileResource)
-            passFile = Path(passFileResource.path)
+            passFile = passFileResource.toURI().toPath()
         }
     }
 }

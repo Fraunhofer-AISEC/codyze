@@ -34,15 +34,6 @@ import kotlin.test.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CokoCpgIntegrationTest {
 
-    /**
-    private val sourceFiles = listOfNotNull(
-        CokoCpgIntegrationTest::class.java.classLoader
-            .getResource("IntegrationTests/CokoCpg/Main.java"),
-        CokoCpgIntegrationTest::class.java.classLoader
-            .getResource("IntegrationTests/CokoCpg/SimpleOrder.java")
-    ).map { Path(it.path) }.also { assertEquals(2, it.size) }
-    */
-
     private val sourceFiles = listOfNotNull(
         CokoCpgIntegrationTest::class.java.classLoader
             .getResource("IntegrationTests/CokoCpg/Main.java"),

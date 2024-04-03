@@ -29,4 +29,4 @@ jobs:
       - name: Build
         run:  ./gradlew :codyze-cli:build -x check --parallel -Pversion=0.0.0
         # step-level 'continue-on-error' needed to mask a negative workflow result
-        continue-on-error: true
+        # continue-on-error: true

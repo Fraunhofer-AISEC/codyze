@@ -10,6 +10,8 @@
 # LTS version of Java.
 name: 'Portability testing OSes and Java LTS versions'
 
+permissions: {}
+
 on:
   schedule:
     # runs at 5:00 on the first of every month

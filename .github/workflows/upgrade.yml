@@ -40,4 +40,34 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
       - name: Build and Test
+        id: build-and-test
         run:  ./gradlew build --parallel
+      - if: ${{ failure() }}
+        run: touch failure
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.java-lts }}-failure
+          path: failure
+          if-no-files-found: ignore
+          retention-days: 1
+
+  process-failures:
+    if: ${{ !cancelled() }}
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get failures from matrix jobs
+        uses: actions/download-artifact@v4
+        with:
+          path: all-failures
+          pattern: '*-failure'
+          merge-multiple: true
+      - name: Process failures
+        id: process-failures
+        run: test -f all-failures/failure && echo 'hasFails=true' >> "$GITHUB_OUTPUT"
+      - if: ${{ steps.process-failures.outputs.hasFails == 'true' }}
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('Some matrix jobs failed.')

@@ -26,7 +26,7 @@ import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import kotlin.io.path.Path
+import kotlin.io.path.toPath
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
@@ -55,43 +55,43 @@ class CokoSarifBuilderTest {
             passes = listOf(UnreachableEOGPass::class, EdgeCachePass::class),
         )
 
-    val cokoRulewithoutRuleAnnotation = object : CokoRule {
+    private val cokoRulewithoutRuleAnnotation = object : CokoRule {
         override val annotations: List<Annotation>
             get() = emptyList()
-        override val isAbstract: Boolean
-            get() = TODO("Not yet implemented")
-        override val isExternal: Boolean
-            get() = TODO("Not yet implemented")
-        override val isFinal: Boolean
-            get() = TODO("Not yet implemented")
-        override val isInfix: Boolean
-            get() = TODO("Not yet implemented")
-        override val isInline: Boolean
-            get() = TODO("Not yet implemented")
-        override val isOpen: Boolean
-            get() = TODO("Not yet implemented")
-        override val isOperator: Boolean
-            get() = TODO("Not yet implemented")
-        override val isSuspend: Boolean
-            get() = TODO("Not yet implemented")
         override val name: String
             get() = "norule"
+
+        // remaining methods are not required in this test
+        override val isAbstract: Boolean
+            get() = throw UnsupportedOperationException("Not required for this test")
+        override val isExternal: Boolean
+            get() = throw UnsupportedOperationException("Not required for this test")
+        override val isFinal: Boolean
+            get() = throw UnsupportedOperationException("Not required for this test")
+        override val isInfix: Boolean
+            get() = throw UnsupportedOperationException("Not required for this test")
+        override val isInline: Boolean
+            get() = throw UnsupportedOperationException("Not required for this test")
+        override val isOpen: Boolean
+            get() = throw UnsupportedOperationException("Not required for this test")
+        override val isOperator: Boolean
+            get() = throw UnsupportedOperationException("Not required for this test")
+        override val isSuspend: Boolean
+            get() = throw UnsupportedOperationException("Not required for this test")
         override val parameters: List<KParameter>
-            get() = TODO("Not yet implemented")
+            get() = throw UnsupportedOperationException("Not required for this test")
         override val returnType: KType
-            get() = TODO("Not yet implemented")
+            get() = throw UnsupportedOperationException("Not required for this test")
         override val typeParameters: List<KTypeParameter>
-            get() = TODO("Not yet implemented")
+            get() = throw UnsupportedOperationException("Not required for this test")
         override val visibility: KVisibility?
-            get() = TODO("Not yet implemented")
+            get() = throw UnsupportedOperationException("Not required for this test")
 
-        override fun call(vararg args: Any?): Evaluator {
-            TODO("Not yet implemented")
-        }
+        override fun call(vararg args: Any?): Evaluator =
+            throw UnsupportedOperationException("Not required for this test")
 
-        override fun callBy(args: Map<KParameter, Any?>): Evaluator {
-            TODO("Not yet implemented")
-        }
+        override fun callBy(args: Map<KParameter, Any?>): Evaluator =
+            throw UnsupportedOperationException("Not required for this test")
     }
 
     @Test
@@ -121,7 +121,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/ruledefaults.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -137,7 +137,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/ruleshortdescription.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -153,7 +153,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/ruledefaults.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -169,7 +169,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/rulefulldescription.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -185,7 +185,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/ruledefaults.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -204,7 +204,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/ruleseverity.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -223,7 +223,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/ruledefaults.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -239,7 +239,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/rulehelp.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -255,7 +255,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/ruledefaults.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)
@@ -270,7 +270,7 @@ class CokoSarifBuilderTest {
         val specFiles = listOfNotNull(
             CokoSarifBuilderTest::class.java.classLoader
                 .getResource("sarif/ruletags.codyze.kts")
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend = backend, specFiles = specFiles)

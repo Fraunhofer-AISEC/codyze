@@ -82,17 +82,6 @@ class CPGOptionGroup : BackendOptions(helpName = "CPG Backend Options") {
         help = "Enables unity builds (C++ only) for files in the path."
     )
         .flag("--no-unity", "--disable-unity", default = false)
-    val typeSystemActiveInFrontend: Boolean by option(
-        "--type-system-in-frontend",
-        help = "If deactivated, the type listener system starts after the frontends " +
-            "are done building the initial AST structure."
-    )
-        .flag(
-            "--no-type-system-in-frontend",
-            "--disable-type-system-in-frontend",
-            default = true,
-            defaultForHelp = "enable"
-        )
     val debugParser: Boolean by option("--debug-parser", help = "Generate debug output for the cpg parser.")
         .flag("--no-debug-parser", default = false)
     val disableCleanup: Boolean by option(

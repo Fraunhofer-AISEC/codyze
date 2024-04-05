@@ -34,7 +34,6 @@ class CokoCpgBackendCommand : BackendCommand<CokoBackend>("cokoCpg") {
             CPGConfiguration(
                 source = source,
                 useUnityBuild = useUnityBuild,
-                typeSystemActiveInFrontend = typeSystemActiveInFrontend,
                 debugParser = debugParser,
                 disableCleanup = disableCleanup,
                 codeInNodes = codeInNodes,

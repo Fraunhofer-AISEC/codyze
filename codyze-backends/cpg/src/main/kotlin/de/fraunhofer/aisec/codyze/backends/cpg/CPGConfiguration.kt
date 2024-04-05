@@ -34,7 +34,6 @@ private val logger = KotlinLogging.logger {}
 data class CPGConfiguration(
     val source: List<Path>,
     val useUnityBuild: Boolean,
-    val typeSystemActiveInFrontend: Boolean,
     val debugParser: Boolean,
     val disableCleanup: Boolean,
     val codeInNodes: Boolean,

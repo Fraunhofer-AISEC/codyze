@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.toPath
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -58,7 +59,7 @@ class ValidationTest {
                     .classLoader
                     .getResource("cli-test-directory/dir3-spec")
             assertNotNull(testDir3SpecResource)
-            testDir3Spec = Path(testDir3SpecResource.path)
+            testDir3Spec = testDir3SpecResource.toURI().toPath()
         }
     }
 }

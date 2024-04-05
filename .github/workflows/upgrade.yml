@@ -67,7 +67,7 @@ jobs:
         id: process-failures
         run: test -f all-failures/failure && echo 'hasFails=true' >> "$GITHUB_OUTPUT"
       - if: ${{ steps.process-failures.outputs.hasFails == 'true' }}
-        uses: actions/github-script@v5
+        uses: actions/github-script@v7
         with:
           script: |
             core.setFailed('Some matrix jobs failed.')

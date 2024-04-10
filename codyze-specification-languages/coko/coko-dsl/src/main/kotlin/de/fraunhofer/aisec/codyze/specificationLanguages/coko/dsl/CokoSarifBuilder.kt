@@ -45,7 +45,6 @@ private fun CokoRule.toReportingDescriptor() = ReportingDescriptor(
             map = emptyMap()
         )
     },
-    // TODO: add precision, severity
 )
 
 class CokoSarifBuilder(val rules: List<CokoRule>, val backend: Backend) {

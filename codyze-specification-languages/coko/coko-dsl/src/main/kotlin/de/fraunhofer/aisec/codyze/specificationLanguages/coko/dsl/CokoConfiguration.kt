@@ -17,7 +17,7 @@ package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli.validateSpec
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
 
 private val logger = KotlinLogging.logger { }

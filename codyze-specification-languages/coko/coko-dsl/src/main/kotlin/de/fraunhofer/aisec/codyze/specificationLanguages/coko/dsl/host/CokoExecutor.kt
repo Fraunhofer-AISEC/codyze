@@ -23,7 +23,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfigurat
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoSarifBuilder
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoScript
 import io.github.detekt.sarif4k.Run
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.api.SourceCode

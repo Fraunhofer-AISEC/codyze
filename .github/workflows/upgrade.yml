@@ -1,9 +1,21 @@
-name: java-upgrade
+# Portability testing across OSes and Java LTS versions
+# ---
+# Regularly check if we remain compatible with other OSes than Linux and if we
+# could upgrade to newer LTS versions of Java.
+#
+# This acts more like an indicator if something is going to break. Our main
+# target platform is Linux and we build against it during our regular workflow
+# runs. Likewise, we're just testing if we could support newer LTS version of
+# Java. We're still taking very deliberate decisions to upgrade to the next
+# LTS version of Java.
+name: 'Portability testing OSes and Java LTS versions'
+
+permissions: {}
 
 on:
   schedule:
-    # runs at 00:01 on the first every month
-    - cron: '1 0 1 * ?'
+    # runs at 5:00 on the first of every month
+    - cron: '0 5 1 * *'
   # can be triggered manually
   workflow_dispatch:
 
@@ -12,22 +24,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO: include JAVA SE 21 (LTS) on release
-        version: [ "19", "20" ]
+        java-lts: [ '17', '21' ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
+    name: 'Building with Java ${{ matrix.java-lts }} on ${{ matrix.os }}'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Java ${{ matrix.version }}
-        uses: actions/setup-java@v3
+        uses: actions/checkout@v4
+      - name: Setup Java ${{ matrix.java-lts }}
+        uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: ${{ matrix.version }}
-      - name: Build
-        uses: gradle/gradle-build-action@v2
-        # step-level 'continue-on-error' needed to mask a negative workflow result
-        continue-on-error: true
+          java-version: ${{ matrix.java-lts }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Build and Test
+        id: build-and-test
+        run:  ./gradlew build --parallel
+      - if: ${{ failure() }}
+        run: touch failure
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
         with:
-          arguments: :codyze-cli:build -x check --parallel -Pversion=0.0.0
+          name: ${{ matrix.os }}-${{ matrix.java-lts }}-failure
+          path: failure
+          if-no-files-found: ignore
+          retention-days: 1
+
+  process-failures:
+    if: ${{ !cancelled() }}
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get failures from matrix jobs
+        uses: actions/download-artifact@v4
+        with:
+          path: all-failures
+          pattern: '*-failure'
+          merge-multiple: true
+      - name: Process failures
+        id: process-failures
+        run: test -f all-failures/failure && echo 'hasFails=true' >> "$GITHUB_OUTPUT"
+      - if: ${{ steps.process-failures.outputs.hasFails == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.setFailed('Some matrix jobs failed.')

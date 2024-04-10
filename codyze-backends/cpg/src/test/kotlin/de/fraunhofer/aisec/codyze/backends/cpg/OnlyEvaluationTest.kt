@@ -73,7 +73,7 @@ class OnlyEvaluationTest {
 
             val testFileResource = classLoader.getResource("OnlyEvaluationTest/SimpleOnly.java")
             assertNotNull(testFileResource)
-            testFile = Path(testFileResource.path)
+            testFile = testFileResource.toURI().toPath()
         }
     }
 }

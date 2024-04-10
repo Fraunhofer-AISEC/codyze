@@ -19,7 +19,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 

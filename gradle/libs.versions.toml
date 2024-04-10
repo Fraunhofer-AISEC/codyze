@@ -1,8 +1,8 @@
 [versions]
 kotlin = "1.9.23"
 cpg = "8.1.2"
-koin = "3.5.3"
-koin-test = "3.5.3"
+koin = "3.5.4"
+koin-test = "3.5.4"
 detekt = "1.23.6"
 spotless = "6.25.0"
 dokka = "1.9.20"
@@ -28,7 +28,7 @@ cpg-language-java = { module = "de.fraunhofer.aisec:cpg-language-java", version.
 #cpg-analysis = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-analysis", version.ref = "cpg"}
 #cpg-language-go = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-language-go", version.ref = "cpg"}
 
-kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version = "6.0.3" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version = "6.0.4" }
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version = "2.23.1"}
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.3.0"}
 koin = { module = "io.insert-koin:koin-core", version.ref = "koin"}

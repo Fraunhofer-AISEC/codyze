@@ -1,0 +1,3 @@
+@Rule()
+fun rule() =
+    Unit

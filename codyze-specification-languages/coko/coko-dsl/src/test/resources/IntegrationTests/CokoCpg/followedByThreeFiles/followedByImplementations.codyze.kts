@@ -1,4 +1,4 @@
-@file:Import("followedByModels.codyze.kts")
+@file:Import("followedByInterfaces.codyze.kts")
 
 plugins { id("cpg") }
 
@@ -7,8 +7,8 @@ class JavaLoggingTest : LoggingForTest {
         definition("java.util.logging.Logger.info") {
             signature {
                 group {
-                    +message
-                    args.forEach { +it }
+                    - message
+                    args.forEach { - it }
                 }
             }
         }
@@ -20,8 +20,8 @@ class JDBCTest : ObjectRelationalMapperForTest {
         definition("java.sql.Statement.executeUpdate") {
             signature {
                 group {
-                    +"INSERT.*"
-                    +obj
+                    - "INSERT.*"
+                    - obj
                 }
             }
         }

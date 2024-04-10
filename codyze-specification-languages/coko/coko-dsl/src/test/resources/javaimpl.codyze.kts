@@ -7,8 +7,8 @@ class JavaLogging : Logging {
         definition("java.util.logging.Logger.info") {
             signature {
                 group {
-                    +message
-                    args.forEach { +it }
+                    - message
+                    args.forEach { - it }
                 }
             }
         }
@@ -20,8 +20,8 @@ class JDBC : ObjectRelationalMapper {
         definition("java.sql.Statement.executeUpdate") {
             signature {
                 group {
-                    +"INSERT.*"
-                    +obj
+                    - "INSERT.*"
+                    - obj
                 }
             }
         }

@@ -17,8 +17,9 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze.core.backend.BackendConfiguration
 import de.fraunhofer.aisec.cpg.passes.Pass
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
+import kotlin.reflect.KClass
 
 private val logger = KotlinLogging.logger {}
 
@@ -33,7 +34,6 @@ private val logger = KotlinLogging.logger {}
 data class CPGConfiguration(
     val source: List<Path>,
     val useUnityBuild: Boolean,
-    val typeSystemActiveInFrontend: Boolean,
     val debugParser: Boolean,
     val disableCleanup: Boolean,
     val codeInNodes: Boolean,
@@ -44,7 +44,7 @@ data class CPGConfiguration(
     val defaultPasses: Boolean,
     val additionalLanguages: Set<String>,
     val symbols: Map<String, String>,
-    val passes: List<Pass>,
+    val passes: List<KClass<out Pass<*>>>,
     val loadIncludes: Boolean,
     val includePaths: List<Path>,
     val includeAllowlist: List<Path>,

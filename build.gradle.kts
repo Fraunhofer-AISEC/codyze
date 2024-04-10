@@ -31,13 +31,13 @@ tasks.dokkaHtmlMultiModule.configure {
     dokkaAssetsBaseDirectory
         .resolve("JetBrainsMono")
         .copyRecursively(
-            target = outputDirectory.get().resolve("styles").resolve("JetBrainsMono"),
+            target = file(outputDirectory).resolve("styles").resolve("JetBrainsMono"),
             overwrite = true,
         )
     dokkaAssetsBaseDirectory
         .resolve("inter")
         .copyRecursively(
-            target = outputDirectory.get().resolve("styles").resolve("inter"),
+            target = file(outputDirectory).resolve("styles").resolve("inter"),
             overwrite = true,
         )
 }
@@ -47,7 +47,7 @@ val projectProps by tasks.registering(WriteProperties::class) {
     description = "Write project properties in a file."
 
     // Set output file to build/project.properties
-    outputFile = file("$buildDir/codyze.properties")
+    destinationFile = layout.buildDirectory.file("codyze.properties")
     // Default encoding is ISO-8559-1, here we change it.
     encoding = "UTF-8"
     // Optionally we can specify the header comment.
@@ -62,7 +62,7 @@ val projectProps by tasks.registering(WriteProperties::class) {
     }
 }
 
-// configure detekt to combine the results of all submodules into a single sarif file -> for github code scanning
+// configure detekt to combine the results of all submodules into a single sarif file -> for GitHub code scanning
 val detektReportMergeSarif by tasks.registering(ReportMergeTask::class) {
     output.set(rootProject.layout.buildDirectory.file("reports/detekt/detekt.sarif"))
 }

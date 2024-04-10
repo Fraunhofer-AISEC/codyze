@@ -25,7 +25,6 @@ fun createCpgConfiguration(vararg sourceFile: Path) =
     CPGConfiguration(
         source = listOf(*sourceFile),
         useUnityBuild = false,
-        typeSystemActiveInFrontend = true,
         debugParser = false,
         disableCleanup = false,
         codeInNodes = true,
@@ -40,7 +39,7 @@ fun createCpgConfiguration(vararg sourceFile: Path) =
         includePaths = listOf(),
         includeAllowlist = listOf(),
         loadIncludes = false,
-        passes = listOf(EdgeCachePass(), UnreachableEOGPass()),
+        passes = listOf(EdgeCachePass::class, UnreachableEOGPass::class),
     )
 
 @Rule

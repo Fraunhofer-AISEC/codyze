@@ -46,14 +46,17 @@ class CodyzeOptionGroupTest : KoinTest {
             )
         val cli = CodyzeCli(null)
 
-        val exception: Exception =
+        val exception: BadParameterValue =
             Assertions.assertThrows(BadParameterValue::class.java) { cli.parse(argv) }
 
-        val expectedMessage =
-            "Invalid value for \"--output-format\": invalid choice: txt. (choose from "
-        val actualMessage = exception.message
+        val expectedParameterName = "--output-format"
+        assertEquals(exception.paramName, expectedParameterName)
 
-        assertTrue(actualMessage!!.contains(expectedMessage))
+        val expectedMessage =
+            "invalid choice: txt. (choose from "
+        val actualMessage = exception.message.orEmpty()
+
+        assertContains(actualMessage, expectedMessage)
     }
 
     /** Test that [OutputBuilder] choices are cast correctly. */
@@ -68,5 +71,26 @@ class CodyzeOptionGroupTest : KoinTest {
         cli.parse(argv)
 
         assertTrue(cli.codyzeOptions.outputBuilder is SarifBuilder)
+    }
+
+    /** Test that [OutputBuilder] choices are cast correctly. */
+    @Test
+    fun outputBuilderOptionToConfigurationTest() {
+        val argv: Array<String> =
+            arrayOf(
+                "--output-format",
+                "sarif",
+                "--no-good-findings",
+                "--no-pedantic"
+            )
+        val cli = CodyzeCli(null)
+        cli.parse(argv)
+
+        val config = cli.codyzeOptions.asConfiguration()
+
+        assertEquals(cli.codyzeOptions.output, config.output)
+        assertEquals(cli.codyzeOptions.outputBuilder, config.outputBuilder)
+        assertEquals(cli.codyzeOptions.goodFindings, config.goodFindings)
+        assertEquals(cli.codyzeOptions.pedantic, config.pedantic)
     }
 }

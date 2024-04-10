@@ -16,24 +16,24 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.cli
 
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import de.fraunhofer.aisec.codyze.backends.cpg.CPGBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGOptionGroup
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 
 /**
- * The [CliktCommand] to add the plain cpg backend to the codyze-cli.
+ * The [CliktCommand] to add the cokoCpg backend to the codyze-cli.
  */
-class BaseCpgBackend : BackendCommand<CPGBackend>("cpg") {
+class CokoCpgBackendCommand : BackendCommand<CokoBackend>("cokoCpg") {
     val backendOptions by CPGOptionGroup()
-    override val backend = CPGBackend::class
+    override val backend = CokoBackend::class
 
     override fun getBackend() = with(backendOptions) {
-        CPGBackend(
+        CokoCpgBackend(
             CPGConfiguration(
                 source = source,
                 useUnityBuild = useUnityBuild,
-                typeSystemActiveInFrontend = typeSystemActiveInFrontend,
                 debugParser = debugParser,
                 disableCleanup = disableCleanup,
                 codeInNodes = codeInNodes,

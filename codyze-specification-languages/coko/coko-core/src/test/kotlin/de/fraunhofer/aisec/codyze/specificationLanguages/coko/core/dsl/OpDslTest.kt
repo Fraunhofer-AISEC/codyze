@@ -60,20 +60,21 @@ class OpDslTest {
 
         val actualOp = op {
             definition("fqn1") {
-                signature { +stringParam }
+                signature { - stringParam }
                 signature(stringParam, callTestParam)
                 signature {
-                    +stringParam
-                    +callTestParam
-                }.unordered(numberParam)
+                    - stringParam
+                    - callTestParam
+                    unordered(numberParam)
+                }
                 signature(numberParam, collectionParam, stringParam)
             }
             definition("fqn2") {
                 signature {
-                    +typeParam
+                    - typeParam
                     group {
-                        +stringParam
-                        +arrayParam
+                        - stringParam
+                        - arrayParam
                     }
                 }
             }

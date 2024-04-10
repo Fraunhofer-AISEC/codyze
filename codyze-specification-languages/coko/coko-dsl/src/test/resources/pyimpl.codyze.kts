@@ -8,7 +8,7 @@ class PythonLogging : Logging {
     // We don't care about the order of the arguments. Just make sure that all objects in "args"
     // somehow flow into the log message/args.
     op {
-        definition("logging.info") { signature(args) { +message } }
+        definition("logging.info") { signature(args) { - message } }
     }
 }
 
@@ -17,8 +17,8 @@ class Sqlite3 : ObjectRelationalMapper {
         definition("sqlite3.Cursor.execute") {
             signature {
                 group {
-                    +"INSERT.*"
-                    +obj
+                    - "INSERT.*"
+                    - obj
                 }
             }
         }

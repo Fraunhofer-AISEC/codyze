@@ -23,9 +23,9 @@ typealias Parameter = Any?
 /** Represents a group of parameters that all belong to the same index */
 @CokoMarker
 class ParameterGroup {
-    val parameters = arrayListOf<Parameter>()
+    val parameters = mutableSetOf<Parameter>()
 
-    operator fun Parameter.unaryPlus() {
+    operator fun Parameter.unaryMinus() {
         add(this)
     }
 
@@ -39,9 +39,7 @@ class ParameterGroup {
 
         other as ParameterGroup
 
-        if (parameters != other.parameters) return false
-
-        return true
+        return parameters == other.parameters
     }
 
     override fun hashCode(): Int {
@@ -60,7 +58,7 @@ class ParameterGroup {
  */
 @CokoMarker
 class Definition(val fqn: String) {
-    val signatures = arrayListOf<Signature>()
+    val signatures = mutableSetOf<Signature>()
 
     fun add(signature: Signature) {
         this.signatures.removeIf { it === signature }
@@ -74,9 +72,7 @@ class Definition(val fqn: String) {
         other as Definition
 
         if (fqn != other.fqn) return false
-        if (signatures != other.signatures) return false
-
-        return true
+        return signatures == other.signatures
     }
 
     override fun hashCode(): Int {
@@ -86,11 +82,22 @@ class Definition(val fqn: String) {
     }
 
     override fun toString(): String {
-        return signatures.filterNot { it.parameters.contains(null) || it.unorderedParameters.contains(null) }
-            .joinToString(
-                prefix = fqn,
-                separator = ", $fqn"
+        val (nullParams, notNullParams) = signatures.partition {
+            it.parameters.contains(null) || it.unorderedParameters.contains(
+                null
             )
+        }
+        val notNullParamsString = if (notNullParams.isNotEmpty()) {
+            notNullParams.joinToString(prefix = fqn, separator = ", $fqn")
+        } else {
+            ""
+        }
+        return notNullParamsString +
+            if (nullParams.isNotEmpty()) {
+                "(" + nullParams.joinToString(prefix = fqn, separator = ", $fqn") + ")"
+            } else {
+                ""
+            }
     }
 }
 
@@ -107,11 +114,11 @@ class Definition(val fqn: String) {
  */
 @CokoMarker
 class Signature {
-    val parameters = arrayListOf<Parameter>()
+    val parameters = mutableListOf<Parameter>()
 
-    val unorderedParameters = arrayListOf<Parameter>()
+    val unorderedParameters = mutableSetOf<Parameter>()
 
-    operator fun Parameter.unaryPlus() {
+    operator fun Parameter.unaryMinus() {
         add(this)
     }
 
@@ -135,15 +142,13 @@ class Signature {
 
         other as Signature
 
-        if (parameters.size != other.parameters.size) return false
-        if (unorderedParameters.size != other.unorderedParameters.size) return false
-
-        return true
+        if (parameters != other.parameters) return false
+        return unorderedParameters == other.unorderedParameters
     }
 
     override fun hashCode(): Int {
-        var result = parameters.size.hashCode()
-        result = 31 * result + unorderedParameters.size.hashCode()
+        var result = parameters.hashCode()
+        result = 31 * result + unorderedParameters.hashCode()
         return result
     }
 

@@ -16,14 +16,12 @@
 package de.fraunhofer.aisec.codyze.backends.cpg
 
 import com.github.ajalt.clikt.core.BadParameterValue
+import com.github.ajalt.clikt.core.MultiUsageError
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.core.config.combineSources
-import de.fraunhofer.aisec.cpg.passes.CallResolver
-import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
-import de.fraunhofer.aisec.cpg.passes.FilenameMapper
-import de.fraunhofer.aisec.cpg.passes.Pass
-import mu.KotlinLogging
+import de.fraunhofer.aisec.cpg.passes.*
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -32,10 +30,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Stream
-import kotlin.io.path.Path
-import kotlin.io.path.absolute
-import kotlin.io.path.div
-import kotlin.io.path.isRegularFile
+import kotlin.io.path.*
 import kotlin.streams.asSequence
 import kotlin.test.*
 
@@ -85,7 +80,7 @@ class CpgOptionGroupTest {
     fun passesTest() {
         val edgeCachePassName = EdgeCachePass::class.qualifiedName
         val filenameMapperName = FilenameMapper::class.qualifiedName
-        val callResolverName = CallResolver::class.qualifiedName
+        val callResolverName = SymbolResolver::class.qualifiedName
         assertNotNull(edgeCachePassName)
         assertNotNull(filenameMapperName)
         assertNotNull(callResolverName)
@@ -105,10 +100,10 @@ class CpgOptionGroupTest {
         )
 
         val expectedPassesNames =
-            listOf(EdgeCachePass(), FilenameMapper(), CallResolver()).map { p ->
-                p::class.qualifiedName
+            listOf(EdgeCachePass::class, FilenameMapper::class, SymbolResolver::class).map { p ->
+                p.qualifiedName
             }
-        val actualPassesNames = cli.cpgOptions.passes.map { p -> p::class.qualifiedName }
+        val actualPassesNames = cli.cpgOptions.passes.map { p -> p.qualifiedName }
 
         logger.info { actualPassesNames.joinToString(",") }
 
@@ -119,7 +114,95 @@ class CpgOptionGroupTest {
     @MethodSource("incorrectPassesHelper")
     fun incorrectPassesTest(argv: Array<String>) {
         val cli = CPGOptionsCommand()
+
+        val incorrectPassIndex = argv.indexOf("--passes") + 1
+        try {
+            // expected to fail
+            cli.parse(argv)
+        } catch (e: BadParameterValue) {
+            assertEquals("--passes", e.paramName)
+
+            val expectedMessage = "Cannot register ${argv[incorrectPassIndex]}"
+            assertEquals(expectedMessage, e.message.orEmpty())
+        } catch (e: MultiUsageError) {
+            // mutiple errors where one is caused by the '--passes' parameter
+            e.errors.filterIsInstance<BadParameterValue>().forEach {
+                assertEquals("--passes", it.paramName)
+            }
+        }
+    }
+
+    @Test
+    fun `test resolveSymbols`() {
+        val expectedSymbols = mapOf(
+            "#" to "hash",
+            "+" to "plus",
+            "*" to "star"
+        )
+        val cli = CPGOptionsCommand()
+        val argv = expectedSymbols
+            .flatMap { (key, value) -> listOf("--symbols", "$key=$value") } +
+            listOf(
+                "--source",
+                testDir1.toString()
+            )
+        cli.parse(argv)
+        val symbols = cli.cpgOptions.symbols
+        assertEquals(expectedSymbols.entries, symbols.entries)
+    }
+
+    @ParameterizedTest(name = "test {0} without includes")
+    @MethodSource("includesHelper")
+    fun `test enabled or disabled includes options without includes`(includeOption: String) {
+        val argv = listOf(
+            "--source",
+            testDir1.toString(),
+            includeOption,
+            testFile1.toString()
+        )
+        val cli = CPGOptionsCommand()
+
         assertThrows<BadParameterValue> { cli.parse(argv) }
+    }
+
+    @Test
+    fun `test includeAllowlist`() {
+        val argv = listOf(
+            "--source",
+            testDir2.toString(),
+            "--includes",
+            topTestDir.toString(),
+            "--enabled-includes",
+            testFile1.toString(),
+            "--enabled-includes-additions",
+            testDir1.toString()
+        )
+
+        val cli = CPGOptionsCommand()
+        cli.parse(argv)
+
+        val allowList = cli.cpgOptions.includeAllowlist
+        assertContentEquals(listOf(testFile1, testDir1.div("dir1file1.java")), allowList)
+    }
+
+    @Test
+    fun `test includeBlocklist`() {
+        val argv = listOf(
+            "--source",
+            testDir2.toString(),
+            "--includes",
+            topTestDir.toString(),
+            "--disabled-includes",
+            testFile1.toString(),
+            "--disabled-includes-additions",
+            testDir1.toString()
+        )
+
+        val cli = CPGOptionsCommand()
+        cli.parse(argv)
+
+        val blockList = cli.cpgOptions.includeBlocklist
+        assertContentEquals(listOf(testFile1, testDir1.div("dir1file1.java")), blockList)
     }
 
     companion object {
@@ -137,19 +220,19 @@ class CpgOptionGroupTest {
             val topTestDirResource =
                 CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory")
             assertNotNull(topTestDirResource)
-            topTestDir = Path(topTestDirResource.path)
+            topTestDir = topTestDirResource.toURI().toPath()
             assertNotNull(topTestDir) // TODO: why is this necessary
 
             val testDir1Resource =
                 CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir1")
             assertNotNull(testDir1Resource)
-            testDir1 = Path(testDir1Resource.path)
+            testDir1 = testDir1Resource.toURI().toPath()
             assertNotNull(testDir1)
 
             val testDir2Resource =
                 CpgOptionGroupTest::class.java.classLoader.getResource("cli-test-directory/dir2")
             assertNotNull(testDir2Resource)
-            testDir2 = Path(testDir2Resource.path)
+            testDir2 = testDir2Resource.toURI().toPath()
             assertNotNull(testDir2)
 
             val testFile1Resource =
@@ -158,7 +241,7 @@ class CpgOptionGroupTest {
                     .classLoader
                     .getResource("cli-test-directory/file1.java")
             assertNotNull(testFile1Resource)
-            testFile1 = Path(testFile1Resource.path)
+            testFile1 = testFile1Resource.toURI().toPath()
             assertNotNull(testFile1)
 
             allFiles = Files.walk(topTestDir).asSequence().filter { it.isRegularFile() }.toList()
@@ -257,9 +340,19 @@ class CpgOptionGroupTest {
             assertNotNull(translationOptionName)
 
             return Stream.of(
-                Arguments.of(arrayOf("--passes", passName)),
+                Arguments.of(arrayOf("--source", testDir1.toString(), "--passes", passName)),
                 Arguments.of(arrayOf("--passes", "my.passes.MyPass")),
                 Arguments.of(arrayOf("--passes", translationOptionName))
+            )
+        }
+
+        @JvmStatic
+        fun includesHelper(): Stream<Arguments> {
+            return Stream.of(
+                Arguments.of("--enabled-includes"),
+                Arguments.of("--enabled-includes-additions"),
+                Arguments.of("--disabled-includes"),
+                Arguments.of("--disabled-includes-additions"),
             )
         }
     }

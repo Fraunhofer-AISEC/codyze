@@ -1,0 +1,73 @@
+# Portability testing across OSes and Java LTS versions
+# ---
+# Regularly check if we remain compatible with other OSes than Linux and if we
+# could upgrade to newer LTS versions of Java.
+#
+# This acts more like an indicator if something is going to break. Our main
+# target platform is Linux and we build against it during our regular workflow
+# runs. Likewise, we're just testing if we could support newer LTS version of
+# Java. We're still taking very deliberate decisions to upgrade to the next
+# LTS version of Java.
+name: 'Portability testing OSes and Java LTS versions'
+
+permissions: {}
+
+on:
+  schedule:
+    # runs at 5:00 on the first of every month
+    - cron: '0 5 1 * *'
+  # can be triggered manually
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        java-lts: [ '17', '21' ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    name: 'Building with Java ${{ matrix.java-lts }} on ${{ matrix.os }}'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java ${{ matrix.java-lts }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.java-lts }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Build and Test
+        id: build-and-test
+        run:  ./gradlew build --parallel
+      - if: ${{ failure() }}
+        run: touch failure
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.java-lts }}-failure
+          path: failure
+          if-no-files-found: ignore
+          retention-days: 1
+
+  process-failures:
+    if: ${{ !cancelled() }}
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get failures from matrix jobs
+        uses: actions/download-artifact@v4
+        with:
+          path: all-failures
+          pattern: '*-failure'
+          merge-multiple: true
+      - name: Process failures
+        id: process-failures
+        run: test -f all-failures/failure && echo 'hasFails=true' >> "$GITHUB_OUTPUT"
+      - if: ${{ steps.process-failures.outputs.hasFails == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.setFailed('Some matrix jobs failed.')

@@ -45,7 +45,7 @@ context(CokoBackend)
 fun Op.cpgGetAllNodes(): Nodes =
     when (this@Op) {
         is FunctionOp ->
-            this@Op.definitions.map { def -> this@CokoBackend.cpgCallFqn(def.fqn) }.flatten()
+            this@Op.definitions.flatMap { def -> this@CokoBackend.cpgCallFqn(def.fqn) }
         is ConstructorOp -> this@CokoBackend.cpgConstructor(this.classFqn)
     }
 
@@ -58,7 +58,7 @@ fun Op.cpgGetNodes(): Nodes =
     when (this@Op) {
         is FunctionOp ->
             this@Op.definitions
-                .map { def ->
+                .flatMap { def ->
                     this@CokoBackend.cpgCallFqn(def.fqn) {
                         def.signatures.any { sig ->
                             cpgSignature(*sig.parameters.toTypedArray()) &&
@@ -66,16 +66,14 @@ fun Op.cpgGetNodes(): Nodes =
                         }
                     }
                 }
-                .flatten()
         is ConstructorOp ->
             this@Op.signatures
-                .map { sig ->
+                .flatMap { sig ->
                     this@CokoBackend.cpgConstructor(this@Op.classFqn) {
                         cpgSignature(*sig.parameters.toTypedArray()) &&
                             sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                     }
                 }
-                .flatten()
     }
 
 /** Returns a list of [ValueDeclaration]s with the matching name. */
@@ -133,18 +131,7 @@ context(CallExpression)
  * - If this is a [Node], we use the DFG of the CPG.
  */
 infix fun Any.cpgFlowsTo(that: Node): Boolean =
-    if (this is Wildcard) {
-        true
-    } else {
-        when (this) {
-            is String -> Regex(this).matches((that as? Expression)?.evaluate()?.toString().orEmpty())
-            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Node -> dataFlow(this, that).value
-            is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
-            else -> this == (that as? Expression)?.evaluate()
-        }
-    }
+    this.cpgFlowsTo(listOf(that))
 
 // it should only be available in the context of a CallExpression
 context(CallExpression)

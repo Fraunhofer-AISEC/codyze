@@ -23,7 +23,7 @@ import de.fraunhofer.aisec.cpg.analysis.fsm.DFA
 import de.fraunhofer.aisec.cpg.analysis.fsm.DFAOrderEvaluator
 import de.fraunhofer.aisec.cpg.analysis.fsm.Edge
 import de.fraunhofer.aisec.cpg.graph.Node
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.full.findAnnotation
 
 val logger = KotlinLogging.logger {}
@@ -35,6 +35,7 @@ val logger = KotlinLogging.logger {}
 @Suppress("LongParameterList")
 class CodyzeDfaOrderEvaluator(
     val context: EvaluationContext,
+    val hashToMethod: Map<String, String>,
     dfa: DFA,
     consideredBases: Set<Node>,
     nodeToRelevantMethod: Map<Node, Set<String>>,
@@ -56,13 +57,10 @@ class CodyzeDfaOrderEvaluator(
         .takeIf { it?.isEmpty() == false }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.map { e ->
-        if (e.base != null) {
-            "${e.base!!.split("$").last()}.${e.op}"
-        } else {
-            e.op
-        }
-    }?.sorted()
+    private fun getPossibleNextEdges(edges: Set<Edge>?) = edges?.mapNotNull { hashToMethod[it.op] }?.sorted()
+
+    private fun getMethods(node: Node): Set<String> =
+        nodeToRelevantMethod.getOrDefault(node, emptySet()).mapNotNull { hashToMethod[it] }.toSet()
 
     /**
      * Collects a finding if the [node] makes an operation which violates the desired order.
@@ -71,12 +69,12 @@ class CodyzeDfaOrderEvaluator(
         val possibleNextEdges = getPossibleNextEdges(fsm.currentState?.outgoingEdges)
 
         var defaultMessage =
-            "\"${node.code}\". Op \"${nodeToRelevantMethod[node]}\" is not allowed. " +
+            "\"${node.code}\". Op \"${getMethods(node)}\" is not allowed. " +
                 "Expected one of: " + possibleNextEdges?.joinToString(", ")
 
         if (possibleNextEdges?.isEmpty() == true && fsm.currentState?.isAcceptingState == true) {
             defaultMessage = "\"${node.code}\". " +
-                "Op \"${nodeToRelevantMethod[node]}\" is not allowed. No other calls are allowed on this base."
+                "Op \"${getMethods(node)}\" is not allowed. No other calls are allowed on this base."
         }
 
         val message = userDefinedFailMessage ?: defaultMessage

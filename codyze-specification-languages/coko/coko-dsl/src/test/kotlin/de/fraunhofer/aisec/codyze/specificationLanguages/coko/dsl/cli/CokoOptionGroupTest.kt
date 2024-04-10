@@ -23,9 +23,9 @@ import org.koin.test.KoinTest
 import org.koin.test.junit5.KoinTestExtension
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.toPath
 import kotlin.streams.asSequence
 import kotlin.test.*
 
@@ -86,9 +86,9 @@ class CokoOptionGroupTest : KoinTest {
             Assertions.assertThrows(IllegalArgumentException::class.java) { cli.executorOptions.spec }
 
         val expectedMessage = "All given specification files must be coko specification files (*.codyze.kts)."
-        val actualMessage = exception.message
+        val actualMessage = exception.message.orEmpty()
 
-        assertTrue(actualMessage!!.contains(expectedMessage))
+        assertContains(actualMessage, expectedMessage)
     }
 
     companion object {
@@ -103,7 +103,7 @@ class CokoOptionGroupTest : KoinTest {
             val topTestDirResource =
                 CokoOptionGroupTest::class.java.classLoader.getResource("cli-test-directory")
             assertNotNull(topTestDirResource)
-            topTestDir = Path(topTestDirResource.path)
+            topTestDir = topTestDirResource.toURI().toPath()
 
             val testDir3SpecResource =
                 CokoOptionGroupTest::class
@@ -111,7 +111,7 @@ class CokoOptionGroupTest : KoinTest {
                     .classLoader
                     .getResource("cli-test-directory/dir3-spec")
             assertNotNull(testDir3SpecResource)
-            testDir3Spec = Path(testDir3SpecResource.path)
+            testDir3Spec = testDir3SpecResource.toURI().toPath()
 
             allFiles = Files.walk(topTestDir).asSequence().filter { it.isRegularFile() }.toList()
         }

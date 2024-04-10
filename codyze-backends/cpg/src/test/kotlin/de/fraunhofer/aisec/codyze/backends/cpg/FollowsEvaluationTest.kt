@@ -17,7 +17,6 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.FollowsEvaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.definition
@@ -118,7 +117,7 @@ class FollowsEvaluationTest {
 
             val testFileResource = classLoader.getResource("FollowsEvaluationTest/SimpleFollows.java")
             assertNotNull(testFileResource)
-            testFile = Path(testFileResource.path)
+            testFile = testFileResource.toURI().toPath()
 
             val fooInstance = FooModel()
             val barInstance = BarModel()
@@ -126,7 +125,7 @@ class FollowsEvaluationTest {
             val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
 
             with(backend) {
-                val evaluator = FollowsEvaluator(fooInstance.first(), barInstance.second())
+                val evaluator = fooInstance.first() followedBy barInstance.second()
                 findings = evaluator.evaluate(
                     EvaluationContext(
                         rule = ::dummyRule,

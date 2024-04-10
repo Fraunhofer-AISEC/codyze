@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.*
 
 private val logger = KotlinLogging.logger {}
@@ -37,7 +37,7 @@ object VersionProvider {
         if (
             !props.containsKey("project.name") || props.getProperty("project.name").lowercase() != "codyze"
         ) {
-            logger.warn("Could not find correct version properties file")
+            logger.warn { "Could not find correct version properties file" }
             props.clear()
         }
     }

@@ -23,7 +23,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfigurat
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoSarifBuilder
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoScript
 import io.github.detekt.sarif4k.Run
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.api.SourceCode
@@ -75,15 +75,22 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
     }
 
     companion object {
+        /** Contains the class loaders of all evaluated scripts */
+        private val classLoaders = mutableSetOf<ClassLoader>()
+
         /** Evaluates the given project script [sourceCode] against the given [backend]. */
-        fun eval(sourceCode: String, backend: CokoBackend, sharedClassLoader: ClassLoader? = null) =
+        fun eval(
+            sourceCode: String,
+            backend: CokoBackend,
+            sharedClassLoader: ClassLoader? = null
+        ) =
             eval(sourceCode.toScriptSource(), backend, sharedClassLoader)
 
         /** Evaluates the given project script [sourceCode] against the given [backend]. */
         fun eval(
             sourceCode: SourceCode,
             backend: CokoBackend,
-            sharedClassLoader: ClassLoader? = null
+            baseClassLoader: ClassLoader? = null
         ): ResultWithDiagnostics<EvaluationResult> {
             val compilationConfiguration =
                 createJvmCompilationConfigurationFromTemplate<CokoScript>()
@@ -91,8 +98,10 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
                     implicitReceivers(backend)
                     jvm {
-                        if (sharedClassLoader != null) {
-                            baseClassLoader.put(sharedClassLoader)
+                        if (baseClassLoader != null) {
+                            // The BasicJvmScriptingHost will use this `baseClassLoader` as an ancestor
+                            // for the actual class loader that loads the compiled class
+                            this.baseClassLoader.put(baseClassLoader)
                         }
                     }
                 }
@@ -116,7 +125,7 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
             backend: CokoBackend,
             specFiles: List<Path>
         ): SpecEvaluator {
-            var sharedClassLoader: ClassLoader? = null
+            var baseClassLoader: ClassLoader? = null
             val specEvaluator = SpecEvaluator()
             for (specFile in specFiles) {
                 // compile the script
@@ -124,7 +133,7 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
                     eval(
                         FileScriptSource(specFile.toFile()),
                         backend = backend,
-                        sharedClassLoader = sharedClassLoader
+                        baseClassLoader = baseClassLoader
                     )
 
                 // log script diagnostics
@@ -144,13 +153,26 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
                 // throw an exception if the script could not be compiled
                 val scriptEvaluationResult = result.valueOrThrow()
 
-                // Get the class loader for the first loaded script. We give that one to all the
-                // other scripts to ensure they find "the same" classes.
-                if (sharedClassLoader == null) {
-                    sharedClassLoader =
-                        scriptEvaluationResult.configuration?.get(
-                            PropertiesCollection.Key<ClassLoader>("actualClassLoader")
-                        )
+                // Get the class loader for the loaded script.
+                val newClassLoader = scriptEvaluationResult.configuration?.get(
+                    PropertiesCollection.Key<ClassLoader>("actualClassLoader")
+                )
+
+                // The ScriptingHost makes a class loader for each script.
+                // We need to connect these class loaders of the scripts to be able to find all classes.
+                // This is done by creating a chaining them through the `parent` property of the ClassLoader.
+                // The BasicJVMScriptingHost will assign the given `baseClassLoader` as an ancestor for
+                // the new class loader for the compiled script.
+
+                // Since a script might import other scripts, some classes are already included in a class
+                // loader when they are first compiled.
+                // Since their assigned class loader will be the class loader that includes them, the chain
+                // might be broken. All previous class loaders are therefore stored in the `classLoaders` set.
+                // If `newClassLoader` is not yet in `classLoaders` it is used as the `baseClassLoader` for the
+                // next script to continue the chain. Otherwise, the previous `baseClassLoader` is used again,
+                // since it is still the last class loader of the chain.
+                if (newClassLoader != null && classLoaders.add(newClassLoader)) {
+                    baseClassLoader = newClassLoader
                 }
 
                 // analyze script contents

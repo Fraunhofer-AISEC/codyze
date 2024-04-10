@@ -19,7 +19,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 
@@ -60,6 +60,7 @@ class SpecEvaluator {
         val results = mutableMapOf<CokoRule, MutableList<Finding>>()
         for ((index, value) in rulesAndInstances.withIndex()) {
             val (rule, ruleInstance) = value
+            logger.info { "Start evaluating rule `${rule.name}`" }
             val parameterMap =
                 mutableMapOf(
                     rule.instanceParameter!! to ruleInstance
@@ -76,8 +77,17 @@ class SpecEvaluator {
                             val primaryConstructor =
                                 checkNotNull(it.primaryConstructor) {
                                     "Could not create an instance of ${it.qualifiedName} to pass to rule " +
-                                        "${rule.name} because it does not have a primary constructor. Aborting."
+                                        "\"${rule.name}\" because it does not have a primary constructor. Aborting."
                                 }
+                            require(primaryConstructor.visibility == KVisibility.PUBLIC) {
+                                "Could not create an instance of ${it.qualifiedName} to pass to rule " +
+                                    "\"${rule.name}\" because it's primary constructor is not public. Aborting."
+                            }
+
+                            require(primaryConstructor.parameters.isEmpty()) {
+                                "Could not create an instance of ${it.qualifiedName} to pass to rule " +
+                                    "\"${rule.name}\" because it's primary constructor expects arguments. Aborting."
+                            }
                             // TODO: how do we access primaryConstructor.arity ? -> then we would
                             // not need the try..catch
                             try {
@@ -90,8 +100,11 @@ class SpecEvaluator {
                 }
 
             parameterMap.putAll(valueParameterMap)
+            logger.debug { "Obtained parameters for calling rule `${rule.name}`: $parameterMap" }
+            logger.debug { "${ruleInstance::class.java.classLoader}" }
 
             val ruleEvaluator = rule.callBy(parameterMap)
+            logger.debug { "Obtained evaluator for rule `${rule.name}`" }
             val ruleResult = ruleEvaluator.evaluate(EvaluationContext(rule = rule, parameterMap = valueParameterMap))
             logger.info {
                 " (${index + 1}/${rules.size}): ${rule.name} generated " +

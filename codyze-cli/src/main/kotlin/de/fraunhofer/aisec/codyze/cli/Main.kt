@@ -18,7 +18,7 @@ package de.fraunhofer.aisec.codyze.cli
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
 import java.nio.file.Path

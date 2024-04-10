@@ -42,13 +42,13 @@ interface CokoBackend : Backend {
     /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
     infix fun Op.followedBy(that: Op): Evaluator
 
-    /* Ensures the order of nodes as specified in the user configured [Order] object */
+    /** Ensures the order of nodes as specified in the user configured [Order] object */
     fun order(
         baseNodes: OrderToken,
         block: Order.() -> Unit
     ): Evaluator
 
-    /* Ensures the order of nodes as specified in the user configured [Order] object */
+    /** Ensures the order of nodes as specified in the user configured [Order] object */
     fun order(
         baseNodes: Op,
         block: Order.() -> Unit
@@ -58,4 +58,7 @@ interface CokoBackend : Backend {
      * Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops]
      */
     fun only(vararg ops: Op): Evaluator
+
+    /** Ensures that there are no calls to the [ops] which have arguments that fit the parameters specified in [ops] */
+    fun never(vararg ops: Op): Evaluator
 }

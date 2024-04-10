@@ -32,7 +32,7 @@ To actually run Codyze you must specify a subcommand:
 ```shell
 $ ./gradlew run --args="--config=config.json runCoko cokoCpg"
 ```
-This will run the `runCoko` subcommand with the `cokoCpg` backend using the demo config file [`./codyze-cli/config.json`](./codyze-cli/codyze.json).
+This will run the `runCoko` subcommand with the `cokoCpg` backend using the demo config file [`./codyze-cli/config.json`](./codyze-cli/config.json).
 
 For more information, please refer to the [documentation](https://www.codyze.io).
 

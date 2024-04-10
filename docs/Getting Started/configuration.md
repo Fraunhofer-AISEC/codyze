@@ -17,7 +17,7 @@ To append the data from the command line to the one from the configuration file,
 ## Configuration File
 The configurations can also be defined with a JSON configuration file. 
 Use the option `--config=<filepath>` to specify the path to the config file.
-The configuration from `codyze.json` will always be loaded if no other file is specified.
+The configuration from `./codyze.json` will always be loaded if no other file is specified.
 
 Relative paths in the configuration file are resolved relative to the configuration file location.
 

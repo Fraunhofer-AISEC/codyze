@@ -27,22 +27,24 @@ import kotlin.reflect.full.findAnnotation
 private fun CokoRule.toReportingDescriptor() = ReportingDescriptor(
     id = toString(),
     name = name,
-    shortDescription = findAnnotation<Rule>()?.shortDescription?.let { desc ->
-        MultiformatMessageString(
-            text = desc
+    shortDescription = findAnnotation<Rule>()?.let {
+        MultiformatMessageString(text = it.shortDescription)
+    },
+    fullDescription = findAnnotation<Rule>()?.let {
+        MultiformatMessageString(text = it.description)
+    },
+    defaultConfiguration = findAnnotation<Rule>()?.let {
+        ReportingConfiguration(level = it.severity.toResultLevel())
+    },
+    help = findAnnotation<Rule>()?.let {
+        MultiformatMessageString(text = it.help)
+    },
+    properties = findAnnotation<Rule>()?.let {
+        PropertyBag(
+            tags = it.tags.toSet(),
+            map = emptyMap()
         )
     },
-    fullDescription = findAnnotation<Rule>()?.description?.let { desc ->
-        MultiformatMessageString(
-            text = desc
-        )
-    },
-    defaultConfiguration = ReportingConfiguration(level = findAnnotation<Rule>()?.severity?.toResultLevel()),
-    help = findAnnotation<Rule>()?.help?.let { desc -> MultiformatMessageString(text = desc) },
-    properties = PropertyBag(
-        tags = findAnnotation<Rule>()?.tags?.toList(),
-
-    )
 )
 
 class CokoSarifBuilder(val rules: List<CokoRule>, val backend: Backend) {

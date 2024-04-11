@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.modelling
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.BackendDataItem
-import de.fraunhofer.aisec.cpg.graph.HasType
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.Declaration
 import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
+import de.fraunhofer.aisec.cpg.graph.types.HasType
 
 /** Implementation of the [BackendDataItem] interface for the CPG */
 class CpgBackendDataItem(

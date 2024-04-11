@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Condition
@@ -49,7 +48,7 @@ class CallLocationBuilder {
 data class CallLocation(val direction: Direction, val scope: Scope)
 
 enum class Direction {
-    afterwards, before, somewhere
+    Afterwards, Before, Somewhere
 }
 
 enum class Scope {

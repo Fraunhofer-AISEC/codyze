@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ListBuilder
@@ -22,6 +21,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 fun condition(block: Condition.() -> ConditionComponent) = Condition().run(block)
 
 /** This class exists to restrict where the functions can be called */
+@Suppress("complexity.TooManyFunctions")
 class Condition {
     /** Can be used to build a list like `list[x,y,z]` */
     val list by lazy { ListBuilder() }

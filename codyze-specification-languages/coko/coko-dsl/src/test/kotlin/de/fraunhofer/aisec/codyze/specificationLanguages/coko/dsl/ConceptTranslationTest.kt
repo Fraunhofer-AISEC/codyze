@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
@@ -41,7 +40,6 @@ class ConceptTranslationTest {
         CPGConfiguration(
             source = sourceFiles,
             useUnityBuild = false,
-            typeSystemActiveInFrontend = true,
             debugParser = false,
             disableCleanup = false,
             codeInNodes = true,

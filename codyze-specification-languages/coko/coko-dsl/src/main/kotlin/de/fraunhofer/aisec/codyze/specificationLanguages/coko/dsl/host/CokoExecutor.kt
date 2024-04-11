@@ -135,6 +135,7 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
          * @return A [SpecEvaluator] object containing the extracted information from all
          * [specFiles]
          */
+        @Suppress("complexity.CyclomaticComplexMethod")
         fun compileScriptsIntoSpecEvaluator(
             backend: CokoBackend,
             specFiles: List<Path>

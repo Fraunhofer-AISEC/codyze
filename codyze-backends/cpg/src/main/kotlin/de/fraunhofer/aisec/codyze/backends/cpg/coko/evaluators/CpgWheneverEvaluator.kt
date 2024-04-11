@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
@@ -29,6 +28,7 @@ import de.fraunhofer.aisec.cpg.query.executionPath
 import kotlin.reflect.full.findAnnotation
 
 context(de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend)
+@Suppress("complexity.TooManyFunctions")
 class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(premise) {
 
     private val defaultFailMessage: String = ""
@@ -81,9 +81,9 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
                         when (location.scope) {
                             Scope.Function -> {
                                 when (location.direction) {
-                                    Direction.afterwards -> TODO()
-                                    Direction.before -> TODO()
-                                    Direction.somewhere -> TODO()
+                                    Direction.Afterwards -> TODO()
+                                    Direction.Before -> TODO()
+                                    Direction.Somewhere -> TODO()
                                 }
                             }
                             Scope.Block -> TODO()

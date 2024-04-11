@@ -37,7 +37,6 @@ class WheneverEvaluatorTest {
         CPGConfiguration(
             source = sourceFiles,
             useUnityBuild = false,
-            typeSystemActiveInFrontend = true,
             debugParser = false,
             disableCleanup = false,
             codeInNodes = true,

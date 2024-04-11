@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
@@ -24,7 +23,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Ret
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Value
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 
 /**
  * Get all [Nodes] that are associated with this [DataItem].
@@ -74,5 +73,5 @@ private fun Node.getVariableInNextDFGOrThis(): Nodes =
     this.nextDFG
         .filter {
                 next ->
-            next is DeclaredReferenceExpression || next is VariableDeclaration
+            next is Reference || next is VariableDeclaration
         }.ifEmpty { listOf(this) }

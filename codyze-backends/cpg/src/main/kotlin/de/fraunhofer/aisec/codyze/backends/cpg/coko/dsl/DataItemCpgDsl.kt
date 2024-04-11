@@ -24,7 +24,7 @@ import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.literals
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.DeclaredReferenceExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 import de.fraunhofer.aisec.cpg.graph.variables
 
 /**
@@ -66,5 +66,5 @@ private fun Node.getVariableInNextDFGOrThis(): Nodes =
     this.nextDFG
         .filter {
                 next ->
-            next is DeclaredReferenceExpression || next is VariableDeclaration
+            next is Reference || next is VariableDeclaration
         }.ifEmpty { listOf(this) }

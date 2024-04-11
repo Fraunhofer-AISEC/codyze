@@ -40,14 +40,12 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
         val correctNodes =
-            with(this@CokoCpgBackend) { ops.map { it.cpgGetNodes() } }
-                .flatten()
+            with(this@CokoCpgBackend) { ops.flatMap { it.cpgGetNodes() } }
                 .toSet()
 
         val distinctOps = ops.toSet()
         val allNodes =
-            with(this@CokoCpgBackend) { distinctOps.map { it.cpgGetAllNodes() } }
-                .flatten()
+            with(this@CokoCpgBackend) { distinctOps.flatMap { it.cpgGetAllNodes() } }
                 .toSet()
 
         // `correctNodes` is a subset of `allNodes`

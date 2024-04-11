@@ -35,6 +35,14 @@ The configuration structure separates the options by subcommand as seen below.
 ```
 In this example the `good-findings` argument belongs to Codyze, the `spec` argument belongs to the `runCoko` subcommand and the `source` argument belongs to the `cokoCpg` subcommand.
 The value of the option is taken from the object which corresponds to the subcommand used for the execution.
+
+It is important to note that the configuration file only sets the options for each subcommand but does not invoke the subcommand itself.
+A complete usage example for using a configuration file in combination with subcommands looks as follows:
+```shell
+./gradlew :codyze-cli:run --args="--config=config.json runCoko cokoCpg"
+```
+Mind that the config file must be specified as a top-level argument before calling the respective subcommands for the `executor` or `backend`.
+
 An exemplary configuration file can also be found in the [GitHub repository <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-cli/config.json){target=_blank}.
 
 ## List of Configurations

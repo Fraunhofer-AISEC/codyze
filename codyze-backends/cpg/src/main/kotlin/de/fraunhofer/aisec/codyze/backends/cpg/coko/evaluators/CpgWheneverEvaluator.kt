@@ -90,7 +90,7 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
                         }
                     }
                     TODO()
-                    EvaluationResult(nodes, emptyList(), Problems())
+                    // EvaluationResult(nodes, emptyList(), Problems())
                 }
                 findings.addAll(
                     generateFindings(premiseNode, ensuresToNodes + callAssertionsToNodes, passMessage, failMessage)
@@ -187,6 +187,7 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
     /**
      * Finds the nodes that are represented by [value].
      */
+    @Suppress("style.UnusedParameter")
     private fun evaluateValueToCpgNodes(value: Value<*>, premiseNode: Node? = null): EvaluationResult {
         // We return a [DummyNode] here because Value objects don't use the information from the backend
         // for their transformation.

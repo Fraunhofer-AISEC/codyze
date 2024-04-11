@@ -129,7 +129,7 @@ class ConceptTranslator {
 
         sb.append("(")
         // Find the definitions of the ops that are used for this opPointer
-        val opDefinitions = opNames.map { (Regex("\\s+op\\s+$it\\(.*\\)").find(conceptBody)?.value ?: "") }
+        val opDefinitions = opNames.map { (Regex("\\s+op\\s+$it\\(.*\\)").find(conceptBody)?.value.orEmpty()) }
         // Append parameters needed for the function which are built by combining
         // the parameters of the grouped ops
         sb.append(buildFunctionParameters(opDefinitions))
@@ -155,7 +155,7 @@ class ConceptTranslator {
         // Find out all needed parameters
         val functionParameters = opDefinitions.flatMap { opDefinition ->
             // find the parameters that are used for the op
-            val opParameters = Regex("\\(.*\\)").find(opDefinition)?.value ?: ""
+            val opParameters = Regex("\\(.*\\)").find(opDefinition)?.value.orEmpty()
             // remove the `(` and `)` and then split the parameters
             removeFirstAndLastChar(opParameters).split(Regex("\\s*,\\s*"))
         }

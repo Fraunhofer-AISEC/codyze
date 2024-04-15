@@ -1,5 +1,6 @@
 plugins {
     id("documented-module")
+    id("features")
     application
 }
 

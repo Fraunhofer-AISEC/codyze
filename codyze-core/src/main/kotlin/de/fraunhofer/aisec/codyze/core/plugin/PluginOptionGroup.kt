@@ -54,7 +54,7 @@ class PluginOptionGroup(pluginName: String) : OptionGroup(name = "Options for th
         "--output",
         help = "The path of the resulting report. Only effective in combination with the \"--separate\" flag."
     )
-        .file(mustBeWritable = true)
+        .file()
         .default(File("$pluginName.sarif"))
 
     val context: List<Path> by option(

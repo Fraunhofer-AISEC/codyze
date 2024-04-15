@@ -34,7 +34,7 @@ val logger = KotlinLogging.logger { }
  * Also, remember to add a page to docs/plugins.
  */
 abstract class Plugin(private val cliName: String) :
-    NoOpCliktCommand(hidden = true, name = cliName.lowercase()) {
+    NoOpCliktCommand(hidden = true, name = cliName) {
     private val options by PluginOptionGroup(cliName)
 
     /**

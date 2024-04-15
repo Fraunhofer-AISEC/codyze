@@ -78,3 +78,13 @@ subprojects {
         }
     }
 }
+
+/*
+ * Optional and experimental features
+ */
+// this code block also exists in `settings.gradle.kts`
+val enablePluginSupport: Boolean by extra {
+    val enablePluginSupport: String? by project
+    enablePluginSupport.toBoolean()
+}
+project.logger.lifecycle("Plugin feature is ${if (enablePluginSupport) "enabled" else "disabled"}")

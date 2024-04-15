@@ -16,10 +16,7 @@
 package de.fraunhofer.aisec.codyze.core.config
 
 import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Path
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * Holds the main configuration to run Codyze with

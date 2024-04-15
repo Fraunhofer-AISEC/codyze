@@ -33,7 +33,8 @@ reporting {
     }
 }
 
-val enablePluginSupport: String? by extra
+val enablePluginSupport: Boolean by rootProject.extra
+project.logger.lifecycle("Plugin feature is ${if (enablePluginSupport) "enabled" else "disabled"}")
 
 dependencies {
     jacocoAggregation(projects.codyzeBackends.cpg)
@@ -43,7 +44,7 @@ dependencies {
     jacocoAggregation(projects.codyzeSpecificationLanguages.coko.cokoDsl)
 
     // Optional and experimental features
-    if (enablePluginSupport.toBoolean()) jacocoAggregation(project(":codyze-plugins"))
+    if (enablePluginSupport) jacocoAggregation(project(":codyze-plugins"))
 }
 
 tasks.check {

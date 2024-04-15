@@ -23,13 +23,12 @@ import de.fraunhofer.aisec.codyze.core.executor.Executor
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
 import de.fraunhofer.aisec.codyze.core.output.SarifBuilder
-import de.fraunhofer.aisec.codyze.plugins.FindSecBugsPlugin
-import de.fraunhofer.aisec.codyze.plugins.PMDPlugin
-import de.fraunhofer.aisec.codyze.plugins.Plugin
+import de.fraunhofer.aisec.codyze.core.plugin.Plugin
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli.CokoSubcommand
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import java.util.ServiceLoader
 
 /**
  * Every [Backend] must provide [BackendCommand] to be selectable in the CLI.
@@ -56,7 +55,4 @@ val outputBuilders = module {
 /**
  * List all available [Plugin]s. They use external tools to extend the analysis.
  */
-val plugins = module {
-    factoryOf(::FindSecBugsPlugin) bind(Plugin::class)
-    factoryOf(::PMDPlugin) bind(Plugin::class)
-}
+val plugins = ServiceLoader.load(Plugin::class.java).map { it.module() }

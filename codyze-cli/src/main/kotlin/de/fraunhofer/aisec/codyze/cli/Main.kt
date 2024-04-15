@@ -19,7 +19,7 @@ import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.core.output.aggregator.Aggregate
-import de.fraunhofer.aisec.codyze.plugins.Plugin
+import de.fraunhofer.aisec.codyze.core.plugin.Plugin
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
 import java.nio.file.Path
@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
         // use Koin logger
         printLogger()
         // declare modules
-        modules(executorCommands, backendCommands, outputBuilders, plugins)
+        modules(listOf(executorCommands, backendCommands, outputBuilders) + plugins)
     }
 
     // parse the CMD arguments

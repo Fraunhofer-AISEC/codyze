@@ -15,13 +15,20 @@
  */
 package de.fraunhofer.aisec.codyze.plugins
 
+import de.fraunhofer.aisec.codyze.core.plugin.Plugin
+import de.fraunhofer.aisec.codyze.core.plugin.logger
 import edu.umd.cs.findbugs.BugReporter
 import edu.umd.cs.findbugs.DetectorFactoryCollection
 import edu.umd.cs.findbugs.FindBugs2
 import edu.umd.cs.findbugs.Plugin.loadCustomPlugin
+import edu.umd.cs.findbugs.PluginException
 import edu.umd.cs.findbugs.Project
 import edu.umd.cs.findbugs.config.UserPreferences
 import edu.umd.cs.findbugs.sarif.SarifBugReporter
+import org.koin.core.module.Module
+import org.koin.core.module.dsl.named
+import org.koin.core.module.dsl.withOptions
+import org.koin.dsl.bind
 import java.io.File
 import java.io.PrintWriter
 import java.net.URL
@@ -33,8 +40,6 @@ class FindSecBugsPlugin : Plugin("FindSecBugs") {
      * To update, download new Plugin versions and change jar name here.
      * When updating Plugins, make sure to update the documentation as well.
      */
-    private val pluginFileURL: URL? =
-        FindSecBugsPlugin::class.java.classLoader.getResource("spotbugs-plugins/findsecbugs-plugin-1.12.0.jar")
 
     // NOTE: this Executor will very likely mark the invocation as failed
     // because of an (erroneous) missing class warning
@@ -57,12 +62,21 @@ class FindSecBugsPlugin : Plugin("FindSecBugs") {
         reporter.setWriter(PrintWriter(output.writer()))
         reporter.setPriorityThreshold(BugReporter.NORMAL)
 
-        pluginFileURL ?.run {
-            val pluginFile = File(pluginFileURL.toURI())
-            loadCustomPlugin(pluginFile, project)
-        } ?: {
-            logger.error { "Could not load FindSecBugs plugin from $pluginFileURL. Proceeding with default SpotBugs." }
-        }
+        // find and load Find Security Bugs plugin for SpotBugs
+        logger.debug { "Trying to locate 'Find Security Bugs' plugin for SpotBugs" }
+        val findSecBugsPlugin = javaClass.classLoader.getResources("findbugs.xml").toList().find { it.toString().contains("findsecbugs-plugin") }
+
+        logger.info { "Found potential plugin location at $findSecBugsPlugin" }
+        findSecBugsPlugin?.run {
+            val pluginJar = Regex("^jar:file:(.*[.]jar)!/.*").replace(findSecBugsPlugin.toString(), "$1")
+
+            logger.info { "Loading SpotBugs plugin 'Find Security Bugs' from JAR $pluginJar" }
+            try {
+                loadCustomPlugin(File(pluginJar), project)
+            } catch (e: PluginException) {
+                logger.warn { "Could not load FindSecBugs plugin from $pluginJar.\n$e" }
+            }
+        } ?: logger.warn { "Could not load FindSecBugs plugin from $findSecBugsPlugin. Proceeding with default SpotBugs." }
 
         val findbugs = FindBugs2()
         findbugs.bugReporter = reporter
@@ -71,5 +85,11 @@ class FindSecBugsPlugin : Plugin("FindSecBugs") {
         findbugs.userPreferences = UserPreferences.createDefaultUserPreferences()
         findbugs.userPreferences.enableAllDetectors(true)
         findbugs.execute()
+    }
+
+    override fun module(): Module = org.koin.dsl.module {
+        factory { this@FindSecBugsPlugin } withOptions {
+            named("de.fraunhofer.aisec.codyze.plugins.FindSecBugsPlugin")
+        } bind (Plugin::class)
     }
 }

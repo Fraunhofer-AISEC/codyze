@@ -16,6 +16,7 @@
 package de.fraunhofer.aisec.codyze.plugins
 
 import de.fraunhofer.aisec.codyze.core.output.aggregator.extractLastRun
+import de.fraunhofer.aisec.codyze.core.plugin.Plugin
 import io.github.detekt.sarif4k.Result
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test

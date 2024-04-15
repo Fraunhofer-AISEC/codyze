@@ -15,8 +15,13 @@
  */
 package de.fraunhofer.aisec.codyze.plugins
 
+import de.fraunhofer.aisec.codyze.core.plugin.Plugin
 import net.sourceforge.pmd.PMDConfiguration
 import net.sourceforge.pmd.PmdAnalysis
+import org.koin.core.module.Module
+import org.koin.core.module.dsl.named
+import org.koin.core.module.dsl.withOptions
+import org.koin.dsl.bind
 import java.io.File
 import java.nio.file.Path
 
@@ -41,5 +46,11 @@ class PMDPlugin : Plugin("PMD") {
 
         val analysis = PmdAnalysis.create(config)
         analysis.performAnalysis()
+    }
+
+    override fun module(): Module = org.koin.dsl.module {
+        factory { this@PMDPlugin } withOptions {
+            named("de.fraunhofer.aisec.codyze.plugins.PMDPlugin")
+        } bind (Plugin::class)
     }
 }

@@ -33,13 +33,17 @@ reporting {
     }
 }
 
+val enablePluginSupport: String? by extra
+
 dependencies {
     jacocoAggregation(projects.codyzeBackends.cpg)
     jacocoAggregation(projects.codyzeCli)
     jacocoAggregation(projects.codyzeCore)
     jacocoAggregation(projects.codyzeSpecificationLanguages.coko.cokoCore)
     jacocoAggregation(projects.codyzeSpecificationLanguages.coko.cokoDsl)
-    jacocoAggregation(projects.codyzePlugins)
+
+    // Optional and experimental features
+    if (enablePluginSupport.toBoolean()) jacocoAggregation(project(":codyze-plugins"))
 }
 
 tasks.check {

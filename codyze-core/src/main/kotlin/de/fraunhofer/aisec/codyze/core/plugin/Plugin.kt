@@ -70,12 +70,13 @@ abstract class Plugin(private val cliName: String) :
             options.output
         )
 
-        // Combine with previous runs and print if desired (overwrites previous reports)
+        // Add the run to the Aggregate if not specified to be separate
         if (!options.separate) {
             val run = extractLastRun(options.output)
             if (run != null) {
                 Aggregate.addRun(run)
             }
+            options.output.delete()
         }
     }
 }

@@ -24,6 +24,8 @@ import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.bind
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.pathString
+import kotlin.io.path.writeBytes
 
 class PMDPlugin : Plugin("PMD") {
     override fun execute(target: List<Path>, context: List<Path>, output: File) {
@@ -38,10 +40,17 @@ class PMDPlugin : Plugin("PMD") {
         /**
          * From https://github.com/pmd/pmd/tree/master/pmd-core/src/main/resources/
          * When adding more rule sets, remember to update the documentation.
+         *
+         * PMD does not handle complex paths well, so we use the following workaround
+         * TODO: let the user specify ruleset paths in the context
          */
-        val ruleset = PMDPlugin::class.java.classLoader.getResource("pmd-rulesets/all-java.xml")
+        val ruleset = javaClass.classLoader.getResourceAsStream("pmd-rulesets/all-java.xml")?.readAllBytes()
+
+        println("\n\n\n $ruleset \n \n\n\n")
         if (ruleset != null) {
-            config.addRuleSet(ruleset.path)
+            val tempRuleSet = kotlin.io.path.createTempFile()
+            tempRuleSet.writeBytes(ruleset)
+            config.addRuleSet(tempRuleSet.pathString)
         }
 
         val analysis = PmdAnalysis.create(config)

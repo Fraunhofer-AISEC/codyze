@@ -1,6 +1,6 @@
 ignore:
   - "**/cli/Main.kt"
-  - "**/plugins/Plugin.kt"
+  - "**/codyze/core/plugin/*.kt"
 coverage:
   status:
     project:

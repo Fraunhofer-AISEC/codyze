@@ -4,7 +4,7 @@ linkTitle: "Plugin Overview"
 no_list: true
 date: 2023-01-24
 description: >
-  Plugins offer a way to incorporate external tools in your analysis.
+  Plugins offer a way to incorporate external tools into your analysis.
 ---
 
 !!! example "Experimental"

@@ -34,12 +34,6 @@ import java.io.PrintWriter
 import java.nio.file.Path
 
 class FindSecBugsPlugin : Plugin("FindSecBugs") {
-    /**
-     * https://find-sec-bugs.github.io/download.htm
-     * To update, download new Plugin versions and change jar name here.
-     * When updating Plugins, make sure to update the documentation as well.
-     */
-
     // NOTE: this Executor will very likely mark the invocation as failed
     // because of an (erroneous) missing class warning
     // see: https://github.com/find-sec-bugs/find-sec-bugs/issues/692

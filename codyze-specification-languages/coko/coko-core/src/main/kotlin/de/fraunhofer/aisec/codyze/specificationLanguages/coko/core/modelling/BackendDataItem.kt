@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli
+package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling
 
-import java.nio.file.Path
-import kotlin.io.path.isRegularFile
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 
-val Path.fileNameString: String
-    get() = fileName?.toString().orEmpty()
-
-fun validateSpec(spec: List<Path>): List<Path> {
-    require(spec.all { it.isRegularFile() }) { "All given spec paths must be files." }
-    require(spec.all { it.fileNameString.endsWith(".codyze.kts") || it.fileNameString.endsWith(".concepts") }) {
-        "All given specification files must be coko specification files (*.codyze.kts) or concept files (*.concepts)."
-    }
-    return spec
+/**
+ * Interface for accessing info about a DataItem from the [CokoBackend]
+ */
+interface BackendDataItem {
+    val name: String?
+    val value: Any?
+    val type: String?
 }

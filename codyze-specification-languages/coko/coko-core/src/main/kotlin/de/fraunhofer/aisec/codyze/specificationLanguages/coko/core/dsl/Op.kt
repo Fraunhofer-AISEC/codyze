@@ -13,23 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("TooManyFunctions")
+
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl
 
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Parameter
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderFragment
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.TerminalOrderNode
 
 @CokoMarker sealed interface Op : OrderFragment {
     val ownerClassFqn: String
 
+    val returnValue: ReturnValueItem<Any>
+        get() = ReturnValueItem(this)
+
+    val arguments: Arguments
+        get() = Arguments(this)
+
     override fun toNode(): TerminalOrderNode = TerminalOrderNode(
         baseName = ownerClassFqn,
         opName = hashCode().toString()
     )
+}
+
+/**
+ * A helper class that makes it possible to construct an [ArgumentItem] with an indexed access (e.g. op.argument[1])
+ */
+class Arguments(val op: Op) {
+    operator fun get(index: Int): ArgumentItem<Any> = ArgumentItem(op, index)
 }
 
 /**
@@ -110,6 +122,23 @@ class ConstructorOp internal constructor(
     }
 }
 
+/** An [Op] that contains other [Op]s */
+data class GroupingOp(val ops: Set<Op>, override val ownerClassFqn: String = "") : Op {
+    override fun toString(): String {
+        return ops.joinToString()
+    }
+}
+
+/**
+ * An [Op] that describes that the function calls found with [resultOp] depend on the function calls found with the [conditionOp]
+ */
+// TODO: Clearly define the dependency we are describing here -> is it data flow, control flow, or something else?
+data class ConditionalOp(val resultOp: Op, val conditionOp: Op, override val ownerClassFqn: String = "") : Op {
+    override fun toString(): String {
+        return "$resultOp with $conditionOp"
+    }
+}
+
 context(Any) // This is needed to have access to the owner of this function
 // -> in which class is the function defined that created this [OP]
 /**
@@ -158,6 +187,16 @@ context(Any) // This is needed to have access to the owner of this function
 fun constructor(classFqn: String, block: ConstructorOp.() -> Unit): ConstructorOp {
     return ConstructorOp(classFqn, this@Any::class.java.name).apply(block)
 }
+
+/** Create a [GroupingOp] containing the given [ops]. */
+context(Any)
+fun opGroup(vararg ops: Op): GroupingOp = GroupingOp(ops.toSet(), this@Any::class.java.name)
+
+/**
+ * Create a [ConditionalOp] with [this] as the [ConditionalOp.resultOp] and [conditionOp] as the [ConditionalOp.conditionOp]
+ */
+context(Any)
+infix fun Op.with(conditionOp: Op): ConditionalOp = ConditionalOp(this, conditionOp, this@Any::class.java.name)
 
 /**
  * Create a [Definition] which can be added to the [FunctionOp].

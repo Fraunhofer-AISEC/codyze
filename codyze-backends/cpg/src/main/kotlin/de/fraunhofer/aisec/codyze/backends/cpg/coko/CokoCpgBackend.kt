@@ -18,15 +18,15 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.CPGConfiguration
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.*
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.FollowsEvaluator
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.NeverEvaluator
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OnlyEvaluator
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.OrderEvaluator
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators.*
 import de.fraunhofer.aisec.codyze.core.VersionProvider
 import de.fraunhofer.aisec.codyze.core.backend.BackendConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.WheneverEvaluator
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Condition
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Order
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ConditionComponent
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.OrderToken
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.ordering.getOp
 import de.fraunhofer.aisec.cpg.graph.Node
@@ -86,4 +86,13 @@ class CokoCpgBackend(config: BackendConfiguration) :
      */
     override fun only(vararg ops: Op): OnlyEvaluator = OnlyEvaluator(ops.toList())
     override fun never(vararg ops: Op): NeverEvaluator = NeverEvaluator(ops.toList())
+    override fun whenever(
+        premise: Condition.() -> ConditionComponent,
+        assertionBlock: WheneverEvaluator.() -> Unit
+    ): WheneverEvaluator = CpgWheneverEvaluator(Condition().premise()).apply(assertionBlock)
+
+    override fun whenever(
+        premise: ConditionComponent,
+        assertionBlock: WheneverEvaluator.() -> Unit
+    ): WheneverEvaluator = CpgWheneverEvaluator(premise).apply(assertionBlock)
 }

@@ -1,0 +1,66 @@
+// This concepts file provides a ruleset about "Good Crypto", which we should be able to
+// reference in some other concept file
+
+enum Algorithm {
+  AES, DES, TripleDES
+}
+
+enum Mode {
+  // Cipher Block Chaining Message Authentication
+  CCM,
+  // Galois/Counter Mode
+  GCM,
+  // Cipher Block Chaining
+  CBC,
+  // Counter Mode
+  CTR
+}
+
+concept Cypher {
+  var algo: Algorithm
+  var mode: Mode
+  var keySize: int // in bits
+  var tagSize: int // in bits; only applicable for mode == CCM
+}
+
+concept InitializationVector {
+  var size: int // in bits
+}
+
+concept Encryption {
+  var cypher: Cypher
+  var iv: InitializationVector
+
+  op encrypt(plaintext)
+  op decrypt(ciphertext)
+}
+
+//ruleset GoodCrypto {
+//  // Relates to 2.1.1 Betriebsarten
+//  rule MustBeAES {
+//    var enc: Encryption
+//
+//    when enc::encrypt(_) {
+//      ensure enc.cypher.algo == AES
+//      ensure enc.cypher.mode in [CCM, GCM, CTR]
+//      ensure enc.cypher.keySize in [128, 192, 256]
+//    }
+//  }
+//
+//  // Relates to 2.1.2 Betriebsbedingungen - CCM
+//  rule ModesOfOperation {
+//    var enc: Encryption
+//
+//    when enc::encrypt(_) and enc.cypher.mode == CCM {
+//      ensure enc.cypher.tagSize >= 96
+//    }
+//
+//    when enc::encrypt(_) and enc.cypher.mode == GCM {
+//      ensure enc.iv.size >= 96
+//    }
+//
+//    when enc::encrypt(_) and enc.cypher.mode in [CCM, GCM, CTR] {
+//      // TODO: iv should not repeat itself
+//    }
+//  }
+//}

@@ -24,7 +24,7 @@ val Path.fileNameString: String
 fun validateSpec(spec: List<Path>): List<Path> {
     require(spec.all { it.isRegularFile() }) { "All given spec paths must be files." }
     require(spec.all { it.fileNameString.endsWith(".codyze.kts") || it.fileNameString.endsWith(".concepts") }) {
-        "All given specification files must be coko specification files (*.codyze.kts)."
+        "All given specification files must be coko specification files (*.codyze.kts) or concept files (*.concepts)."
     }
     return spec
 }

@@ -19,14 +19,18 @@ import de.fraunhofer.aisec.codyze.core.executor.Executor
 import de.fraunhofer.aisec.codyze.core.timed
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Import
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoSarifBuilder
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.CokoScript
 import io.github.detekt.sarif4k.Run
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.extension
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.api.SourceCode
+import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
@@ -78,6 +82,8 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
         /** Contains the class loaders of all evaluated scripts */
         private val classLoaders = mutableSetOf<ClassLoader>()
 
+        private val conceptTranslator = ConceptTranslator()
+
         /** Evaluates the given project script [sourceCode] against the given [backend]. */
         fun eval(
             sourceCode: String,
@@ -93,7 +99,15 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
             baseClassLoader: ClassLoader? = null
         ): ResultWithDiagnostics<EvaluationResult> {
             val compilationConfiguration =
-                createJvmCompilationConfigurationFromTemplate<CokoScript>()
+                createJvmCompilationConfigurationFromTemplate<CokoScript> {
+                    refineConfiguration {
+                        // the callback called if any of the listed file-level annotations are encountered in
+                        // the compiled script
+                        // the processing is defined by the `handler`, that may return refined configuration
+                        // depending on the annotations
+                        onAnnotations(Import::class, handler = ::configureImportDepsOnAnnotations)
+                    }
+                }
             val evaluationConfiguration =
                 createJvmEvaluationConfigurationFromTemplate<CokoScript> {
                     implicitReceivers(backend)
@@ -121,6 +135,7 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
          * @return A [SpecEvaluator] object containing the extracted information from all
          * [specFiles]
          */
+        @Suppress("complexity.CyclomaticComplexMethod")
         fun compileScriptsIntoSpecEvaluator(
             backend: CokoBackend,
             specFiles: List<Path>
@@ -128,10 +143,16 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
             var baseClassLoader: ClassLoader? = null
             val specEvaluator = SpecEvaluator()
             for (specFile in specFiles) {
+                val scriptSource = if (specFile.extension == "concepts") {
+                    conceptTranslator.transformConceptFile(specFile)
+                } else {
+                    FileScriptSource(specFile.toFile())
+                }
+
                 // compile the script
                 val result =
                     eval(
-                        FileScriptSource(specFile.toFile()),
+                        scriptSource,
                         backend = backend,
                         baseClassLoader = baseClassLoader
                     )
@@ -184,6 +205,41 @@ class CokoExecutor(private val configuration: CokoConfiguration, private val bac
                 }
             }
             return specEvaluator
+        }
+
+        // The handler that is called during script compilation in order to reconfigure compilation on the
+        // fly
+        fun configureImportDepsOnAnnotations(
+            context: ScriptConfigurationRefinementContext
+        ): ResultWithDiagnostics<ScriptCompilationConfiguration> {
+            val annotations =
+                // If no action is performed, the original configuration should be returned
+                context.collectedData?.get(ScriptCollectedData.foundAnnotations)?.takeIf { it.isNotEmpty() }
+                    ?: return context.compilationConfiguration.asSuccess()
+
+            val scriptBaseDir = (context.script as? FileBasedScriptSource)?.file?.parentFile
+            val importedSources =
+                annotations.flatMap {
+//            (it as? Import)?.paths?.map { sourceName ->
+//                FileScriptSource(scriptBaseDir?.resolve(sourceName) ?: File(sourceName))
+//            }.orEmpty()
+
+                    (it as? Import)?.paths?.mapNotNull { sourceName ->
+                        val file = scriptBaseDir?.resolve(sourceName) ?: File(sourceName).normalize()
+                        if (sourceName.endsWith(".codyze.kts")) {
+                            FileScriptSource(file)
+                        } else if (sourceName.endsWith(".concepts")) {
+                            conceptTranslator.transformConceptFile(file.toPath())
+                        } else {
+                            null
+                        }
+                    }.orEmpty()
+                }
+
+            return ScriptCompilationConfiguration(context.compilationConfiguration) {
+                if (importedSources.isNotEmpty()) importScripts.append(importedSources)
+            }
+                .asSuccess()
         }
     }
 }

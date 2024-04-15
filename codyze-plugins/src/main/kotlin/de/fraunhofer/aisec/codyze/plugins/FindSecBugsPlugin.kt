@@ -31,7 +31,6 @@ import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.bind
 import java.io.File
 import java.io.PrintWriter
-import java.net.URL
 import java.nio.file.Path
 
 class FindSecBugsPlugin : Plugin("FindSecBugs") {
@@ -64,7 +63,9 @@ class FindSecBugsPlugin : Plugin("FindSecBugs") {
 
         // find and load Find Security Bugs plugin for SpotBugs
         logger.debug { "Trying to locate 'Find Security Bugs' plugin for SpotBugs" }
-        val findSecBugsPlugin = javaClass.classLoader.getResources("findbugs.xml").toList().find { it.toString().contains("findsecbugs-plugin") }
+        val findSecBugsPlugin = javaClass.classLoader.getResources("findbugs.xml").toList().find {
+            it.toString().contains("findsecbugs-plugin")
+        }
 
         logger.info { "Found potential plugin location at $findSecBugsPlugin" }
         findSecBugsPlugin?.run {
@@ -76,7 +77,9 @@ class FindSecBugsPlugin : Plugin("FindSecBugs") {
             } catch (e: PluginException) {
                 logger.warn { "Could not load FindSecBugs plugin from $pluginJar.\n$e" }
             }
-        } ?: logger.warn { "Could not load FindSecBugs plugin from $findSecBugsPlugin. Proceeding with default SpotBugs." }
+        } ?: logger.warn {
+            "Could not load FindSecBugs plugin from $findSecBugsPlugin. Proceeding with default SpotBugs."
+        }
 
         val findbugs = FindBugs2()
         findbugs.bugReporter = reporter

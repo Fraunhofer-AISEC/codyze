@@ -7,6 +7,11 @@ description: >
   Plugins offer a way to incorporate external tools in your analysis.
 ---
 
+!!! example "Experimental"
+
+    This feature is disabled by default and has to be manually enabled in the gradle.properties file before building.
+
+
 There are many code analysis tools available, and they frequently yield a wide range of different results.
 However, finding and configuring the correct tools for your projects is time-consuming and distributes the results into separate report files.
 Plugins are designed to make adding new tools easier and to allow for quickly swapping preferred analysis methods.

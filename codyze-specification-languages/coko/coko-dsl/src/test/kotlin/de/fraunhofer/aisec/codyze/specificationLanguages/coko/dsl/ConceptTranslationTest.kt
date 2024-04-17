@@ -64,14 +64,6 @@ class ConceptTranslationTest {
                 .getResource("concept/bsi-tr.concepts"),
         ).map { it.toURI().toPath() }
 
-        val cokoConfiguration =
-            CokoConfiguration(
-                goodFindings = true,
-                pedantic = false,
-                spec = specFiles,
-                disabledSpecRules = emptyList(),
-            )
-
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend, specFiles)
 
@@ -102,14 +94,6 @@ class ConceptTranslationTest {
             CokoCpgIntegrationTest::class.java.classLoader
                 .getResource("concept/some.concepts"),
         ).map { it.toURI().toPath() }
-
-        val cokoConfiguration =
-            CokoConfiguration(
-                goodFindings = true,
-                pedantic = false,
-                spec = specFiles,
-                disabledSpecRules = emptyList(),
-            )
 
         val backend = CokoCpgBackend(cpgConfiguration)
         val specEvaluator = CokoExecutor.compileScriptsIntoSpecEvaluator(backend, specFiles)

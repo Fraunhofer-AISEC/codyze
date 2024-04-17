@@ -21,6 +21,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.host.CokoExecu
 import io.mockk.mockk
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.writeText
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
@@ -99,7 +100,7 @@ class ScriptAnalysisTest {
         val result =
             CokoExecutor.eval(
                 """
-                    @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+                    @file:Import("${modelDefinitionFile.toAbsolutePath().invariantSeparatorsPathString}")
 
                     class TestImpl: TestConcept {
                         override fun log(message: String) { }
@@ -125,7 +126,7 @@ class ScriptAnalysisTest {
         val implementationFile = tempDir.resolve("implementation.codyze.kts")
         implementationFile.writeText(
             """
-                @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+                @file:Import("${modelDefinitionFile.toAbsolutePath().invariantSeparatorsPathString}")
     
                 class TestImpl: TestConcept {
                     override fun log(message: String) { }
@@ -180,7 +181,7 @@ class ScriptAnalysisTest {
         val implementationFile = tempDir.resolve("implementation.codyze.kts")
         implementationFile.writeText(
             """
-                @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+                @file:Import("${modelDefinitionFile.toAbsolutePath().invariantSeparatorsPathString}")
     
                 class TestImpl: TestConcept {
                     override fun log(message: String) = op {

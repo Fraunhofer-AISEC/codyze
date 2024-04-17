@@ -20,6 +20,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.writeText
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.test.Test
@@ -91,7 +92,7 @@ class CokoScriptHostTest {
         assertDoesNotThrow {
             CokoExecutor.eval(
                 """
-                    @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+                    @file:Import("${modelDefinitionFile.toAbsolutePath().invariantSeparatorsPathString}")
 
                     class TestImpl: TestConcept {
                         override fun log(message: String) { }

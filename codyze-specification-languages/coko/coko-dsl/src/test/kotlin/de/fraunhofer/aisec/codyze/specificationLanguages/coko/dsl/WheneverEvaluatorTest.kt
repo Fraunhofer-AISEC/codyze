@@ -22,7 +22,7 @@ import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import io.github.detekt.sarif4k.ResultKind
 import org.junit.jupiter.api.Test
-import kotlin.io.path.Path
+import kotlin.io.path.toPath
 import kotlin.test.assertEquals
 
 // TODO: should probably in codyze-backends or coko-core
@@ -31,7 +31,7 @@ class WheneverEvaluatorTest {
     private val sourceFiles = listOfNotNull(
         CokoCpgIntegrationTest::class.java.classLoader
             .getResource("concept/CipherTestFile.java"),
-    ).map { Path(it.path) }.also { assertEquals(1, it.size) }
+    ).map { it.toURI().toPath() }.also { assertEquals(1, it.size) }
 
     val cpgConfiguration =
         CPGConfiguration(
@@ -64,7 +64,7 @@ class WheneverEvaluatorTest {
                 .getResource("concept/bsi-tr-rules.codyze.kts"),
             CokoCpgIntegrationTest::class.java.classLoader
                 .getResource("concept/jca-cipher.codyze.kts")
-        ).map { Path(it.path) }.also { assertEquals(2, it.size) }
+        ).map { it.toURI().toPath() }.also { assertEquals(2, it.size) }
 
         val cokoConfiguration =
             CokoConfiguration(

@@ -22,7 +22,7 @@ import de.fraunhofer.aisec.cpg.passes.EdgeCachePass
 import de.fraunhofer.aisec.cpg.passes.UnreachableEOGPass
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
-import kotlin.io.path.Path
+import kotlin.io.path.toPath
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -34,7 +34,7 @@ class ConceptTranslationTest {
             .getResource("IntegrationTests/CokoCpg/Main.java"),
         CokoCpgIntegrationTest::class.java.classLoader
             .getResource("IntegrationTests/CokoCpg/SimpleOrder.java")
-    ).map { Path(it.path) }.also { assertEquals(2, it.size) }
+    ).map { it.toURI().toPath() }.also { assertEquals(2, it.size) }
 
     val cpgConfiguration =
         CPGConfiguration(
@@ -62,7 +62,7 @@ class ConceptTranslationTest {
         val specFiles = listOfNotNull(
             CokoCpgIntegrationTest::class.java.classLoader
                 .getResource("concept/bsi-tr.concepts"),
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val cokoConfiguration =
             CokoConfiguration(
@@ -101,7 +101,7 @@ class ConceptTranslationTest {
         val specFiles = listOfNotNull(
             CokoCpgIntegrationTest::class.java.classLoader
                 .getResource("concept/some.concepts"),
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val cokoConfiguration =
             CokoConfiguration(
@@ -148,7 +148,7 @@ class ConceptTranslationTest {
                 .getResource("concept/followedByImplementations.codyze.kts"),
             CokoCpgIntegrationTest::class.java.classLoader
                 .getResource("concept/followedByRule.codyze.kts"),
-        ).map { Path(it.path) }
+        ).map { it.toURI().toPath() }
 
         val cokoConfiguration =
             CokoConfiguration(

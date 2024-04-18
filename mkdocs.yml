@@ -162,6 +162,10 @@ nav:
         - 'What is Coko?': Coko/index.md
         - 'Modelling APIs with Coko': Coko/modelling.md
         - 'Coko Rules': Coko/rules.md
+    - 'Use Analysis Plugins':
+        - 'Overview': Plugins/index.md
+        - 'PMD Plugin': Plugins/PMD.md
+        - 'FindSecBugs Plugin': Plugins/FindSecBugs.md
     - 'Contributing':
         - 'Contributing to Codyze': contributors/index.md
         - 'Building the project': contributors/code.md

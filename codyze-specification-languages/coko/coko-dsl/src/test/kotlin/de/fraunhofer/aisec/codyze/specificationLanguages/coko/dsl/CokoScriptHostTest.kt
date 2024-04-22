@@ -20,7 +20,6 @@ import io.mockk.mockk
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
-import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.writeText
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.test.Test
@@ -80,7 +79,7 @@ class CokoScriptHostTest {
 
     @Test
     fun `test import annotation`(@TempDir tempDir: Path) {
-        val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
+        val modelDefinitionFile = tempDir.resolveAbsoluteInvariant("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
                 interface TestConcept {
@@ -92,7 +91,7 @@ class CokoScriptHostTest {
         assertDoesNotThrow {
             CokoExecutor.eval(
                 """
-                    @file:Import("${modelDefinitionFile.toAbsolutePath().invariantSeparatorsPathString}")
+                    @file:Import("$modelDefinitionFile")
 
                     class TestImpl: TestConcept {
                         override fun log(message: String) { }

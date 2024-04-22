@@ -17,6 +17,7 @@ PMD is a source code analyzer that searches for common programming flaws.
 It supports many different languages and can be extended by different sets of rules.
 
 In its current implementation the plugin uses the following sets of rules:
+
  - all-java.xml ([link](https://github.com/pmd/pmd/blob/83522e96ef512f2b9a41586ae239509ec6f8313f/pmd-core/src/main/resources/rulesets/internal/all-java.xml))
 
 !!! note
@@ -26,4 +27,4 @@ In its current implementation the plugin uses the following sets of rules:
 
 !!! question "How does PMD use the context?"
 
-    PMD does not rely on addition context, this option is therefore ignored.
+    PMD does not rely on additional context, this option is therefore ignored.

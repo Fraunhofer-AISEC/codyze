@@ -87,7 +87,7 @@ class ScriptAnalysisTest {
 
     @Test
     fun `test import annotation`(@TempDir tempDir: Path) {
-        val modelDefinitionFile = tempDir.resolveAbsoluteInvariant("model.codyze.kts")
+        val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
                 interface TestConcept {
@@ -96,10 +96,11 @@ class ScriptAnalysisTest {
             """.trimIndent()
         )
 
+        val modelImport = modelDefinitionFile.toAbsoluteInvariant()
         val result =
             CokoExecutor.eval(
                 """
-                    @file:Import("$modelDefinitionFile")
+                    @file:Import("$modelImport")
 
                     class TestImpl: TestConcept {
                         override fun log(message: String) { }
@@ -113,7 +114,7 @@ class ScriptAnalysisTest {
 
     @Test
     fun `test multiple spec files`(@TempDir tempDir: Path) {
-        val modelDefinitionFile = tempDir.resolveAbsoluteInvariant("model.codyze.kts")
+        val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
                 interface TestConcept {
@@ -123,9 +124,10 @@ class ScriptAnalysisTest {
         )
 
         val implementationFile = tempDir.resolve("implementation.codyze.kts")
+        val modelImport = modelDefinitionFile.toAbsoluteInvariant()
         implementationFile.writeText(
             """
-                @file:Import("$modelDefinitionFile")
+                @file:Import("$modelImport")
     
                 class TestImpl: TestConcept {
                     override fun log(message: String) { }
@@ -145,7 +147,7 @@ class ScriptAnalysisTest {
 
     @Test
     fun `test rule annotation`(@TempDir tempDir: Path) {
-        val modelDefinitionFile = tempDir.resolveAbsoluteInvariant("model.codyze.kts")
+        val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
                 @Rule("Some description")
@@ -168,7 +170,7 @@ class ScriptAnalysisTest {
     fun `test default imports, implicit receivers, import annotation and rule annotation at once`(
         @TempDir tempDir: Path
     ) {
-        val modelDefinitionFile = tempDir.resolveAbsoluteInvariant("model.codyze.kts")
+        val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
                 interface TestConcept {
@@ -177,10 +179,11 @@ class ScriptAnalysisTest {
             """.trimIndent()
         )
 
+        val modelImport = modelDefinitionFile.toAbsoluteInvariant()
         val implementationFile = tempDir.resolve("implementation.codyze.kts")
         implementationFile.writeText(
             """
-                @file:Import("$modelDefinitionFile")
+                @file:Import("$modelImport")
     
                 class TestImpl: TestConcept {
                     override fun log(message: String) = op {

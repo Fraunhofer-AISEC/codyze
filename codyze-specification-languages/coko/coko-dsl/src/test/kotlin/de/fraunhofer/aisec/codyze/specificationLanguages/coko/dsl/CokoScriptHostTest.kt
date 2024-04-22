@@ -79,7 +79,7 @@ class CokoScriptHostTest {
 
     @Test
     fun `test import annotation`(@TempDir tempDir: Path) {
-        val modelDefinitionFile = tempDir.resolveAbsoluteInvariant("model.codyze.kts")
+        val modelDefinitionFile = tempDir.resolve("model.codyze.kts")
         modelDefinitionFile.writeText(
             """
                 interface TestConcept {
@@ -88,10 +88,11 @@ class CokoScriptHostTest {
             """.trimIndent()
         )
 
+        val modelImport = modelDefinitionFile.toAbsoluteInvariant()
         assertDoesNotThrow {
             CokoExecutor.eval(
                 """
-                    @file:Import("$modelDefinitionFile")
+                    @file:Import("$modelImport")
 
                     class TestImpl: TestConcept {
                         override fun log(message: String) { }

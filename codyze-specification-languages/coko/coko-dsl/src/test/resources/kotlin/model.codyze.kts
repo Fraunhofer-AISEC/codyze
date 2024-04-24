@@ -1,5 +1,5 @@
 interface SetKelvin {
-    fun kelvin(temp: Any): Op
+    fun kelvin(temp: Any?): Op
 }
 
 interface SetCelsius {

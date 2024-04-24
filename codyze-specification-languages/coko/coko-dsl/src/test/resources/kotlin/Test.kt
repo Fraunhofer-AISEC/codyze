@@ -53,8 +53,9 @@ class Test {
             setKelvin(0)
             calculateCelsius()
         } else {
-            // we only need Celsius
+            // we only need celsius so get this first
             calculateCelsius()
+            setKelvin(temp)
         }
         println("The current temperature is ${celsius}°C")
     }

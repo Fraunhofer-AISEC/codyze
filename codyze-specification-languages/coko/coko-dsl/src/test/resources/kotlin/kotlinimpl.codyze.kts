@@ -2,10 +2,10 @@
 
 class KotlinKelvin: SetKelvin {
     override fun kelvin(
-        temp: Any
+        temp: Any?
     ) = op {
         definition("Test.setKelvin") {
-            signature(temp withType "UInt")
+            signature(temp?.withType("UInt") ?: temp)
         }
     }
 }

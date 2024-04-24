@@ -25,12 +25,18 @@ fun preventZeroKelvin(test: TestModel) =
     never(test.setKelvin(0))
 
 
+/*
 @Rule("Must call kelvin before celsius")
 fun forceKelvinBeforeCelsius(test: TestModel) =
     order(test::getCelsius) {
         - some(test::setKelvin)
         - test::getCelsius
     }
+*/
+
+@Rule("Must call kelvin before celsius")
+fun forceKelvinBeforeCelsius(test: TestModel) =
+    test.setKelvin(Wildcard) precedes test.getCelsius()
 
 @Rule("Must call celsius after kelvin")
 fun forceCelsiusAfterKelvin(test: TestModel) =

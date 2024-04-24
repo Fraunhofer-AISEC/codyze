@@ -3,7 +3,7 @@
   "runCoko": {
     "spec": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/kotlin/model.codyze.kts", "../codyze-specification-languages/coko/coko-dsl/src/test/resources/kotlin/kotlinimpl.codyze.kts"],
     "cokoCpg": {
-      "source": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/kotlin/Test.kt"]
+      "source": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/kotlin/Test.java"]
     }
   }
 }

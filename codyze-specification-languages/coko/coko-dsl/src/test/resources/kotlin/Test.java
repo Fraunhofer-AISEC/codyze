@@ -14,48 +14,49 @@
  * limitations under the License.
  */
 import java.util.Random;
+import java.lang.System;
 
 class Test {
     int kelvin = null;
-    int celsius = null
+    int celsius = null;
 
     private void setKelvin(int tempInKelvin) {
         // MUST NOT BE ZERO!
         // HOWEVER, I'D REALLY HATE TO CHECK THIS HERE
-        this.kelvin = tempInKelvin
+        this.kelvin = tempInKelvin;
     }
 
     // MUST NOT BE CALLED BEFORE `setKelvins`
     // BUT IMPLEMENTING FAIL-SAFES IS FOR NERDS
     private int calculateCelsius() {
-        this.celsius = this.kelvin - 272
+        this.celsius = this.kelvin - 272;
     }
 
     // EAT: Extremely Accurate Temperature
     private int measureTemperatureInK() {
-        return Random.nextInt(250, 300)
+        return Random.nextInt(250, 300);
     }
 
     // covered by 11 Unit tests and manually reviewed by 4 developers
     public void goodCall() {
-        int temp = measureTemperatureInK()
-        setKelvin(temp)
-        calculateCelsius()
+        int temp = measureTemperatureInK();
+        setKelvin(temp);
+        calculateCelsius();
         System.out.println("The current temperature is " + celsius + "°C");
     }
 
     // TODO: force merge, should work, might rename later
     public void badCall() {
-        float rnd = Random.nextFloat()
-        int temp = measureTemperatureInK()
+        float rnd = Random.nextFloat();
+        int temp = measureTemperatureInK();
         if (rnd < 0.5) {
             // set Kelvin to zero, break the world
-            setKelvin(0)
-            calculateCelsius()
+            setKelvin(0);
+            calculateCelsius();
         } else {
             // we only need celsius so get this first
-            calculateCelsius()
-            setKelvin(temp)
+            calculateCelsius();
+            setKelvin(temp);
         }
         System.out.println("The current temperature is " + celsius + "°C");
     }

@@ -1,5 +1,5 @@
 interface SetKelvin {
-    fun kelvin(temp: Any?): Op
+    fun kelvin(temp: Int?): Op
 }
 
 interface SetCelsius {
@@ -12,14 +12,13 @@ interface Call {
 
 
 @Rule("Must not call kelvin with 0")
-fun preventZeroKelvin(kelv: SetKelvin) {
+fun preventZeroKelvin(kelv: SetKelvin) =
     never(kelv.kelvin(0))
-}
+
 
 @Rule("Must call kelvin before celsius")
-fun forceKelvinBeforeCelsius(kelv: SetKelvin, cels: SetCelsius, call: Call) {
+fun forceKelvinBeforeCelsius(kelv: SetKelvin, cels: SetCelsius, call: Call) =
     order(call.call()) {
-        some(kelv::kelvin)
-        maybe(cels::celsius)
+        - some(kelv::kelvin)
+        - maybe(cels::celsius)
     }
-}

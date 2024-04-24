@@ -49,13 +49,15 @@ class Test {
     public void badCall() {
         float rnd = Random.nextFloat();
         int temp = measureTemperatureInK();
-        if (rnd < 0.5) {
+        if (rnd < 0.33) {
             // set Kelvin to zero, break the world
             setKelvin(0);
             calculateCelsius();
-        } else {
-            // we only need celsius so get this first
+        } else if (rnd < 0.66) {
+            // we only need Celsius
             calculateCelsius();
+        } else {
+            // Kelvin is superior anyways
             setKelvin(temp);
         }
         System.out.println("The current temperature is " + celsius + "°C");

@@ -1,5 +1,3 @@
-import jdk.incubator.vector.VectorOperators.Test
-
 class TestModel {
     fun setKelvin(temp: Any?) = op {
         definition("Test.setKelvin") {

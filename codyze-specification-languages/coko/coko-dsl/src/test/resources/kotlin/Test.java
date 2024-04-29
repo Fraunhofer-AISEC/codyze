@@ -26,7 +26,7 @@ class Test {
         this.kelvin = tempInKelvin;
     }
 
-    // MUST NOT BE CALLED BEFORE `setKelvins`
+    // MUST NOT BE CALLED BEFORE `setKelvin`
     // BUT IMPLEMENTING FAIL-SAFES IS FOR NERDS
     private int calculateCelsius() {
         this.celsius = this.kelvin - 272;

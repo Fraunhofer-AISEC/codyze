@@ -61,13 +61,6 @@ class PrecedesEvaluator(val prevOp: Op, val thisOp: Op) : Evaluator {
         val passMessage = ruleAnnotation?.passMessage?.takeIf { it.isNotEmpty() } ?: defaultPassMessage
 
         for (target in thisNodes) {
-            /*
-            val paths = prevNodes
-                .map { start -> start.followNextEOGEdgesUntilHit { target == it } }
-                .fold(FulfilledAndFailedPaths(listOf(), listOf())) { acc, next ->
-                    FulfilledAndFailedPaths(acc.fulfilled + next.fulfilled, acc.failed + next.failed)
-                }
-            */
             val paths = target.followPrevEOGEdgesUntilHit { prevNodes.contains(it) }
 
             val newFindings =
@@ -77,11 +70,11 @@ class PrecedesEvaluator(val prevOp: Op, val thisOp: Op) : Evaluator {
                     listOf(
                         CpgFinding(
                             message = "Complies with rule: ${availablePrevNodes.joinToString(
-                                    prefix = "\"",
-                                    separator = "\", \"",
-                                    postfix = "\"",
-                                    transform = { node -> node.code ?: node.toString() }
-                                )} precedes ${target.code}. $passMessage",
+                                prefix = "\"",
+                                separator = "\", \"",
+                                postfix = "\"",
+                                transform = { node -> node.code ?: node.toString() }
+                            )} precedes ${target.code}. $passMessage",
                             kind = Finding.Kind.Pass,
                             node = target,
                             relatedNodes = availablePrevNodes

@@ -32,6 +32,7 @@ import kotlin.test.assertTrue
 
 class OnlyEvaluationTest {
 
+    @Suppress("UNUSED")
     class FooModel {
         fun first(i: Any) = op {
             definition("Foo.fun") {

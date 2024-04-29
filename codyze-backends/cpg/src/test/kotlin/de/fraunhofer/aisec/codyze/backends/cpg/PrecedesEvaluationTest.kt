@@ -29,12 +29,14 @@ import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import kotlin.io.path.*
 import kotlin.reflect.full.valueParameters
+import kotlin.test.Ignore
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class PrecedesEvaluationTest {
 
+    @Suppress("UNUSED")
     class FooModel {
         fun first() = op {
             definition("Foo.first") {
@@ -45,6 +47,7 @@ class PrecedesEvaluationTest {
         fun f2() = op {}
     }
 
+    @Suppress("UNUSED")
     class BarModel {
         fun second() = op {
             definition("Bar.second") {

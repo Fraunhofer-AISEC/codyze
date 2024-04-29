@@ -35,6 +35,7 @@ import kotlin.test.assertTrue
 
 class FollowsEvaluationTest {
 
+    @Suppress("UNUSED")
     class FooModel {
         fun first() = op {
             definition("Foo.first") {
@@ -45,6 +46,7 @@ class FollowsEvaluationTest {
         fun f2() = op {}
     }
 
+    @Suppress("UNUSED")
     class BarModel {
         fun second() = op {
             definition("Bar.second") {

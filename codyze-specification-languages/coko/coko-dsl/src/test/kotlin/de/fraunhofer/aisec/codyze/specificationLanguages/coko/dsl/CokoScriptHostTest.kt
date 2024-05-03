@@ -88,10 +88,11 @@ class CokoScriptHostTest {
             """.trimIndent()
         )
 
+        val modelImport = modelDefinitionFile.toAbsoluteInvariant()
         assertDoesNotThrow {
             CokoExecutor.eval(
                 """
-                    @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+                    @file:Import("$modelImport")
 
                     class TestImpl: TestConcept {
                         override fun log(message: String) { }

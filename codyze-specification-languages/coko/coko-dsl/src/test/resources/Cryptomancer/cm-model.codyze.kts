@@ -10,7 +10,7 @@ import java.security.spec.X509EncodedKeySpec
 import javax.crypto.SecretKey
 
 class MasterKey {
-    fun contruct(key: Any?): Op =
+    fun construct(key: Any?): Op =
         op {
             constructor("org.cryptomancer.cryptolib.api.Masterkey") {
                 signature(key)
@@ -24,9 +24,23 @@ class MasterKey {
             }
         }
 
+    fun copy(): Op =
+        op {
+            "org.cryptomancer.cryptolib.api.Masterkey.copy" {
+                signature()
+            }
+        }
+
     fun destroy(): Op =
         op {
             "org.cryptomancer.cryptolib.api.Masterkey.destroy" {
+                signature()
+            }
+        }
+
+    fun close(): Op =
+        op {
+            "org.cryptomancer.cryptolib.api.Masterkey.close" {
                 signature()
             }
         }
@@ -183,7 +197,7 @@ class PKCS12Helper {
 }
 
 class ReseedingSecureRandom {
-    fun contruct(seeder: Any?, csprng: Any?, reseedAfter: Any?, seedLength: Any?): Op =
+    fun construct(seeder: Any?, csprng: Any?, reseedAfter: Any?, seedLength: Any?): Op =
         op {
             constructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom") {
                 signature(seeder, csprng, reseedAfter, seedLength)
@@ -224,6 +238,40 @@ class X509CertBuilder {
         }
 }
 
+class CipherSupplier {
+    fun construct(algorithm: Any?): Op =
+        constructor("org.cryptomancer.cryptolib.common.CipherSupplier") {
+            signature(algorithm)
+        }
+}
+
+val recommendedAlgorithms = setOf("AES", "AES_128", "AES_192", "AES_256")
+val recommendedModes = setOf("CCM", "GCM", "CBC", "CTR")
+val recommendedPaddings = setOf("...")
+val recommendedWrappings = setOf("AESWrap, AESWrap_128, AESWrap_192, AESWrap_256")
+
+val validParameters = {
+    val combinations = mutableSetOf<String>()
+    val first = recommendedAlgorithms
+    val second = recommendedModes
+    val third = recommendedPaddings
+
+    first.forEach { f ->
+        second.forEach { s ->
+            if (s == "CBC") {
+                third.forEach { t ->
+                    combinations.add("$f/$s/$t")
+                }
+            } else {
+                combinations.add("$f/$s/NoPadding")
+            }
+        }
+    }
+    combinations.addAll(recommendedWrappings)
+
+    combinations.toSet()
+}
+
 @Rule("Never skip authentication when decrypting a file chunk")
 fun enforceFileDecryptAuthentication1(cryptor: FileContentCryptorImpl) =
     never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, Wildcard, false))
@@ -232,6 +280,17 @@ fun enforceFileDecryptAuthentication1(cryptor: FileContentCryptorImpl) =
 fun enforceFileDecryptAuthentication2(cryptor: FileContentCryptorImpl) =
     never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, false))
 
-@Rule("Never use deprecated FileHeader methods")
-fun enforceNoDeprecatedMethod1(header: FileHeaderImpl) =
-    never(header.getReserved())
+// TODO: are algorithms in DestroyableSecretKey actually relevant?
+//  one of them is literally called "MASTERKEY"...
+
+@Rule("Only use recommended algorithms")
+fun enforceRecommendedAlgorithms(supplier: CipherSupplier) =
+    run {
+        val x = validParameters().map {
+            supplier.construct(it)
+        }.toTypedArray()
+        only(*x)
+    }
+
+
+

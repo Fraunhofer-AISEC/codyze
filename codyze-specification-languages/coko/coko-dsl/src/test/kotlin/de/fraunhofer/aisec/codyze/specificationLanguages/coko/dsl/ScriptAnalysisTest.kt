@@ -96,10 +96,11 @@ class ScriptAnalysisTest {
             """.trimIndent()
         )
 
+        val modelImport = modelDefinitionFile.toAbsoluteInvariant()
         val result =
             CokoExecutor.eval(
                 """
-                    @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+                    @file:Import("$modelImport")
 
                     class TestImpl: TestConcept {
                         override fun log(message: String) { }
@@ -123,9 +124,10 @@ class ScriptAnalysisTest {
         )
 
         val implementationFile = tempDir.resolve("implementation.codyze.kts")
+        val modelImport = modelDefinitionFile.toAbsoluteInvariant()
         implementationFile.writeText(
             """
-                @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+                @file:Import("$modelImport")
     
                 class TestImpl: TestConcept {
                     override fun log(message: String) { }
@@ -177,10 +179,11 @@ class ScriptAnalysisTest {
             """.trimIndent()
         )
 
+        val modelImport = modelDefinitionFile.toAbsoluteInvariant()
         val implementationFile = tempDir.resolve("implementation.codyze.kts")
         implementationFile.writeText(
             """
-                @file:Import("${modelDefinitionFile.toAbsolutePath()}")
+                @file:Import("$modelImport")
     
                 class TestImpl: TestConcept {
                     override fun log(message: String) = op {

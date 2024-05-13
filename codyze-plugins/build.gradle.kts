@@ -19,14 +19,14 @@ dependencies {
      */
     // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
     // it is necessary to exclude saxon because of conflicts with same transitive dependency in PMD
-    implementation("com.github.spotbugs:spotbugs:4.8.4") {
+    implementation("com.github.spotbugs:spotbugs:4.8.5") {
         exclude(group = "net.sf.saxon", module = "Saxon-HE")
     }
     implementation("com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0")
 
     // https://mvnrepository.com/artifact/net.sourceforge.pmd/
-    implementation("net.sourceforge.pmd:pmd-core:7.0.0")
-    implementation("net.sourceforge.pmd:pmd-java:7.0.0")
+    implementation("net.sourceforge.pmd:pmd-core:7.1.0")
+    implementation("net.sourceforge.pmd:pmd-java:7.1.0")
 }
 
 publishing {

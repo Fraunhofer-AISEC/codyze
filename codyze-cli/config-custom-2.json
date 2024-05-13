@@ -1,9 +1,0 @@
-{
-  "good-findings": false,
-  "runCoko": {
-    "spec": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/kotlin/altmodel.codyze.kts"],
-    "cokoCpg": {
-      "source": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/kotlin/Test.java"]
-    }
-  }
-}

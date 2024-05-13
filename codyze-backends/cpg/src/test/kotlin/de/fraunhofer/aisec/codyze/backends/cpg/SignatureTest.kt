@@ -35,7 +35,7 @@ class SignatureTest {
     val pairArgument = mockk<Literal<Pair<Int, String>>>()
 
     @AfterEach
-    fun clearMocks() {
+    fun clearMockks() {
         clearAllMocks()
     }
 

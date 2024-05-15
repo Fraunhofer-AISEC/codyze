@@ -28,6 +28,9 @@ import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.executionPath
+import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.javaType
 
 //
 // all functions/properties defined here must use CokoBackend
@@ -175,6 +178,11 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
             else -> this in that.map { (it as Expression).evaluate() }
         }
     }
+
+
+fun <R> Node.castOrNull() {
+    this as? R
+}
 
 context(CokoBackend)
 // TODO: better description

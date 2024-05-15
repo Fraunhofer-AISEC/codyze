@@ -1,7 +1,8 @@
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
-import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
-import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
+// FIXME: following imports fail the script compilation
+//import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
+//import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement
+//import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 import java.net.URI
 import java.security.spec.AlgorithmParameterSpec
 
@@ -326,6 +327,7 @@ fun forbitEmptyScryptSalt(scrypt: Scrypt) =
 @Rule("Test Rule")
 fun testDirectCPGAccess() =
     run {
+        print(java.security.SecureRandom.getInstanceStrong())
         // FIXME: name of CPG node is inconsistent depending whether java.security iy imported or not.
         //  java.security.SecureRandom.getInstanceStrong() (no import)  -> "java.security.getInstanceStrong"
         //  SecureRandom.getInstanceStrong() (java.security imported)   -> "SecureRandom.getInstanceStrong"
@@ -335,11 +337,11 @@ fun testDirectCPGAccess() =
         print(strongInstanceCalls)
 
         // FIXME: the following fails because it cannot resolve the cpg class references
-        val strongInstanceVariables = strongInstanceCalls.map {
-            (it.nextEOG.first() as de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement)
-                .declarations.first() as de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
-        }
-        print(strongInstanceVariables)
+//        val strongInstanceVariables = strongInstanceCalls.map {
+//            (it.nextEOG.first() as de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement)
+//                .declarations.first() as de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
+//        }
+//        print(strongInstanceVariables)
 
         val reseederConstructors = cpgConstructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom")
         print(reseederConstructors)

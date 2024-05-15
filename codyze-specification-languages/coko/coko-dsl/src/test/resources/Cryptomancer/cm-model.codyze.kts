@@ -1,13 +1,18 @@
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
+import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
+import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 import java.net.URI
-import java.security.SecureRandom
 import java.security.spec.AlgorithmParameterSpec
 
 import java.io.OutputStream
-import java.nio.file.Path
 import java.security.KeyPair
+import java.security.SecureRandom
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.SecretKey
+
+plugins { id("cpg") }
 
 class MasterKey {
     fun construct(key: Any?): Op =
@@ -128,12 +133,10 @@ class CypherSupplier {
 
 class DecryptingReadableByteChannel {
     fun construct(src: Any?, cryptor: Any?, authenticate: Any?, header: Any?, firstChunk: Any?): Op =
-        op {
-            constructor("org.cryptomancer.cryptolib.common.DecryptingReadableByteChannel") {
-                // maybe this could be combined with "null"?
-                signature(src, cryptor, authenticate)
-                signature(src, cryptor, authenticate, header, firstChunk)
-            }
+        constructor("org.cryptomancer.cryptolib.common.DecryptingReadableByteChannel") {
+            // maybe this could be combined with "null"?
+            signature(src, cryptor, authenticate)
+            signature(src, cryptor, authenticate, header, firstChunk)
         }
 }
 
@@ -172,17 +175,10 @@ class P384KeyPair {
             }
         }
 
-    fun store(file: Path?, passphrase: Array<Char>?): Op =
+    fun store(file: Any?, passphrase: Any?): Op =
         op {
             "org.cryptomancer.cryptolib.common.P384KeyPair.store" {
                 signature(file, passphrase)
-            }
-        }
-
-    fun store(out: OutputStream?, passphrase: Array<Char>?): Op =
-        op {
-            "org.cryptomancer.cryptolib.common.P384KeyPair.store" {
-                signature(out, passphrase)
             }
         }
 }
@@ -198,10 +194,8 @@ class PKCS12Helper {
 
 class ReseedingSecureRandom {
     fun construct(seeder: Any?, csprng: Any?, reseedAfter: Any?, seedLength: Any?): Op =
-        op {
-            constructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom") {
-                signature(seeder, csprng, reseedAfter, seedLength)
-            }
+        constructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom") {
+            signature(seeder, csprng, reseedAfter, seedLength)
         }
 
     fun create(csprng: SecureRandom?): Op =
@@ -214,14 +208,7 @@ class ReseedingSecureRandom {
 
 class Scrypt {
     // TODO: can we combine the following two?
-    fun scrypt(passphrase: Array<Byte>?, salt: Array<Byte>?, cost: Int?, blockSize: Int?, keyLength: Int?): Op =
-        op {
-            "org.cryptomancer.cryptolib.common.Scrypt.scrypt" {
-                signature(passphrase, salt, cost, blockSize, keyLength)
-            }
-        }
-
-    fun scrypt(passphrase: CharSequence?, salt: Array<Byte>?, cost: Int?, blockSize: Int?, keyLength: Int?): Op =
+    fun scrypt(passphrase: Any?, salt: Any?, cost: Any?, blockSize: Any?, keyLength: Any?): Op =
         op {
             "org.cryptomancer.cryptolib.common.Scrypt.scrypt" {
                 signature(passphrase, salt, cost, blockSize, keyLength)
@@ -245,9 +232,18 @@ class CipherSupplier {
         }
 }
 
+class SecureRandom {
+    fun getInstanceStrong(): Op =
+        op {
+            "java.security.SecureRandom.getInstanceStrong" {
+                signature()
+            }
+        }
+}
+
 val recommendedAlgorithms = setOf("AES", "AES_128", "AES_192", "AES_256")
 val recommendedModes = setOf("CCM", "GCM", "CBC", "CTR")
-val recommendedPaddings = setOf("...")
+val recommendedPaddings = setOf("ISO10126Padding", "PKCS5Padding")
 val recommendedWrappings = setOf("AESWrap, AESWrap_128, AESWrap_192, AESWrap_256")
 
 val validParameters = {
@@ -280,8 +276,9 @@ fun enforceFileDecryptAuthentication1(cryptor: FileContentCryptorImpl) =
 fun enforceFileDecryptAuthentication2(cryptor: FileContentCryptorImpl) =
     never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, false))
 
-// TODO: are algorithms in DestroyableSecretKey actually relevant?
-//  one of them is literally called "MASTERKEY"...
+@Rule("Never skip authentication when decrypting a ciphertext")
+fun enforceCipherDecryptAuthentication(channel: DecryptingReadableByteChannel) =
+    never(channel.construct(Wildcard, Wildcard, false, Wildcard, Wildcard))
 
 @Rule("Only use recommended algorithms")
 fun enforceRecommendedAlgorithms(supplier: CipherSupplier) =
@@ -292,5 +289,67 @@ fun enforceRecommendedAlgorithms(supplier: CipherSupplier) =
         only(*x)
     }
 
+// FIXME
+@Rule("Do not use empty passphrase to store the key pair")
+fun forbidEmptyPassphrase(keypair: P384KeyPair) =
+    never(keypair.store(Wildcard, arrayOf<Char>()))
 
+// FIXME NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
+@Rule("Use minimum strength for reseeding secure random")
+fun enforceStrongReseedingSecureRandom(reseeding: ReseedingSecureRandom) =
+    run {
+        val minSeedBytes = 440 / 8
+        val maxValue = Long.MAX_VALUE
+        val maxReseedInterval = 1L shl 48
+        // FIXME: CPG does not terminate when we use wildcard as the first argument?
+        // FIXME: Index out of bounds exception when using java.security.SecureRandom as rule parameter
+        // val secureRandom = java.security.SecureRandom.getInstanceStrong()
+        only(reseeding.construct(null, Wildcard, 0..maxReseedInterval, minSeedBytes..maxValue))
+    }
 
+// FIXME
+@Rule("Do not use empty scrypt password")
+fun forbitEmptyScryptPassword(scrypt: Scrypt) =
+    never(scrypt.scrypt(arrayOf<Byte>(), Wildcard, Wildcard, Wildcard, Wildcard))
+
+// FIXME
+@Rule("Do not use empty scrypt password")
+fun forbitEmptyScryptPassword2(scrypt: Scrypt) =
+    never(scrypt.scrypt(arrayOf<Char>(), Wildcard, Wildcard, Wildcard, Wildcard))
+
+// FIXME
+@Rule("Do not use empty scrypt salt")
+fun forbitEmptyScryptSalt(scrypt: Scrypt) =
+    never(scrypt.scrypt(Wildcard, arrayOf<Byte>(), Wildcard, Wildcard, Wildcard))
+
+// TODO
+@Rule("Test Rule")
+fun testDirectCPGAccess() =
+    run {
+        // FIXME: name of CPG node is inconsistent depending whether java.security iy imported or not.
+        //  java.security.SecureRandom.getInstanceStrong() (no import)  -> "java.security.getInstanceStrong"
+        //  SecureRandom.getInstanceStrong() (java.security imported)   -> "SecureRandom.getInstanceStrong"
+        // FIXME: references to CPG classes (calls/type annotations) do not work?!
+        val strongInstanceCalls = cpgCall("getInstanceStrong")
+        // val strongInstanceCalls = cpgCallFqn("java.security.SecureRandom.getInstanceStrong")
+        print(strongInstanceCalls)
+
+        // FIXME: the following fails because it cannot resolve the cpg class references
+        val strongInstanceVariables = strongInstanceCalls.map {
+            (it.nextEOG.first() as de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement)
+                .declarations.first() as de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
+        }
+        print(strongInstanceVariables)
+
+        val reseederConstructors = cpgConstructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom")
+        print(reseederConstructors)
+
+//        for (constructor in reseederConstructors) {
+//            val firstArg: VariableDeclaration = (constructor.arguments[0] as Reference).refersTo as VariableDeclaration
+//            if (firstArg in strongInstanceVariables) {
+//                print("pass")
+//            } else {
+//                print("fail")
+//            }
+//        }
+    }

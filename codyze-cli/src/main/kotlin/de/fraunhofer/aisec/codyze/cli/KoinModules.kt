@@ -24,6 +24,7 @@ import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 import de.fraunhofer.aisec.codyze.core.output.OutputBuilder
 import de.fraunhofer.aisec.codyze.core.output.SarifBuilder
 import de.fraunhofer.aisec.codyze.core.plugin.Plugin
+import de.fraunhofer.aisec.codyze.specificationLanguage.cpg.native.CPGQuerySubcommand
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli.CokoSubcommand
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
@@ -42,6 +43,7 @@ val backendCommands = module {
  * Each [Executor] must provide a [ExecutorCommand] to be selectable in the CLI.
  */
 val executorCommands = module {
+    factoryOf(::CPGQuerySubcommand) bind(ExecutorCommand::class)
     factoryOf(::CokoSubcommand) bind(ExecutorCommand::class)
 }
 

@@ -16,6 +16,9 @@ include(":codyze-backends:cpg")
 include(":codyze-specification-languages:coko:coko-core")
 include(":codyze-specification-languages:coko:coko-dsl")
 
+// Including the nativ cpg dsl queries
+include(":codyze-specification-languages:cpg-native")
+
 /*
  * Optional and experimental features
  */

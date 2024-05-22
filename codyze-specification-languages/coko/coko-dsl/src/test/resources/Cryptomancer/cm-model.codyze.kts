@@ -1,4 +1,3 @@
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 // FIXME: following imports fail the script compilation
 //import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 //import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement
@@ -8,7 +7,6 @@ import java.security.spec.AlgorithmParameterSpec
 
 import java.io.OutputStream
 import java.security.KeyPair
-import java.security.SecureRandom
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.SecretKey
@@ -325,27 +323,21 @@ fun forbitEmptyScryptSalt(scrypt: Scrypt) =
 
 // TODO
 @Rule("Test Rule")
-fun testDirectCPGAccess() =
+fun testDirectCPGAccess(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
     run {
-        print(java.security.SecureRandom.getInstanceStrong())
-        // FIXME: name of CPG node is inconsistent depending whether java.security iy imported or not.
-        //  java.security.SecureRandom.getInstanceStrong() (no import)  -> "java.security.getInstanceStrong"
-        //  SecureRandom.getInstanceStrong() (java.security imported)   -> "SecureRandom.getInstanceStrong"
-        // FIXME: references to CPG classes (calls/type annotations) do not work?!
-        val strongInstanceCalls = cpgCall("getInstanceStrong")
-        // val strongInstanceCalls = cpgCallFqn("java.security.SecureRandom.getInstanceStrong")
-        print(strongInstanceCalls)
 
-        // FIXME: the following fails because it cannot resolve the cpg class references
+//        val strongInstanceCalls = cpgCall("getInstanceStrong")
+//        print(strongInstanceCalls)
+//
 //        val strongInstanceVariables = strongInstanceCalls.map {
 //            (it.nextEOG.first() as de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement)
 //                .declarations.first() as de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 //        }
 //        print(strongInstanceVariables)
-
-        val reseederConstructors = cpgConstructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom")
-        print(reseederConstructors)
-
+//
+//        val reseederConstructors = cpgConstructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom")
+//        print(reseederConstructors)
+//
 //        for (constructor in reseederConstructors) {
 //            val firstArg: VariableDeclaration = (constructor.arguments[0] as Reference).refersTo as VariableDeclaration
 //            if (firstArg in strongInstanceVariables) {
@@ -354,4 +346,12 @@ fun testDirectCPGAccess() =
 //                print("fail")
 //            }
 //        }
+        // FIXME: name of CPG node is inconsistent depending whether java.security iy imported or not.
+        //  java.security.SecureRandom.getInstanceStrong() (no import)  -> "java.security.getInstanceStrong"
+        //  SecureRandom.getInstanceStrong() (java.security imported)   -> "SecureRandom.getInstanceStrong"
+        argumentOrigin(
+            targetOp = reseeding::construct,
+            argPos = 0,
+            originOp = secureRandom::getInstanceStrong
+        )
     }

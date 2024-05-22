@@ -39,6 +39,7 @@ class ArgumentEvaluator(val targetCall: Op, val argPos: Int, val originCall: Op)
         for (call in targetCalls) {
             val arg: VariableDeclaration? =
                 (call.arguments.getOrNull(argPos) as? Reference)?.refersTo as? VariableDeclaration
+            // TODO: fix check: variable MUST directly lead to arg without overwrites/alternatives
             if (arg in variables) {
                 findings.add(
                     CpgFinding(
@@ -66,6 +67,10 @@ class ArgumentEvaluator(val targetCall: Op, val argPos: Int, val originCall: Op)
     }
 
     private fun CallExpression.tryGetVariableDeclaration(): VariableDeclaration? {
-        return this.nextDFG.firstOrNull() as? VariableDeclaration
+        return when (val nextDFG = this.nextDFG.firstOrNull()) {
+            is VariableDeclaration -> nextDFG
+            is Reference -> nextDFG.refersTo as? VariableDeclaration
+            else -> null
+        }
     }
 }

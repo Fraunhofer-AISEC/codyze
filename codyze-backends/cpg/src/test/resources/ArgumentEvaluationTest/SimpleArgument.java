@@ -66,7 +66,7 @@ public class SimpleArgument {
         b.critical(weak);
     }
 
-    // should fail because `f.strong()` is only called in one branch
+    // should fail because `f.strong()` is only called in one branch TODO
     public void branchFail() {
         Foo f = new Foo();
         Bar b = new Bar();
@@ -81,7 +81,7 @@ public class SimpleArgument {
         b.critical(unknown);
     }
 
-    // Should fail as the final value is weak
+    // Should fail as the final value is weak TODO
     public void overwriteFail() {
         Foo f = new Foo();
         Bar b = new Bar();

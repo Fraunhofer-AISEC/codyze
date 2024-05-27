@@ -294,17 +294,22 @@ fun forbidEmptyPassphrase(keypair: P384KeyPair) =
     never(keypair.store(Wildcard, arrayOf<Char>()))
 
 // FIXME NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
-@Rule("Use minimum strength for reseeding secure random")
-fun enforceStrongReseedingSecureRandom(reseeding: ReseedingSecureRandom) =
+@Rule("Use minimum strength for reseeding parameters")
+fun enforceStrongReseedingParameters(reseeding: ReseedingSecureRandom) =
     run {
         val minSeedBytes = 440 / 8
         val maxValue = Long.MAX_VALUE
         val maxReseedInterval = 1L shl 48
         // FIXME: CPG does not terminate when we use wildcard as the first argument?
-        // FIXME: Index out of bounds exception when using java.security.SecureRandom as rule parameter
-        // val secureRandom = java.security.SecureRandom.getInstanceStrong()
         only(reseeding.construct(null, Wildcard, 0..maxReseedInterval, minSeedBytes..maxValue))
     }
+
+// FIXME test
+@Rule("Use SecureRandom.getInstanceStrong() as the seeder")
+fun enforceStrongReseedingSeeder(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
+    // FIXME: CPG does not terminate when we use wildcard as the first argument?
+    // FIXME: Index out of bounds exception when using java.security.SecureRandom as rule parameter
+    argumentOrigin(reseeding::construct, 0, secureRandom::getInstanceStrong)
 
 // FIXME
 @Rule("Do not use empty scrypt password")
@@ -320,38 +325,3 @@ fun forbitEmptyScryptPassword2(scrypt: Scrypt) =
 @Rule("Do not use empty scrypt salt")
 fun forbitEmptyScryptSalt(scrypt: Scrypt) =
     never(scrypt.scrypt(Wildcard, arrayOf<Byte>(), Wildcard, Wildcard, Wildcard))
-
-// TODO
-@Rule("Test Rule")
-fun testDirectCPGAccess(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
-    run {
-
-//        val strongInstanceCalls = cpgCall("getInstanceStrong")
-//        print(strongInstanceCalls)
-//
-//        val strongInstanceVariables = strongInstanceCalls.map {
-//            (it.nextEOG.first() as de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement)
-//                .declarations.first() as de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
-//        }
-//        print(strongInstanceVariables)
-//
-//        val reseederConstructors = cpgConstructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom")
-//        print(reseederConstructors)
-//
-//        for (constructor in reseederConstructors) {
-//            val firstArg: VariableDeclaration = (constructor.arguments[0] as Reference).refersTo as VariableDeclaration
-//            if (firstArg in strongInstanceVariables) {
-//                print("pass")
-//            } else {
-//                print("fail")
-//            }
-//        }
-        // FIXME: name of CPG node is inconsistent depending whether java.security iy imported or not.
-        //  java.security.SecureRandom.getInstanceStrong() (no import)  -> "java.security.getInstanceStrong"
-        //  SecureRandom.getInstanceStrong() (java.security imported)   -> "SecureRandom.getInstanceStrong"
-        argumentOrigin(
-            targetOp = reseeding::construct,
-            argPos = 0,
-            originOp = secureRandom::getInstanceStrong
-        )
-    }

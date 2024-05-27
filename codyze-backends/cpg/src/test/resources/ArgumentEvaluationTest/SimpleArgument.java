@@ -58,6 +58,19 @@ public class SimpleArgument {
 		b.critical(strong);
 	}
 
+    // Ok since the value is only overwritten later
+    public void repurposeOk() {
+        Foo f = new Foo();
+        Bar b = new Bar();
+
+        Object strong;
+        strong = f.strong();
+
+        b.critical(strong);
+
+        strong = f.weak();
+    }
+
     public void fail() {
         Foo f = new Foo();
         Bar b = new Bar();
@@ -91,6 +104,32 @@ public class SimpleArgument {
         weak = f.weak();
 
         b.critical(weak);
+    }
+
+    // FIXME: implementation only considers CallExpressions as of now!
+//    // Should fail wven though we do not use a CallExpression to overwrite
+//    public void overwrite2Fail() {
+//        Foo f = new Foo();
+//        Bar b = new Bar();
+//
+//        Object weak;
+//        weak = f.strong();
+//        weak = 2;
+//
+//        b.critical(weak);
+//    }
+
+    // Fail since the value is only set correctly afterwards
+    public void repurposeFail() {
+        Foo f = new Foo();
+        Bar b = new Bar();
+
+        Object weak;
+        weak = f.weak();
+
+        b.critical(weak);
+
+        weak = f.strong();
     }
 
     // There is no `Bar.critical()` so there should be no finding

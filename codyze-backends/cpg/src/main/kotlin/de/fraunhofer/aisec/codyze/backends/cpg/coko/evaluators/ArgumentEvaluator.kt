@@ -25,6 +25,8 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.followPrevEOGEdgesUntilHit
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 
 context(CokoCpgBackend)
@@ -83,8 +85,16 @@ class ArgumentEvaluator(val targetCall: Op, val argPos: Int, val originCall: Op)
      * This method tries to get all possible CallExpressions that try to override the variable value
      * @return The CallExpressions modifying the variable
      */
-    private fun VariableDeclaration.getOverrides(): List<CallExpression> {
-        return this.typeObservers.mapNotNull { (it as? Reference)?.prevDFG?.firstOrNull() as? CallExpression }
+    private fun VariableDeclaration.getOverrides(): List<Expression> {
+        val assignments = this.typeObservers.mapNotNull { (it as? Reference)?.prevDFG?.firstOrNull() }
+        // Consider overwrites caused by CallExpressions and Literals
+        return assignments.mapNotNull {
+            when(it) {
+                is CallExpression -> it
+                is Literal<*> -> it
+                else -> null
+            }
+        }
     }
 
     /**

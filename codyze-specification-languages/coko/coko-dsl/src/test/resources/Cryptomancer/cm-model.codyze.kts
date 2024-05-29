@@ -1,7 +1,3 @@
-// FIXME: following imports fail the script compilation
-//import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
-//import de.fraunhofer.aisec.cpg.graph.statements.DeclarationStatement
-//import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 import java.net.URI
 import java.security.spec.AlgorithmParameterSpec
 
@@ -16,35 +12,35 @@ plugins { id("cpg") }
 class MasterKey {
     fun construct(key: Any?): Op =
         op {
-            constructor("org.cryptomancer.cryptolib.api.Masterkey") {
+            constructor("org.cryptomator.cryptolib.api.Masterkey") {
                 signature(key)
             }
         }
 
     fun generate(csprng: SecureRandom?): Op =
         op {
-            "org.cryptomancer.cryptolib.api.Masterkey.generate" {
+            "org.cryptomator.cryptolib.api.Masterkey.generate" {
                 signature(csprng)
             }
         }
 
     fun copy(): Op =
         op {
-            "org.cryptomancer.cryptolib.api.Masterkey.copy" {
+            "org.cryptomator.cryptolib.api.Masterkey.copy" {
                 signature()
             }
         }
 
     fun destroy(): Op =
         op {
-            "org.cryptomancer.cryptolib.api.Masterkey.destroy" {
+            "org.cryptomator.cryptolib.api.Masterkey.destroy" {
                 signature()
             }
         }
 
     fun close(): Op =
         op {
-            "org.cryptomancer.cryptolib.api.Masterkey.close" {
+            "org.cryptomator.cryptolib.api.Masterkey.close" {
                 signature()
             }
         }
@@ -53,7 +49,7 @@ class MasterKey {
 class MasterKeyLoader {
     fun loadKey(keyID: URI?): Op =
         op {
-            "org.cryptomancer.cryptolib.api.MasterkeyLoader.loadKey" {
+            "org.cryptomator.cryptolib.api.MasterkeyLoader.loadKey" {
                 signature(keyID)
             }
         }
@@ -62,7 +58,7 @@ class MasterKeyLoader {
 class CryptorProviderImpl {
     fun provide(key: MasterKey?, random: SecureRandom): Op =
         op {
-            "org.cryptomancer.cryptolib.v2.CryptorProviderImpl.provide" {
+            "org.cryptomator.cryptolib.v2.CryptorProviderImpl.provide" {
                 signature(key, random)
             }
         }
@@ -71,14 +67,14 @@ class CryptorProviderImpl {
 class FileContentCryptorImpl {
     fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
         op {
-            "org.cryptomancer.cryptolib.v2.FileContentCryptorImpl.decryptChunk" {
+            "org.cryptomator.cryptolib.v2.FileContentCryptorImpl.decryptChunk" {
                 signature(cipher, chunkNum, header, auth)
             }
         }
 
     fun decryptChunk(cipher: Any?, clear: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
         op {
-            "org.cryptomancer.cryptolib.v2.FileContentCryptorImpl.decryptChunk" {
+            "org.cryptomator.cryptolib.v2.FileContentCryptorImpl.decryptChunk" {
                 signature(cipher, clear, chunkNum, header, auth)
             }
         }
@@ -87,14 +83,14 @@ class FileContentCryptorImpl {
 class FileHeaderImpl {
     fun getReserved(): Op =
         op {
-            "org.cryptomancer.cryptolib.v2.FileHeaderImpl.getReserved" {
+            "org.cryptomator.cryptolib.v2.FileHeaderImpl.getReserved" {
                 signature()
             }
         }
 
     fun setReserved(reserved: Long?): Op =
         op {
-            "org.cryptomancer.cryptolib.v2.FileHeaderImpl.setReserved" {
+            "org.cryptomator.cryptolib.v2.FileHeaderImpl.setReserved" {
                 signature(reserved)
             }
         }
@@ -103,28 +99,28 @@ class FileHeaderImpl {
 class CypherSupplier {
     fun forEncryption(key: SecretKey?, params: AlgorithmParameterSpec?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.CipherSupplier.forEncryption" {
+            "org.cryptomator.cryptolib.common.CipherSupplier.forEncryption" {
                 signature(key, params)
             }
         }
 
     fun forDecryption(key: SecretKey?, params: AlgorithmParameterSpec?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.CipherSupplier.forDecryption" {
+            "org.cryptomator.cryptolib.common.CipherSupplier.forDecryption" {
                 signature(key, params)
             }
         }
 
     fun forWrapping(kek: SecretKey?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.CipherSupplier.forWrapping" {
+            "org.cryptomator.cryptolib.common.CipherSupplier.forWrapping" {
                 signature(kek)
             }
         }
 
     fun forUnwrapping(kek: SecretKey?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.CipherSupplier.forUnwrapping" {
+            "org.cryptomator.cryptolib.common.CipherSupplier.forUnwrapping" {
                 signature(kek)
             }
         }
@@ -132,7 +128,7 @@ class CypherSupplier {
 
 class DecryptingReadableByteChannel {
     fun construct(src: Any?, cryptor: Any?, authenticate: Any?, header: Any?, firstChunk: Any?): Op =
-        constructor("org.cryptomancer.cryptolib.common.DecryptingReadableByteChannel") {
+        constructor("org.cryptomator.cryptolib.common.DecryptingReadableByteChannel") {
             // maybe this could be combined with "null"?
             signature(src, cryptor, authenticate)
             signature(src, cryptor, authenticate, header, firstChunk)
@@ -151,7 +147,7 @@ class MasterKeyFileAccess {
     // can we map java byte onto Kotlin Byte?
     fun readAllegedVaultVersion(masterKey: Array<Byte>?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.MasterKeyFileAccess.readAllegedVaultVersion" {
+            "org.cryptomator.cryptolib.common.MasterKeyFileAccess.readAllegedVaultVersion" {
                 signature(masterKey)
             }
         }
@@ -160,7 +156,7 @@ class MasterKeyFileAccess {
 class MessageDigestSupplier {
     fun get(): Op =
         op {
-            "org.cryptomancer.cryptolib.common.MessageDigestSupplier.get" {
+            "org.cryptomator.cryptolib.common.MessageDigestSupplier.get" {
                 signature()
             }
         }
@@ -169,14 +165,14 @@ class MessageDigestSupplier {
 class P384KeyPair {
     fun create(pubKeySpec: X509EncodedKeySpec?, privKeySpec: PKCS8EncodedKeySpec): Op =
         op {
-            "org.cryptomancer.cryptolib.common.P384KeyPair.create" {
+            "org.cryptomator.cryptolib.common.P384KeyPair.create" {
                 signature(pubKeySpec, privKeySpec)
             }
         }
 
     fun store(file: Any?, passphrase: Any?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.P384KeyPair.store" {
+            "org.cryptomator.cryptolib.common.P384KeyPair.store" {
                 signature(file, passphrase)
             }
         }
@@ -185,7 +181,7 @@ class P384KeyPair {
 class PKCS12Helper {
     fun exportTo(keypair: KeyPair?, out: OutputStream?, passphrase: Array<Char>?, sigAlg: String?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.Pkcs12Helper.exportTo" {
+            "org.cryptomator.cryptolib.common.Pkcs12Helper.exportTo" {
                 signature(keypair, out, passphrase, sigAlg)
             }
         }
@@ -193,13 +189,13 @@ class PKCS12Helper {
 
 class ReseedingSecureRandom {
     fun construct(seeder: Any?, csprng: Any?, reseedAfter: Any?, seedLength: Any?): Op =
-        constructor("org.cryptomancer.cryptolib.common.ReseedingSecureRandom") {
+        constructor("org.cryptomator.cryptolib.common.ReseedingSecureRandom") {
             signature(seeder, csprng, reseedAfter, seedLength)
         }
 
     fun create(csprng: SecureRandom?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.ReseedingSecureRandom.create" {
+            "org.cryptomator.cryptolib.common.ReseedingSecureRandom.create" {
                 signature(csprng)
             }
         }
@@ -209,7 +205,7 @@ class Scrypt {
     // TODO: can we combine the following two?
     fun scrypt(passphrase: Any?, salt: Any?, cost: Any?, blockSize: Any?, keyLength: Any?): Op =
         op {
-            "org.cryptomancer.cryptolib.common.Scrypt.scrypt" {
+            "org.cryptomator.cryptolib.common.Scrypt.scrypt" {
                 signature(passphrase, salt, cost, blockSize, keyLength)
             }
         }
@@ -218,7 +214,7 @@ class Scrypt {
 class X509CertBuilder {
     fun init(keypair: KeyPair?, sigAlg: String): Op =
         op {
-            "org.cryptomancer.cryptolib.common.X509CertBuilder.init" {
+            "org.cryptomator.cryptolib.common.X509CertBuilder.init" {
                 signature(keypair, sigAlg)
             }
         }
@@ -226,7 +222,7 @@ class X509CertBuilder {
 
 class CipherSupplier {
     fun construct(algorithm: Any?): Op =
-        constructor("org.cryptomancer.cryptolib.common.CipherSupplier") {
+        constructor("org.cryptomator.cryptolib.common.CipherSupplier") {
             signature(algorithm)
         }
 }
@@ -243,7 +239,7 @@ class SecureRandom {
 val recommendedAlgorithms = setOf("AES", "AES_128", "AES_192", "AES_256")
 val recommendedModes = setOf("CCM", "GCM", "CBC", "CTR")
 val recommendedPaddings = setOf("ISO10126Padding", "PKCS5Padding")
-val recommendedWrappings = setOf("AESWrap, AESWrap_128, AESWrap_192, AESWrap_256")
+val recommendedWrappings = setOf("AESWrap", "AESWrap_128", "AESWrap_192", "AESWrap_256")
 
 val validParameters = {
     val combinations = mutableSetOf<String>()
@@ -293,22 +289,21 @@ fun enforceRecommendedAlgorithms(supplier: CipherSupplier) =
 fun forbidEmptyPassphrase(keypair: P384KeyPair) =
     never(keypair.store(Wildcard, arrayOf<Char>()))
 
-// FIXME NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
+// Parameters from NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
 @Rule("Use minimum strength for reseeding parameters")
 fun enforceStrongReseedingParameters(reseeding: ReseedingSecureRandom) =
     run {
         val minSeedBytes = 440 / 8
         val maxValue = Long.MAX_VALUE
         val maxReseedInterval = 1L shl 48
-        // FIXME: CPG does not terminate when we use wildcard as the first argument?
+        // FIXME: CPG does not terminate when we use wildcard as the first argument?!
         only(reseeding.construct(null, Wildcard, 0..maxReseedInterval, minSeedBytes..maxValue))
     }
 
-// FIXME test
 @Rule("Use SecureRandom.getInstanceStrong() as the seeder")
 fun enforceStrongReseedingSeeder(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
-    // FIXME: CPG does not terminate when we use wildcard as the first argument?
-    // FIXME: Index out of bounds exception when using java.security.SecureRandom as rule parameter
+    // FIXME: FQN of SecureRandom.getInstanceStrong is not as expected
+    // FIXME: false positive if the seeder is an unknown parameter (e.g. user chosen)
     argumentOrigin(reseeding::construct, 0, secureRandom::getInstanceStrong)
 
 // FIXME

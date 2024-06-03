@@ -202,7 +202,6 @@ class ReseedingSecureRandom {
 }
 
 class Scrypt {
-    // TODO: can we combine the following two?
     fun scrypt(passphrase: Any?, salt: Any?, cost: Any?, blockSize: Any?, keyLength: Any?): Op =
         op {
             "org.cryptomator.cryptolib.common.Scrypt.scrypt" {
@@ -230,7 +229,9 @@ class CipherSupplier {
 class SecureRandom {
     fun getInstanceStrong(): Op =
         op {
-            "java.security.SecureRandom.getInstanceStrong" {
+            // FIXME: cpg finds either SecureRandom.getInstanceStrong or java.security.getInstanceStrong
+            //  depending on whether a import or the full name is used
+            "SecureRandom.getInstanceStrong" {
                 signature()
             }
         }
@@ -263,60 +264,60 @@ val validParameters = {
     combinations.toSet()
 }
 
-@Rule("Never skip authentication when decrypting a file chunk")
-fun enforceFileDecryptAuthentication1(cryptor: FileContentCryptorImpl) =
-    never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, Wildcard, false))
+//@Rule("Never skip authentication when decrypting a file chunk")
+//fun enforceFileDecryptAuthentication1(cryptor: FileContentCryptorImpl) =
+//    never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, Wildcard, false))
+//
+//@Rule("Never skip authentication when decrypting a file chunk")
+//fun enforceFileDecryptAuthentication2(cryptor: FileContentCryptorImpl) =
+//    never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, false))
+//
+//@Rule("Never skip authentication when decrypting a ciphertext")
+//fun enforceCipherDecryptAuthentication(channel: DecryptingReadableByteChannel) =
+//    never(channel.construct(Wildcard, Wildcard, false, Wildcard, Wildcard))
+//
+//@Rule("Only use recommended algorithms")
+//fun enforceRecommendedAlgorithms(supplier: CipherSupplier) =
+//    run {
+//        val x = validParameters().map {
+//            supplier.construct(it)
+//        }.toTypedArray()
+//        only(*x)
+//    }
+//
+//@Rule("Do not use empty passphrase to store the key pair")
+//fun forbidEmptyPassphrase(keypair: P384KeyPair) =
+//    never(keypair.store(Wildcard, arrayOf<Char>()))
+//
+//// Parameters from NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
+////@Rule("Enforce maximum reseed interval for reseeding parameters")
+////fun enforceStrongReseedingInterval(reseeding: ReseedingSecureRandom) =
+////    run {
+////        val maxReseedInterval = 1L shl 48
+////        // FIXME: CPG does not terminate
+////        //  -> every possible value needs to be checked...
+////        only(reseeding.construct(Wildcard, Wildcard, 0..maxReseedInterval, Wildcard))
+////    }
+//
+//// Parameters from NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
+//@Rule("Forbid short seed length for reseeding parameters")
+//fun forbidShortReseedingSeed(reseeding: ReseedingSecureRandom) =
+//    run {
+//        val minSeedBytes = 440 / 8
+//        never(reseeding.construct(Wildcard, Wildcard, Wildcard, 0..<minSeedBytes))
+//    }
 
-@Rule("Never skip authentication when decrypting a file chunk")
-fun enforceFileDecryptAuthentication2(cryptor: FileContentCryptorImpl) =
-    never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, false))
+//@Rule("Use SecureRandom.getInstanceStrong() as the seeder")
+//fun enforceStrongReseedingSeeder(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
+//    // FIXME: FQN of SecureRandom.getInstanceStrong is not as expected
+//    // FIXME: false positive if the seeder is an unknown parameter (e.g. user-chosen)
+//    argumentOrigin(reseeding::construct, 0, secureRandom::getInstanceStrong)
 
-@Rule("Never skip authentication when decrypting a ciphertext")
-fun enforceCipherDecryptAuthentication(channel: DecryptingReadableByteChannel) =
-    never(channel.construct(Wildcard, Wildcard, false, Wildcard, Wildcard))
 
-@Rule("Only use recommended algorithms")
-fun enforceRecommendedAlgorithms(supplier: CipherSupplier) =
-    run {
-        val x = validParameters().map {
-            supplier.construct(it)
-        }.toTypedArray()
-        only(*x)
-    }
-
-// FIXME
-@Rule("Do not use empty passphrase to store the key pair")
-fun forbidEmptyPassphrase(keypair: P384KeyPair) =
-    never(keypair.store(Wildcard, arrayOf<Char>()))
-
-// Parameters from NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
-@Rule("Use minimum strength for reseeding parameters")
-fun enforceStrongReseedingParameters(reseeding: ReseedingSecureRandom) =
-    run {
-        val minSeedBytes = 440 / 8
-        val maxValue = Long.MAX_VALUE
-        val maxReseedInterval = 1L shl 48
-        // FIXME: CPG does not terminate when we use wildcard as the first argument?!
-        only(reseeding.construct(null, Wildcard, 0..maxReseedInterval, minSeedBytes..maxValue))
-    }
-
-@Rule("Use SecureRandom.getInstanceStrong() as the seeder")
-fun enforceStrongReseedingSeeder(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
-    // FIXME: FQN of SecureRandom.getInstanceStrong is not as expected
-    // FIXME: false positive if the seeder is an unknown parameter (e.g. user chosen)
-    argumentOrigin(reseeding::construct, 0, secureRandom::getInstanceStrong)
-
-// FIXME
 @Rule("Do not use empty scrypt password")
-fun forbitEmptyScryptPassword(scrypt: Scrypt) =
+fun forbidEmptyScryptPassword(scrypt: Scrypt) =
     never(scrypt.scrypt(arrayOf<Byte>(), Wildcard, Wildcard, Wildcard, Wildcard))
 
-// FIXME
-@Rule("Do not use empty scrypt password")
-fun forbitEmptyScryptPassword2(scrypt: Scrypt) =
-    never(scrypt.scrypt(arrayOf<Char>(), Wildcard, Wildcard, Wildcard, Wildcard))
-
-// FIXME
 @Rule("Do not use empty scrypt salt")
-fun forbitEmptyScryptSalt(scrypt: Scrypt) =
+fun forbidEmptyScryptSalt(scrypt: Scrypt) =
     never(scrypt.scrypt(Wildcard, arrayOf<Byte>(), Wildcard, Wildcard, Wildcard))

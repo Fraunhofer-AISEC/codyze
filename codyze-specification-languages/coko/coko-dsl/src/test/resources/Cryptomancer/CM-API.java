@@ -1,11 +1,10 @@
-import Cm_model_codyze;
 import java.security.SecureRandom;
-import org.cryptomancer.cryptolib.v2.FileContentCryptorImpl;
-import org.cryptomancer.cryptolib.common.CipherSupplier;
-import org.cryptomancer.cryptolib.common.DecryptingReadableByteChannel;
-import org.cryptomancer.cryptolib.common.P384KeyPair;
-import org.cryptomancer.cryptolib.common.ReseedingSecureRandom;
-import org.cryptomancer.cryptolib.common.Scrypt;
+import org.cryptomator.cryptolib.v2.FileContentCryptorImpl;
+import org.cryptomator.cryptolib.common.CipherSupplier;
+import org.cryptomator.cryptolib.common.DecryptingReadableByteChannel;
+import org.cryptomator.cryptolib.common.P384KeyPair;
+import org.cryptomator.cryptolib.common.ReseedingSecureRandom;
+import org.cryptomator.cryptolib.common.Scrypt;
 
 class Test {
     void unauthenticatedFileDecryption1() {
@@ -26,12 +25,20 @@ class Test {
         CipherSupplier supplier = new CipherSupplier("AES/CBC/PKCS5Padding");
     }
 
+    void validAlgorithm3() {
+        CipherSupplier supplier = new CipherSupplier("AESWrap");
+    }
+
     void invalidAlgorithm1() {
         CipherSupplier supplier = new CipherSupplier("Blowfish/CTR/NoPadding");
     }
 
     void invalidAlgorithm2() {
         CipherSupplier supplier = new CipherSupplier("AES/CBC/NoPadding");
+    }
+
+    void validAlgorithm3() {
+        CipherSupplier supplier = new CipherSupplier("AESWrap/CCM/NoPadding");
     }
 
     void unauthenticatedCipherDecryption1() {
@@ -48,17 +55,46 @@ class Test {
         keypair.store(null, password);
     }
 
-    void invalidKeyStore() {
+    void invalidKeyStore1() {
         P384KeyPair keypair = new P384KeyPair();
         char[] password = "".toCharArray();
         keypair.store(null, password);
     }
 
+    void invalidKeyStore2() {
+        P384KeyPair keypair = new P384KeyPair();
+        char[] password = {};
+        keypair.store(null, password);
+    }
+
+    void invalidKeyStore3() {
+        P384KeyPair keypair = new P384KeyPair();
+        char[] password = { "", "" };
+        keypair.store(null, password);
+    }
+
+    void invalidKeyStore4() {
+        P384KeyPair keypair = new P384KeyPair();
+        keypair.store(null, "");
+    }
+
+    void invalidKeyStore5() {
+        P384KeyPair keypair = new P384KeyPair();
+        keypair.store(null, new Object[]{ });
+    }
+
+    void invalidKeyStore6() {
+        P384KeyPair keypair = new P384KeyPair();
+        keypair.store(null, new Object[]{ "".toCharArray() });
+    }
+
+    // TODO
     void weakSecureRandom() {
         SecureRandom random = new SecureRandom();
         ReseedingSecureRandom reseed = new ReseedingSecureRandom(random, random, 1 << 30, 60);
     }
 
+    // TODO
     void rareReseed() {
         SecureRandom strongRandom = SecureRandom.getInstanceStrong();
         SecureRandom random = new SecureRandom();
@@ -80,18 +116,18 @@ class Test {
     void emptyScryptPasswordChar() {
         Scrypt scrypt = Scrypt();
         char[] password = "".toCharArray();
-        byte[] key = scrypt.scrypt(password, null, null, null, null)
+        byte[] key = scrypt.scrypt(password, "salt", null, null, null);
     }
 
     void emptyScryptPasswordBytes() {
         Scrypt scrypt = Scrypt();
-        char[] password = "".getBytes()
-        byte[] key = scrypt.scrypt(password, null, null, null, null)
+        char[] password = "".getBytes();
+        byte[] key = scrypt.scrypt(password, "salt", null, null, null);
     }
 
     void emptyScryptSalt() {
         Scrypt scrypt = Scrypt();
         char[] salt = "".getBytes();
-        byte[] key = scrypt.scrypt(null, salt, null, null, null)
+        byte[] key = scrypt.scrypt("password", salt, null, null, null);
     }
 }

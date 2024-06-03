@@ -117,13 +117,15 @@ class Test {
     void emptyScryptPasswordChar() {
         Scrypt scrypt = Scrypt();
         char[] password = "".toCharArray();
-        byte[] key = scrypt.scrypt(password, "salt", null, null, null);
+        char[] salt = "thisIsASaltThatIsJustLongEnough".getBytes();
+        byte[] key = scrypt.scrypt(password, salt, null, null, null);
     }
 
     void emptyScryptPasswordBytes() {
         Scrypt scrypt = Scrypt();
         char[] password = "".getBytes();
-        byte[] key = scrypt.scrypt(password, "salt", null, null, null);
+        char[] salt = "thisIsASaltThatIsJustLongEnough".getBytes();
+        byte[] key = scrypt.scrypt(password, salt, null, null, null);
     }
 
     void emptyScryptSalt() {
@@ -134,12 +136,14 @@ class Test {
 
     void longScryptKey() {
         Scrypt scrypt = Scrypt();
-        byte[] key = scrypt.scrypt("password", "salt", null, null, 64);
+        char[] salt = "thisIsASaltThatIsJustLongEnough".getBytes();
+        byte[] key = scrypt.scrypt("password", salt, null, null, 64);
     }
 
     void shortScryptKey() {
         Scrypt scrypt = Scrypt();
-        byte[] key = scrypt.scrypt("password", "salt", null, null, 16);
+        char[] salt = "thisIsASaltThatIsJustLongEnough".getBytes();
+        byte[] key = scrypt.scrypt("password", salt, null, null, 16);
     }
 
     void longNonce() {

@@ -29,4 +29,6 @@ data class Type(val fqn: String)
 
 data class ParamWithType(val param: Any, val type: Type)
 
+data class Length(val value: IntRange)
+
 infix fun Any.withType(fqn: String) = ParamWithType(this, Type(fqn))

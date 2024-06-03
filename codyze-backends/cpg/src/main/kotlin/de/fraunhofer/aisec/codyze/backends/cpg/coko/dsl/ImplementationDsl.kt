@@ -171,14 +171,10 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
                 regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
             }
             is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Array<*> -> {
-                if (this.isEmpty())
-                    that.any { it.isEmpty() }
-                else
-                    this.any { it?.cpgFlowsTo(that) ?: false }
-            }
+            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
             is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
+            is Length -> that.all { it.getLength() in this.value }
             else -> this in that.map { (it as Expression).evaluate() }
         }
     }
@@ -238,30 +234,34 @@ private fun CallExpression.cpgCheckArgsSize(parameters: Array<*>, hasVarargs: Bo
         parameters.size == arguments.size
     }
 
-/** Checks if the Node represents an empty value (e.g. empty String, empty Array) */
-private fun Node.isEmpty(): Boolean {
+/**
+ * Checks The length of a node if it represents a Collection
+ * Be aware that this checks the total length of Literals contained within, not the length of arguments
+ */
+private fun Node.getLength(): Int {
     return when (this) {
         is Reference -> {
             when (val init = (this.refersTo as? VariableDeclaration)?.initializer) {
-                // Was initialized with empty Node
-                is MemberCallExpression -> init.base?.isEmpty() ?: false
-                // Was initialized as empty list or list containing empty Nodes
-                is InitializerListExpression -> init.initializers.filterNot { it.isEmpty() }.isEmpty()
-                else -> false
+                is MemberCallExpression -> init.base?.getLength() ?: 0
+                is InitializerListExpression -> init.initializers.sumOf { it.getLength() }
+                is BinaryOperator -> init.lhs.getLength() + init.rhs.getLength()
+                else -> 0
             }
         }
         is NewArrayExpression -> {
             when (val init = this.initializer) {
-                // Was initialized as empty list or list containing empty Nodes
-                is InitializerListExpression -> init.initializers.filterNot { it.isEmpty() }.isEmpty()
-                else -> false
+                is InitializerListExpression ->  init.initializers.sumOf { it.getLength() }
+                else -> 0
             }
         }
         is MemberCallExpression -> {
-            this.base?.isEmpty() ?: false
+            this.base?.getLength() ?: 0
+        }
+        is BinaryOperator -> {
+            this.lhs.getLength() + this.rhs.getLength()
         }
         // We need to check for "null" as it is the value in case of an empty Byte array
-        is Literal<*> -> return this.value.toString() in arrayOf("", "null")
-        else -> false
+        is Literal<*> -> return this.value.toString().length
+        else -> 0
     }
 }

@@ -1,5 +1,6 @@
 import java.security.SecureRandom;
 import org.cryptomator.cryptolib.v2.FileContentCryptorImpl;
+import org.cryptomator.cryptolib.v2.FileHeaderImpl;
 import org.cryptomator.cryptolib.common.CipherSupplier;
 import org.cryptomator.cryptolib.common.DecryptingReadableByteChannel;
 import org.cryptomator.cryptolib.common.P384KeyPair;
@@ -139,5 +140,28 @@ class Test {
     void shortScryptKey() {
         Scrypt scrypt = Scrypt();
         byte[] key = scrypt.scrypt("password", "salt", null, null, 16);
+    }
+
+    void longNonce() {
+        byte[] nonce = "thisIsAnExampleNonceThatIsLongEnough".getBytes();
+        FileHeaderImpl fh = new FileHeaderImpl(nonce, null);
+    }
+
+    void longNonce2() {
+        FileHeaderImpl fh = new FileHeaderImpl(new Object[]{ "thisIsAnExampleNonceThatIsLong".toCharArray() } + new Object[]{ "Enough".toCharArray() }, null);
+    }
+
+    void shortNonce() {
+        byte[] nonce = "thisIsAnExampleNonceThatIsShort".getBytes();
+        FileHeaderImpl fh = new FileHeaderImpl(nonce, null);
+    }
+
+    void shortNonce2() {
+        byte[] nonce = "thisIsAnExampleNonceThatIsShort".getBytes() + "".getBytes();
+        FileHeaderImpl fh = new FileHeaderImpl(nonce, null);
+    }
+
+    void shortNonce3() {
+        FileHeaderImpl fh = new FileHeaderImpl(new Object[]{ "thisIsAnExampleNonceThatIsShort".toCharArray() } + new Object[]{ "".toCharArray() }, null);
     }
 }

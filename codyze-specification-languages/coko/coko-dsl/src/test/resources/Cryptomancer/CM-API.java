@@ -130,4 +130,14 @@ class Test {
         char[] salt = "".getBytes();
         byte[] key = scrypt.scrypt("password", salt, null, null, null);
     }
+
+    void longScryptKey() {
+        Scrypt scrypt = Scrypt();
+        byte[] key = scrypt.scrypt("password", "salt", null, null, 64);
+    }
+
+    void shortScryptKey() {
+        Scrypt scrypt = Scrypt();
+        byte[] key = scrypt.scrypt("password", "salt", null, null, 16);
+    }
 }

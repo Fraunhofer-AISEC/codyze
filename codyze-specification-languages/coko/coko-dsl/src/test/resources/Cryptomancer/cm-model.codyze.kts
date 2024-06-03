@@ -300,24 +300,28 @@ val validParameters = {
 ////    }
 //
 //// Parameters from NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
-//@Rule("Forbid short seed length for reseeding parameters")
+//@Rule("Do not use short seed length for reseeding parameters")
 //fun forbidShortReseedingSeed(reseeding: ReseedingSecureRandom) =
 //    run {
 //        val minSeedBytes = 440 / 8
 //        never(reseeding.construct(Wildcard, Wildcard, Wildcard, 0..<minSeedBytes))
 //    }
+//
+////@Rule("Use SecureRandom.getInstanceStrong() as the seeder")
+////fun enforceStrongReseedingSeeder(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
+////    // FIXME: FQN of SecureRandom.getInstanceStrong is not as expected
+////    // FIXME: false positive if the seeder is an unknown parameter (e.g. user-chosen)
+////    argumentOrigin(reseeding::construct, 0, secureRandom::getInstanceStrong)
+//
+//
+//@Rule("Do not use empty scrypt password")
+//fun forbidEmptyScryptPassword(scrypt: Scrypt) =
+//    never(scrypt.scrypt(arrayOf<Byte>(), Wildcard, Wildcard, Wildcard, Wildcard))
+//
+//@Rule("Do not use empty scrypt salt")
+//fun forbidEmptyScryptSalt(scrypt: Scrypt) =
+//    never(scrypt.scrypt(Wildcard, arrayOf<Byte>(), Wildcard, Wildcard, Wildcard))
 
-//@Rule("Use SecureRandom.getInstanceStrong() as the seeder")
-//fun enforceStrongReseedingSeeder(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
-//    // FIXME: FQN of SecureRandom.getInstanceStrong is not as expected
-//    // FIXME: false positive if the seeder is an unknown parameter (e.g. user-chosen)
-//    argumentOrigin(reseeding::construct, 0, secureRandom::getInstanceStrong)
-
-
-@Rule("Do not use empty scrypt password")
-fun forbidEmptyScryptPassword(scrypt: Scrypt) =
-    never(scrypt.scrypt(arrayOf<Byte>(), Wildcard, Wildcard, Wildcard, Wildcard))
-
-@Rule("Do not use empty scrypt salt")
-fun forbidEmptyScryptSalt(scrypt: Scrypt) =
-    never(scrypt.scrypt(Wildcard, arrayOf<Byte>(), Wildcard, Wildcard, Wildcard))
+@Rule("Do not create a short key with scrypt")
+fun enforceScryptKeyLength(scrypt: Scrypt) =
+    never(scrypt.scrypt(Wildcard, Wildcard, Wildcard, Wildcard, 0..<32))

@@ -68,9 +68,6 @@ fun Op.cpgGetNodes(): Collection<CallExpression> =
                 .flatMap { def ->
                     this@CokoBackend.cpgCallFqn(def.fqn) {
                         def.signatures.any { sig ->
-                            // TODO: spread here makes problems and produces weird/undocumented behaviour
-                            //  -> checking iterables as parameters is impossible
-                            //  -> idea: remove spread and introduce "in" keyword/type
                             cpgSignature(*sig.parameters.toTypedArray()) &&
                                 sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                         }

@@ -325,13 +325,14 @@ fun forbidShortReseedingSeed(reseeding: ReseedingSecureRandom) =
 //    argumentOrigin(reseeding::construct, 0, secureRandom::getInstanceStrong)
 
 
-@Rule("Do not use empty scrypt password")
+@Rule("Do not use short scrypt password")
 fun forbidEmptyScryptPassword(scrypt: Scrypt) =
-    never(scrypt.scrypt(Length(0..0), Wildcard, Wildcard, Wildcard, Wildcard))
+    never(scrypt.scrypt(Length(0..<8), Wildcard, Wildcard, Wildcard, Wildcard))
 
-@Rule("Do not use empty scrypt salt")
+// See BSI TR-02102-1 B.1.3.
+@Rule("Do not use short scrypt salt")
 fun forbidEmptyScryptSalt(scrypt: Scrypt) =
-    never(scrypt.scrypt(Wildcard, Length(0..0), Wildcard, Wildcard, Wildcard))
+    never(scrypt.scrypt(Wildcard, Length(0..<32), Wildcard, Wildcard, Wildcard))
 
 @Rule("Do not create a short key with scrypt")
 fun enforceScryptKeyLength(scrypt: Scrypt) =

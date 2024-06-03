@@ -25,6 +25,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
+import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.executionPath
@@ -67,6 +68,9 @@ fun Op.cpgGetNodes(): Collection<CallExpression> =
                 .flatMap { def ->
                     this@CokoBackend.cpgCallFqn(def.fqn) {
                         def.signatures.any { sig ->
+                            // TODO: spread here makes problems and produces weird/undocumented behaviour
+                            //  -> checking iterables as parameters is impossible
+                            //  -> idea: remove spread and introduce "in" keyword/type
                             cpgSignature(*sig.parameters.toTypedArray()) &&
                                 sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                         }
@@ -156,7 +160,8 @@ context(CallExpression)
 /**
  * Checks if there's a data flow path from "this" to any of the elements in [that].
  * - If this is a String, we evaluate it as a regex.
- * - If this is a Collection, we check if at least one of the elements flows to [that]
+ * - If this is an empty Collection, we check whether [that] represents an empty value.
+ * - If this is a non-empty Collection, we check if at least one of the elements flows to [that].
  * - If this is a [Node], we use the DFG of the CPG.
  */
 infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
@@ -169,7 +174,12 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
                 regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
             }
             is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+            is Array<*> -> {
+                if (this.isEmpty())
+                    that.any { it.isEmpty() }
+                else
+                    this.any { it?.cpgFlowsTo(that) ?: false }
+            }
             is Node -> that.any { dataFlow(this, it).value }
             is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
             else -> this in that.map { (it as Expression).evaluate() }
@@ -230,3 +240,31 @@ private fun CallExpression.cpgCheckArgsSize(parameters: Array<*>, hasVarargs: Bo
     } else {
         parameters.size == arguments.size
     }
+
+/** Checks if the Node represents an empty value (e.g. empty String, empty Array) */
+private fun Node.isEmpty(): Boolean {
+    return when (this) {
+        is Reference -> {
+            when (val init = (this.refersTo as? VariableDeclaration)?.initializer) {
+                // Was initialized with empty Node
+                is MemberCallExpression -> init.base?.isEmpty() ?: false
+                // Was initialized as empty list or list containing empty Nodes
+                is InitializerListExpression -> init.initializers.filterNot { it.isEmpty() }.isEmpty()
+                else -> false
+            }
+        }
+        is NewArrayExpression -> {
+            when (val init = this.initializer) {
+                // Was initialized as empty list or list containing empty Nodes
+                is InitializerListExpression -> init.initializers.filterNot { it.isEmpty() }.isEmpty()
+                else -> false
+            }
+        }
+        is MemberCallExpression -> {
+            this.base?.isEmpty() ?: false
+        }
+        // We need to check for "null" as it is the value in case of an empty Byte array
+        is Literal<*> -> return this.value.toString() in arrayOf("", "null")
+        else -> false
+    }
+}

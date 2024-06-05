@@ -25,7 +25,6 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.*
-import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.executionPath
@@ -173,28 +172,23 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
                 val regex = Regex(this)
                 regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
             }
-            is Iterable<*> -> {
-                when (this) {
-                    // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
-                    is LongRange -> that.any {
-                        println("${min(it).value.toInt()}, ${max(it).value.toInt()}")
-                        min(it).value.toInt() > this.first && max(it).value.toInt() < this.last
-                    }
-                    is IntRange -> that.any {
-                        println("${min(it).value.toInt()}, ${max(it).value.toInt()}")
-                        min(it).value.toInt() > this.first && max(it).value.toInt() < this.last
-                    }
-                    else -> this.any { it?.cpgFlowsTo(that) ?: false }
-                }
+            // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
+            is LongRange -> that.all {
+                min(it).value.toInt() > this.first && max(it).value.toInt() < this.last
             }
+            is IntRange -> that.all {
+                min(it).value.toInt() > this.first && max(it).value.toInt() < this.last
+            }
+            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
             is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
             is Length -> that.all {
                 val size = sizeof(it).value
-//                if (size == -1) {
-//                    TODO("handle 'not applicable' case")
-//                }
+                if (size == -1) {
+                    // throw NotApplicableException("The size could not be determined")
+                    // TODO: handle case where size could not be determined
+                }
                 size in this.value
             }
             else -> this in that.map { (it as Expression).evaluate() }

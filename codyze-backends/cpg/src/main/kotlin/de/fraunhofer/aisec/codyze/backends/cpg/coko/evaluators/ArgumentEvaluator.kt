@@ -89,7 +89,7 @@ class ArgumentEvaluator(val targetCall: Op, val argPos: Int, val originCall: Op)
         val assignments = this.typeObservers.mapNotNull { (it as? Reference)?.prevDFG?.firstOrNull() }
         // Consider overwrites caused by CallExpressions and Literals
         return assignments.mapNotNull {
-            when(it) {
+            when (it) {
                 is CallExpression -> it
                 is Literal<*> -> it
                 else -> null
@@ -98,19 +98,20 @@ class ArgumentEvaluator(val targetCall: Op, val argPos: Int, val originCall: Op)
     }
 
     /**
-     * This method checks whether there are any paths with forbidden values for this variable that end in the target call
+     * This method checks whether there are any paths with forbidden values for the variable that end in the target call
      * @param allowedCalls The calls that set the variable to an allowed value
      * @param targetCall The target call using the variable as an argument
      * @return whether there is at least one path that allows an invalid value for the variable to reach the target
      */
-    private fun VariableDeclaration.allowsInvalidPaths(allowedCalls: List<CallExpression>, targetCall: CallExpression): Boolean {
+    private fun VariableDeclaration.allowsInvalidPaths(
+        allowedCalls: List<CallExpression>,
+        targetCall: CallExpression
+    ): Boolean {
         // Get every MemberCall that tries to override our variable, ignoring allowed calls
         val interferingDeclarations = this.getOverrides().toMutableList() - allowedCalls.toSet()
-        // Check whether there is a path from any invalid call to our target call that is not overridden by at least one valid call
+        // Check whether there is a path from any invalid call to our target call that is not overridden at least once
         val targetToNoise = targetCall.followPrevEOGEdgesUntilHit { interferingDeclarations.contains(it) }.fulfilled
             .filterNot { badPath -> allowedCalls.any { goodCall -> goodCall in badPath } }
         return targetToNoise.isNotEmpty()
     }
 }
-
-

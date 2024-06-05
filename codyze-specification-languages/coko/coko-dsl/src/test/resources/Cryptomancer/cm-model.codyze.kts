@@ -288,6 +288,7 @@ fun enforceFileDecryptAuthentication2(cryptor: FileContentCryptorImpl) =
 fun enforceCipherDecryptAuthentication(channel: DecryptingReadableByteChannel) =
     never(channel.construct(Wildcard, Wildcard, false, Wildcard, Wildcard))
 
+// See BSI TR-02102-1 3.1.
 @Rule("Only use recommended algorithms")
 fun enforceRecommendedAlgorithms(supplier: CipherSupplier) =
     run {
@@ -297,25 +298,25 @@ fun enforceRecommendedAlgorithms(supplier: CipherSupplier) =
         only(*x)
     }
 
+// Parameters from NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
+@Rule("Do not use short seed length for reseeding parameters")
+fun forbidShortReseedingSeed(reseeding: ReseedingSecureRandom) =
+    never(reseeding.construct(Wildcard, Wildcard, Wildcard, 0..<55))
+
+@Rule("Do not create a short key with scrypt")
+fun enforceScryptKeyLength(scrypt: Scrypt) =
+    never(scrypt.scrypt(Wildcard, Wildcard, Wildcard, Wildcard, 0..<32))
+
 @Rule("Do not use empty passphrase to store the key pair")
 fun forbidEmptyPassphrase(keypair: P384KeyPair) =
     never(keypair.store(Wildcard, Length(0..0)))
 
 // Parameters from NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
-//@Rule("Enforce maximum reseed interval for reseeding parameters")
-//fun enforceStrongReseedingInterval(reseeding: ReseedingSecureRandom) =
-//    run {
-//        val maxReseedInterval = 1L shl 48
-//        // FIXME: CPG does not terminate for the huge number of possible values
-//        only(reseeding.construct(Wildcard, Wildcard, 0..maxReseedInterval, Wildcard))
-//    }
-
-// Parameters from NIST SP 800-90A Rev 1: http://dx.doi.org/10.6028/NIST.SP.800-90Ar1
-@Rule("Do not use short seed length for reseeding parameters")
-fun forbidShortReseedingSeed(reseeding: ReseedingSecureRandom) =
+@Rule("Enforce maximum reseed interval for reseeding parameters")
+fun enforceStrongReseedingInterval(reseeding: ReseedingSecureRandom) =
     run {
-        val minSeedBytes = 440 / 8
-        never(reseeding.construct(Wildcard, Wildcard, Wildcard, 0..<minSeedBytes))
+        val maxReseedInterval = 1L shl 48
+        only(reseeding.construct(Wildcard, Wildcard, 0..<maxReseedInterval, Wildcard))
     }
 
 //@Rule("Use SecureRandom.getInstanceStrong() as the seeder")
@@ -326,30 +327,22 @@ fun forbidShortReseedingSeed(reseeding: ReseedingSecureRandom) =
 
 
 @Rule("Do not use short scrypt password")
-fun forbidEmptyScryptPassword(scrypt: Scrypt) =
+fun forbidShortScryptPassword(scrypt: Scrypt) =
     never(scrypt.scrypt(Length(0..<8), Wildcard, Wildcard, Wildcard, Wildcard))
 
 // See BSI TR-02102-1 B.1.3.
 @Rule("Do not use short scrypt salt")
-fun forbidEmptyScryptSalt(scrypt: Scrypt) =
+fun forbidShortScryptSalt(scrypt: Scrypt) =
     never(scrypt.scrypt(Wildcard, Length(0..<32), Wildcard, Wildcard, Wildcard))
-
-@Rule("Do not create a short key with scrypt")
-fun enforceScryptKeyLength(scrypt: Scrypt) =
-    never(scrypt.scrypt(Wildcard, Wildcard, Wildcard, Wildcard, 0..<32))
 
 // See BSI TR-02102-1 3.1.2.
 @Rule("Do not use a short Nonce in the FileHeader")
 fun forbidShortGCMNonce(fileHeaderImpl: FileHeaderImpl) =
-    run {
-        never(fileHeaderImpl.construct(Length(0..<32), Wildcard))
-    }
+    never(fileHeaderImpl.construct(Length(0..<12), Wildcard))
 
 // See BSI TR-02102-1 3.1.2.
 @Rule("Do not use a short Nonce in the FileContentCryptor")
 fun forbidShortGCMNonce(fileContentCryptorImpl: FileContentCryptorImpl) =
-    run {
-        never(fileContentCryptorImpl.encryptChunk(Wildcard, Wildcard, Wildcard, Length(0..<32), Wildcard))
-    }
+    never(fileContentCryptorImpl.encryptChunk(Wildcard, Wildcard, Wildcard, Length(0..<12), Wildcard))
 
 

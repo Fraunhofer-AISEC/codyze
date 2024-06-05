@@ -24,11 +24,14 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
-import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
-import de.fraunhofer.aisec.cpg.graph.declarations.VariableDeclaration
+import de.fraunhofer.aisec.cpg.graph.declarations.*
+import de.fraunhofer.aisec.cpg.graph.statements.ReturnStatement
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.executionPath
+import de.fraunhofer.aisec.cpg.query.max
+import de.fraunhofer.aisec.cpg.query.min
+import de.fraunhofer.aisec.cpg.query.sizeof
 
 //
 // all functions/properties defined here must use CokoBackend
@@ -170,11 +173,30 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
                 val regex = Regex(this)
                 regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
             }
-            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+            is Iterable<*> -> {
+                when (this) {
+                    // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
+                    is LongRange -> that.any {
+                        println("${min(it).value.toInt()}, ${max(it).value.toInt()}")
+                        min(it).value.toInt() > this.first && max(it).value.toInt() < this.last
+                    }
+                    is IntRange -> that.any {
+                        println("${min(it).value.toInt()}, ${max(it).value.toInt()}")
+                        min(it).value.toInt() > this.first && max(it).value.toInt() < this.last
+                    }
+                    else -> this.any { it?.cpgFlowsTo(that) ?: false }
+                }
+            }
             is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
             is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
-            is Length -> that.all { it.getLength() in this.value }
+            is Length -> that.all {
+                val size = sizeof(it).value
+//                if (size == -1) {
+//                    TODO("handle 'not applicable' case")
+//                }
+                size in this.value
+            }
             else -> this in that.map { (it as Expression).evaluate() }
         }
     }
@@ -233,35 +255,3 @@ private fun CallExpression.cpgCheckArgsSize(parameters: Array<*>, hasVarargs: Bo
     } else {
         parameters.size == arguments.size
     }
-
-/**
- * Checks The length of a node if it represents a Collection
- * Be aware that this checks the total length of Literals contained within, not the length of arguments
- */
-private fun Node.getLength(): Int {
-    return when (this) {
-        is Reference -> {
-            when (val init = (this.refersTo as? VariableDeclaration)?.initializer) {
-                is MemberCallExpression -> init.base?.getLength() ?: 0
-                is InitializerListExpression -> init.initializers.sumOf { it.getLength() }
-                is BinaryOperator -> init.lhs.getLength() + init.rhs.getLength()
-                else -> 0
-            }
-        }
-        is NewArrayExpression -> {
-            when (val init = this.initializer) {
-                is InitializerListExpression ->  init.initializers.sumOf { it.getLength() }
-                else -> 0
-            }
-        }
-        is MemberCallExpression -> {
-            this.base?.getLength() ?: 0
-        }
-        is BinaryOperator -> {
-            this.lhs.getLength() + this.rhs.getLength()
-        }
-        // We need to check for "null" as it is the value in case of an empty Byte array
-        is Literal<*> -> return this.value.toString().length
-        else -> 0
-    }
-}

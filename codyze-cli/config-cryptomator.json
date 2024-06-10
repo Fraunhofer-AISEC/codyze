@@ -1,0 +1,9 @@
+{
+  "good-findings": true,
+  "runCoko": {
+    "spec": ["../codyze-specification-languages/coko/coko-dsl/src/test/resources/Cryptomancer/cm-model.codyze.kts"],
+    "cokoCpg": {
+      "source": ["../../cryptolib/src/main/java/org/cryptomator/cryptolib/", "../../cryptolib/src/test/java/org/cryptomator/cryptolib/"]
+    }
+  }
+}

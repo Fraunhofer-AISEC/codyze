@@ -34,7 +34,6 @@ import io.github.detekt.sarif4k.Artifact
 import io.github.detekt.sarif4k.ArtifactLocation
 import io.github.detekt.sarif4k.ToolComponent
 import kotlin.io.path.absolutePathString
-import kotlin.reflect.KFunction
 
 typealias Nodes = Collection<Node>
 
@@ -80,14 +79,6 @@ class CokoCpgBackend(config: BackendConfiguration) :
         OrderEvaluator(
             baseNodes = baseNodes.cpgGetNodes(),
             order = Order().apply(block)
-        )
-
-    /** Verifies that the argument at [argPos] of [targetOp] stems from a call to [originOp] */
-    override fun argumentOrigin(targetOp: KFunction<Op>, argPos: Int, originOp: KFunction<Op>): ArgumentEvaluator =
-        ArgumentEvaluator(
-            targetCall = targetOp.getOp(),
-            argPos = argPos,
-            originCall = originOp.getOp()
         )
 
     /**

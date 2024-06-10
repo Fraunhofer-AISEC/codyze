@@ -375,13 +375,6 @@ fun enforceStrongReseedingInterval(reseeding: ReseedingSecureRandom) =
         only(reseeding.construct(Wildcard, Wildcard, 0..<maxReseedInterval, Wildcard))
     }
 
-//@Rule("Use SecureRandom.getInstanceStrong() as the seeder")
-//fun enforceStrongReseedingSeeder(reseeding: ReseedingSecureRandom, secureRandom: SecureRandom) =
-//    // FIXME: FQN of SecureRandom.getInstanceStrong is not consistent
-//    // FIXME: To prevent false positives the seeder must be set within the analyzed files
-//    argumentOrigin(reseeding::construct, 0, secureRandom::getInstanceStrong)
-
-
 @Rule("Do not use short scrypt password")
 fun forbidShortScryptPassword(scrypt: Scrypt) =
     never(scrypt.scrypt(Length(0..<8), Wildcard, Wildcard, Wildcard, Wildcard))

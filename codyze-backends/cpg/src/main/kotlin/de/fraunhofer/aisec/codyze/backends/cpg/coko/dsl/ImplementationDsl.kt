@@ -186,8 +186,7 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
             is Length -> that.all {
                 val size = sizeof(it).value
                 if (size == -1) {
-                    // throw NotApplicableException("The size could not be determined")
-                    // TODO: handle case where size could not be determined
+                    // TODO: handle case where size could not be determined -> OPEN Finding
                 }
                 size in this.value
             }

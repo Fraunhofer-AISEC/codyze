@@ -10,7 +10,7 @@ dokka = "1.9.20"
 
 [libraries]
 sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.6.0"}  # The code can be found here: https://github.com/detekt/sarif4k. It was generated using https://app.quicktype.io/
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.6.3"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.7.0"}
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 
 # CPG official releases

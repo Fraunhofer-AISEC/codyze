@@ -164,35 +164,44 @@ context(CallExpression)
  * - If this is a [Node], we use the DFG of the CPG.
  */
 infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
-    if (this is Wildcard) {
-        true
-    } else {
-        when (this) {
-            is String -> that.any {
-                val regex = Regex(this)
-                regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
-            }
-            // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
-            is LongRange -> that.all {
-                min(it).value.toInt() > this.first && max(it).value.toInt() < this.last
-            }
-            is IntRange -> that.all {
-                min(it).value.toInt() > this.first && max(it).value.toInt() < this.last
-            }
-            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Node -> that.any { dataFlow(this, it).value }
-            is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
-            is Length -> that.all {
-                val size = sizeof(it).value
-                if (size == -1) {
-                    // TODO: handle case where size could not be determined -> OPEN Finding
-                }
-                size in this.value
-            }
-            else -> this in that.map { (it as Expression).evaluate() }
+    when (this) {
+        is Wildcard -> true
+        is String -> that.any {
+            val regex = Regex(this)
+            regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
         }
+        // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
+        is LongRange, is IntRange -> checkRange(that)
+        is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+        is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+        is Node -> that.any { dataFlow(this, it).value }
+        is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
+        is Length -> checkLength(that)
+        else -> this in that.map { (it as Expression).evaluate() }
     }
+
+private fun Any.checkRange(that: Collection<Node>): Boolean {
+    val range = when (this) {
+        is IntRange -> this
+        is LongRange -> this
+        else -> throw IllegalArgumentException("Unexpected type")
+    }
+    return that.all {
+        val minValue = min(it).value.toInt()
+        val maxValue = max(it).value.toInt()
+        minValue > range.first().toInt() && maxValue < range.last().toInt()
+    }
+}
+
+private fun Length.checkLength(that: Collection<Node>): Boolean {
+    return that.all {
+        val size = sizeof(it).value
+        if (size == -1) {
+            // TODO: handle case where size could not be determined -> OPEN Finding
+        }
+        size in this.value
+    }
+}
 
 context(CokoBackend)
 // TODO: better description

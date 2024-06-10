@@ -64,22 +64,51 @@ class CryptorProviderImpl {
         }
 }
 
-class FileContentCryptorImpl {
-    fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
+interface FileContentCryptorImpl {
+    fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op
+    fun decryptChunk(cipher: Any?, clear: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op
+    fun encryptChunk(cleartext: Any?, cipherText: Any?, chunkNumber: Any?, headerNonce: Any?, fileKey: Any?): Op
+}
+
+class FileContentCryptorImplv1: FileContentCryptorImpl {
+    override fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
+        op {
+            "org.cryptomator.cryptolib.v1.FileContentCryptorImpl.decryptChunk" {
+                signature(cipher, chunkNum, header, auth)
+            }
+        }
+
+    override fun decryptChunk(cipher: Any?, clear: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
+        op {
+            "org.cryptomator.cryptolib.v1.FileContentCryptorImpl.decryptChunk" {
+                signature(cipher, clear, chunkNum, header, auth)
+            }
+        }
+
+    override fun encryptChunk(cleartext: Any?, cipherText: Any?, chunkNumber: Any?, headerNonce: Any?, fileKey: Any?): Op =
+        op {
+            "org.cryptomator.cryptolib.v1.FileContentCryptorImpl.encryptChunk" {
+                signature(cleartext, cipherText, chunkNumber, headerNonce, fileKey)
+            }
+        }
+}
+
+class FileContentCryptorImplv2: FileContentCryptorImpl {
+    override fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
         op {
             "org.cryptomator.cryptolib.v2.FileContentCryptorImpl.decryptChunk" {
                 signature(cipher, chunkNum, header, auth)
             }
         }
 
-    fun decryptChunk(cipher: Any?, clear: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
+    override fun decryptChunk(cipher: Any?, clear: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
         op {
             "org.cryptomator.cryptolib.v2.FileContentCryptorImpl.decryptChunk" {
                 signature(cipher, clear, chunkNum, header, auth)
             }
         }
 
-    fun encryptChunk(cleartext: Any?, cipherText: Any?, chunkNumber: Any?, headerNonce: Any?, fileKey: Any?): Op =
+    override fun encryptChunk(cleartext: Any?, cipherText: Any?, chunkNumber: Any?, headerNonce: Any?, fileKey: Any?): Op =
         op {
             "org.cryptomator.cryptolib.v2.FileContentCryptorImpl.encryptChunk" {
                 signature(cleartext, cipherText, chunkNumber, headerNonce, fileKey)
@@ -87,20 +116,47 @@ class FileContentCryptorImpl {
         }
 }
 
-class FileHeaderImpl {
-    fun construct(nonce: Any?, payload: Any?): Op =
+interface FileHeaderImpl {
+    fun construct(nonce: Any?, payload: Any?): Op
+    fun getReserved(): Op
+    fun setReserved(reserved: Long?): Op
+}
+
+class FileHeaderImplv1: FileHeaderImpl {
+    override fun construct(nonce: Any?, payload: Any?): Op =
+        constructor("org.cryptomator.cryptolib.v1.FileHeaderImpl") {
+            signature(nonce, payload)
+        }
+
+    override fun getReserved(): Op =
+        op {
+            "org.cryptomator.cryptolib.v1.FileHeaderImpl.getReserved" {
+                signature()
+            }
+        }
+
+    override fun setReserved(reserved: Long?): Op =
+        op {
+            "org.cryptomator.cryptolib.v1.FileHeaderImpl.setReserved" {
+                signature(reserved)
+            }
+        }
+}
+
+class FileHeaderImplv2: FileHeaderImpl {
+    override fun construct(nonce: Any?, payload: Any?): Op =
         constructor("org.cryptomator.cryptolib.v2.FileHeaderImpl") {
             signature(nonce, payload)
         }
 
-    fun getReserved(): Op =
+    override fun getReserved(): Op =
         op {
             "org.cryptomator.cryptolib.v2.FileHeaderImpl.getReserved" {
                 signature()
             }
         }
 
-    fun setReserved(reserved: Long?): Op =
+    override fun setReserved(reserved: Long?): Op =
         op {
             "org.cryptomator.cryptolib.v2.FileHeaderImpl.setReserved" {
                 signature(reserved)
@@ -336,13 +392,21 @@ fun forbidShortScryptSalt(scrypt: Scrypt) =
     never(scrypt.scrypt(Wildcard, Length(0..<32), Wildcard, Wildcard, Wildcard))
 
 // See BSI TR-02102-1 3.1.2.
-@Rule("Do not use a short Nonce in the FileHeader")
-fun forbidShortGCMNonce(fileHeaderImpl: FileHeaderImpl) =
+@Rule("Do not use a short Nonce in the v1 FileHeader")
+fun forbidShortGCMNonceV1(fileHeaderImpl: FileHeaderImplv1) =
     never(fileHeaderImpl.construct(Length(0..<12), Wildcard))
 
 // See BSI TR-02102-1 3.1.2.
-@Rule("Do not use a short Nonce in the FileContentCryptor")
-fun forbidShortGCMNonce(fileContentCryptorImpl: FileContentCryptorImpl) =
+@Rule("Do not use a short Nonce in the v2 FileHeader")
+fun forbidShortGCMNonceV2(fileHeaderImpl: FileHeaderImplv2) =
+    never(fileHeaderImpl.construct(Length(0..<12), Wildcard))
+
+// See BSI TR-02102-1 3.1.2.
+@Rule("Do not use a short Nonce in the v1 FileContentCryptor")
+fun forbidShortGCMNonceV1(fileContentCryptorImpl: FileContentCryptorImplv1) =
     never(fileContentCryptorImpl.encryptChunk(Wildcard, Wildcard, Wildcard, Length(0..<12), Wildcard))
 
-
+// See BSI TR-02102-1 3.1.2.
+@Rule("Do not use a short Nonce in the v2 FileContentCryptor")
+fun forbidShortGCMNonceV2(fileContentCryptorImpl: FileContentCryptorImplv2) =
+    never(fileContentCryptorImpl.encryptChunk(Wildcard, Wildcard, Wildcard, Length(0..<12), Wildcard))

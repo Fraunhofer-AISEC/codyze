@@ -2,14 +2,20 @@ package de.fraunhofer.aisec.codyze.specificationLanguage.cpg.native
 
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
-import de.fraunhofer.aisec.cpg.graph.Annotation
 import de.fraunhofer.aisec.cpg.graph.declarations.EnumConstantDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
-import de.fraunhofer.aisec.cpg.passes.astParent
+import org.xml.sax.InputSource
+import java.io.StringReader
+import java.io.StringWriter
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 
 class TSFIInformationExtractor: InformationExtractor() {
 
@@ -28,14 +34,14 @@ class TSFIInformationExtractor: InformationExtractor() {
             .flatMap { it.allChildren<EnumConstantDeclaration>() }
         val securityBs = annotatedNode.filter { it.annotations.any {it.name.lastPartsMatch(Name("TSFI.Behavior")) } }
             .flatMap { it.allChildren<EnumConstantDeclaration>() }
-        val sfOptions = annotatedNode.filter { it.annotations.any { it.name.toString().endsWith("SF.Options") } }
+        val sfObjectives = annotatedNode.filter { it.annotations.any { it.name.toString().endsWith("SF.Objectives") } }
         val sfRequirements = annotatedNode.filter { it.annotations.any { it.name.toString().endsWith("SF.Requirements") } }
         val sfActions = annotatedNode.filter { it.annotations.any { it.name.toString().endsWith("SF.SecurityActions") } }
         //val securityBehavior = annotatedNode.filter { it.annotations.any {it.name.endsWith("TSFI.Behavior") } }.flatMap { it.allChildren<EnumConstantDeclaration>() }
 
         for (sf in sfs){
             if (!securityFunctionMap.contains(sf.name)){
-                securityFunctionMap.put(sf.name, SecurityFunction(sf.name.toString(),sf.comment?:"",
+                securityFunctionMap.put(sf.name, SecurityFunction(sf.name.toString(),(sf.comment?:"").trimIndent().trim().replace("\n",""),
                     mutableSetOf(), mutableSetOf(), mutableSetOf(), mutableSetOf()))
             }
         }
@@ -44,26 +50,26 @@ class TSFIInformationExtractor: InformationExtractor() {
             securityBehavior.add(securityB.name.toString())
         }
 
-        // Options
-        sfOptions.forEach {
-            val sfDefinitions: List<Node> = it.allChildren<Node> { it.astChildren.any { child ->
-                securityFunctionMap.keys.any { it.lastPartsMatch(child.name) } } }
-            sfDefinitions.forEach {parent ->
-                it.astChildren.filter { it is Reference }.firstOrNull()?.let {sf ->
-                    val secF = securityFunctionMap.keys.first { it.lastPartsMatch(sf.name) }
-                    securityFunctionMap.get(secF)?.options?.addAll(parent.allChildren<Literal<String>>().map { it.name.toString() })
+        // Objectives
+        sfObjectives.forEach {
+            val sfToObjectives: List<Node> = it.allChildren<Node> { it.astChildren.any { child ->
+                securityFunctionMap.keys.any { it.localName == child.name.localName } } }
+            sfToObjectives.forEach {parent ->
+                parent.astChildren.filter { it is Reference }.firstOrNull()?.let {sf ->
+                    val secF = securityFunctionMap.keys.first { it.localName == sf.name.localName }
+                    securityFunctionMap[secF]?.objectives?.addAll(parent.allChildren<Literal<String>>().map { it.value?:"" })
                 }
             }
         }
 
         // Requirements
         sfRequirements.forEach {
-            val sfDefinitions: List<Node> = it.allChildren<Node> { it.astChildren.any { child ->
-                securityFunctionMap.keys.any { it.lastPartsMatch(child.name) } } }
-            sfDefinitions.forEach {parent ->
-                it.astChildren.filter { it is Reference }.firstOrNull()?.let {sf ->
-                    val secF = securityFunctionMap.keys.first { it.lastPartsMatch(sf.name) }
-                    securityFunctionMap.get(secF)?.requirements?.addAll(parent.allChildren<Literal<String>>().map { it.name.toString() })
+            val sfToRequirements: List<Node> = it.allChildren<Node> { it.astChildren.any { child ->
+                securityFunctionMap.keys.any { it.localName == child.name.localName } } }
+            sfToRequirements.forEach {parent ->
+                parent.astChildren.filter { it is Reference }.firstOrNull()?.let {sf ->
+                    val secF = securityFunctionMap.keys.first { it.localName == sf.name.localName }
+                    securityFunctionMap[secF]?.requirements?.addAll(parent.allChildren<Literal<String>>().map { it.value?:"" })
                 }
             }
         }
@@ -71,12 +77,12 @@ class TSFIInformationExtractor: InformationExtractor() {
 
         // Actions
         sfActions.forEach {
-            val sfDefinitions: List<Node> = it.allChildren<Node> { it.astChildren.any { child ->
-                securityFunctionMap.keys.any { it.lastPartsMatch(child.name) } } }
-            sfDefinitions.forEach {parent ->
-                it.astChildren.filter { it is Reference }.firstOrNull()?.let {sf ->
-                    val secF = securityFunctionMap.keys.first { it.lastPartsMatch(sf.name) }
-                    securityFunctionMap.get(secF)?.actions?.addAll(parent.allChildren<Literal<String>>().map { it.name.toString() })
+            val sfToActions: List<Node> = it.allChildren<Node> { it.astChildren.any { child ->
+                securityFunctionMap.keys.any { it.localName == child.name.localName } } }
+            sfToActions.forEach {parent ->
+                parent.astChildren.filter { it is Reference }.firstOrNull()?.let {sf ->
+                    val secF = securityFunctionMap.keys.first { it.localName == sf.name.localName }
+                    securityFunctionMap[secF]?.actions?.addAll(parent.allChildren<Literal<String>>().map { it.value?:"" })
                 }
             }
         }
@@ -125,7 +131,55 @@ class TSFIInformationExtractor: InformationExtractor() {
 
 
     override fun formatInformation(formatter: Formatter): String {
-        return ""
+        var xml = ""
+
+        for (sf in securityFunctionMap.values){
+            var sfContent = ""
+            sfContent += formatter.format("description", sf.description, mapOf())
+            sfContent += formatter.format("rational", "", mapOf())
+
+            var content = ""
+            for (obj in sf.objectives){
+                content += formatter.format("ref","", mapOf("target" to obj))
+            }
+            sfContent += formatter.format("objectives", content, mapOf())
+
+
+            content = ""
+            for (obj in sf.requirements){
+                content += formatter.format("ref","", mapOf("target" to obj))
+            }
+            sfContent += formatter.format("requirements", content, mapOf())
+
+            xml += formatter.format("security-function", sfContent, mapOf("id" to replaceSFName(sf.name)))
+        }
+
+
+        return prettyPrint(formatter.format("security-specification", xml, mapOf()),2,true)
+    }
+
+    private fun replaceSFName(name:String): String{
+        var sfname = name.substringAfterLast("de.fraunhofer.aisec.codyze.").replace(".TOEDefinitions.SecurityFunction","")
+        return sfname.lowercase()
+    }
+    private fun prettyPrint(xmlString: String, indent: Int, ignoreDeclaration: Boolean):String{
+        try {
+            val src = InputSource(StringReader(xmlString));
+            val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(src);
+
+            val transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setAttribute("indent-number", indent);
+            val transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, if(ignoreDeclaration)  "yes" else "no");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            val out = StringWriter();
+            transformer.transform(DOMSource(document), StreamResult(out));
+            return out.toString();
+        } catch (e:Exception) {
+            throw RuntimeException("Error occurs when pretty-printing xml:\n" + xmlString, e);
+        }
     }
 
     /**
@@ -134,5 +188,5 @@ class TSFIInformationExtractor: InformationExtractor() {
      */
     data class TSFI(val securityBehavior:Name, val functions:Set<Node>)
 
-    data class SecurityFunction(val name:String, val description:String,val options:MutableSet<String>, val requirements: MutableSet<String>, val actions: MutableSet<String>, val tsfis:MutableSet<TSFI>)
+    data class SecurityFunction(val name:String, val description:String, val objectives:MutableSet<String>, val requirements: MutableSet<String>, val actions: MutableSet<String>, val tsfis:MutableSet<TSFI>)
 }

@@ -29,6 +29,9 @@ class CPGQueryExecutor(private val configuration: CPGQueryConfiguration, private
         queries.forEach {
             findings.put(it, it.query(backend))
         }
+        val informationExtractor = TSFIInformationExtractor()
+        informationExtractor.extractInformation(backend.cpg)
+        informationExtractor.printInformation(XMLFormatter(),System.out)
 
         val cpgQuerySarifBuilder = CPGQuerySarifBuilder(queries = queries, backend = backend)
         return cpgQuerySarifBuilder.buildRun(findings = findings)

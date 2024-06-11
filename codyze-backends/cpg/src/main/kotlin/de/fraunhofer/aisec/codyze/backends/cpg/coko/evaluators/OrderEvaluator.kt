@@ -163,7 +163,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
             hashToMethod = hashToMethod,
             nodeToRelevantMethod = nodesToOp,
             consideredBases = baseNodes.flatMap { node ->
-                node.followNextDFGEdgesUntilHit { next ->
+                node.followNextFullDFGEdgesUntilHit { next ->
                     next is VariableDeclaration || next is Reference
                 }.fulfilled.mapNotNull { path ->
                     path.lastOrNull()

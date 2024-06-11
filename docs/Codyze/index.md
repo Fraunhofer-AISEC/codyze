@@ -13,7 +13,7 @@ description: >
 !!! info
 
     Codyze is currently being redesigned.
-    For the documentation for the legacy version of Codyze, please look [here <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/tree/v2.3.0/docs){target=_blank}.
+    For the documentation for the last stable version of Codyze using the MARK specification language, please look [here <i class="fas fa-external-link-alt"></i>](https://github.com/Fraunhofer-AISEC/codyze/tree/v2.3.0/docs){target=_blank}.
 
 Security is hard and implementing it correctly is even harder. Luckily, there are well-established and battle-proven libraries available that do the heavy lifting of security functions such as authentication, logging or encryption. But even when using these libraries in application code, developers run the risk of making subtle errors which may undermine the security of their application. This is where Codyze helps. By integrating it into an IDE or CI pipeline, developers can analyze their source code while programming and check if they are using libraries in a correct or in an insecure way.
 

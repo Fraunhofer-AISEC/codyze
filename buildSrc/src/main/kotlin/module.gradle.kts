@@ -16,7 +16,8 @@ dependencies {
 
     // Unit tests
     testImplementation(kotlin("test"))
-    testImplementation(libs.junit.params)
+    testImplementation(platform(libs.junit.bom)) // ensure aligned JUnit artifact version
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

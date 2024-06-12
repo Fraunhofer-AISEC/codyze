@@ -131,7 +131,7 @@ It takes three arguments:
 The evaluator will then try to check whether the argument of the target `Op` was always produced by a call to the origin `Op`.
 If this is not the case or the Evaluator lacks information to clearly determine the origin of the argument, it will generate a finding.
 
-```kotlin title="Rule example using argumentOf"
+```kotlin title="Rule example using argumentOrigin"
 @Rule
 fun `only call Foo::critical with argument produced by Bar::strong`(foo: Foo, bar: Bar) =
     argumentOrigin(Foo::critical, 0, Bar::strong)

@@ -26,7 +26,7 @@ dependencies {
 
     // https://mvnrepository.com/artifact/net.sourceforge.pmd/
     implementation("net.sourceforge.pmd:pmd-core:7.1.0")
-    implementation("net.sourceforge.pmd:pmd-java:7.1.0")
+    implementation("net.sourceforge.pmd:pmd-java:7.2.0")
 }
 
 publishing {

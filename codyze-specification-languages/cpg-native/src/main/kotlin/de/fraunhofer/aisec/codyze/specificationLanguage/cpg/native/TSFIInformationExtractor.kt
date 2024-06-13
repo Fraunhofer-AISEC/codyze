@@ -5,6 +5,7 @@ import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.EnumConstantDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
@@ -26,7 +27,7 @@ class TSFIInformationExtractor: InformationExtractor() {
     /**
      * Reverse map to more efficiently find SFs related to an appearance of an action.
      */
-    val actionsToSFReverseMap: Map<Name,SecurityFunction> = mutableMapOf()
+    val actionsToSFReverseMap: MutableMap<Name,MutableSet<SecurityFunction>> = mutableMapOf()
 
     override fun extractInformation(result: TranslationResult) {
         val annotatedNode = result.allChildren<Node>({ it.annotations.isNotEmpty()})
@@ -41,7 +42,7 @@ class TSFIInformationExtractor: InformationExtractor() {
 
         for (sf in sfs){
             if (!securityFunctionMap.contains(sf.name)){
-                securityFunctionMap.put(sf.name, SecurityFunction(sf.name.toString(),(sf.comment?:"").trimIndent().trim().replace("\n",""),
+                securityFunctionMap.put(sf.name, SecurityFunction(sf.name,(sf.comment?:"").trimIndent().trim().replace("\n",""),
                     mutableSetOf(), mutableSetOf(), mutableSetOf(), mutableSetOf()))
             }
         }
@@ -82,7 +83,17 @@ class TSFIInformationExtractor: InformationExtractor() {
             sfToActions.forEach {parent ->
                 parent.astChildren.filter { it is Reference }.firstOrNull()?.let {sf ->
                     val secF = securityFunctionMap.keys.first { it.localName == sf.name.localName }
-                    securityFunctionMap[secF]?.actions?.addAll(parent.allChildren<Literal<String>>().map { it.value?:"" })
+                    securityFunctionMap[secF]?.actions?.addAll(parent.allChildren<Literal<String>>().map { Name(it.value?:"") })
+                }
+            }
+        }
+
+        securityFunctionMap.values.forEach { sf ->
+            sf.actions.forEach { actionName ->
+                if(!actionsToSFReverseMap.contains(actionName)){
+                    actionsToSFReverseMap[actionName] = mutableSetOf(sf)
+                }else{
+                    actionsToSFReverseMap[actionName]?.add(sf)
                 }
             }
         }
@@ -111,22 +122,47 @@ class TSFIInformationExtractor: InformationExtractor() {
                 }
 
                 if(tsfiSFs.isEmpty()){
-                    // TODO we need an inverse map from actions to SFs
-                    // Todo parse out tsfis, search for all eog and invokes reachable calls and associate them to a sf based on the
-                    // parsedfunction name
-
-                    // Todo find all nested EOG starters and perform a reachability analsis following EOG and invokes, getting all CallExpressions
-
+                    val calls = annotationExtendedNode.flatMap { reachableCalls(it) }
+                    calls.forEach { call ->
+                        actionsToSFReverseMap.keys.forEach { actionKey ->
+                            if(call.name.toString().startsWith(actionKey.toString())){
+                                tsfiSFs.addAll(actionsToSFReverseMap[actionKey]?.map { it.name }?: setOf())
+                            }
+                        }
+                    }
+                    if(tsfiSFs.isEmpty()){
+                        // TODO Here we could investigate why we do not find the SF for it.
+                    }
                 }
 
             }
-
-            val tsfiDeclaration = TSFI(behavior?:Name(""), annotationExtendedNode)
+            val description = annotationExtendedNode.map { it.comment?:"" }.joinToString("\n")
+            val tsfiDeclaration = TSFI(description, behavior?:Name(""), annotationExtendedNode)
             tsfiSFs.forEach {
                 securityFunctionMap[it]?.tsfis?.add(tsfiDeclaration)
             }
         }
 
+    }
+
+    private fun reachableCalls(start:Node):Set<CallExpression>{
+        val reachable = mutableSetOf<Node>(start)
+        val worklist = mutableListOf<Node>(start)
+        val eogStarters = start.allEOGStarters
+        worklist.addAll(eogStarters)
+        reachable.addAll(eogStarters)
+        while (worklist.isNotEmpty()){
+            val current = worklist.removeFirst()
+            val nextNodes = mutableSetOf<Node>()
+            nextNodes.addAll(current.nextEOG)
+            if(current is CallExpression){
+                nextNodes.addAll(current.invokes)
+            }
+            nextNodes.removeIf { reachable.contains(it) }
+            worklist.addAll(nextNodes)
+            reachable.addAll(nextNodes)
+        }
+        return reachable.filterIsInstance<CallExpression>().toSet()
     }
 
 
@@ -151,7 +187,7 @@ class TSFIInformationExtractor: InformationExtractor() {
             }
             sfContent += formatter.format("requirements", content, mapOf())
 
-            xml += formatter.format("security-function", sfContent, mapOf("id" to replaceSFName(sf.name)))
+            xml += formatter.format("security-function", sfContent, mapOf("id" to replaceSFName(sf.name.toString())))
         }
 
 
@@ -186,7 +222,7 @@ class TSFIInformationExtractor: InformationExtractor() {
      * In contrast to the annotation the data class does not contain the security function.When the TSFIs are parsed, the
      * associated security functions are either provided in the annotation or identified through static code analysis.
      */
-    data class TSFI(val securityBehavior:Name, val functions:Set<Node>)
+    data class TSFI(val description: String, val securityBehavior:Name, val functions:Set<Node>)
 
-    data class SecurityFunction(val name:String, val description:String, val objectives:MutableSet<String>, val requirements: MutableSet<String>, val actions: MutableSet<String>, val tsfis:MutableSet<TSFI>)
+    data class SecurityFunction(val name:Name, val description:String, val objectives:MutableSet<String>, val requirements: MutableSet<String>, val actions: MutableSet<Name>, val tsfis:MutableSet<TSFI>)
 }

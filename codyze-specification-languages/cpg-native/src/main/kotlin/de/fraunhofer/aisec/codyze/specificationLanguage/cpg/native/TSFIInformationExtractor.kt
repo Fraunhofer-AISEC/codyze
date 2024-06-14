@@ -9,6 +9,7 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.xml.sax.InputSource
 import java.io.StringReader
 import java.io.StringWriter
@@ -20,9 +21,13 @@ import javax.xml.transform.stream.StreamResult
 
 class TSFIInformationExtractor: InformationExtractor() {
 
+    private val logger = KotlinLogging.logger {}
+
     val securityFunctionMap: MutableMap<Name, SecurityFunction> = mutableMapOf()
 
     val securityBehavior: MutableSet<String> = mutableSetOf()
+
+    val tsfiDeclarations: MutableList<TSFI> = mutableListOf<TSFI>()
 
     /**
      * Reverse map to more efficiently find SFs related to an appearance of an action.
@@ -43,7 +48,7 @@ class TSFIInformationExtractor: InformationExtractor() {
         for (sf in sfs){
             if (!securityFunctionMap.contains(sf.name)){
                 securityFunctionMap.put(sf.name, SecurityFunction(sf.name,(sf.comment?:"").trimIndent().trim().replace("\n",""),
-                    mutableSetOf(), mutableSetOf(), mutableSetOf(), mutableSetOf()))
+                    mutableSetOf(), mutableSetOf(), mutableSetOf()))
             }
         }
 
@@ -99,6 +104,9 @@ class TSFIInformationExtractor: InformationExtractor() {
         }
 
         val tsfis = annotatedNode.filter { it.annotations.any {it.name.lastPartsMatch(Name("TSFI")) } }
+        var preSF = 0
+        var postSF = 0
+        var identifiedSF = 0
 
         for (tsfi in tsfis){
             val tsfiSFs: MutableSet<Name> = mutableSetOf()
@@ -116,32 +124,38 @@ class TSFIInformationExtractor: InformationExtractor() {
 
             tsfiAnnotation.members.forEach {
                 if(it.value is MemberExpression){
-                    behavior = Name(it.value.toString())
+                    behavior = Name(it.value?.code.toString()?:it.name.toString())
                 }else{
-                    tsfiSFs.addAll(it.value.allChildren<MemberExpression>().map { Name(it.toString()) }.toMutableSet())
+                    tsfiSFs.addAll(it.value.allChildren<MemberExpression>().map { Name(it.code.toString()) }.toMutableSet())
                 }
 
-                if(tsfiSFs.isEmpty()){
-                    val calls = annotationExtendedNode.flatMap { reachableCalls(it) }
-                    calls.forEach { call ->
-                        actionsToSFReverseMap.keys.forEach { actionKey ->
-                            if(call.name.toString().startsWith(actionKey.toString())){
-                                tsfiSFs.addAll(actionsToSFReverseMap[actionKey]?.map { it.name }?: setOf())
-                            }
+            }
+
+            if(tsfiSFs.isEmpty()){
+                val calls = annotationExtendedNode.flatMap { reachableCalls(it) }
+                calls.forEach { call ->
+                    actionsToSFReverseMap.keys.forEach { actionKey ->
+                        if(call.name.toString().startsWith(actionKey.toString())){
+                            tsfiSFs.addAll(actionsToSFReverseMap[actionKey]?.map { it.name }?: setOf())
                         }
                     }
-                    if(tsfiSFs.isEmpty()){
-                        // TODO Here we could investigate why we do not find the SF for it.
-                    }
                 }
+                if(tsfiSFs.isEmpty()){
+                    // TODO Here we could investigate why we do not find the SF for it.
+                }else{
+                    postSF++
+                }
+            }else{
+                preSF++
+            }
 
-            }
-            val description = annotationExtendedNode.map { it.comment?:"" }.joinToString("\n")
-            val tsfiDeclaration = TSFI(description, behavior?:Name(""), annotationExtendedNode)
-            tsfiSFs.forEach {
-                securityFunctionMap[it]?.tsfis?.add(tsfiDeclaration)
-            }
+            val description = annotationExtendedNode.map { it.comment?:"" }.joinToString("").trimIndent().trim().replace("\n","")
+            val tsfiDeclaration = TSFI(description, behavior?:Name(""), annotationExtendedNode,
+                tsfiSFs.flatMap { tsfiSFName ->
+                    securityFunctionMap.entries.filter { it.key.toString().substringAfterLast(".") == tsfiSFName.toString().substringAfterLast(".") }.map { it.value } }.toMutableSet())
+            tsfiDeclarations.add(tsfiDeclaration)
         }
+        logger.info { "TSFI: ${tsfiDeclarations.size}: $preSF security functions explicitly specified, $postSF security functions identified through analysis." }
 
     }
 
@@ -166,7 +180,7 @@ class TSFIInformationExtractor: InformationExtractor() {
     }
 
 
-    override fun formatInformation(formatter: Formatter): String {
+    override fun formatSFInformation(formatter: Formatter): String {
         var xml = ""
 
         for (sf in securityFunctionMap.values){
@@ -192,6 +206,46 @@ class TSFIInformationExtractor: InformationExtractor() {
 
 
         return prettyPrint(formatter.format("security-specification", xml, mapOf()),2,true)
+    }
+
+    override fun formatTSFIInformation(formatter: Formatter): String {
+        var xml = ""
+        var id = 0
+        for (tsfi in tsfiDeclarations){
+            var tsfiContent = formatter.format("description", tsfi.description, mapOf())
+
+            var parametersContent = ""
+
+            if(parametersContent.isEmpty()) parametersContent = " "
+            tsfiContent += formatter.format("parameters", parametersContent, mapOf())
+
+            var errorsContent = ""
+
+            if(errorsContent.isEmpty()) errorsContent = " "
+            tsfiContent += formatter.format("errors", errorsContent, mapOf())
+
+
+            var afContent = ""
+            for(sf in tsfi.sf){
+                afContent += formatter.format("ref", "", mapOf("target" to replaceSFName(sf.name.toString())))
+            }
+            if(afContent.isEmpty()) afContent = " "
+
+            tsfiContent += formatter.format("security-functions", afContent, mapOf())
+
+
+            var actionsContent = ""
+            if(actionsContent.isEmpty()) actionsContent = " "
+
+            tsfiContent += formatter.format("actions", actionsContent, mapOf())
+
+
+            xml += formatter.format("tsfi", tsfiContent, mapOf("id" to "tsfi$id", "security" to tsfi.securityBehavior.localName.substringAfterLast(".").lowercase()))
+            id++
+        }
+
+
+        return prettyPrint(formatter.format("functional-specification", xml, mapOf()),2,true)
     }
 
     private fun replaceSFName(name:String): String{
@@ -222,7 +276,7 @@ class TSFIInformationExtractor: InformationExtractor() {
      * In contrast to the annotation the data class does not contain the security function.When the TSFIs are parsed, the
      * associated security functions are either provided in the annotation or identified through static code analysis.
      */
-    data class TSFI(val description: String, val securityBehavior:Name, val functions:Set<Node>)
+    data class TSFI(val description: String, val securityBehavior:Name, val functions:Set<Node>, val sf:MutableSet<SecurityFunction>)
 
-    data class SecurityFunction(val name:Name, val description:String, val objectives:MutableSet<String>, val requirements: MutableSet<String>, val actions: MutableSet<Name>, val tsfis:MutableSet<TSFI>)
+    data class SecurityFunction(val name:Name, val description:String, val objectives:MutableSet<String>, val requirements: MutableSet<String>, val actions: MutableSet<Name>)
 }

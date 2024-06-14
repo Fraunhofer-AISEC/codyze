@@ -16,14 +16,22 @@ open abstract class InformationExtractor {
      */
     public abstract fun extractInformation(result: TranslationResult);
 
-    public fun printInformation(formatter: Formatter, printer: PrintStream){
-        printer.print(formatInformation(formatter))
+    public fun printInformation(formatter: Formatter, printerF1: PrintStream, printerF2:PrintStream){
+        printerF1.print(formatSFInformation(formatter))
+        printerF2.print(formatTSFIInformation(formatter))
     }
 
     /**
      * The extractor specific information needs to be given to the formatter in a key, value base fashion. The
      * implementation of this function can nest key values, generated lists etc.
      */
-    protected abstract fun formatInformation(formatter: Formatter):String;
+    protected abstract fun formatTSFIInformation(formatter: Formatter):String;
+
+    /**
+     * The extractor specific information needs to be given to the formatter in a key, value base fashion. The
+     * implementation of this function can nest key values, generated lists etc.
+     *
+     */
+    protected abstract fun formatSFInformation(formatter: Formatter):String;
 
 }

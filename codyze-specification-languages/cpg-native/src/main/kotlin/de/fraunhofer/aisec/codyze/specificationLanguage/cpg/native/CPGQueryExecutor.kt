@@ -6,6 +6,8 @@ import de.fraunhofer.aisec.codyze.specificationLanguage.cpg.native.queries.CPGQu
 import de.fraunhofer.aisec.codyze.specificationLanguage.cpg.native.queries.ExampleQuery
 import io.github.detekt.sarif4k.Run
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.io.FileOutputStream
+import java.io.PrintStream
 
 
 private val logger = KotlinLogging.logger {}
@@ -31,7 +33,9 @@ class CPGQueryExecutor(private val configuration: CPGQueryConfiguration, private
         }
         val informationExtractor = TSFIInformationExtractor()
         informationExtractor.extractInformation(backend.cpg)
-        informationExtractor.printInformation(XMLFormatter(),System.out)
+
+        informationExtractor.printInformation(XMLFormatter(),
+            PrintStream(FileOutputStream("sf.xml")), PrintStream(FileOutputStream("tsfi.xml")))
 
         val cpgQuerySarifBuilder = CPGQuerySarifBuilder(queries = queries, backend = backend)
         return cpgQuerySarifBuilder.buildRun(findings = findings)

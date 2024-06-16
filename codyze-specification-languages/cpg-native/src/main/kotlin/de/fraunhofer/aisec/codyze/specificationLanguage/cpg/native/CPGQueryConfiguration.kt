@@ -7,4 +7,4 @@ private val logger = KotlinLogging.logger { }
 
 data class CPGQueryConfiguration(
     val runQueries: Boolean // Queries may be turned of, if all executors are run and queries shoul be excluded
-) : ExecutorConfiguration {}
+) : ExecutorConfiguration

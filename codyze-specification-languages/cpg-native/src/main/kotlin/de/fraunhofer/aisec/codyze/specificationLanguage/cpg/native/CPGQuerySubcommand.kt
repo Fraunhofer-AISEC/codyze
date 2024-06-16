@@ -6,7 +6,7 @@ import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand
 
 @Suppress("UNUSED")
-class CPGQuerySubcommand: ExecutorCommand<CPGQueryExecutor>("runNativeQueries") {
+class CPGQuerySubcommand : ExecutorCommand<CPGQueryExecutor>("runNativeQueries") {
     val executorOptions by CPGQueryOptionGroup()
 
     init {

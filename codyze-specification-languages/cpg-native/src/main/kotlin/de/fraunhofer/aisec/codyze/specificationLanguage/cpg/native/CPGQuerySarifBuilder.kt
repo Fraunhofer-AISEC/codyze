@@ -4,22 +4,19 @@ import de.fraunhofer.aisec.codyze.core.VersionProvider
 import de.fraunhofer.aisec.codyze.core.backend.Backend
 import de.fraunhofer.aisec.codyze.specificationLanguage.cpg.native.queries.CPGQuery
 import io.github.detekt.sarif4k.*
-import kotlin.reflect.full.findAnnotation
 
 private fun CPGQuery.toReportingDescriptor() = ReportingDescriptor(
     id = id,
     name = javaClass.simpleName,
-    shortDescription =  MultiformatMessageString(text = shortDescription),
+    shortDescription = MultiformatMessageString(text = shortDescription),
     fullDescription = MultiformatMessageString(text = description),
     defaultConfiguration = ReportingConfiguration(level = level),
-    help = MultiformatMessageString(text = help)
-    ,
+    help = MultiformatMessageString(text = help),
     properties =
-        PropertyBag(
-            tags = tags.toSet(),
-            map = emptyMap()
-        )
-    ,
+    PropertyBag(
+        tags = tags.toSet(),
+        map = emptyMap()
+    ),
 )
 
 class CPGQuerySarifBuilder(val queries: List<CPGQuery>, val backend: Backend) {

@@ -6,7 +6,6 @@ import io.github.detekt.sarif4k.Level
 
 open abstract class CPGQuery {
 
-
     abstract val id: String
     abstract val shortDescription: String
     abstract val description: String
@@ -15,5 +14,4 @@ open abstract class CPGQuery {
     val tags: Set<String> = mutableSetOf()
 
     abstract fun query(backend: CPGBackend): List<CpgQueryFinding>
-
 }

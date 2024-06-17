@@ -47,7 +47,7 @@ class ArgumentEvaluator(val targetCall: Op, val argPos: Int, val originCall: Op)
                 findings.add(
                     CpgFinding(
                         message = "Complies with rule: " +
-                                "arg $argPos of \"${call.code}\" stems from a call to \"$originCall\"",
+                            "arg $argPos of \"${call.code}\" stems from a call to \"$originCall\"",
                         kind = Finding.Kind.Pass,
                         node = call,
                         relatedNodes = listOfNotNull(originCalls.firstOrNull { it.tryGetVariableDeclaration() == arg })
@@ -57,7 +57,7 @@ class ArgumentEvaluator(val targetCall: Op, val argPos: Int, val originCall: Op)
                 findings.add(
                     CpgFinding(
                         message = "Violation against rule: " +
-                                "arg $argPos of \"${call.code}\" does not stem from a call to \"$originCall\"",
+                            "arg $argPos of \"${call.code}\" does not stem from a call to \"$originCall\"",
                         kind = Finding.Kind.Fail,
                         node = call,
                         relatedNodes = listOf()

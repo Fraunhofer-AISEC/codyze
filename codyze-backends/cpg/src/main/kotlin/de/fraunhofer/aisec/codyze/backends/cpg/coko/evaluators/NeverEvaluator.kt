@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetAllNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.findUsages
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
@@ -27,7 +28,7 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
 import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
-class NeverEvaluator(val forbiddenOps: List<Op>) : Evaluator {
+class NeverEvaluator(private val forbiddenOps: List<Op>) : Evaluator {
 
     /** Default message if a violation is found */
     private val defaultFailMessage: String by lazy {
@@ -57,7 +58,8 @@ class NeverEvaluator(val forbiddenOps: List<Op>) : Evaluator {
                         CpgFinding(
                             message = "Violation against rule: \"${node.code}\". $failMessage",
                             kind = Finding.Kind.Fail,
-                            node = node
+                            node = node,
+                            relatedNodes = node.findUsages()
                         )
                     )
                 }

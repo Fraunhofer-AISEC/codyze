@@ -1,11 +1,5 @@
-import java.net.URI
-import java.security.spec.AlgorithmParameterSpec
-
-import java.io.OutputStream
-import java.security.KeyPair
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
-import javax.crypto.SecretKey
 
 plugins { id("cpg") }
 

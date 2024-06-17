@@ -43,7 +43,7 @@ class ArgumentEvaluator(val targetCall: Op, val argPos: Int, val originCall: Op)
         for (call in targetCalls) {
             val arg: VariableDeclaration? =
                 (call.arguments.getOrNull(argPos) as? Reference)?.refersTo as? VariableDeclaration
-            if (arg in variables && !arg!!.allowsInvalidPaths(originCalls.toList(), call)) {
+            if (arg in variables && arg?.allowsInvalidPaths(originCalls.toList(), call) == false) {
                 findings.add(
                     CpgFinding(
                         message = "Complies with rule: " +

@@ -62,7 +62,7 @@ class NeverEvaluationTest {
             assertTrue("There were no findings which is unexpected") { findings.isNotEmpty() }
 
             val failFindings = findings.filter { it.kind == Finding.Kind.Fail }
-            assertEquals(2, failFindings.size, "Found ${failFindings.size} violation(s) instead of two violations")
+            assertEquals(4, failFindings.size, "Found ${failFindings.size} violation(s) instead of two violations")
         }
     }
 

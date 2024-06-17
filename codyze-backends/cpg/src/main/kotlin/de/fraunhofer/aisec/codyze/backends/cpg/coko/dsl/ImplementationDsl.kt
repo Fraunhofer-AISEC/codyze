@@ -24,10 +24,13 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
-import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
+import de.fraunhofer.aisec.cpg.graph.declarations.*
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.executionPath
+import de.fraunhofer.aisec.cpg.query.max
+import de.fraunhofer.aisec.cpg.query.min
+import de.fraunhofer.aisec.cpg.query.sizeof
 
 //
 // all functions/properties defined here must use CokoBackend
@@ -160,21 +163,53 @@ context(CallExpression)
  * - If this is a [Node], we use the DFG of the CPG.
  */
 infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
-    if (this is Wildcard) {
-        true
-    } else {
-        when (this) {
-            is String -> that.any {
-                val regex = Regex(this)
-                regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
-            }
-            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-            is Node -> that.any { dataFlow(this, it).value }
-            is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
-            else -> this in that.map { (it as Expression).evaluate() }
+    when (this) {
+        is Wildcard -> true
+        is String -> that.any {
+            val regex = Regex(this)
+            regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
         }
+        // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
+        is LongRange, is IntRange -> checkRange(that)
+        is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+        is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+        is Node -> that.any { dataFlow(this, it).value }
+        is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
+        is Length -> checkLength(that)
+        else -> this in that.map { (it as Expression).evaluate() }
     }
+
+private fun Any.checkRange(that: Collection<Node>): Boolean {
+    when (this) {
+        // I would love to combine the following two cases, but any implementation loses the benefit of
+        // quickly reading the last value of the range, therefore making the whole distinction useless.
+        is IntRange -> {
+            return that.all {
+                val minValue = min(it).value.toInt()
+                val maxValue = max(it).value.toInt()
+                minValue > this.first && maxValue < this.last
+            }
+        }
+        is LongRange -> {
+            return that.all {
+                val minValue = min(it).value.toInt()
+                val maxValue = max(it).value.toInt()
+                minValue > this.first && maxValue < this.last
+            }
+        }
+        else -> throw IllegalArgumentException("Unexpected type")
+    }
+}
+
+private fun Length.checkLength(that: Collection<Node>): Boolean {
+    return that.all {
+        val size = sizeof(it).value
+        if (size == -1) {
+            // TODO: handle case where size could not be determined -> OPEN Finding
+        }
+        size in this.value
+    }
+}
 
 context(CokoBackend)
 // TODO: better description

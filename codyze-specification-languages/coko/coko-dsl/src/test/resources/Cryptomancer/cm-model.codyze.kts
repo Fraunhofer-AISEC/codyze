@@ -1,68 +1,7 @@
-import java.net.URI
-import java.security.spec.AlgorithmParameterSpec
-
-import java.io.OutputStream
-import java.security.KeyPair
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
-import javax.crypto.SecretKey
 
 plugins { id("cpg") }
-
-class MasterKey {
-    fun construct(key: Any?): Op =
-        op {
-            constructor("org.cryptomator.cryptolib.api.Masterkey") {
-                signature(key)
-            }
-        }
-
-    fun generate(csprng: SecureRandom?): Op =
-        op {
-            "org.cryptomator.cryptolib.api.Masterkey.generate" {
-                signature(csprng)
-            }
-        }
-
-    fun copy(): Op =
-        op {
-            "org.cryptomator.cryptolib.api.Masterkey.copy" {
-                signature()
-            }
-        }
-
-    fun destroy(): Op =
-        op {
-            "org.cryptomator.cryptolib.api.Masterkey.destroy" {
-                signature()
-            }
-        }
-
-    fun close(): Op =
-        op {
-            "org.cryptomator.cryptolib.api.Masterkey.close" {
-                signature()
-            }
-        }
-}
-
-class MasterKeyLoader {
-    fun loadKey(keyID: URI?): Op =
-        op {
-            "org.cryptomator.cryptolib.api.MasterkeyLoader.loadKey" {
-                signature(keyID)
-            }
-        }
-}
-
-class CryptorProviderImpl {
-    fun provide(key: MasterKey?, random: SecureRandom): Op =
-        op {
-            "org.cryptomator.cryptolib.v2.CryptorProviderImpl.provide" {
-                signature(key, random)
-            }
-        }
-}
 
 interface FileContentCryptorImpl {
     fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op
@@ -164,69 +103,12 @@ class FileHeaderImplv2: FileHeaderImpl {
         }
 }
 
-class CypherSupplier {
-    fun forEncryption(key: SecretKey?, params: AlgorithmParameterSpec?): Op =
-        op {
-            "org.cryptomator.cryptolib.common.CipherSupplier.forEncryption" {
-                signature(key, params)
-            }
-        }
-
-    fun forDecryption(key: SecretKey?, params: AlgorithmParameterSpec?): Op =
-        op {
-            "org.cryptomator.cryptolib.common.CipherSupplier.forDecryption" {
-                signature(key, params)
-            }
-        }
-
-    fun forWrapping(kek: SecretKey?): Op =
-        op {
-            "org.cryptomator.cryptolib.common.CipherSupplier.forWrapping" {
-                signature(kek)
-            }
-        }
-
-    fun forUnwrapping(kek: SecretKey?): Op =
-        op {
-            "org.cryptomator.cryptolib.common.CipherSupplier.forUnwrapping" {
-                signature(kek)
-            }
-        }
-}
-
 class DecryptingReadableByteChannel {
     fun construct(src: Any?, cryptor: Any?, authenticate: Any?, header: Any?, firstChunk: Any?): Op =
         constructor("org.cryptomator.cryptolib.common.DecryptingReadableByteChannel") {
             // maybe this could be combined with "null"?
             signature(src, cryptor, authenticate)
             signature(src, cryptor, authenticate, header, firstChunk)
-        }
-}
-
-class DestroyableSecretKey {
-    // TODO: just as with master key... can we check usage of k?
-}
-
-class ECKeyPair {
-    // TODO: Do we want to assert that parameters are correct and do not throw?
-}
-
-class MasterKeyFileAccess {
-    // can we map java byte onto Kotlin Byte?
-    fun readAllegedVaultVersion(masterKey: Array<Byte>?): Op =
-        op {
-            "org.cryptomator.cryptolib.common.MasterKeyFileAccess.readAllegedVaultVersion" {
-                signature(masterKey)
-            }
-        }
-}
-
-class MessageDigestSupplier {
-    fun get(): Op =
-        op {
-            "org.cryptomator.cryptolib.common.MessageDigestSupplier.get" {
-                signature()
-            }
         }
 }
 
@@ -242,15 +124,6 @@ class P384KeyPair {
         op {
             "org.cryptomator.cryptolib.common.P384KeyPair.store" {
                 signature(file, passphrase)
-            }
-        }
-}
-
-class PKCS12Helper {
-    fun exportTo(keypair: KeyPair?, out: OutputStream?, passphrase: Array<Char>?, sigAlg: String?): Op =
-        op {
-            "org.cryptomator.cryptolib.common.Pkcs12Helper.exportTo" {
-                signature(keypair, out, passphrase, sigAlg)
             }
         }
 }
@@ -274,15 +147,6 @@ class Scrypt {
         op {
             "org.cryptomator.cryptolib.common.Scrypt.scrypt" {
                 signature(passphrase, salt, cost, blockSize, keyLength)
-            }
-        }
-}
-
-class X509CertBuilder {
-    fun init(keypair: KeyPair?, sigAlg: String): Op =
-        op {
-            "org.cryptomator.cryptolib.common.X509CertBuilder.init" {
-                signature(keypair, sigAlg)
             }
         }
 }

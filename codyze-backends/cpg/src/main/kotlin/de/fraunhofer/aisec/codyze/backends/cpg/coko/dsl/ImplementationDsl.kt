@@ -181,15 +181,24 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
     }
 
 private fun Any.checkRange(that: Collection<Node>): Boolean {
-    val range = when (this) {
-        is IntRange -> this
-        is LongRange -> this
+    when (this) {
+        // I would love to combine the following two cases, but any implementation loses the benefit of
+        // quickly reading the last value of the range, therefore making the whole distinction useless.
+        is IntRange -> {
+            return that.all {
+                val minValue = min(it).value.toInt()
+                val maxValue = max(it).value.toInt()
+                minValue > this.first && maxValue < this.last
+            }
+        }
+        is LongRange -> {
+            return that.all {
+                val minValue = min(it).value.toInt()
+                val maxValue = max(it).value.toInt()
+                minValue > this.first && maxValue < this.last
+            }
+        }
         else -> throw IllegalArgumentException("Unexpected type")
-    }
-    return that.all {
-        val minValue = min(it).value.toInt()
-        val maxValue = max(it).value.toInt()
-        minValue > range.first().toInt() && maxValue < range.last().toInt()
     }
 }
 

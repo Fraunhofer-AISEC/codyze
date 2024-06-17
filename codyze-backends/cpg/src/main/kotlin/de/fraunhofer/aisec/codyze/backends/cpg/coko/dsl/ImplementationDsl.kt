@@ -236,10 +236,10 @@ private fun CallExpression.cpgCheckArgsSize(parameters: Array<*>, hasVarargs: Bo
  * we want to find key points where the forbidden operation influences other code.
  * For this we traverse the DFG for a fixed amount of steps and search for all usages of declared values.
  */
-fun Node.findUsages(): Collection<Node> {
+fun Node.findUsages(depth: Int = 5): Collection<Node> {
     val currentNodes: MutableSet<Node> = mutableSetOf(this)
     val usages = mutableSetOf<Node>()
-    for (i in 0..5) {
+    for (i in 0..depth) {
         // The set will be empty if we found a usage or no further DFG for all branches
         if (currentNodes.isEmpty()) {
             break

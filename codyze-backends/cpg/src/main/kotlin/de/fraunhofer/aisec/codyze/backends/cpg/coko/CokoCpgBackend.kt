@@ -84,8 +84,10 @@ class CokoCpgBackend(config: BackendConfiguration) :
     /**
      * Ensures that all calls to the [ops] have arguments that fit the parameters specified in [ops]
      */
-    override fun only(vararg ops: Op): OnlyNeverEvaluator = OnlyNeverEvaluator(ops.toList(), OnlyNeverEvaluator.Functionality.ONLY)
-    override fun never(vararg ops: Op): OnlyNeverEvaluator = OnlyNeverEvaluator(ops.toList(), OnlyNeverEvaluator.Functionality.NEVER)
+    override fun only(vararg ops: Op): OnlyNeverEvaluator =
+        OnlyNeverEvaluator(ops.toList(), OnlyNeverEvaluator.Functionality.ONLY)
+    override fun never(vararg ops: Op): OnlyNeverEvaluator =
+        OnlyNeverEvaluator(ops.toList(), OnlyNeverEvaluator.Functionality.NEVER)
     override fun whenever(
         premise: Condition.() -> ConditionComponent,
         assertionBlock: WheneverEvaluator.() -> Unit

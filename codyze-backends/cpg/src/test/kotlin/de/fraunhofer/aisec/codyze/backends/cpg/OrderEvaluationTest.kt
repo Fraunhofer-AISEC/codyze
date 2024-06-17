@@ -37,6 +37,7 @@ import kotlin.test.assertEquals
  * - [NfaDfaConstructionTest]
  */
 class OrderEvaluationTest {
+    @Suppress("UNUSED")
     class CokoOrderImpl {
         fun constructor(value: Int?) = constructor("Botan") { signature(value) }
         fun init() = op { "Botan.set_key" { signature(Wildcard) } }
@@ -46,6 +47,7 @@ class OrderEvaluationTest {
         fun finish() = op { "Botan.finish" { signature(Wildcard) } }
     }
 
+    @Suppress("UNUSED")
     class OtherImpl {
         fun foo() = op { definition("Botan.foo") { signature(Wildcard) } }
     }

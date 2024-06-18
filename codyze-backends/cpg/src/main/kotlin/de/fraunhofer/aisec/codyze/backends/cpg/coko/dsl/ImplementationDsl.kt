@@ -169,6 +169,9 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
         is String -> that.any {
             val regex = Regex(this)
             regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
+                    // Quick and dirty hack: Try a maximum of two prevDFG steps
+                    || it.prevDFG.any { regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) }
+                    || it.prevDFG.flatMap { it.prevDFG }.any { regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) }
         }
         // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
         is LongRange, is IntRange -> checkRange(that)

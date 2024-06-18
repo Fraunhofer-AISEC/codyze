@@ -1,5 +1,7 @@
+import java.security.spec.AlgorithmParameterSpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
+import javax.crypto.SecretKey
 
 plugins { id("cpg") }
 
@@ -99,6 +101,65 @@ class FileHeaderImplv2: FileHeaderImpl {
         op {
             "org.cryptomator.cryptolib.v2.FileHeaderImpl.setReserved" {
                 signature(reserved)
+            }
+        }
+}
+
+class Cipher {
+    fun getInstance(cipherAlgorithm: Any): Op = op {
+        "javax.crypto.Cipher.getInstance" {
+            signature(cipherAlgorithm)
+        }
+    }
+}
+
+class AlgorithmParameters {
+    fun getInstance(algorithm: String): Op = op {
+        "java.security.AlgorithmParameters.getInstance" {
+            signature(algorithm)
+        }
+    }
+
+    fun init(ecSpec: Any?): Op = op {
+        "java.security.AlgorithmParameters.init" {
+            signature(ecSpec)
+        }
+    }
+}
+
+class ECGenParameterSpec {
+    fun construct(ecCurve: Any): Op =
+        constructor("java.security.spec.ECGenParameterSpec") {
+            signature(ecCurve)
+        }
+}
+
+class CypherSupplier {
+    fun forEncryption(key: SecretKey?, params: AlgorithmParameterSpec?): Op =
+        op {
+            "org.cryptomator.cryptolib.common.CipherSupplier.forEncryption" {
+                signature(key, params)
+            }
+        }
+
+    fun forDecryption(key: SecretKey?, params: AlgorithmParameterSpec?): Op =
+        op {
+            "org.cryptomator.cryptolib.common.CipherSupplier.forDecryption" {
+                signature(key, params)
+            }
+        }
+
+    fun forWrapping(kek: SecretKey?): Op =
+        op {
+            "org.cryptomator.cryptolib.common.CipherSupplier.forWrapping" {
+                signature(kek)
+            }
+        }
+
+    fun forUnwrapping(kek: SecretKey?): Op =
+        op {
+            "org.cryptomator.cryptolib.common.CipherSupplier.forUnwrapping" {
+                signature(kek)
             }
         }
 }
@@ -267,3 +328,23 @@ fun forbidShortGCMNonceV1(fileContentCryptorImpl: FileContentCryptorImplv1) =
 @Rule("Do not use a short Nonce in the v2 FileContentCryptor")
 fun forbidShortGCMNonceV2(fileContentCryptorImpl: FileContentCryptorImplv2) =
     never(fileContentCryptorImpl.encryptChunk(Wildcard, Wildcard, Wildcard, Length(0..<12), Wildcard))
+
+@Rule("Only allow good ciphers in javax.crypto.Cipher")
+fun enforceRecommendedAlgorithms(cipher: Cipher) =
+    run {
+        val x = validParameters().map {
+            cipher.getInstance(it)
+        }.toTypedArray()
+        only(*x)
+    }
+
+val recommendedCurves = setOf("secp384r1")
+
+@Rule("Only allow good EC curves")
+fun onlyGoodCurves(alg: AlgorithmParameters, paramSpec: ECGenParameterSpec) =
+    run {
+        val x = recommendedCurves.map {
+             alg.init(paramSpec.construct(it))
+        }.toTypedArray()
+        only(*x)
+    }

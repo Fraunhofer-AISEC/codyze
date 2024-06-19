@@ -76,7 +76,7 @@ class TSFIInformationExtractor : InformationExtractor() {
                     sf.name,
                     SecurityFunction(
                         sf.name,
-                        (sf.comment ?: "").trimIndent().trim().replace("\n", ""),
+                        removeAtLines((sf.comment ?: "").trimIndent().trim()).replace("\n", ""),
                         mutableSetOf(),
                         mutableSetOf(),
                         mutableSetOf()
@@ -199,7 +199,7 @@ class TSFIInformationExtractor : InformationExtractor() {
                 preSF++
             }
 
-            val description = annotationExtendedNode.map { it.comment?:"" }.joinToString("").trimIndent().trim().replace("\n","")
+            val description = annotationExtendedNode.map { removeAtLines(it.comment?:"") }.joinToString("").trimIndent().trim().replace("\n","")
             val andContainedFunctions = annotationExtendedNode + annotationExtendedNode.flatMap { it.allChildren<FunctionDeclaration>() }
 
             val relevantFunctions = andContainedFunctions.filterIsInstance<FunctionDeclaration>().filter { !it.isInferred && !it.isImplicit }.toSet()
@@ -279,6 +279,10 @@ class TSFIInformationExtractor : InformationExtractor() {
         return exceptionsData
     }
 
+    private fun removeAtLines(text: String): String{
+        return text.lines().filter { line -> !line.contains("@param") && !line.contains("@return") && !line.contains("@throws") }.joinToString("\n")
+    }
+
     private fun getTSFIFromTypeHierarchy(type: Type, exceptionsData: Map<Type, TSFIException>): TSFIException?{
         if(exceptionsData.isEmpty())
             return null
@@ -353,7 +357,7 @@ class TSFIInformationExtractor : InformationExtractor() {
 
             var parametersContent = ""
             for(param in tsfi.params){
-                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString()))
+                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString().replace("<", "&lt;").replace(">", "&gt;")))
             }
 
             if(parametersContent.isEmpty()) parametersContent = " "
@@ -362,7 +366,7 @@ class TSFIInformationExtractor : InformationExtractor() {
             var errorsContent = ""
             for(excepts in tsfi.exceptions){
                 var errorContent = ""
-                errorContent += formatter.format("message",  if(excepts.message.isNotEmpty()) excepts.message else excepts.type.name.toString(), mapOf())
+                errorContent += formatter.format("message",  (if(excepts.message.isNotEmpty()) excepts.message else excepts.type.name.toString()).replace("<", "&lt;").replace(">", "&gt;"), mapOf())
                 errorContent += formatter.format("description", excepts.description, mapOf())
 
                 errorsContent += formatter.format("error", errorContent, mapOf())

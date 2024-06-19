@@ -149,8 +149,11 @@ class TSFIInformationExtractor: InformationExtractor() {
 
             val description = annotationExtendedNode.map { it.comment?:"" }.joinToString("").trimIndent().trim().replace("\n","")
             val andContainedFunctions = annotationExtendedNode + annotationExtendedNode.flatMap { it.allChildren<FunctionDeclaration>() }
-            val params = andContainedFunctions.filterIsInstance<FunctionDeclaration>().flatMap { parseParameters(it).values }.toMutableSet()
-            val exceptions = andContainedFunctions.filterIsInstance<FunctionDeclaration>().flatMap { parseExceptions(it).values }.toMutableSet()
+
+            val relevantFunctions = andContainedFunctions.filterIsInstance<FunctionDeclaration>().filter { !it.isInferred && !it.isImplicit }.toSet()
+
+            val params = relevantFunctions.flatMap { parseParameters(it).values }.toMutableSet()
+            val exceptions = parseExceptions(relevantFunctions).values.toMutableSet()
             val tsfiDeclaration = TSFI(description, behavior?:Name(""), annotationExtendedNode,
                 tsfiSFs.flatMap { tsfiSFName ->
                     securityFunctionMap.entries.filter { it.key.toString().substringAfterLast(".") ==
@@ -175,47 +178,49 @@ class TSFIInformationExtractor: InformationExtractor() {
         return parameterData
     }
 
-    private fun parseExceptions(function:FunctionDeclaration): Map<Type,TSFIException> {
+    private fun parseExceptions(functions:Set<FunctionDeclaration>): Map<Type,TSFIException> {
         val exceptionsData = mutableMapOf<Type, TSFIException>()
-        function.throwsTypes.forEach {
+
+        functions.forEach {function ->
+            function.throwsTypes.forEach {
             exceptionsData.put(it, TSFIException(it, "", ""))
         }
 
-        if(exceptionsData.isNotEmpty()){
-            function.comment?.lines()?.forEach {
-                if(it.contains("@throws")){
-                    val paramComment = it.substringAfter("@throws").trim()
-                    val name = paramComment.substringBefore(" ").trim()
-                    val description = paramComment.substringAfter(" ").trim()
-                    exceptionsData.entries.filter { it.key.name.localName == name }.forEach {
-                        it.value.description = description
+            if(exceptionsData.isNotEmpty()){
+                function.comment?.lines()?.forEach {
+                    if(it.contains("@throws")){
+                        val paramComment = it.substringAfter("@throws").trim()
+                        val name = paramComment.substringBefore(" ").trim()
+                        val description = paramComment.substringAfter(" ").trim()
+                        exceptionsData.entries.filter { it.key.name.localName == name }.forEach {
+                            it.value.description = description
+                        }
                     }
                 }
             }
-        }
-        function.allChildren<UnaryOperator>().filter { it.operatorCode == "throw" }.forEach {
-            it.followPrevEOGEdgesUntilHit { it is ConstructExpression }.fulfilled.flatten().filterIsInstance<ConstructExpression>().forEach {
-                val instantiates = it.type
-                val msg = it.arguments.firstOrNull()?.evaluate()
-                val typeBasedMsg = instantiates.name.localName + if(msg != null) (": $msg") else ""
+            function.allChildren<UnaryOperator>().filter { it.operatorCode == "throw" }.forEach {
+                it.followPrevEOGEdgesUntilHit { it is ConstructExpression }.fulfilled.flatten().filterIsInstance<ConstructExpression>().forEach {
+                    val instantiates = it.type
+                    val msg = it.arguments.firstOrNull()?.evaluate()
+                    val typeBasedMsg = instantiates.name.localName + if(msg != null) (": $msg") else ""
 
-                var tsfiException:TSFIException? = null
-                if(exceptionsData.contains(instantiates)){
-                    tsfiException = exceptionsData[instantiates]
-                }else{
-                    tsfiException = getTSFIFromTypeHierarchy(instantiates,exceptionsData)
+                    var tsfiException:TSFIException? = null
+                    if(exceptionsData.contains(instantiates)){
+                        tsfiException = exceptionsData[instantiates]
+                    }else{
+                        tsfiException = getTSFIFromTypeHierarchy(instantiates,exceptionsData)
+                    }
+
+                    if(tsfiException != null){
+                        if(!tsfiException.message.contains(typeBasedMsg)){
+                            tsfiException.message += (if(tsfiException.message.isNotEmpty()) "; " else "") + typeBasedMsg
+                        }
+                    }else{
+                        // Here we could use the message as a description instead of leaving it empty
+                        tsfiException = TSFIException(instantiates, typeBasedMsg, "")
+                        exceptionsData.put(instantiates,tsfiException)
+                    }
                 }
-
-                if(tsfiException != null){
-                    tsfiException.message += (if(tsfiException.message.isNotEmpty()) "; " else "") + typeBasedMsg + "\n"
-                }else{
-                    // Here we could use the message as a description instead of leaving it empty
-                    tsfiException = TSFIException(instantiates, typeBasedMsg, "")
-                }
-
-                tsfiException.message = tsfiException.message.trim()
-
-                // Todo Find if types are compatible or we can store this message in there
             }
         }
 
@@ -223,6 +228,8 @@ class TSFIInformationExtractor: InformationExtractor() {
     }
 
     private fun getTSFIFromTypeHierarchy(type: Type, exceptionsData: Map<Type, TSFIException>): TSFIException?{
+        if(exceptionsData.isEmpty())
+            return null
         var tsfiException: TSFIException? = null
         var hierarchyTypes = setOf(type)
         while (hierarchyTypes.isNotEmpty()){

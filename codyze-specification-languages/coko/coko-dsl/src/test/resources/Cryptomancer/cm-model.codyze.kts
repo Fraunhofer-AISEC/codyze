@@ -5,13 +5,36 @@ import javax.crypto.SecretKey
 
 plugins { id("cpg") }
 
-interface FileContentCryptorImpl {
+interface FileContentCryptor {
     fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op
     fun decryptChunk(cipher: Any?, clear: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op
     fun encryptChunk(cleartext: Any?, cipherText: Any?, chunkNumber: Any?, headerNonce: Any?, fileKey: Any?): Op
 }
 
-class FileContentCryptorImplv1: FileContentCryptorImpl {
+class FileContentCryptorInterface: FileContentCryptor {
+    override fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
+        op {
+            "org.cryptomator.cryptolib.api.FileContentCryptor.decryptChunk" {
+                signature(cipher, chunkNum, header, auth)
+            }
+        }
+
+    override fun decryptChunk(cipher: Any?, clear: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
+        op {
+            "org.cryptomator.cryptolib.api.FileContentCryptor.decryptChunk" {
+                signature(cipher, clear, chunkNum, header, auth)
+            }
+        }
+
+    override fun encryptChunk(cleartext: Any?, cipherText: Any?, chunkNumber: Any?, headerNonce: Any?, fileKey: Any?): Op =
+        op {
+            "org.cryptomator.cryptolib.api.FileContentCryptor.encryptChunk" {
+                signature(cleartext, cipherText, chunkNumber, headerNonce, fileKey)
+            }
+        }
+}
+
+class FileContentCryptorImplv1: FileContentCryptor {
     override fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
         op {
             "org.cryptomator.cryptolib.v1.FileContentCryptorImpl.decryptChunk" {
@@ -34,7 +57,7 @@ class FileContentCryptorImplv1: FileContentCryptorImpl {
         }
 }
 
-class FileContentCryptorImplv2: FileContentCryptorImpl {
+class FileContentCryptorImplv2: FileContentCryptor {
     override fun decryptChunk(cipher: Any?, chunkNum: Any?, header: Any?, auth: Any?): Op =
         op {
             "org.cryptomator.cryptolib.v2.FileContentCryptorImpl.decryptChunk" {
@@ -57,13 +80,13 @@ class FileContentCryptorImplv2: FileContentCryptorImpl {
         }
 }
 
-interface FileHeaderImpl {
+interface FileHeader {
     fun construct(nonce: Any?, payload: Any?): Op
     fun getReserved(): Op
     fun setReserved(reserved: Long?): Op
 }
 
-class FileHeaderImplv1: FileHeaderImpl {
+class FileHeaderImplv1: FileHeader {
     override fun construct(nonce: Any?, payload: Any?): Op =
         constructor("org.cryptomator.cryptolib.v1.FileHeaderImpl") {
             signature(nonce, payload)
@@ -84,7 +107,7 @@ class FileHeaderImplv1: FileHeaderImpl {
         }
 }
 
-class FileHeaderImplv2: FileHeaderImpl {
+class FileHeaderImplv2: FileHeader {
     override fun construct(nonce: Any?, payload: Any?): Op =
         constructor("org.cryptomator.cryptolib.v2.FileHeaderImpl") {
             signature(nonce, payload)
@@ -257,13 +280,31 @@ val validParameters = {
     combinations.toSet()
 }
 
+// -- Variants for both types of calls and all three base classes --
 @Rule("Never skip authentication when decrypting a file chunk")
-fun enforceFileDecryptAuthentication1(cryptor: FileContentCryptorImpl) =
+fun enforceFileDecryptAuthentication1v1(cryptor: FileContentCryptorImplv1) =
     never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, Wildcard, false))
 
 @Rule("Never skip authentication when decrypting a file chunk")
-fun enforceFileDecryptAuthentication2(cryptor: FileContentCryptorImpl) =
+fun enforceFileDecryptAuthentication1v2(cryptor: FileContentCryptorImplv2) =
+    never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, Wildcard, false))
+
+@Rule("Never skip authentication when decrypting a file chunk")
+fun enforceFileDecryptAuthentication1Int(cryptor: FileContentCryptorInterface) =
+    never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, Wildcard, false))
+
+@Rule("Never skip authentication when decrypting a file chunk")
+fun enforceFileDecryptAuthentication2v1(cryptor: FileContentCryptorImplv1) =
     never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, false))
+
+@Rule("Never skip authentication when decrypting a file chunk")
+fun enforceFileDecryptAuthentication2v2(cryptor: FileContentCryptorImplv2) =
+    never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, false))
+
+@Rule("Never skip authentication when decrypting a file chunk")
+fun enforceFileDecryptAuthentication2Int(cryptor: FileContentCryptorInterface) =
+    never(cryptor.decryptChunk(Wildcard, Wildcard, Wildcard, false))
+// -------------------------------------------------------------------
 
 @Rule("Never skip authentication when decrypting a ciphertext")
 fun enforceCipherDecryptAuthentication(channel: DecryptingReadableByteChannel) =
@@ -328,6 +369,7 @@ fun forbidShortGCMNonceV1(fileContentCryptorImpl: FileContentCryptorImplv1) =
 @Rule("Do not use a short Nonce in the v2 FileContentCryptor")
 fun forbidShortGCMNonceV2(fileContentCryptorImpl: FileContentCryptorImplv2) =
     never(fileContentCryptorImpl.encryptChunk(Wildcard, Wildcard, Wildcard, Length(0..<12), Wildcard))
+
 
 @Rule("Only allow good ciphers in javax.crypto.Cipher")
 fun enforceRecommendedAlgorithms(cipher: Cipher) =

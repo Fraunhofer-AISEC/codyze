@@ -154,7 +154,7 @@ class TSFIInformationExtractor: InformationExtractor() {
 
             val params = relevantFunctions.flatMap { parseParameters(it).values }.toMutableSet()
             val exceptions = parseExceptions(relevantFunctions).values.toMutableSet()
-            val tsfiDeclaration = TSFI(description, behavior?:Name(""), annotationExtendedNode,
+            val tsfiDeclaration = TSFI(description, behavior?:Name(""), tsfi, annotationExtendedNode,
                 tsfiSFs.flatMap { tsfiSFName ->
                     securityFunctionMap.entries.filter { it.key.toString().substringAfterLast(".") ==
                             tsfiSFName.toString().substringAfterLast(".") }.map { it.value } }.toMutableSet(), params, exceptions)
@@ -296,7 +296,6 @@ class TSFIInformationExtractor: InformationExtractor() {
 
     override fun formatTSFIInformation(formatter: Formatter): String {
         var xml = ""
-        var id = 0
         for (tsfi in tsfiDeclarations){
             var tsfiContent = formatter.format("description", tsfi.description, mapOf())
 
@@ -336,8 +335,7 @@ class TSFIInformationExtractor: InformationExtractor() {
             tsfiContent += formatter.format("actions", actionsContent, mapOf())
 
 
-            xml += formatter.format("tsfi", tsfiContent, mapOf("id" to "tsfi$id", "security" to tsfi.securityBehavior.localName.substringAfterLast(".").lowercase()))
-            id++
+            xml += formatter.format("tsfi", tsfiContent, mapOf("id" to tsfi.annotated.name.toString(), "security" to tsfi.securityBehavior.localName.substringAfterLast(".").lowercase()))
         }
 
 
@@ -372,7 +370,7 @@ class TSFIInformationExtractor: InformationExtractor() {
      * In contrast to the annotation the data class does not contain the security function.When the TSFIs are parsed, the
      * associated security functions are either provided in the annotation or identified through static code analysis.
      */
-    data class TSFI(val description: String, val securityBehavior:Name, val functions:Set<Node>, val sf:MutableSet<SecurityFunction>, val params: MutableSet<Parameter>, val exceptions:MutableSet<TSFIException>)
+    data class TSFI(val description: String, val securityBehavior:Name, val annotated:Node, val functions:Set<Node>, val sf:MutableSet<SecurityFunction>, val params: MutableSet<Parameter>, val exceptions:MutableSet<TSFIException>)
 
     data class Parameter(val name: String, val type:Type, var description: String)
 

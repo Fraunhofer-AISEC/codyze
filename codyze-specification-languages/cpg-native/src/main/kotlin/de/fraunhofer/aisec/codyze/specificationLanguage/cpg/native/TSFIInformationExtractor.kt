@@ -208,11 +208,9 @@ class TSFIInformationExtractor: InformationExtractor() {
 
                 if(tsfiException != null){
                     tsfiException.message += (if(tsfiException.message.isNotEmpty()) "; " else "") + typeBasedMsg + "\n"
-                    logger.debug { "Message added to existing throws exception" }
                 }else{
                     // Here we could use the message as a description instead of leaving it empty
                     tsfiException = TSFIException(instantiates, typeBasedMsg, "")
-                    logger.debug { "New type not mentioned in throws" }
                 }
 
                 tsfiException.message = tsfiException.message.trim()

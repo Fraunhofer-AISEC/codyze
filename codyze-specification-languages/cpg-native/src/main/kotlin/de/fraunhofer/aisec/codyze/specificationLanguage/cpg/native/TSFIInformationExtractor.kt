@@ -5,10 +5,8 @@ import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.EnumConstantDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FieldDeclaration
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
+import de.fraunhofer.aisec.cpg.graph.types.Type
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.xml.sax.InputSource
 import java.io.StringReader
@@ -150,13 +148,96 @@ class TSFIInformationExtractor: InformationExtractor() {
             }
 
             val description = annotationExtendedNode.map { it.comment?:"" }.joinToString("").trimIndent().trim().replace("\n","")
+            val andContainedFunctions = annotationExtendedNode + annotationExtendedNode.flatMap { it.allChildren<FunctionDeclaration>() }
+            val params = andContainedFunctions.filterIsInstance<FunctionDeclaration>().flatMap { parseParameters(it).values }.toMutableSet()
+            val exceptions = andContainedFunctions.filterIsInstance<FunctionDeclaration>().flatMap { parseExceptions(it).values }.toMutableSet()
             val tsfiDeclaration = TSFI(description, behavior?:Name(""), annotationExtendedNode,
                 tsfiSFs.flatMap { tsfiSFName ->
-                    securityFunctionMap.entries.filter { it.key.toString().substringAfterLast(".") == tsfiSFName.toString().substringAfterLast(".") }.map { it.value } }.toMutableSet())
+                    securityFunctionMap.entries.filter { it.key.toString().substringAfterLast(".") ==
+                            tsfiSFName.toString().substringAfterLast(".") }.map { it.value } }.toMutableSet(), params, exceptions)
             tsfiDeclarations.add(tsfiDeclaration)
         }
         logger.info { "TSFI: ${tsfiDeclarations.size}: $preSF security functions explicitly specified, $postSF security functions identified through analysis." }
 
+    }
+
+    private fun parseParameters(function:FunctionDeclaration): Map<String, Parameter>{
+        val parameterData = mutableMapOf<String, Parameter>()
+        for (param in function.parameters){
+            parameterData.put(param.name.localName, Parameter(param.name.localName, param.type, ""))
+        }
+        function.comment?.lines()?.forEach {
+            val paramComment = it.substringAfter("@param").trim()
+            val name = paramComment.substringBefore(" ")
+            val description = paramComment.substringAfter(" ")
+            parameterData.get(name)?.description = description.trim()
+        }
+        return parameterData
+    }
+
+    private fun parseExceptions(function:FunctionDeclaration): Map<Type,TSFIException> {
+        val exceptionsData = mutableMapOf<Type, TSFIException>()
+        function.throwsTypes.forEach {
+            exceptionsData.put(it, TSFIException(it, "", ""))
+        }
+
+        if(exceptionsData.isNotEmpty()){
+            function.comment?.lines()?.forEach {
+                if(it.contains("@throws")){
+                    val paramComment = it.substringAfter("@throws").trim()
+                    val name = paramComment.substringBefore(" ").trim()
+                    val description = paramComment.substringAfter(" ").trim()
+                    exceptionsData.entries.filter { it.key.name.localName == name }.forEach {
+                        it.value.description = description
+                    }
+                }
+            }
+        }
+        function.allChildren<UnaryOperator>().filter { it.operatorCode == "throw" }.forEach {
+            it.followPrevEOGEdgesUntilHit { it is ConstructExpression }.fulfilled.flatten().filterIsInstance<ConstructExpression>().forEach {
+                val instantiates = it.type
+                val msg = it.arguments.firstOrNull()?.evaluate()
+                val typeBasedMsg = instantiates.name.localName + if(msg != null) (": $msg") else ""
+
+                var tsfiException:TSFIException? = null
+                if(exceptionsData.contains(instantiates)){
+                    tsfiException = exceptionsData[instantiates]
+                }else{
+                    tsfiException = getTSFIFromTypeHierarchy(instantiates,exceptionsData)
+                }
+
+                if(tsfiException != null){
+                    tsfiException.message += (if(tsfiException.message.isNotEmpty()) "; " else "") + typeBasedMsg + "\n"
+                    logger.debug { "Message added to existing throws exception" }
+                }else{
+                    // Here we could use the message as a description instead of leaving it empty
+                    tsfiException = TSFIException(instantiates, typeBasedMsg, "")
+                    logger.debug { "New type not mentioned in throws" }
+                }
+
+                tsfiException.message = tsfiException.message.trim()
+
+                // Todo Find if types are compatible or we can store this message in there
+            }
+        }
+
+        return exceptionsData
+    }
+
+    private fun getTSFIFromTypeHierarchy(type: Type, exceptionsData: Map<Type, TSFIException>): TSFIException?{
+        var tsfiException: TSFIException? = null
+        var hierarchyTypes = setOf(type)
+        while (hierarchyTypes.isNotEmpty()){
+
+            hierarchyTypes.forEach {currentType ->
+                tsfiException = exceptionsData.entries.filter { it.key.name.localName == currentType.name.localName }.map { it.value }.firstOrNull()
+                if(tsfiException != null)
+                    return tsfiException
+            }
+            // BFS in the hierarchy
+            hierarchyTypes = hierarchyTypes.flatMap { it.superTypes }.toSet()
+        }
+        return tsfiException
     }
 
     private fun reachableCalls(start:Node):Set<CallExpression>{
@@ -215,11 +296,21 @@ class TSFIInformationExtractor: InformationExtractor() {
             var tsfiContent = formatter.format("description", tsfi.description, mapOf())
 
             var parametersContent = ""
+            for(param in tsfi.params){
+                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString()))
+            }
 
             if(parametersContent.isEmpty()) parametersContent = " "
             tsfiContent += formatter.format("parameters", parametersContent, mapOf())
 
             var errorsContent = ""
+            for(excepts in tsfi.exceptions){
+                var errorContent = ""
+                errorContent += formatter.format("message",  if(excepts.message.isNotEmpty()) excepts.message else excepts.type.name.toString(), mapOf())
+                errorContent += formatter.format("description", excepts.description, mapOf())
+
+                errorsContent += formatter.format("error", errorContent, mapOf())
+            }
 
             if(errorsContent.isEmpty()) errorsContent = " "
             tsfiContent += formatter.format("errors", errorsContent, mapOf())
@@ -276,7 +367,11 @@ class TSFIInformationExtractor: InformationExtractor() {
      * In contrast to the annotation the data class does not contain the security function.When the TSFIs are parsed, the
      * associated security functions are either provided in the annotation or identified through static code analysis.
      */
-    data class TSFI(val description: String, val securityBehavior:Name, val functions:Set<Node>, val sf:MutableSet<SecurityFunction>)
+    data class TSFI(val description: String, val securityBehavior:Name, val functions:Set<Node>, val sf:MutableSet<SecurityFunction>, val params: MutableSet<Parameter>, val exceptions:MutableSet<TSFIException>)
+
+    data class Parameter(val name: String, val type:Type, var description: String)
+
+    data class TSFIException(val type:Type, var message: String, var description: String)
 
     data class SecurityFunction(val name:Name, val description:String, val objectives:MutableSet<String>, val requirements: MutableSet<String>, val actions: MutableSet<Name>)
 }

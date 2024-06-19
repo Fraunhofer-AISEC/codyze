@@ -283,13 +283,17 @@ fun Node.findUsages(): Collection<Node> {
         if (currentNodes.isEmpty()) {
             break
         }
+        val markedNodes = mutableSetOf<Node>()
+        val newNodes = mutableSetOf<Node>()
         for (current in currentNodes) {
-            currentNodes.remove(current)
+            markedNodes.add(current)
             when (current) {
                 is ValueDeclaration -> usages += current.usages
-                else -> currentNodes += current.nextDFG
+                else -> newNodes += current.nextDFG
             }
         }
+        currentNodes.removeAll(markedNodes)
+        currentNodes.addAll(newNodes)
     }
     return usages
 }

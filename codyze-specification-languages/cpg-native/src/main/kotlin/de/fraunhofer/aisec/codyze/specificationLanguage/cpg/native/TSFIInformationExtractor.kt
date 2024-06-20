@@ -357,7 +357,7 @@ class TSFIInformationExtractor : InformationExtractor() {
 
             var parametersContent = ""
             for(param in tsfi.params){
-                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString().replace("<", "&lt;").replace(">", "&gt;")))
+                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString().replace("<", "&lt;").replace(">", "&gt;").replace("[]", "Array")))
             }
 
             if(parametersContent.isEmpty()) parametersContent = " "
@@ -367,7 +367,7 @@ class TSFIInformationExtractor : InformationExtractor() {
             for(excepts in tsfi.exceptions){
                 var errorContent = ""
                 errorContent += formatter.format("message",  (if(excepts.message.isNotEmpty()) excepts.message else excepts.type.name.toString()).replace("<", "&lt;").replace(">", "&gt;"), mapOf())
-                errorContent += formatter.format("description", excepts.description, mapOf())
+                errorContent += formatter.format("effect", excepts.description, mapOf())
 
                 errorsContent += formatter.format("error", errorContent, mapOf())
             }

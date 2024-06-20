@@ -391,11 +391,22 @@ class TSFIInformationExtractor : InformationExtractor() {
             tsfiContent += formatter.format("actions", actionsContent, mapOf())
 
 
-            xml += formatter.format("tsfi", tsfiContent, mapOf("id" to tsfi.annotated.name.toString(), "security" to tsfi.securityBehavior.localName.substringAfterLast(".").lowercase()))
+            xml += formatter.format("tsfi", tsfiContent, mapOf("id" to getComplexName(tsfi.annotated), "security" to tsfi.securityBehavior.localName.substringAfterLast(".").lowercase()))
         }
 
 
         return prettyPrint(formatter.format("functional-specification", xml, mapOf()),2,true)
+    }
+
+    private fun getComplexName(node: Node): String {
+        val nameString: String
+        if (node is FunctionDeclaration){
+            nameString =  node.name.toString() + "-" +node.parameters.map {
+                it.type.name.localName.replace("[]","Array") }.joinToString("-")
+        }else{
+            nameString = node.name.toString()
+        }
+        return nameString.replace("<", "&lt;").replace(">", "&gt;")
     }
 
     private fun replaceSFName(name:String): String{

@@ -357,7 +357,7 @@ class TSFIInformationExtractor : InformationExtractor() {
 
             var parametersContent = ""
             for(param in tsfi.params){
-                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString().replace("<", "&lt;").replace(">", &gt;").replace("[]", "Array")))
+                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString().replace("<", "&lt;").replace(">", "&gt;").replace("[]", "Array")))
             }
 
             if(parametersContent.isEmpty()) parametersContent = " "
@@ -402,7 +402,8 @@ class TSFIInformationExtractor : InformationExtractor() {
         val nameString: String
         if (node is FunctionDeclaration){
             nameString =  node.name.toString() + "-" +node.parameters.map {
-                it.type.name.localName.replace("[]","Array") }.joinToString("-")
+                it.type.name.localName.replace("[]","Array").replace("<", "-lt-").replace(">", "-gt-")
+            }.joinToString("-")
         }else{
             nameString = node.name.toString()
         }

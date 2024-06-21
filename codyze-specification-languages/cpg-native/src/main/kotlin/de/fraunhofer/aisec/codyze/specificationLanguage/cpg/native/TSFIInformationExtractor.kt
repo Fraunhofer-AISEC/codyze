@@ -352,12 +352,12 @@ class TSFIInformationExtractor : InformationExtractor() {
 
     override fun formatTSFIInformation(formatter: Formatter): String {
         var xml = ""
-        for (tsfi in tsfiDeclarations){
+        for (tsfi in tsfiDeclarations.sortedBy { getComplexName(it.annotated) }) {
             var tsfiContent = formatter.format("description", tsfi.description, mapOf())
 
             var parametersContent = ""
             for(param in tsfi.params){
-                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString().replace("<", "&lt;").replace(">", "&gt;").replace("[]", "Array")))
+                parametersContent += formatter.format("parameter", param.description, mapOf("name" to param.name, "type" to param.type.name.toString().replace("<", "&lt;").replace(">", &gt;").replace("[]", "Array")))
             }
 
             if(parametersContent.isEmpty()) parametersContent = " "
@@ -406,7 +406,7 @@ class TSFIInformationExtractor : InformationExtractor() {
         }else{
             nameString = node.name.toString()
         }
-        return nameString.replace("<", "&lt;").replace(">", "&gt;")
+        return nameString.replace("<", "-lt-").replace(">", "-gt-")
     }
 
     private fun replaceSFName(name:String): String{

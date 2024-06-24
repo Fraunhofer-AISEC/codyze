@@ -18,6 +18,7 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
@@ -38,6 +39,40 @@ import de.fraunhofer.aisec.cpg.query.sizeof
 //
 val CokoBackend.cpg: TranslationResult
     get() = this.backendData as TranslationResult
+
+enum class Result {
+    VALID,
+    INVALID,
+    OPEN;
+
+    companion object {
+        fun convert(from: Any?): Result {
+            return when(from) {
+                is Result -> from
+                is Boolean -> if (from) VALID else INVALID
+                else -> OPEN
+            }
+        }
+    }
+}
+
+inline fun <T> Iterable<T>.allResult(predicate: (T) -> Result?): Result {
+    for (element in this) {
+        if (predicate(element) == OPEN) return OPEN
+        else if (predicate(element) == INVALID) return INVALID
+    }
+    return VALID
+}
+
+inline fun <T> Iterable<T>.anyResult(predicate: (T) -> Result?): Result {
+    var openFlag = false
+    for (element in this) {
+        if (predicate(element) == VALID) return VALID
+        else if (predicate(element) == OPEN) openFlag = true
+    }
+    return if (openFlag) OPEN else INVALID
+}
+
 
 /** Get all [Nodes] that are associated with this [Op]. */
 context(CokoBackend)
@@ -63,26 +98,35 @@ fun Op.cpgGetAllNodes(): Collection<CallExpression> =
  * [Definition]s.
  */
 context(CokoBackend)
-fun Op.cpgGetNodes(): Collection<CallExpression> =
+fun Op.cpgGetNodes(): Collection<Pair<CallExpression, Result>> =
     when (this@Op) {
-        is FunctionOp ->
-            this@Op.definitions
-                .flatMap { def ->
-                    this@CokoBackend.cpgCallFqn(def.fqn) {
-                        def.signatures.any { sig ->
-                            cpgSignature(*sig.parameters.toTypedArray()) &&
-                                sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
-                        }
+        is FunctionOp -> {
+            val results = mutableListOf<Result>()
+            val fqn = this@Op.definitions.flatMap {
+                def ->
+                this@CokoBackend.cpgCallFqn(def.fqn)  {
+                    def.signatures.any {
+                        sig ->
+                        val result = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
+                        results.add(result)
+                        cpgSignature(*sig.parameters.toTypedArray()) && result != INVALID
                     }
                 }
-        is ConstructorOp ->
-            this@Op.signatures
-                .flatMap { sig ->
+            }
+            fqn.zip(results)
+        }
+        is ConstructorOp -> {
+            val results = mutableListOf<Result>()
+            val fqn = this@Op.signatures.flatMap {
+                sig ->
                     this@CokoBackend.cpgConstructor(this@Op.classFqn) {
-                        cpgSignature(*sig.parameters.toTypedArray()) &&
-                            sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
+                        val result = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
+                        results.add(result)
+                        cpgSignature(*sig.parameters.toTypedArray()) && result != INVALID
                     }
-                }
+            }
+            fqn.zip(results)
+        }
         is GroupingOp -> this@Op.ops.flatMap { it.cpgGetNodes() }
         is ConditionalOp -> {
             val resultNodes = resultOp.cpgGetNodes()
@@ -90,7 +134,7 @@ fun Op.cpgGetNodes(): Collection<CallExpression> =
             resultNodes.filter { resultNode ->
                 conditionNodes.any { conditionNode ->
                     // TODO: Is it correct to use the EOG relationship here?
-                    val result = executionPath(conditionNode, resultNode)
+                    val result = executionPath(conditionNode.first, resultNode.first)
                     result.value
                 }
             }
@@ -151,7 +195,7 @@ context(CallExpression)
  * - If this is a Collection, we check if at least one of the elements flows to [that]
  * - If this is a [Node], we use the DFG of the CPG.
  */
-infix fun Any.cpgFlowsTo(that: Node): Boolean =
+infix fun Any.cpgFlowsTo(that: Node): Result =
     this.cpgFlowsTo(listOf(that))
 
 // it should only be available in the context of a CallExpression
@@ -162,22 +206,27 @@ context(CallExpression)
  * - If this is a Collection, we check if at least one of the elements flows to [that]
  * - If this is a [Node], we use the DFG of the CPG.
  */
-infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
-    when (this) {
-        is Wildcard -> true
-        is String -> that.any {
-            val regex = Regex(this)
-            regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
+infix fun Any.cpgFlowsTo(that: Collection<Node>): Result =
+    Result.convert(
+        when (this) {
+            is Wildcard -> true
+            is String -> that.any {
+                val regex = Regex(this)
+                regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
+            }
+            // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
+            is LongRange, is IntRange -> checkRange(that)
+            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) == VALID }
+            is Array<*> -> this.any { it?.cpgFlowsTo(that) == VALID }
+            is Node -> that.any { dataFlow(this, it).value }
+            is ParameterGroup -> this.parameters.all {
+                val flow = it?.cpgFlowsTo(that)
+                if (flow == OPEN) return OPEN else it?.cpgFlowsTo(that) == VALID
+            }
+            is Length -> checkLength(that)
+            else -> this in that.map { (it as Expression).evaluate() }
         }
-        // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
-        is LongRange, is IntRange -> checkRange(that)
-        is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-        is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
-        is Node -> that.any { dataFlow(this, it).value }
-        is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
-        is Length -> checkLength(that)
-        else -> this in that.map { (it as Expression).evaluate() }
-    }
+    )
 
 private fun Any.checkRange(that: Collection<Node>): Boolean {
     when (this) {
@@ -201,14 +250,15 @@ private fun Any.checkRange(that: Collection<Node>): Boolean {
     }
 }
 
-private fun Length.checkLength(that: Collection<Node>): Boolean {
-    return that.all {
+private fun Length.checkLength(that: Collection<Node>): Result {
+    return Result.convert(that.all {
         val size = sizeof(it).value
         if (size == -1) {
-            // TODO: handle case where size could not be determined -> OPEN Finding
+            // Handle case where size could not be determined -> OPEN Finding
+            return Result.OPEN
         }
         size in this.value
-    }
+    })
 }
 
 context(CokoBackend)

@@ -18,7 +18,6 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
@@ -32,6 +31,7 @@ import de.fraunhofer.aisec.cpg.query.executionPath
 import de.fraunhofer.aisec.cpg.query.max
 import de.fraunhofer.aisec.cpg.query.min
 import de.fraunhofer.aisec.cpg.query.sizeof
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result.*
 
 //
 // all functions/properties defined here must use CokoBackend
@@ -39,39 +39,6 @@ import de.fraunhofer.aisec.cpg.query.sizeof
 //
 val CokoBackend.cpg: TranslationResult
     get() = this.backendData as TranslationResult
-
-enum class Result {
-    VALID,
-    INVALID,
-    OPEN;
-
-    companion object {
-        fun convert(from: Any?): Result {
-            return when(from) {
-                is Result -> from
-                is Boolean -> if (from) VALID else INVALID
-                else -> OPEN
-            }
-        }
-    }
-}
-
-inline fun <T> Iterable<T>.allResult(predicate: (T) -> Result?): Result {
-    for (element in this) {
-        if (predicate(element) == OPEN) return OPEN
-        else if (predicate(element) == INVALID) return INVALID
-    }
-    return VALID
-}
-
-inline fun <T> Iterable<T>.anyResult(predicate: (T) -> Result?): Result {
-    var openFlag = false
-    for (element in this) {
-        if (predicate(element) == VALID) return VALID
-        else if (predicate(element) == OPEN) openFlag = true
-    }
-    return if (openFlag) OPEN else INVALID
-}
 
 
 /** Get all [Nodes] that are associated with this [Op]. */
@@ -107,9 +74,12 @@ fun Op.cpgGetNodes(): Collection<Pair<CallExpression, Result>> =
                 this@CokoBackend.cpgCallFqn(def.fqn)  {
                     def.signatures.any {
                         sig ->
-                        val result = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
-                        results.add(result)
-                        cpgSignature(*sig.parameters.toTypedArray()) && result != INVALID
+                        // We consider a result, when both the signature and the flow are not invalid
+                        // However, if at least one of them is OPEN, we propagate this information to the caller
+                        val signature = cpgSignature(*sig.parameters.toTypedArray())
+                        val flow = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
+                        results.add(signature.and(flow))
+                        signature != INVALID && flow != INVALID
                     }
                 }
             }
@@ -120,9 +90,10 @@ fun Op.cpgGetNodes(): Collection<Pair<CallExpression, Result>> =
             val fqn = this@Op.signatures.flatMap {
                 sig ->
                     this@CokoBackend.cpgConstructor(this@Op.classFqn) {
-                        val result = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
-                        results.add(result)
-                        cpgSignature(*sig.parameters.toTypedArray()) && result != INVALID
+                        val signature = cpgSignature(*sig.parameters.toTypedArray())
+                        val flow = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
+                        results.add(signature.and(flow))
+                        signature != INVALID && flow != INVALID
                     }
             }
             fqn.zip(results)
@@ -216,13 +187,10 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Result =
             }
             // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
             is LongRange, is IntRange -> checkRange(that)
-            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) == VALID }
-            is Array<*> -> this.any { it?.cpgFlowsTo(that) == VALID }
+            is Iterable<*> -> this.anyResult { it?.cpgFlowsTo(that) }
+            is Array<*> -> this.anyResult { it?.cpgFlowsTo(that) }
             is Node -> that.any { dataFlow(this, it).value }
-            is ParameterGroup -> this.parameters.all {
-                val flow = it?.cpgFlowsTo(that)
-                if (flow == OPEN) return OPEN else it?.cpgFlowsTo(that) == VALID
-            }
+            is ParameterGroup -> this.parameters.allResult { it?.cpgFlowsTo(that) }
             is Length -> checkLength(that)
             else -> this in that.map { (it as Expression).evaluate() }
         }
@@ -280,29 +248,29 @@ context(CokoBackend)
  * are not important to the analysis
  */
 @Suppress("UnsafeCallOnNullableType")
-fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
+fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = false): Result {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
-    return cpgCheckArgsSize(parameters, hasVarargs) &&
+    return cpgCheckArgsSize(parameters, hasVarargs).and(
         // checks if the CallExpression matches with the parameters
-        parameters.withIndex().all { (i: Int, parameter: Any?) ->
+        parameters.withIndex().allResult { (i: Int, parameter: Any?) ->
             when (parameter) {
                 // if any parameter is null, signature returns false
-                null -> false
+                null -> INVALID
                 is ParamWithType ->
                     // if `parameter` is a `ParamWithType` object we want to check the type and
                     // if there is dataflow
-                    cpgCheckType(parameter.type, i) &&
-                        parameter.param cpgFlowsTo arguments[i]
+                    cpgCheckType(parameter.type, i).and(parameter.param cpgFlowsTo arguments[i])
                 // checks if the type of the argument is the same
-                is Type -> cpgCheckType(parameter, i)
+                is Type -> Result.convert(cpgCheckType(parameter, i))
                 // check if any of the Nodes of the Op flow to the argument
-                is Op -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
+                is Op -> Result.convert(parameter.cpgGetNodes() cpgFlowsTo arguments[i])
                 // check if any of the Nodes of the DataItem flow to the argument
-                is DataItem<*> -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
+                is DataItem<*> -> Result.convert(parameter.cpgGetNodes() cpgFlowsTo arguments[i])
                 // checks if there is dataflow from the parameter to the argument in the same position
-                else -> parameter cpgFlowsTo arguments[i]
+                else -> Result.convert(parameter cpgFlowsTo arguments[i])
             }
         }
+    )
 }
 
 /** Checks the [type] against the type of the argument at [index] for the Call Expression */

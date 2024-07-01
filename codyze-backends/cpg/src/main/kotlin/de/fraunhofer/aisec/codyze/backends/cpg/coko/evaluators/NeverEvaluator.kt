@@ -17,6 +17,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
@@ -51,11 +52,20 @@ class NeverEvaluator(val forbiddenOps: List<Op>) : Evaluator {
             if (nodes.isNotEmpty()) {
                 // This means there are calls to the forbidden op, so Fail findings are added
                 for (node in nodes) {
+                    if (node.value == Result.OPEN) {
+                        findings.add(
+                            CpgFinding(
+                                message = "Not enough information to evaluate \"${node.key.code}\"",
+                                kind = Finding.Kind.Open,
+                                node = node.key
+                            )
+                        )
+                    }
                     findings.add(
                         CpgFinding(
-                            message = "Violation against rule: \"${node.code}\". $failMessage",
+                            message = "Violation against rule: \"${node.key.code}\". $failMessage",
                             kind = Finding.Kind.Fail,
-                            node = node
+                            node = node.key
                         )
                     )
                 }

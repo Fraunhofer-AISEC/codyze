@@ -65,7 +65,7 @@ fun Op.cpgGetAllNodes(): Collection<CallExpression> =
  * [Definition]s.
  */
 context(CokoBackend)
-fun Op.cpgGetNodes(): Collection<Pair<CallExpression, Result>> =
+fun Op.cpgGetNodes(): Map<CallExpression, Result> =
     when (this@Op) {
         is FunctionOp -> {
             val results = mutableListOf<Result>()
@@ -83,7 +83,7 @@ fun Op.cpgGetNodes(): Collection<Pair<CallExpression, Result>> =
                     }
                 }
             }
-            fqn.zip(results)
+            fqn.zip(results).toMap()
         }
         is ConstructorOp -> {
             val results = mutableListOf<Result>()
@@ -96,16 +96,16 @@ fun Op.cpgGetNodes(): Collection<Pair<CallExpression, Result>> =
                         signature != INVALID && flow != INVALID
                     }
             }
-            fqn.zip(results)
+            fqn.zip(results).toMap()
         }
-        is GroupingOp -> this@Op.ops.flatMap { it.cpgGetNodes() }
+        is GroupingOp -> this@Op.ops.flatMap { it.cpgGetNodes().entries }.associate { it.toPair() }
         is ConditionalOp -> {
             val resultNodes = resultOp.cpgGetNodes()
             val conditionNodes = conditionOp.cpgGetNodes()
             resultNodes.filter { resultNode ->
                 conditionNodes.any { conditionNode ->
                     // TODO: Is it correct to use the EOG relationship here?
-                    val result = executionPath(conditionNode.first, resultNode.first)
+                    val result = executionPath(conditionNode.key, resultNode.key)
                     result.value
                 }
             }

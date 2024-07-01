@@ -250,16 +250,16 @@ context(CokoBackend)
 @Suppress("UnsafeCallOnNullableType")
 fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = false): Result {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
-    return cpgCheckArgsSize(parameters, hasVarargs).and(
+    if(cpgCheckArgsSize(parameters, hasVarargs)) {
         // checks if the CallExpression matches with the parameters
-        parameters.withIndex().allResult { (i: Int, parameter: Any?) ->
+        return parameters.withIndex().allResult { (i: Int, parameter: Any?) ->
             when (parameter) {
                 // if any parameter is null, signature returns false
                 null -> INVALID
                 is ParamWithType ->
                     // if `parameter` is a `ParamWithType` object we want to check the type and
                     // if there is dataflow
-                    cpgCheckType(parameter.type, i).and(parameter.param cpgFlowsTo arguments[i])
+                    if (cpgCheckType(parameter.type, i)) parameter.param cpgFlowsTo arguments[i] else INVALID
                 // checks if the type of the argument is the same
                 is Type -> Result.convert(cpgCheckType(parameter, i))
                 // check if any of the Nodes of the Op flow to the argument
@@ -270,7 +270,8 @@ fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = f
                 else -> parameter cpgFlowsTo arguments[i]
             }
         }
-    )
+    }
+    return INVALID
 }
 
 /** Checks the [type] against the type of the argument at [index] for the Call Expression */

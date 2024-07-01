@@ -52,16 +52,9 @@ inline fun <T> Array<T>.anyResult(predicate: (T) -> Result?): Result {
     return if (openFlag) OPEN else INVALID
 }
 
+/** precedence order for ternary and: OPEN > INVALID > VALID */
 fun Result.and(other: Result): Result {
     return if (this == OPEN || other == OPEN) OPEN
     else if (this == INVALID || other == INVALID) INVALID
     else VALID
-}
-
-fun Boolean.and(other: Result): Result {
-    return Companion.convert(this).and(other)
-}
-
-fun Result.and(other: Boolean): Result {
-    return this.and(Companion.convert(other))
 }

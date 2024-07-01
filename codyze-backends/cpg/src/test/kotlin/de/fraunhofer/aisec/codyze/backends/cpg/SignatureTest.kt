@@ -43,14 +43,14 @@ class SignatureTest {
     fun `test signature with wrong number of params`() {
         every { node.arguments } returns listOf()
 
-        assertFalse { with(backend) { with(node) { cpgSignature("test") == Result.VALID } } }
+        assertFalse { with(backend) { with(node) { cpgSignature("test") } } == Result.VALID }
     }
 
     @Test
     fun `test signature with null`() {
         every { node.arguments } returns listOf(mockk<CallExpression>())
 
-        assertFalse { with(backend) { with(node) { cpgSignature(null) } == Result.VALID } }
+        assertFalse { with(backend) { with(node) { cpgSignature(null) } } == Result.VALID }
     }
 
     @Test
@@ -58,7 +58,7 @@ class SignatureTest {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
 
-        assertTrue { with(backend) { with(node) { cpgSignature(Type("kotlin.String")) } == Result.VALID } }
+        assertTrue { with(backend) { with(node) { cpgSignature(Type("kotlin.String")) } } == Result.VALID }
     }
 
     @Test

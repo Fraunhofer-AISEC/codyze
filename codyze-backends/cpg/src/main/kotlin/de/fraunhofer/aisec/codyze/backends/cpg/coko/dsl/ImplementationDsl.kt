@@ -263,11 +263,11 @@ fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = f
                 // checks if the type of the argument is the same
                 is Type -> Result.convert(cpgCheckType(parameter, i))
                 // check if any of the Nodes of the Op flow to the argument
-                is Op -> Result.convert(parameter.cpgGetNodes() cpgFlowsTo arguments[i])
+                is Op -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
                 // check if any of the Nodes of the DataItem flow to the argument
-                is DataItem<*> -> Result.convert(parameter.cpgGetNodes() cpgFlowsTo arguments[i])
+                is DataItem<*> -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
                 // checks if there is dataflow from the parameter to the argument in the same position
-                else -> Result.convert(parameter cpgFlowsTo arguments[i])
+                else -> parameter cpgFlowsTo arguments[i]
             }
         }
     )

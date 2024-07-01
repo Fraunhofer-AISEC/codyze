@@ -20,6 +20,10 @@
     {
       "matchPackagePrefixes": ["com.github.Fraunhofer-AISEC"],
       "registryUrls": ["https://jitpack.io/"]
+    },
+    {
+      "groupName": "PMD packages",
+      "matchPackagePrefixes": ["net.sourceforge.pmd:pmd-"]
     }
   ]
 }

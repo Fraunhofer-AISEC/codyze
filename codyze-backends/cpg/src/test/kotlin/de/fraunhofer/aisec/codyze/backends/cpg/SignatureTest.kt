@@ -43,14 +43,14 @@ class SignatureTest {
     fun `test signature with wrong number of params`() {
         every { node.arguments } returns listOf()
 
-        assertFalse { with(backend) { with(node) { cpgSignature("test") } } }
+        assertFalse { with(backend) { with(node) { cpgSignature("test") == Result.VALID } } }
     }
 
     @Test
     fun `test signature with null`() {
         every { node.arguments } returns listOf(mockk<CallExpression>())
 
-        assertFalse { with(backend) { with(node) { cpgSignature(null) } } }
+        assertFalse { with(backend) { with(node) { cpgSignature(null) } == Result.VALID } }
     }
 
     @Test
@@ -58,7 +58,7 @@ class SignatureTest {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
 
-        assertTrue { with(backend) { with(node) { cpgSignature(Type("kotlin.String")) } } }
+        assertTrue { with(backend) { with(node) { cpgSignature(Type("kotlin.String")) } == Result.VALID } }
     }
 
     @Test
@@ -66,7 +66,7 @@ class SignatureTest {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
 
-        assertFalse { with(backend) { with(node) { cpgSignature(Type("kotlin.Int")) } } }
+        assertFalse { with(backend) { with(node) { cpgSignature(Type("kotlin.Int")) } } == Result.VALID }
     }
 
     @Test
@@ -75,7 +75,7 @@ class SignatureTest {
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertTrue { with(backend) { with(node) { cpgSignature("test" withType "kotlin.String") } } }
+        assertTrue { with(backend) { with(node) { cpgSignature("test" withType "kotlin.String") } } == Result.VALID }
     }
 
     @Test
@@ -84,7 +84,7 @@ class SignatureTest {
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertFalse { with(backend) { with(node) { cpgSignature("test" withType "kotlin.Int") } } }
+        assertFalse { with(backend) { with(node) { cpgSignature("test" withType "kotlin.Int") } } == Result.VALID }
     }
 
     @Test
@@ -93,7 +93,7 @@ class SignatureTest {
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
-        assertFalse { with(backend) { with(node) { cpgSignature(1 withType "kotlin.String") } } }
+        assertFalse { with(backend) { with(node) { cpgSignature(1 withType "kotlin.String") } } == Result.VALID }
     }
 
     @Test
@@ -104,7 +104,7 @@ class SignatureTest {
         every { pairArgument.value } returns (1 to "one")
 
         mockkStatic("de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.ImplementationDslKt")
-        every { with(node) { param.cpgFlowsTo(pairArgument) } } returns true
+        every { with(node) { param.cpgFlowsTo(pairArgument) } } returns Result.VALID
 
         // tests that with normal pair only flowsTo is called
         with(backend) { with(node) { cpgSignature(param) } }
@@ -118,7 +118,7 @@ class SignatureTest {
         every { stringArgument.value } returns "test"
 
         mockkStatic("de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.ImplementationDslKt")
-        every { with(node) { param.cpgFlowsTo(stringArgument) } } returns true
+        every { with(node) { param.cpgFlowsTo(stringArgument) } } returns Result.VALID
 
         // assert that signature checks the dataflow from the parameter to the argument
         with(backend) { with(node) { cpgSignature(param) } }
@@ -134,7 +134,7 @@ class SignatureTest {
             val a = mockk<Literal<String>>()
             args.add(a)
             every { a.value } returns "test"
-            every { with(node) { p.cpgFlowsTo(a) } } returns true
+            every { with(node) { p.cpgFlowsTo(a) } } returns Result.VALID
         }
         every { node.arguments } returns args
 

@@ -223,7 +223,7 @@ private fun Length.checkLength(that: Collection<Node>): Result {
         val size = sizeof(it).value
         if (size == -1) {
             // Handle case where size could not be determined -> OPEN Finding
-            return Result.OPEN
+            return OPEN
         }
         size in this.value
     })

@@ -97,10 +97,16 @@ class ImplementationDslTest {
         for (i in 0..3) {
             with(lengthBackend) {
                 val nodes = opX[i].cpgGetNodes()
+                val validNodes = nodes.filter { it.value == Result.VALID }
                 assertEquals(
                     results[i],
-                    nodes.size,
-                    "cpgGetNodes returned ${nodes.size} node(s) instead of ${results[i]} nodes for the Op: ${opX[i]}."
+                    validNodes.size,
+                    "cpgGetNodes returned ${validNodes.size} node(s) instead of ${results[i]} nodes for the Op: ${opX[i]}."
+                )
+                assertEquals(
+                    1,
+                    nodes.filter { it.value == Result.OPEN }.size,
+                    "cpgGetNodes did not return exactly one OPEN result as expected."
                 )
             }
         }
@@ -123,10 +129,16 @@ class ImplementationDslTest {
         for (i in 0..3) {
             with(lengthBackend) {
                 val nodes = opX[i].cpgGetNodes()
+                val validNodes = nodes.filter { it.value == Result.VALID }
                 assertEquals(
                     results[i],
-                    nodes.size,
-                    "cpgGetNodes returned ${nodes.size} node(s) instead of ${results[i]} nodes for the Op: ${opX[i]}."
+                    validNodes.size,
+                    "cpgGetNodes returned ${validNodes.size} node(s) instead of ${results[i]} nodes for the Op: ${opX[i]}."
+                )
+                assertEquals(
+                    1,
+                    nodes.filter { it.value == Result.OPEN }.size,
+                    "cpgGetNodes did not return exactly one OPEN result as expected."
                 )
             }
         }

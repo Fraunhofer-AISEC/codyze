@@ -17,17 +17,18 @@ package de.fraunhofer.aisec.codyze.plugins.source
 
 import de.fraunhofer.aisec.codyze.plugins.PluginTest
 import java.nio.file.Path
+import kotlin.io.path.toPath
 import kotlin.test.assertNotNull
 
 abstract class SourcePluginTest : PluginTest() {
     override fun scanFiles() {
-        val sourcePath = PluginTest::class.java.classLoader.getResource("targets/TlsServer.java")?.path
+        val sourcePath = PluginTest::class.java.classLoader.getResource("targets/TlsServer.java")!!.toURI().toPath()
         assertNotNull(sourcePath)
 
         plugin.execute(
-            listOf(Path.of(sourcePath)),
+            listOf(sourcePath),
             listOf(),
-            Path.of(sourcePath).parent.parent.resolve("generatedReports").resolve(resultFileName).toFile()
+            sourcePath.parent.parent.resolve("generatedReports").resolve(resultFileName).toFile()
         )
     }
 }

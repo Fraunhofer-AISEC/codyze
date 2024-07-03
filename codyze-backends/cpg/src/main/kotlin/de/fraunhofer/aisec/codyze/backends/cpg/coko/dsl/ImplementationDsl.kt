@@ -18,20 +18,22 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.DataItem
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
-import de.fraunhofer.aisec.cpg.graph.declarations.*
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
-import de.fraunhofer.aisec.cpg.query.dataFlow
-import de.fraunhofer.aisec.cpg.query.executionPath
-import de.fraunhofer.aisec.cpg.query.max
-import de.fraunhofer.aisec.cpg.query.min
-import de.fraunhofer.aisec.cpg.query.sizeof
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result.*
+import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
+import de.fraunhofer.aisec.cpg.query.*
 
 //
 // all functions/properties defined here must use CokoBackend
@@ -39,7 +41,6 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result.*
 //
 val CokoBackend.cpg: TranslationResult
     get() = this.backendData as TranslationResult
-
 
 /** Get all [Nodes] that are associated with this [Op]. */
 context(CokoBackend)
@@ -69,11 +70,9 @@ fun Op.cpgGetNodes(): Map<CallExpression, Result> =
     when (this@Op) {
         is FunctionOp -> {
             val results = mutableListOf<Result>()
-            val fqn = this@Op.definitions.flatMap {
-                def ->
-                this@CokoBackend.cpgCallFqn(def.fqn)  {
-                    def.signatures.any {
-                        sig ->
+            val fqn = this@Op.definitions.flatMap { def ->
+                this@CokoBackend.cpgCallFqn(def.fqn) {
+                    def.signatures.any { sig ->
                         // We consider a result, when both the signature and the flow are not invalid
                         // However, if at least one of them is OPEN, we propagate this information to the caller
                         val signature = cpgSignature(*sig.parameters.toTypedArray())
@@ -87,14 +86,13 @@ fun Op.cpgGetNodes(): Map<CallExpression, Result> =
         }
         is ConstructorOp -> {
             val results = mutableListOf<Result>()
-            val fqn = this@Op.signatures.flatMap {
-                sig ->
-                    this@CokoBackend.cpgConstructor(this@Op.classFqn) {
-                        val signature = cpgSignature(*sig.parameters.toTypedArray())
-                        val flow = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
-                        results.add(signature.and(flow))
-                        signature != INVALID && flow != INVALID
-                    }
+            val fqn = this@Op.signatures.flatMap { sig ->
+                this@CokoBackend.cpgConstructor(this@Op.classFqn) {
+                    val signature = cpgSignature(*sig.parameters.toTypedArray())
+                    val flow = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
+                    results.add(signature.and(flow))
+                    signature != INVALID && flow != INVALID
+                }
             }
             fqn.zip(results).toMap()
         }
@@ -219,14 +217,16 @@ private fun Any.checkRange(that: Collection<Node>): Boolean {
 }
 
 private fun Length.checkLength(that: Collection<Node>): Result {
-    return Result.convert(that.all {
-        val size = sizeof(it).value
-        if (size == -1) {
-            // Handle case where size could not be determined -> OPEN Finding
-            return OPEN
+    return Result.convert(
+        that.all {
+            val size = sizeof(it).value
+            if (size == -1) {
+                // Handle case where size could not be determined -> OPEN Finding
+                return OPEN
+            }
+            size in this.value
         }
-        size in this.value
-    })
+    )
 }
 
 context(CokoBackend)
@@ -250,7 +250,7 @@ context(CokoBackend)
 @Suppress("UnsafeCallOnNullableType")
 fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = false): Result {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
-    if(cpgCheckArgsSize(parameters, hasVarargs)) {
+    if (cpgCheckArgsSize(parameters, hasVarargs)) {
         // checks if the CallExpression matches with the parameters
         return parameters.withIndex().allResult { (i: Int, parameter: Any?) ->
             when (parameter) {

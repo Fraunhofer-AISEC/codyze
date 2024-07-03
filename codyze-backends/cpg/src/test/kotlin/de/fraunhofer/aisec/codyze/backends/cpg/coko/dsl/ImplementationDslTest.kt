@@ -101,7 +101,8 @@ class ImplementationDslTest {
                 assertEquals(
                     results[i],
                     validNodes.size,
-                    "cpgGetNodes returned ${validNodes.size} node(s) instead of ${results[i]} nodes for the Op: ${opX[i]}."
+                    "cpgGetNodes returned ${validNodes.size} node(s) instead of ${results[i]} nodes " +
+                        "for the Op: ${opX[i]}."
                 )
                 assertEquals(
                     1,
@@ -133,7 +134,8 @@ class ImplementationDslTest {
                 assertEquals(
                     results[i],
                     validNodes.size,
-                    "cpgGetNodes returned ${validNodes.size} node(s) instead of ${results[i]} nodes for the Op: ${opX[i]}."
+                    "cpgGetNodes returned ${validNodes.size} node(s) instead of ${results[i]} nodes " +
+                        "for the Op: ${opX[i]}."
                 )
                 assertEquals(
                     1,

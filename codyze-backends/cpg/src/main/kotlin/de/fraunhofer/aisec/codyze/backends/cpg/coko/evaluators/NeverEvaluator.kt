@@ -49,26 +49,28 @@ class NeverEvaluator(val forbiddenOps: List<Op>) : Evaluator {
         for (op in forbiddenOps) {
             val nodes = op.cpgGetNodes()
 
-            if (nodes.isNotEmpty()) {
-                // This means there are calls to the forbidden op, so Fail findings are added
-                for (node in nodes) {
-                    if (node.value == Result.OPEN) {
-                        findings.add(
-                            CpgFinding(
-                                message = "Not enough information to evaluate \"${node.key.code}\"",
-                                kind = Finding.Kind.Open,
-                                node = node.key
-                            )
-                        )
-                    }
+            if (nodes.isEmpty()) {
+                continue
+            }
+
+            // This means there are calls to the forbidden op, so Fail findings are added
+            for (node in nodes) {
+                if (node.value == Result.OPEN) {
                     findings.add(
                         CpgFinding(
-                            message = "Violation against rule: \"${node.key.code}\". $failMessage",
-                            kind = Finding.Kind.Fail,
+                            message = "Not enough information to evaluate \"${node.key.code}\"",
+                            kind = Finding.Kind.Open,
                             node = node.key
                         )
                     )
                 }
+                findings.add(
+                    CpgFinding(
+                        message = "Violation against rule: \"${node.key.code}\". $failMessage",
+                        kind = Finding.Kind.Fail,
+                        node = node.key
+                    )
+                )
             }
         }
 

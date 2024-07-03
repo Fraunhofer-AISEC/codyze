@@ -40,7 +40,6 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
     private val defaultPassMessage = "Call is in compliance with rule"
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
-
         val correctAndOpen = with(this@CokoCpgBackend) {
             ops.flatMap { it.cpgGetNodes().entries }.associate { it.toPair() }
         }

@@ -16,18 +16,23 @@
 package de.fraunhofer.aisec.codyze.plugins.compiled
 
 import de.fraunhofer.aisec.codyze.plugins.PluginTest
-import java.nio.file.Path
 import kotlin.io.path.toPath
 import kotlin.test.assertNotNull
 
 abstract class CompiledPluginTest : PluginTest() {
     override fun scanFiles() {
-        val libPath = PluginTest::class.java.classLoader.getResource("targets/libs/demo-cloud-service-1.0.0.jar")!!.toURI().toPath()
+        val libPath =
+            PluginTest::class.java.classLoader.getResource("targets/libs/demo-cloud-service-1.0.0.jar")!!
+                .toURI().toPath()
         val contextPaths = listOf(
-            PluginTest::class.java.classLoader.getResource("targets/libs/bcpkix-jdk18on-1.75.jar")!!.toURI().toPath(),
-            PluginTest::class.java.classLoader.getResource("targets/libs/bcprov-jdk18on-1.75.jar")!!.toURI().toPath(),
-            PluginTest::class.java.classLoader.getResource("targets/libs/bctls-jdk18on-1.75.jar")!!.toURI().toPath(),
-            PluginTest::class.java.classLoader.getResource("targets/libs/bcutil-jdk18on-1.75.jar")!!.toURI().toPath()
+            PluginTest::class.java.classLoader.getResource("targets/libs/bcpkix-jdk18on-1.75.jar")!!
+                .toURI().toPath(),
+            PluginTest::class.java.classLoader.getResource("targets/libs/bcprov-jdk18on-1.75.jar")!!
+                .toURI().toPath(),
+            PluginTest::class.java.classLoader.getResource("targets/libs/bctls-jdk18on-1.75.jar")!!
+                .toURI().toPath(),
+            PluginTest::class.java.classLoader.getResource("targets/libs/bcutil-jdk18on-1.75.jar")!!
+                .toURI().toPath()
         )
         assertNotNull(libPath)
 

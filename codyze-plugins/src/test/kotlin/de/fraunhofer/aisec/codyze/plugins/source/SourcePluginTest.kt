@@ -16,7 +16,6 @@
 package de.fraunhofer.aisec.codyze.plugins.source
 
 import de.fraunhofer.aisec.codyze.plugins.PluginTest
-import java.nio.file.Path
 import kotlin.io.path.toPath
 import kotlin.test.assertNotNull
 

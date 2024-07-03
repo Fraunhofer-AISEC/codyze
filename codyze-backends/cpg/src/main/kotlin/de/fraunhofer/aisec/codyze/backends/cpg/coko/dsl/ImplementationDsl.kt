@@ -73,12 +73,15 @@ fun Op.cpgGetNodes(): Map<CallExpression, Result> =
             val fqn = this@Op.definitions.flatMap { def ->
                 this@CokoBackend.cpgCallFqn(def.fqn) {
                     def.signatures.any { sig ->
-                        // We consider a result, when both the signature and the flow are not invalid
-                        // However, if at least one of them is OPEN, we propagate this information to the caller
+                        // We consider a result when both the signature and the flow are not invalid
+                        // However, if at least one of them is OPEN we propagate this information to the caller
                         val signature = cpgSignature(*sig.parameters.toTypedArray())
                         val flow = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
-                        results.add(signature.and(flow))
-                        signature != INVALID && flow != INVALID
+                        if (signature != INVALID && flow != INVALID) {
+                            results.add(signature.and(flow))
+                        } else {
+                            false
+                        }
                     }
                 }
             }
@@ -90,8 +93,11 @@ fun Op.cpgGetNodes(): Map<CallExpression, Result> =
                 this@CokoBackend.cpgConstructor(this@Op.classFqn) {
                     val signature = cpgSignature(*sig.parameters.toTypedArray())
                     val flow = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
-                    results.add(signature.and(flow))
-                    signature != INVALID && flow != INVALID
+                    if (signature != INVALID && flow != INVALID) {
+                        results.add(signature.and(flow))
+                    } else {
+                        false
+                    }
                 }
             }
             fqn.zip(results).toMap()

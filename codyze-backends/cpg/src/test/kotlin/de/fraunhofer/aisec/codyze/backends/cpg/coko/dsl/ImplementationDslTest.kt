@@ -19,6 +19,7 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.createCpgConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.io.path.toPath
 import kotlin.test.assertEquals
@@ -80,6 +81,7 @@ class ImplementationDslTest {
         }
     }
 
+    @Disabled("sizeof in CPG currently does not support InitListExpression as initializer")
     @Test
     fun `test Array Length`() {
         val opX: MutableList<Op> = mutableListOf()
@@ -113,6 +115,7 @@ class ImplementationDslTest {
         }
     }
 
+    @Disabled("sizeof in CPG currently does not support MemberCallExpression as Initializer")
     @Test
     fun `test List Length`() {
         val opX: MutableList<Op> = mutableListOf()

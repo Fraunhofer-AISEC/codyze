@@ -331,7 +331,7 @@ class CpgWheneverEvaluator(premise: ConditionComponent) : WheneverEvaluator(prem
         callConditionComponent: CallConditionComponent,
         premiseNode: Node? = null
     ): EvaluationResult {
-        val callNodes = callConditionComponent.op.cpgGetNodes().keys.filterWithDistanceToPremise(premiseNode)
+        val callNodes = callConditionComponent.op.cpgGetNodes().filterWithDistanceToPremise(premiseNode)
         return EvaluationResult(callNodes, emptyList(), Problems())
     }
 

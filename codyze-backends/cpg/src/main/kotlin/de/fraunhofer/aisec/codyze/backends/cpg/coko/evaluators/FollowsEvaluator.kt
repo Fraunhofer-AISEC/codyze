@@ -38,10 +38,10 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
         val (unreachableThisNodes, thisNodes) =
-            with(this@CokoCpgBackend) { ifOp.cpgGetNodes().keys }
+            with(this@CokoCpgBackend) { ifOp.cpgGetNodes().toSet() }
                 .partition { it.isUnreachable() }
 
-        val thatNodes = with(this@CokoCpgBackend) { thenOp.cpgGetNodes().keys }
+        val thatNodes = with(this@CokoCpgBackend) { thenOp.cpgGetNodes().toSet() }
 
         val findings = mutableListOf<CpgFinding>()
 

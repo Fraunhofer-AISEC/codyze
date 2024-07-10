@@ -77,7 +77,7 @@ class CokoCpgBackend(config: BackendConfiguration) :
      */
     override fun order(baseNodes: Op, block: Order.() -> Unit): OrderEvaluator =
         OrderEvaluator(
-            baseNodes = baseNodes.cpgGetNodes().keys,
+            baseNodes = baseNodes.cpgGetNodes(),
             order = Order().apply(block)
         )
 

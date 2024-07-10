@@ -18,22 +18,16 @@
 package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.Nodes
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoMarker
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.DataItem
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Definition
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.ParameterGroup
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.Signature
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling.*
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.ConstructExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Expression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
-import de.fraunhofer.aisec.cpg.query.*
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
+import de.fraunhofer.aisec.cpg.query.dataFlow
+import de.fraunhofer.aisec.cpg.query.executionPath
 
 //
 // all functions/properties defined here must use CokoBackend
@@ -66,50 +60,34 @@ fun Op.cpgGetAllNodes(): Collection<CallExpression> =
  * [Definition]s.
  */
 context(CokoBackend)
-fun Op.cpgGetNodes(): Map<CallExpression, Result> =
+fun Op.cpgGetNodes(): Collection<CallExpression> =
     when (this@Op) {
-        is FunctionOp -> {
-            val results = mutableListOf<Result>()
-            val fqn = this@Op.definitions.flatMap { def ->
-                this@CokoBackend.cpgCallFqn(def.fqn) {
-                    def.signatures.any { sig ->
-                        // We consider a result when both the signature and the flow are not invalid
-                        // However, if at least one of them is OPEN we propagate this information to the caller
-                        val signature = cpgSignature(*sig.parameters.toTypedArray())
-                        val flow = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
-                        if (signature != INVALID && flow != INVALID) {
-                            results.add(signature.and(flow))
-                        } else {
-                            false
+        is FunctionOp ->
+            this@Op.definitions
+                .flatMap { def ->
+                    this@CokoBackend.cpgCallFqn(def.fqn) {
+                        def.signatures.any { sig ->
+                            cpgSignature(*sig.parameters.toTypedArray()) &&
+                                sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                         }
                     }
                 }
-            }
-            fqn.zip(results).toMap()
-        }
-        is ConstructorOp -> {
-            val results = mutableListOf<Result>()
-            val fqn = this@Op.signatures.flatMap { sig ->
-                this@CokoBackend.cpgConstructor(this@Op.classFqn) {
-                    val signature = cpgSignature(*sig.parameters.toTypedArray())
-                    val flow = sig.unorderedParameters.allResult { it?.cpgFlowsTo(arguments) }
-                    if (signature != INVALID && flow != INVALID) {
-                        results.add(signature.and(flow))
-                    } else {
-                        false
+        is ConstructorOp ->
+            this@Op.signatures
+                .flatMap { sig ->
+                    this@CokoBackend.cpgConstructor(this@Op.classFqn) {
+                        cpgSignature(*sig.parameters.toTypedArray()) &&
+                            sig.unorderedParameters.all { it?.cpgFlowsTo(arguments) ?: false }
                     }
                 }
-            }
-            fqn.zip(results).toMap()
-        }
-        is GroupingOp -> this@Op.ops.flatMap { it.cpgGetNodes().entries }.associate { it.toPair() }
+        is GroupingOp -> this@Op.ops.flatMap { it.cpgGetNodes() }
         is ConditionalOp -> {
             val resultNodes = resultOp.cpgGetNodes()
             val conditionNodes = conditionOp.cpgGetNodes()
             resultNodes.filter { resultNode ->
                 conditionNodes.any { conditionNode ->
                     // TODO: Is it correct to use the EOG relationship here?
-                    val result = executionPath(conditionNode.key, resultNode.key)
+                    val result = executionPath(conditionNode, resultNode)
                     result.value
                 }
             }
@@ -170,7 +148,7 @@ context(CallExpression)
  * - If this is a Collection, we check if at least one of the elements flows to [that]
  * - If this is a [Node], we use the DFG of the CPG.
  */
-infix fun Any.cpgFlowsTo(that: Node): Result =
+infix fun Any.cpgFlowsTo(that: Node): Boolean =
     this.cpgFlowsTo(listOf(that))
 
 // it should only be available in the context of a CallExpression
@@ -181,20 +159,21 @@ context(CallExpression)
  * - If this is a Collection, we check if at least one of the elements flows to [that]
  * - If this is a [Node], we use the DFG of the CPG.
  */
-infix fun Any.cpgFlowsTo(that: Collection<Node>): Result =
-    Result.convert(
+infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
+    if (this is Wildcard) {
+        true
+    } else {
         when (this) {
-            is Wildcard -> true
             is String -> that.any {
                 val regex = Regex(this)
                 regex.matches((it as? Expression)?.evaluate()?.toString().orEmpty()) || regex.matches(it.code.orEmpty())
             }
             // Separate cases for IntRange and LongRange result in a huge performance boost for large ranges
             is LongRange, is IntRange -> checkRange(that)
-            is Iterable<*> -> this.anyResult { it?.cpgFlowsTo(that) }
-            is Array<*> -> this.anyResult { it?.cpgFlowsTo(that) }
+            is Iterable<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
+            is Array<*> -> this.any { it?.cpgFlowsTo(that) ?: false }
             is Node -> that.any { dataFlow(this, it).value }
-            is ParameterGroup -> this.parameters.allResult { it?.cpgFlowsTo(that) }
+            is ParameterGroup -> this.parameters.all { it?.cpgFlowsTo(that) ?: false }
             is Length -> checkLength(that)
             else -> this in that.map { (it as Expression).evaluate() }
         }
@@ -254,20 +233,21 @@ context(CokoBackend)
  * are not important to the analysis
  */
 @Suppress("UnsafeCallOnNullableType")
-fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = false): Result {
+fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = false): Boolean {
     // checks if amount of parameters is the same as amount of arguments of this CallExpression
-    if (cpgCheckArgsSize(parameters, hasVarargs)) {
+    return cpgCheckArgsSize(parameters, hasVarargs) &&
         // checks if the CallExpression matches with the parameters
-        return parameters.withIndex().allResult { (i: Int, parameter: Any?) ->
+        parameters.withIndex().all { (i: Int, parameter: Any?) ->
             when (parameter) {
                 // if any parameter is null, signature returns false
-                null -> INVALID
+                null -> false
                 is ParamWithType ->
                     // if `parameter` is a `ParamWithType` object we want to check the type and
                     // if there is dataflow
-                    if (cpgCheckType(parameter.type, i)) parameter.param cpgFlowsTo arguments[i] else INVALID
+                    cpgCheckType(parameter.type, i) &&
+                        parameter.param cpgFlowsTo arguments[i]
                 // checks if the type of the argument is the same
-                is Type -> Result.convert(cpgCheckType(parameter, i))
+                is Type -> cpgCheckType(parameter, i)
                 // check if any of the Nodes of the Op flow to the argument
                 is Op -> parameter.cpgGetNodes() cpgFlowsTo arguments[i]
                 // check if any of the Nodes of the DataItem flow to the argument
@@ -276,8 +256,6 @@ fun CallExpression.cpgSignature(vararg parameters: Any?, hasVarargs: Boolean = f
                 else -> parameter cpgFlowsTo arguments[i]
             }
         }
-    }
-    return INVALID
 }
 
 /** Checks the [type] against the type of the argument at [index] for the Call Expression */

@@ -17,7 +17,6 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetAllNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
@@ -40,10 +39,9 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
     private val defaultPassMessage = "Call is in compliance with rule"
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
-        val correctAndOpen = with(this@CokoCpgBackend) {
-            ops.flatMap { it.cpgGetNodes().entries }.associate { it.toPair() }
-        }
-        val correctAndOpenNodes = correctAndOpen.keys.toSet()
+        val correctNodes =
+            with(this@CokoCpgBackend) { ops.flatMap { it.cpgGetNodes() } }
+                .toSet()
 
         val distinctOps = ops.toSet()
         val allNodes =
@@ -52,7 +50,7 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
 
         // `correctNodes` is a subset of `allNodes`
         // we want to find nodes in `allNodes` that are not contained in `correctNodes` since they are violations
-        val violatingNodes = allNodes.minus(correctAndOpenNodes)
+        val violatingNodes = allNodes.minus(correctNodes)
 
         val ruleAnnotation = context.rule.findAnnotation<Rule>()
         val failMessage = ruleAnnotation?.failMessage?.takeIf { it.isNotEmpty() } ?: defaultFailMessage
@@ -69,16 +67,7 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
             )
         }
 
-        for (node in correctAndOpenNodes) {
-            if (correctAndOpen[node] == Result.OPEN) {
-                findings.add(
-                    CpgFinding(
-                        message = "Not enough information to evaluate \"${node.code}\"",
-                        kind = Finding.Kind.Open,
-                        node = node
-                    )
-                )
-            }
+        for (node in correctNodes) {
             findings.add(
                 CpgFinding(
                     message = "Complies with rule: \"${node.code}\". $passMessage",

@@ -19,7 +19,6 @@ import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.createCpgConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.io.path.toPath
 import kotlin.test.assertEquals

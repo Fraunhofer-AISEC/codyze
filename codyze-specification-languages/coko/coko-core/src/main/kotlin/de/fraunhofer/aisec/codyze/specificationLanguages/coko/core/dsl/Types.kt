@@ -29,7 +29,4 @@ data class Type(val fqn: String)
 
 data class ParamWithType(val param: Any, val type: Type)
 
-/** Marks that we want to check the length of the argument, not the contents */
-data class Length(val value: IntRange)
-
 infix fun Any.withType(fqn: String) = ParamWithType(this, Type(fqn))

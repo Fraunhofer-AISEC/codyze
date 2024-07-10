@@ -81,78 +81,9 @@ class ImplementationDslTest {
         }
     }
 
-    @Disabled("sizeof in CPG currently does not support InitListExpression as initializer")
-    @Test
-    fun `test Array Length`() {
-        val opX: MutableList<Op> = mutableListOf()
-        for (i in 0..3) {
-            opX += op {
-                "Foo.fun" {
-                    signature(
-                        Length(i..i)
-                    )
-                }
-            }
-        }
-
-        val results = arrayOf(1, 0, 1, 2)
-        for (i in 0..3) {
-            with(lengthBackend) {
-                val nodes = opX[i].cpgGetNodes()
-                val validNodes = nodes.filter { it.value == Result.VALID }
-                assertEquals(
-                    results[i],
-                    validNodes.size,
-                    "cpgGetNodes returned ${validNodes.size} node(s) instead of ${results[i]} nodes " +
-                        "for the Op: ${opX[i]}."
-                )
-                assertEquals(
-                    1,
-                    nodes.filter { it.value == Result.OPEN }.size,
-                    "cpgGetNodes did not return exactly one OPEN result as expected."
-                )
-            }
-        }
-    }
-
-    @Disabled("sizeof in CPG currently does not support MemberCallExpression as Initializer")
-    @Test
-    fun `test List Length`() {
-        val opX: MutableList<Op> = mutableListOf()
-        for (i in 0..3) {
-            opX += op {
-                "Foo.bar" {
-                    signature(
-                        Length(i..i)
-                    )
-                }
-            }
-        }
-
-        val results = arrayOf(1, 0, 1, 2)
-        for (i in 0..3) {
-            with(lengthBackend) {
-                val nodes = opX[i].cpgGetNodes()
-                val validNodes = nodes.filter { it.value == Result.VALID }
-                assertEquals(
-                    results[i],
-                    validNodes.size,
-                    "cpgGetNodes returned ${validNodes.size} node(s) instead of ${results[i]} nodes " +
-                        "for the Op: ${opX[i]}."
-                )
-                assertEquals(
-                    1,
-                    nodes.filter { it.value == Result.OPEN }.size,
-                    "cpgGetNodes did not return exactly one OPEN result as expected."
-                )
-            }
-        }
-    }
-
     companion object {
 
         lateinit var simpleBackend: CokoCpgBackend
-        lateinit var lengthBackend: CokoCpgBackend
 
         @BeforeAll
         @JvmStatic
@@ -160,16 +91,12 @@ class ImplementationDslTest {
             val classLoader = ImplementationDslTest::class.java.classLoader
 
             val simpleFileResource = classLoader.getResource("ImplementationDslTest/SimpleJavaFile.java")
-            val lengthFileResource = classLoader.getResource("ImplementationDslTest/LengthJavaFile.java")
 
             assertNotNull(simpleFileResource)
-            assertNotNull(lengthFileResource)
 
             val simpleFile = simpleFileResource.toURI().toPath()
-            val lengthFile = lengthFileResource.toURI().toPath()
 
             simpleBackend = CokoCpgBackend(config = createCpgConfiguration(simpleFile))
-            lengthBackend = CokoCpgBackend(config = createCpgConfiguration(lengthFile))
         }
     }
 }

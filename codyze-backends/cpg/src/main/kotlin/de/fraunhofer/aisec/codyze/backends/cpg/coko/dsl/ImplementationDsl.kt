@@ -195,7 +195,6 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Result =
             is Array<*> -> this.anyResult { it?.cpgFlowsTo(that) }
             is Node -> that.any { dataFlow(this, it).value }
             is ParameterGroup -> this.parameters.allResult { it?.cpgFlowsTo(that) }
-            is Length -> checkLength(that)
             else -> this in that.map { (it as Expression).evaluate() }
         }
     )
@@ -220,19 +219,6 @@ private fun Any.checkRange(that: Collection<Node>): Boolean {
         }
         else -> throw IllegalArgumentException("Unexpected type")
     }
-}
-
-private fun Length.checkLength(that: Collection<Node>): Result {
-    return Result.convert(
-        that.all {
-            val size = sizeof(it).value
-            if (size == -1) {
-                // Handle case where size could not be determined -> OPEN Finding
-                return OPEN
-            }
-            size in this.value
-        }
-    )
 }
 
 context(CokoBackend)

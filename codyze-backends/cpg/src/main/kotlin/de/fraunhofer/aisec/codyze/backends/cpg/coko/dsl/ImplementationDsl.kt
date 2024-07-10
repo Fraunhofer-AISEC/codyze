@@ -26,8 +26,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.declarations.ValueDeclaration
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
-import de.fraunhofer.aisec.cpg.query.dataFlow
-import de.fraunhofer.aisec.cpg.query.executionPath
+import de.fraunhofer.aisec.cpg.query.*
 
 //
 // all functions/properties defined here must use CokoBackend
@@ -177,7 +176,7 @@ infix fun Any.cpgFlowsTo(that: Collection<Node>): Boolean =
             is Length -> checkLength(that)
             else -> this in that.map { (it as Expression).evaluate() }
         }
-    )
+    }
 
 private fun Any.checkRange(that: Collection<Node>): Boolean {
     when (this) {
@@ -201,17 +200,14 @@ private fun Any.checkRange(that: Collection<Node>): Boolean {
     }
 }
 
-private fun Length.checkLength(that: Collection<Node>): Result {
-    return Result.convert(
-        that.all {
-            val size = sizeof(it).value
-            if (size == -1) {
-                // Handle case where size could not be determined -> OPEN Finding
-                return OPEN
-            }
-            size in this.value
+private fun Length.checkLength(that: Collection<Node>): Boolean {
+    return that.all {
+        val size = sizeof(it).value
+        if (size == -1) {
+            // TODO: Handle case where size could not be determined -> OPEN Finding
         }
-    )
+        size in this.value
+    }
 }
 
 context(CokoBackend)

@@ -8,6 +8,7 @@ dependencies {
     implementation(projects.codyzeCore)
     implementation(projects.codyzeBackends.cpg)
     implementation(projects.codyzeSpecificationLanguages.coko.cokoDsl)
+    implementation(projects.codyzeSpecificationLanguages.cpgNative)
 
     implementation(libs.clikt)
     implementation(libs.koin)

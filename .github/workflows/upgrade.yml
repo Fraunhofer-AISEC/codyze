@@ -65,8 +65,7 @@ jobs:
           merge-multiple: true
       - name: Process failures
         id: process-failures
-        run: test -f all-failures/failure && echo 'hasFails=true' >> "$GITHUB_OUTPUT" 
-          || echo 'hasFails=false' >> "$GITHUB_OUTPUT"
+        run: (test -f all-failures/failure && echo 'hasFails=true' || echo 'hasFails=false') >> "$GITHUB_OUTPUT"
       - if: ${{ steps.process-failures.outputs.hasFails == 'true' }}
         uses: actions/github-script@v7
         with:

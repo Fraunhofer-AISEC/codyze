@@ -39,7 +39,7 @@ enum class Result {
 }
 
 /** returns VALID if all Results are VALID, otherwise returns OPEN if any result is OPEN, otherwise returns INVALID */
-inline fun <T> Iterable<T>.allResult(predicate: (T) -> Result?): Result {
+fun <T> Iterable<T>.allResult(predicate: (T) -> Result?): Result {
     var invalidFlag = false
     for (element in this) {
         if (predicate(element) == OPEN) {
@@ -52,7 +52,7 @@ inline fun <T> Iterable<T>.allResult(predicate: (T) -> Result?): Result {
 }
 
 /** returns VALID if any Result is VALID, otherwise returns OPEN if any result is OPEN, otherwise returns INVALID */
-inline fun <T> Iterable<T>.anyResult(predicate: (T) -> Result?): Result {
+fun <T> Iterable<T>.anyResult(predicate: (T) -> Result?): Result {
     var openFlag = false
     for (element in this) {
         if (predicate(element) == VALID) {
@@ -65,12 +65,12 @@ inline fun <T> Iterable<T>.anyResult(predicate: (T) -> Result?): Result {
 }
 
 /** returns VALID if all Results are VALID, otherwise returns OPEN if any result is OPEN, otherwise returns INVALID */
-inline fun <T> Array<T>.allResult(predicate: (T) -> Result?): Result {
+fun <T> Array<T>.allResult(predicate: (T) -> Result?): Result {
     return this.asIterable().allResult(predicate)
 }
 
 /** returns VALID if any Result is VALID, otherwise returns OPEN if any result is OPEN, otherwise returns INVALID */
-inline fun <T> Array<T>.anyResult(predicate: (T) -> Result?): Result {
+fun <T> Array<T>.anyResult(predicate: (T) -> Result?): Result {
     return this.asIterable().anyResult(predicate)
 }
 

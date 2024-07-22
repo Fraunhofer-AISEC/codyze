@@ -66,26 +66,12 @@ inline fun <T> Iterable<T>.anyResult(predicate: (T) -> Result?): Result {
 
 /** returns VALID if all Results are VALID, otherwise returns OPEN if any result is OPEN, otherwise returns INVALID */
 inline fun <T> Array<T>.allResult(predicate: (T) -> Result?): Result {
-    var invalidFlag = false
-    for (element in this) {
-        if (predicate(element) == OPEN) {
-            return OPEN
-        } else if (predicate(element) == INVALID)invalidFlag = true
-    }
-    return if (invalidFlag) INVALID else VALID
+    return this.asIterable().allResult(predicate)
 }
 
 /** returns VALID if any Result is VALID, otherwise returns OPEN if any result is OPEN, otherwise returns INVALID */
 inline fun <T> Array<T>.anyResult(predicate: (T) -> Result?): Result {
-    var openFlag = false
-    for (element in this) {
-        if (predicate(element) == VALID) {
-            return VALID
-        } else if (predicate(element) == OPEN) {
-            openFlag = true
-        }
-    }
-    return if (openFlag) OPEN else INVALID
+    return this.asIterable().anyResult(predicate)
 }
 
 /** precedence order for ternary and: OPEN > INVALID > VALID */

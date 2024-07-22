@@ -153,7 +153,7 @@ class OrderEvaluator(val baseNodes: Collection<Node>, val order: Order) : Evalua
         // the nodes from +testObj.start(123) <- userDefined Ops are used
         // only allow the start nodes that take '123' as argument
         for ((_, op) in order.userDefinedOps.entries) {
-            val nodes = op.cpgGetNodes()
+            val nodes = op.cpgGetNodes().keys
             registerOpAndNodes(op, nodes, hashToMethod, nodesToOp)
         }
 

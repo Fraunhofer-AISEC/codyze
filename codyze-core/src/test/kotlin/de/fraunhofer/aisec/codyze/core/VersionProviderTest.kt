@@ -17,7 +17,6 @@ package de.fraunhofer.aisec.codyze.core
 
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.io.FileOutputStream
 import java.util.Properties
 import kotlin.test.assertEquals
 

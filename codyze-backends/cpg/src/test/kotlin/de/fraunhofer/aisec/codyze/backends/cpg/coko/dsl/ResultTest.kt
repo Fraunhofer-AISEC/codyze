@@ -83,4 +83,14 @@ class ResultTest {
         assertEquals(Result.INVALID, Result.INVALID.and(Result.VALID))
         assertEquals(Result.OPEN, Result.OPEN.and(Result.INVALID))
     }
+
+    @Test
+    fun testConvert() {
+        assertEquals(Result.VALID, Result.convert(Result.VALID))
+        assertEquals(Result.INVALID, Result.convert(Result.INVALID))
+        assertEquals(Result.OPEN, Result.convert(Result.OPEN))
+        assertEquals(Result.VALID, Result.convert(true))
+        assertEquals(Result.INVALID, Result.convert(false))
+        assertEquals(Result.OPEN, Result.convert("123"))
+    }
 }

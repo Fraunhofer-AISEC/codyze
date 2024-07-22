@@ -25,10 +25,14 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
-class OnlyEvaluator(val ops: List<Op>) : Evaluator {
+class OnlyEvaluator(private val ops: List<Op>) : Evaluator {
+    var correctAndOpen = with(this@CokoCpgBackend) {
+        ops.flatMap { it.cpgGetNodes().entries }.associate { it.toPair() }
+    }
 
     /** Default message if a violation is found */
     private val defaultFailMessage: String by lazy {
@@ -40,9 +44,12 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
     private val defaultPassMessage = "Call is in compliance with rule"
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
-        val correctAndOpen = with(this@CokoCpgBackend) {
-            ops.flatMap { it.cpgGetNodes().entries }.associate { it.toPair() }
-        }
+        val (violatingNodes, correctAndOpenNodes) = getNodes()
+        val (failMessage, passMessage) = getMessages(context)
+        return createFindings(violatingNodes, correctAndOpenNodes, failMessage, passMessage)
+    }
+
+    private fun getNodes(): Pair<Set<CallExpression>, Set<CallExpression>> {
         val correctAndOpenNodes = correctAndOpen.keys.toSet()
 
         val distinctOps = ops.toSet()
@@ -53,11 +60,22 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
         // `correctNodes` is a subset of `allNodes`
         // we want to find nodes in `allNodes` that are not contained in `correctNodes` since they are violations
         val violatingNodes = allNodes.minus(correctAndOpenNodes)
+        return violatingNodes to correctAndOpenNodes
+    }
 
+    private fun getMessages(context: EvaluationContext): Pair<String, String> {
         val ruleAnnotation = context.rule.findAnnotation<Rule>()
         val failMessage = ruleAnnotation?.failMessage?.takeIf { it.isNotEmpty() } ?: defaultFailMessage
         val passMessage = ruleAnnotation?.passMessage?.takeIf { it.isNotEmpty() } ?: defaultPassMessage
+        return failMessage to passMessage
+    }
 
+    fun createFindings(
+        violatingNodes: Set<CallExpression>,
+        correctAndOpenNodes: Set<CallExpression>,
+        failMessage: String,
+        passMessage: String
+    ): List<CpgFinding> {
         val findings = mutableListOf<CpgFinding>()
         for (node in violatingNodes) {
             findings.add(
@@ -78,14 +96,15 @@ class OnlyEvaluator(val ops: List<Op>) : Evaluator {
                         node = node
                     )
                 )
-            }
-            findings.add(
-                CpgFinding(
-                    message = "Complies with rule: \"${node.code}\". $passMessage",
-                    kind = Finding.Kind.Pass,
-                    node = node
+            } else {
+                findings.add(
+                    CpgFinding(
+                        message = "Complies with rule: \"${node.code}\". $passMessage",
+                        kind = Finding.Kind.Pass,
+                        node = node
+                    )
                 )
-            )
+            }
         }
 
         return findings

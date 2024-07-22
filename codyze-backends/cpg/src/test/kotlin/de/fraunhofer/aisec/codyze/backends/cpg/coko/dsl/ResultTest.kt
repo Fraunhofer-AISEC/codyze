@@ -94,8 +94,10 @@ class ResultTest {
     @Test
     fun testResultAnd() {
         assertEquals(Result.VALID, Result.VALID.and(Result.VALID))
-        assertEquals(Result.OPEN, Result.OPEN.and(Result.VALID))
         assertEquals(Result.INVALID, Result.INVALID.and(Result.VALID))
+        assertEquals(Result.INVALID, Result.VALID.and(Result.INVALID))
+        assertEquals(Result.OPEN, Result.OPEN.and(Result.VALID))
+        assertEquals(Result.OPEN, Result.VALID.and(Result.OPEN))
         assertEquals(Result.OPEN, Result.OPEN.and(Result.INVALID))
     }
 

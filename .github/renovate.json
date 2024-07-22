@@ -24,6 +24,10 @@
     {
       "groupName": "PMD packages",
       "matchPackagePrefixes": ["net.sourceforge.pmd:pmd-"]
+    },
+    {
+      "groupName": "Kotlin version",
+      "matchPackagePrefixes": ["org.jetbrains.kotlin:kotlin-", "org.jetbrains.kotlin.plugin."]
     }
   ]
 }

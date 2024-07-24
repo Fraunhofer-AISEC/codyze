@@ -17,6 +17,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.*
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Length
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Type
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.withType
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
@@ -144,4 +145,13 @@ class SignatureTest {
         for (i in args.indices) verify { with(node) { params[i].cpgFlowsTo(args[i]) } }
     }
     // TODO hasVarargs
+
+    @Test
+    fun `test signature with String length`() {
+        every { node.arguments } returns listOf(stringArgument)
+        every { stringArgument.type.typeName } returns "kotlin.String"
+        every { stringArgument.value } returns "test"
+
+        assertTrue { with(backend) { with(node) { cpgSignature(Length(4..4)) } } }
+    }
 }

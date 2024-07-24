@@ -147,11 +147,20 @@ class SignatureTest {
     // TODO hasVarargs
 
     @Test
-    fun `test signature with String length`() {
+    fun `test signature with good String length`() {
         every { node.arguments } returns listOf(stringArgument)
         every { stringArgument.type.typeName } returns "kotlin.String"
         every { stringArgument.value } returns "test"
 
         assertTrue { with(backend) { with(node) { cpgSignature(Length(4..4)) } } }
+    }
+
+    @Test
+    fun `test signature with bad String length`() {
+        every { node.arguments } returns listOf(stringArgument)
+        every { stringArgument.type.typeName } returns "kotlin.String"
+        every { stringArgument.value } returns "string"
+
+        assertFalse { with(backend) { with(node) { cpgSignature(Length(-1..4)) } } }
     }
 }

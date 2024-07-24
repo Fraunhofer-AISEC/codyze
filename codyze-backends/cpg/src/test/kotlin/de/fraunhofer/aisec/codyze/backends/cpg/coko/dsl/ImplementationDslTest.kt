@@ -62,6 +62,23 @@ class ImplementationDslTest {
     }
 
     @Test
+    fun `test cpgGetNodes with Long Range`() {
+        val op = op {
+            "Foo.fun" {
+                signature(1..10L)
+            }
+        }
+        with(simpleBackend) {
+            val nodes = op.cpgGetNodes()
+            assertEquals(
+                2,
+                nodes.size,
+                "cpgGetNodes returned ${nodes.size} node(s) instead of 2 nodes for the Op: $op."
+            )
+        }
+    }
+
+    @Test
     fun `test cpgGetNodes with unordered parameters`() {
         val op = op {
             "Foo.bar" {

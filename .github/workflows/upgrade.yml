@@ -38,7 +38,7 @@ jobs:
           distribution: "temurin"
           java-version: ${{ matrix.java-lts }}
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
       - name: Build and Test
         id: build-and-test
         run:  ./gradlew build --parallel

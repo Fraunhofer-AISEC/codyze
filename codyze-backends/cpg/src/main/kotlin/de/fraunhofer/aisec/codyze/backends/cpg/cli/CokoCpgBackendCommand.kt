@@ -49,6 +49,8 @@ class CokoCpgBackendCommand : BackendCommand<CokoBackend>("cokoCpg") {
                 includePaths = includePaths,
                 includeAllowlist = includeAllowlist,
                 includeBlocklist = includeBlocklist,
+                compilationDatabase = compilationDatabase,
+                filterCompilationDatabase = filterCompilationDatabase,
             ).normalize()
         )
     }

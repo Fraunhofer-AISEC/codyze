@@ -49,6 +49,8 @@ data class CPGConfiguration(
     val includePaths: List<Path>,
     val includeAllowlist: List<Path>,
     val includeBlocklist: List<Path>,
+    val compilationDatabase: Path? = null,
+    val filterCompilationDatabase: List<String> = emptyList<String>(),
 ) : BackendConfiguration {
     init {
         logger.info { "Analyzing following sources $source" }

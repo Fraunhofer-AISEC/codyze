@@ -48,6 +48,8 @@ class BaseCpgBackendCommand : BackendCommand<CPGBackend>("cpg") {
                 includePaths = includePaths,
                 includeAllowlist = includeAllowlist,
                 includeBlocklist = includeBlocklist,
+                compilationDatabase = compilationDatabase,
+                filterCompilationDatabase = filterCompilationDatabase,
             ).normalize()
         )
     }

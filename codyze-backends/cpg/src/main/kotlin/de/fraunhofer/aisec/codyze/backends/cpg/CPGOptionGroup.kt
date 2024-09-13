@@ -34,6 +34,19 @@ import kotlin.reflect.full.isSuperclassOf
  */
 @Suppress("UNUSED")
 class CPGOptionGroup : BackendOptions(helpName = "CPG Backend Options") {
+
+    val compilationDatabase: Path? by option(
+        "--compilationDatabase",
+        help = "Use compilation database to load project specific files and includes",
+    )
+        .path(mustExist = true, mustBeReadable = true)
+
+    val filterCompilationDatabase: List<String> by option(
+        "--filterCompilationDatabase",
+        help = "Filters compilation database for specific components",
+    )
+        .multiple()
+
     private val rawSource: List<Path> by option(
         "-s",
         "--source",

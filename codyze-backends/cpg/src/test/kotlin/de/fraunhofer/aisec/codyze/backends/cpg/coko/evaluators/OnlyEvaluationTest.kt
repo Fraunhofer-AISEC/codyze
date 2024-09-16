@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
+import de.fraunhofer.aisec.codyze.backends.cpg.createCpgConfiguration
+import de.fraunhofer.aisec.codyze.backends.cpg.dummyRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.definition
@@ -30,28 +32,24 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class NeverEvaluationTest {
+class OnlyEvaluationTest {
 
     class FooModel {
         fun first(i: Any) = op {
-            definition("Foo.first") {
+            definition("Foo.fun") {
                 signature(i)
             }
         }
     }
 
     @Test
-    fun `test never with violation`() {
+    fun `test simple only`() {
         val fooInstance = FooModel()
 
-        val backend = CokoCpgBackend(config = createCpgConfiguration(violationFile))
+        val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
 
         with(backend) {
-            // Evaluator does not allow calls to `first` with -1 or a number between 1230 and 1240
-            val evaluator = never(
-                fooInstance.first(-1),
-                fooInstance.first(1230..1240)
-            )
+            val evaluator = only(fooInstance.first(0..10))
             val findings = evaluator.evaluate(
                 EvaluationContext(
                     rule = ::dummyRule,
@@ -66,52 +64,18 @@ class NeverEvaluationTest {
         }
     }
 
-    @Test
-    fun `test never with no violations`() {
-        val fooInstance = FooModel()
-
-        val backend = CokoCpgBackend(config = createCpgConfiguration(passFile))
-
-        with(backend) {
-            // Evaluator does not allow calls to `first` with -1 or a number between 1230 and 1240
-            val evaluator = never(
-                fooInstance.first(-1),
-                fooInstance.first(1230..1240)
-            )
-            val findings = evaluator.evaluate(
-                EvaluationContext(
-                    rule = ::dummyRule,
-                    parameterMap = ::dummyRule.valueParameters.associateWith { fooInstance }
-                )
-            )
-
-            assertTrue("There were no findings which is unexpected") { findings.isNotEmpty() }
-
-            assertTrue("Not all findings are passes which is unexpected: ${findings.joinToString()}") {
-                findings.all { it.kind == Finding.Kind.Pass }
-            }
-
-            assertEquals(1, findings.size, "Found ${findings.size} finding(s) instead of one pass finding")
-        }
-    }
-
     companion object {
 
-        lateinit var violationFile: Path
-        lateinit var passFile: Path
+        lateinit var testFile: Path
 
         @BeforeAll
         @JvmStatic
         fun startup() {
             val classLoader = OnlyEvaluationTest::class.java.classLoader
 
-            val violationFileResource = classLoader.getResource("NeverEvaluationTest/NeverViolation.java")
-            assertNotNull(violationFileResource)
-            violationFile = violationFileResource.toURI().toPath()
-
-            val passFileResource = classLoader.getResource("NeverEvaluationTest/NeverPass.java")
-            assertNotNull(passFileResource)
-            passFile = passFileResource.toURI().toPath()
+            val testFileResource = classLoader.getResource("OnlyEvaluationTest/SimpleOnly.java")
+            assertNotNull(testFileResource)
+            testFile = testFileResource.toURI().toPath()
         }
     }
 }

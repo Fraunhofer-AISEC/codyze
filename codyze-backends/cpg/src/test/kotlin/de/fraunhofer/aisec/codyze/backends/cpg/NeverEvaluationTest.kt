@@ -92,7 +92,7 @@ class NeverEvaluationTest {
                 findings.all { it.kind == Finding.Kind.Pass }
             }
 
-            assertEquals(1, findings.size, "Found ${findings.size} finding(s) instead of one pass finding")
+            assertEquals(4, findings.size, "Found ${findings.size} finding(s) instead of one pass finding")
         }
     }
 

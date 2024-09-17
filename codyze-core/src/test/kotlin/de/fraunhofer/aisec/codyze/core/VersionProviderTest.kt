@@ -16,7 +16,7 @@
 package de.fraunhofer.aisec.codyze.core
 
 import org.junit.jupiter.api.Test
-import java.io.FileOutputStream
+import java.io.File
 import java.util.Properties
 import kotlin.test.assertEquals
 
@@ -34,7 +34,7 @@ class VersionProviderTest {
 
         // change property s.t. internal check fails
         val oldValue = properties.setProperty("project.name", "test") as String
-        FileOutputStream(propFile.file).use {
+        File(propFile.toURI()).outputStream().use {
             properties.store(it, null)
         }
 
@@ -49,7 +49,7 @@ class VersionProviderTest {
 
         // restore original properties file
         properties.setProperty("project.name", oldValue)
-        FileOutputStream(propFile.file).use {
+        File(propFile.toURI()).outputStream().use {
             properties.store(it, null)
         }
     }

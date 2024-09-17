@@ -38,7 +38,7 @@ jobs:
           distribution: "temurin"
           java-version: ${{ matrix.java-lts }}
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
       - name: Build and Test
         id: build-and-test
         run:  ./gradlew build --parallel
@@ -65,7 +65,7 @@ jobs:
           merge-multiple: true
       - name: Process failures
         id: process-failures
-        run: test -f all-failures/failure && echo 'hasFails=true' >> "$GITHUB_OUTPUT"
+        run: (test -f all-failures/failure && echo 'hasFails=true' || echo 'hasFails=false') >> "$GITHUB_OUTPUT"
       - if: ${{ steps.process-failures.outputs.hasFails == 'true' }}
         uses: actions/github-script@v7
         with:

@@ -39,6 +39,7 @@ import kotlin.test.assertTrue
 
 class OnlyEvaluationTest {
 
+    @Suppress("UNUSED")
     class FooModel {
         fun first(i: Any) = op {
             definition("Foo.fun") {
@@ -73,7 +74,7 @@ class OnlyEvaluationTest {
     fun `test finding creation`() {
         val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
         with(backend) {
-            val evaluator = OnlyEvaluator(listOf())
+            val evaluator = OnlyNeverEvaluator(listOf(), OnlyNeverEvaluator.Functionality.ONLY)
             // Set violating Regions to 0, 1, 2 as Line and Column
             val violating = listOf(CallExpression(), CallExpression(), CallExpression())
             violating.forEachIndexed {
@@ -91,7 +92,7 @@ class OnlyEvaluationTest {
             }
 
             // Associate INVALID to violating expressions, VALID to correct result with index 3 and OPEN to the others
-            evaluator.correctAndOpen = violating.associateWith { Result.INVALID } + correctAndOpen.associateWith {
+            evaluator.interestingNodes = violating.associateWith { Result.INVALID } + correctAndOpen.associateWith {
                 if (it.location!!.region.startLine < 4) {
                     Result.VALID
                 } else {

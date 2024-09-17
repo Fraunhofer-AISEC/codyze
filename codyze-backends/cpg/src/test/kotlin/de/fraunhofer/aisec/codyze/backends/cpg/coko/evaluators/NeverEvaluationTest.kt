@@ -39,6 +39,7 @@ import kotlin.test.assertTrue
 
 class NeverEvaluationTest {
 
+    @Suppress("UNUSED")
     class FooModel {
         fun first(i: Any) = op {
             definition("Foo.first") {
@@ -106,7 +107,7 @@ class NeverEvaluationTest {
     fun `test finding creation`() {
         val backend = CokoCpgBackend(config = createCpgConfiguration(violationFile))
         with(backend) {
-            val evaluator = NeverEvaluator(listOf())
+            val evaluator = OnlyNeverEvaluator(listOf(), OnlyNeverEvaluator.Functionality.NEVER)
             // Set violating Regions to 0, 1, 2 as Line and Column
             val violating = listOf(CallExpression(), CallExpression(), CallExpression())
             violating.forEachIndexed {
@@ -124,7 +125,7 @@ class NeverEvaluationTest {
             }
 
             // Associate INVALID to violating expressions, VALID to correct result with index 3 and OPEN to the others
-            evaluator.violating = violating.associateWith { Result.INVALID } + correctAndOpen.associateWith {
+            evaluator.interestingNodes = violating.associateWith { Result.INVALID } + correctAndOpen.associateWith {
                 if (it.location!!.region.startLine < 4) {
                     Result.VALID
                 } else {

@@ -35,7 +35,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class FollowsEvaluationTest {
+class PrecedesEvaluationTest {
 
     @Suppress("UNUSED")
     class FooModel {
@@ -58,7 +58,7 @@ class FollowsEvaluationTest {
     }
 
     @Test
-    fun `test simple follows pass`() {
+    fun `test simple precedes pass`() {
         val okFindings = findings.filter { it.kind == Finding.Kind.Pass }
         for (finding in okFindings) {
             // pass finding has to be in function that has "ok" in its name
@@ -71,7 +71,6 @@ class FollowsEvaluationTest {
     @Test
     fun `test simple follows fail`() {
         val failFindings = findings.filter { it.kind == Finding.Kind.Fail }
-
         for (finding in failFindings) {
             // fail finding should not be in function that has "ok" in its name
             assertFalse("Found FAIL finding that was from function ${finding.node?.getFunction()} -> false positive") {
@@ -117,9 +116,9 @@ class FollowsEvaluationTest {
         @BeforeAll
         @JvmStatic
         fun startup() {
-            val classLoader = FollowsEvaluationTest::class.java.classLoader
+            val classLoader = PrecedesEvaluationTest::class.java.classLoader
 
-            val testFileResource = classLoader.getResource("FollowsEvaluationTest/SimpleFollows.java")
+            val testFileResource = classLoader.getResource("PrecedesEvaluationTest/SimplePrecedes.java")
             assertNotNull(testFileResource)
             testFile = testFileResource.toURI().toPath()
 
@@ -129,7 +128,7 @@ class FollowsEvaluationTest {
             val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
 
             with(backend) {
-                val evaluator = fooInstance.first() followedBy barInstance.second()
+                val evaluator = fooInstance.first() precedes barInstance.second()
                 findings = evaluator.evaluate(
                     EvaluationContext(
                         rule = ::dummyRule,

@@ -16,6 +16,7 @@
 package de.fraunhofer.aisec.codyze.plugins.source
 
 import de.fraunhofer.aisec.codyze.plugins.PluginTest
+import java.io.File
 import kotlin.io.path.toPath
 import kotlin.test.assertNotNull
 
@@ -27,7 +28,7 @@ abstract class SourcePluginTest : PluginTest() {
         plugin.execute(
             listOf(sourcePath),
             listOf(),
-            sourcePath.parent.parent.resolve("generatedReports").resolve(resultFileName).toFile()
+            File(reportUri)
         )
     }
 }

@@ -16,11 +16,13 @@
 package de.fraunhofer.aisec.codyze.plugins.compiled
 
 import de.fraunhofer.aisec.codyze.plugins.PluginTest
+import java.io.File
 import kotlin.io.path.toPath
 import kotlin.test.assertNotNull
 
 abstract class CompiledPluginTest : PluginTest() {
     override fun scanFiles() {
+        // certain that resources are available
         val libPath =
             PluginTest::class.java.classLoader.getResource("targets/libs/demo-cloud-service-1.0.0.jar")!!
                 .toURI().toPath()
@@ -39,7 +41,7 @@ abstract class CompiledPluginTest : PluginTest() {
         plugin.execute(
             listOf(libPath),
             contextPaths,
-            libPath.parent.parent.parent.resolve("generatedReports").resolve(resultFileName).toFile()
+            File(reportUri)
         )
     }
 }

@@ -21,6 +21,8 @@ import io.github.detekt.sarif4k.Result
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.io.File
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.toPath
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -31,12 +33,19 @@ abstract class PluginTest {
     open val expectedSuccess: Boolean = true
     abstract val expectedResults: List<Result>
 
+    val reportUri by lazy {
+        // use an existing anchor in the resources directory
+        PluginTest::class.java.classLoader.getResource("targets")!!.toURI()
+            .resolve("..")
+            .resolve("generatedReports")
+            .resolve(resultFileName)
+    }
+
     @Test
     fun testResults() {
         scanFiles()
-        val resultURI = PluginTest::class.java.classLoader.getResource("generatedReports/$resultFileName")?.toURI()
-        assertNotNull(resultURI)
-        val run = extractLastRun(File(resultURI))
+
+        val run = extractLastRun(File(reportUri))
         assertNotNull(run)
 
         var results = run.results
@@ -58,9 +67,8 @@ abstract class PluginTest {
     @Test
     fun testInvocation() {
         scanFiles()
-        val resultURI = PluginTest::class.java.classLoader.getResource("generatedReports/$resultFileName")?.toURI()
-        assertNotNull(resultURI)
-        val run = extractLastRun(File(resultURI))
+
+        val run = extractLastRun(File(reportUri))
         assertNotNull(run)
 
         if (!run.invocations.isNullOrEmpty()) {
@@ -72,9 +80,8 @@ abstract class PluginTest {
 
     @AfterEach
     fun cleanup() {
-        val resultURI = PluginTest::class.java.classLoader.getResource("generatedReports/$resultFileName")?.toURI()
-        if (resultURI != null) {
-            File(resultURI).delete()
+        reportUri.runCatching {
+            this.toPath().deleteExisting()
         }
     }
 

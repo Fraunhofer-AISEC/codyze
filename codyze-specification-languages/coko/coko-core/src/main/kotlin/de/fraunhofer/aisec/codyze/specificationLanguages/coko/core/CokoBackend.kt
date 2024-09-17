@@ -44,6 +44,9 @@ interface CokoBackend : Backend {
     /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
     infix fun Op.followedBy(that: Op): Evaluator
 
+    /** For each of the nodes in [that], there is a path from at least one of the nodes in [this]. */
+    infix fun Op.precedes(that: Op): Evaluator
+
     /** Ensures the order of nodes as specified in the user configured [Order] object */
     fun order(
         baseNodes: OrderToken,

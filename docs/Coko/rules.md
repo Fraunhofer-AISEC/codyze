@@ -47,7 +47,6 @@ Therefore, it takes one `Op` as argument.
 @Rule
 fun `only calls to first with 1 allowed`(foo: Foo) = 
     only(foo.first(1))
-
 ```
 
 
@@ -89,7 +88,6 @@ fun `order of Foo`(foo: Foo) =
         - foo.first(...) // (3)!
         maybe(foo::second) // (4)!
     }
-
 ```
 
 1. This starts the type-safe builder for the order.
@@ -107,7 +105,17 @@ Compared to the `order` evaluator, `followedBy` is more flexible because `Ops` f
 @Rule
 fun `if first then second`(foo: Foo, bar: Bar) = 
     foo.first(Wildcard) followedBy bar.second()
+```
 
+## Precedes Evaluator
+The `precedes` evaluator is the logical counterpart to the `followedBy` evaluator, implementing a logical reverse implication.
+Similar to the previous evaluator, it takes two `Ops`. Whenever the second `Op` is called, the first `Op` must have been called before.
+In contrast to the `followedBy` evaluator, the second `Op`acts as the trigger for the rule and no finding is generated when only the first `Op` is encountered in any given context.
+
+```kotlin title="Rule example using precedes"
+@Rule
+fun `always first before second`(foo: Foo, bar: Bar) = 
+    foo.first(Wildcard) precedes bar.second()
 ```
 
 ## Never Evaluator
@@ -118,7 +126,6 @@ It takes one `Op` as argument.
 @Rule
 fun `never call second with 1`(foo: Foo) =
     never(foo.second(1))
-
 ```
 
 ## Argument Evaluator

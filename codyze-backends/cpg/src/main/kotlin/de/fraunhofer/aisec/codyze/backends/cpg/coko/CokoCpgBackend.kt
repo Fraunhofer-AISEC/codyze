@@ -62,6 +62,9 @@ class CokoCpgBackend(config: BackendConfiguration) :
     /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
     override infix fun Op.followedBy(that: Op): FollowsEvaluator = FollowsEvaluator(ifOp = this, thenOp = that)
 
+    /** For each of the nodes in [that], there is a path from at least one of the nodes in [this]. */
+    override infix fun Op.precedes(that: Op): PrecedesEvaluator = PrecedesEvaluator(prevOp = this, thisOp = that)
+
     /*
      * Ensures the order of nodes as specified in the user configured [Order] object.
      * The order evaluation starts at the given [baseNodes].

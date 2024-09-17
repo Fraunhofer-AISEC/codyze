@@ -74,4 +74,11 @@ interface CokoBackend : Backend {
     ): WheneverEvaluator
 
     fun whenever(premise: ConditionComponent, assertionBlock: WheneverEvaluator.() -> Unit): WheneverEvaluator
+
+    /** Verifies that the argument at [argPos] of [targetOp] stems from a call to [originOp] */
+    fun argumentOrigin(
+        targetOp: KFunction<Op>,
+        argPos: Int,
+        originOp: KFunction<Op>,
+    ): Evaluator
 }

@@ -38,10 +38,10 @@ class PrecedesEvaluator(val prevOp: Op, val thisOp: Op) : Evaluator {
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
         val (unreachableThisNodes, thisNodes) =
-            with(this@CokoCpgBackend) { thisOp.cpgGetNodes().toSet() }
+            with(this@CokoCpgBackend) { thisOp.cpgGetNodes().keys }
                 .partition { it.isUnreachable() }
 
-        val prevNodes = with(this@CokoCpgBackend) { prevOp.cpgGetNodes().toSet() }
+        val prevNodes = with(this@CokoCpgBackend) { prevOp.cpgGetNodes().keys }
 
         val findings = mutableListOf<CpgFinding>()
 

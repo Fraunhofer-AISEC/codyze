@@ -17,6 +17,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
+import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.Result
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetAllNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.findUsages
@@ -25,10 +26,15 @@ import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Op
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Rule
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
 class OnlyNeverEvaluator(private val ops: List<Op>, private val functionality: Functionality) : Evaluator {
+
+    var interestingNodes = with(this@CokoCpgBackend) {
+        ops.flatMap { it.cpgGetNodes().entries }
+    }.associate { it.toPair() }
 
     /** Default message if a violation is found */
     private val defaultFailMessage: String by lazy {
@@ -40,6 +46,12 @@ class OnlyNeverEvaluator(private val ops: List<Op>, private val functionality: F
     private val defaultPassMessage = "Call is in compliance with rule"
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
+        val (violatingNodes, correctAndOpenNodes) = getNodes()
+        val (failMessage, passMessage) = getMessages(context)
+        return createFindings(violatingNodes, correctAndOpenNodes, failMessage, passMessage)
+    }
+
+    private fun getNodes(): Pair<Set<CallExpression>, Set<CallExpression>> {
         val distinctOps = ops.toSet()
         val allNodes =
             with(this@CokoCpgBackend) { distinctOps.flatMap { it.cpgGetAllNodes() } }
@@ -49,18 +61,29 @@ class OnlyNeverEvaluator(private val ops: List<Op>, private val functionality: F
         // `matchingNodes` is a subset of `allNodes`
         // we want to find nodes in `allNodes` that are not contained in `matchingNodes`
         // since they are contrary Findings
-        val matchingNodes =
-            with(this@CokoCpgBackend) { ops.flatMap { it.cpgGetNodes() } }
-                .toSet()
+        val matchingNodes = interestingNodes.keys.toSet()
         val differingNodes = allNodes.minus(matchingNodes)
 
+        // define what violations and passes are, depending on selected functionality
+        val correctAndOpenNodes = if (functionality == Functionality.NEVER) differingNodes else matchingNodes
+        val violatingNodes = if (functionality == Functionality.NEVER) matchingNodes else differingNodes
+
+        return violatingNodes to correctAndOpenNodes
+    }
+
+    private fun getMessages(context: EvaluationContext): Pair<String, String> {
         val ruleAnnotation = context.rule.findAnnotation<Rule>()
         val failMessage = ruleAnnotation?.failMessage?.takeIf { it.isNotEmpty() } ?: defaultFailMessage
         val passMessage = ruleAnnotation?.passMessage?.takeIf { it.isNotEmpty() } ?: defaultPassMessage
+        return failMessage to passMessage
+    }
 
-        // define what violations and passes are, depending on selected functionality
-        val correctNodes = if (functionality == Functionality.NEVER) differingNodes else matchingNodes
-        val violatingNodes = if (functionality == Functionality.NEVER) matchingNodes else differingNodes
+    fun createFindings(
+        violatingNodes: Set<CallExpression>,
+        correctAndOpenNodes: Set<CallExpression>,
+        failMessage: String,
+        passMessage: String
+    ): List<CpgFinding> {
         val findings = mutableListOf<CpgFinding>()
 
         for (node in violatingNodes) {
@@ -73,15 +96,27 @@ class OnlyNeverEvaluator(private val ops: List<Op>, private val functionality: F
                 )
             )
         }
-        for (node in correctNodes) {
-            findings.add(
-                CpgFinding(
-                    message = "Complies with rule: \"${node.code}\". $passMessage",
-                    kind = Finding.Kind.Pass,
-                    node = node,
-                    relatedNodes = node.findUsages()
+
+        for (node in correctAndOpenNodes) {
+            if (interestingNodes[node] == Result.OPEN) {
+                findings.add(
+                    CpgFinding(
+                        message = "Not enough information to evaluate \"${node.code}\"",
+                        kind = Finding.Kind.Open,
+                        node = node,
+                        relatedNodes = node.findUsages()
+                    )
                 )
-            )
+            } else {
+                findings.add(
+                    CpgFinding(
+                        message = "Complies with rule: \"${node.code}\". $passMessage",
+                        kind = Finding.Kind.Pass,
+                        node = node,
+                        relatedNodes = node.findUsages()
+                    )
+                )
+            }
         }
         return findings
     }

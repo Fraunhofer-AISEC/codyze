@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
+import de.fraunhofer.aisec.codyze.backends.cpg.createCpgConfiguration
+import de.fraunhofer.aisec.codyze.backends.cpg.dummyRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.definition
@@ -59,7 +61,7 @@ class ArgumentEvaluationTest {
 
     @Test
     fun `test simple argument pass`() {
-        val okFindings = ArgumentEvaluationTest.findings.filter { it.kind == Finding.Kind.Pass }
+        val okFindings = findings.filter { it.kind == Finding.Kind.Pass }
         for (finding in okFindings) {
             // pass finding has to be in function that has "ok" in its name
             assertTrue("Found PASS finding that was from function ${finding.node?.getFunction()} -> false negative") {
@@ -70,7 +72,7 @@ class ArgumentEvaluationTest {
 
     @Test
     fun `test simple argument fail`() {
-        val failFindings = ArgumentEvaluationTest.findings.filter { it.kind == Finding.Kind.Fail }
+        val failFindings = findings.filter { it.kind == Finding.Kind.Fail }
         for (finding in failFindings) {
             // fail finding should not be in function that has "ok" in its name
             assertFalse("Found FAIL finding that was from function ${finding.node?.getFunction()} -> false positive") {
@@ -86,7 +88,7 @@ class ArgumentEvaluationTest {
 
     @Test
     fun `test simple argument not applicable`() {
-        val notApplicableFindings = ArgumentEvaluationTest.findings.filter { it.kind == Finding.Kind.NotApplicable }
+        val notApplicableFindings = findings.filter { it.kind == Finding.Kind.NotApplicable }
         for (finding in notApplicableFindings) {
             // notApplicable finding has to be in function that has "notApplicable" in its name
             assertTrue(
@@ -122,8 +124,8 @@ class ArgumentEvaluationTest {
             assertNotNull(testFileResource)
             testFile = testFileResource.toURI().toPath()
 
-            val fooInstance = ArgumentEvaluationTest.FooModel()
-            val barInstance = ArgumentEvaluationTest.BarModel()
+            val fooInstance = FooModel()
+            val barInstance = BarModel()
 
             val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
 

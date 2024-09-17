@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Fraunhofer AISEC. All rights reserved.
+ * Copyright (c) 2024, Fraunhofer AISEC. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,37 +27,39 @@ import de.fraunhofer.aisec.cpg.graph.scopes.FunctionScope
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
-import kotlin.io.path.*
+import kotlin.io.path.toPath
 import kotlin.reflect.full.valueParameters
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class FollowsEvaluationTest {
-
+class ArgumentEvaluationTest {
     @Suppress("UNUSED")
     class FooModel {
-        fun first() = op {
-            definition("Foo.first") {
+        fun strong() = op {
+            definition("Foo.strong") {
                 signature()
             }
         }
 
-        fun f2() = op {}
+        fun weak() = op {
+            definition("Foo.weak") {
+                signature()
+            }
+        }
     }
 
-    @Suppress("UNUSED")
     class BarModel {
-        fun second() = op {
-            definition("Bar.second") {
-                signature()
+        fun critical(foundation: Any?) = op {
+            definition("Bar.critical") {
+                signature(foundation)
             }
         }
     }
 
     @Test
-    fun `test simple follows pass`() {
-        val okFindings = findings.filter { it.kind == Finding.Kind.Pass }
+    fun `test simple argument pass`() {
+        val okFindings = ArgumentEvaluationTest.findings.filter { it.kind == Finding.Kind.Pass }
         for (finding in okFindings) {
             // pass finding has to be in function that has "ok" in its name
             assertTrue("Found PASS finding that was from function ${finding.node?.getFunction()} -> false negative") {
@@ -67,9 +69,8 @@ class FollowsEvaluationTest {
     }
 
     @Test
-    fun `test simple follows fail`() {
-        val failFindings = findings.filter { it.kind == Finding.Kind.Fail }
-
+    fun `test simple argument fail`() {
+        val failFindings = ArgumentEvaluationTest.findings.filter { it.kind == Finding.Kind.Fail }
         for (finding in failFindings) {
             // fail finding should not be in function that has "ok" in its name
             assertFalse("Found FAIL finding that was from function ${finding.node?.getFunction()} -> false positive") {
@@ -84,8 +85,8 @@ class FollowsEvaluationTest {
     }
 
     @Test
-    fun `test simple follows not applicable`() {
-        val notApplicableFindings = findings.filter { it.kind == Finding.Kind.NotApplicable }
+    fun `test simple argument not applicable`() {
+        val notApplicableFindings = ArgumentEvaluationTest.findings.filter { it.kind == Finding.Kind.NotApplicable }
         for (finding in notApplicableFindings) {
             // notApplicable finding has to be in function that has "notApplicable" in its name
             assertTrue(
@@ -109,25 +110,25 @@ class FollowsEvaluationTest {
 
     companion object {
 
-        lateinit var testFile: Path
+        private lateinit var testFile: Path
         lateinit var findings: List<CpgFinding>
 
         @BeforeAll
         @JvmStatic
         fun startup() {
-            val classLoader = FollowsEvaluationTest::class.java.classLoader
+            val classLoader = ArgumentEvaluationTest::class.java.classLoader
 
-            val testFileResource = classLoader.getResource("FollowsEvaluationTest/SimpleFollows.java")
+            val testFileResource = classLoader.getResource("ArgumentEvaluationTest/SimpleArgument.java")
             assertNotNull(testFileResource)
             testFile = testFileResource.toURI().toPath()
 
-            val fooInstance = FooModel()
-            val barInstance = BarModel()
+            val fooInstance = ArgumentEvaluationTest.FooModel()
+            val barInstance = ArgumentEvaluationTest.BarModel()
 
             val backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
 
             with(backend) {
-                val evaluator = fooInstance.first() followedBy barInstance.second()
+                val evaluator = argumentOrigin(barInstance::critical, 0, fooInstance::strong)
                 findings = evaluator.evaluate(
                     EvaluationContext(
                         rule = ::dummyRule,

@@ -44,6 +44,9 @@ interface CokoBackend : Backend {
     /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
     infix fun Op.followedBy(that: Op): Evaluator
 
+    /** For each of the nodes in [that], there is a path from at least one of the nodes in [this]. */
+    infix fun Op.precedes(that: Op): Evaluator
+
     /** Ensures the order of nodes as specified in the user configured [Order] object */
     fun order(
         baseNodes: OrderToken,
@@ -71,4 +74,11 @@ interface CokoBackend : Backend {
     ): WheneverEvaluator
 
     fun whenever(premise: ConditionComponent, assertionBlock: WheneverEvaluator.() -> Unit): WheneverEvaluator
+
+    /** Verifies that the argument at [argPos] of [targetOp] stems from a call to [originOp] */
+    fun argumentOrigin(
+        targetOp: KFunction<Op>,
+        argPos: Int,
+        originOp: KFunction<Op>,
+    ): Evaluator
 }

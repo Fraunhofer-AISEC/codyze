@@ -34,6 +34,7 @@ import io.github.detekt.sarif4k.Artifact
 import io.github.detekt.sarif4k.ArtifactLocation
 import io.github.detekt.sarif4k.ToolComponent
 import kotlin.io.path.absolutePathString
+import kotlin.reflect.KFunction
 
 typealias Nodes = Collection<Node>
 
@@ -61,6 +62,9 @@ class CokoCpgBackend(config: BackendConfiguration) :
     /** For each of the nodes in [this], there is a path to at least one of the nodes in [that]. */
     override infix fun Op.followedBy(that: Op): FollowsEvaluator = FollowsEvaluator(ifOp = this, thenOp = that)
 
+    /** For each of the nodes in [that], there is a path from at least one of the nodes in [this]. */
+    override infix fun Op.precedes(that: Op): PrecedesEvaluator = PrecedesEvaluator(prevOp = this, thisOp = that)
+
     /*
      * Ensures the order of nodes as specified in the user configured [Order] object.
      * The order evaluation starts at the given [baseNodes].
@@ -79,6 +83,14 @@ class CokoCpgBackend(config: BackendConfiguration) :
         OrderEvaluator(
             baseNodes = baseNodes.cpgGetNodes(),
             order = Order().apply(block)
+        )
+
+    /** Verifies that the argument at [argPos] of [targetOp] stems from a call to [originOp] */
+    override fun argumentOrigin(targetOp: KFunction<Op>, argPos: Int, originOp: KFunction<Op>): ArgumentEvaluator =
+        ArgumentEvaluator(
+            targetCall = targetOp.getOp(),
+            argPos = argPos,
+            originCall = originOp.getOp()
         )
 
     /**

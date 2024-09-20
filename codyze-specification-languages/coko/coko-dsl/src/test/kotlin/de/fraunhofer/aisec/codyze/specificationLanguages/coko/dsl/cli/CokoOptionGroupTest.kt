@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.specificationLanguages.coko.dsl.cli
 
+import com.github.ajalt.clikt.core.parse
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

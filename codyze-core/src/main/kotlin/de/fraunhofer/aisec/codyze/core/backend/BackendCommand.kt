@@ -22,7 +22,13 @@ import kotlin.reflect.KClass
  * This abstract class must be implemented by all [Backend]s that want to be selectable in the codyze-cli.
  * Remember to add the newly created [BackendCommand] to the dependency injection.
  */
-abstract class BackendCommand<T : Backend>(cliName: String? = null) : NoOpCliktCommand(hidden = true, name = cliName) {
+abstract class BackendCommand<T : Backend>(cliName: String? = null) : NoOpCliktCommand(name = cliName) {
+
+    /*
+     * Configure Clikt command
+     */
+    override val hiddenFromHelp: Boolean = true
+
     abstract val backend: KClass<T>
     abstract fun getBackend(): T
 }

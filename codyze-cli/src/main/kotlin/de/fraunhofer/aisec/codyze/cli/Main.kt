@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.aisec.codyze.cli
 
+import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.core.parse
 import com.github.ajalt.clikt.core.subcommands
 import de.fraunhofer.aisec.codyze.core.backend.BackendCommand
 import de.fraunhofer.aisec.codyze.core.executor.ExecutorCommand

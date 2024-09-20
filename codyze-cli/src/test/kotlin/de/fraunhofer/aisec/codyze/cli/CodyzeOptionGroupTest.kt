@@ -16,6 +16,7 @@
 package de.fraunhofer.aisec.codyze.cli
 
 import com.github.ajalt.clikt.core.BadParameterValue
+import com.github.ajalt.clikt.core.parse
 import de.fraunhofer.aisec.codyze.core.output.SarifBuilder
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test

@@ -16,7 +16,7 @@
 package de.fraunhofer.aisec.codyze.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.findOrSetObject
 import com.github.ajalt.clikt.output.MordantHelpFormatter
@@ -51,7 +51,10 @@ fun CliktCommand.configFileOption() =
  * config[[Path]] as context to the [[CodyzeCli]] command.
  */
 @Suppress("Unused")
-class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
+class ConfigFileParser : CliktCommand() {
+
+    override val treatUnknownOptionsAsArgs: Boolean = true
+
     val configFile: Path by configFileOption()
 
     // necessary when using 'treatUnknownOptionsAsArgs'. Contains all given arguments except for configFile
@@ -70,11 +73,17 @@ class ConfigFileParser : CliktCommand(treatUnknownOptionsAsArgs = true) {
  */
 @Suppress("Unused", "UnusedPrivateMember")
 class CodyzeCli(val configFile: Path?) :
-    NoOpCliktCommand(
-        help = "Codyze finds security flaws in source code",
-        printHelpOnEmptyArgs = true,
-        allowMultipleSubcommands = true
-    ) {
+    CliktCommand() {
+
+    /*
+     * Configure Clikt command
+     */
+    override val printHelpOnEmptyArgs: Boolean = true
+    override val allowMultipleSubcommands: Boolean = true
+
+    override fun help(context: Context): String {
+        return "Codyze finds security flaws in source code"
+    }
 
     init {
         versionOption(

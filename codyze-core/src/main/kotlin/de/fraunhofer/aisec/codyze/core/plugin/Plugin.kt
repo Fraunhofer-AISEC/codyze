@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.aisec.codyze.core.plugin
 
-import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.core.output.aggregator.Aggregate
 import de.fraunhofer.aisec.codyze.core.output.aggregator.extractLastRun
@@ -34,7 +34,13 @@ val logger = KotlinLogging.logger { }
  * Also, remember to add a page to docs/plugins.
  */
 abstract class Plugin(private val cliName: String) :
-    NoOpCliktCommand(hidden = true, name = cliName) {
+    CliktCommand(name = cliName) {
+
+    /*
+     * Configure Clikt command
+     */
+    override val hiddenFromHelp: Boolean = true
+
     private val options by PluginOptionGroup(cliName)
 
     /**

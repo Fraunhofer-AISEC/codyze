@@ -26,7 +26,12 @@ import org.koin.java.KoinJavaComponent.getKoin
  * Remember to add the newly created [ExecutorCommand] to the dependency injection.
  */
 abstract class ExecutorCommand<T : Executor>(cliName: String? = null) :
-    NoOpCliktCommand(hidden = true, name = cliName) {
+    CliktCommand(name = cliName) {
+
+    /*
+     * Configure Clikt command
+     */
+    override val hiddenFromHelp: Boolean = true
 
     /** Use the global context set in [CodyzeCli] */
     private val usedExecutors by findOrSetObject { mutableListOf<ExecutorCommand<*>>() }

@@ -18,6 +18,7 @@ package de.fraunhofer.aisec.codyze.backends.cpg
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.MultiUsageError
 import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.parse
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import de.fraunhofer.aisec.codyze.core.config.combineSources
 import de.fraunhofer.aisec.cpg.passes.*

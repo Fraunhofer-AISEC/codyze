@@ -1,8 +1,8 @@
 [versions]
 kotlin = "1.9.25"
 cpg = "8.3.0"
-koin = "3.5.6"
-koin-test = "3.5.6"
+koin = "4.0.0"
+koin-test = "4.0.0"
 detekt = "1.23.7"
 spotless = "6.25.0"
 dokka = "1.9.20"
@@ -10,7 +10,7 @@ dokka = "1.9.20"
 
 [libraries]
 sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version = "0.6.0"}  # The code can be found here: https://github.com/detekt/sarif4k. It was generated using https://app.quicktype.io/
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.7.2"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.7.3"}
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 
 # CPG official releases
@@ -30,7 +30,7 @@ cpg-language-java = { module = "de.fraunhofer.aisec:cpg-language-java", version.
 
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version = "7.0.0" }
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version = "2.24.0"}
-clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.4.0"}
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "5.0.0"}
 koin = { module = "io.insert-koin:koin-core", version.ref = "koin"}
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin-test"}
 koin-junit5 = { module = "io.insert-koin:koin-test-junit5", version.ref = "koin-test"}

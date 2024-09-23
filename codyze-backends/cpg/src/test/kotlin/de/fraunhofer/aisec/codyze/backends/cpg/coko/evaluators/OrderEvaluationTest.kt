@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
+import de.fraunhofer.aisec.codyze.backends.cpg.createCpgConfiguration
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.CokoBackend
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Evaluator
@@ -37,6 +38,7 @@ import kotlin.test.assertEquals
  * - [NfaDfaConstructionTest]
  */
 class OrderEvaluationTest {
+    @Suppress("UNUSED")
     class CokoOrderImpl {
         fun constructor(value: Int?) = constructor("Botan") { signature(value) }
         fun init() = op { "Botan.set_key" { signature(Wildcard) } }
@@ -46,6 +48,7 @@ class OrderEvaluationTest {
         fun finish() = op { "Botan.finish" { signature(Wildcard) } }
     }
 
+    @Suppress("UNUSED")
     class OtherImpl {
         fun foo() = op { definition("Botan.foo") { signature(Wildcard) } }
     }

@@ -28,20 +28,20 @@ import de.fraunhofer.aisec.cpg.graph.edge.Properties
 import kotlin.reflect.full.findAnnotation
 
 context(CokoCpgBackend)
-class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
+class PrecedesEvaluator(val prevOp: Op, val thisOp: Op) : Evaluator {
 
     private val defaultFailMessage: String by lazy {
-        "It is not followed by any of these calls: $thenOp."
+        "It is not preceded by any of these calls: $prevOp."
     }
 
     private val defaultPassMessage = ""
 
     override fun evaluate(context: EvaluationContext): List<CpgFinding> {
         val (unreachableThisNodes, thisNodes) =
-            with(this@CokoCpgBackend) { ifOp.cpgGetNodes().keys }
+            with(this@CokoCpgBackend) { thisOp.cpgGetNodes().keys }
                 .partition { it.isUnreachable() }
 
-        val thatNodes = with(this@CokoCpgBackend) { thenOp.cpgGetNodes().keys }
+        val prevNodes = with(this@CokoCpgBackend) { prevOp.cpgGetNodes().keys }
 
         val findings = mutableListOf<CpgFinding>()
 
@@ -60,25 +60,24 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
         val failMessage = ruleAnnotation?.failMessage?.takeIf { it.isNotEmpty() } ?: defaultFailMessage
         val passMessage = ruleAnnotation?.passMessage?.takeIf { it.isNotEmpty() } ?: defaultPassMessage
 
-        for (from in thisNodes) {
-            val paths = from.followNextEOGEdgesUntilHit { thatNodes.contains(it) }
+        for (target in thisNodes) {
+            val paths = target.followPrevEOGEdgesUntilHit { prevNodes.contains(it) }
 
             val newFindings =
                 if (paths.fulfilled.isNotEmpty() && paths.failed.isEmpty()) {
-                    val reachableThatNodes = paths.fulfilled.mapNotNull { it.lastOrNull() }
+                    val availablePrevNodes = paths.fulfilled.mapNotNull { it.firstOrNull() }
                     // All paths starting from `from` end in one of the `that` nodes
                     listOf(
                         CpgFinding(
-                            message = "Complies with rule: \"${from.code}\" is followed by ${
-                                reachableThatNodes.joinToString(
-                                    prefix = "\"",
-                                    separator = "\", \"",
-                                    postfix = "\"",
-                                    transform = { node -> node.code ?: node.toString() }
-                                )}. $passMessage",
+                            message = "Complies with rule: ${availablePrevNodes.joinToString(
+                                prefix = "\"",
+                                separator = "\", \"",
+                                postfix = "\"",
+                                transform = { node -> node.code ?: node.toString() }
+                            )} precedes ${target.code}. $passMessage",
                             kind = Finding.Kind.Pass,
-                            node = from,
-                            relatedNodes = reachableThatNodes
+                            node = target,
+                            relatedNodes = availablePrevNodes
                         )
                     )
                 } else {
@@ -87,12 +86,12 @@ class FollowsEvaluator(val ifOp: Op, val thenOp: Op) : Evaluator {
                         // make a finding for each failed path
                         CpgFinding(
                             message =
-                            "Violation against rule in execution path from \"${from.code}\". $failMessage",
+                            "Violation against rule in execution path to \"${target.code}\". $failMessage",
                             kind = Finding.Kind.Fail,
-                            node = from,
+                            node = target,
                             // improve: specify paths more precisely
                             // for example one branch passes and one fails skip part in path after branches are combined
-                            relatedNodes = failedPath
+                            relatedNodes = listOf(failedPath.first())
                         )
                     }
                 }

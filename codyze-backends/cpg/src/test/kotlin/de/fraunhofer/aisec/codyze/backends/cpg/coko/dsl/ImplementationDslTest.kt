@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetAllNodes
-import de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl.cpgGetNodes
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.Wildcard
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.op
-import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.signature
+import de.fraunhofer.aisec.codyze.backends.cpg.createCpgConfiguration
+import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.io.path.toPath
@@ -36,7 +33,7 @@ class ImplementationDslTest {
                 signature(2)
             }
         }
-        with(backend) {
+        with(simpleBackend) {
             val allNodes = op.cpgGetAllNodes()
             assertEquals(
                 5,
@@ -53,7 +50,7 @@ class ImplementationDslTest {
                 signature(1..10)
             }
         }
-        with(backend) {
+        with(simpleBackend) {
             val nodes = op.cpgGetNodes()
             assertEquals(
                 2,
@@ -73,7 +70,7 @@ class ImplementationDslTest {
                 }
             }
         }
-        with(backend) {
+        with(simpleBackend) {
             val nodes = op.cpgGetNodes()
             assertEquals(
                 3,
@@ -85,17 +82,20 @@ class ImplementationDslTest {
 
     companion object {
 
-        lateinit var backend: CokoCpgBackend
+        lateinit var simpleBackend: CokoCpgBackend
 
         @BeforeAll
         @JvmStatic
         fun startup() {
             val classLoader = ImplementationDslTest::class.java.classLoader
 
-            val testFileResource = classLoader.getResource("ImplementationDslTest/SimpleJavaFile.java")
-            assertNotNull(testFileResource)
-            val testFile = testFileResource.toURI().toPath()
-            backend = CokoCpgBackend(config = createCpgConfiguration(testFile))
+            val simpleFileResource = classLoader.getResource("ImplementationDslTest/SimpleJavaFile.java")
+
+            assertNotNull(simpleFileResource)
+
+            val simpleFile = simpleFileResource.toURI().toPath()
+
+            simpleBackend = CokoCpgBackend(config = createCpgConfiguration(simpleFile))
         }
     }
 }

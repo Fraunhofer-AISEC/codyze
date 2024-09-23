@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.aisec.codyze.backends.cpg
+package de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators
 
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CokoCpgBackend
 import de.fraunhofer.aisec.codyze.backends.cpg.coko.CpgFinding
+import de.fraunhofer.aisec.codyze.backends.cpg.createCpgConfiguration
+import de.fraunhofer.aisec.codyze.backends.cpg.dummyRule
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.EvaluationContext
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.Finding
 import de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.definition
@@ -35,6 +37,7 @@ import kotlin.test.assertTrue
 
 class FollowsEvaluationTest {
 
+    @Suppress("UNUSED")
     class FooModel {
         fun first() = op {
             definition("Foo.first") {
@@ -45,6 +48,7 @@ class FollowsEvaluationTest {
         fun f2() = op {}
     }
 
+    @Suppress("UNUSED")
     class BarModel {
         fun second() = op {
             definition("Bar.second") {

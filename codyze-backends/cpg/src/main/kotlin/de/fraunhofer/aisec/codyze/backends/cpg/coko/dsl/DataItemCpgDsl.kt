@@ -42,9 +42,9 @@ fun DataItem<*>.cpgGetAllNodes(): Nodes =
 context(CokoBackend)
 fun DataItem<*>.cpgGetNodes(): Nodes {
     return when (this@DataItem) {
-        is ReturnValueItem -> op.cpgGetNodes().flatMap { it.getVariableInNextDFGOrThis() }
+        is ReturnValueItem -> op.cpgGetNodes().flatMap { it.key.getVariableInNextDFGOrThis() }
         is Value -> this@DataItem.getNodes()
-        is ArgumentItem -> op.cpgGetNodes().map { it.arguments[index] } // TODO: Do we count starting at 0 or 1?
+        is ArgumentItem -> op.cpgGetNodes().map { it.key.arguments[index] } // TODO: Do we count starting at 0 or 1?
     }
 }
 

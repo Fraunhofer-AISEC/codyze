@@ -1,0 +1,1 @@
+sourceset_dependencies = '{":codyze-specification-languages:coko:coko-dsl:dokkaHtmlPartial/main":[],":codyze-cli:dokkaHtmlPartial/main":[],":codyze-specification-languages:coko:coko-core:dokkaHtmlPartial/main":[],":codyze-backends:cpg:dokkaHtmlPartial/main":[],":codyze-core:dokkaHtmlPartial/main":[]}'

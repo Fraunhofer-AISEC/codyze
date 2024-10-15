@@ -23,6 +23,7 @@ import de.fraunhofer.aisec.codyze.core.backend.BackendConfiguration
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.TranslationManager
 import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.frontends.CompilationDatabase
 import io.github.detekt.sarif4k.Artifact
 import io.github.detekt.sarif4k.ArtifactLocation
 import io.github.detekt.sarif4k.ToolComponent
@@ -71,6 +72,12 @@ open class CPGBackend(config: BackendConfiguration) : Backend {
                 .symbols(symbols)
                 .useUnityBuild(useUnityBuild)
                 .processAnnotations(processAnnotations)
+
+        compilationDatabase?.let {
+            translationConfiguration.useCompilationDatabase(
+                CompilationDatabase.fromFile(it.toFile(), filterCompilationDatabase)
+            )
+        }
 
         // TODO: very hacky, but needed for the Go frontend
         source.firstOrNull()?.parent?.toFile().let { translationConfiguration.topLevel(it) }

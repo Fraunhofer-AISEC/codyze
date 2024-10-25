@@ -25,8 +25,8 @@ dependencies {
     implementation("com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0")
 
     // https://mvnrepository.com/artifact/net.sourceforge.pmd/
-    implementation("net.sourceforge.pmd:pmd-core:7.6.0")
-    implementation("net.sourceforge.pmd:pmd-java:7.6.0")
+    implementation("net.sourceforge.pmd:pmd-core:7.7.0")
+    implementation("net.sourceforge.pmd:pmd-java:7.7.0")
 }
 
 publishing {

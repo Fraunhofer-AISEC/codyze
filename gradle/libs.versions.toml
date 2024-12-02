@@ -28,7 +28,7 @@ cpg-language-java = { module = "de.fraunhofer.aisec:cpg-language-java", version.
 #cpg-analysis = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-analysis", version.ref = "cpg"}
 #cpg-language-go = { module = "com.github.Fraunhofer-AISEC.cpg:cpg-language-go", version.ref = "cpg"}
 
-kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version = "7.0.0" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version = "7.0.3" }
 log4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version = "2.24.2"}
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "5.0.1"}
 koin = { module = "io.insert-koin:koin-core", version.ref = "koin"}

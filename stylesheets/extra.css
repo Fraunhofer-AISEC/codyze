@@ -1,0 +1,12 @@
+[data-md-color-scheme="light"] {
+  --md-primary-fg-color:        #001433;
+  --md-accent-fg-color:         #728bab;
+} 
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #011229;
+  /* need to set the typeset color because it uses the primary color otherwise*/
+  --md-typeset-a-color:         #5981b4;
+  --md-hue: 220;
+  --md-accent-fg-color:         #a4bede;
+}

@@ -1,0 +1,76 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>op</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../../index.html">
+                            codyze
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":codyze-specification-languages:coko:coko-core:dokkaHtmlPartial/main">jvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="member" id="content" pageids="coko-core::de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl//op/#kotlin.Function1[de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl.FunctionOp,kotlin.Unit]/PointingToDeclaration//-1673270210">
+  <div class="breadcrumbs"><a href="../index.html">coko-core</a><span class="delimiter">/</span><a href="index.html">de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.dsl</a><span class="delimiter">/</span><span class="current">op</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>op</span></span></h1>
+  </div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-specification-languages:coko:coko-core:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="op.html"><span class="token function">op</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><a href="-function-op/index.html">FunctionOp</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-function-op/index.html">FunctionOp</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-specification-languages/coko/coko-core/src/main/kotlin/de/fraunhofer/aisec/codyze/specificationLanguages/coko/core/dsl/Op.kt#L178">source</a>)</span></span></div><p class="paragraph">Create a <a href="-function-op/index.html">FunctionOp</a>.</p><p class="paragraph">A full example:</p><div class="sample-container"><pre><code class="block lang-kt" theme="idea">op {<br>  definition("my.fully.qualified.name") {<br>     signature {<br>         - arg1<br>         - arg2<br>         - arg3<br>     }<br>     signature(arg1, arg2)<br>     signature {<br>         - arg2<br>         - arg3<br>     }<br>  }<br>  "my.other.function" { // the call to 'definition' can be omitted<br>     signature(arg2, arg1)<br>  }<br>}</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph">This would model the functions:</p><div class="sample-container"><pre><code class="block lang-kt" theme="idea">my.fully.qualified.name(arg1,arg2, arg3)<br>my.fully.qualified.name(arg1,arg2)<br>my.fully.qualified.name(arg2, arg3)<br><br>my.other.function(arg2, arg1)</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":codyze-specification-languages:coko:coko-core:dokkaHtmlPartial/main" data-filterable-set=":codyze-specification-languages:coko:coko-core:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>block</span></span></u></div></span></div><div><div class="title"><p class="paragraph">defines the <a href="../de.fraunhofer.aisec.codyze.specificationLanguages.coko.core.modelling/-definition/index.html">Definition</a>s of this <a href="-function-op/index.html">FunctionOp</a></p></div></div></div></div></div></div></div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

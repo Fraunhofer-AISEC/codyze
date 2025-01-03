@@ -1,0 +1,378 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>CokoCpgBackend</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../../index.html">
+                            codyze
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":codyze-backends:cpg:dokkaHtmlPartial/main">jvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="cpg::de.fraunhofer.aisec.codyze.backends.cpg.coko/CokoCpgBackend///PointingToDeclaration//1305875930">
+  <div class="breadcrumbs"><a href="../../index.html">cpg</a><span class="delimiter">/</span><a href="../index.html">de.fraunhofer.aisec.codyze.backends.cpg.coko</a><span class="delimiter">/</span><span class="current">CokoCpgBackend</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Coko</span><wbr><span>Cpg</span><wbr><span><span>Backend</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">CokoCpgBackend</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">config<span class="token operator">: </span><a href="../../../../codyze-core/de.fraunhofer.aisec.codyze.core.backend/-backend-configuration/index.html">BackendConfiguration</a></span></span><span class="token punctuation">)</span> : <a href="../../de.fraunhofer.aisec.codyze.backends.cpg/-c-p-g-backend/index.html">CPGBackend</a>, <a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-coko-backend/index.html">CokoBackend</a><span class="clearfix"><span class="floating-right">(<a href="https://github.com/Fraunhofer-AISEC/codyze/blob/main/codyze-backends/cpg/src/main/kotlin/de/fraunhofer/aisec/codyze/backends/cpg/coko/CokoCpgBackend.kt#L44">source</a>)</span></span></div><p class="paragraph">The CPG backend for Coko.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-566308333%2FConstructors%2F1305875930" anchor-label="CokoCpgBackend" id="-566308333%2FConstructors%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-coko-cpg-backend.html"><span>Coko</span><wbr><span>Cpg</span><wbr><span><span>Backend</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-566308333%2FConstructors%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">config<span class="token operator">: </span><a href="../../../../codyze-core/de.fraunhofer.aisec.codyze.core.backend/-backend-configuration/index.html">BackendConfiguration</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1831433173%2FProperties%2F1305875930" anchor-label="artifacts" id="-1831433173%2FProperties%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="artifacts.html"><span><span>artifacts</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1831433173%2FProperties%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="artifacts.html">artifacts</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html">Path</a><span class="token punctuation">, </span><span data-unresolved-link="io.github.detekt.sarif4k/Artifact///PointingToDeclaration/">Artifact</span><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1714830890%2FProperties%2F1305875930" anchor-label="backendData" id="1714830890%2FProperties%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg/-c-p-g-backend/backend-data.html"><span>backend</span><wbr><span><span>Data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1714830890%2FProperties%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg/-c-p-g-backend/backend-data.html">backendData</a><span class="token operator">: </span><span data-unresolved-link="de.fraunhofer.aisec.cpg/TranslationResult///PointingToDeclaration/">TranslationResult</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="361206638%2FProperties%2F1305875930" anchor-label="cpg" id="361206638%2FProperties%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg/-c-p-g-backend/cpg.html"><span><span>cpg</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="361206638%2FProperties%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg/-c-p-g-backend/cpg.html">cpg</a><span class="token operator">: </span><span data-unresolved-link="de.fraunhofer.aisec.cpg/TranslationResult///PointingToDeclaration/">TranslationResult</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="711299848%2FProperties%2F1305875930" anchor-label="cpg" id="711299848%2FProperties%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_PROPERTY" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg.html"><span><span>cpg</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="711299848%2FProperties%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-coko-backend/index.html">CokoBackend</a><span class="token punctuation">.</span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg.html">cpg</a><span class="token operator">: </span><span data-unresolved-link="de.fraunhofer.aisec.cpg/TranslationResult///PointingToDeclaration/">TranslationResult</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-473842680%2FProperties%2F1305875930" anchor-label="toolInfo" id="-473842680%2FProperties%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="tool-info.html"><span>tool</span><wbr><span><span>Info</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-473842680%2FProperties%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="tool-info.html">toolInfo</a><span class="token operator">: </span><span data-unresolved-link="io.github.detekt.sarif4k/ToolComponent///PointingToDeclaration/">ToolComponent</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-123458243%2FFunctions%2F1305875930" anchor-label="argumentOrigin" id="-123458243%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="argument-origin.html"><span>argument</span><wbr><span><span>Origin</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-123458243%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="argument-origin.html"><span class="token function">argumentOrigin</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">targetOp<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-function/index.html">KFunction</a><span class="token operator">&lt;</span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">argPos<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">originOp<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-function/index.html">KFunction</a><span class="token operator">&lt;</span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators/-argument-evaluator/index.html">ArgumentEvaluator</a></div><div class="brief "><p class="paragraph">Verifies that the argument at <a href="argument-origin.html">argPos</a> of <a href="argument-origin.html">targetOp</a> stems from a call to <a href="argument-origin.html">originOp</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1922990109%2FFunctions%2F1305875930" anchor-label="cpgCall" id="-1922990109%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-call.html"><span>cpg</span><wbr><span><span>Call</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1922990109%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-coko-backend/index.html">CokoBackend</a><span class="token punctuation">.</span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-call.html"><span class="token function">cpgCall</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">predicate<span class="token operator">: </span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/CallExpression///PointingToDeclaration/">CallExpression</span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span>{ true }</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/CallExpression///PointingToDeclaration/">CallExpression</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a list of <span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/CallExpression///PointingToDeclaration/">CallExpression</span>s with the matching <a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-call.html">name</a> and fulfilling <a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-call.html">predicate</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1079019174%2FFunctions%2F1305875930" anchor-label="cpgCallFqn" id="1079019174%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-call-fqn.html"><span>cpg</span><wbr><span>Call</span><wbr><span><span>Fqn</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1079019174%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-coko-backend/index.html">CokoBackend</a><span class="token punctuation">.</span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-call-fqn.html"><span class="token function">cpgCallFqn</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fqn<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">predicate<span class="token operator">: </span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/CallExpression///PointingToDeclaration/">CallExpression</span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span>{ true }</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/CallExpression///PointingToDeclaration/">CallExpression</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a list of <span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/CallExpression///PointingToDeclaration/">CallExpression</span>s with the matching <a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-call-fqn.html">fqn</a> (fully-qualified name) and fulfilling <a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-call-fqn.html">predicate</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="190342811%2FFunctions%2F1305875930" anchor-label="cpgConstructor" id="190342811%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-constructor.html"><span>cpg</span><wbr><span><span>Constructor</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="190342811%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-coko-backend/index.html">CokoBackend</a><span class="token punctuation">.</span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-constructor.html"><span class="token function">cpgConstructor</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">classFqn<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">predicate<span class="token operator">: </span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/CallExpression///PointingToDeclaration/">CallExpression</span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span>{ true }</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/ConstructExpression///PointingToDeclaration/">ConstructExpression</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a list of <span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/ConstructExpression///PointingToDeclaration/">ConstructExpression</span>s with the matching <a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-constructor.html">classFqn</a> and fulfilling <a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-constructor.html">predicate</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-608752771%2FFunctions%2F1305875930" anchor-label="cpgMemberExpr" id="-608752771%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-member-expr.html"><span>cpg</span><wbr><span>Member</span><wbr><span><span>Expr</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-608752771%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-coko-backend/index.html">CokoBackend</a><span class="token punctuation">.</span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-member-expr.html"><span class="token function">cpgMemberExpr</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">predicate<span class="token operator">: </span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/MemberExpression///PointingToDeclaration/">MemberExpression</span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/MemberExpression///PointingToDeclaration/">MemberExpression</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a list of <span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.statements.expressions/MemberExpression///PointingToDeclaration/">MemberExpression</span>s with the matching something.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="572748768%2FFunctions%2F1305875930" anchor-label="cpgVariable" id="572748768%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-variable.html"><span>cpg</span><wbr><span><span>Variable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="572748768%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-coko-backend/index.html">CokoBackend</a><span class="token punctuation">.</span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-variable.html"><span class="token function">cpgVariable</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">name<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.declarations/ValueDeclaration///PointingToDeclaration/">ValueDeclaration</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a list of <span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.declarations/ValueDeclaration///PointingToDeclaration/">ValueDeclaration</span>s with the matching name.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1070533817%2FFunctions%2F1305875930" anchor-label="cpgVariableFqn" id="1070533817%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-variable-fqn.html"><span>cpg</span><wbr><span>Variable</span><wbr><span><span>Fqn</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1070533817%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-coko-backend/index.html">CokoBackend</a><span class="token punctuation">.</span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-variable-fqn.html"><span class="token function">cpgVariableFqn</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fqn<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.declarations/ValueDeclaration///PointingToDeclaration/">ValueDeclaration</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a list of <span data-unresolved-link="de.fraunhofer.aisec.cpg.graph.declarations/ValueDeclaration///PointingToDeclaration/">ValueDeclaration</span>s with the matching <a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.dsl/cpg-variable-fqn.html">fqn</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1444897127%2FFunctions%2F1305875930" anchor-label="followedBy" id="1444897127%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="followed-by.html"><span>followed</span><wbr><span><span>By</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1444897127%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">infix override </span><span class="token keyword">fun </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a><span class="token punctuation">.</span><a href="followed-by.html"><span class="token function">followedBy</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">that<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators/-follows-evaluator/index.html">FollowsEvaluator</a></div><div class="brief "><p class="paragraph">For each of the nodes in <a href="../../../../codyze-backends/cpg/de.fraunhofer.aisec.codyze.backends.cpg.coko/-coko-cpg-backend/[60]this[62].html">this</a>, there is a path to at least one of the nodes in <a href="followed-by.html">that</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-416684143%2FFunctions%2F1305875930" anchor-label="never" id="-416684143%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="never.html"><span><span>never</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-416684143%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="never.html"><span class="token function">never</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>ops<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators/-only-never-evaluator/index.html">OnlyNeverEvaluator</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1905071411%2FFunctions%2F1305875930" anchor-label="only" id="1905071411%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="only.html"><span><span>only</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1905071411%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="only.html"><span class="token function">only</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>ops<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators/-only-never-evaluator/index.html">OnlyNeverEvaluator</a></div><div class="brief "><p class="paragraph">Ensures that all calls to the <a href="only.html">ops</a> have arguments that fit the parameters specified in <a href="only.html">ops</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2037965953%2FFunctions%2F1305875930" anchor-label="order" id="2037965953%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="order.html"><span><span>order</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2037965953%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="order.html"><span class="token function">order</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">baseNodes<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a><span class="token punctuation">, </span></span><span class="parameter ">block<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-order/index.html">Order</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators/-order-evaluator/index.html">OrderEvaluator</a></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="order.html"><span class="token function">order</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">baseNodes<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.ordering/-order-token/index.html">OrderToken</a><span class="token punctuation">, </span></span><span class="parameter ">block<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-order/index.html">Order</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators/-order-evaluator/index.html">OrderEvaluator</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1798871105%2FFunctions%2F1305875930" anchor-label="precedes" id="1798871105%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="precedes.html"><span><span>precedes</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1798871105%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">infix override </span><span class="token keyword">fun </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a><span class="token punctuation">.</span><a href="precedes.html"><span class="token function">precedes</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">that<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-op/index.html">Op</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../de.fraunhofer.aisec.codyze.backends.cpg.coko.evaluators/-precedes-evaluator/index.html">PrecedesEvaluator</a></div><div class="brief "><p class="paragraph">For each of the nodes in <a href="precedes.html">that</a>, there is a path from at least one of the nodes in <a href="../../../../codyze-backends/cpg/de.fraunhofer.aisec.codyze.backends.cpg.coko/-coko-cpg-backend/[60]this[62].html">this</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1311043511%2FFunctions%2F1305875930" anchor-label="whenever" id="-1311043511%2FFunctions%2F1305875930" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main"></a>
+          <div class="table-row" data-filterable-current=":codyze-backends:cpg:dokkaHtmlPartial/main" data-filterable-set=":codyze-backends:cpg:dokkaHtmlPartial/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="whenever.html"><span><span>whenever</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1311043511%2FFunctions%2F1305875930"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":codyze-backends:cpg:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="whenever.html"><span class="token function">whenever</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">premise<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.modelling/-condition-component/index.html">ConditionComponent</a><span class="token punctuation">, </span></span><span class="parameter ">assertionBlock<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-whenever-evaluator/index.html">WheneverEvaluator</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-whenever-evaluator/index.html">WheneverEvaluator</a></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="whenever.html"><span class="token function">whenever</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">premise<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.dsl/-condition/index.html">Condition</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core.modelling/-condition-component/index.html">ConditionComponent</a><span class="token punctuation">, </span></span><span class="parameter ">assertionBlock<span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-whenever-evaluator/index.html">WheneverEvaluator</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../../codyze-specification-languages/coko/coko-core/de.fraunhofer.aisec.codyze.specification-languages.coko.core/-whenever-evaluator/index.html">WheneverEvaluator</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

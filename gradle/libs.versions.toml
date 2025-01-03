@@ -42,7 +42,7 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 
 # test
 junit-bom = { module = "org.junit:junit-bom", version = "5.11.4" }
-mockk = { module = "io.mockk:mockk", version = "1.13.13"}
+mockk = { module = "io.mockk:mockk", version = "1.13.14"}
 
 # this is necessary for the plugins to be used in the buildSrc folder
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

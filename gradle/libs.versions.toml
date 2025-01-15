@@ -4,7 +4,7 @@ cpg = "8.3.0"
 koin = "4.0.1"
 koin-test = "4.0.1"
 detekt = "1.23.7"
-spotless = "7.0.1"
+spotless = "7.0.2"
 dokka = "1.9.20"
 
 

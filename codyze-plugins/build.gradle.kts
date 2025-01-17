@@ -19,7 +19,7 @@ dependencies {
      */
     // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs
     // it is necessary to exclude saxon because of conflicts with same transitive dependency in PMD
-    implementation("com.github.spotbugs:spotbugs:4.8.6") {
+    implementation("com.github.spotbugs:spotbugs:4.9.0") {
         exclude(group = "net.sf.saxon", module = "Saxon-HE")
     }
     implementation("com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0")

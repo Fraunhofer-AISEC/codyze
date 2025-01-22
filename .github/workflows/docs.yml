@@ -12,17 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Ensure Java installation to run Gradle
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: 17
-      - name: 'Setup Gradle'
-        uses: gradle/actions/setup-gradle@v4
-      - name: 'Build API pages'
-        run: |
-            ./gradlew dokkaHtmlMultiModule \
-              -Dorg.gradle.internal.repository.max.tentatives=5 \
-              -Dorg.gradle.internal.repository.initial.backoff=10000
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'

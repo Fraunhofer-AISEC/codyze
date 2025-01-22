@@ -1,9 +1,0 @@
-ignore:
-  - "**/cli/Main.kt"
-  - "**/codyze/core/plugin/*.kt"
-coverage:
-  status:
-    project:
-      default:
-        target: 75%
-        threshold: 1%

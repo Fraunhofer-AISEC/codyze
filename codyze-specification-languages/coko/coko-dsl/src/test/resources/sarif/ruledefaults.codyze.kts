@@ -1,3 +1,0 @@
-@Rule()
-fun rule() =
-    Unit

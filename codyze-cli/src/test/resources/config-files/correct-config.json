@@ -1,7 +1,0 @@
-{
-  "good-findings": false,
-  "output": "out",
-  "test-executor-subcommand": {
-    "spec": "spec"
-  }
-}
